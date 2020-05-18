@@ -2,6 +2,7 @@
 #import os, re, shutil
 import os, re
 import importlib
+from TauFW.PicoProducer.batch import moddir
 from TauFW.PicoProducer.tools.utils import execute
 from abc import ABCMeta, abstractmethod
 
@@ -13,7 +14,7 @@ def getbatch(arg,verb=0):
     system = arg.batch
   else:
     raise IOError("Did not recognize argument",arg)
-  modfile = os.path(moddir,system+".py")
+  modfile = os.path.join(moddir,system+".py")
   modpath = "TauFW.PicoProducer.batch.%s"%(system)
   assert os.path.isfile(modfile), "Did not find python module %s for batch system '%s'"%(modfile,system)
   module  = importlib.import_module(modpath)
