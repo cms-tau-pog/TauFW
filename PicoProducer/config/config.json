@@ -1,0 +1,16 @@
+{
+  "basedir": "/afs/cern.ch/user/i/ineuteli/analysis/CMSSW_10_3_3/src/TauFW/PicoProducer", 
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
+  "outdir": "/eos/user/i/ineuteli/output/$ERA/$CHANNEL/$SAMPLE", 
+  "nanodir": "/eos/user/i/ineuteli/samples/nano/$ERA/$DAS", 
+  "picodir": "/eos/user/i/ineuteli/analysis/$ERA/$GROUP", 
+  "channels": {
+    "test": "test.py"
+  }, 
+  "eras": {
+    "2017": "samples_2017.py", 
+    "2016": "samples_2016.py"
+  }, 
+  "batch": "HTCondor", 
+  "nfilesperjob": 1
+}

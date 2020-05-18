@@ -1,0 +1,18 @@
+# Submit as
+#   condor_submit submit_HTCondor.sub 'mylogfile=log/myjob.$(ClusterId).$(ProcId).log' -queue arg from args.txt
+universe              = vanilla
+executable            = python/batch/submit_HTCondor.sh
+arguments             = $(arg)
+initialdir            = output
+mylogfile             = log/job.$(ClusterId).$(ProcId).log
+log                   = $(mylogfile)
+output                = $(mylogfile)
+error                 = $(mylogfile)
+should_transfer_files = yes
+use_x509userproxy     = true
+getenv                = true
+environment           = JOBID=$(ClusterId);TASKID=$(ProcId)
+#+JobFlavour           = espresso
++MaxRuntime           = 120
+#+AccountingGroup      = "group_u_BE.ABP.SLAP"
+#queue arg from args.txt
