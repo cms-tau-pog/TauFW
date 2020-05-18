@@ -5,7 +5,6 @@ from TauFW.PicoProducer.tools.utils import execute
 import getpass, platform
 
 
-
 def getsedir():
   """Guess the storage element path for a given user and host."""
   user  = getpass.getuser()
@@ -16,9 +15,11 @@ def getsedir():
   elif "t3" in host and "psi.ch" in host:
     sedir = "/pnfs/psi.ch/cms/trivcat/store/user/%s/"%(user)
   return sedir
+  
 
 def getstorage(path,verb=0):
   if path.startswith('/eos/'):
+    from TauFW.PicoProducer.storage.EOS import EOS
     storage = EOS(path,verb=verb)
   #if path.startswith('/castor/'): return Castor(path,verb=verb)
   #if path.startswith('/pnfs/psi.ch/'): return PSI_T3(path,verb=verb)
@@ -145,24 +146,8 @@ class StorageSystem(object):
     return self.execute("%s %s %s%s"%(self.chmdcmd,perm,self.chmdurl,file))
   
 
-
 class Local(StorageSystem):
   
   def __init__(self,path,verb=0,ensure=False):
     super(Local,self).__init__(path,verb=verb,ensure=ensure)
   
-
-
-class EOS(StorageSystem):
-  
-  def __init__(self,path,verb=0,ensure=False):
-    super(EOS,self).__init__(path,verb=verb,ensure=ensure)
-    mounted = os.path.exists('/eos/')
-    if not mounted:
-      self.cpcmd   = 'cp' #xrdcp
-      self.chmdprm = '2777'
-      self.tmpurl  = '/tmp/$USER/'
-      self.prefix  = "root://eoscms.cern.ch/"
-      self.fileurl = "root://eoscms/"
-  
-
