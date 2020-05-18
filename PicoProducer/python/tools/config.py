@@ -6,7 +6,7 @@ import importlib
 from collections import OrderedDict
 from TauFW.PicoProducer.tools.file import ensuredir, ensurefile
 from TauFW.PicoProducer.tools.log import Logger, color, bold, header
-from TauFW.PicoProducer.storage.Storage import getsedir
+from TauFW.PicoProducer.storage.StorageSystem import getsedir
 LOG = Logger('GLOB')
 
 # DEFAULTS

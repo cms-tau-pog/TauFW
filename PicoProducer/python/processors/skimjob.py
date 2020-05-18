@@ -94,7 +94,7 @@ p.run()
 
 # COPY
 if copydir:
-  from TauFW.PicoProducer.storage.Storage import getstorage
+  from TauFW.PicoProducer.storage.StorageSystem import getstorage
   store = getstorage(copydir,verb=2)
   outfiles = os.path.join(outdir,"*%s.root"%postfix)
   store.cp(outfiles)
