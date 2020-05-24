@@ -14,11 +14,11 @@ There are two modes:
 * [Configuration](#Configuration)<br>
   * [Skimming](#Skimming)
   * [Analysis](#Analysis)
-  * [Era & Sample list](#Era--Sample-List)
+  * [Sample list](#Sample-list)
 * [Samples](#Samples)<br>
 * [Plug-ins](#Plug-ins)<br>
-* [Local run](#Local_Run)<br>
-* [Batch submission](#Batch_Submission)<br>
+* [Local run](#Local-run)<br>
+* [Batch submission](#Batch-submission)<br>
   * [Submission](#Submission)
   * [Resubmission](#Resubmission)
   * [Finalize](#Finalize)
