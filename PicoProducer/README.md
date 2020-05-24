@@ -27,9 +27,9 @@ pico.py set <variables> <value>
 ```
 The configurable variables include
 * `batch`: Batch system to use (e.g. `HTCondor`)
-* `jobdir`: Directory to output job configuration and log files.
+* `jobdir`: Directory to output job configuration and log files (e.g. `output/$ERA/$CHANNEL/$SAMPLE`)
 * `nanodir`: Directory to store the output nanoAOD files from skimming jobs.
-* `outdir`: Directory to copy the output pico files from analysis jobs to.
+* `outdir`: Directory to copy the output pico files from analysis jobs.
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
 * `nfilesperjob`: Default number of files per job.
 The directories can contain variables with `$` like
@@ -111,20 +111,20 @@ pico.py submit -y 2016 -c mutau
 This will create the the necessary output directories for job out put.
 A JSON file is created to keep track of the job input and output.
 
+You can specify a sample by a pattern to `-s`, or exclude one with `-x`. Glob patterns like `*` wildcards are allowed.
+To give the output files a specific tag, use `-t`.
 
 ### Status
-Check the status with
+Check the job status with
 ```
 pico.py status -y 2016 -c mutau
 ```
-
 
 ### Resubmission
 If jobs failed, you can resubmit with
 ```
 pico.py resubmit -y 2016 -c mutau
 ```
-
 
 ### Finalize
 ROOT files from analysis output can be `hadd`'ed into one pico file:
