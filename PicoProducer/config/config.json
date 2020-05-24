@@ -1,9 +1,6 @@
 {
   "basedir": "/afs/cern.ch/user/i/ineuteli/analysis/CMSSW_10_3_3/src/TauFW/PicoProducer", 
   "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
-  "outdir": "/eos/user/i/ineuteli/output/$ERA/$CHANNEL/$SAMPLE", 
-  "nanodir": "/eos/user/i/ineuteli/samples/nano/$ERA/$DAS", 
-  "picodir": "/eos/user/i/ineuteli/analysis/$ERA/$GROUP", 
   "channels": {
     "skim": "skimjob.py", 
     "test": "test.py", 
