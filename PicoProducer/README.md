@@ -16,12 +16,12 @@ There are two modes:
   * [Analysis](#Analysis)
   * [Sample list](#Sample-list)
 * [Samples](#Samples)<br>
-* [Plug-ins](#Plug-ins)<br>
 * [Local run](#Local-run)<br>
 * [Batch submission](#Batch-submission)<br>
   * [Submission](#Submission)
   * [Resubmission](#Resubmission)
   * [Finalize](#Finalize)
+* [Plug-ins](#Plug-ins)<br>
 
 
 ## Installation
@@ -49,7 +49,8 @@ The configurable variables include
 
 Defaults are given in [`config/config.json`](config/config.json).
 Note the directories can contain variables with `$` like
-`$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$PATH`.
+`$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$PATH`
+to create a custom hierarchy and format.
 
 ### Skimming
 Channels with `skim` in the name are reserved for skimming.
@@ -92,7 +93,7 @@ the second is a short name for the sample  (e.g. `DYJetsToLL_M-50`),
 and all arguments after that are the full DAS paths of the sample.
 
 To run on nanoAOD you skimmed, or files stored elsewhere than on DAS, use the keyword `store`.
-The path can contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `SAMPLE` for the sample short name.
+The path can contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
 
 
 ## Local run
