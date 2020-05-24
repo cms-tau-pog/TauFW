@@ -46,7 +46,9 @@ The configurable variables include
 * `outdir`: Directory to copy the output pico files from analysis jobs.
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
 * `nfilesperjob`: Default number of files per job.
-The directories can contain variables with `$` like
+
+Defaults are given in `config/config.json`.
+Note the directories can contain variables with `$` like
 `$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$PATH`.
 
 ### Skimming
