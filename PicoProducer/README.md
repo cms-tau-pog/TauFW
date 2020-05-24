@@ -34,7 +34,7 @@ pico.py --help
 
 ## Configuration
 
-The user configuration is saved in `config/config.json`.
+The user configuration is saved in [`config/config.json`](config/config.json).
 You can manually edit the file, or set some variable with
 <pre>
 pico.py set <i>&lt;variables&gt; &lt;value&gt;</i>
@@ -47,7 +47,7 @@ The configurable variables include
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
 * `nfilesperjob`: Default number of files per job.
 
-Defaults are given in `config/config.json`.
+Defaults are given in [`config/config.json`](config/config.json).
 Note the directories can contain variables with `$` like
 `$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$PATH`.
 
