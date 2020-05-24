@@ -14,11 +14,11 @@ There are two modes:
 * [Configuration](#Configuration)<br>
   * [Skimming](#Skimming)
   * [Analysis](#Analysis)
-  * [Era & Sample list](#Era_&_Sample_list)
+  * [Era & Sample list](#Era--Sample-List)
 * [Samples](#Samples)<br>
 * [Plug-ins](#Plug-ins)<br>
-* [Local run](Local_Run)<br>
-* [Batch submission](Batch_Submission)<br>
+* [Local run](#Local_Run)<br>
+* [Batch submission](#Batch_Submission)<br>
   * [Submission](#Submission)
   * [Resubmission](#Resubmission)
   * [Finalize](#Finalize)
@@ -70,16 +70,6 @@ To link an era to your favorite sample list in [`samples/`](samples/), do
 ```
 pico.py era 2016 sample_2016.py
 ```
-
-
-## Plug-ins
-
-To plug in your own batch system, make a subclass [`BatchSystem`](python/batch/BatchSystem.py)
-overriding the abstract methods (e.g. `submit`).
-Your subclass has to be saved in separate python module in [`python/batch`](python/batch),
-and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
-
-Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py).
 
 
 ## Samples
@@ -148,3 +138,13 @@ pico.py hadd -y 2016 -c mutau
 This will not work for channels with `skim` in the name,
 as it is preferred to keep skimmed nanoAOD files split for batch submission.
 
+
+
+## Plug-ins
+
+To plug in your own batch system, make a subclass [`BatchSystem`](python/batch/BatchSystem.py)
+overriding the abstract methods (e.g. `submit`).
+Your subclass has to be saved in separate python module in [`python/batch`](python/batch),
+and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
+
+Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py).
