@@ -2,13 +2,17 @@
 
 This setup run the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools) on nanoAOD.
 There are two modes:
-1. **Skimming**: Skim nanoAOD by removing unneeded branches, bad data events, add things like JetMET corrections. Output is again nanoAOD.
-2. **Analysis**: Main analysis code in [`python/analysis`](python/analysis), pre-selecting events and objects and constructing variables. The output is a custom tree format we will refer to as _pico_.
+1. **Skimming**: Skim nanoAOD by removing [unneeded branches](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt),
+                 bad data events,
+                 add things like JetMET corrections. Output is again nanoAOD.
+2. **Analysis**: Main analysis code in [`python/analysis/`](python/analysis),
+                 pre-selecting events and objects and constructing variables.
+                 The output is a custom tree format we will refer to as _pico_.
 
 
 ## Installation
 
-See [the README.md in the parent directory](../../../#taufw). Test the installation with
+See [the README in the parent directory](../../../#taufw). Test the installation with
 ```
 pico.py --help
 ```
@@ -17,30 +21,35 @@ pico.py --help
 ## Configuration
 
 The user configuration is saved in `config/config.json`.
-You can manually edit the file, or set some variable as
+You can manually edit the file, or set some variable with
 ```
-pico.py set batch HTCondor
+pico.py set <variables> <value>
 ```
-Other variables include
+The configurable variables include
+* `batch`: Batch system to use (e.g. `HTCondor`)
+* `jobdir`: Directory to output job configuration and log files.
 * `nanodir`: Directory to store the output nanoAOD files from skimming jobs.
 * `outdir`: Directory to copy the output pico files from analysis jobs to.
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
+* `nfilesperjob`: Default number of files per job.
+The directories can contain variables with `$` like
+`$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$PATH`.
 
 ### Skimming
 Channels with `skim` in the name are reserved for skimming.
-Link your skimming channel with a post-processor in [`python/processor`](python/processor) with
+Link your skimming channel with a post-processor in [`python/processors/`](python/processors) with
 ```
 pico.py channel mutau ModuleMuTau.py
 ```
-An example is given in [`skimjob.py`](python/processor/skimjob.py).
+An example is given in [`skimjob.py`](python/processors/skimjob.py).
 
 ### Analysis
 To link a channel short name (e.g. `mutau`) to an analysis module
-in [`python/analysis`](python/analysis), do
+in [`python/analysis/`](python/analysis), do
 ```
 pico.py channel mutau ModuleMuTau.py
 ```
-An simple example of an analysis is given in [`ModuleMuTau.py`](python/analysis/ModuleMuTau.py).
+An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
 
 ### Era & Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
@@ -56,12 +65,12 @@ overriding the abstract methods (e.g. `submit`).
 Your subclass has to be saved in separate python module in [`python/batch`](python/batch),
 and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
 
-Similarly for a storage element, subclass [`StorageSystem`](python/batch/StorageSystem.py).
+Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py).
 
 
 ## Samples
 
-Specify the samples with a python file in [`samples`](samples).
+Specify the samples with a python file in [`samples/`](samples).
 The file must include a python list `samples`, containing `Sample` objects
 (or those from the derived `MC` and `Data` classes). For example,
 ```
@@ -85,7 +94,7 @@ A local run can be done as
 ```
 pico.py run -y 2016 -c mutau
 ```
-You can specify a sample that is available in [`samples`](samples), by passing the `-s` flag a pattern as
+You can specify a sample that is available in [`samples/`](samples), by passing the `-s` flag a pattern as
 ```
 pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
 pico.py run -y 2016 -c mutau -s 'SingleMuon'
