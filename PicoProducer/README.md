@@ -9,6 +9,20 @@ There are two modes:
                  pre-selecting events and objects and constructing variables.
                  The output is a custom tree format we will refer to as _pico_.
 
+#### Table of Contents  
+* [Installation](#Installation)<br>
+* [Configuration](#Configuration)<br>
+  * [Skimming](#Skimming)
+  * [Analysis](#Analysis)
+  * [Era & Sample list](#Era_&_Sample_list)
+* [Samples](#Samples)<br>
+* [Plug-ins](#Plug-ins)<br>
+* [Local run](Local_Run)<br>
+* [Batch submission](Batch_Submission)<br>
+  * [Submission](#Submission)
+  * [Resubmission](#Resubmission)
+  * [Finalize](#Finalize)
+
 
 ## Installation
 
@@ -22,9 +36,9 @@ pico.py --help
 
 The user configuration is saved in `config/config.json`.
 You can manually edit the file, or set some variable with
-```
-pico.py set <variables> <value>
-```
+<pre>
+pico.py set <i>&lt;variables&gt; &lt;value&gt;</i>
+</pre>
 The configurable variables include
 * `batch`: Batch system to use (e.g. `HTCondor`)
 * `jobdir`: Directory to output job configuration and log files (e.g. `output/$ERA/$CHANNEL/$SAMPLE`)
