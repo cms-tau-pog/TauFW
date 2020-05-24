@@ -1,22 +1,23 @@
 # Author: Izaak Neutelings (May 2019)
 # Description: Configuration of JEC/JER versions
-import re
+import os, re
 from TauFW.PicoProducer import datadir
+from TauFW.PicoProducer.tools.file import ensurefile
 
 
-def getjson(dtype='data'):
+def getjson(era,dtype='data'):
   """Get JSON file of data."""
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2016Analysis
   json = None
   if dtype=='data':
-    if year==2016:
+    if era==2016:
       json = 'Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
-    elif year==2017:
+    elif era==2017:
       json = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
     else:
       json = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
-  json = os.path.join(datadir,'json',json)
+  json = ensurefile(datadir,'json',json)
   return json
   
 

@@ -32,10 +32,8 @@ fi
 #TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")
 #TASKCMD="python/processors/test.py -t $TASKID"
 #TASKCMD="python /afs/cern.ch/user/i/ineuteli/analysis/CMSSW_10_3_3/src/TauFW/PicoProducer/python/processors/test.py -t $TASKID"
-pwd
-echo "Executing..."
-echo "  $TASKCMD"
-eval $TASKCMD
+peval "\$PWD=$PWD"
+peval "$TASKCMD"
 
 # FINISH
 echo

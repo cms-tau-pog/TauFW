@@ -15,24 +15,27 @@
 START=`date +%s`
 echo "Job start at `date`"
 echo "Running job on machine `uname -a`, host $HOSTNAME"
+function peval { echo ">>> $@"; eval "$@"; }
 
 # PRINT
 export JOBID=$SLURM_JOB_ID
 export TASKID=$SLURM_ARRAY_TASK_ID
+WORKDIR="/scratch/$USER/$JOBID"
 JOBLIST=$1
 echo "\$JOBID=$JOBID"
 echo "\$TASKID=$TASKID"
 echo "\$HOSTNAME=$HOSTNAME"
 echo "\$JOBLIST=$JOBLIST"
 echo "\$SBATCH_TIMELIMIT=$SBATCH_TIMELIMIT"
+#echo "\$WORKDIR=$WORKDIR"
+echo "\$PWD=$PWD"
+peval 'TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")'
+#peval "mkdir -p $WORKDIR"
+#peval "cd $WORKDIR"
 
 # MAIN FUNCTIONALITY
-TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")
 #eval $(scramv1 runtime -sh);
-pwd
-echo "Executing..."
-echo "  $TASKCMD"
-eval $TASKCMD;
+peval "$TASKCMD"
 
 # FINISH
 echo

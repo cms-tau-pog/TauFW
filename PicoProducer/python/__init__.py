@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
 import os
-moddir  = os.path.dirname(__file__)
-basedir = os.path.dirname(os.path.dirname(os.path.dirname(moddir)))
+basedir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
 datadir = os.path.join(basedir,'data')

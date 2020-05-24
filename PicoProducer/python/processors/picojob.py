@@ -12,7 +12,7 @@ parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',  dest='infiles',  type=str, default=[ ], nargs='+')
 parser.add_argument('-o', '--outdir',   dest='outdir',   type=str, default='.')
 parser.add_argument('-C', '--copydir',  dest='copydir',  type=str, default=None)
-parser.add_argument('-m', '--maxevts',  dest='maxevts',  type=int, default=1000)
+parser.add_argument('-m', '--maxevts',  dest='maxevts',  type=int, default=5000)
 parser.add_argument('-t', '--tag',      dest='tag',      type=str, default="")
 parser.add_argument('-d', '--dtype',    dest='dtype',    choices=['data','mc','embed'], default=None)
 parser.add_argument('-y','-e','--era',  dest='era',      type=str, default="")
@@ -44,7 +44,7 @@ nfiles    = -1
 tag       = args.tag
 if tag:
   tag     = ('' if tag.startswith('_') else '_') + tag
-fname     = os.path.join(outdir,"pico_%s%s.root"%(channel,tag))
+outfname  = os.path.join(outdir,"pico_%s%s.root"%(channel,tag))
 director  = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch
 presel    = None #"Muon_pt[0] > 50"
@@ -75,7 +75,7 @@ if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma']
   dtype = 'data'
 
 # GET MODULE
-module  = getmodule(modname)(fname)
+module  = getmodule(modname)(outfname)
 modules.append(module)
 
 # PRINT
@@ -89,7 +89,7 @@ print ">>> %-12s = %s"%('maxevts',maxevts)
 print ">>> %-12s = %r"%('outdir',outdir)
 print ">>> %-12s = %r"%('copydir',copydir)
 print ">>> %-12s = %s"%('infiles',infiles)
-print ">>> %-12s = %r"%('fname',fname)
+print ">>> %-12s = %r"%('outfname',outfname)
 print ">>> %-12s = %r"%('branchsel',branchsel)
 print ">>> %-12s = %r"%('json',json)
 print ">>> %-12s = %s"%('prefetch',prefetch)
@@ -101,11 +101,15 @@ p = PostProcessor(outdir,infiles,cut=None,branchsel=None,noOut=True,
 p.run()
 
 # COPY
-if copydir:
-  from TauFW.PicoProducer.storage.StorageSystem import getstorage
+if copydir and outdir!=copydir:
+  print ">>> %-12s = %s"%('cwd',os.getcwd())
+  print ">>> %-12s = %s"%('ls',os.listdir(outdir))
+  from TauFW.PicoProducer.storage.utils import getstorage
+  from TauFW.PicoProducer.tools.file import rmfile
   store = getstorage(copydir,verb=2)
-  outfiles = os.path.join(outdir,fname)
-  store.cp(outfiles)
+  store.cp(outfname)
+  print ">>> Removing %r..."%(outfname)
+  rmfile(outfname)
 
 # DONE
 print ">>> Done after %.1f seconds"%(time.time()-time0)

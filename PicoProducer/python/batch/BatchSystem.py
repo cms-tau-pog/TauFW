@@ -14,6 +14,12 @@ class BatchSystem(object):
     self.statusdict = { }
     self.system     = self.__class__.__name__
   
+  def __str__(self):
+    return self.system
+  
+  def __repr__(self):
+    return '<%s("%s") at %s>'%(self.__class__.__name__,self.system,hex(id(self)))
+  
   def statuscode(self,code):
     status = '?'
     for skey, codelist in self.statusdict.iteritems():
@@ -21,23 +27,21 @@ class BatchSystem(object):
         status = skey
     return status
   
-  def execute(self,cmd,dry=False,**kwargs):
+  def execute(self,cmd,dry=False,fatal=True,**kwargs):
     verbosity = kwargs.get('verb',self.verbosity)
-    return execute(cmd,dry=dry,verb=verbosity)
+    return execute(cmd,dry=dry,fatal=fatal,verb=verbosity)
   
   def parsejobs(self,rows,**kwargs):
     """Help function to parse rows of job output from queue command.
     Columns should be ordered as user, jobid, taskid, status, args"""
     verbosity = kwargs.get('verb',self.verbosity)
-    jobs = JobList()
+    jobs      = JobList([])
     if rows and self.verbosity>=1:
       print ">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args')
     for row in rows.split('\n'):
       values = row.split()
-      if len(values)<5:
+      if len(values)<5 or not values[1].isdigit() or not values[2].isdigit():
         continue
-      if verbosity>=3:
-        print ">>> job row: %s"%(row)
       user   = values[0]
       jobid  = values[1]
       taskid = values[2]
@@ -47,6 +51,9 @@ class BatchSystem(object):
         print ">>> %10s %10s %8s %8s   %s"%(user,jobid,taskid,status,args)
       job    = Job(self,jobid,taskid=taskid,args=args,status=status)
       jobs.append(job)
+    if verbosity>=3:
+      for job in jobs:
+        print repr(job)
     return jobs
   
   @abstractmethod
@@ -60,7 +67,7 @@ class BatchSystem(object):
     raise NotImplementedError("BatchSystem.status is an abstract method.")
   
   @abstractmethod
-  def jobs(self,**kwargs):
+  def jobs(self,jobids=[],**kwargs):
     """Get job status, return JobList object."""
     raise NotImplementedError("BatchSystem.jobs is an abstract method.")
   
@@ -68,11 +75,13 @@ class BatchSystem(object):
 class JobList(object):
   """Job list container class."""
   
-  def __init__(self,jobs=[ ]):
-    self.jobs = jobs
+  def __init__(self,jobs=[ ],verb=0):
+    self.jobs      = jobs
+    self.verbosity = verb
   
   def __iter__(self):
-    for job in self.jobs: yield job
+    for job in self.jobs:
+      yield job
   
   def __len__(self):
     return len(self.jobs)
@@ -81,10 +90,10 @@ class JobList(object):
     self.jobs.append(job)
   
   def running(self):
-    return [j for j in jobs if j.getstatus()=='r']
+    return [j for j in self.jobs if j.getstatus()=='r']
   
   def failed(self):
-    return [j for j in jobs if j.getstatus()=='f']
+    return [j for j in self.jobs if j.getstatus()=='f']
   
 
 class Job(object):
@@ -105,6 +114,12 @@ class Job(object):
         self.taskid = -1
     if self.status==None:
       self.getstatus()
+  
+  def __str__(self):
+    return self.name
+  
+  def __repr__(self):
+    return '<%s(%s,%s,"%s") at %s>'%(self.__class__.__name__,self.jobid,self.taskid,self.name,hex(id(self)))
   
   def getstatus(self):
     #status = self.batch.status(job)

@@ -17,7 +17,7 @@ class T3_PSI(StorageSystem):
     self.mkdrurl = 'gsiftp://t3se01.psi.ch/'
     self.cpcmd   = 'xrdcp'
     self.cpurl   = "root://t3dcachedb03.psi.ch/"
-    self.tmpurl  = '/scratch/$USER/'
+    self.tmpdir  = '/scratch/$USER/'
     self.fileurl = "root://t3dcachedb03.psi.ch/"
     if ensure:
       self.ensuredir(self.path)

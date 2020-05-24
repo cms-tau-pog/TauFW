@@ -65,7 +65,7 @@ class HTCondor(BatchSystem):
     quecmd  = "condor_q -wide %s"%(jobid)
     return self.execute(quecmd)
   
-  def jobs(self,jobids,**kwargs):
+  def jobs(self,jobids=[],**kwargs):
     """Get job status, return JobList object."""
     if not isinstance(jobids,list):
       jobids  = [jobids]

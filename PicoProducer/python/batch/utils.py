@@ -22,7 +22,7 @@ def getbatch(arg,verb=0):
   modpath = "TauFW.PicoProducer.batch.%s"%(system)
   assert os.path.isfile(modfile), "Did not find python module %s for batch system '%s'"%(modfile,system)
   module  = importlib.import_module(modpath)
-  batch   = getattr(module,system)(verb)
+  batch   = getattr(module,system)(verb=verb)
   return batch
   
 

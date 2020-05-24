@@ -4,7 +4,7 @@ from itertools import islice
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 
 
-def execute(command,dry=False,verb=0):
+def execute(command,dry=False,fatal=True,verb=0):
   """Execute shell command."""
   out = ""
   if dry:
@@ -31,7 +31,7 @@ def execute(command,dry=False,verb=0):
         print out #">>> Output: %s"%(out)
       print ">>> Failed: %r"%(command)
       raise e
-    if retcode:
+    if retcode and fatal:
       raise CalledProcessError(retcode,command)
       #raise Exception("Command '%s' ended with return code %s"%(command,retcode)) #,err)
   return out

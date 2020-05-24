@@ -64,7 +64,7 @@ if dtype=='data':
   if not era:
     era = getera(infiles[0],era,dtype=dtype) # gets data run (e.g. '2016B') from filename
   assert all(era in f for f in infiles), "Not all files names are of the same era '%s': %s"%(era,infiles)
-  json  = getjson(dtype)
+  json  = getjson(era,dtype)
 else:
   jmecalib = getjmecalib(era,era="",redoJEC=doJEC,doSys=doJECSys,dtype='mc')
   modules.append(jmecalib)
@@ -92,11 +92,14 @@ p = PostProcessor(outdir,infiles,cut=None,branchsel=None,outputbranchsel=branchs
 p.run()
 
 # COPY
-if copydir:
-  from TauFW.PicoProducer.storage.StorageSystem import getstorage
+if copydir and outdir!=copydir:
+  from TauFW.PicoProducer.storage.utils import getstorage
+  from TauFW.PicoProducer.tools.file import rmfile
   store = getstorage(copydir,verb=2)
   outfiles = os.path.join(outdir,"*%s.root"%postfix)
   store.cp(outfiles)
+  print ">>> Removing %s..."%(outfiles)
+  rmfile(outfiles)
 
 # DONE
 print ">>> Done after %.1f seconds"%(time.time()-time0)

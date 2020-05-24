@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 # Directors:
 #   root://cms-xrd-global.cern.ch/ # DAS, globally
@@ -13,7 +12,7 @@ from copy import deepcopy
 from fnmatch import fnmatch
 from TauFW.PicoProducer.tools.utils import execute, repkey
 from TauFW.PicoProducer.tools.file import ensurefile
-from TauFW.PicoProducer.storage.StorageSystem import getstorage
+from TauFW.PicoProducer.storage.utils import getstorage
 
 
 class Sample(object):

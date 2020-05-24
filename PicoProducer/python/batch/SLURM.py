@@ -11,7 +11,7 @@ class SLURM(BatchSystem):
     super(SLURM,self).__init__(verb=verb)
     # http://pages.cs.wisc.edu/~adesmet/status.html
     self.statusdict = { 'q': ['PD'], 'r': ['R'], 'c': ['CD'], 'f': ['F','NF','CA'] }
-    self.jobidrexp  = re.compile("Submitted batch job (\d+).")
+    self.jobidrexp  = re.compile("Submitted batch job (\d+)")
     self.user       = getpass.getuser()
   
   def submit(self,script,**kwargs):
@@ -33,19 +33,19 @@ class SLURM(BatchSystem):
       subcmd += " -J %s"%(name)
     if array:
       if isinstance(array,int):
-        subcmd += "-a 1-%s"%(array)
+        subcmd += " -a 1-%s"%(array)
       else:
-        subcmd += "-a %s"%(array)
+        subcmd += " -a %s"%(array)
     if queue:
-      extraopts += " --partition %s"%(queue)
+      subcmd += " --partition %s"%(queue)
     if logfile:
       if logdir:
         logfile = os.path.join(logdir,logfile)
-      extraopts += " -o %s"%(logfile)
+      subcmd += " -o %s"%(logfile)
     if time:
-      extraopts += " --time='%s'"%(time) # e.g. "04:20:00"
+      subcmd += " --time='%s'"%(time) # e.g. "04:20:00"
     if mem:
-      extraopts += " --mem=%sM"%(mem) # e.g. 5000
+      subcmd += " --mem=%sM"%(mem) # e.g. 5000
     if options:
       subcmd += " "+options
     subcmd += " "+script
@@ -67,26 +67,28 @@ class SLURM(BatchSystem):
     """Get queue status."""
     # https://slurm.schedmd.com/squeue.html
     # squeue -u $USER -o '%.18i %.9P %.8j %.8u %.2t %.10M %.6D %16R %12p %10y'
+    verbosity = kwargs.get('verb', self.verbosity )
     qcmd  = "squeue -u %s"%(self.user)
-    return self.execute(qcmd)
+    return self.execute(qcmd,verb=verbosity)
   
   def status(self,job,**kwargs):
     """Check status of queued or running jobs."""
-    jobid   = str(job.jobid)
+    verbosity = kwargs.get('verb', self.verbosity )
+    jobid     = str(job.jobid)
     if job.taskid>=0:
-      jobid+= '.%s'%job.taskid
-    quecmd  = "squeue -j %s"%(jobid)
-    return self.execute(quecmd)
+      jobid  += '.%s'%job.taskid
+    quecmd    = "squeue -j %s"%(jobid)
+    return self.execute(quecmd,fatal=False,verb=verbosity)
   
-  def jobs(self,jobids,**kwargs):
+  def jobs(self,jobids=[],**kwargs):
     """Get job status, return JobList object."""
     if not isinstance(jobids,list):
       jobids  = [jobids]
     verbosity = kwargs.get('verb', self.verbosity )
-    quecmd    = "squeue -u %s --array"%(self.user)
-    for jobid in jobids:
-      quecmd += " "+str(jobid)
-    quecmd   += " -o '%10u %14F %14K %5t %o'" # user jobid taskid status args
-    rows      = self.execute(quecmd,verb=verbosity)
+    quecmd    = "squeue -u %s"%(self.user)
+    if jobids:
+      quecmd += " -j "+','.join(str(j) for j in jobids)
+    quecmd   += " --array -o '%10u %14F %14K %5t %o'" # user jobid taskid status args
+    rows      = self.execute(quecmd,fatal=False,verb=verbosity)
     return self.parsejobs(rows)
   

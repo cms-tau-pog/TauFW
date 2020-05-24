@@ -1,41 +1,9 @@
-#! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 import os
 from fnmatch import fnmatch # for glob pattern
 from TauFW.PicoProducer.tools.utils import execute
+from TauFW.PicoProducer.tools.file import ensuredir, rmfile
 import getpass, platform
-
-
-def getsedir():
-  """Guess the storage element path for a given user and host."""
-  user  = getpass.getuser()
-  host  = platform.node()
-  sedir = ""
-  if 'lxplus' in host:
-    sedir = "/eos/user/%s/%s/"%(user[0],user)
-  elif "t3" in host and "psi.ch" in host:
-    sedir = "/pnfs/psi.ch/cms/trivcat/store/user/%s/"%(user)
-  return sedir
-  
-
-def getstorage(path,verb=0,ensure=False):
-  if path.startswith('/eos/'):
-    from TauFW.PicoProducer.storage.EOS import EOS
-    storage = EOS(path,ensure=ensure,verb=verb)
-  #elif path.startswith('/castor/'):
-  #  return Castor(path,verb=verb)
-  elif path.startswith('/pnfs/psi.ch/'):
-    from TauFW.PicoProducer.storage.T3_CH_PSI import T3_CH_PSI
-    return PSI_T3(path,ensure=ensure,verb=verb)
-  #elif path.startswith('/pnfs/lcg.cscs.ch/'):
-  #  return PSI_T2(path,verb=verb)
-  #elif path.startswith('/pnfs/iihe/'):
-  #  return IIHE_T2(path,verb=verb)
-  else:
-    storage = Local(path,ensure=ensure,verb=verb)
-  if verb>=2:
-    print storage
-  return storage
 
 
 class StorageSystem(object):
@@ -56,7 +24,7 @@ class StorageSystem(object):
     self.chmdcmd = 'chmod'
     self.chmdurl = ''
     self.haddcmd = 'hadd -f'
-    self.tmpdir  = '/tmp/$USER/' # $TMPDIR
+    self.tmpdir  = '/tmp/$USER/' # $TMPDIR # mounted temporary directory
     self.fileurl = ""
     self.verbosity = verb
     if path.startswith('/'):
@@ -155,11 +123,14 @@ class StorageSystem(object):
   
   def hadd(self,sources,target,**kwargs):
     target  = self.expandpath(target,here=True)
-    verb    = kwargs.get('verb',self.verbosity)
-    usetmp  = kwargs.get('tmp', self.cpurl!='') and not target.startswith('/')
+    verb    = kwargs.get('verb',   self.verbosity)
+    tmpdir  = kwargs.get('tmpdir', target.startswith(self.parent) and self.cpurl!='')
     htarget = target
-    if usetmp:
-      htarget = os.path.join(self.tmpdir,os.path.basename(target))
+    if tmpdir:
+      if not isinstance(tmpdir,str):
+        tmpdir = self.tmpdir
+      tmpdir  = ensuredir(tmpdir)
+      htarget = os.path.join(tmpdir,os.path.basename(target))
     if isinstance(sources,basestring):
       sources = [ sources ]
     source = ""
@@ -173,8 +144,8 @@ class StorageSystem(object):
       print ">>> %-10s = %r"%('htarget',htarget)
     out = self.execute("%s %s %s"%(self.haddcmd,htarget,source),verb=verb)
     if usetmp:
-    
       cpout = self.cp(htarget,target,verb=verb)
+      rmfile(htarget)
     return out
   
   def rm(self,dirname,**kwargs):

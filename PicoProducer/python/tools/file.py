@@ -62,3 +62,13 @@ def rmfile(filepaths):
     if os.path.isfile(filepath):
       os.unlink(filepath)
   
+
+def getline(fname,iline):
+  target = ""
+  with open(fname) as file:
+    for i, line in enumerate(file):
+      if i==iline:
+        target = line
+        break
+  return target
+  
