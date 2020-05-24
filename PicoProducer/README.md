@@ -65,7 +65,7 @@ pico.py channel mutau ModuleMuTau.py
 ```
 An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
 
-### Era & Sample list
+### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
 ```
 pico.py era 2016 sample_2016.py
