@@ -7,7 +7,7 @@ Framework for tau analysis using NanoAOD at CMS. Three main packages are
 
 ## Installation
 
-First, install `NanoAODTools`:
+First, install [`NanoAODTools`](https://github.com/cms-nanoAOD/nanoAOD-tools):
 ```
 export SCRAM_ARCH=slc6_amd64_gcc700
 cmsrel CMSSW_10_3_3
@@ -20,6 +20,6 @@ scram b
 Then, install `TauFW`:
 ```
 cd $CMSSW_BASE/src/
-git clone https://github.com/IzaakWN/TauFW TauFW
+git clone https://github.com/cms-tau-pog/TauFW TauFW
 scram b
 ```

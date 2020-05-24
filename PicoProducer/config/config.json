@@ -1,5 +1,4 @@
 {
-  "basedir": "/afs/cern.ch/user/i/ineuteli/analysis/CMSSW_10_3_3/src/TauFW/PicoProducer", 
   "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
   "channels": {
     "skim": "skimjob.py", 
