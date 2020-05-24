@@ -2,36 +2,52 @@
 #import os, re, shutil
 import os, re
 import importlib
-from TauFW.PicoProducer.batch import moddir
 from TauFW.PicoProducer.tools.utils import execute
 from abc import ABCMeta, abstractmethod
 
-
-def getbatch(arg,verb=0):
-  if isinstance(arg,str):
-    system = arg
-  elif hasattr(arg,'batch'):
-    system = arg.batch
-  else:
-    raise IOError("Did not recognize argument",arg)
-  modfile = os.path.join(moddir,system+".py")
-  modpath = "TauFW.PicoProducer.batch.%s"%(system)
-  assert os.path.isfile(modfile), "Did not find python module %s for batch system '%s'"%(modfile,system)
-  module  = importlib.import_module(modpath)
-  batch   = getattr(module,system)(verb)
-  return batch
-  
 
 class BatchSystem(object):
   __metaclass__ = ABCMeta
   
   def __init__(self,verb=1):
-    self.verbosity = verb
-    self.system    = self.__class__.__name__
+    self.verbosity  = verb
+    self.statusdict = { }
+    self.system     = self.__class__.__name__
+  
+  def statuscode(self,code):
+    status = '?'
+    for skey, codelist in self.statusdict.iteritems():
+      if code in codelist:
+        status = skey
+    return status
   
   def execute(self,cmd,dry=False,**kwargs):
     verbosity = kwargs.get('verb',self.verbosity)
     return execute(cmd,dry=dry,verb=verbosity)
+  
+  def parsejobs(self,rows,**kwargs):
+    """Help function to parse rows of job output from queue command.
+    Columns should be ordered as user, jobid, taskid, status, args"""
+    verbosity = kwargs.get('verb',self.verbosity)
+    jobs = JobList()
+    if rows and self.verbosity>=1:
+      print ">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args')
+    for row in rows.split('\n'):
+      values = row.split()
+      if len(values)<5:
+        continue
+      if verbosity>=3:
+        print ">>> job row: %s"%(row)
+      user   = values[0]
+      jobid  = values[1]
+      taskid = values[2]
+      status = self.statuscode(values[3])
+      args   = ' '.join(values[4:])
+      if self.verbosity>=1:
+        print ">>> %10s %10s %8s %8s   %s"%(user,jobid,taskid,status,args)
+      job    = Job(self,jobid,taskid=taskid,args=args,status=status)
+      jobs.append(job)
+    return jobs
   
   @abstractmethod
   def submit(self,script,**kwargs):
@@ -78,13 +94,18 @@ class Job(object):
   def __init__(self,batch,jobid,**kwargs):
     self.batch  = batch
     self.jobid  = int(jobid) # or 'clusterid'
-    self.taskid = int(kwargs.get('taskid', -1 )) # or 'procid'
+    self.taskid = kwargs.get('taskid', -1     )# or 'procid'
     self.name   = kwargs.get('name',   "none" )
     self.args   = kwargs.get('args',   ""     )
     self.status = kwargs.get('status', None   )
+    if isinstance(self.taskid,basestring):
+      if self.taskid.isdigit():
+        self.taskid = int(self.taskid)
+      else:
+        self.taskid = -1
     if self.status==None:
       self.getstatus()
-    
+  
   def getstatus(self):
     #status = self.batch.status(job)
     return self.status

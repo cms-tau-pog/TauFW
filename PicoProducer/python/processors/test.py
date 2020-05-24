@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (April 2020)
 # Description: Speed test of nanoAOD postprocessing
-import os
+import os, sys
 import time; time0 = time.time()
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles', dest='infiles', type=str, default=[ ], nargs='+')
 parser.add_argument('-o', '--outdir',  dest='outdir',  type=str, default='.')
-parser.add_argument('-n', '--Nmax',    dest='maxevts', type=int, default=100)
+parser.add_argument('-m', '--maxevts', dest='maxevts', type=int, default=100)
 parser.add_argument('-t', '--tag',     dest='tag',     type=str, default="")
 args = parser.parse_args()
 
@@ -107,10 +107,10 @@ if nfiles>0: infiles = infiles[:nfiles]
 # PRINT
 print '-'*80
 print ">>> %-10s = %s"%('maxevts',maxevts)
-print ">>> %-10s = %s"%('outdir',outdir)
+print ">>> %-10s = %r"%('outdir',outdir)
 print ">>> %-10s = %r"%('postfix',postfix)
 print ">>> %-10s = %s"%('infiles',infiles)
-print ">>> %-10s = %s"%('branchsel',branchsel)
+print ">>> %-10s = %r"%('branchsel',branchsel)
 print '-'*80
 
 # RUN

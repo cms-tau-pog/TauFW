@@ -7,13 +7,21 @@ from collections import OrderedDict
 from TauFW.PicoProducer.tools.file import ensuredir, ensurefile
 from TauFW.PicoProducer.tools.log import Logger, color, bold, header
 from TauFW.PicoProducer.storage.StorageSystem import getsedir
-LOG = Logger('GLOB')
+
 
 # DEFAULTS
+LOG           = Logger('GLOB')
+CONFIG        = None
 _basedir      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-_eras         = { '2016': 'samples_2016.py', '2017': 'samples_2017.py' }
-_channels     = { 'test': 'test.py', } # TODO: load from config
-_batchsystem  = 'HTCondor'
+_eras         = OrderedDict([
+  ('2016','samples_2016.py'),
+  ('2017','samples_2017.py')
+])
+_channels     = OrderedDict([
+  ('skim','skimjob.py'),
+  ('test','test.py'),
+  ('mutau','ModuleMuTauSimple')
+])
 _dtypes       = ['mc','data','embed']
 _sedir        = getsedir()                      # guess storage element on current host
 _tmpdir       = "$TMPDIR"                       # temporary dir for creating intermediate hadd files
@@ -21,6 +29,7 @@ _jobdir       = "output/$ERA/$CHANNEL/$SAMPLE"  # for job config and log files
 _outdir       = _sedir+_jobdir                  # for job output
 _picodir      = _sedir+"analysis/$ERA/$GROUP"   # for storage of analysis ("pico") tuples after hadd
 _nanodir      = _sedir+"samples/nano/$ERA/$DAS" # for storage of (skimmed) nanoAOD
+_batchsystem  = 'HTCondor'
 _nfilesperjob = 1
 _cfgdefaults  = OrderedDict([
   ('basedir',_basedir),
@@ -32,16 +41,17 @@ sys.path.append(_basedir)
 os.chdir(_basedir)
 
 
-
-def getconfig(verb=0):
+def getconfig(verb=0,refresh=False):
   """Get configuration from JSON file."""
-  global _cfgdefaults, _basedir
+  global _cfgdefaults, _basedir, CONFIG
+  if CONFIG and not refresh:
+    return CONFIG
   
   # SETTING
   cfgdir   = ensuredir(_basedir,"config")
   cfgname  = os.path.join(cfgdir,"config.json")
   cfgdict  = _cfgdefaults.copy()
-  rqdstrs  = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,str)]
+  rqdstrs  = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,basestring)]
   rqddicts = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,dict)]
   
   # GET CONFIG
@@ -66,7 +76,7 @@ def getconfig(verb=0):
   # SANITY CHECKS - format of values for required keys
   for key in rqdstrs:
     assert key in rqdstrs, "Required key '%s' not found in the configuration file..."%(key)
-    assert isinstance(cfgdict[key],str) or isinstance(cfgdict[key],unicode),\
+    assert isinstance(cfgdict[key],basestring),\
       "Required value for '%s' must be a string or unicode! Instead is of type %s: %r"%(key,type(cfgdict[key]),key)
   for key in rqddicts:
     assert key in cfgdict, "Required key '%s' not found in the configuration file..."%(key)
@@ -81,10 +91,9 @@ def getconfig(verb=0):
       print ">>> %-13s = %s"%(key,value)
     print '-'*80
   
-  config = Config(cfgdict,cfgname)
-  return config
+  CONFIG = Config(cfgdict,cfgname)
+  return CONFIG
   
-
 
 class Config(object):
   
@@ -150,4 +159,3 @@ class Config(object):
       json.dump(self._dict,outfile,indent=2)
     return path
   
-

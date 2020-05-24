@@ -1,8 +1,7 @@
 # Author: Izaak Neutelings (April 2020)
-#import os, re, shutil
 import os, re
 from TauFW.PicoProducer.tools.utils import execute
-from TauFW.PicoProducer.batch.BatchSystem import BatchSystem, Job, JobList
+from TauFW.PicoProducer.batch.BatchSystem import BatchSystem
 
 
 class HTCondor(BatchSystem):
@@ -12,9 +11,11 @@ class HTCondor(BatchSystem):
   def __init__(self,verb=False):
     super(HTCondor,self).__init__(verb=verb)
     # http://pages.cs.wisc.edu/~adesmet/status.html
-    self.statusdict = { 1: 'q', 2: 'r', 3: 'f', 4: 'c', 5: 'f', 6: 'f' }
+    self.statusdict = { 'q': ['1'], 'r': ['2','3'], 'f': ['4','5','6'], 'c': ['5'] }
+    self.jobidrexp  = re.compile("submitted to cluster (\d+).")
   
   def submit(self,script,**kwargs):
+    """Submit a script with some optional parameters."""
     #jobname   = kwargs.get('name',  'job'           )
     #queue     = kwargs.get('queue', 'microcentury'  )
     appcmds   = kwargs.get('app',   [ ]            )
@@ -24,7 +25,6 @@ class HTCondor(BatchSystem):
     dry       = kwargs.get('dry',   False          )
     verbosity = kwargs.get('verb',  self.verbosity )
     failflags = ["no jobs queued"]
-    jobidrexp = re.compile("submitted to cluster (\d+).")
     jobids    = [ ]
     subcmd    = "condor_submit"
     if not isinstance(appcmds,list):
@@ -39,17 +39,21 @@ class HTCondor(BatchSystem):
     if queue:
       subcmd += " -queue %s"%(queue)
     out = self.execute(subcmd,dry=dry,verb=verbosity)
+    fail = False
     for line in out.split(os.linesep):
       if any(f in line for f in failflags):
-        print ">>> Warning! Submission failed!"
-        print out
-      matches = jobidrexp.findall(line)
+        fail = True
+      matches = self.jobidrexp.findall(line)
       for match in matches:
         jobids.append(int(match))
+    if fail:
+      print ">>> Warning! Submission failed!"
+      print out
     jobid = jobids[0] if len(jobids)==1 else jobids if len(jobids)>1 else 0
     return jobid
   
   def queue(self,job,**kwargs):
+    """Get queue status."""
     qcmd  = "condor_q"
     return self.execute(qcmd)
   
@@ -58,36 +62,18 @@ class HTCondor(BatchSystem):
     jobid   = str(job.jobid)
     if job.taskid>=0:
       jobid+= '.%s'%job.taskid
-    subcmd  = "condor_q -wide %s"%(jobid)
-    return self.execute(subcmd)
+    quecmd  = "condor_q -wide %s"%(jobid)
+    return self.execute(quecmd)
   
   def jobs(self,jobids,**kwargs):
     """Get job status, return JobList object."""
     if not isinstance(jobids,list):
       jobids  = [jobids]
     verbosity = kwargs.get('verb', self.verbosity )
-    subcmd    = "condor_q"
+    quecmd    = "condor_q"
     for jobid in jobids:
-      subcmd += " "+str(jobid)
-    subcmd   += " -format '%s ' Owner -format '%s ' ClusterId -format '%s ' ProcId -format '%s ' JobStatus -format '%s\n' Args"
-    rows      = self.execute(subcmd,verb=verbosity)
-    jobs      = JobList()
-    if rows and self.verbosity>=1:
-      print ">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args')
-    for row in rows.split('\n'):
-      values = row.split()
-      if len(values)<5:
-        continue
-      if verbosity>=3:
-        print ">>> job row: %s"%(row)
-      user   = values[0]
-      jobid  = values[1]
-      taskid = values[2]
-      status = self.statusdict.get(int(values[3]),'?')
-      args   = ' '.join(values[4:])
-      if self.verbosity>=1:
-        print ">>> %10s %10s %8s %8s   %s"%(user,jobid,taskid,status,args)
-      job    = Job(self,jobid,taskid=taskid,args=args,status=status)
-      jobs.append(job)
-    return jobs
+      quecmd += " "+str(jobid)
+    quecmd   += " -format '%s ' Owner -format '%s ' ClusterId -format '%s ' ProcId -format '%s ' JobStatus -format '%s\n' Args" # user jobid taskid status args
+    rows      = self.execute(quecmd,verb=verbosity)
+    return self.parsejobs(rows)
   

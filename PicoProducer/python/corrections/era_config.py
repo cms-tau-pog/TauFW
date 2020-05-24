@@ -29,7 +29,7 @@ def getera(filename,year,dtype='data'):
     matches = re.findall(r"Run(201[678])([A-Z]+)",filename)
     if not matches:
       print "Warning! Could not find an era in %s"%filename
-    elif year!=int(matches[0][0]):
+    elif year!=matches[0][0]:
       print "Warning! Given year does not match the data file %s"%filename
     else:
       era = matches[0][1]

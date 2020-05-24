@@ -8,9 +8,12 @@
 #   root://storage01.lcg.cscs.ch/  # PSI T2
 #   root://cmseos.fnal.gov/        # Fermi lab
 import os, re, json
+import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
-from TauFW.PicoProducer.tools.utils import execute
+from TauFW.PicoProducer.tools.utils import execute, repkey
+from TauFW.PicoProducer.tools.file import ensurefile
+from TauFW.PicoProducer.storage.StorageSystem import getstorage
 
 
 class Sample(object):
@@ -51,6 +54,7 @@ class Sample(object):
     self.dtype        = dtype
     self.channels     = kwargs.get('channels',     None)
     self.director     = kwargs.get('director',     "root://cms-xrd-global.cern.ch/")
+    self.storage      = kwargs.get('store',        None) # if stored elsewhere than DAS
     self.blacklist    = kwargs.get('blacklist',    [ ] ) # black list file
     self.instance     = kwargs.get('instance',     'prod/phys03' if path.endswith('USER') else 'prod/global')
     self.nfilesperjob = kwargs.get('nfilesperjob', -1  )
@@ -93,7 +97,6 @@ class Sample(object):
       samples.append(sample)
     return samples
   
-  
   def match(self,patterns,verb=0):
     """Match sample name to some pattern."""
     sample = self.name.strip('/')
@@ -118,10 +121,16 @@ class Sample(object):
     """Get list of files from DAS."""
     files = self.files
     if not files or refresh:
+      files = [ ]
       for path in self.paths:
-        dascmd  = 'dasgoclient --limit=0 --query="file dataset=%s instance=%s"'%(path,self.instance)
-        cmdout  = execute(dascmd,verb=verb)
-        outlist = cmdout.split(os.linesep)
+        if self.storage:
+          storage = getstorage(repkey(self.storage,GROUP=self.group,SAMPLE=self.name,PATH=path),verb=verb)
+          print storage
+          outlist = storage.getfiles(verb=verb)
+        else:
+          dascmd  = 'dasgoclient --limit=0 --query="file dataset=%s instance=%s"'%(path,self.instance)
+          cmdout  = execute(dascmd,verb=verb)
+          outlist = cmdout.split(os.linesep)
         for line in outlist:
           line = line.strip()
           if line.endswith('.root') and not any(f.endswith(line) for f in self.blacklist):

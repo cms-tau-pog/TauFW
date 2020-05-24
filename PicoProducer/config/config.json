@@ -5,11 +5,13 @@
   "nanodir": "/eos/user/i/ineuteli/samples/nano/$ERA/$DAS", 
   "picodir": "/eos/user/i/ineuteli/analysis/$ERA/$GROUP", 
   "channels": {
-    "test": "test.py"
+    "skim": "skimjob.py", 
+    "test": "test.py", 
+    "mutau": "ModuleMuTauSimple"
   }, 
   "eras": {
-    "2017": "samples_2017.py", 
-    "2016": "samples_2016.py"
+    "2016": "samples_2016.py", 
+    "2017": "samples_2017.py"
   }, 
   "batch": "HTCondor", 
   "nfilesperjob": 1

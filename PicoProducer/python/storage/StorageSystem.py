@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 import os
+from fnmatch import fnmatch # for glob pattern
 from TauFW.PicoProducer.tools.utils import execute
 import getpass, platform
 
@@ -17,16 +18,21 @@ def getsedir():
   return sedir
   
 
-def getstorage(path,verb=0):
+def getstorage(path,verb=0,ensure=False):
   if path.startswith('/eos/'):
     from TauFW.PicoProducer.storage.EOS import EOS
-    storage = EOS(path,verb=verb)
-  #if path.startswith('/castor/'): return Castor(path,verb=verb)
-  #if path.startswith('/pnfs/psi.ch/'): return PSI_T3(path,verb=verb)
-  #if path.startswith('/pnfs/lcg.cscs.ch/'): return PSI_T2(path,verb=verb)
-  #if path.startswith('/pnfs/iihe/'): return IIHE_T2(path,verb=verb)
+    storage = EOS(path,ensure=ensure,verb=verb)
+  #elif path.startswith('/castor/'):
+  #  return Castor(path,verb=verb)
+  elif path.startswith('/pnfs/psi.ch/'):
+    from TauFW.PicoProducer.storage.T3_CH_PSI import T3_CH_PSI
+    return PSI_T3(path,ensure=ensure,verb=verb)
+  #elif path.startswith('/pnfs/lcg.cscs.ch/'):
+  #  return PSI_T2(path,verb=verb)
+  #elif path.startswith('/pnfs/iihe/'):
+  #  return IIHE_T2(path,verb=verb)
   else:
-    storage = Local(path,verb=verb)
+    storage = Local(path,ensure=ensure,verb=verb)
   if verb>=2:
     print storage
   return storage
@@ -36,7 +42,6 @@ class StorageSystem(object):
   
   def __init__(self,path,verb=0,ensure=False):
     self.path    = path
-    self.parent  = '/'+'/'.join(path.split('/')[:2])
     self.lscmd   = 'ls'
     self.lsurl   = ''
     self.cdcmd   = 'cd'
@@ -51,13 +56,14 @@ class StorageSystem(object):
     self.chmdcmd = 'chmod'
     self.chmdurl = ''
     self.haddcmd = 'hadd -f'
-    self.haddurl = ''
-    self.tmpurl  = '/tmp/$USER/' # $TMPDIR
-    self.prefix  = ""
+    self.tmpdir  = '/tmp/$USER/' # $TMPDIR
     self.fileurl = ""
     self.verbosity = verb
-    if ensure and not self.exists(path):
-      self.mkdir(path)
+    if path.startswith('/'):
+      self.parent = '/'.join(path.split('/')[:3])
+    else:
+      self.parent = '/'+'/'.join(path.split('/')[:2])
+    self.mounted  = os.path.exists(self.parent)
   
   def __str__(self):
     return self.path
@@ -76,14 +82,15 @@ class StorageSystem(object):
     url   = kwargs.get('url', "")
     paths = [p for p in paths if p]
     if paths:
-      path  = os.path.join(*paths)
+      path = os.path.join(*paths)
     else:
-      path  = self.path
+      path = self.path
     if here and path[0] not in ['/','$']:
       path = os.path.join(self.path,path)
     if url and ('$PATH' in path or path.startswith(self.parent)):
       path = url+path
-    return path.replace('$PATH',self.path)
+    path = path.replace('$PATH',self.path)
+    return path
   
   def file(self,*paths,**kwargs):
     ensure  = kwargs.get('ensure',False)
@@ -98,8 +105,16 @@ class StorageSystem(object):
     verb = kwargs.get('verb',self.verbosity)
     path = self.expandpath(*paths,here=True)
     cmd  = "if `%s %s%s >/dev/null 2>&1`; then echo 1; else echo 0; fi"%(self.lscmd,self.lsurl,path)
-    out  = self.execute(cmd).strip()
+    out  = self.execute(cmd,verb=verb).strip()
     return out=='1'
+  
+  def ensuredir(self,*paths,**kwargs):
+    """Ensure path exists."""
+    verb = kwargs.get('verb',self.verbosity)
+    path = self.expandpath(*paths)
+    if not self.exists(path,verb=verb):
+      self.mkdir(path,verb=verb)
+    return True
   
   def cd(self,*paths,**kwargs):
     #verb = kwargs.get('verb',self.verbosity)
@@ -110,9 +125,27 @@ class StorageSystem(object):
   
   def ls(self,*paths,**kwargs):
     verb    = kwargs.get('verb',self.verbosity)
+    dryrun  = kwargs.get('dry', False)
+    filter  = kwargs.get('filter',None) # filter with glob pattern, like '*' or '[0-9]' wildcards
     path    = self.expandpath(*paths)
-    retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),verb=verb).split('\n')
+    retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),dry=dryrun,verb=verb).split('\n')
+    if filter:
+      for file in retlist[:]:
+        if not fnmatch(file,filter):
+          retlist.remove(file)
     return retlist
+  
+  def getfiles(self,*paths,**kwargs):
+    """Get list of files in a given path.
+    Return list of files with full path name, and if needed, a file URL.
+    Use the 'filter' option to filter the list of file names with some pattern."""
+    verb     = kwargs.get('verb',self.verbosity)
+    path     = self.expandpath(*paths)
+    filelist = self.ls(path,**kwargs)
+    url      = self.fileurl if path.startswith(self.parent) else ""
+    for i, file in enumerate(filelist):
+      filelist[i] = url+os.path.join(path,file)
+    return filelist
   
   def cp(self,source,target=None,**kwargs):
     verb   = kwargs.get('verb',self.verbosity)
@@ -120,30 +153,43 @@ class StorageSystem(object):
     target = self.expandpath(target,url=self.cpurl)
     return self.execute("%s %s %s"%(self.cpcmd,source,target),verb=verb)
   
-  def hadd(self,sources,target=None,**kwargs):
-    verb   = kwargs.get('verb',self.verbosity)
-    target = self.expandpath(target)
-    if isinstance(sources,str):
+  def hadd(self,sources,target,**kwargs):
+    target  = self.expandpath(target,here=True)
+    verb    = kwargs.get('verb',self.verbosity)
+    usetmp  = kwargs.get('tmp', self.cpurl!='') and not target.startswith('/')
+    htarget = target
+    if usetmp:
+      htarget = os.path.join(self.tmpdir,os.path.basename(target))
+    if isinstance(sources,basestring):
       sources = [ sources ]
     source = ""
     for i, file in enumerate(sources,1):
-      source = self.haddurl+self.expandpath(file)
-      if i<len(sources): source += " "
-    return self.execute("%s %s %s"%(self.haddcmd,target,source))
+      source += self.expandpath(file,url=self.fileurl)+' '
+    source = source.strip()
+    if verb>=2:
+      print ">>> %-10s = %r"%('sources',sources)
+      print ">>> %-10s = %r"%('source',source)
+      print ">>> %-10s = %r"%('target',target)
+      print ">>> %-10s = %r"%('htarget',htarget)
+    out = self.execute("%s %s %s"%(self.haddcmd,htarget,source),verb=verb)
+    if usetmp:
+    
+      cpout = self.cp(htarget,target,verb=verb)
+    return out
   
   def rm(self,dirname,**kwargs):
     verb = kwargs.get('verb',self.verbosity)
-    return self.execute("%s %s%s"%(self.rmcmd,self.rmurl,dirname))
+    return self.execute("%s %s%s"%(self.rmcmd,self.rmurl,dirname),verb=verb)
   
   def mkdir(self,dirname='$PATH',**kwargs):
     verb    = kwargs.get('verb',self.verbosity)
     dirname = self.expandpath(dirname)
-    return self.execute("%s %s%s"%(self.mkdrcmd,self.mkdrurl,dirname))
+    return self.execute("%s %s%s"%(self.mkdrcmd,self.mkdrurl,dirname),verb=verb)
   
   def chmod(self,file,perm=None,**kwargs):
     verb = kwargs.get('verb',self.verbosity)
     if not perm: perm = self.chmdprm
-    return self.execute("%s %s %s%s"%(self.chmdcmd,perm,self.chmdurl,file))
+    return self.execute("%s %s %s%s"%(self.chmdcmd,perm,self.chmdurl,file),verb=verb)
   
 
 class Local(StorageSystem):
