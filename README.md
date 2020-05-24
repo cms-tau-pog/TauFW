@@ -1,8 +1,8 @@
 # TauFW
 
 Framework for tau analysis using NanoAOD at CMS. Three main packages are
-1. [PicoProducer](tree/master/PicoProducer) Tools to process nanoAOD.
-2. [Plotter](tree/master/Plotter) Tools for analysis and plotting.
+1. [PicoProducer](tree/master/PicoProducer): Tools to process nanoAOD.
+2. [Plotter](tree/master/Plotter): Tools for analysis and plotting.
 2. [Fitter](tree/master/Fitter): Tools for measurements and fits in combine.
 
 ## Installation
