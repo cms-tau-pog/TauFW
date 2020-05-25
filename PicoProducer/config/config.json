@@ -10,5 +10,5 @@
     "2017": "samples_2017.py"
   }, 
   "batch": "HTCondor", 
-  "nfilesperjob": 1
+  "nfilesperjob": 1 
 }
