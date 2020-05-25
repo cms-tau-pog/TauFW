@@ -30,6 +30,10 @@ See [the README in the parent directory](../../../#taufw). Test the installation
 ```
 pico.py --help
 ```
+To use DAS, make sure you have a GRID certificate installed, and a VOMS proxy setup
+```
+voms-proxy-init -voms cms -valid 200:0
+```
 
 
 ## Configuration
