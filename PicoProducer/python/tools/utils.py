@@ -32,6 +32,8 @@ def execute(command,dry=False,fatal=True,verb=0):
       print ">>> Failed: %r"%(command)
       raise e
     if retcode and fatal:
+      if verb<1:
+        print out
       raise CalledProcessError(retcode,command)
       #raise Exception("Command '%s' ended with return code %s"%(command,retcode)) #,err)
   return out
