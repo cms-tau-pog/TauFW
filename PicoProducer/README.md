@@ -91,9 +91,10 @@ samples = [
 The first string to `Sample` is to group samples together (e.g. `DY`),
 the second is a short name for the sample  (e.g. `DYJetsToLL_M-50`),
 and all arguments after that are the full DAS paths of the sample.
+Multiple DAS paths for the same sample can be used for extensions.
 
 To run on nanoAOD you skimmed, or files stored elsewhere than on DAS, use the keyword `store`.
-The path can contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
+The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
 
 
 ## Local run
