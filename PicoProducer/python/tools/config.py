@@ -3,6 +3,7 @@
 import os, sys, re, glob, json
 from datetime import datetime
 import importlib
+import getpass, platform
 from collections import OrderedDict
 from TauFW.PicoProducer.tools.file import ensuredir, ensurefile
 from TauFW.PicoProducer.tools.log import Logger, color, bold, header
@@ -12,6 +13,7 @@ from TauFW.PicoProducer.storage.utils import getsedir, gettmpdir
 # DEFAULTS
 LOG           = Logger('GLOB')
 CONFIG        = None
+_user         = getpass.getuser()
 _basedir      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 _eras         = OrderedDict([
   ('2016','samples_2016.py'),

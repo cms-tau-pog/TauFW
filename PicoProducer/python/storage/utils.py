@@ -23,7 +23,7 @@ def gettmpdir():
   if 'lxplus' in host:
     sedir = "/eos/user/%s/%s/"%(user[0],user)
   elif "t3" in host and "psi.ch" in host:
-    sedir = "output/$ERA/$CHANNEL/$SAMPLE" #"/scratch/%s/"%(user)
+    sedir = "" #output/$ERA/$CHANNEL/$SAMPLE/ #"/scratch/%s/"%(user)
   return sedir
   
 
