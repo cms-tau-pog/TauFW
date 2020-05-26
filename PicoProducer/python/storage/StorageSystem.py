@@ -111,8 +111,10 @@ class StorageSystem(object):
     fileurl  = kwargs.get('fileurl',self.fileurl)
     path     = self.expandpath(*paths)
     filelist = self.ls(path,**kwargs)
-    if fileurl:
-      url    = fileurl if path.startswith(self.parent) else ""
+    if fileurl and path.startswith(self.parent):
+      url    = fileurl
+    else:
+      url    = ""
     for i, file in enumerate(filelist):
       filelist[i] = url+os.path.join(path,file)
     return filelist
