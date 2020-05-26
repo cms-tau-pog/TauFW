@@ -30,12 +30,14 @@ class ModuleMuTauSimple(Module):
     self.pt_2  = np.zeros(1,dtype='f')
     self.eta_2 = np.zeros(1,dtype='f')
     self.iso_2 = np.zeros(1,dtype='f')
+    self.m_vis = np.zeros(1,dtype='f')
     self.tree.Branch('pt_1',  self.pt_1,  'pt_1/F')
     self.tree.Branch('eta_1', self.eta_1, 'eta_1/F')
     self.tree.Branch('iso_1', self.iso_1, 'iso_1/F')
     self.tree.Branch('pt_2',  self.pt_2,  'pt_2/F')
     self.tree.Branch('eta_2', self.eta_2, 'eta_2/F')
     self.tree.Branch('iso_2', self.iso_2, 'iso_2/F')
+    self.tree.Branch('m_vis', self.m_vis, 'm_vis/F')
   
   def endJob(self):
     self.outfile.Write()
@@ -75,12 +77,13 @@ class ModuleMuTauSimple(Module):
     self.cutflow.Fill(self.cut_pair)
     
     # SAVE VARIABLES
-    self.pt_1  = muon.pt
-    self.eta_1 = muon.eta
-    self.iso_1 = muon.pfRelIso04_all
-    self.pt_2  = tau.pt
-    self.eta_2 = tau.eta
-    self.iso_2 = tau.rawIso
+    self.pt_1[0]  = muon.pt
+    self.eta_1[0] = muon.eta
+    self.iso_1[0] = muon.pfRelIso04_all
+    self.pt_2[0]  = tau.pt
+    self.eta_2[0] = tau.eta
+    self.iso_2[0] = tau.rawIso
+    self.m_vis[0] = (muon.p4()+tau.p4()).M()
     self.tree.Fill()
     
     return True
