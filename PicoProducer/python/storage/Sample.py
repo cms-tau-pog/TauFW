@@ -164,7 +164,7 @@ class Sample(object):
           line = line.strip()
           if line.endswith('.root') and not any(f.endswith(line) for f in self.blacklist):
             if self.director not in line and 'root://' not in line:
-              line = line + self.director+line
+              line = self.director+line
             files.append(line)
       files.sort() # for consistent list order
       self.files = files
