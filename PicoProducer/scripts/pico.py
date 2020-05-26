@@ -51,8 +51,14 @@ def main_set(args):
     print ">>> %-14s = %s"%('cfgname',cfgname)
     print ">>> %-14s = %s"%('config',CONFIG)
     print '-'*80
-  CONFIG[variable] = value
-  CONFIG.write()
+  if variable=='all':
+    if 'default' in value:
+      GLOB.setdefaultconfig(verb=verb)
+    else:
+      LOG.warning("Did not recognize value '%s'. Did you mean 'default'?"%(value))
+  else:
+    CONFIG[variable] = value
+    CONFIG.write()
   
 
 
@@ -701,7 +707,7 @@ def main_status(args):
       
       # GET SAMPLES
       jobcfgs = repkey(os.path.join(jobdirformat,"config/jobconfig_$CHANNEL$TAG_try[0-9]*.json"),
-                        ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag)
+                       ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag)
       if verbosity>=2:
         print ">>> %-12s = %s"%('cwd',os.getcwd())
         print ">>> %-12s = %s"%('jobcfgs',jobcfgs)
@@ -802,14 +808,6 @@ if __name__ == "__main__":
                                                 help="set verbosity" )
   parser_sam = ArgumentParser(add_help=False,parents=[parser_cmn])
   parser_lnk = ArgumentParser(add_help=False,parents=[parser_cmn])
-  parser_sam.add_argument('-f','--force',       dest='force', action='store_true',
-                                                help='force overwrite')
-  parser_sam.add_argument('-d','--dry',         dest='dryrun', action='store_true',
-                                                help='dry run for debugging purposes')
-  parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=GLOB._dtypes, nargs='+',
-                                                help='data type')
-  parser_sam.add_argument('-t','--tag',         dest='tag', default="",
-                                                help='tag for output')
   parser_sam.add_argument('-c','--channel',     dest='channels', choices=CONFIG.channels.keys(), default=[ ], nargs='+',
                                                 help='channel')
   parser_sam.add_argument('-y','-e','--era',    dest='eras', choices=CONFIG.eras.keys(), default=[ ], nargs='+',
@@ -818,9 +816,19 @@ if __name__ == "__main__":
                           metavar='PATTERN',    help="filter these samples; glob patterns (wildcards * and ?) are allowed." )
   parser_sam.add_argument('-x', '--veto',       dest='vetoes', nargs='+', default=[ ], action='store',
                           metavar='PATTERN',    help="exclude/veto this sample" )
+  parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=GLOB._dtypes, nargs='+',
+                                                help='data type')
+  parser_sam.add_argument('-t','--tag',         dest='tag', default="",
+                                                help='tag for output')
   parser_sam.add_argument('-p','--prefetch',    dest='prefetch', default=False, action='store_true',
                                                 help="prefetch file (i.e. copy remote file to ensure stability)" )
+  parser_sam.add_argument('-f','--force',       dest='force', action='store_true',
+                                                help='force overwrite')
+  parser_sam.add_argument('-d','--dry',         dest='dryrun', action='store_true',
+                                                help='dry run for debugging purposes')
   parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
+  parser_job.add_argument('--test',             dest='testrun', action='store_true',
+                                                help='run a test with limited nummer of jobs')
   parser_job.add_argument('-D','--das',         dest='checkdas', default=False, action='store_true',
                                                 help="check DAS for number of events" )
   parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1, action='store',

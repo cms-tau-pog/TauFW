@@ -88,13 +88,14 @@ The file must include a python list `samples`, containing `Sample` objects
 samples = [
   Sample('DY','DYJetsToLL_M-50',
     "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7_ext1-v1/NANOAODSIM",
-    dtype='mc',store=None
+    dtype='mc',store=None,director="root://cms-xrd-global.cern.ch/",
   )
 ]
 ```
-The first string to `Sample` is to group samples together (e.g. `DY`),
-the second is a short name for the sample  (e.g. `DYJetsToLL_M-50`),
-and all arguments after that are the full DAS paths of the sample.
+The `Samples` class takes at least three arguments:
+1. The first string is a user-chosen name to group samples together (e.g. `DY`).
+2. The second is a custom short name for the sample  (e.g. `DYJetsToLL_M-50`). 
+3. The third (and optionally additional) argument are the full DAS paths of the sample.
 Multiple DAS paths for the same sample can be used for extensions.
 
 To run on nanoAOD you skimmed, or files stored elsewhere than on DAS, use the keyword `store`.

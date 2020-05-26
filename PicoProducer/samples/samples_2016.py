@@ -1,7 +1,7 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-storage  = None #"/eos/user/i/ineuteli/samples/nano/$ERA/$PATH"
-director = "root://cms-xrd-global.cern.ch/"
+storage  = "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/NANOAOD_2016/$PATH" #"/eos/user/i/ineuteli/samples/nano/$ERA/$PATH"
+director = None #"root://cms-xrd-global.cern.ch/"
 samples  = [
   
   # DRELL-YAN
@@ -182,6 +182,13 @@ samples  = [
 #   ),
 #   D('Data','Tau_Run2016H', "/Tau/Run2016H-Nano25Oct2019-v1/NANOAOD",
 #     store=storage,
+#   ),
+  
+  # LQ
+#   M('LQ','VLQ_single_M1100',
+#    "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7_ext1-v1/NANOAODSIM",
+#    #"/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7_ext2-v1/NANOAODSIM",
+#    store=storage,
 #   ),
   
 ]

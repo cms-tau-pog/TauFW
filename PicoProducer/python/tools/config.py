@@ -95,6 +95,21 @@ def getconfig(verb=0,refresh=False):
   
   CONFIG = Config(cfgdict,cfgname)
   return CONFIG
+
+
+def setdefaultconfig(verb=0):
+  """Set configuration to default values."""
+  global _cfgdefaults, _basedir, CONFIG
+  
+  # SETTING
+  cfgdir  = ensuredir(_basedir,"config")
+  cfgname = os.path.join(cfgdir,"config.json")
+  cfgdict = _cfgdefaults.copy()
+  if os.path.isfile(cfgname):
+    LOG.warning("Config file '%s' already exists. Overwriting with defaults..."%(cfgname))
+  CONFIG  = Config(cfgdict,cfgname)
+  CONFIG.write()
+  return CONFIG
   
 
 class Config(object):

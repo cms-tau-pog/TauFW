@@ -129,7 +129,7 @@ class StorageSystem(object):
     if tmpdir:
       if not isinstance(tmpdir,str):
         tmpdir = self.tmpdir
-      tmpdir  = ensuredir(tmpdir)
+      tmpdir  = ensuredir(tmpdir,verb=verb)
       htarget = os.path.join(tmpdir,os.path.basename(target))
     if isinstance(sources,basestring):
       sources = [ sources ]
@@ -143,7 +143,7 @@ class StorageSystem(object):
       print ">>> %-10s = %r"%('target',target)
       print ">>> %-10s = %r"%('htarget',htarget)
     out = self.execute("%s %s %s"%(self.haddcmd,htarget,source),verb=verb)
-    if usetmp:
+    if tmpdir:
       cpout = self.cp(htarget,target,verb=verb)
       rmfile(htarget)
     return out
@@ -167,4 +167,6 @@ class Local(StorageSystem):
   
   def __init__(self,path,verb=0,ensure=False):
     super(Local,self).__init__(path,verb=verb,ensure=ensure)
+    if ensure:
+      self.ensuredir(self.path,verb=verb)
   

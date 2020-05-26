@@ -34,6 +34,7 @@ class BatchSystem(object):
   def parsejobs(self,rows,**kwargs):
     """Help function to parse rows of job output from queue command.
     Columns should be ordered as user, jobid, taskid, status, args"""
+    # TODO: allow for job name ?
     verbosity = kwargs.get('verb',self.verbosity)
     jobs      = JobList([])
     if rows and self.verbosity>=1:

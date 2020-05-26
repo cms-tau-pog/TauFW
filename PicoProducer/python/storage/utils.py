@@ -28,6 +28,7 @@ def gettmpdir():
   
 
 def getstorage(path,verb=0,ensure=False):
+  """Guess the storage system based on the path."""
   if path.startswith('/eos/'):
     from TauFW.PicoProducer.storage.EOS import EOS
     storage = EOS(path,ensure=ensure,verb=verb)

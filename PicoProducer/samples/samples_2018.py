@@ -1,7 +1,7 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = None #"/eos/user/i/ineuteli/samples/nano/$ERA/$PATH"
-director = "root://cms-xrd-global.cern.ch/"
+director = None #"root://cms-xrd-global.cern.ch/"
 samples  = [
   
   # DRELL-YAN
