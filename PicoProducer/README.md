@@ -34,6 +34,10 @@ To use DAS, make sure you have a GRID certificate installed, and a VOMS proxy se
 ```
 voms-proxy-init -voms cms -valid 200:0
 ```
+or use the script
+```
+source utils/setupVOMS.sh
+```
 
 
 ## Configuration
@@ -60,7 +64,7 @@ to create a custom hierarchy and format.
 Channels with `skim` in the name are reserved for skimming.
 Link your skimming channel with a post-processor in [`python/processors/`](python/processors) with
 ```
-pico.py channel mutau ModuleMuTau.py
+pico.py channel skim skimjob.py
 ```
 An example is given in [`skimjob.py`](python/processors/skimjob.py).
 
@@ -71,6 +75,7 @@ in [`python/analysis/`](python/analysis), do
 pico.py channel mutau ModuleMuTau.py
 ```
 An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
+All analysis modules are run by `pico.py` with [`picojob.py`](python/processors/skimjob.py).
 
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
@@ -82,7 +87,7 @@ pico.py era 2016 sample_2016.py
 ## Samples
 
 Specify the samples with a python file in [`samples/`](samples).
-The file must include a python list `samples`, containing `Sample` objects
+The file must include a python list called `samples`, containing `Sample` objects
 (or those from the derived `MC` and `Data` classes). For example,
 ```
 samples = [
@@ -98,8 +103,14 @@ The `Samples` class takes at least three arguments:
 3. The third (and optionally additional) argument are the full DAS paths of the sample.
 Multiple DAS paths for the same sample can be used for extensions.
 
-To run on nanoAOD you skimmed, or files stored elsewhere than on DAS, use the keyword `store`.
+Other optional keyword arguments are
+* `store`: Path where all nanoAOD files are stored (instead of being given by DAS). This is useful if you skimmed your samples.
 The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
+* `director`: URL for XRootD protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
+* `dtype`: Data type like `mc`, `data` or `embed`. As a short cut you can use the subclasses `MC` and `Data`.
+* `nfilesperjob`: Number filed per job. If the samples is split in many small files,
+you can choose a larger `nfilesperjob` to reduce the number of short jobs.
+* `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 
 
 ## Local run
@@ -110,7 +121,7 @@ pico.py run -y 2016 -c mutau
 You can specify a sample that is available in [`samples/`](samples), by passing the `-s` flag a pattern as
 ```
 pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
-pico.py run -y 2016 -c mutau -s 'SingleMuon'
+pico.py run -y 2016 -c mutau -s SingleMuon
 ```
 
 
@@ -125,7 +136,10 @@ This will create the the necessary output directories for job out put.
 A JSON file is created to keep track of the job input and output.
 
 You can specify a sample by a pattern to `-s`, or exclude one with `-x`. Glob patterns like `*` wildcards are allowed.
-To give the output files a specific tag, use `-t`.
+To give the output files a specific tag, use `-t`. For all options with submission, do
+```
+pico.py submit --help
+```
 
 ### Status
 Check the job status with
