@@ -107,10 +107,12 @@ class StorageSystem(object):
     """Get list of files in a given path.
     Return list of files with full path name, and if needed, a file URL.
     Use the 'filter' option to filter the list of file names with some pattern."""
-    verb     = kwargs.get('verb',self.verbosity)
+    verb     = kwargs.get('verb',   self.verbosity)
+    fileurl  = kwargs.get('fileurl',self.fileurl)
     path     = self.expandpath(*paths)
     filelist = self.ls(path,**kwargs)
-    url      = self.fileurl if path.startswith(self.parent) else ""
+    if fileurl:
+      url    = fileurl if path.startswith(self.parent) else ""
     for i, file in enumerate(filelist):
       filelist[i] = url+os.path.join(path,file)
     return filelist
