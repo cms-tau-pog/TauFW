@@ -25,9 +25,9 @@ branchsel = None
 # INPUT FILES
 #  dasgoclient --query="dataset=/DYJetsToLL_M-50*/*18NanoAODv5*/NANOAOD*"
 #  dasgoclient --query="dataset=/DYJetsToLL_M-50_TuneCP2_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv5-PUFall18Fast_Nano1June2019_lhe_102X_upgrade2018_realistic_v19-v1/NANOAODSIM file" | head -n10
-director  = "root://cms-xrd-global.cern.ch/" #"root://xrootd-cms.infn.it/"
-infiles   = [
-  director+'/store/mc/RunIIAutumn18NanoAODv5/DYJetsToLL_M-50_TuneCP2_13TeV-madgraphMLM-pythia8/NANOAODSIM/PUFall18Fast_Nano1June2019_lhe_102X_upgrade2018_realistic_v19-v1/250000/9A3D4107-5366-C243-915A-F4426F464D2F.root',
+url     = "root://cms-xrd-global.cern.ch/" #"root://xrootd-cms.infn.it/"
+infiles = [
+  url+'/store/mc/RunIIAutumn18NanoAODv5/DYJetsToLL_M-50_TuneCP2_13TeV-madgraphMLM-pythia8/NANOAODSIM/PUFall18Fast_Nano1June2019_lhe_102X_upgrade2018_realistic_v19-v1/250000/9A3D4107-5366-C243-915A-F4426F464D2F.root',
 ]
 if args.infiles:
   infiles = args.infiles

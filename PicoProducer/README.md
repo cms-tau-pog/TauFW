@@ -93,7 +93,7 @@ The file must include a python list called `samples`, containing `Sample` object
 samples = [
   Sample('DY','DYJetsToLL_M-50',
     "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7_ext1-v1/NANOAODSIM",
-    dtype='mc',store=None,director="root://cms-xrd-global.cern.ch/",
+    dtype='mc',store=None,url="root://cms-xrd-global.cern.ch/",
   )
 ]
 ```
@@ -104,14 +104,21 @@ The `Samples` class takes at least three arguments:
 Multiple DAS paths for the same sample can be used for extensions.
 
 Other optional keyword arguments are
-* `store`: Path where all nanoAOD files are stored (instead of being given by DAS). This is useful if you skimmed your samples.
-The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
-* `director`: URL for XRootD protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
 * `dtype`: Data type like `mc`, `data` or `embed`. As a short cut you can use the subclasses `MC` and `Data`.
+* `store`: Path where all nanoAOD files are stored (instead of being given by DAS). This is useful if you skimmed your samples.
+  The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
+* `url`: Redirector URL for XRootD protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
+* `files`: Either a list of files, OR a string to a text file with a list of files.
+  This can speed things up if DAS is slow or unreliable.
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
-you can choose a larger `nfilesperjob` to reduce the number of short jobs.
+  you can choose a larger `nfilesperjob` to reduce the number of short jobs.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 
+To get a file list for a sample in the sample list, you can use the `get files` subcommand,
+and with `--write`, you can write it to a text file:
+```
+pico.py get files -y 2016 -s DYJets --write
+```
 
 ## Local run
 A local run can be done as
@@ -135,11 +142,14 @@ pico.py submit -y 2016 -c mutau
 This will create the the necessary output directories for job out put.
 A JSON file is created to keep track of the job input and output.
 
-You can specify a sample by a pattern to `-s`, or exclude one with `-x`. Glob patterns like `*` wildcards are allowed.
-To give the output files a specific tag, use `-t`. For all options with submission, do
+You can specify a sample by a patterns to `-s`, or exclude patterns with `-x`. Glob patterns like `*` wildcards are allowed.
+To give the output files a specific tag, use `-t`.
+
+For all options with submission, do
 ```
 pico.py submit --help
 ```
+
 
 ### Status
 Check the job status with

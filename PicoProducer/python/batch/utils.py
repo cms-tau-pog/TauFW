@@ -27,7 +27,7 @@ def getbatch(arg,verb=0):
   
 
 def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=0):
-  """Help function to get samples a sample list and filter if needed."""
+  """Help function to get samples from a sample list and filter if needed."""
   CONFIG   = GLOB.getconfig(verb=verb)
   filters  = filter if isinstance(filter,list) else [filter]
   vetoes   = veto   if isinstance(veto,list)   else [veto]

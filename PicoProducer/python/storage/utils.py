@@ -1,6 +1,9 @@
 # Author: Izaak Neutelings (May 2020)
 import os
 import getpass, platform
+from TauFW.PicoProducer import basedir
+from TauFW.PicoProducer.tools.log import Logger
+LOG = Logger('Storage')
 
 
 def getsedir():
@@ -23,7 +26,7 @@ def gettmpdir():
   if 'lxplus' in host:
     sedir = "/eos/user/%s/%s/"%(user[0],user)
   elif "t3" in host and "psi.ch" in host:
-    sedir = "" #output/$ERA/$CHANNEL/$SAMPLE/ #"/scratch/%s/"%(user)
+    sedir = basedir #output/$ERA/$CHANNEL/$SAMPLE/ #"/scratch/%s/"%(user)
   return sedir
   
 

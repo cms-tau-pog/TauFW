@@ -5,6 +5,7 @@ from datetime import datetime
 import importlib
 import getpass, platform
 from collections import OrderedDict
+from TauFW.PicoProducer import basedir
 from TauFW.PicoProducer.tools.file import ensuredir, ensurefile
 from TauFW.PicoProducer.tools.log import Logger, color, bold, header
 from TauFW.PicoProducer.storage.utils import getsedir, gettmpdir
@@ -14,7 +15,7 @@ from TauFW.PicoProducer.storage.utils import getsedir, gettmpdir
 LOG           = Logger('GLOB')
 CONFIG        = None
 _user         = getpass.getuser()
-_basedir      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+#basedir      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 _eras         = OrderedDict([
   ('2016','samples_2016.py'),
   ('2017','samples_2017.py')
@@ -25,32 +26,32 @@ _channels     = OrderedDict([
   ('mutau','ModuleMuTauSimple')
 ])
 _dtypes       = ['mc','data','embed']
-_sedir        = getsedir()                      # guess storage element on current host
-_tmpdir       = gettmpdir()                     # temporary dir for creating intermediate hadd files
-_jobdir       = "output/$ERA/$CHANNEL/$SAMPLE"  # for job config and log files
-_outdir       = _tmpdir+_jobdir                 # for job output
-_picodir      = _sedir+"analysis/$ERA/$GROUP"   # for storage of analysis ("pico") tuples after hadd
-_nanodir      = _sedir+"samples/nano/$ERA/$DAS" # for storage of (skimmed) nanoAOD
+_sedir        = getsedir()                       # guess storage element on current host
+_tmpdir       = gettmpdir()                      # temporary dir for creating intermediate hadd files
+_jobdir       = "output/$ERA/$CHANNEL/$SAMPLE"   # for job config and log files
+_outdir       = _tmpdir+_jobdir                  # for job output
+_picodir      = _sedir+"analysis/$ERA/$GROUP"    # for storage of analysis ("pico") tuples after hadd
+_nanodir      = _sedir+"samples/nano/$ERA/$DAS"  # for storage of (skimmed) nanoAOD
+_filelistdir  = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
 _batchsystem  = 'HTCondor'
 _nfilesperjob = 1
 _cfgdefaults  = OrderedDict([
-  ('basedir',_basedir),
+  ('basedir',basedir),
   ('jobdir',_jobdir),     ('outdir',_outdir), ('nanodir',_nanodir), ('picodir',_picodir),
   ('channels',_channels), ('eras',_eras),
-  ('batch',_batchsystem), ('nfilesperjob',_nfilesperjob),
+  ('batch',_batchsystem), ('nfilesperjob',_nfilesperjob), ('filelistdir',_filelistdir),
 ])
-sys.path.append(_basedir)
-os.chdir(_basedir)
+sys.path.append(basedir)
 
 
 def getconfig(verb=0,refresh=False):
   """Get configuration from JSON file."""
-  global _cfgdefaults, _basedir, CONFIG
+  global _cfgdefaults, basedir, CONFIG
   if CONFIG and not refresh:
     return CONFIG
   
   # SETTING
-  cfgdir   = ensuredir(_basedir,"config")
+  cfgdir   = ensuredir(basedir,"config")
   cfgname  = os.path.join(cfgdir,"config.json")
   cfgdict  = _cfgdefaults.copy()
   rqdstrs  = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,basestring)]
@@ -99,10 +100,10 @@ def getconfig(verb=0,refresh=False):
 
 def setdefaultconfig(verb=0):
   """Set configuration to default values."""
-  global _cfgdefaults, _basedir, CONFIG
+  global _cfgdefaults, basedir, CONFIG
   
   # SETTING
-  cfgdir  = ensuredir(_basedir,"config")
+  cfgdir  = ensuredir(basedir,"config")
   cfgname = os.path.join(cfgdir,"config.json")
   cfgdict = _cfgdefaults.copy()
   if os.path.isfile(cfgname):

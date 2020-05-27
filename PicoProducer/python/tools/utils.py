@@ -6,6 +6,7 @@ from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 
 def execute(command,dry=False,fatal=True,verb=0):
   """Execute shell command."""
+  command = str(command)
   out = ""
   if dry:
     print ">>> Dry run: %r"%(command)

@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
-# Directors:
+# URL redirectors:
 #   root://cms-xrd-global.cern.ch/ # DAS, globally
 #   root://xrootd-cms.infn.it/     # DAS, use in Eurasia
 #   root://cmsxrootd.fnal.gov/     # DAS, use in the US
@@ -12,7 +12,7 @@ from copy import deepcopy
 from fnmatch import fnmatch
 from TauFW.PicoProducer.tools.utils import execute, repkey
 from TauFW.PicoProducer.tools.file import ensurefile
-from TauFW.PicoProducer.storage.utils import getstorage
+from TauFW.PicoProducer.storage.utils import LOG, getstorage
 
 
 class Sample(object):
@@ -53,7 +53,7 @@ class Sample(object):
     self.dtype        = dtype
     self.channels     = kwargs.get('channels',     None)
     self.storage      = kwargs.get('store',        None) # if stored elsewhere than DAS
-    self.director     = kwargs.get('director',     None)
+    self.url          = kwargs.get('url',          None)
     self.blacklist    = kwargs.get('blacklist',    [ ] ) # black list file
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global')
     self.nfilesperjob = kwargs.get('nfilesperjob', -1  )
@@ -62,33 +62,40 @@ class Sample(object):
     self.nevents      = kwargs.get('nevents',        0 )
     self.files        = kwargs.get('files',        [ ] ) # list of ROOT files, OR text file with list of files
     self.era          = kwargs.get('era',           "" ) # for expansion of $ERA variable
+    self.verbosity    = kwargs.get('verbosity',      0 ) # verbosity level for debugging
     self.refreshable  = not self.files                   # allow refresh on file list in getfiles()
     
-    # STORAGE & DIRECTOR DEFAULTS
+    # STORAGE & URL DEFAULTS
     if self.storage:
       self.storage = repkey(self.storage,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
-    if not self.director:
+    if not self.url:
       if self.storage:
         from TauFW.PicoProducer.storage.StorageSystem import Local
         storage = getstorage(repkey(self.storage,PATH=self.paths[0]))
         if isinstance(storage,Local):
-          self.director = "root://cms-xrd-global.cern.ch/"
+          self.url = "root://cms-xrd-global.cern.ch/"
         else:
-          self.director = storage.fileurl
+          self.url = storage.fileurl
       else:
-        self.director = "root://cms-xrd-global.cern.ch/"
+        self.url = "root://cms-xrd-global.cern.ch/"
     
     # GET FILE LIST FROM TEXT FILE
     if isinstance(self.files,str):
       filename = repkey(self.files,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+      if self.verbosity>=1:
+        print ">>> Loading sample files from '%r'"%(filename)
+      if self.verbosity>=2:
+        print ">>> %-14s = %s"%('filelist',self.files)
+        print ">>> %-14s = %s"%('filename',filename)
       filelist = [ ]
-      with open(filename,'r') in file:
+      with open(filename,'r') as file:
         for line in file:
           line = line.strip().split()
-          if not line or line[0][0]=='#':
-            continue
-          if line.endswith('.root'):
-            filelist.append(line)
+          if not line: continue
+          infile = line[0].strip()
+          if infile[0]=='#': continue
+          if infile.endswith('.root'):
+            filelist.append(infile)
       self.files = filelist
       self.files.sort()
   
@@ -146,7 +153,7 @@ class Sample(object):
       else:      print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
     return match_
   
-  def getfiles(self,refresh=False,verb=0):
+  def getfiles(self,refresh=False,url=True,verb=0):
     """Get list of files from DAS."""
     files = self.files
     if self.refreshable and (not files or refresh):
@@ -154,17 +161,18 @@ class Sample(object):
       for path in self.paths:
         if self.storage: # get files from storage system
           sepath  = repkey(self.storage,PATH=path).replace('//','/')
-          storage = getstorage(sepath,verb=verb)
-          outlist = storage.getfiles(verb=verb)
+          storage = getstorage(sepath,verb=verb-1)
+          outlist = storage.getfiles(url=url,verb=verb-1)
         else: # get files from DAS
-          dascmd  = 'dasgoclient --limit=0 --query="file dataset=%s instance=%s"'%(path,self.instance)
-          cmdout  = execute(dascmd,verb=verb)
+          dascmd  = 'dasgoclient --query="file dataset=%s instance=%s"'%(path,self.instance) #--limit=0
+          LOG.verb(repr(dascmd),verb)
+          cmdout  = execute(dascmd,verb=verb-1)
           outlist = cmdout.split(os.linesep)
         for line in outlist: # filter root files
           line = line.strip()
           if line.endswith('.root') and not any(f.endswith(line) for f in self.blacklist):
-            if self.director not in line and 'root://' not in line:
-              line = self.director+line
+            if url and self.url not in line and 'root://' not in line:
+              line = self.url+line
             files.append(line)
       files.sort() # for consistent list order
       self.files = files
@@ -175,9 +183,13 @@ class Sample(object):
     nevents = self.nevents
     if nevents<=0 or refresh:
       for path in self.paths:
-        dascmd   = 'dasgoclient --limit=0 --query="summary dataset=%s instance=%s"'%(path,self.instance)
-        cmdout   = execute(dascmd,verb=verb)
-        ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
+        dascmd   = 'dasgoclient --query="summary dataset=%s instance=%s"'%(path,self.instance)
+        LOG.verb(repr(dascmd),verb)
+        cmdout   = execute(dascmd,verb=verb-1)
+        if "nevents" in cmdout:
+          ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
+        else:
+          LOG.warning("Could not get number of events from DAS for %r."%(self.name))
         nevents += ndasevts
       self.nevents = nevents
     return nevents

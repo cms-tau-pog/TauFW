@@ -3,6 +3,7 @@ import os
 from fnmatch import fnmatch # for glob pattern
 from TauFW.PicoProducer.tools.utils import execute
 from TauFW.PicoProducer.tools.file import ensuredir, rmfile
+from TauFW.PicoProducer.storage.utils import LOG
 import getpass, platform
 
 
@@ -39,9 +40,9 @@ class StorageSystem(object):
   def __repr__(self):
     return '<%s("%s") at %s>'%(self.__class__.__name__,self.path,hex(id(self)))
   
-  def execute(self,cmd,dry=False,**kwargs):
-    verb = kwargs.get('verb',self.verbosity)
-    return execute(cmd,dry=dry,verb=verb)
+  def execute(self,cmd,**kwargs):
+    kwargs.setdefault('verb',self.verbosity)
+    return execute(cmd,**kwargs)
   
   def expandpath(self,*paths,**kwargs):
     """Help function to replace variables in given path, or set default to own path."""
@@ -61,15 +62,18 @@ class StorageSystem(object):
     return path
   
   def file(self,*paths,**kwargs):
-    ensure  = kwargs.get('ensure',False)
-    path    = self.expandpath(*paths,here=True)
-    file_   = self.fileurl + path
+    """Ensure that a given file exists, and append a file URL if needed."""
+    ensure = kwargs.get('ensure',False)
+    path   = self.expandpath(*paths,here=True)
+    if path.startswith(self.parent):
+      path = self.fileurl + path
     if ensure:
       if not self.exists(path):
-        raise IOError("Did not find %s."%(path))
-    return file_
+        LOG.throw(IOError,"Did not find %s."%(path))
+    return path
   
   def exists(self,*paths,**kwargs):
+    """Ensure that a given path exists."""
     verb = kwargs.get('verb',self.verbosity)
     path = self.expandpath(*paths,here=True)
     cmd  = "if `%s %s%s >/dev/null 2>&1`; then echo 1; else echo 0; fi"%(self.lscmd,self.lsurl,path)
@@ -96,8 +100,11 @@ class StorageSystem(object):
     dryrun  = kwargs.get('dry', False)
     filter  = kwargs.get('filter',None) # filter with glob pattern, like '*' or '[0-9]' wildcards
     path    = self.expandpath(*paths)
-    retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),dry=dryrun,verb=verb).split('\n')
-    if filter:
+    retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),fatal=False,dry=dryrun,verb=verb).split('\n')
+    if retlist and 'No such file or directory' in retlist[0]:
+      LOG.warning(retlist[0])
+      retlist = [ ]
+    elif filter:
       for file in retlist[:]:
         if not fnmatch(file,filter):
           retlist.remove(file)
@@ -107,16 +114,17 @@ class StorageSystem(object):
     """Get list of files in a given path.
     Return list of files with full path name, and if needed, a file URL.
     Use the 'filter' option to filter the list of file names with some pattern."""
-    verb     = kwargs.get('verb',   self.verbosity)
-    fileurl  = kwargs.get('fileurl',self.fileurl)
+    verb     = kwargs.get('verb',self.verbosity)
+    fileurl  = kwargs.get('url', self.fileurl)
     path     = self.expandpath(*paths)
     filelist = self.ls(path,**kwargs)
     if fileurl and path.startswith(self.parent):
-      url    = fileurl
+      if not isinstance(fileurl,basestring):
+        fileurl = self.fileurl
     else:
-      url    = ""
+      fileurl = ""
     for i, file in enumerate(filelist):
-      filelist[i] = url+os.path.join(path,file)
+      filelist[i] = fileurl+os.path.join(path,file)
     return filelist
   
   def cp(self,source,target=None,**kwargs):
@@ -152,9 +160,10 @@ class StorageSystem(object):
       rmfile(htarget)
     return out
   
-  def rm(self,dirname,**kwargs):
+  def rm(self,path,**kwargs):
+    """Remove given file or director."""
     verb = kwargs.get('verb',self.verbosity)
-    return self.execute("%s %s%s"%(self.rmcmd,self.rmurl,dirname),verb=verb)
+    return self.execute("%s %s%s"%(self.rmcmd,self.rmurl,path),verb=verb)
   
   def mkdir(self,dirname='$PATH',**kwargs):
     verb    = kwargs.get('verb',self.verbosity)

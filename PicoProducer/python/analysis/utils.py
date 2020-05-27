@@ -1,6 +1,7 @@
 # Author: Izaak Neutelings (May 2020)
 import os
 import importlib
+from TauFW.PicoProducer import basedir
 from TauFW.PicoProducer.tools.file import ensurefile
 from TauFW.PicoProducer.tools.log import Logger
 LOG = Logger('Analysis')
@@ -8,7 +9,7 @@ LOG = Logger('Analysis')
 def ensuremodule(modname):
   """Check if module exists and has class of same name."""
   # TODO: absolute path
-  modfile = ensurefile("python/analysis/%s.py"%(modname))
+  modfile = ensurefile(basedir,"python/analysis/%s.py"%(modname))
   modpath = "TauFW.PicoProducer.analysis.%s"%(modname) #modfile.replace('.py','').replace('/','.')
   try:
     module = importlib.import_module(modpath)

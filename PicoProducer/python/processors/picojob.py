@@ -12,7 +12,7 @@ parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',  dest='infiles',  type=str, default=[ ], nargs='+')
 parser.add_argument('-o', '--outdir',   dest='outdir',   type=str, default='.')
 parser.add_argument('-C', '--copydir',  dest='copydir',  type=str, default=None)
-parser.add_argument('-m', '--maxevts',  dest='maxevts',  type=int, default=-1)
+parser.add_argument('-m', '--maxevts',  dest='maxevts',  type=int, default=10000)
 parser.add_argument('-t', '--tag',      dest='tag',      type=str, default="")
 parser.add_argument('-d', '--dtype',    dest='dtype',    choices=['data','mc','embed'], default=None)
 parser.add_argument('-y','-e','--era',  dest='era',      type=str, default="")
@@ -40,12 +40,12 @@ dtype     = args.dtype
 outdir    = args.outdir
 copydir   = args.copydir
 maxevts   = args.maxevts if args.maxevts>0 else None
-nfiles    = -1
+nfiles    = 1 if maxevts>0 else -1
 tag       = args.tag
 if tag:
   tag     = ('' if tag.startswith('_') else '_') + tag
 outfname  = os.path.join(outdir,"pico_%s%s.root"%(channel,tag))
-director  = "root://cms-xrd-global.cern.ch/"
+url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch
 presel    = None #"Muon_pt[0] > 50"
 branchsel = os.path.join(moddir,"keep_and_drop_skim.txt")
@@ -56,26 +56,27 @@ modules   = [ ]
 infiles   = args.infiles or [
   #"data/DYJetsToLL_M-50_NanoAODv6.root",
   #"/afs/cern.ch/user/i/ineuteli/analysis/CMSSW_10_3_3/src/TauFW/PicoProducer/data/DYJetsToLL_M-50_NanoAODv6.root",
-  director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/67/myNanoProdMc2017_NANO_66.root',
-  director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/68/myNanoProdMc2017_NANO_67.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/69/myNanoProdMc2017_NANO_68.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/70/myNanoProdMc2017_NANO_69.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/71/myNanoProdMc2017_NANO_70.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/72/myNanoProdMc2017_NANO_71.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/73/myNanoProdMc2017_NANO_72.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/74/myNanoProdMc2017_NANO_73.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/75/myNanoProdMc2017_NANO_74.root',
-  #director+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/76/myNanoProdMc2017_NANO_75.root',
+  url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/67/myNanoProdMc2017_NANO_66.root',
+  url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/68/myNanoProdMc2017_NANO_67.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/69/myNanoProdMc2017_NANO_68.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/70/myNanoProdMc2017_NANO_69.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/71/myNanoProdMc2017_NANO_70.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/72/myNanoProdMc2017_NANO_71.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/73/myNanoProdMc2017_NANO_72.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/74/myNanoProdMc2017_NANO_73.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/75/myNanoProdMc2017_NANO_74.root',
+  #url+'/store/user/aakhmets/taupog/nanoAOD/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_v1/76/myNanoProdMc2017_NANO_75.root',
 ]
 if nfiles>0:
   infiles = infiles[:nfiles]
 if dtype==None:
-  dtype = 'mc'
-if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma']):
-  dtype = 'data'
+  if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma']):
+    dtype = 'data'
+  else:
+    dtype = 'mc'
 
 # GET MODULE
-module  = getmodule(modname)(outfname)
+module = getmodule(modname)(outfname)
 modules.append(module)
 
 # PRINT
@@ -93,6 +94,7 @@ print ">>> %-12s = %r"%('outfname',outfname)
 print ">>> %-12s = %r"%('branchsel',branchsel)
 print ">>> %-12s = %r"%('json',json)
 print ">>> %-12s = %s"%('prefetch',prefetch)
+print ">>> %-12s = %s"%('cwd',os.getcwd())
 print '-'*80
 
 # RUN

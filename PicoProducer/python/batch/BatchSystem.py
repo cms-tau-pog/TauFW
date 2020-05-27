@@ -37,9 +37,10 @@ class BatchSystem(object):
     # TODO: allow for job name ?
     verbosity = kwargs.get('verb',self.verbosity)
     jobs      = JobList([])
-    if rows and self.verbosity>=1:
+    rows      = rows.split('\n')
+    if len(rows)>1 and self.verbosity>=1:
       print ">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args')
-    for row in rows.split('\n'):
+    for row in rows:
       values = row.split()
       if len(values)<5 or not values[1].isdigit() or not values[2].isdigit():
         continue

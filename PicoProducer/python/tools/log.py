@@ -40,15 +40,15 @@ def bold(string):
   return "\033[1m%s\033[0m"%(string)
   
 
-_headeri = 0
+#_headeri = 0
 def header(*strings):
-  global _headeri
+  #global _headeri
   title  = ', '.join([str(s).lstrip('_') for s in strings if s])
-  string = ("\n\n" if _headeri>0 else "\n") +\
+  string = "\n" +\
            "   ###%s\n"    % ('#'*(len(title)+3)) +\
            "   #  %s  #\n" % (title) +\
            "   ###%s\n"    % ('#'*(len(title)+3))
-  _headeri += 1
+  #_headeri += 1
   return string
   
 
@@ -56,22 +56,24 @@ def header(*strings):
 class Logger(object):
   """Class to customly log program."""
   
-  def __init__(self, name="unnamed", verb=0, **kwargs):
+  def __init__(self, name="LOG", verb=0, **kwargs):
     self.name      = name
     self.verbosity = verb
-    self.pre       = ">>> "
+    self.pre       = kwargs.get('pre',">>> ")
     self._table    = None
+    if  kwargs.get('showname',False):
+      self.pre += self.name + ": "
   
   def getverb(self,*args):
-    """Set verbosity level of each module."""
-    verbosities = [ self.verbosity ]
+    """Decide verbosity level based on maximum of own verbosity and given arguments."""
+    verbs = [ self.verbosity ]
     for arg in args:
       if isinstance(arg,dict):
-        verbosity = arg.get('verb',0) or 0
+        verbosity = arg.get('verb',0) + arg.get('verbosity',0) + 0
       else:
-        verbosity = arg or 0
-      verbosities.append(verbosity)
-    return max(verbosities)
+        verbosity = int(bool(arg) or 0)
+      verbs.append(verbosity)
+    return max(verbs)
   
   def info(self,string,**kwargs):
     """Info"""
@@ -100,25 +102,35 @@ class Logger(object):
       exclam  = color(kwargs.get('exclam',"ERROR! "),'red',b=True,pre=self.pre+kwargs.get('pre',""))
       message = color(string,'red',pre="")
       print exclam+message
+    return trigger
   
-  def fatal(self,*args,**kwargs):
+  def fatal(self,string,trigger=True,**kwargs):
     """Fatal error by throwing an exception."""
-    self.error(*args,**kwargs)
-    raise Exception
+    return self.throw(Exception,string,trigger=trigger,**kwargs)
   
-  def throw(self,error,string,**kwargs):
-    """Fatal error by throwing an exception."""
-    string = color(string,'red',**kwargs)
-    raise error(string)
+  def throw(self,error,string,trigger=True,**kwargs):
+    """Fatal error by throwing a specified exception."""
+    if trigger:
+      string = color(string,'red',**kwargs)
+      raise error(string)
+    return trigger
   
-  def verbose(self,string,verb=None,level=None,**kwargs):
+  def insist(self,condition,string,error=AssertionError,**kwargs):
+    """Assert condition throwing an exception."""
+    return self.throw(error,string,trigger=(not condition),**kwargs)
+  
+  def verbose(self,string,verb=None,level=1,**kwargs):
     """Check verbosity and print if verbosity level is matched."""
     if verb==None:
       verb   = self.verbosity
-    if level==None:
-      level  = False
-      kwargs['pre'] = self.pre+kwargs.get('pre',"")
-      printVerbose(string,verbosity,level,**kwargs)
+    if verb>=level:
+      pre = self.pre+kwargs.get('pre',"")
+      print pre+string
+      return True
+    return False
+  
+  def verb(self,*args,**kwargs):
+    return self.verbose(*args,**kwargs)
   
   #def table(self,format,**kwargs):
   #  """Initiate new table."""

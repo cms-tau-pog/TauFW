@@ -15,7 +15,7 @@ class T3_PSI(StorageSystem):
     self.rmurl   = 'gsiftp://t3se01.psi.ch/'
     self.mkdrcmd = "LD_LIBRARY_PATH='' PYTHONPATH='' gfal-mkdir -p"
     self.mkdrurl = 'gsiftp://t3se01.psi.ch/'
-    self.cpcmd   = 'xrdcp'
+    self.cpcmd   = 'xrdcp -f'
     self.cpurl   = "root://t3dcachedb03.psi.ch/"
     self.tmpdir  = '/scratch/$USER/'
     self.fileurl = "root://t3dcachedb03.psi.ch/"

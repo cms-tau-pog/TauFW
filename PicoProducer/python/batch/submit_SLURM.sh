@@ -20,24 +20,25 @@ function peval { echo ">>> $@"; eval "$@"; }
 # PRINT
 export JOBID=$SLURM_JOB_ID
 export TASKID=$SLURM_ARRAY_TASK_ID
-WORKDIR="/scratch/$USER/$JOBID"
+WORKDIR="/scratch/$USER/$JOBID.$TASKID"
 JOBLIST=$1
 echo "\$JOBID=$JOBID"
 echo "\$TASKID=$TASKID"
 echo "\$HOSTNAME=$HOSTNAME"
 echo "\$JOBLIST=$JOBLIST"
 echo "\$SBATCH_TIMELIMIT=$SBATCH_TIMELIMIT"
-#echo "\$WORKDIR=$WORKDIR"
+echo "\$WORKDIR=$WORKDIR"
 echo "\$PWD=$PWD"
 peval 'TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")'
-#peval "mkdir -p $WORKDIR"
-#peval "cd $WORKDIR"
+peval "mkdir -p $WORKDIR"
+peval "cd $WORKDIR"
 
 # MAIN FUNCTIONALITY
 #eval $(scramv1 runtime -sh);
 peval "$TASKCMD"
 
 # FINISH
+peval "rm -rf $WORKDIR"
 echo
 END=`date +%s`; RUNTIME=$((END-START))
 echo "Job complete at `date`"

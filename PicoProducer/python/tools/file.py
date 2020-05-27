@@ -22,7 +22,8 @@ def writetemplate(templatename,outfilename,sublist=[],rmlist=[],**kwargs):
   
 
 def ensuredir(*dirnames,**kwargs):
-  """Make directory if it does not exist."""
+  """Make directory if it does not exist.
+  If more than one path is given, it is joined into one."""
   dirname   = os.path.join(*dirnames)
   empty     = kwargs.get('empty', False)
   verbosity = kwargs.get('verb',  0    )
@@ -43,7 +44,8 @@ def ensuredir(*dirnames,**kwargs):
   
 
 def ensurefile(*paths,**kwargs):
-  """Ensure file exists."""
+  """Ensure file exists.
+  If more than one path is given, it is joined into one."""
   fatal = kwargs.get('fatal',True)
   path = os.path.join(*paths)
   if not os.path.isfile(path):
