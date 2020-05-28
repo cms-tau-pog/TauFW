@@ -14,7 +14,7 @@ class T2_PSI(StorageSystem):
     self.lscmd   = "uberftp -ls"
     self.lsurl   = "gsiftp://storage01.lcg.cscs.ch/"
     self.rmcmd   = "uberftp -rm"
-    self.rmurl   = "gsiftp://t3se01.psi.ch/'
+    self.rmurl   = "gsiftp://t3se01.psi.ch/"
     self.mkdrcmd = "LD_LIBRARY_PATH='' PYTHONPATH='' gfal-mkdir -p"
     self.mkdrurl = 'gsiftp://t3se01.psi.ch/'
     self.cpcmd   = 'xrdcp -f'
