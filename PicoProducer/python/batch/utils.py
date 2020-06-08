@@ -29,9 +29,9 @@ def getbatch(arg,verb=0):
 def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=0):
   """Help function to get samples from a sample list and filter if needed."""
   CONFIG   = GLOB.getconfig(verb=verb)
-  filters  = filter if isinstance(filter,list) else [filter]
-  vetoes   = veto   if isinstance(veto,list)   else [veto]
-  dtypes   = dtype  if isinstance(dtype,list)  else [dtype]
+  filters  = filter if not filter or isinstance(filter,list) else [filter]
+  vetoes   = veto   if not veto   or isinstance(veto,list)   else [veto]
+  dtypes   = dtype  if not dtype  or isinstance(dtype,list)  else [dtype]
   sampfile = ensurefile("samples",repkey(CONFIG.eras[era],ERA=era,CHANNEL=channel,TAG=tag))
   samppath = sampfile.replace('.py','').replace('/','.')
   if samppath not in moddict:
