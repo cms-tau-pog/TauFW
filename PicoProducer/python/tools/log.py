@@ -6,11 +6,11 @@ tcol_dict = { 'black':  30,  'red':     31, 'green': 32,
               'grey':   90,  'none':     0 }
 bcol_dict = {k: (10+v if v else v) for k,v in tcol_dict.iteritems()}
 def color(string,c='green',b=False,**kwargs):
-  tcol_key   = kwargs.get('color',     c     )
-  bcol_key   = kwargs.get('background','none')
+  tcol_key   = kwargs.get('color',     c   )
+  bcol_key   = kwargs.get('background',None)
   bold_code  = "\033[1m" if kwargs.get('bold',b) else ""
-  tcol_code  = "\033[%dm"%tcol_dict[tcol_key] if tcol_key!='none' else ""
-  bcol_code  = "\033[%dm"%bcol_dict[bcol_key] if bcol_key!='none' else ""
+  tcol_code  = "\033[%dm"%tcol_dict[tcol_key] if tcol_key!=None else ""
+  bcol_code  = "\033[%dm"%bcol_dict[bcol_key] if bcol_key!=None else ""
   stop_code  = "\033[0m"
   reset_code = stop_code if kwargs.get('reset',False) else ""
   return kwargs.get('pre',"") + reset_code + bcol_code + bold_code + tcol_code + string + stop_code
