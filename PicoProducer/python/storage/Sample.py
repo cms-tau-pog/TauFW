@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
-# URL redirectors:
+# Redirector URLs:
 #   root://cms-xrd-global.cern.ch/ # DAS, globally
 #   root://xrootd-cms.infn.it/     # DAS, use in Eurasia
 #   root://cmsxrootd.fnal.gov/     # DAS, use in the US
@@ -30,7 +30,7 @@ class Sample(object):
     if len(paths)==1 and isinstance(paths[0],list):
       paths = paths[0]
     for path in paths:
-      assert path.count('/')>=3 and path.startswith('/'), "Path %s has wrong format. Need /SAMPLE/CAMPAIGN/FORMAT."
+      assert path.count('/')>=3 and path.startswith('/'), "DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/FORMAT."%(path)
       #sample = '/'.join(line.split('/')[-3:])
     
     # DATA TYPE
@@ -44,6 +44,7 @@ class Sample(object):
         dtype = 'mc'
       elif re.search(r"/Run20\d\d",path):
         dtype = 'data'
+      dtype = 'mc' # TODO: remove
     assert dtype in dtypes, "Given data type '%s' is not recongized! Please choose from %s..."%(dtype,', '.join(dtypes))
     
     # ATTRIBUTES
@@ -115,10 +116,11 @@ class Sample(object):
     jobcfg['config']    = cfgname
     jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
+    dtype    = jobcfg['dtype']
     channels = [jobcfg['channel']]
     subtry   = int(jobcfg['try'])
     nevents  = int(jobcfg['nevents'])
-    sample   = Sample(jobcfg['group'],jobcfg['name'],jobcfg['paths'],channels=channels,
+    sample   = Sample(jobcfg['group'],jobcfg['name'],jobcfg['paths'],dtype=dtype,channels=channels,
                       subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,nevents=nevents)
     return sample
   
@@ -189,6 +191,7 @@ class Sample(object):
         if "nevents" in cmdout:
           ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
         else:
+          ndasevts = 0
           LOG.warning("Could not get number of events from DAS for %r."%(self.name))
         nevents += ndasevts
       self.nevents = nevents

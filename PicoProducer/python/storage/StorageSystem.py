@@ -89,13 +89,16 @@ class StorageSystem(object):
     return True
   
   def cd(self,*paths,**kwargs):
-    #verb = kwargs.get('verb',self.verbosity)
-    path = self.expandpath(*paths)
-    ret  = os.chdir(path)
-    #ret  = self.execute("%s %s%s"%(self.cdcmd,self.cdurl,path)).split('\n')
+    """Change directory if mounted."""
+    if self.mounted:
+      #verb = kwargs.get('verb',self.verbosity)
+      path = self.expandpath(*paths)
+      ret  = os.chdir(path)
+      #ret  = self.execute("%s %s%s"%(self.cdcmd,self.cdurl,path)).split('\n')
     return ret
   
   def ls(self,*paths,**kwargs):
+    """List contents of given directory."""
     verb    = kwargs.get('verb',self.verbosity)
     dryrun  = kwargs.get('dry', False)
     filter  = kwargs.get('filter',None) # filter with glob pattern, like '*' or '[0-9]' wildcards
@@ -128,12 +131,14 @@ class StorageSystem(object):
     return filelist
   
   def cp(self,source,target=None,**kwargs):
+    """Copy files."""
     verb   = kwargs.get('verb',self.verbosity)
     source = self.expandpath(source,url=self.cpurl)
     target = self.expandpath(target,url=self.cpurl)
     return self.execute("%s %s %s"%(self.cpcmd,source,target),verb=verb)
   
   def hadd(self,sources,target,**kwargs):
+    """Hadd files. Create intermediate target file if needed."""
     target  = self.expandpath(target,here=True)
     verb    = kwargs.get('verb',   self.verbosity)
     tmpdir  = kwargs.get('tmpdir', target.startswith(self.parent) and self.cpurl!='')
