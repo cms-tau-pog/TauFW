@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-# Description: Simple create mutau events
+# Description: Simple modele to pre-select mutau events
 from ROOT import TFile, TTree, TH1D
 import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
@@ -10,20 +10,28 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 class ModuleMuTauSimple(Module):
   
   def __init__(self,fname):
+    
+    # OUTPUT FILE
     self.outfile  = TFile(fname,'RECREATE')
-    self.tree     = TTree('tree','tree')
+  
+  def beginJob(self):
+    """Prepare output analysis tree and cutflow histogram."""
+    
+    # CUTFLOW HISTOGRAM
     self.cutflow  = TH1D('cutflow', 'cutflow',25,0,25)
     self.cut_none = 0
-    self.cut_muon = 1
-    self.cut_tau  = 2
-    self.cut_pair = 3
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_none, "no cut" )
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_muon, "muon"   )
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_tau,  "tau"    )
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_pair, "pair"   )
-  
-  def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-    """Create branches in output tree."""
+    self.cut_trig = 1
+    self.cut_muon = 2
+    self.cut_tau  = 3
+    self.cut_pair = 4
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_none, "no cut"  )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_trig, "trigger" )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_muon, "muon"    )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_tau,  "tau"     )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_pair, "pair"    )
+    
+    # TREE
+    self.tree  = TTree('tree','tree')
     self.pt_1  = np.zeros(1,dtype='f')
     self.eta_1 = np.zeros(1,dtype='f')
     self.iso_1 = np.zeros(1,dtype='f')
@@ -31,21 +39,28 @@ class ModuleMuTauSimple(Module):
     self.eta_2 = np.zeros(1,dtype='f')
     self.iso_2 = np.zeros(1,dtype='f')
     self.m_vis = np.zeros(1,dtype='f')
-    self.tree.Branch('pt_1',  self.pt_1,  'pt_1/F')
+    self.tree.Branch('pt_1',  self.pt_1,  'pt_1/F' )
     self.tree.Branch('eta_1', self.eta_1, 'eta_1/F')
     self.tree.Branch('iso_1', self.iso_1, 'iso_1/F')
-    self.tree.Branch('pt_2',  self.pt_2,  'pt_2/F')
+    self.tree.Branch('pt_2',  self.pt_2,  'pt_2/F' )
     self.tree.Branch('eta_2', self.eta_2, 'eta_2/F')
     self.tree.Branch('iso_2', self.iso_2, 'iso_2/F')
     self.tree.Branch('m_vis', self.m_vis, 'm_vis/F')
   
   def endJob(self):
+    """Wrap up after running on all events and files"""
     self.outfile.Write()
     self.outfile.Close()
   
   def analyze(self, event):
     """Process event, return True (pass, go to next module) or False (fail, go to next event)."""
+    
+    # NO CUT
     self.cutflow.Fill(self.cut_none)
+    
+    # TRIGGER
+    if not event.HLT_IsoMu24: return False
+    self.cutflow.Fill(self.cut_trig)
     
     # SELECT MUON
     muons = [ ]
