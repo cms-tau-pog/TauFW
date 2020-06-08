@@ -3,8 +3,8 @@
 This setup run the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools) on nanoAOD.
 There are two modes:
 1. **Skimming**: Skim nanoAOD by removing [unneeded branches](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt),
-                 bad data events,
-                 add things like JetMET corrections. Output is again nanoAOD.
+                 bad data events (using [data certification JSONs](data/json)),
+                 add things like JetMET corrections. Output is still of the nanoAOD format.
 2. **Analysis**: Main analysis code in [`python/analysis/`](python/analysis),
                  pre-selecting events and objects and constructing variables.
                  The output is a custom tree format we will refer to as _pico_.
@@ -75,7 +75,7 @@ in [`python/analysis/`](python/analysis), do
 pico.py channel mutau ModuleMuTau.py
 ```
 An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
-All analysis modules are run by `pico.py` with [`picojob.py`](python/processors/skimjob.py).
+All analysis modules are run by `pico.py` with the post-processor [`picojob.py`](python/processors/skimjob.py).
 
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
@@ -98,8 +98,8 @@ samples = [
 ]
 ```
 The `Samples` class takes at least three arguments:
-1. The first string is a user-chosen name to group samples together (e.g. `DY`).
-2. The second is a custom short name for the sample  (e.g. `DYJetsToLL_M-50`). 
+1. The first string is a user-chosen name to group samples together (e.g. `DY`, `TT`, `VV`, `Data`, ...).
+2. The second is a custom short name for the sample  (e.g. `DYJetsToLL_M-50`, `SingleMuon_Run2016C`). 
 3. The third (and optionally additional) argument are the full DAS paths of the sample.
 Multiple DAS paths for the same sample can be used for extensions.
 
