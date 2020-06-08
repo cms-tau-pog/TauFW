@@ -38,7 +38,7 @@ class BatchSystem(object):
     verbosity = kwargs.get('verb',self.verbosity)
     jobs      = JobList([])
     rows      = rows.split('\n')
-    if len(rows)>1 and self.verbosity>=1:
+    if len(rows)>0 and self.verbosity>=1:
       print ">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args')
     for row in rows:
       values = row.split()
