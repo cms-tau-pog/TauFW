@@ -40,7 +40,7 @@ def main_install(args):
 ###########
 
 def main_get(args):
-  """Get information of given variable."""
+  """Get information of given variable in configuration or samples."""
   if args.verbosity>=1:
     print ">>> main_get", args
   variable  = args.variable
@@ -50,7 +50,7 @@ def main_get(args):
   vetoes    = args.vetoes
   channels  = args.channels or [""]
   checkdas  = args.checkdas
-  writedir  = args.write
+  writedir  = args.write # write sample file list to text file
   tag       = args.tag
   verbosity = args.verbosity
   cfgname   = CONFIG._path
@@ -159,13 +159,27 @@ def main_link(args):
   print ">>> Linking %s '%s' to '%s' in config"%(variable,key,value)
   if verbosity>=1:
     print ">>> %-14s = %s"%('cfgname',cfgname)
+    print ">>> %-14s = %s"%('key',key)
+    print ">>> %-14s = %s"%('value',value)
     print ">>> %-14s = %s"%('config',CONFIG)
     print '-'*80
+  
+  # SANITY CHECKS
   if '_' in value:
     LOG.throw(IOError,"Value given for %s (%s) cannot contain '_'!"%(variable,value))
   if varkey not in CONFIG:
     CONFIG[varkey] = { }
   assert isinstance(CONFIG[varkey],dict), "%s in %s has to be a dictionary"%(varkey,cfgname)
+  if varkey=='channels':
+    oldval = value
+    if 'skim' in key or 'test' in key:
+      value = os.path.basename(value)
+      ensurefile("python/processors",value)
+    else:
+      value = os.path.basename(value).rstrip('.py')
+      ensuremodule(value)
+    if value!=oldval:
+      print ">>> Converted '%s' to '%s'"%(oldval,value)
   CONFIG[varkey][key] = value
   CONFIG.write()
   
@@ -237,6 +251,8 @@ def main_run(args):
         samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,moddict=moddict,verb=verbosity)
         if nsamples>0:
           samples = samples[:nsamples]
+        if not samples:
+          print ">>> Did not find any samples."
       else:
         samples = [None]
       if verbosity>=2:
@@ -292,10 +308,11 @@ def main_run(args):
           runcmd += " -i %s"%(' '.join(infiles))
         #elif nfiles:
         #  runcmd += " --nfiles %s"%(nfiles)
-        print "Executing: "+bold(runcmd)
+        print ">>> Executing: "+bold(runcmd)
         if not dryrun:
           #execute(runcmd,dry=dryrun,verb=verbosity+1) # real-time print out does not work well with python script 
           os.system(runcmd)
+        print
       
 
 
@@ -505,7 +522,7 @@ def preparejobs(args):
         jobcfg = OrderedDict([
           ('time',str(datetime.now())),
           ('group',sample.group), ('paths',sample.paths), ('name',sample.name), ('nevents',nevents),
-          ('channel',channel),    ('module',module),
+          ('dtype',sample.dtype), ('channel',channel),    ('module',module),
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
           ('try',subtry),         ('jobids',jobids),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),
@@ -696,9 +713,9 @@ def checkchuncks(sample,**kwargs):
       chunkdict.pop(ichunk)
   
   ###########################################################################
-  # CHECK ANALYSIS OUTPUT: custom tree format, one output file per job
+  # CHECK ANALYSIS OUTPUT: custom tree format, one output file per job, numbered post-fix
   else:
-    flagexp  = re.compile(r"-t \w*(\d+)")
+    flagexp  = re.compile(r"-t \w*_(\d+)")
     fpattern = "*%s_[0-9]*.root"%(postfix)
     chunkexp = re.compile(r".+%s_(\d+)\.root"%(postfix))
     if verbosity>=2:
@@ -721,7 +738,8 @@ def checkchuncks(sample,**kwargs):
           jobarg  = getline(joblist,job.taskid-1)
           matches = flagexp.findall(jobarg)
         if verbosity>=3:
-          print ">>> matches = ",matches
+          print ">>> jobarg = %r"%(jobarg)
+          print ">>> matches = %s"%(matches)
         if not matches:
           continue
         ichunk = int(matches[0])
@@ -833,6 +851,7 @@ def main_submit(args):
     print ">>> main_submit", args
   
   verbosity = args.verbosity
+  resubmit  = args.subcommand=='resubmit'
   force     = args.force #or True
   dryrun    = args.dryrun #or True
   batch     = getbatch(CONFIG,verb=verbosity+1)
@@ -846,7 +865,7 @@ def main_submit(args):
     jobname = jobcfg['jobname']
     nchunks = jobcfg['nchunks']
     if nchunks<=0:
-      print ">>>   Nothing to resubmit!"
+      print ">>>   Nothing to %ssubmit!"%('re' if resubmit else '')
       continue
     if batch.system=='HTCondor':
       script  = "python/batch/submit_HTCondor.sub"
