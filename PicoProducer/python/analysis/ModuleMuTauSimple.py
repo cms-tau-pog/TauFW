@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-# Description: Simple modele to pre-select mutau events
+# Description: Simple module to pre-select mutau events
 from ROOT import TFile, TTree, TH1D
 import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
@@ -18,7 +18,7 @@ class ModuleMuTauSimple(Module):
     """Prepare output analysis tree and cutflow histogram."""
     
     # CUTFLOW HISTOGRAM
-    self.cutflow  = TH1D('cutflow', 'cutflow',25,0,25)
+    self.cutflow  = TH1D('cutflow','cutflow',25,0,25)
     self.cut_none = 0
     self.cut_trig = 1
     self.cut_muon = 2

@@ -1,10 +1,10 @@
 # PicoProducer
 
-This setup run the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools) on nanoAOD.
+This setup runs the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools) on nanoAOD.
 There are two modes:
 1. **Skimming**: Skim nanoAOD by removing [unneeded branches](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt),
                  bad data events (using [data certification JSONs](data/json)),
-                 add things like JetMET corrections. Output is still of the nanoAOD format.
+                 add things like JetMET corrections. Output still has a nanoAOD format.
 2. **Analysis**: Main analysis code in [`python/analysis/`](python/analysis),
                  pre-selecting events and objects and constructing variables.
                  The output is a custom tree format we will refer to as _pico_.
@@ -26,7 +26,7 @@ There are two modes:
 
 ## Installation
 
-See [the README in the parent directory](../../../#taufw). Test the installation with
+You need to have CMSSW and [NanoAODTools](https://github.com/cms-nanoAOD/nanoAOD-tools) installed, see [the README in the parent directory](../../../#taufw). Test the installation with
 ```
 pico.py --help
 ```
@@ -100,12 +100,13 @@ samples = [
 The `Samples` class takes at least three arguments:
 1. The first string is a user-chosen name to group samples together (e.g. `DY`, `TT`, `VV`, `Data`, ...).
 2. The second is a custom short name for the sample  (e.g. `DYJetsToLL_M-50`, `SingleMuon_Run2016C`). 
-3. The third (and optionally additional) argument are the full DAS paths of the sample.
+3. The third and optionally additional arguments are the full DAS paths of the sample.
 Multiple DAS paths for the same sample can be used for extensions.
 
 Other optional keyword arguments are
-* `dtype`: Data type like `mc`, `data` or `embed`. As a short cut you can use the subclasses `MC` and `Data`.
-* `store`: Path where all nanoAOD files are stored (instead of being given by DAS). This is useful if you skimmed your samples.
+* `dtype`: Data type like `'mc'`, `'data'` or `'embed'`. As a short cut you can use the subclasses `MC` and `Data`.
+* `store`: Path where all nanoAOD files are stored (instead of being given by DAS).
+  This is useful if you produced or skimmed your NanoAOD samples, and they are not available via DAS.
   The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
 * `url`: Redirector URL for XRootD protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
 * `files`: Either a list of files, OR a string to a text file with a list of files.
@@ -175,7 +176,7 @@ as it is preferred to keep skimmed nanoAOD files split for batch submission.
 
 ## Plug-ins
 
-To plug in your own batch system, make a subclass [`BatchSystem`](python/batch/BatchSystem.py)
+To plug in your own batch system, make a subclass of [`BatchSystem`](python/batch/BatchSystem.py),
 overriding the abstract methods (e.g. `submit`).
 Your subclass has to be saved in separate python module in [`python/batch`](python/batch),
 and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
