@@ -28,14 +28,6 @@ def green(string,**kwargs):
   return "\033[32m%s\033[0m"%string
   
 
-def error(string,**kwargs):
-  print ">>> \033[1m\033[91m%sERROR! %s\033[0m"%(kwargs.get('pre',""),string)
-  
-
-def warning(string,**kwargs):
-  print ">>> \033[1m\033[93m%sWarning!\033[0m\033[93m %s\033[0m"%(kwargs.get('pre',""),string)
-  
-
 def bold(string):
   return "\033[1m%s\033[0m"%(string)
   
