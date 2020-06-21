@@ -9,10 +9,8 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class ModuleMuTauSimple(Module):
   
-  def __init__(self,fname):
-    
-    # OUTPUT FILE
-    self.outfile  = TFile(fname,'RECREATE')
+  def __init__(self,fname,**kwargs):
+    self.outfile = TFile(fname,'RECREATE')
   
   def beginJob(self):
     """Prepare output analysis tree and cutflow histogram."""

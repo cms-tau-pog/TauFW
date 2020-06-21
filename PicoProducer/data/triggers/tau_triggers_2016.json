@@ -1,0 +1,275 @@
+{
+  "year": 2016, 
+  "filterbits": {
+    "Electron": {
+      "CaloIdLTrackIdLIsoVL": 1, 
+      "WPTightTrackIso": 2, 
+      "WPLooseTrackIso": 4, 
+      "OverlapFilterPFTau": 8, 
+      "DiElectron": 16, 
+      "MuEle": 32, 
+      "hltOverlapFilterPFTau": 64, 
+      "TripleElectron": 128, 
+      "SingleMuonDiEle": 256, 
+      "DiMuonSingleEle": 512, 
+      "DoubleAndSingleEle": 1024, 
+      "CaloIdVT_GsfTrkIdT": 2048, 
+      "PFJet": 4096, 
+      "Photon175_Photon200": 8192
+    }, 
+    "Muon": {
+      "TrkIsoVVL": 1, 
+      "Iso": 2, 
+      "OverlapFilterPFTau": 4, 
+      "IsoTk": 8, 
+      "Mu50": 1024
+    }, 
+    "Tau": {
+      "LooseIso": 1, 
+      "MediumIso": 2, 
+      "VLooseIso": 4, 
+      "L2TauIsoFilter": 16, 
+      "OverlapFilterIsoMu": 32, 
+      "OverlapFilterIsoEle": 64, 
+      "L1HLTMatched": 128, 
+      "Dz02": 256
+    }
+  }, 
+  "hltcombs": {
+    "data": {
+      "SingleElectron": [
+        "HLT_Ele25_eta2p1_WPTight_Gsf", 
+        "HLT_Ele27_WPTight_Gsf"
+      ], 
+      "SingleMuon": [
+        "HLT_IsoMu22", 
+        "HLT_IsoMu22_eta2p1", 
+        "HLT_IsoTkMu22", 
+        "HLT_IsoTkMu22_eta2p1"
+      ], 
+      "etau": [
+        "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20_SingleL1", 
+        "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20", 
+        "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau30"
+      ], 
+      "mutau": [
+        "HLT_IsoMu19_eta2p1_LooseIsoPFTau20", 
+        "HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1"
+      ], 
+      "ditau": [
+        "HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg", 
+        "HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg"
+      ]
+    }, 
+    "mc": {
+      "SingleElectron": [
+        "HLT_Ele25_eta2p1_WPTight_Gsf", 
+        "HLT_Ele27_WPTight_Gsf"
+      ], 
+      "SingleMuon": [
+        "HLT_IsoMu22", 
+        "HLT_IsoMu22_eta2p1", 
+        "HLT_IsoTkMu22", 
+        "HLT_IsoTkMu22_eta2p1"
+      ], 
+      "etau": [
+        "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20_SingleL1", 
+        "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20", 
+        "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau30"
+      ], 
+      "mutau": [
+        "HLT_IsoMu19_eta2p1_LooseIsoPFTau20", 
+        "HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1"
+      ], 
+      "ditau": [
+        "HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg", 
+        "HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg"
+      ]
+    }
+  }, 
+  "hltpaths": {
+    "HLT_Ele25_eta2p1_WPTight_Gsf": {
+      "filter": "hltEle25erWPTightGsfTrackIsoFilter", 
+      "Electron": {
+        "ptmin": 26, 
+        "filterbits": [
+          "WPTightTrackIso"
+        ]
+      }
+    }, 
+    "HLT_Ele27_WPTight_Gsf": {
+      "filter": "hltEle27WPTightGsfTrackIsoFilter", 
+      "Electron": {
+        "ptmin": 28, 
+        "filterbits": [
+          "WPTightTrackIso"
+        ]
+      }
+    }, 
+    "HLT_IsoMu22": {
+      "filter": "hltL3crIsoL1sMu20L1f0L2f10QL3f22QL3trkIsoFiltered0p09", 
+      "Muon": {
+        "ptmin": 23, 
+        "filterbits": [
+          "Iso"
+        ]
+      }
+    }, 
+    "HLT_IsoMu22_eta2p1": {
+      "filter": "hltL3crIsoL1sSingleMu20erL1f0L2f10QL3f22QL3trkIsoFiltered0p09", 
+      "Muon": {
+        "ptmin": 23, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "Iso"
+        ]
+      }
+    }, 
+    "HLT_IsoTkMu22": {
+      "filter": "hltL3fL1sMu20L1f0Tkf22QL3trkIsoFiltered0p09", 
+      "Muon": {
+        "ptmin": 23, 
+        "filterbits": [
+          "IsoTk"
+        ]
+      }
+    }, 
+    "HLT_IsoTkMu22_eta2p1": {
+      "filter": "hltL3fL1sMu20erL1f0Tkf22QL3trkIsoFiltered0p09", 
+      "Muon": {
+        "ptmin": 23, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "IsoTk"
+        ]
+      }
+    }, 
+    "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20_SingleL1": {
+      "filter": "hltOverlapFilterSingleIsoEle24WPLooseGsfLooseIsoPFTau20", 
+      "runrange": [
+        271036, 
+        276214
+      ], 
+      "Electron": {
+        "ptmin": 25, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "OverlapFilterPFTau"
+        ]
+      }, 
+      "Tau": {
+        "ptmin": 25, 
+        "filterbits": [
+          "OverlapFilterIsoEle", 
+          "LooseIso"
+        ]
+      }
+    }, 
+    "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20": {
+      "filter": "hltOverlapFilterIsoEle24WPLooseGsfLooseIsoPFTau20", 
+      "runrange": [
+        276215, 
+        278269
+      ], 
+      "Electron": {
+        "ptmin": 25, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "OverlapFilterPFTau"
+        ]
+      }, 
+      "Tau": {
+        "ptmin": 25, 
+        "filterbits": [
+          "OverlapFilterIsoEle", 
+          "LooseIso"
+        ]
+      }
+    }, 
+    "HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau30": {
+      "filter": "hltOverlapFilterIsoEle24WPLooseGsfLooseIsoPFTau30", 
+      "runrange": [
+        278270, 
+        284044
+      ], 
+      "Electron": {
+        "ptmin": 25, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "OverlapFilterPFTau"
+        ]
+      }, 
+      "Tau": {
+        "ptmin": 35, 
+        "filterbits": [
+          "OverlapFilterIsoEle", 
+          "LooseIso"
+        ]
+      }
+    }, 
+    "HLT_IsoMu19_eta2p1_LooseIsoPFTau20": {
+      "filter": "hltOverlapFilterIsoMu19LooseIsoPFTau20", 
+      "Muon": {
+        "ptmin": 20, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "OverlapFilterPFTau"
+        ]
+      }, 
+      "Tau": {
+        "ptmin": 25, 
+        "filterbits": [
+          "OverlapFilterIsoMu", 
+          "LooseIso"
+        ]
+      }
+    }, 
+    "HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1": {
+      "filter": "hltOverlapFilterSingleIsoMu19LooseIsoPFTau20", 
+      "Muon": {
+        "ptmin": 20, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "OverlapFilterPFTau"
+        ]
+      }, 
+      "Tau": {
+        "ptmin": 25, 
+        "filterbits": [
+          "OverlapFilterIsoMu", 
+          "LooseIso"
+        ]
+      }
+    }, 
+    "HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg": {
+      "filter": "hltDoublePFTau35TrackPt1MediumIsolationDz02Reg", 
+      "runrange": [
+        271036, 
+        280385
+      ], 
+      "Tau": {
+        "ptmin": 40, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "MediumIso", 
+          "Dz02"
+        ]
+      }
+    }, 
+    "HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg": {
+      "filter": "hltDoublePFTau35TrackPt1MediumCombinedIsolationDz02Reg", 
+      "runrange": [
+        280919, 
+        284044
+      ], 
+      "Tau": {
+        "ptmin": 40, 
+        "etamax": 2.1, 
+        "filterbits": [
+          "MediumIso", 
+          "Dz02"
+        ]
+      }
+    }
+  }
+}

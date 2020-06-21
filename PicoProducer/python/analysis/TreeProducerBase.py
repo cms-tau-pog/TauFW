@@ -1,29 +1,30 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-# Description: Simple create mutau events
+# Description: Base class to create and prepare a custom output file & tree for analysis modules
 import numpy as np
-from ROOT import TTree, TFile, TH1D, TH2D
+from ROOT import TTree, TFile
+from TauFW.PicoProducer.analysis.utils import Cutflow
 
-root_dtype = {
+root_dtype = { # python/numpy -> root data type
   float: 'D',  int: 'I',  bool: 'O',
   'f':   'D',  'i': 'I',  '?':  'O',  'b': 'b',
 }
 
-np_dtype = {
+np_dtype = { # ROOT -> numpy data type
   'D':   'f',  'I': 'i',  'O':  '?',  'b': 'b'
 }
 
 
 class TreeProducerBase(object):
-  """Class to create and prepare a custom output file & tree."""
+  """Base class to create and prepare a custom output file & tree for analysis modules."""
   
   def __init__(self, filename, module, **kwargs):
     self.filename = filename
     self.module   = module
-    ncuts         = kwargs.get('ncuts',25)
     self.outfile  = TFile(filename,'RECREATE')
     self.tree     = TTree('tree','tree')
-    self.cutflow  = TH1D('cutflow','cutflow',ncuts,0,ncuts)
+    ncuts         = kwargs.get('ncuts',25)
+    self.cutflow  = Cutflow('cutflow',ncuts)
   
   def addBranch(self, name, dtype='f', default=None, arrname=None):
     """Add branch with a given name, and create an array of the same name as address."""
@@ -32,21 +33,22 @@ class TreeProducerBase(object):
     if not arrname:
       arrname = name
     if isinstance(dtype,str):  # Set correct data type for numpy:
-      if dtype.lower()=='f':   # 'f' is only a 'float32', and 'F' is a 'complex64', which do not work for filling float branches
-        dtype = float          # float is a 'float64' ('f8')
+      if dtype.lower()=='f':   # 'f' is only 'float32', and 'F'='complex64', which do not work for filling float branches
+        dtype = float          # float='float64' ('f8')
       elif dtype.lower()=='i': # 'i' is only a 'int32'
-        dtype = int            # int is a 'int64' ('i8')
+        dtype = int            # int='int64' ('i8')
     setattr(self,arrname,np.zeros(1,dtype=dtype))
-    self.tree.Branch(name, getattr(self,arrname), '%s/%s'%(name,root_dtype[dtype]))
+    self.tree.Branch(name,getattr(self,arrname),'%s/%s'%(name,root_dtype[dtype]))
     if default!=None:
       getattr(self,name)[0] = default
   
-  def Fill(self):
+  def fill(self):
     """Fill tree."""
-    self.tree.Fill()
+    return self.tree.Fill()
   
   def endJob(self):
     """Write and close files after the job ends."""
     self.outfile.Write()
     self.outfile.Close()
   
+
