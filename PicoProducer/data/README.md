@@ -4,7 +4,7 @@ Several tools to get corrections, efficiencies, scale factors (SFs), event weigh
 [Pileup reweighting](#pileup-reweighting)  
 [Lepton efficiencies](#lepton-efficiencies)
 [B tagging tools](#b-tagging-tools)
-[Test SFs](test-sfs)  
+[Test SFs](test-sfs)
 
 
 

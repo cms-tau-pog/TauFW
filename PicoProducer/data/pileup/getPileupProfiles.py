@@ -7,7 +7,7 @@
 import os, sys, re, shutil, json
 from argparse import ArgumentParser
 from corrections import ensureTFileAndTH1
-from tools import CMS_style
+from TauFW.Plotter.plot import CMS_style
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gROOT, gDirectory, gStyle, gPad, TFile, TTree, TCanvas, TH1, TH1F, TLine, TLegend,\
                  kBlack, kRed, kAzure, kGreen, kOrange, kMagenta, kYellow
