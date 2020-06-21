@@ -3,16 +3,16 @@
 import os, sys, re, glob, json
 from datetime import datetime
 from collections import OrderedDict
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+from ROOT import TFile
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.PicoProducer.tools.file import ensuredir, ensurefile, getline
 from TauFW.PicoProducer.tools.utils import execute, chunkify, repkey
-from TauFW.PicoProducer.tools.log import Logger, color, bold, header
+from TauFW.PicoProducer.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
 from TauFW.PicoProducer.batch.utils import getbatch, getsamples, getcfgsamples
 from TauFW.PicoProducer.storage.utils import getstorage
 from argparse import ArgumentParser
-import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TFile
 os.chdir(GLOB.basedir)
 CONFIG = GLOB.getconfig(verb=0)
 LOG    = Logger()
@@ -119,9 +119,13 @@ def main_set(args):
   if args.verbosity>=1:
     print ">>> main_set", args
   variable  = args.variable
+  key       = args.key # 'channel' or 'era'
   value     = args.value
   verbosity = args.verbosity
   cfgname   = CONFIG._path
+  if key: # redirect 'channel' and 'era' keys to main_link
+    args.subcommand = variable
+    return main_link(args)
   if verbosity>=1:
     print '-'*80
   print ">>> Setting variable '%s' to '%s' config"%(variable,value)
@@ -200,6 +204,7 @@ def main_run(args):
   filters   = args.samples
   vetoes    = args.vetoes
   force     = args.force
+  extraopts = args.extraopts
   maxevts   = args.maxevts
   nfiles    = args.nfiles
   nsamples  = args.nsamples
@@ -212,7 +217,7 @@ def main_run(args):
     
     # LOOP over CHANNELS
     for channel in channels:
-      print header("%s, %s"%(era,channel))
+      LOG.header("%s, %s"%(era,channel))
       
       # CHANNEL -> MODULE
       assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
@@ -306,6 +311,8 @@ def main_run(args):
           runcmd += " -m %s"%(maxevts)
         if infiles:
           runcmd += " -i %s"%(' '.join(infiles))
+        if extraopts:
+          runcmd += " --opt %s"%(' '.join(extraopts))
         #elif nfiles:
         #  runcmd += " --nfiles %s"%(nfiles)
         print ">>> Executing: "+bold(runcmd)
@@ -334,6 +341,7 @@ def preparejobs(args):
   vetoes       = args.vetoes
   checkdas     = args.checkdas
   checkqueue   = args.checkqueue
+  extraopts    = args.extraopts
   prefetch     = args.prefetch
   nfilesperjob = args.nfilesperjob
   split_nfpj   = args.split_nfpj
@@ -346,7 +354,7 @@ def preparejobs(args):
     
     # LOOP over CHANNELS
     for channel in channels:
-      print header("%s, %s"%(era,channel))
+      LOG.header("%s, %s"%(era,channel))
       
       # CHANNEL -> MODULE
       assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
@@ -511,6 +519,8 @@ def preparejobs(args):
               jobcmd += " -y %s -c %s -M %s --copydir %s -t %s"%(era,channel,module,outdir,filetag)
             if prefetch:
               jobcmd += " -p"
+            if extraopts:
+              runcmd += " --opt %s"%(' '.join(extraopts))
             jobcmd += " -i %s"%(jobfiles) # add last
             if args.verbosity>=1:
               print jobcmd
@@ -946,7 +956,7 @@ def main_status(args):
     
     # LOOP over CHANNELS
     for channel in channels:
-      print header("%s, %s"%(era,channel))
+      LOG.header("%s, %s"%(era,channel))
       
       # GET SAMPLES
       jobcfgs = repkey(os.path.join(jobdirformat,"config/jobconfig_$CHANNEL$TAG_try[0-9]*.json"),
@@ -1071,6 +1081,8 @@ if __name__ == "__main__":
                                                 help='force overwrite')
   parser_sam.add_argument('-d','--dry',         dest='dryrun', action='store_true',
                                                 help='dry run for debugging purposes')
+  parser_sam.add_argument('-E', '--opts',       dest='extraopts', type=str, nargs='+', default=[ ],
+                          metavar='KEY=VALUE',  help="extra options for the skim or analysis module")
   parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', default=False, action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
@@ -1098,10 +1110,11 @@ if __name__ == "__main__":
   parser_res = subparsers.add_parser('resubmit', parents=[parser_job], help='resubmit failed post-processing jobs')
   parser_sts = subparsers.add_parser('status',   parents=[parser_chk], help='status of post-processing jobs')
   parser_hdd = subparsers.add_parser('hadd',     parents=[parser_chk], help='hadd post-processing job output')
-  parser_get.add_argument('variable',           help='variable to change in the config file')
+  #parser_get.add_argument('variable',           help='variable to change in the config file')
+  parser_get.add_argument('variable',           help='variable to get information on')
   parser_set.add_argument('variable',           help='variable to change in the config file')
+  parser_set.add_argument('key',                help='channel or era key name', nargs='?', default=None)
   parser_set.add_argument('value',              help='value for given value')
-  parser_set.add_argument('variable',           help='variable to get information on')
   parser_chl.add_argument('key',                metavar='channel', help='channel key name')
   parser_chl.add_argument('value',              metavar='module',  help='module linked to by given channel')
   parser_era.add_argument('key',                metavar='era',     help='era key name')
@@ -1120,7 +1133,7 @@ if __name__ == "__main__":
                                                 help='number of samples to run')
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=CONFIG.filelistdir, default="", action='store',
                                                 help="write file list, default = %r"%(CONFIG.filelistdir) )
-                                                
+  
   
   # ABBREVIATIONS
   args = sys.argv[1:]

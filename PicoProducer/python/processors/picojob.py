@@ -1,29 +1,32 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 # Description: Skim
-import os
+import os, re
 import time; time0 = time.time()
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from TauFW.PicoProducer.analysis.utils import getmodule
 from TauFW.PicoProducer.processors import moddir
 #from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
 from argparse import ArgumentParser
 parser = ArgumentParser()
-parser.add_argument('-i', '--infiles',  dest='infiles',  type=str, default=[ ], nargs='+')
-parser.add_argument('-o', '--outdir',   dest='outdir',   type=str, default='.')
-parser.add_argument('-C', '--copydir',  dest='copydir',  type=str, default=None)
-parser.add_argument('-m', '--maxevts',  dest='maxevts',  type=int, default=-1)
-parser.add_argument('-t', '--tag',      dest='tag',      type=str, default="")
-parser.add_argument('-d', '--dtype',    dest='dtype',    choices=['data','mc','embed'], default=None)
-parser.add_argument('-y','-e','--era',  dest='era',      type=str, default="")
-parser.add_argument('-M', '--module',   dest='module',   type=str, default=None)
-parser.add_argument('-c', '--channel',  dest='channel',  type=str, default=None)
-parser.add_argument('-p', '--prefetch', dest='prefetch', action='store_true', default=False)
+parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
+parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
+parser.add_argument('-C', '--copydir',  dest='copydir',   type=str, default=None)
+parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=-1)
+parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="")
+parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
+parser.add_argument('-y','-e','--era',  dest='era',       type=str, default='2018')
+parser.add_argument('-M', '--module',   dest='module',    type=str, default=None)
+parser.add_argument('-c', '--channel',  dest='channel',   type=str, default=None)
+parser.add_argument('-E', '--opts',     dest='extraopts', type=str, default=[ ], nargs='+')
+parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true', default=False)
 args = parser.parse_args()
 
 
 # SETTING
 era       = args.era
+year      = int(re.findall(r"20\d{2}",era)[0] if era else 2018)
 modname   = args.module
 channel   = args.channel
 if channel:
@@ -75,17 +78,20 @@ if dtype==None:
   else:
     dtype = 'mc'
 
-# GET MODULE
-module = getmodule(modname)(outfname)
-modules.append(module)
+# EXTRA OPTIONS
+kwargs    = { 'year': year, 'dtype': dtype, }
+for option in args.extraopts:
+  assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)
+  key, val    = option.split('=')
+  kwargs[key] = val
 
 # PRINT
 print '-'*80
 print ">>> %-12s = %r"%('era',era)
 print ">>> %-12s = %r"%('channel',channel)
 print ">>> %-12s = %r"%('modname',modname)
-print ">>> %-12s = %s"%('modules',modules)
 print ">>> %-12s = %r"%('dtype',dtype)
+print ">>> %-12s = %r"%('kwargs',kwargs)
 print ">>> %-12s = %s"%('maxevts',maxevts)
 print ">>> %-12s = %r"%('outdir',outdir)
 print ">>> %-12s = %r"%('copydir',copydir)
@@ -96,6 +102,10 @@ print ">>> %-12s = %r"%('json',json)
 print ">>> %-12s = %s"%('prefetch',prefetch)
 print ">>> %-12s = %s"%('cwd',os.getcwd())
 print '-'*80
+
+# GET MODULE
+module = getmodule(modname)(outfname,**kwargs)
+modules.append(module)
 
 # RUN
 p = PostProcessor(outdir,infiles,cut=None,branchsel=None,noOut=True,

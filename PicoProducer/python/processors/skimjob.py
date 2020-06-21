@@ -3,6 +3,7 @@
 # Description: Skim
 import os
 import time; time0 = time.time()
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from TauFW.PicoProducer.processors import moddir
 from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
