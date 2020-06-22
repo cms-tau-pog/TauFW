@@ -169,14 +169,15 @@ def main_link(args):
     print '-'*80
   
   # SANITY CHECKS
-  if '_' in value:
-    LOG.throw(IOError,"Value given for %s (%s) cannot contain '_'!"%(variable,value))
+  for char in '_-:/\!\'"':
+    if char in value:
+      LOG.throw(IOError,"Value given for %s (%s) cannot contain %s!"%(variable,value,char))
   if varkey not in CONFIG:
     CONFIG[varkey] = { }
   assert isinstance(CONFIG[varkey],dict), "%s in %s has to be a dictionary"%(varkey,cfgname)
   if varkey=='channels':
     oldval = value
-    if 'skim' in key or 'test' in key:
+    if 'skim' in key.lower() or 'test' in key:
       value = os.path.basename(value)
       ensurefile("python/processors",value)
     else:
@@ -222,17 +223,18 @@ def main_run(args):
       LOG.header("%s, %s"%(era,channel))
       
       # CHANNEL -> MODULE
+      skim = 'skim' in channel.lower():
       assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
       module = CONFIG.channels[channel]
-      if channel!='test' and 'skim' not in module:
+      if channel!='test' and not skim:
         ensuremodule(module)
       outdir = ensuredir('output')
       
       # PROCESSOR
-      if 'skim' in channel:
-        processor = "skimjob.py"
+      if 'skim' in channel.lower():
+        processor = module
       elif channel=='test':
-        processor = "test.py"
+        processor = module
       else:
         processor = "picojob.py"
       processor   = os.path.join("python/processors",processor)
@@ -301,7 +303,7 @@ def main_run(args):
         
         # RUN
         runcmd = processor
-        if 'skim' in channel:
+        if 'skim' in channel.lower():
           runcmd += " -y %s -o %s --jec-sys"%(era,outdir)
         elif 'test' in channel:
           runcmd += " -o %s"%(outdir)
@@ -359,9 +361,10 @@ def preparejobs(args):
       LOG.header("%s, %s"%(era,channel))
       
       # CHANNEL -> MODULE
+      skim = 'skim' in channel.lower()
       assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
       module = CONFIG.channels[channel]
-      if channel!='test' and 'skim' not in channel:
+      if channel!='test' and not skim:
         ensuremodule(module)
       if verbosity>=1:
         print '-'*80
@@ -372,7 +375,7 @@ def preparejobs(args):
         print ">>> %-12s = %r"%('dtypes',dtypes)
       
       # PROCESSOR
-      if 'skim' in channel:
+      if skim:
         processor = module
       elif channel=='test':
         processor = module
@@ -388,7 +391,7 @@ def preparejobs(args):
       
       # GET SAMPLES
       jobdirformat = CONFIG.jobdir # for job config & log files
-      outdirformat = CONFIG.nanodir if 'skim' in channel else CONFIG.outdir # for job output
+      outdirformat = CONFIG.nanodir if skim else CONFIG.outdir # for job output
       if resubmit:
         # TODO: allow user to resubmit given config file
         jobcfgs  = repkey(os.path.join(jobdirformat,"config/jobconfig_$SAMPLE$TAG_try[0-9]*.json"),
@@ -510,12 +513,12 @@ def preparejobs(args):
               continue
             jobfiles    = ' '.join(fchunk) # list of input files
             filetag     = postfix
-            if 'skim' not in channel:
+            if not skim:
               filetag  += "_%d"%(ichunk)
             jobcmd      = processor
-            if 'skim' in channel:
+            if skim:
               jobcmd += " -y %s --copydir %s -t %s --jec-sys"%(era,outdir,filetag)
-            elif 'test' in channel:
+            elif channel=='test':
               jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
             else:
               jobcmd += " -y %s -c %s -M %s --copydir %s -t %s"%(era,channel,module,outdir,filetag)
@@ -613,7 +616,7 @@ def checkchuncks(sample,**kwargs):
   
   ###########################################################################
   # CHECK SKIMMED OUTPUT: nanoAOD format, one or more output files per job
-  if 'skim' in channel: # and nfilesperjob>1:
+  if 'skim' in channel.lower(): # and nfilesperjob>1:
     flagexp  = re.compile(r"-i (.+\.root)") #r"-i ((?:(?<! -).)+\.root[, ])"
     fpattern = "*%s.root"%(postfix)
     chunkexp = re.compile(r".+%s\.root"%(postfix))
@@ -972,7 +975,7 @@ def main_status(args):
       samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       if verbosity>=2:
         print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
-      if hadd and 'skim' in channel:
+      if hadd and 'skim' in channel.lower():
         LOG.warning("Hadding into one file not available for skimming...")
         print
         continue

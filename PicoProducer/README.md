@@ -53,7 +53,7 @@ The configurable variables include
 * `outdir`: Directory to copy the output pico files from analysis jobs.
 * `nanodir`: Directory to store the output nanoAOD files from skimming jobs (e.g. on EOS, T2, T3, ...).
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output (e.g. on EOS, T2, T3, ...).
-* `nfilesperjob`: Default number of files per job.
+* `nfilesperjob`: Default number of files per job. This can be overridden per sample (see below).
 
 Defaults are given in [`config/config.json`](config/config.json).
 Note the directories can contain variables with `$` like
@@ -61,22 +61,30 @@ Note the directories can contain variables with `$` like
 to create a custom hierarchy and format.
 
 ### Skimming
-Channels with `skim` in the name are reserved for skimming.
-Link your skimming channel with a post-processor in [`python/processors/`](python/processors) with
+Skimming of nanoAOD files is done by post-processor scripts saved in [`python/processors/`](python/processors).
+An example is given by [`skimjob.py`](python/processors/skimjob.py).
+
+You can link your skimming script to a custom channel short name
 ```
 pico.py channel skim skimjob.py
 ```
-An example is given in [`skimjob.py`](python/processors/skimjob.py).
+This can be whatever string you want, but it should contain `skim` to differentiate.
+
 
 ### Analysis
-To link a channel short name (e.g. `mutau`) to an analysis module available
-in [`python/analysis/`](python/analysis), do
-```
-pico.py channel mutau ModuleMuTauSimple
-```
+This framework allows to implement many analysis modules called channels
+(e.g. different final states like mutau or etau).
+All analysis code should be saved in [`python/analysis/`](python/analysis), or a subdirectory.
 An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py),
 and more detailed instructions are in [`python/analysis/README.md`](python/analysis/README.md).
 The `pico.py` script runs all analysis modules with the post-processor [`picojob.py`](python/processors/picojob.py).
+
+You can link any analysis module to a custom channel short name (e.g. `mutau`):
+```
+pico.py channel mutau ModuleMuTauSimple
+```
+The channel short name can be whatever string you like (e.g. `mt`, `mymutau`, `MuTau`, ...).
+However, you should avoid characters like `-`, `:` and `/`, and it should not contain `skim` (reserved for skimming).
 
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
@@ -115,6 +123,7 @@ Other optional keyword arguments are
   or you want to avoid retrieving the files from a local storage element on the fly each time.
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
+  This overrides the default `nfilesperjob` in the configuration.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 
 To get a file list for a sample in the sample list, you can use the `get files` subcommand,
@@ -148,7 +157,8 @@ Once configured, submit with
 ```
 pico.py submit -y 2016 -c mutau
 ```
-This will create the the necessary output directories for job out put.
+This will create the the necessary output directories for job configuration (`jobdir`)
+and output (`nanodir` for skimming, `outdir` for analysis).
 A JSON file is created to keep track of the job input and output.
 
 Again, you can specify a sample by a patterns to `-s`, or exclude patterns with `-x`.
@@ -165,18 +175,31 @@ Check the job status with
 ```
 pico.py status -y 2016 -c mutau
 ```
+This will check which jobs are still running, and if the output files exist and are not corrupted.
+For skimming jobs, the nanoAOD output files should appear in `nanodir`, and they are checked for having an `Events` tree.
+For analysis jobs, the pico output files should appear in `outdir`, and they are checked for having a tree called `tree`,
+and a histogram called `cutflow`.
+To compare how many events were processed compared to the total available events in DAS (or defined in `Sample`), use the `--das` flag:
+```
+pico.py status -y 2016 -c mutau --das
+```
 
 ### Resubmission
 If jobs failed, you can resubmit with
 ```
 pico.py resubmit -y 2016 -c mutau
 ```
+This will resubmit files that are missing or corrupted (unless they are associated with a running job).
+In case the jobs are too long, you can specify a smaller number of files per job with `--filesperjob`,
+or use `--split` to split the default number.
+
 
 ### Finalize
-ROOT files from analysis output can be `hadd`'ed into one pico file:
+ROOT files from analysis output can be `hadd`'ed into one large pico file:
 ```
 pico.py hadd -y 2016 -c mutau
 ```
+The output file will be stored in `picodir`.
 This will not work for channels with `skim` in the name,
 as it is preferred to keep skimmed nanoAOD files split for batch submission.
 
