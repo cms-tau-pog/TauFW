@@ -180,7 +180,9 @@ def main_link(args):
       value = os.path.basename(value)
       ensurefile("python/processors",value)
     else:
-      value = os.path.basename(value).rstrip('.py')
+      if 'python/analysis/' in value: # useful for tab completion
+        value = value.split('python/analysis/')[-1].replace('/','.')
+      value = value.rstrip('.py')
       ensuremodule(value)
     if value!=oldval:
       print ">>> Converted '%s' to '%s'"%(oldval,value)

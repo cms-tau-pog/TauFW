@@ -7,7 +7,6 @@ Several tools to get corrections, efficiencies, scale factors (SFs), event weigh
 [Test SFs](test-sfs)
 
 
-
 ## Pileup reweighting
 
 [`PileupTool.py`](../python/corrections/PileupTool.py) provides the pileup event weight based on the data and MC profiles in [`pileup/`](pileup).

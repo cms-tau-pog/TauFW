@@ -69,12 +69,13 @@ pico.py channel skim skimjob.py
 An example is given in [`skimjob.py`](python/processors/skimjob.py).
 
 ### Analysis
-To link a channel short name (e.g. `mutau`) to an analysis module
+To link a channel short name (e.g. `mutau`) to an analysis module available
 in [`python/analysis/`](python/analysis), do
 ```
-pico.py channel mutau ModuleMuTau.py
+pico.py channel mutau ModuleMuTauSimple
 ```
-An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
+An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py),
+and more detailed instructions are in [`python/analysis/README.md`](python/analysis/README.md).
 All analysis modules are run by `pico.py` with the post-processor [`picojob.py`](python/processors/skimjob.py).
 
 ### Sample list
