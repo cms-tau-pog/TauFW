@@ -1,10 +1,10 @@
 # PicoProducer analysis code
 
 This modules are used to process nanoAOD for analysis. Analysis modules
-1. **pre-select** events, e.g. events passing some trigger and containing a muon-tau pair;
+1. **pre-select** events, e.g. those passing some trigger and containing a muon-tau pair;
 2. **reconstruct** variables like invariant mass;
 3. **apply corrections**, like energy scale, SFs, weights, etc;
-3. **save variables** in branches of a custom tree.
+3. **save variables** in branches of a custom tree (ntuple).
 The analysis modules are run on nanoAOD with the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools),
 for example with [`picojob.py`](../processors/skimjob.py).
 The output is a custom analysis ntuple, we refer to as the _pico_ format.
@@ -37,7 +37,8 @@ but you can organize your modules in subdirectories, e.g.
 pico.py channel mutau MyAnalysis.ModuleMyMuTau
 pico.py channel mutau python/analysis/MyAnalysis/ModuleMyMuTau.py
 ```
-Furthermore, the module file and class should have the exact same name, e.g. [`ModuleMuTau.py`](ModuleMuTau.py) contains `ModuleMuTau`.
+Furthermore, the module file should have the exact same name as the module class it contains,
+e.g. [`ModuleMuTau.py`](ModuleMuTau.py) contains `ModuleMuTau`.
 
 ## Accessing nanoAOD
 Please refer to the [nanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html)
@@ -46,7 +47,11 @@ To know how they are defined from miniAOD, you can dig in the CMSSW source code 
 [`cmssw/PhysicsTools/NanoAOD`](https://github.com/cms-sw/cmssw/tree/master/PhysicsTools/NanoAOD).
 
 To access information of nanoAOD using python, you can subclass [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py)
-from the [`nanoAOD-tools`](https://github.com/cms-nanoAOD/nanoAOD-tools):
+from the [`nanoAOD-tools`](https://github.com/cms-nanoAOD/nanoAOD-tools).
+A simple example of a subclass to analyze nanoAOD is given in [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py).
+The `Module` class has some pre-defined methods like `beginJob` and  `endJob` that are called by
+[`postprocessor`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/postprocessor.py),
+but the main routine is in `analyze`, for example:
 ```
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 class ModuleMuTauSimple(Module):
@@ -57,7 +62,10 @@ class ModuleMuTauSimple(Module):
         muon_idx.append(imuon)
     return True
 ```
-Without loss of performance, you can make the latter more readable using [`Collection`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py):
+The `analyze` method should return `True` if the event passes your pre-selection,
+and you like to keep its information, and `False` otherwise.
+Without loss of performance, you can make the latter more readable using
+[`Collection`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py):
 ```
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 class ModuleMuTauSimple(Module):
@@ -91,6 +99,11 @@ If you use `Collections`, you do not need `ord` anymore:
       if tau.pt>20 and tau.idDeepTau2017v2p1VSjet>=16:
         taus.append(tau)
 ```
+
+More information of data types:
+* In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
+* In `numpy`: https://numpy.org/doc/stable/reference/arrays.dtypes.html#specifying-and-constructing-data-types
+
 
 ## Custom tree format
 A simple example to make your custom tree is given in [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py). Reduced:
@@ -158,7 +171,7 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.addcut('trig',  "trigger"    ) # bin 2 (1-2): number of events passing the trigger
     self.out.cutflow.addcut('muon',  "muon"       ) # bin 3 (2-3): number of events with pre-selected muon
     self.out.cutflow.addcut('tau',   "tau"        ) # bin 4 (3-4): number of events with pre-selected tau
-    self.out.cutflow.addcut('weight',"weight", 15 ) # bin 16 (15-16): total sum of weights
+    self.out.cutflow.addcut('weight',"weight", 15 ) # bin 16 (15-16): total sum of weights (for MC only)
   def analyze(self, event):
     self.out.cutflow.fill('none')
     self.out.cutflow.fill('weight',event.genWeight)
