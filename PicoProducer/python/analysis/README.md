@@ -60,6 +60,8 @@ class ModuleMuTauSimple(Module):
     for imuon in event.nMuon:
       if event.Muon_pt[imuon]>20:
         muon_idx.append(imuon)
+    if len(muon_idx)<1:
+      return False
     return True
 ```
 The `analyze` method should return `True` if the event passes your pre-selection,
@@ -74,6 +76,8 @@ class ModuleMuTauSimple(Module):
     for muon in Collection(event,'Muon'):
       if muon.pt>20:
         muons.append(muon)
+    if len(muons)<1:
+      return False
     return True
 ```
 Triggers are saved as booleans, e.g.
@@ -85,7 +89,7 @@ To save space, some identification working points (WPs) are saved in nanoAOD as 
 instead of 4 bytes (64 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
 you see in the [documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau)
 that it corresponds to the fifth bit, i.e. `16`.
-To access them in python, you may need the built-in functions `ord` or `int`, e.g.
+To access them in python, you may need the [built-in function `ord`](https://docs.python.org/3/library/functions.html#ord), e.g.
 ```
     tau_idx = [ ]
     for itau in event.nTau:
@@ -160,7 +164,7 @@ class ModuleMuTau(Module):
 ## Cutflow
 To keep track of efficiencies of each pre-selection, one should use a cuflow.
 This is a simple histogram, binned per integer, that is filled each time a pre-selection is passed.
-Again [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py) provides a straightforward solution.
+Again, [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py) provides a straightforward solution.
 
 The [`TreeProducerBase`](TreeProducerBase.py) class already uses a special `Cutflow` class,
 that can be used as
