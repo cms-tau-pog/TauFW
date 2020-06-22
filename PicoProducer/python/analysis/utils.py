@@ -35,7 +35,6 @@ def getmodule(modname):
   return getattr(module,modclass)
   
 
-# HAS BIT
 def hasbit(value,bit):
   """Check if i'th bit is set to 1, i.e. binary of 2^i,
   from the right to the left, starting from position i=0."""

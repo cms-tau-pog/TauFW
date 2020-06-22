@@ -1,10 +1,10 @@
 # PicoProducer analysis code
 
-This modules are used to process nanoAOD for analysis. Analysis modules
+These modules are used to process nanoAOD for analysis. Analysis modules
 1. **pre-select** events, e.g. those passing some trigger and containing a muon-tau pair;
 2. **reconstruct** variables like invariant mass;
 3. **apply corrections**, like energy scale, SFs, weights, etc;
-3. **save variables** in branches of a custom tree (ntuple).
+4. **save variables** in branches of a custom tree (ntuple).
 The analysis modules are run on nanoAOD with the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools),
 for example with [`picojob.py`](../processors/skimjob.py).
 The output is a custom analysis ntuple, we refer to as the _pico_ format.
@@ -50,7 +50,7 @@ To access information of nanoAOD using `python`, you can subclass [`Module`](htt
 from the [`nanoAOD-tools`](https://github.com/cms-nanoAOD/nanoAOD-tools).
 A simple example of a subclass to analyze nanoAOD is given in [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py).
 The `Module` class has some pre-defined methods like `beginJob` and  `endJob` that are called by
-[`postprocessor`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/postprocessor.py),
+[`PostProcessor`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/postprocessor.py),
 but the main routine is in `analyze`, for example:
 ```
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -184,11 +184,11 @@ that can be used as
 ```
 class ModuleMuTau(ModuleTauPair):
   def __init__(self, fname, **kwargs):
-    self.out.cutflow.addcut('none',  "no cut"     ) # bin 1 (0-1): total number of events
-    self.out.cutflow.addcut('trig',  "trigger"    ) # bin 2 (1-2): number of events passing the trigger
-    self.out.cutflow.addcut('muon',  "muon"       ) # bin 3 (2-3): number of events with pre-selected muon
-    self.out.cutflow.addcut('tau',   "tau"        ) # bin 4 (3-4): number of events with pre-selected tau
-    self.out.cutflow.addcut('weight',"weight", 15 ) # bin 16 (15-16): total sum of weights (for MC only)
+    self.out.cutflow.addcut('none',  "no cut"   ) # bin 1 (0-1): total number of events
+    self.out.cutflow.addcut('trig',  "trigger"  ) # bin 2 (1-2): number of events passing the trigger
+    self.out.cutflow.addcut('muon',  "muon"     ) # bin 3 (2-3): number of events with pre-selected muon
+    self.out.cutflow.addcut('tau',   "tau"      ) # bin 4 (3-4): number of events with pre-selected tau
+    self.out.cutflow.addcut('weight',"weight",15) # bin 16 (15-16): total sum of weights (for MC only)
   def analyze(self, event):
     self.out.cutflow.fill('none')
     self.out.cutflow.fill('weight',event.genWeight)
@@ -203,5 +203,5 @@ class ModuleMuTau(ModuleTauPair):
 
 
 ## Corrections
-Correction tools are found in [`python/corrections`](../corrections) and weights, scale factors and more in [`data`](../../data).
+Correction tools are found in [`python/corrections`](../corrections) and weights, scale factors and more in [`data/`](../../data).
 

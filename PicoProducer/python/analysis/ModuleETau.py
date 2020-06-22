@@ -23,7 +23,7 @@ class ModuleETau(ModuleTauPair):
     self.out = TreeProducerETau(fname,self)
     
     # TRIGGERS
-    jsonfile        = os.path.join(datadir,"triggers/tau_triggers_%d.json"%(self.year))
+    jsonfile        = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
     trigdata        = loadTriggerDataFromJSON(jsonfile,isdata=self.isdata)
     self.trigger    = TrigObjMatcher(trigdata.combdict['SingleElectron'])
     self.eleCutPt   = self.trigger.ptmins[0]
