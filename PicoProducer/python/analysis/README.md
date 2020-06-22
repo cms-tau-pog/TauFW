@@ -14,6 +14,7 @@ The output is a custom analysis ntuple, we refer to as the _pico_ format.
 * [Accessing nanoAOD](#Accessing-nanoAOD)<br>
 * [Custom tree format](#Custom-tree-format)<br>
 * [Cutflow](#Cutflow)<br>
+* [Tau pair analysis](#Tau-pair-analysis)<br>
 * [Corrections](#Corrections)<br>
 
 
@@ -200,6 +201,19 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.fill('tau')
     return True
 ```
+
+## Tau pair analysis
+A set of full analysis modules for basic analysis of events with a pair of tau decay candidates
+(like Z → 𝜏𝜏 events meant for TauPOG analysis) are provided.
+They follow this hierarchy:
+* [`TreeProducerBase`](TreeProducerBase.py) provides basic tree tools.
+  * [`TreeProducerTauPair`](TreeProducerTauPair.py) provides common branches in ditau analyses
+    * [`TreeProducerMuTau`](TreeProducerMuTau.py) for mutau channel
+    * [`TreeProducerETau`](TreeProducerETau.py) for etau channel
+* [`ModuleTauPair`](ModuleTauPair.py) provides common routines like jet selection or ditau reconstruction (`m_vis`, `dR_ll`, etc.)
+  * [`ModuleMuTau`](ModuleMuTau.py) for mutau channel
+  * [`ModuleETau`](ModuleETau.py) for etau channel
+  * ...
 
 
 ## Corrections

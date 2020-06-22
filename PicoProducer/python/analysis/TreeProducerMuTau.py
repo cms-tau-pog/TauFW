@@ -82,12 +82,4 @@ class TreeProducerMuTau(TreeProducerTauPair):
       #  self.addBranch('idweightDown_2',         'f', 1.)
       #  self.addBranch('ltfweightUp_2',          'f', 1.)
       #  self.addBranch('ltfweightDown_2',        'f', 1.)
-      #  self.addBranch('etfweightVSeTUp_2',      'f', 1.)
-      #  self.addBranch('etfweightVSeTDown_2',    'f', 1.)
-      #  self.addBranch('etfweightVSeVVLUp_2',    'f', 1.)
-      #  self.addBranch('etfweightVSeVVLDown_2',  'f', 1.)
-      #  self.addBranch('mtfweightVSmuTUp_2',     'f', 1.)
-      #  self.addBranch('mtfweightVSmuTDown_2',   'f', 1.)
-      #  self.addBranch('mtfweightVSmuVLUp_2',    'f', 1.)
-      #  self.addBranch('mtfweightVSmuVLDown_2',  'f', 1.)
     
