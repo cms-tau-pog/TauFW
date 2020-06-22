@@ -144,7 +144,7 @@ pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
 pico.py run -y 2016 -c mutau -s SingleMuon
 ```
 Glob patterns like `*` wildcards are allowed.
-Some modules allow extra options via key-word arguments. You can specify these using the `--opts` flag:
+Some modules allow extra options via keyword arguments. You can specify these using the `--opts` flag:
 ```
 pico.py run -y 2016 -c mutau -s DYJets*M-50 --opts tes=1.1
 ```
@@ -190,7 +190,7 @@ If jobs failed, you can resubmit with
 pico.py resubmit -y 2016 -c mutau
 ```
 This will resubmit files that are missing or corrupted (unless they are associated with a running job).
-In case the jobs are too long, you can specify a smaller number of files per job with `--filesperjob`,
+In case the jobs take too long, you can specify a smaller number of files per job with `--filesperjob` on the fly,
 or use `--split` to split the default number.
 
 
@@ -211,5 +211,6 @@ To plug in your own batch system, make a subclass of [`BatchSystem`](python/batc
 overriding the abstract methods (e.g. `submit`).
 Your subclass has to be saved in separate python module in [`python/batch`](python/batch),
 and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
+Then you need to add your `submit` command to the `main_status` function in [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/920a00178c984b578c6f6e6e3c7ae7a14e9b5cfc/PicoProducer/scripts/pico.py#L885-L897).
 
 Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py).

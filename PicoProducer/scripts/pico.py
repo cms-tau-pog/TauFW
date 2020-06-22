@@ -894,6 +894,7 @@ def main_submit(args):
       logfile = os.path.join(logdir,"%x.%A.%a") # $JOBNAME.o$JOBID.$TASKID
       jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,dry=dryrun)
     #elif batch.system=='SGE':
+    #elif batch.system=='CRAB':
     else:
       LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
     
