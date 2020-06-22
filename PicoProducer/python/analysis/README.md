@@ -34,8 +34,8 @@ For more detailed instructions for `pico.py`, see the README in [the grandparent
 To run analysis modules with `pico.py`, the modules should always by in this directory (`python/analysis/`),
 but you can organize your modules in subdirectories, e.g.
 ```
-pico.py channel mutau TauID.ModuleMuTau
-pico.py channel mutau python/analysis/TauID/ModuleMuTau_TauID.py
+pico.py channel mutau MyAnalysis.ModuleMyMuTau
+pico.py channel mutau python/analysis/MyAnalysis/ModuleMyMuTau.py
 ```
 Furthermore, the module file and class should have the exact same name, e.g. [`ModuleMuTau.py`](ModuleMuTau.py) contains `ModuleMuTau`.
 
