@@ -211,6 +211,6 @@ To plug in your own batch system, make a subclass of [`BatchSystem`](python/batc
 overriding the abstract methods (e.g. `submit`).
 Your subclass has to be saved in separate python module in [`python/batch`](python/batch),
 and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
-Then you need to add your `submit` command to the `main_status` function in [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/920a00178c984b578c6f6e6e3c7ae7a14e9b5cfc/PicoProducer/scripts/pico.py#L885-L897).
+Then you need to add your `submit` command to the `main_submit` function in [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/75f053624660012df80d2fde55a34a30b8d49a96/PicoProducer/scripts/pico.py#L885-L897).
 
 Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py).
