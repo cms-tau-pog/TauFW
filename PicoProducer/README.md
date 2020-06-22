@@ -5,8 +5,8 @@ There are two modes:
 1. **Skimming**: Skim nanoAOD by removing [unneeded branches](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt),
                  bad data events (using [data certification JSONs](data/json)),
                  add things like JetMET corrections. Output still has a nanoAOD format.
-2. **Analysis**: Main analysis code in [`python/analysis/`](python/analysis),
-                 pre-selecting events and objects and constructing variables.
+2. **Analysis**: Analyze nanoAOD events by pre-selecting events and objects and constructing variables.
+                 The main analysis code is found in [`python/analysis/`](python/analysis).
                  The output is a custom tree format we will refer to as _pico_.
 
 #### Table of Contents  
@@ -26,7 +26,7 @@ There are two modes:
 
 ## Installation
 
-You need to have CMSSW and [NanoAODTools](https://github.com/cms-nanoAOD/nanoAOD-tools) installed, see [the README in the parent directory](../../../#taufw). Test the installation with
+You need to have CMSSW and [NanoAODTools](https://github.com/cms-nanoAOD/nanoAOD-tools) installed, see the [README in the parent directory](../../../#taufw). Test the installation with
 ```
 pico.py --help
 ```
@@ -50,9 +50,9 @@ pico.py set <i>&lt;variables&gt; &lt;value&gt;</i>
 The configurable variables include
 * `batch`: Batch system to use (e.g. `HTCondor`)
 * `jobdir`: Directory to output job configuration and log files (e.g. `output/$ERA/$CHANNEL/$SAMPLE`)
-* `nanodir`: Directory to store the output nanoAOD files from skimming jobs.
 * `outdir`: Directory to copy the output pico files from analysis jobs.
-* `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
+* `nanodir`: Directory to store the output nanoAOD files from skimming jobs (e.g. on EOS, T2, T3, ...).
+* `picodir`: Directory to store the `hadd`'ed pico file from analysis job output (e.g. on EOS, T2, T3, ...).
 * `nfilesperjob`: Default number of files per job.
 
 Defaults are given in [`config/config.json`](config/config.json).
@@ -76,7 +76,7 @@ pico.py channel mutau ModuleMuTauSimple
 ```
 An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py),
 and more detailed instructions are in [`python/analysis/README.md`](python/analysis/README.md).
-All analysis modules are run by `pico.py` with the post-processor [`picojob.py`](python/processors/skimjob.py).
+The `pico.py` script runs all analysis modules with the post-processor [`picojob.py`](python/processors/picojob.py).
 
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
@@ -99,19 +99,20 @@ samples = [
 ]
 ```
 The `Samples` class takes at least three arguments:
-1. The first string is a user-chosen name to group samples together (e.g. `DY`, `TT`, `VV`, `Data`, ...).
-2. The second is a custom short name for the sample  (e.g. `DYJetsToLL_M-50`, `SingleMuon_Run2016C`). 
+1. The first string is a user-chosen name to group samples together (e.g. `'DY'`, `'TT'`, `'VV'`, `'Data'`, ...).
+2. The second is a custom short name for the sample  (e.g. `'DYJetsToLL_M-50'`, `'SingleMuon_Run2016C'`). 
 3. The third and optionally additional arguments are the full DAS paths of the sample.
 Multiple DAS paths for the same sample can be used for extensions.
 
 Other optional keyword arguments are
 * `dtype`: Data type like `'mc'`, `'data'` or `'embed'`. As a short cut you can use the subclasses `MC` and `Data`.
-* `store`: Path where all nanoAOD files are stored (instead of being given by DAS).
-  This is useful if you produced or skimmed your NanoAOD samples, and they are not available via DAS.
+* `store`: Path where all nanoAOD files are stored (instead of being given by the DAS tool).
+  This is useful if you have produced or skimmed your NanoAOD samples, and they are not available via DAS.
   The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
 * `url`: Redirector URL for XRootD protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
 * `files`: Either a list of files, OR a string to a text file with a list of files.
-  This can speed things up if DAS is slow or unreliable.
+  This can speed things up if DAS is slow or unreliable,
+  or you want to avoid retrieving the files from a local storage element on the fly each time.
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
@@ -122,15 +123,21 @@ and with `--write`, you can write it to a text file:
 pico.py get files -y 2016 -s DYJets --write
 ```
 
+
 ## Local run
 A local run can be done as
 ```
 pico.py run -y 2016 -c mutau
 ```
-You can specify a sample that is available in [`samples/`](samples), by passing the `-s` flag a pattern as
+You can specify a sample that is available in [`samples/`](samples), by passing the `-s` flag a pattern.
 ```
 pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
 pico.py run -y 2016 -c mutau -s SingleMuon
+```
+Glob patterns like `*` wildcards are allowed.
+Some modules allow extra options via key-word arguments. You can specify these using the `--opts` flag:
+```
+pico.py run -y 2016 -c mutau -s DYJets*M-50 --opts tes=1.1
 ```
 
 
@@ -144,7 +151,7 @@ pico.py submit -y 2016 -c mutau
 This will create the the necessary output directories for job out put.
 A JSON file is created to keep track of the job input and output.
 
-You can specify a sample by a patterns to `-s`, or exclude patterns with `-x`. Glob patterns like `*` wildcards are allowed.
+Again, you can specify a sample by a patterns to `-s`, or exclude patterns with `-x`.
 To give the output files a specific tag, use `-t`.
 
 For all options with submission, do

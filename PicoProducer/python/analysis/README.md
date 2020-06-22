@@ -131,9 +131,9 @@ class ModuleMuTauSimple(Module):
     self.pt_1 = np.zeros(1,dtype=float) # float
     self.q_1  = np.zeros(1,dtype=int)   # integer
     self.id_1 = np.zeros(1,dtype=bool)  # boolean
-    self.tree.Branch('pt_1',  self.pt_1,  'pt_1/F')
-    self.tree.Branch('q_1',   self.q_1,   'q_1/I')
-    self.tree.Branch('id_1',  self.id_1,  'id_1/O')
+    self.tree.Branch('pt_1',self.pt_1,'pt_1/F')
+    self.tree.Branch('q_1', self.q_1, 'q_1/I')
+    self.tree.Branch('id_1',self.id_1,'id_1/O')
   def analyze(self, event):
     self.pt_1[0] = 20.0
     self.q_1[0]  = -1
@@ -152,7 +152,7 @@ To make your life easier, you can use separate "tree producer" classes.
 For example, [`TreeProducer`](TreeProducer.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
 You then define branches with something like
 ```
-from TreeProducerTauPair import TreeProducerTauPair
+from TauFW.PicoProducer.analysis.TreeProducer import TreeProducer
 class TreeProducerMuTau(TreeProducer):
   def __init__(self, filename, module, **kwargs):
     super(TreeProducer,self).__init__(filename,module,**kwargs)
