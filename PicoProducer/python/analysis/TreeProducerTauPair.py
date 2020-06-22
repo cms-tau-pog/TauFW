@@ -4,10 +4,10 @@
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
 from ROOT import TH1D
-from TreeProducerBase import TreeProducerBase
+from TreeProducer import TreeProducer
 
 
-class TreeProducerTauPair(TreeProducerBase):
+class TreeProducerTauPair(TreeProducer):
   
   def __init__(self, filename, module, **kwargs):
     """Class to create and prepare a custom output file & tree."""

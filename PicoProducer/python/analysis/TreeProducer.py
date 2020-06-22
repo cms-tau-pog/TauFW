@@ -15,7 +15,7 @@ np_dtype = { # ROOT -> numpy data type
 }
 
 
-class TreeProducerBase(object):
+class TreeProducer(object):
   """Base class to create and prepare a custom output file & tree for analysis modules."""
   
   def __init__(self, filename, module, **kwargs):

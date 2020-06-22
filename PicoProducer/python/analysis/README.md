@@ -149,13 +149,13 @@ More information on data types:
 * In `numpy`: https://numpy.org/doc/stable/reference/arrays.dtypes.html#specifying-and-constructing-data-types
 
 To make your life easier, you can use separate "tree producer" classes.
-For example, [`TreeProducerBase`](TreeProducerBase.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
+For example, [`TreeProducer`](TreeProducer.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
 You then define branches with something like
 ```
 from TreeProducerTauPair import TreeProducerTauPair
-class TreeProducerMuTau(TreeProducerBase):
+class TreeProducerMuTau(TreeProducer):
   def __init__(self, filename, module, **kwargs):
-    super(TreeProducerBase,self).__init__(filename,module,**kwargs)
+    super(TreeProducer,self).__init__(filename,module,**kwargs)
     self.addBranch('pt_1','f') # float
     self.addBranch('q_1', 'i') # integer
     self.addBranch('id_1','?') # boolean
@@ -180,7 +180,7 @@ To keep track of efficiencies of each pre-selection, one should use a cuflow.
 This is a simple histogram, binned per integer, that is filled each time a pre-selection is passed.
 Again, [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py) provides a straightforward solution.
 
-The [`TreeProducerBase`](TreeProducerBase.py) class already uses a special `Cutflow` class,
+The [`TreeProducer`](TreeProducer.py) class already uses a special `Cutflow` class,
 that can be used as
 ```
 class ModuleMuTau(ModuleTauPair):
@@ -206,7 +206,7 @@ class ModuleMuTau(ModuleTauPair):
 A set of full analysis modules for the basic study of events with a pair of tau decay candidates
 (like Z → 𝜏𝜏 events meant for TauPOG studies) are provided.
 They follow this hierarchy:
-* [`TreeProducerBase`](TreeProducerBase.py): general superclass for containing the output file, tree and cutflow
+* [`TreeProducer`](TreeProducer.py): general superclass for containing the output file, tree and cutflow
   * [`TreeProducerTauPair`](TreeProducerTauPair.py) provides common branches in ditau analyses
     * [`TreeProducerMuTau`](TreeProducerMuTau.py) for the mutau channel
     * [`TreeProducerETau`](TreeProducerETau.py) for the etau channel
