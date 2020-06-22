@@ -27,7 +27,7 @@ and then run it with e.g.
 ```
 pico.py run -c mutau -y 2016
 ```
-For more detailed instructions for `pico.py`, see the README in [the grandparent folder](../../README.md).
+For more detailed instructions on `pico.py`, see the [README in the grandparent folder](../../#picoproducer).
 
 
 ### Hierarchy
@@ -103,6 +103,19 @@ If you use `Collections`, you do not need `ord` anymore:
       if tau.pt>20 and tau.idDeepTau2017v2p1VSjet>=16:
         taus.append(tau)
 ```
+Beside WPs, status flags like the integer [`GenPart_statusFlags` of generator particles](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart)
+are also encoded bitwise. If you want to know if some flag like `isPrompt` (0th bit, `1`) or `isHardProcess` (7th bit, `128`) is triggered,
+use [bitwise operators](https://www.tutorialspoint.com/python/bitwise_operators_example.htm) as
+```
+isPrompt    = GenPart_statusFlags[i] & 1
+hardProcess = GenPart_statusFlags[i] & 128
+```
+which has values `0` or `1`. Here `128` is computed as `2**7` or `1<<7`.
+The help function `hasbit` in [`utils.py`](utils.py) can be used instead:
+```
+isPrompt    = hasbit(GenPart_statusFlags[i],0)
+hardProcess = hasbit(GenPart_statusFlags[i],8)
+```
 
 
 ## Custom tree format
@@ -130,7 +143,7 @@ class ModuleMuTauSimple(Module):
     self.outfile.Write()
     self.outfile.Close()
 ```
-More information of data types:
+More information on data types:
 * In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
 * In `numpy`: https://numpy.org/doc/stable/reference/arrays.dtypes.html#specifying-and-constructing-data-types
 

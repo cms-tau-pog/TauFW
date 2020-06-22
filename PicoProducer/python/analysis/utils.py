@@ -35,6 +35,25 @@ def getmodule(modname):
   return getattr(module,modclass)
   
 
+# HAS BIT
+def hasbit(value,bit):
+  """Check if i'th bit is set to 1, i.e. binary of 2^i,
+  from the right to the left, starting from position i=0."""
+  # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+  # Gen status flags, stored bitwise, are:
+  #    0: isPrompt,                          8: fromHardProcess,
+  #    1: isDecayedLeptonHadron,             9: isHardProcessTauDecayProduct,
+  #    2: isTauDecayProduct,                10: isDirectHardProcessTauDecayProduct,
+  #    3: isPromptTauDecayProduct,          11: fromHardProcessBeforeFSR,
+  #    4: isDirectTauDecayProduct,          12: isFirstCopy,
+  #    5: isDirectPromptTauDecayProduct,    13: isLastCopy,
+  #    6: isDirectHadronDecayProduct,       14: isLastCopyBeforeFSR
+  #    7: isHardProcess,
+  ###return bin(value)[-bit-1]=='1'
+  ###return format(value,'b').zfill(bit+1)[-bit-1]=='1'
+  return (value & (1 << bit))>0
+  
+
 def dumpgenpart(part,genparts=None,event=None):
   """Print information on gen particle. If collection is given, also print mother's PDG ID."""
   info = ">>>  i=%2s, PID=%3s, status=%2s, mother=%2s"%(part._index,part.pdgId,part.status,part.genPartIdxMother)

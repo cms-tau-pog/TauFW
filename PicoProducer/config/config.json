@@ -3,6 +3,7 @@
   "channels": {
     "skim": "skimjob.py", 
     "test": "test.py", 
+    "gen": "GenDumper", 
     "mutau": "ModuleMuTauSimple"
   }, 
   "eras": {
@@ -11,5 +12,5 @@
     "2018": "samples_2018.py"
   }, 
   "batch": "HTCondor", 
-  "nfilesperjob": 1 
-}
+  "nfilesperjob": 1
+} 

@@ -1,6 +1,5 @@
-#! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
-# Description: Simple create mutau events
+# Description: Quick generator-level checks of LQ samples
 from ROOT import TFile, TTree, TH1D
 import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
