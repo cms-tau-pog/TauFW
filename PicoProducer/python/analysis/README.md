@@ -46,7 +46,7 @@ for a full list of available variables.
 To know how they are defined from miniAOD, you can dig in the CMSSW source code in
 [`cmssw/PhysicsTools/NanoAOD`](https://github.com/cms-sw/cmssw/tree/master/PhysicsTools/NanoAOD).
 
-To access information of nanoAOD using python, you can subclass [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py)
+To access information of nanoAOD using `python`, you can subclass [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py)
 from the [`nanoAOD-tools`](https://github.com/cms-nanoAOD/nanoAOD-tools).
 A simple example of a subclass to analyze nanoAOD is given in [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py).
 The `Module` class has some pre-defined methods like `beginJob` and  `endJob` that are called by
@@ -89,7 +89,7 @@ To save space, some identification working points (WPs) are saved in nanoAOD as 
 instead of 4 bytes (64 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
 you see in the [documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau)
 that it corresponds to the fifth bit, i.e. `16`.
-To access them in python, you may need the [built-in function `ord`](https://docs.python.org/3/library/functions.html#ord), e.g.
+To access them in `python`, you may need the [built-in function `ord`](https://docs.python.org/3/library/functions.html#ord), e.g.
 ```
     tau_idx = [ ]
     for itau in event.nTau:
@@ -103,10 +103,6 @@ If you use `Collections`, you do not need `ord` anymore:
       if tau.pt>20 and tau.idDeepTau2017v2p1VSjet>=16:
         taus.append(tau)
 ```
-
-More information of data types:
-* In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
-* In `numpy`: https://numpy.org/doc/stable/reference/arrays.dtypes.html#specifying-and-constructing-data-types
 
 
 ## Custom tree format
@@ -134,6 +130,10 @@ class ModuleMuTauSimple(Module):
     self.outfile.Write()
     self.outfile.Close()
 ```
+More information of data types:
+* In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
+* In `numpy`: https://numpy.org/doc/stable/reference/arrays.dtypes.html#specifying-and-constructing-data-types
+
 To make your life easier, you can use separate "tree producer" classes.
 For example, [`TreeProducerBase`](TreeProducerBase.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
 You then define branches with something like
