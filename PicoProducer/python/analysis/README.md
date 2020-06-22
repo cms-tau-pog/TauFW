@@ -203,21 +203,23 @@ class ModuleMuTau(ModuleTauPair):
 ```
 
 ## Tau pair analysis
-A set of full analysis modules for basic study of events with a pair of tau decay candidates
-(like Z → 𝜏𝜏 events meant for TauPOG analysis) are provided.
+A set of full analysis modules for the basic study of events with a pair of tau decay candidates
+(like Z → 𝜏𝜏 events meant for TauPOG studies) are provided.
 They follow this hierarchy:
-* [`TreeProducerBase`](TreeProducerBase.py) provides basic tree tools
+* [`TreeProducerBase`](TreeProducerBase.py): general superclass for containing the output file, tree and cutflow
   * [`TreeProducerTauPair`](TreeProducerTauPair.py) provides common branches in ditau analyses
     * [`TreeProducerMuTau`](TreeProducerMuTau.py) for the mutau channel
     * [`TreeProducerETau`](TreeProducerETau.py) for the etau channel
     * ...
-* [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py) general superclass for nanoAOD processing
+* [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py): general superclass for nanoAOD processing
   * [`ModuleTauPair`](ModuleTauPair.py) provides common routines like jet selection or ditau reconstruction (`m_vis`, `dR_ll`, etc.)
     * [`ModuleMuTau`](ModuleMuTau.py) for the mutau channel
     * [`ModuleETau`](ModuleETau.py) for the etau channel
     * ...
 
+(Note they are still under construction, and more will be added in the near future.)
 
 ## Corrections
-Correction tools are found in [`python/corrections`](../corrections) and weights, scale factors and more in [`data/`](../../data).
+Correction tools are found in [`python/corrections/`](../corrections) and
+corresponding weights, scale factors and more in [`data/`](../../data).
 
