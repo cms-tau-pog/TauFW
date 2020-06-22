@@ -56,56 +56,55 @@ git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
 [`BTagTool.py`](../python/corrections/BTagTool.py) provides two classes: `BTagWPs` for saving the working points (WPs) per year and type of tagger, and `BTagWeightTool` to provide b tagging weights. These can be called during the initialization of you analysis module, e.g.:
 ```
 class ModuleMuTau(Module):
-    
-    def __init__(self, ... ):
-        
-        ...
-        
-        if not self.isData:
-          self.btagTool = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
-        self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
-        
-    
-    def analyze(self, event):
-        
-        nbtag  = 0
-        jetIds = [ ]
-        for ijet in range(event.nJet):
-            ...
-            jetIds.append(ijet)
-            if event.Jet_btagDeepB[ijet] > self.deepcsv_wp.medium:
-              nbtag += 1
-        
-        if not self.isData:
-          self.out.btagweight[0] = self.btagTool.getWeight(event,jetIds)
+  
+  def __init__(self, ... ):
+    # ...
+    if not self.isData:
+      self.btagTool = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
+    self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
+  
+  def analyze(self, event):
+    nbtag = 0
+    jets  = [ ]
+    for jet in Collection(event,'Jet'):
+      # ...
+      jets.append(jet)
+      if jet.btagDeepB > self.deepcsv_wp.medium:
+        nbtag += 1
+    if not self.isData:
+      self.out.btagweight[0] = self.btagTool.getWeight(event,jets)
 ```
 
-`BTagWeightTool` calculates b tagging reweighting based on the [SFs provided from the BTagging group](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation#Recommendation_for_13_TeV_Data) and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` files in [`btag/`](btag).
+`BTagWeightTool` calculates b tagging reweighting based on the [SFs provided from the BTagging group](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation#Recommendation_for_13_TeV_Data)
+and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` files in [`btag/`](btag).
 The event weight is calculated according to [this method](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagSFMethods#1a_Event_reweighting_using_scale).
 
 ### Computing the b tag efficiencies
 
-The b tag efficiencies are analysis-dependent. They can be computed from the analysis output run on MC samples. For each MC event, fill the numerator and denominator histograms with `BTagWeightTool.fillEfficiencies`, after removing overlap with other selected objects, e.g. the muon and tau object in [`ModuleMuTau.py`](../modules/ModuleMuTau.py):
+The b tag efficiencies are analysis-dependent. They can be computed from the analysis output run on MC samples.
+For each MC event, fill the numerator and denominator histograms with `BTagWeightTool.fillEfficiencies`,
+after removing overlap with other selected objects, e.g. the muon and tau object in [`ModuleMuTau.py`](../python/analysis/ModuleMuTau.py):
 <pre>
-    def analyze(self event):
-    
-        # select isolated muon and tau
-        ...
-        
-        for ijet in range(event.nJet):
-            if event.Jet_pt[ijet] < 30: continue
-            if abs(event.Jet_eta[ijet]) > 4.7: continue
-            <b>if muon.DeltaR(jets[ijet].p4()) < 0.5: continue
-            if tau.DeltaR(jets[ijet].p4()) < 0.5: continue</b>
-            jetIds.append(ijet)
-        
-        if not self.isData:
-          self.btagTool.fillEfficiencies(event,jetIds)
-        
-        ...
+  def analyze(self, event):
+    # select isolated muon and tau
+    # ...
+    jet = [ ]
+    for jet in Collection(event,'Jet'):
+      if jet.pt<30: continue
+      if abs(jet.eta)>4.7: continue
+      <b>if muon.DeltaR(jet)<0.5: continue
+      if tau.DeltaR(jet)<0.5: continue</b>
+      jets.append(jet)
+    if not self.isData:
+      self.btagTool.fillEfficiencies(jets)
+    ...
 </pre>
-Do this for as many MC samples as possible, to gain as much statistics as possible (also note that jets in Drell-Yan, W+jets and ttbar events typically have different jet flavor content). Then use [`btag/getBTagEfficiencies.py`](btag/getBTagEfficiencies.py) to extract all histograms from analysis output, add them together for maximum statistics, and compute the efficiencies. (You should edit this script to read in your analysis output.)
-Examples of efficiency maps per jet flavor, and as a function of jet pT versus jet eta for the mutau analysis in 2017 are shown [here](https://ineuteli.web.cern.ch/ineuteli/btag/2017/?match=mutau).
+Do this for as many MC samples as possible, to gain as much statistics as possible
+(also note that jets in Drell-Yan, W+jets and ttbar events typically have different jet flavor content).
+Then edit and run [`btag/getBTagEfficiencies.py`](btag/getBTagEfficiencies.py) to extract all histograms from analysis output,
+add them together for maximum statistics, and compute the efficiencies. (You should edit this script to read in your analysis output.)
+Examples of efficiency maps per jet flavor, and as a function of jet pT versus jet eta for the mutau analysis in 2017 are shown
+[here](https://ineuteli.web.cern.ch/ineuteli/btag/2017/?match=mutau).
 
 
 
