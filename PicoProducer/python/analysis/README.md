@@ -1,26 +1,34 @@
 # PicoProducer analysis code
 
-This modules are used to process nanoAOD for analysis. They
-1. **Pre-select** some events, e.g. events passing a trigger and a mutau pair.
-2. **Reconstruct** variables like invariant mass.
-3. **Apply corrections**, like energy scale, SFs, weights, etc.
-3. **Save variables** as branches in a custom tree output.
+This modules are used to process nanoAOD for analysis. Analysis modules
+1. **pre-select** events, e.g. events passing some trigger and containing a muon-tau pair;
+2. **reconstruct** variables like invariant mass;
+3. **apply corrections**, like energy scale, SFs, weights, etc;
+3. **save variables** in branches of a custom tree.
 The analysis modules are run on nanoAOD with the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools),
 for example with [`picojob.py`](../processors/skimjob.py).
 The output is a custom analysis ntuple, we refer to as the _pico_ format.
 
+#### Table of Contents  
+* [Run](#Run)<br>
+* [Subdirectories](#Subdirectories)<br>
+* [Accessing nanoAOD](#Accessing-nanoAOD)<br>
+* [Custom tree format](#Custom-tree-format)<br>
+* [Cutflow](#Cutflow)<br>
+* [Corrections](#Corrections)<br>
+
 
 ## Run
-You can link an analysis module to a channel in several ways, e.g.
+To run to an analysis module with `pico.py`, you can link the module to a channel shortname in several ways, e.g.
 ```
 pico.py channel mutau ModuleMuTau
 pico.py channel mutau python/analysis/ModuleMuTau.py
 ```
 and then run it with e.g.
 ```
-pico.py run -y 2016 -c mutau
+pico.py run -c mutau -y 2016
 ```
-For more detailed instructions for [pico.py above](../../READ.md).
+For more detailed instructions for `pico.py`, see the README in [the grandparent folder](../../README.md).
 
 
 ## Subdirectories
@@ -34,7 +42,7 @@ pico.py channel mutau python/analysis/TauID/ModuleMuTau_TauID.py
 ## Accessing nanoAOD
 Please refer to the [nanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html)
 for a full list of available variables.
-To know how they are defined from miniAOD, you can dig in the CMSSW sourc code in
+To know how they are defined from miniAOD, you can dig in the CMSSW source code in
 [`cmssw/PhysicsTools/NanoAOD`](https://github.com/cms-sw/cmssw/tree/master/PhysicsTools/NanoAOD).
 
 To access information of nanoAOD using python, you can subclass [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py)
@@ -47,8 +55,9 @@ class ModuleMuTauSimple(Module):
     for imuon in event.nMuon:
       if event.Muon_pt[imuon]>20:
         muon_idx.append(imuon)
+    return True
 ```
-Without loss of performance, you can make it more readable using [`Collection`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py):
+Without loss of performance, you can make the latter more readable using [`Collection`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py):
 ```
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 class ModuleMuTauSimple(Module):
@@ -57,6 +66,7 @@ class ModuleMuTauSimple(Module):
     for muon in Collection(event,'Muon'):
       if muon.pt>20:
         muons.append(muon)
+    return True
 ```
 Triggers are saved as booleans, e.g.
 ```
@@ -66,8 +76,8 @@ Triggers are saved as booleans, e.g.
 To save space, some identification working points (WPs) are saved in nanoAOD as `UChar_t`, which is 1 byte (8 bits),
 instead of 4 bytes (64 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
 you see in the [documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau)
-that it corresponds to bit `16`.
-To access them in python, you may need the built-in function `ord` or `int`, e.g.
+that it corresponds to the fifth bit, i.e. `16`.
+To access them in python, you may need the built-in functions `ord` or `int`, e.g.
 ```
     tau_idx = [ ]
     for itau in event.nTau:
@@ -90,15 +100,17 @@ class ModuleMuTauSimple(Module):
   def __init__(self,fname,**kwargs):
     self.outfile = TFile(fname,'RECREATE')
   def beginJob(self):
-    self.tree   = TTree('tree','tree')
-    self.pt_1   = np.zeros(1,dtype=float) # float
-    self.q_1    = np.zeros(1,dtype=int)   # integer
-    self.medium = np.zeros(1,dtype='?')   # boolean
+    self.tree = TTree('tree','tree')
+    self.pt_1 = np.zeros(1,dtype=float) # float
+    self.q_1  = np.zeros(1,dtype=int)   # integer
+    self.id_1 = np.zeros(1,dtype=bool)  # boolean
     self.tree.Branch('pt_1',  self.pt_1,  'pt_1/F')
     self.tree.Branch('q_1',   self.q_1,   'q_1/I')
-    self.tree.Branch('medium',self.medium,'medium/O')
+    self.tree.Branch('id_1',  self.id_1,  'id_1/O')
   def analyze(self, event):
     self.pt_1[0] = 20.0
+    self.q_1[0]  = -1
+    self.id_1[0] = True
     self.tree.Fill()
     return True
   def endJob(self):
@@ -117,7 +129,7 @@ class TreeProducerMuTau(TreeProducerBase):
     self.addBranch('q_1',   'i') # integer
     self.addBranch('medium','?') # boolean
 ```
-In the main analysis module, you basically do
+In the main analysis module [`ModuleMuTau.py`](ModuleMuTau.py), you basically do
 ```
 from TauFW.PicoProducer.analysis.TreeProducerMuTau import TreeProducerMuTau
 class ModuleMuTau(Module):
@@ -137,7 +149,7 @@ To keep track of efficiencies of each pre-selection, one should use a cuflow.
 This is a simple histogram, binned per integer, that is filled each time a pre-selection is passed.
 Again [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py) provides a straightforward solution.
 
-The [`TreeProducerBase`](TreeProducerBase.py) class already defines a special `Cutflow` class,
+The [`TreeProducerBase`](TreeProducerBase.py) class already uses a special `Cutflow` class,
 that can be used as
 ```
 class ModuleMuTau(ModuleTauPair):

@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 # Description: Simple module to pre-select mutau events
 from ROOT import TFile, TTree, TH1D
