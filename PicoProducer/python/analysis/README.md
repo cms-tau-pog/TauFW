@@ -11,7 +11,6 @@ The output is a custom analysis ntuple, we refer to as the _pico_ format.
 
 #### Table of Contents  
 * [Run](#Run)<br>
-* [Subdirectories](#Subdirectories)<br>
 * [Accessing nanoAOD](#Accessing-nanoAOD)<br>
 * [Custom tree format](#Custom-tree-format)<br>
 * [Cutflow](#Cutflow)<br>
@@ -31,13 +30,14 @@ pico.py run -c mutau -y 2016
 For more detailed instructions for `pico.py`, see the README in [the grandparent folder](../../README.md).
 
 
-## Subdirectories
-You can organize your modules in a subdirectory, e.g.
+### Hierarchy
+To run analysis modules with `pico.py`, the modules should always by in this directory (`python/analysis`),
+but you can organize your modules in a subdirectory, e.g.
 ```
 pico.py channel mutau TauID.ModuleMuTau
 pico.py channel mutau python/analysis/TauID/ModuleMuTau_TauID.py
 ```
-
+Furthermore, the module file and class should have the exact same name, e.g. `ModuleMuTau.py` contains `ModuleMuTau`.
 
 ## Accessing nanoAOD
 Please refer to the [nanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html)
@@ -171,5 +171,5 @@ class ModuleMuTau(ModuleTauPair):
 
 
 ## Corrections
-Correction tools are found in [`python/corrections`](`../corrections`) and weights, scale factors and more in [`data`](../../data).
+Correction tools are found in [`python/corrections`](../corrections) and weights, scale factors and more in [`data`](../../data).
 
