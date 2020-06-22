@@ -223,7 +223,7 @@ def main_run(args):
       LOG.header("%s, %s"%(era,channel))
       
       # CHANNEL -> MODULE
-      skim = 'skim' in channel.lower():
+      skim = 'skim' in channel.lower()
       assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
       module = CONFIG.channels[channel]
       if channel!='test' and not skim:
@@ -1100,9 +1100,9 @@ if __name__ == "__main__":
   #parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
   #                                              help='extra options for the batch system')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=CONFIG.nfilesperjob,
-                                                help='number of files per job')
+                                                help='number of files per job, default=%(default)d')
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1, action='store',
-                          metavar='N',          help="divide default number of files per job" )
+                          metavar='N',          help="divide default number of files per job, default=%(const)d" )
   
   # SUBCOMMANDS
   subparsers = parser.add_subparsers(title="sub-commands",dest='subcommand',help="sub-command help")
@@ -1137,9 +1137,8 @@ if __name__ == "__main__":
                                                 help='maximum number of input files to process')
   parser_run.add_argument('-S', '--nsamples',   dest='nsamples', type=int, default=1,
                                                 help='number of samples to run')
-  parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=CONFIG.filelistdir, default="", action='store',
-                                                help="write file list, default = %r"%(CONFIG.filelistdir) )
-  
+  parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
+                          metavar='FILE',       help="write file list, default=%(const)r" )
   
   # ABBREVIATIONS
   args = sys.argv[1:]

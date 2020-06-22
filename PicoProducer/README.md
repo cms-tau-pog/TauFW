@@ -54,6 +54,7 @@ The configurable variables include
 * `nanodir`: Directory to store the output nanoAOD files from skimming jobs (e.g. on EOS, T2, T3, ...).
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output (e.g. on EOS, T2, T3, ...).
 * `nfilesperjob`: Default number of files per job. This can be overridden per sample (see below).
+* `filelistdir`: Directory to save list of nanoAOD files to run on (e.g. `samples/files/$ERA/$SAMPLE.txt`).
 
 Defaults are given in [`config/config.json`](config/config.json).
 Note the directories can contain variables with `$` like
@@ -110,7 +111,7 @@ The `Samples` class takes at least three arguments:
 1. The first string is a user-chosen name to group samples together (e.g. `'DY'`, `'TT'`, `'VV'`, `'Data'`, ...).
 2. The second is a custom short name for the sample  (e.g. `'DYJetsToLL_M-50'`, `'SingleMuon_Run2016C'`). 
 3. The third and optionally additional arguments are the full DAS paths of the sample.
-Multiple DAS paths for the same sample can be used for extensions.
+Multiple DAS paths for the same sample can be used to combine extensions.
 
 Other optional keyword arguments are
 * `dtype`: Data type like `'mc'`, `'data'` or `'embed'`. As a short cut you can use the subclasses `MC` and `Data`.
@@ -126,8 +127,8 @@ Other optional keyword arguments are
   This overrides the default `nfilesperjob` in the configuration.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 
-To get a file list for a sample in the sample list, you can use the `get files` subcommand,
-and with `--write`, you can write it to a text file:
+To get a file list for a sample in the sample list, you can use the `get files` subcommand.
+If you include `--write`, the list will be written to a text file as defined by `filelistdir` in the [configuration](#Configuration):
 ```
 pico.py get files -y 2016 -s DYJets --write
 ```
@@ -209,8 +210,9 @@ as it is preferred to keep skimmed nanoAOD files split for batch submission.
 
 To plug in your own batch system, make a subclass of [`BatchSystem`](python/batch/BatchSystem.py),
 overriding the abstract methods (e.g. `submit`).
-Your subclass has to be saved in separate python module in [`python/batch`](python/batch),
+Your subclass has to be saved in separate python module in [`python/batch/`](python/batch),
 and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
-Then you need to add your `submit` command to the `main_submit` function in [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/75f053624660012df80d2fde55a34a30b8d49a96/PicoProducer/scripts/pico.py#L885-L897).
+Then you need to add your `submit` command to the `main_submit` function in [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/a5730daa5d0595f4baf15a606790d8e512cd2219/PicoProducer/scripts/pico.py#L885-L897).
 
-Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py).
+Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py) in [`python/storage/`](python/storage).
+
