@@ -169,7 +169,7 @@ def main_link(args):
     print '-'*80
   
   # SANITY CHECKS
-  for char in '_-:/\!\'"':
+  for char in '_-/\,:;!?\'"':
     if char in value:
       LOG.throw(IOError,"Value given for %s (%s) cannot contain %s!"%(variable,value,char))
   if varkey not in CONFIG:

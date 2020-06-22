@@ -69,7 +69,8 @@ You can link your skimming script to a custom channel short name
 ```
 pico.py channel skim skimjob.py
 ```
-This can be whatever string you want, but it should contain `skim` to differentiate.
+This can be whatever string you want, but it should contain `skim` to differentiate from analysis channels,
+and you should avoid characters that are not safe for filenames, including `-`, `:` and `/`.
 
 
 ### Analysis
@@ -85,7 +86,8 @@ You can link any analysis module to a custom channel short name (e.g. `mutau`):
 pico.py channel mutau ModuleMuTauSimple
 ```
 The channel short name can be whatever string you like (e.g. `mt`, `mymutau`, `MuTau`, ...).
-However, you should avoid characters like `-`, `:` and `/`, and it should not contain `skim` (reserved for skimming).
+However, you should avoid characters that are not safe for filenames, including `-`, `:` and `/`,
+and it should not contain `skim` (reserved for skimming).
 
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
@@ -116,12 +118,14 @@ Multiple DAS paths for the same sample can be used to combine extensions.
 Other optional keyword arguments are
 * `dtype`: Data type like `'mc'`, `'data'` or `'embed'`. As a short cut you can use the subclasses `MC` and `Data`.
 * `store`: Path where all nanoAOD files are stored (instead of being given by the DAS tool).
+  Note that this path is used for both skimming and analysis jobs.
   This is useful if you have produced or skimmed your NanoAOD samples, and they are not available via DAS.
   The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
 * `url`: Redirector URL for XRootD protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
-* `files`: Either a list of files, OR a string to a text file with a list of files.
+* `files`: Either a list of nanoAOD files, OR a string to a text file with a list of nanoAOD files.
   This can speed things up if DAS is slow or unreliable,
   or you want to avoid retrieving the files from a local storage element on the fly each time.
+  Note that this list is used for both skimming and analysis jobs.
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
   This overrides the default `nfilesperjob` in the configuration.
