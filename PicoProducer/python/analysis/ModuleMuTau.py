@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
 # Description: Simple module to pre-select mutau events
 import sys

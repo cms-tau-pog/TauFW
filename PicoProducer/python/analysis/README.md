@@ -203,17 +203,19 @@ class ModuleMuTau(ModuleTauPair):
 ```
 
 ## Tau pair analysis
-A set of full analysis modules for basic analysis of events with a pair of tau decay candidates
+A set of full analysis modules for basic study of events with a pair of tau decay candidates
 (like Z → 𝜏𝜏 events meant for TauPOG analysis) are provided.
 They follow this hierarchy:
-* [`TreeProducerBase`](TreeProducerBase.py) provides basic tree tools.
+* [`TreeProducerBase`](TreeProducerBase.py) provides basic tree tools
   * [`TreeProducerTauPair`](TreeProducerTauPair.py) provides common branches in ditau analyses
-    * [`TreeProducerMuTau`](TreeProducerMuTau.py) for mutau channel
-    * [`TreeProducerETau`](TreeProducerETau.py) for etau channel
-* [`ModuleTauPair`](ModuleTauPair.py) provides common routines like jet selection or ditau reconstruction (`m_vis`, `dR_ll`, etc.)
-  * [`ModuleMuTau`](ModuleMuTau.py) for mutau channel
-  * [`ModuleETau`](ModuleETau.py) for etau channel
-  * ...
+    * [`TreeProducerMuTau`](TreeProducerMuTau.py) for the mutau channel
+    * [`TreeProducerETau`](TreeProducerETau.py) for the etau channel
+    * ...
+* [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py) general superclass for nanoAOD processing
+  * [`ModuleTauPair`](ModuleTauPair.py) provides common routines like jet selection or ditau reconstruction (`m_vis`, `dR_ll`, etc.)
+    * [`ModuleMuTau`](ModuleMuTau.py) for the mutau channel
+    * [`ModuleETau`](ModuleETau.py) for the etau channel
+    * ...
 
 
 ## Corrections
