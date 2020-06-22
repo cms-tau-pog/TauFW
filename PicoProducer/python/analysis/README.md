@@ -111,7 +111,7 @@ isPrompt    = GenPart_statusFlags[i] & 1
 hardProcess = GenPart_statusFlags[i] & 128
 ```
 which has values `0` or `1`. Here `128` is computed as `2**7` or `1<<7`.
-The help function `hasbit` in [`utils.py`](utils.py) can be used instead:
+The help function `hasbit` in [`utils.py`](utils.py) can be used:
 ```
 isPrompt    = hasbit(GenPart_statusFlags[i],0)
 hardProcess = hasbit(GenPart_statusFlags[i],8)
