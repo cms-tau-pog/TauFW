@@ -8,7 +8,8 @@ There are two modes:
 2. **Analysis**: Analyze nanoAOD events by pre-selecting events and objects and constructing variables.
                  The main analysis code is found in [`python/analysis/`](python/analysis).
                  The output is a custom tree format we will refer to as _pico_.
-A central script called `pico.py` allows you to run both modes of nanoAOD processing,
+
+A central script called [`pico.py`](scripts/pico.py) allows you to run both modes of nanoAOD processing,
 either locally or on a batch system.
 You can link several skimming or analysis codes to _channels_.
 
@@ -154,10 +155,20 @@ pico.py get files -y 2016 -s DYJets --write
 
 ## Local run
 A local run can be done as
+<pre>
+pico.py run -y <i>&lt;era&gt; -c &lt;channel&gt;</i>
+</pre>
+For example, to run the `mutau` channel, do
 ```
 pico.py run -y 2016 -c mutau
 ```
-You can specify a sample that is available in [`samples/`](samples), by passing the `-s` flag a pattern.
+By default, the output will be saved in `ouput/`.
+Because `mutau` is an analysis module, the output will be a root file that contains a tree called `tree`
+with a custom format defined in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
+If you run a skimming channel, which must have `skim` in the channel name, the output will be a nanoAOD file.
+
+You can specify a sample that is available in the [sample list linked to the era](samples/samples_2016.py),
+by passing the `-s` flag a pattern.
 ```
 pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
 pico.py run -y 2016 -c mutau -s SingleMuon
