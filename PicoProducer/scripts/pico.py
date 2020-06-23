@@ -203,6 +203,7 @@ def main_run(args):
   eras      = args.eras
   channels  = args.channels
   tag       = args.tag
+  outdir    = args.outdir
   dtypes    = args.dtypes
   filters   = args.samples
   vetoes    = args.vetoes
@@ -215,6 +216,8 @@ def main_run(args):
   verbosity = args.verbosity
   
   # LOOP over ERAS
+  if not eras:
+    print ">>> Please specify a valid era (-y) and a channel (-c)."
   for era in eras:
     moddict = { } # save time by loading samples and get their files only once
     
@@ -228,7 +231,7 @@ def main_run(args):
       module = CONFIG.channels[channel]
       if not skim: # channel!='test' and
         ensuremodule(module)
-      outdir = ensuredir('output')
+      outdir = ensuredir(outdir.lstrip('/'))
       
       # PROCESSOR
       if skim:
@@ -1088,7 +1091,8 @@ if __name__ == "__main__":
   parser_sam.add_argument('-d','--dry',         dest='dryrun', action='store_true',
                                                 help='dry run for debugging purposes')
   parser_sam.add_argument('-E', '--opts',       dest='extraopts', type=str, nargs='+', default=[ ],
-                          metavar='KEY=VALUE',  help="extra options for the skim or analysis module")
+                          metavar='KEY=VALUE',  help="extra options for the skim or analysis module, "
+                                                     "passed as list of 'KEY=VALUE', separated by spaces")
   parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', default=False, action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
@@ -1134,9 +1138,11 @@ if __name__ == "__main__":
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                                                 help='maximum number of events (per file) to process')
   parser_run.add_argument('-n','--nfiles',      dest='nfiles', type=int, default=1,
-                                                help='maximum number of input files to process')
+                                                help="maximum number of input files to process, default=%(default)d")
   parser_run.add_argument('-S', '--nsamples',   dest='nsamples', type=int, default=1,
-                                                help='number of samples to run')
+                                                help="number of samples to run, default=%(default)d")
+  parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
+                                                help="output directory, default=%(default)r")
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
                           metavar='FILE',       help="write file list, default=%(const)r" )
   

@@ -77,7 +77,7 @@ You can link your skimming script to a custom channel short name
 ```
 pico.py channel skim skimjob.py
 ```
-This can be whatever string you want, but it should contain `skim` to differentiate from analysis channels,
+This can be whatever string you want, but it should be unique, contain `skim` to differentiate from analysis channels,
 and you should avoid characters that are not safe for filenames, including `_`, `-`, `:` and `/`.
 
 
@@ -119,8 +119,8 @@ samples = [
 ]
 ```
 The `Samples` class takes at least three arguments:
-1. The first string is a user-chosen name to group samples together (e.g. `'DY'`, `'TT'`, `'VV'`, `'Data'`, ...).
-2. The second is a custom short name for the sample  (e.g. `'DYJetsToLL_M-50'`, `'SingleMuon_Run2016C'`). 
+1. The first string is a user-chosen name to group samples together (e.g. `'DY'`, `'TT'`, `'VV'`, `'Data'`).
+2. The second is a custom, unique short name for the sample  (e.g. `'DYJetsToLL_M-50'`, `'SingleMuon_Run2016C'`). 
 3. The third and optionally additional arguments are the full DAS paths of the sample.
 Multiple DAS paths for the same sample can be used to combine extensions.
 
@@ -140,7 +140,7 @@ Other optional keyword arguments are
   This overrides the default `nfilesperjob` in the configuration.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 
-Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanAOD files)
+Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanoAOD files)
 for the same era as specified in the configuration.
 While skimming is an optional step, typically you first want to skim nanoAOD from existing files on the GRID (given by DAS)
 and store them locally for faster and more reliable access.
@@ -158,25 +158,30 @@ A local run can be done as
 <pre>
 pico.py run -y <i>&lt;era&gt; -c &lt;channel&gt;</i>
 </pre>
-For example, to run the `mutau` channel, do
+For example, to run the `mutau` channel on a `2016` sample, do
 ```
 pico.py run -y 2016 -c mutau
 ```
-By default, the output will be saved in `ouput/`.
+By default, the output will be saved in a new directory called `ouput/`.
 Because `mutau` is an analysis module, the output will be a root file that contains a tree called `tree`
 with a custom format defined in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
 If you run a skimming channel, which must have `skim` in the channel name, the output will be a nanoAOD file.
 
-You can specify a sample that is available in the [sample list linked to the era](samples/samples_2016.py),
-by passing the `-s` flag a pattern.
+Automatically, the first file of the first sample in the era's list will be run, but you can
+specify a sample that is available in the [sample list linked to the era](samples/samples_2016.py),
+by passing the `-s` flag a pattern:
 ```
 pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
 pico.py run -y 2016 -c mutau -s SingleMuon
 ```
-Glob patterns like `*` wildcards are allowed.
+Glob patterns like `*` or `?` wildcards are allowed.
 Some modules allow extra options via keyword arguments. You can specify these using the `--opts` flag:
 ```
 pico.py run -y 2016 -c mutau -s DYJets*M-50 --opts tes=1.1
+```
+For all options, see
+```
+pico.py run --help
 ```
 
 
@@ -191,7 +196,7 @@ This will create the the necessary output directories for job configuration (`jo
 and output (`nanodir` for skimming, `outdir` for analysis).
 A JSON file is created to keep track of the job input and output.
 
-Again, you can specify a sample by a patterns to `-s`, or exclude patterns with `-x`.
+Again, you can specify a sample by passing a glob patterns to `-s`, or exclude patterns with `-x`.
 To give the output files a specific tag, use `-t`.
 
 For all options with submission, do
