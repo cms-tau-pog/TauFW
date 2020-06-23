@@ -163,7 +163,7 @@ For example, to run the `mutau` channel on a `2016` sample, do
 pico.py run -y 2016 -c mutau
 ```
 By default, the output will be saved in a new directory called `ouput/`.
-Because `mutau` is an analysis module, the output will be a root file that contains a tree called `tree`
+Because `mutau` is an analysis module, the output will be a root file that contains a tree called `'tree'`
 with a custom format defined in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
 If you run a skimming channel, which must have `skim` in the channel name, the output will be a nanoAOD file.
 

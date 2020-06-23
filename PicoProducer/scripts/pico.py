@@ -283,7 +283,7 @@ def main_run(args):
         # SETTINGS
         filetag = tag
         if sample:
-          filetag += '_'+sample.name
+          filetag += '_%s_%s'%(era,sample.name)
         if verbosity>=1:
           print ">>> %-12s = %s"%('sample',sample)
           print ">>> %-12s = %r"%('filetag',filetag)
@@ -1073,19 +1073,19 @@ if __name__ == "__main__":
   parser_sam = ArgumentParser(add_help=False,parents=[parser_cmn])
   parser_lnk = ArgumentParser(add_help=False,parents=[parser_cmn])
   parser_sam.add_argument('-c','--channel',     dest='channels', choices=CONFIG.channels.keys(), default=[ ], nargs='+',
-                                                help='channel')
+                                                help='skimming or analysis channel to run')
   parser_sam.add_argument('-y','-e','--era',    dest='eras', choices=CONFIG.eras.keys(), default=[ ], nargs='+',
-                                                help='year or era')
+                                                help='year or era to specify the sample list')
   parser_sam.add_argument('-s', '--sample',     dest='samples', type=str, nargs='+', default=[ ], action='store',
-                          metavar='PATTERN',    help="filter these samples; glob patterns (wildcards * and ?) are allowed." )
+                          metavar='PATTERN',    help="filter these samples; glob patterns like '*' and '?' wildcards are allowed" )
   parser_sam.add_argument('-x', '--veto',       dest='vetoes', nargs='+', default=[ ], action='store',
-                          metavar='PATTERN',    help="exclude/veto this sample" )
+                          metavar='PATTERN',    help="exclude/veto these samples; glob patterns are allowed" )
   parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=GLOB._dtypes, nargs='+',
-                                                help='data type')
+                                                help='filter these data type(s)')
   parser_sam.add_argument('-D','--das',         dest='checkdas', default=False, action='store_true',
-                                                help="check DAS for number of events" )
+                                                help="check DAS for total number of events" )
   parser_sam.add_argument('-t','--tag',         dest='tag', default="",
-                                                help='tag for output')
+                                                help='tag for output file name')
   parser_sam.add_argument('-f','--force',       dest='force', action='store_true',
                                                 help='force overwrite')
   parser_sam.add_argument('-d','--dry',         dest='dryrun', action='store_true',
@@ -1138,7 +1138,7 @@ if __name__ == "__main__":
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                                                 help='maximum number of events (per file) to process')
   parser_run.add_argument('-n','--nfiles',      dest='nfiles', type=int, default=1,
-                                                help="maximum number of input files to process, default=%(default)d")
+                                                help="maximum number of input files to process (per sample), default=%(default)d")
   parser_run.add_argument('-S', '--nsamples',   dest='nsamples', type=int, default=1,
                                                 help="number of samples to run, default=%(default)d")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',

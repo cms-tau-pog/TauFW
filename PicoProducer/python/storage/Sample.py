@@ -26,11 +26,11 @@ class Sample(object):
     """
     
     # PATH
-    assert len(paths)>=1, "Need at least one path to create a sample..."
+    LOG.insist(len(paths)>=1,"Need at least one path to create a sample...")
     if len(paths)==1 and isinstance(paths[0],list):
       paths = paths[0]
     for path in paths:
-      assert path.count('/')>=3 and path.startswith('/'), "DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/FORMAT."%(path)
+      LOG.insist(path.count('/')>=3 and path.startswith('/'),"DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/FORMAT."%(path))
       #sample = '/'.join(line.split('/')[-3:])
     
     # DATA TYPE
@@ -45,7 +45,7 @@ class Sample(object):
       elif re.search(r"/Run20\d\d",path):
         dtype = 'data'
       dtype = 'mc' # TODO: remove
-    assert dtype in dtypes, "Given data type '%s' is not recongized! Please choose from %s..."%(dtype,', '.join(dtypes))
+    LOG.insist(dtype in dtypes,"Given data type '%s' is not recongized! Please choose from %s..."%(dtype,', '.join(dtypes)))
     
     # ATTRIBUTES
     self.group        = group
@@ -112,7 +112,7 @@ class Sample(object):
     with open(cfgname,'r') as file:
       jobcfg = json.load(file)
     for key in ['group','name','paths','try','channel','chunkdict']:
-      assert key in jobcfg, "Did not find key '%s' in %s"%(key,cfgname)
+      LOG.insist(key in jobcfg,"Did not find key '%s' in %s"%(key,cfgname))
     jobcfg['config']    = cfgname
     jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
@@ -151,8 +151,10 @@ class Sample(object):
           match_ = True
           break
     if verb>=2:
-      if match_: print ">>> Sample.match: '%s' match to '%s'!"%(sample,pattern)
-      else:      print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
+      if match_:
+        LOG.warning("Sample.match: '%s' match to '%s'!"%(sample,pattern))
+      else:
+        LOG.warning("Sample.match: NO '%s' match to '%s'!"%(sample,pattern))
     return match_
   
   def getfiles(self,refresh=False,url=True,verb=0):
