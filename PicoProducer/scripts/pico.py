@@ -60,7 +60,7 @@ def main_get(args):
     print ">>> %-14s = %s"%('cfgname',cfgname)
     print ">>> %-14s = %s"%('config',CONFIG)
     print '-'*80
-    
+  
   # SAMPLES
   if variable=='files':
     
@@ -177,7 +177,7 @@ def main_link(args):
   assert isinstance(CONFIG[varkey],dict), "%s in %s has to be a dictionary"%(varkey,cfgname)
   if varkey=='channels':
     oldval = value
-    if 'skim' in key.lower() or 'test' in key:
+    if 'skim' in key.lower(): #or 'test' in key:
       value = os.path.basename(value)
       ensurefile("python/processors",value)
     else:
@@ -226,15 +226,15 @@ def main_run(args):
       skim = 'skim' in channel.lower()
       assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
       module = CONFIG.channels[channel]
-      if channel!='test' and not skim:
+      if not skim: # channel!='test' and
         ensuremodule(module)
       outdir = ensuredir('output')
       
       # PROCESSOR
-      if 'skim' in channel.lower():
+      if skim:
         processor = module
-      elif channel=='test':
-        processor = module
+      ###elif channel=='test':
+      ###  processor = module
       else:
         processor = "picojob.py"
       processor   = os.path.join("python/processors",processor)
@@ -303,10 +303,10 @@ def main_run(args):
         
         # RUN
         runcmd = processor
-        if 'skim' in channel.lower():
+        if skim:
           runcmd += " -y %s -o %s --jec-sys"%(era,outdir)
-        elif 'test' in channel:
-          runcmd += " -o %s"%(outdir)
+        ###elif 'test' in channel:
+        ###  runcmd += " -o %s"%(outdir)
         else: # analysis
           runcmd += " -y %s -c %s -M %s -o %s"%(era,channel,module,outdir)
         if filetag:
@@ -364,7 +364,7 @@ def preparejobs(args):
       skim = 'skim' in channel.lower()
       assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
       module = CONFIG.channels[channel]
-      if channel!='test' and not skim:
+      if not skim: #channel!='test'
         ensuremodule(module)
       if verbosity>=1:
         print '-'*80
@@ -377,8 +377,8 @@ def preparejobs(args):
       # PROCESSOR
       if skim:
         processor = module
-      elif channel=='test':
-        processor = module
+      ###elif channel=='test':
+      ###  processor = module
       else:
         processor = "picojob.py"
       procpath  = os.path.join("python/processors",processor)
@@ -518,8 +518,8 @@ def preparejobs(args):
             jobcmd      = processor
             if skim:
               jobcmd += " -y %s --copydir %s -t %s --jec-sys"%(era,outdir,filetag)
-            elif channel=='test':
-              jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
+            ###elif channel=='test':
+            ###  jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
             else:
               jobcmd += " -y %s -c %s -M %s --copydir %s -t %s"%(era,channel,module,outdir,filetag)
             if prefetch:

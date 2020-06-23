@@ -8,6 +8,9 @@ There are two modes:
 2. **Analysis**: Analyze nanoAOD events by pre-selecting events and objects and constructing variables.
                  The main analysis code is found in [`python/analysis/`](python/analysis).
                  The output is a custom tree format we will refer to as _pico_.
+A central script called `pico.py` allows you to run both modes of nanoAOD processing,
+either locally or on a batch system.
+You can link several skimming or analysis codes to _channels_.
 
 #### Table of Contents  
 * [Installation](#Installation)<br>
@@ -26,7 +29,8 @@ There are two modes:
 
 ## Installation
 
-You need to have CMSSW and [NanoAODTools](https://github.com/cms-nanoAOD/nanoAOD-tools) installed, see the [README in the parent directory](../../../#taufw). Test the installation with
+You need to have CMSSW and [NanoAODTools](https://github.com/cms-nanoAOD/nanoAOD-tools) installed,
+see the [README in the parent directory](../../../#taufw). Test the installation with
 ```
 pico.py --help
 ```
@@ -61,6 +65,9 @@ Note the directories can contain variables with `$` like
 `$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$PATH`
 to create a custom hierarchy and format.
 
+Besides these variables, there are also dictionaries to link a channel short name to a skimming or analysis code,
+or an era (year) to a list of samples.
+
 ### Skimming
 Skimming of nanoAOD files is done by post-processor scripts saved in [`python/processors/`](python/processors).
 An example is given by [`skimjob.py`](python/processors/skimjob.py).
@@ -70,7 +77,7 @@ You can link your skimming script to a custom channel short name
 pico.py channel skim skimjob.py
 ```
 This can be whatever string you want, but it should contain `skim` to differentiate from analysis channels,
-and you should avoid characters that are not safe for filenames, including `-`, `:` and `/`.
+and you should avoid characters that are not safe for filenames, including `_`, `-`, `:` and `/`.
 
 
 ### Analysis
@@ -86,7 +93,7 @@ You can link any analysis module to a custom channel short name (e.g. `mutau`):
 pico.py channel mutau ModuleMuTauSimple
 ```
 The channel short name can be whatever string you like (e.g. `mt`, `mymutau`, `MuTau`, ...).
-However, you should avoid characters that are not safe for filenames, including `-`, `:` and `/`,
+However, you should avoid characters that are not safe for filenames, including `_`, `-`,`:` and `/`,
 and it should not contain `skim` (reserved for skimming).
 
 ### Sample list
@@ -98,7 +105,8 @@ pico.py era 2016 sample_2016.py
 
 ## Samples
 
-Specify the samples with a python file in [`samples/`](samples).
+The nanoAOD samples you like to process should be specified in python file in [`samples/`](samples).
+Each era (year) should be linked to a sample list, as explained above.
 The file must include a python list called `samples`, containing `Sample` objects
 (or those from the derived `MC` and `Data` classes). For example,
 ```
@@ -130,6 +138,12 @@ Other optional keyword arguments are
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
   This overrides the default `nfilesperjob` in the configuration.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
+
+Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanAOD files)
+for the same era as specified in the configuration.
+While skimming is an optional step, typically you first want to skim nanoAOD from existing files on the GRID (given by DAS)
+and store them locally for faster and more reliable access.
+To run on skimmed nanoAOD files, you need to change `store` for each skimmed sample to point to the storage location.
 
 To get a file list for a sample in the sample list, you can use the `get files` subcommand.
 If you include `--write`, the list will be written to a text file as defined by `filelistdir` in the [configuration](#Configuration):

@@ -2,7 +2,6 @@
   "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
   "channels": {
     "skim": "skimjob.py", 
-    "test": "test.py", 
     "gen": "GenDumper", 
     "mutau": "ModuleMuTauSimple"
   }, 
