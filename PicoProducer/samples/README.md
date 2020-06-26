@@ -2,7 +2,7 @@
 
 All sample lists are stored here as python modules that contain a python list with
 [`Sample`](../python/storage/Sample.py) objects. For more information on sample lists,
-please refer to the [README in the parent directory](../../#Samples).
+please refer to the [README in the parent directory](../#Samples).
 
 ## Linking an era to a sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do

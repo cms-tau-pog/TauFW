@@ -35,6 +35,10 @@ see the [README in the parent directory](../../../#taufw). Test the installation
 ```
 pico.py --help
 ```
+If CMSSW is compiled correctly with `scram b`,
+then the `pico.py` script should be copied from `scripts/` to `$CMSSW_BASE/bin/$SCRAM_ARCH`,
+and available as a command via `$PATH`.
+
 To use DAS, make sure you have a GRID certificate installed, and a VOMS proxy setup
 ```
 voms-proxy-init -voms cms -valid 200:0
