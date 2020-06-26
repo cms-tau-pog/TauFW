@@ -108,7 +108,7 @@ pico.py era 2016 sample_2016.py
 
 The nanoAOD samples you like to process should be specified in python file in [`samples/`](samples).
 Each era (year) should be linked to a sample list, as explained above.
-The file must include a python list called `samples`, containing `Sample` objects
+The file must include a python list called `samples`, containing [`Sample`](python/storage/Sample.py) objects
 (or those from the derived `MC` and `Data` classes). For example,
 ```
 samples = [

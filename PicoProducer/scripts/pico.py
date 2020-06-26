@@ -162,7 +162,7 @@ def main_link(args):
   cfgname   = CONFIG._path
   if verbosity>=1:
     print '-'*80
-  print ">>> Linking %s '%s' to '%s' in config"%(variable,key,value)
+  print ">>> Linking %s '%s' to '%s' in the configuration"%(variable,key,value)
   if verbosity>=1:
     print ">>> %-14s = %s"%('cfgname',cfgname)
     print ">>> %-14s = %s"%('key',key)
@@ -173,12 +173,12 @@ def main_link(args):
   # SANITY CHECKS
   if varkey not in CONFIG:
     CONFIG[varkey] = { }
-  assert isinstance(CONFIG[varkey],dict), "%s in %s has to be a dictionary"%(varkey,cfgname)
+  LOG.insist(isinstance(CONFIG[varkey],dict),"%s in %s has to be a dictionary"%(varkey,cfgname))
   oldval = value
+  for char in '_-/\,:;!?\'"':
+    if char in key:
+      LOG.throw(IOError,"Given key '%s', but keys cannot contain any of these characters: %s"%(key,char))
   if varkey=='channels':
-    for char in '_-\,:;!?\'"':
-      if char in value:
-        LOG.throw(IOError,"Value given for %s (%s) cannot contain %s!"%(variable,value,char))
     if 'skim' in key.lower(): #or 'test' in key:
       value = os.path.basename(value)
       ensurefile("python/processors",value)
@@ -202,6 +202,41 @@ def main_link(args):
   
   CONFIG[varkey][key] = value
   CONFIG.write()
+  
+
+
+##############
+#   REMOVE   #
+##############
+
+def main_rm(args):
+  """Remove variable from the config file."""
+  if args.verbosity>=1:
+    print ">>> main_rm", args
+  variable  = args.variable
+  key       = args.key # 'channel' or 'era'
+  verbosity = args.verbosity
+  cfgname   = CONFIG._path
+  if verbosity>=1:
+    print '-'*80
+  print ">>> Removing variable '%s' from the configuration"%(variable)
+  if verbosity>=1:
+    print ">>> %-14s = %s"%('cfgname',cfgname)
+    print ">>> %-14s = %s"%('config',CONFIG)
+    print '-'*80
+  if key: # redirect 'channel' and 'era' keys to main_link
+    variable = variable+'s'
+    if variable in CONFIG:
+      CONFIG[variable].pop(key)
+      CONFIG.write()
+    else:
+      print ">>> Variable '%s' not in the configuration. Nothing to remove..."%(variable)
+  else:
+    if variable in CONFIG:
+      CONFIG.pop(variable)
+      CONFIG.write()
+    else:
+      print ">>> Variable '%s' not in the configuration. Nothing to remove..."%(variable)
   
 
 
@@ -1126,6 +1161,7 @@ if __name__ == "__main__":
   parser_ins = subparsers.add_parser('install',  parents=[parser_cmn], help='install')
   parser_get = subparsers.add_parser('get',      parents=[parser_sam], help='get information from configuration or samples')
   parser_set = subparsers.add_parser('set',      parents=[parser_cmn], help='set given variable in the configuration file')
+  parser_rmv = subparsers.add_parser('rm',       parents=[parser_cmn], help='remove given variable from the configuration file')
   parser_chl = subparsers.add_parser('channel',  parents=[parser_lnk], help='link a channel to a module in the configuration file')
   parser_era = subparsers.add_parser('era',      parents=[parser_lnk], help='link an era to a sample list in the configuration file')
   parser_run = subparsers.add_parser('run',      parents=[parser_sam], help='run local post processor')
@@ -1138,6 +1174,8 @@ if __name__ == "__main__":
   parser_set.add_argument('variable',           help='variable to change in the config file')
   parser_set.add_argument('key',                help='channel or era key name', nargs='?', default=None)
   parser_set.add_argument('value',              help='value for given value')
+  parser_rmv.add_argument('variable',           help='variable to remove from the config file')
+  parser_rmv.add_argument('key',                help='channel or era key name to remove', nargs='?', default=None)
   parser_chl.add_argument('key',                metavar='channel', help='channel key name')
   parser_chl.add_argument('value',              metavar='module',  help='module linked to by given channel')
   parser_era.add_argument('key',                metavar='era',     help='era key name')
@@ -1162,9 +1200,10 @@ if __name__ == "__main__":
   # ABBREVIATIONS
   args = sys.argv[1:]
   if args:
-    subcmds = [ 
-      'install','set','channel','era',
+    subcmds = [ # fix order
+      'channel','era',
       'run','submit','resubmit','status','hadd',
+      'install','set','rm',
     ]
     for subcmd in subcmds:
       if args[0] in subcmd[:len(args[0])]: # match abbreviation
@@ -1185,6 +1224,8 @@ if __name__ == "__main__":
     main_set(args)
   elif args.subcommand in ['channel','era']:
     main_link(args)
+  elif args.subcommand=='rm':
+    main_rm(args)
   elif args.subcommand=='run':
     main_run(args)
   elif args.subcommand in ['submit','resubmit']:

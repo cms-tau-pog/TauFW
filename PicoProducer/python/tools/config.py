@@ -170,6 +170,9 @@ class Config(object):
       self._dict = json.load(infile,object_pairs_hook=OrderedDict)
     return self._dict
   
+  def pop(self,*args,**kwargs):
+    self._dict.pop(*args,**kwargs)
+  
   def write(self,path=None):
     if path==None:
       path = self._path
