@@ -156,7 +156,7 @@ pico.py get files -y 2016 -s DYJets --write
 ## Local run
 A local run can be done as
 <pre>
-pico.py run -y <i>&lt;era&gt; -c &lt;channel&gt;</i>
+pico.py run -y <i>&lt;era&gt;</i> -c <i>&lt;channel&gt;</i>
 </pre>
 For example, to run the `mutau` channel on a `2016` sample, do
 ```

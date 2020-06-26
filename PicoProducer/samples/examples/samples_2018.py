@@ -10,22 +10,6 @@ samples  = [
     "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,
   ),
-  M('DY','DY1JetsToLL_M-50',
-   "/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-   store=storage,url=url,file=filelist,
-  ),
-  M('DY','DY2JetsToLL_M-50',
-   "/DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-   store=storage,url=url,file=filelist,
-  ),
-  M('DY','DY3JetsToLL_M-50',
-   "/DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-   store=storage,url=url,file=filelist,
-  ),
-  M('DY','DY4JetsToLL_M-50',
-   "/DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-   store=storage,url=url,file=filelist,
-  ),
   
   # TTBAR
   M('TT','TTTo2L2Nu',
@@ -43,18 +27,10 @@ samples  = [
     store=storage,url=url,file=filelist,
   ),
   
-  # SINGLE MUON
-  D('Data','SingleMuon_Run2018A', "/SingleMuon/Run2018A-Nano25Oct2019-v1/NANOAOD",
-   store=storage,url=url,file=filelist,
-  ),
+  # DATA
   D('Data','SingleMuon_Run2018B', "/SingleMuon/Run2018B-Nano25Oct2019-v1/NANOAOD",
     store=storage,url=url,file=filelist,
   ),
-  D('Data','SingleMuon_Run2018C', "/SingleMuon/Run2018C-Nano25Oct2019-v1/NANOAOD",
-   store=storage,url=url,file=filelist,
-  ),
-  D('Data','SingleMuon_Run2018D', "/SingleMuon/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD",
-   store=storage,url=url,file=filelist,
-  ),
+  
   
 ]
