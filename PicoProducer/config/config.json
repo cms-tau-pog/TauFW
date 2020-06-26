@@ -12,9 +12,5 @@
   }, 
   "batch": "HTCondor", 
   "nfilesperjob": 1, 
-  "basedir": "/work/ineuteli/analysis/CMSSW_10_3_3_TauPOG/src/TauFW/PicoProducer", 
-  "outdir": "/work/ineuteli/analysis/CMSSW_10_3_3_TauPOG/src/TauFW/PicoProduceroutput/$ERA/$CHANNEL/$SAMPLE", 
-  "nanodir": "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/nano/$ERA/$DAS", 
-  "picodir": "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/analysis/$ERA/$GROUP", 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt"
 }
