@@ -1,8 +1,8 @@
 # Author: Izaak Neutelings (November 2018)
 import os, re
 from TauFW.PicoProducer import datadir
-from TauFW.PicoProducer.tools.file import ensureTFile
-from TauFW.PicoProducer.tools.log import Logger
+from TauFW.common.tools.file import ensureTFile
+from TauFW.common.tools.log import Logger
 datadir = os.path.join(datadir,"pileup")
 LOG     = Logger('PileupTool',showname=True)
 

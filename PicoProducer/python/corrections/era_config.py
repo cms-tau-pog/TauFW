@@ -2,7 +2,7 @@
 # Description: Configuration of JEC/JER versions
 import os, re
 from TauFW.PicoProducer import datadir
-from TauFW.PicoProducer.tools.file import ensurefile
+from TauFW.common.tools.file import ensurefile
 
 
 def getjson(era,dtype='data'):

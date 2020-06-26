@@ -2,7 +2,7 @@
 import os, re, shutil
 from abc import ABCMeta, abstractmethod
 from subprocess import Popen, PIPE, STDOUT
-from ROOT import TFile
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 
 def writetemplate(templatename,outfilename,sublist=[],rmlist=[],**kwargs):
@@ -81,7 +81,7 @@ def ensureTFile(filename,option='READ'):
   if not os.path.isfile(filename):
     raise IOError('File in path "%s" does not exist!'%(filename))
     exit(1)
-  file = TFile(filename,option)
+  file = ROOT.TFile(filename,option)
   if not file or file.IsZombie():
     raise IOError('Could not open file by name "%s"'%(filename))
     exit(1)

@@ -35,11 +35,12 @@ see the [README in the parent directory](../../../#taufw). Test the installation
 ```
 pico.py --help
 ```
-If CMSSW is compiled correctly with `scram b`,
-then the `pico.py` script should be copied from `scripts/` to `$CMSSW_BASE/bin/$SCRAM_ARCH`,
-and available as a command via `$PATH`.
+If CMSSW is compiled correctly with `scram b`, then the `pico.py` script should have been
+automatically copied from `scripts/` to `$CMSSW_BASE/bin/$SCRAM_ARCH`,
+and should be available as a command via `$PATH`.
 
-To use DAS, make sure you have a GRID certificate installed, and a VOMS proxy setup
+If you need to access DAS for getting file lists of nanoAOD samples,
+make sure you have a GRID certificate installed, and a VOMS proxy setup
 ```
 voms-proxy-init -voms cms -valid 200:0
 ```
@@ -253,4 +254,5 @@ and the module's filename should be the same as the class. See for example [`HTC
 Then you need to add your `submit` command to the `main_submit` function in [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/a5730daa5d0595f4baf15a606790d8e512cd2219/PicoProducer/scripts/pico.py#L885-L897).
 
 Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py) in [`python/storage/`](python/storage).
+
 

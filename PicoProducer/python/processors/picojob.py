@@ -109,7 +109,7 @@ if copydir and outdir!=copydir:
   print ">>> %-12s = %s"%('cwd',os.getcwd())
   print ">>> %-12s = %s"%('ls',os.listdir(outdir))
   from TauFW.PicoProducer.storage.utils import getstorage
-  from TauFW.PicoProducer.tools.file import rmfile
+  from TauFW.common.tools.file import rmfile
   store = getstorage(copydir,verb=2)
   store.cp(outfname)
   print ">>> Removing %r..."%(outfname)

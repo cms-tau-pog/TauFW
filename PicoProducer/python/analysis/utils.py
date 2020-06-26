@@ -6,8 +6,8 @@ from math import sqrt, sin, cos, pi
 from itertools import combinations
 from ROOT import TH1D, TLorentzVector
 from TauFW.PicoProducer import basedir
-from TauFW.PicoProducer.tools.file import ensurefile
-from TauFW.PicoProducer.tools.log import Logger
+from TauFW.common.tools.file import ensurefile
+from TauFW.common.tools.log import Logger
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 LOG = Logger('Analysis')
 

@@ -2,7 +2,7 @@
 import os
 import getpass, platform
 from TauFW.PicoProducer import basedir
-from TauFW.PicoProducer.tools.log import Logger
+from TauFW.common.tools.log import Logger
 LOG = Logger('Storage')
 
 

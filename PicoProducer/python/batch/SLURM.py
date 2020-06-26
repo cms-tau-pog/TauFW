@@ -1,6 +1,6 @@
 # Author: Izaak Neutelings (May 2020)
 import os, re, getpass
-from TauFW.PicoProducer.tools.utils import execute
+from TauFW.common.tools.utils import execute
 from TauFW.PicoProducer.batch.BatchSystem import BatchSystem
 
 

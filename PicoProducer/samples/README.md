@@ -5,7 +5,7 @@ All sample lists are stored here as python modules that contain a python list wi
 please refer to the [README in the parent directory](../#Samples).
 
 ## Linking an era to a sample list
-To link an era to your favorite sample list in [`samples/`](samples/), do
+To link an era to your favorite sample list in `samples/`, do
 ```
 pico.py era 2016 sample_2016.py
 ```

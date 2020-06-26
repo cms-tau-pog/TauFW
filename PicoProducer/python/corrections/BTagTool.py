@@ -13,8 +13,8 @@ from array import array
 import ROOT
 #ROOT.gROOT.ProcessLine('.L ./BTagCalibrationStandalone.cpp+')
 from TauFW.PicoProducer import datadir
-from TauFW.PicoProducer.tools.file import ensureTFile
-from TauFW.PicoProducer.tools.log import Logger
+from TauFW.common.tools.file import ensureTFile
+from TauFW.common.tools.log import Logger
 from ROOT import TH2F, BTagCalibration, BTagCalibrationReader
 from ROOT.BTagEntry import OP_LOOSE, OP_MEDIUM, OP_TIGHT, OP_RESHAPING
 from ROOT.BTagEntry import FLAV_B, FLAV_C, FLAV_UDSG

@@ -1,8 +1,8 @@
 # Author: Izaak Neutelings (May 2020)
 import os
 from fnmatch import fnmatch # for glob pattern
-from TauFW.PicoProducer.tools.utils import execute
-from TauFW.PicoProducer.tools.file import ensuredir, rmfile
+from TauFW.common.tools.utils import execute
+from TauFW.common.tools.file import ensuredir, rmfile
 from TauFW.PicoProducer.storage.utils import LOG
 import getpass, platform
 
