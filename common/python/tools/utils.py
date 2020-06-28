@@ -43,22 +43,27 @@ def execute(command,dry=False,fatal=True,verb=0):
 def isnumber(arg):
   return isinstance(arg,float) or isinstance(arg,int)
   
+
 def islist(arg):
   """Check if argument is a list or tuple."""
   return isinstance(arg,list) or isinstance(arg,tuple)
   
-def ensurelist(arg):
+
+def ensurelist(arg,nonzero=False):
   """Ensure argument is a list, if it is not already a tuple or list."""
   if not islist(arg):
-    arg = [arg]
+    arg = [a for a in arg if a] if nonzero else [arg]
   return arg
   
+
 def unwrapargs(args):
-  """Unwrap arguments from function's *args."""
+  """Unwrap arguments from function's *args,
+  works as long as expected args are not lists or tuples."""
   if len(args)==1 and islist(args[0]):
     args = args[0]
   return args
   
+
 def repkey(string,**kwargs):
   """Replace keys with '$'."""
   for key, value in kwargs.iteritems():

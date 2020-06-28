@@ -7,7 +7,7 @@
 import os, sys, re, shutil, json
 from argparse import ArgumentParser
 from corrections import ensureTFileAndTH1
-from TauFW.Plotter.plot import CMS_style
+from TauFW.Plotter.plot import CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gROOT, gDirectory, gStyle, gPad, TFile, TTree, TCanvas, TH1, TH1F, TLine, TLegend,\
                  kBlack, kRed, kAzure, kGreen, kOrange, kMagenta, kYellow
@@ -391,7 +391,7 @@ def drawHistsWithRatio(hists,name,**kwargs):
     gPad.SetTicks(1,1)
     gPad.Modified()
     frame.Draw('AXIS SAME')
-    CMS_style.CMS_lumi(gPad,13,0)
+    CMSStyle.setCMSLumiStyle(gPad,0)
     
     # RATIO plot
     canvas.cd(2)
@@ -694,7 +694,7 @@ def main():
       if 'mc' in types:
         mcfilename = "MC_PileUp_%d.root"%(year)
         #mcfilename = "MC_PileUp_%d_%s.root"%(year,campaign)
-        CMS_style.setYear(year)
+        CMSStyle.setCMSEra(year)
         getMCProfile(mcfilename,indir,samples,channel,year)
         if args.plot:
           mchist = compareMCProfiles(indir,samples,channel,year)
@@ -716,7 +716,7 @@ def main():
       
       # FLAT
       if 'flat' in types:
-        CMS_style.setYear(year)
+        CMSStyle.setCMSEra(year)
         filename  = "MC_PileUp_%d_FlatPU0to75.root"%year
         hist_flat = getFlatProfile(filename,75)
         for era in jsons:

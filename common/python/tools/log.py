@@ -56,7 +56,7 @@ class Logger(object):
     if  kwargs.get('showname',False):
       self.pre += self.name + ": "
   
-  def getverb(self,*args):
+  def getverbosity(self,*args):
     """Decide verbosity level based on maximum of own verbosity and given arguments."""
     verbs = [ self.verbosity ]
     for arg in args:
@@ -70,6 +70,19 @@ class Logger(object):
   def info(self,string,**kwargs):
     """Info"""
     print self.pre+string
+  
+  def verbose(self,string,verb=None,level=1,**kwargs):
+    """Check verbosity and print if verbosity level is matched."""
+    if verb==None:
+      verb   = self.verbosity
+    if verb>=level:
+      pre = self.pre+kwargs.get('pre',"")
+      print pre+string
+      return True
+    return False
+  
+  def verb(self,*args,**kwargs):
+    return self.verbose(*args,**kwargs)
   
   def color(self,*args,**kwargs):
     """Print color."""
@@ -110,19 +123,6 @@ class Logger(object):
   def insist(self,condition,string,error=AssertionError,**kwargs):
     """Assert condition throwing an exception."""
     return self.throw(error,string,trigger=(not condition),**kwargs)
-  
-  def verbose(self,string,verb=None,level=1,**kwargs):
-    """Check verbosity and print if verbosity level is matched."""
-    if verb==None:
-      verb   = self.verbosity
-    if verb>=level:
-      pre = self.pre+kwargs.get('pre',"")
-      print pre+string
-      return True
-    return False
-  
-  def verb(self,*args,**kwargs):
-    return self.verbose(*args,**kwargs)
   
   #def table(self,format,**kwargs):
   #  """Initiate new table."""
