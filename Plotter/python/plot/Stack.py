@@ -69,7 +69,7 @@ class Stack(Plot):
     logx            = kwargs.get('logx',            self.logx            )
     logy            = kwargs.get('logy',            self.logy            )
     ymargin         = kwargs.get('ymargin',         self.ymargin         ) # margin between hist maximum and plot's top
-    logyrange       = kwargs.get('logyrange',       self.logyrange       )
+    logyrange       = kwargs.get('logyrange',       self.logyrange       ) # log(y) range from hist maximum to ymin
     grid            = kwargs.get('grid',            False                )
     tsize           = kwargs.get('tsize',           _tsize               ) # text size for axis title
     pair            = kwargs.get('pair',            False                )
@@ -79,14 +79,13 @@ class Stack(Plot):
     fcolors         = kwargs.get('fcolors',         None                 ) or self.fcolors
     lstyles         = kwargs.get('lstyle',          None                 )
     lstyles         = kwargs.get('lstyles',         lstyles              ) or self.lstyles
-    lwidth          = kwargs.get('lwidth',          2                    )
-    mstyle          = kwargs.get('mstyle',          None                 )
-    option          = kwargs.get('option',          'HIST'               )
-    options         = kwargs.get('options',         [ ]                  )
-    roption         = kwargs.get('roption',         None                 )
-    enderrorsize    = kwargs.get('enderrorsize',    2.0                  )
+    lwidth          = kwargs.get('lwidth',          2                    ) # line width
+    mstyle          = kwargs.get('mstyle',          None                 ) # marker style
+    option          = kwargs.get('option',          'HIST'               ) # draw option for data
+    roption         = kwargs.get('roption',         None                 ) # draw option of ratio plot
+    enderrorsize    = kwargs.get('enderrorsize',    2.0                  ) # size of line at end of error bar
     errorX          = kwargs.get('errorX',          False                ) # no horizontal error bars for CMS style
-    divideByBinSize = kwargs.get('divideByBinSize', self.divideByBinSize )
+    dividebybinsize = kwargs.get('dividebybinsize', self.dividebybinsize )
     drawdata        = kwargs.get('drawdata',        True                 ) and bool(self.datahist)
     drawsignal      = kwargs.get('drawsignal',      True                 ) and bool(self.sighists)
     lcolors         = ensurelist(lcolors)
@@ -98,7 +97,7 @@ class Stack(Plot):
     hists           = self.hists
     
     # DIVIDE BY BINSIZE
-    if divideByBinSize:
+    if dividebybinsize:
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
@@ -106,10 +105,11 @@ class Stack(Plot):
           if oldhist!=newhist:
             LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
             hlist[i] = newhist
-            if oldhist in self.hists:
-              self.hists[self.hists.index(oldhist)] = newhist
+            #if oldhist in self.hists:
+            #  self.hists[self.hists.index(oldhist)] = newhist
             self.garbage.append(oldhist)
       self.datahist = datahists[0]
+      self.hists    = [self.datahist]+self.exphists+self.sighists
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
@@ -119,14 +119,6 @@ class Stack(Plot):
       #      divideBinsByBinSize(hist,zero=True,zeroerrs=False)
     
     # DRAW OPTIONS
-    if len(options)==0:
-      options = [ option ]*len(hists)
-    else:
-      while len(options)<len(hists):
-        options.append(options[-1])
-    #if not self.histsD and staterr and errbars:
-    #  i = denominator-1 if denominator>0 else 0
-    #  options[i] = options[i].replace('E0','')
     gStyle.SetEndErrorSize(enderrorsize)
     if errorX:
       gStyle.SetErrorX(0.5)
@@ -168,7 +160,7 @@ class Stack(Plot):
     if drawdata:
       self.setmarkerstyle(self.datahist)
     
-    # CMS LUMI
+    # CMS STYLE
     if CMSStyle.lumiText:
       CMSStyle.setCMSLumiStyle(gPad,0)
     

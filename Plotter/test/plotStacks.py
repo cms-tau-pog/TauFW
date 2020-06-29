@@ -8,6 +8,7 @@ from TauFW.Plotter.plot.Stack import Stack, CMSStyle
 from ROOT import TH1D, gRandom, TColor,\
                  kBlack, kWhite, kBlue, kOrange, kMagenta
 from TauFW.Plotter.plot.utils import LOG
+from TauFW.Plotter.plot.Variable import Variable
 LOG.verbosity = 2
 
 
@@ -108,7 +109,7 @@ def main():
       ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
       ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus, ( 72, 9)),
-    ]),
+     ]),
     (('m_vis_var',"m_{vis} [GeV]",mvisbins), [ # variable binning
        ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
        ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
@@ -118,7 +119,22 @@ def main():
       ('TT', "t#bar{t}",                0.2, gRandom.Poisson, (2.5,)),
       ('QCD', "QCD multiplet",          0.3, gRandom.Poisson, (2.0,)),
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Poisson, (0.2,)),
-    ]),
+     ]),
+    #(Variable('m_vis',"m_{vis} [GeV]",40,0,200), [
+    #  ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
+    #  ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
+    #  ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus, ( 72, 9)),
+    # ]),
+    #(Variable('m_vis_var',"m_{vis} [GeV]",mvisbins), [ # variable binning
+    #   ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
+    #   ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
+    #   ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus, ( 72, 9)),
+    # ]),
+    #(Variable('njets',"Number of jets",8,0,8), [
+    #  ('TT', "t#bar{t}",                0.2, gRandom.Poisson, (2.5,)),
+    #  ('QCD', "QCD multiplet",          0.3, gRandom.Poisson, (2.0,)),
+    #  ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Poisson, (0.2,)),
+    # ]),
   ]
   
   for variable, procs in plotset:

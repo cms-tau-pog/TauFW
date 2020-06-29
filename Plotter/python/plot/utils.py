@@ -1,7 +1,7 @@
 # Author: Izaak Neutelings (June 2020)
 # -*- coding: utf-8 -*-
 from math import sqrt, log, ceil, floor
-from TauFW.common.tools.utils import islist, ensurelist, unwraplistargs
+from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs
 from TauFW.common.tools.log import Logger
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True

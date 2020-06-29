@@ -4,6 +4,7 @@ import os, re
 from TauFW.common.tools.utils import ensurelist, islist, isnumber
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.strings import makelatex, maketitle, makehistname
+from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Ratio import Ratio
 import ROOT
 from ROOT import gDirectory, gROOT, gPad, gStyle, TFile, TCanvas, TPad, TPaveText,\
@@ -62,55 +63,54 @@ class Plot(object):
       LOG.throw(IOError,"Plot: Wrong input %s"%(args))
     self.hists = hists
     frame      = kwargs.get('frame', self.hists[0] )
-    #if isinstance(variable,Variable):
-    #  self.variable         = variable
-    #  self.xtitle           = kwargs.get('xtitle',    variable.title     )
-    #  self.xmin             = kwargs.get('xmin',      variable.xmin      )
-    #  self.xmax             = kwargs.get('xmax',      variable.xmax      )
-    #  self.ymin             = kwargs.get('ymin',      variable.ymin      )
-    #  self.ymax             = kwargs.get('ymax',      variable.ymax      )
-    #  self.rmin             = kwargs.get('rmin',      variable.rmin      )
-    #  self.rmax             = kwargs.get('rmax',      variable.rmax      )
-    #  self.binlabels        = kwargs.get('binlabels', variable.binlabels )
-    #  self.logx             = kwargs.get('logx',      variable.logx      )
-    #  self.logy             = kwargs.get('logy',      variable.logy      )
-    #  self.ymargin          = kwargs.get('ymargin',   variable.ymargin   )
-    #  self.logyrange        = kwargs.get('logyrange', variable.logyrange )
-    #  self.position         = kwargs.get('position',  variable.position  )
-    #  self.latex            = kwargs.get('latex',     False              )
-    #  self.divideByBinSize  = kwargs.get('divideByBinSize', variable.divideByBinSize)
-    #else:
-    if True:
-      self.variable         = variable
-      self.xtitle           = kwargs.get('xtitle', self.variable or frame.GetXaxis().GetTitle() )
-      self.xmin             = kwargs.get('xmin', frame.GetXaxis().GetXmin() )
-      self.xmax             = kwargs.get('xmax', frame.GetXaxis().GetXmax() )
-      self.ymin             = kwargs.get('ymin',      None           )
-      self.ymax             = kwargs.get('ymax',      None           )
-      self.rmin             = kwargs.get('rmin',      None           )
-      self.rmax             = kwargs.get('rmax',      None           )
-      self.binlabels        = kwargs.get('binlabels', None           )
-      self.logx             = kwargs.get('logx',      False          )
-      self.logy             = kwargs.get('logy',      False          )
-      self.ymargin          = kwargs.get('ymargin',   None           )
-      self.logyrange        = kwargs.get('logyrange', None           )
-      self.position         = kwargs.get('position',  ""             )
-      self.latex            = kwargs.get('latex',     True           )
-      self.divideByBinSize  = kwargs.get('divideByBinSize', frame.GetXaxis().IsVariableBinSize())
-    self.ytitle             = kwargs.get('ytitle',    frame.GetYaxis().GetTitle() )
-    self.name               = kwargs.get('name',      None           ) or (self.hists[0].GetName() if self.hists else "noname")
-    self.title              = kwargs.get('title',     None           )
-    self.errband            = None
-    self.ratio              = kwargs.get('ratio',     False          )
-    self.append             = kwargs.get('append',    ""             )
-    self.norm               = kwargs.get('norm',      False          )
-    self.lcolors            = kwargs.get('lcolors',   _lcolors       )
-    self.fcolors            = kwargs.get('fcolors',   _fcolors       )
-    self.lstyles            = kwargs.get('lstyles',   _lstyles       )
-    self.canvas             = None
-    self.frame              = frame
-    self.legend             = None
-    self.garbage            = [ ]
+    if isinstance(variable,Variable):
+      self.variable        = variable
+      self.xtitle          = kwargs.get('xtitle',    variable.title     )
+      self.xmin            = kwargs.get('xmin',      variable.xmin      )
+      self.xmax            = kwargs.get('xmax',      variable.xmax      )
+      self.ymin            = kwargs.get('ymin',      variable.ymin      )
+      self.ymax            = kwargs.get('ymax',      variable.ymax      )
+      self.rmin            = kwargs.get('rmin',      variable.rmin      )
+      self.rmax            = kwargs.get('rmax',      variable.rmax      )
+      self.binlabels       = kwargs.get('binlabels', variable.binlabels )
+      self.logx            = kwargs.get('logx',      variable.logx      )
+      self.logy            = kwargs.get('logy',      variable.logy      )
+      self.ymargin         = kwargs.get('ymargin',   variable.ymargin   )
+      self.logyrange       = kwargs.get('logyrange', variable.logyrange )
+      self.position        = kwargs.get('position',  variable.position  )
+      self.latex           = kwargs.get('latex',     False              )
+      self.dividebybinsize = kwargs.get('dividebybinsize', variable.dividebybinsize)
+    else:
+      self.variable        = variable
+      self.xtitle          = kwargs.get('xtitle', self.variable or frame.GetXaxis().GetTitle() )
+      self.xmin            = kwargs.get('xmin', frame.GetXaxis().GetXmin() )
+      self.xmax            = kwargs.get('xmax', frame.GetXaxis().GetXmax() )
+      self.ymin            = kwargs.get('ymin',      None           )
+      self.ymax            = kwargs.get('ymax',      None           )
+      self.rmin            = kwargs.get('rmin',      None           )
+      self.rmax            = kwargs.get('rmax',      None           )
+      self.binlabels       = kwargs.get('binlabels', None           )
+      self.logx            = kwargs.get('logx',      False          )
+      self.logy            = kwargs.get('logy',      False          )
+      self.ymargin         = kwargs.get('ymargin',   None           )
+      self.logyrange       = kwargs.get('logyrange', None           )
+      self.position        = kwargs.get('position',  ""             )
+      self.latex           = kwargs.get('latex',     True           )
+      self.dividebybinsize = kwargs.get('dividebybinsize', frame.GetXaxis().IsVariableBinSize())
+    self.ytitle            = kwargs.get('ytitle',    frame.GetYaxis().GetTitle() )
+    self.name              = kwargs.get('name',      None           ) or (self.hists[0].GetName() if self.hists else "noname")
+    self.title             = kwargs.get('title',     None           )
+    self.errband           = None
+    self.ratio             = kwargs.get('ratio',     False          )
+    self.append            = kwargs.get('append',    ""             )
+    self.norm              = kwargs.get('norm',      False          )
+    self.lcolors           = kwargs.get('lcolors',   _lcolors       )
+    self.fcolors           = kwargs.get('fcolors',   _fcolors       )
+    self.lstyles           = kwargs.get('lstyles',   _lstyles       )
+    self.canvas            = None
+    self.frame             = frame
+    self.legend            = None
+    self.garbage           = [ ]
     
   
   def draw(self,*args,**kwargs):
@@ -149,7 +149,7 @@ class Plot(object):
     logx            = kwargs.get('logx',            self.logx            )
     logy            = kwargs.get('logy',            self.logy            )
     ymargin         = kwargs.get('ymargin',         self.ymargin         ) # margin between hist maximum and plot's top
-    logyrange       = kwargs.get('logyrange',       self.logyrange       )
+    logyrange       = kwargs.get('logyrange',       self.logyrange       ) # log(y) range from hist maximum to ymin
     grid            = kwargs.get('grid',            True                 )
     tsize           = kwargs.get('tsize',           _tsize               ) # text size for axis title
     pair            = kwargs.get('pair',            False                )
@@ -159,14 +159,14 @@ class Plot(object):
     fcolors         = kwargs.get('fcolors',         None                 ) or self.fcolors
     lstyles         = kwargs.get('lstyle',          None                 )
     lstyles         = kwargs.get('lstyles',         lstyles              ) or self.lstyles
-    lwidth          = kwargs.get('lwidth',          2                    )
-    mstyle          = kwargs.get('mstyle',          None                 )
-    option          = kwargs.get('option',          'HIST'               )
-    options         = kwargs.get('options',         [ ]                  )
-    roption         = kwargs.get('roption',         None                 )
-    enderrorsize    = kwargs.get('enderrorsize',    2.0                  )
+    lwidth          = kwargs.get('lwidth',          2                    ) # line width
+    mstyle          = kwargs.get('mstyle',          None                 ) # marker style
+    option          = kwargs.get('option',          'HIST'               ) # draw option for every histogram
+    options         = kwargs.get('options',         [ ]                  ) # draw option list per histogram
+    roption         = kwargs.get('roption',         None                 ) # draw option of ratio plot
+    enderrorsize    = kwargs.get('enderrorsize',    2.0                  ) # size of line at end of error bar
     errorX          = kwargs.get('errorX',          True                 ) # horizontal error bars
-    divideByBinSize = kwargs.get('divideByBinSize', self.divideByBinSize )
+    dividebybinsize = kwargs.get('dividebybinsize', self.dividebybinsize )
     lcolors         = ensurelist(lcolors)
     fcolors         = ensurelist(fcolors)
     lstyles         = ensurelist(lstyles)
@@ -184,7 +184,7 @@ class Plot(object):
       normalize(self.hists)
     
     # DIVIDE BY BINSIZE
-    if divideByBinSize:
+    if dividebybinsize:
       for i, oldhist in enumerate(self.hists):
         newhist = divideBinsByBinSize(oldhist,zero=True,zeroerrs=False)
         if oldhist!=newhist:
@@ -242,7 +242,7 @@ class Plot(object):
     self.setlinestyle(lhists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
     self.setmarkerstyle(*mhists,colors=lcolors)
     
-    # CMS LUMI
+    # CMS STYLE
     if CMSStyle.lumiText:
       #mainpad = self.canvas.GetPad(1 if ratio else 0)
       CMSStyle.setCMSLumiStyle(gPad,0)
@@ -386,9 +386,9 @@ class Plot(object):
     intbins       = kwargs.get('intbins',      True             ) # allow integer binning
     logx          = kwargs.get('logx',         False            )
     logy          = kwargs.get('logy',         False            )
-    ymargin       = kwargs.get('ymargin',      None             ) or (1.3 if logy else 1.2)
-    logyrange     = kwargs.get('logyrange',    None             ) or 3
-    negativeY     = kwargs.get('negativeY',    True             )
+    ymargin       = kwargs.get('ymargin',      None             ) or (1.3 if logy else 1.2) # margin between hist maximum and plot's top
+    logyrange     = kwargs.get('logyrange',    None             ) or 3 # log(y) range from hist maximum to ymin
+    negativey     = kwargs.get('negativey',    True             ) # allow negative y values
     xtitle        = kwargs.get('xtitle',       frame.GetTitle() )
     ytitle        = kwargs.get('ytitle',       ""               )
     grid          = kwargs.get('grid',         False            )
@@ -432,7 +432,8 @@ class Plot(object):
     else:
       for hist in hists:
         ymin1, ymax1 = getTGraphYRange(hist) if isinstance(hist,TGraph) else hist.GetMinimum(), hist.GetMaximum()
-        if negativeY: hmins.append(ymin1)
+        if negativey:
+          hmins.append(ymin1)
         hmaxs.append(ymax1)
       if ymin==None:
         ymin = min(hmins)*(1.1 if ymin>0 else 0.9)
@@ -545,18 +546,19 @@ class Plot(object):
     position    = kwargs.get('pos',         None           )
     position    = kwargs.get('position',    position       ) or self.position
     option      = kwargs.get('option',      ''             )
+    border      = kwargs.get('border',      False          )
     transparent = kwargs.get('transparent', True           )
-    x1          = kwargs.get('x1',          0              )
-    x2          = kwargs.get('x2',          0              )
-    y1          = kwargs.get('y1',          0              )
-    y2          = kwargs.get('y2',          0              )
-    width       = kwargs.get('width',       -1             )
-    height      = kwargs.get('height',      -1             )
+    #x1          = kwargs.get('x1',          None           )
+    #x2          = kwargs.get('x2',          None           )
+    #y1          = kwargs.get('y1',          None           )
+    #y2          = kwargs.get('y2',          None           )
+    width       = kwargs.get('width',       -1             ) # legend width
+    height      = kwargs.get('height',      -1             ) # legend height
     tsize       = kwargs.get('tsize',       _lsize         )*scale
-    twidth      = kwargs.get('twidth',      1.0            )
-    texts       = kwargs.get('text',        [ ]            )
-    ncols       = kwargs.get('ncols',       1              )
-    colsep      = kwargs.get('colsep',      0.06           )
+    twidth      = kwargs.get('twidth',      1.0            ) # scalefactor for legend width
+    texts       = kwargs.get('text',        [ ]            ) # extra text below legend
+    ncols       = kwargs.get('ncols',       1              ) # number of legend columns
+    colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
     bold        = kwargs.get('bold',        True           )
     texts       = ensurelist(texts,nonzero=True)
     entries     = ensurelist(entries,nonzero=False)
@@ -657,7 +659,7 @@ class Plot(object):
     # STYLE
     if transparent: legend.SetFillStyle(0) # 0 = transparent
     else: legend.SetFillColor(0)
-    legend.SetBorderSize(0)
+    legend.SetBorderSize(border)
     legend.SetTextSize(tsize)
     legend.SetTextFont(headerfont) # bold for title
     if ncols>1:

@@ -51,7 +51,7 @@ class Ratio(object):
       if isinstance(histnum,TH1) or isinstance(histnum,THStack):
         ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero)
       elif isinstance(histnum,TGraph):
-        LOG.warning("Ratio.init: TGraph not validated!")
+        LOG.warning("Ratio.init: TGraph ratio not validated! Please check verbose output...")
         ratio = getgraphratio(histnum,histden,tag=tag,drawzero=self.drawzero)
       #elif isinstance(hist,TProfile):
       #  histtemp = hist.ProjectionX(hist.GetName()+"_projx",'E')

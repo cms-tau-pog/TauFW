@@ -6,7 +6,9 @@ from math import sqrt, pow, log
 from array import array
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
+from TauFW.common.tools.utils import isnumber, islist, ensurelist
 from TauFW.Plotter.plot.strings import *
+from TauFW.Plotter.plot.Context import getcontext
 from TauFW.Plotter.plot.utils import LOG
 
 
@@ -24,7 +26,7 @@ class Variable(object):
   def __init__(self, name, *args, **kwargs):
     strings              = [a for a in args if isinstance(a,str) ]
     self.name            = name
-    self.name0           = name # back up for addoverflowToLastBinInName
+    self.name_           = name # back up for addoverflow
     self.title           = strings[0] if strings else self.name
     self.filename        = makefilename(self.name.replace('/',"_"))
     self.title           = kwargs.get('title',           self.title    ) # for plot axes
@@ -39,55 +41,52 @@ class Variable(object):
     self.bins            = None
     self.cut             = kwargs.get('cut',             ""            )
     self.weight          = kwargs.get('weight',          ""            )
-    self.weight_data     = kwargs.get('weight_data',     ""            )
+    self.weightdata      = kwargs.get('weightdata',      ""            )
     self.setbins(*args)
-    self.dividebybinsize = kwargs.get('dividebybinsize', self.hasvariablebinning() )
+    self.dividebybinsize = kwargs.get('dividebybinsize', self.hasvariablebins() )
     self.data            = kwargs.get('data',            True          ) # also draw data
     self.flag            = kwargs.get('flag',            ""            ) # flag, e.g. 'up', 'down', ...
-    self.binlabels       = kwargs.get('labels',          [ ]           )
+    self.binlabels       = kwargs.get('labels',          [ ]           ) # bin labels for x axis
     self.ymin            = kwargs.get('ymin',            None          )
     self.ymax            = kwargs.get('ymax',            None          )
     self.rmin            = kwargs.get('rmin',            None          )
     self.rmax            = kwargs.get('rmax',            None          )
     self.logx            = kwargs.get('logx',            False         )
     self.logy            = kwargs.get('logy',            False         )
-    self.ymargin         = kwargs.get('ymargin',         1.80 if self.logy else 1.16 )
-    self.logyrange       = kwargs.get('logyrange',       None          )
+    self.ymargin         = kwargs.get('ymargin',         None          ) # margin between hist maximum and plot's top
+    self.logyrange       = kwargs.get('logyrange',       None          ) # log(y) range from hist maximum to ymin
     self.position        = kwargs.get('position',        ""            ) # legend position
-    self.ncolumns        = kwargs.get('ncolumns',        1             ) # legend position
+    self.ncols           = kwargs.get('ncols',           1             ) # number of legend columns
     #self.plot            = kwargs.get('plots',           True          )
-    self.only            = kwargs.get('only',            [ ]           )
-    self.veto            = kwargs.get('veto',            [ ]           )
-    self.blindcuts       = kwargs.get('blind',           ""            )
-    self.addoverflow     = kwargs.get('addoverflow',     False         ) # add overflow to last bin
-    if self.ymargin<1:
-      self.ymargin += 1.
+    self.only            = kwargs.get('only',            [ ]           ) # only plot for these patterns
+    self.veto            = kwargs.get('veto',            [ ]           ) # do not plot for these patterns
+    self.blindcuts       = kwargs.get('blind',           ""            ) # string for blind cuts
+    self.addoverflow_    = kwargs.get('addoverflow',     False         ) # add overflow to last bin
     if self.latex:
-      self.title = makeLatex(self.title,units=self.units)
+      self.title = makelatex(self.title,units=self.units)
       if 'ctitle' in kwargs:
         for ckey, title in kwargs['ctitle'].iteritems():
-          kwargs['ctitle'][ckey] = makeLatex(title)
+          kwargs['ctitle'][ckey] = makelatex(title)
     if self.only:
-      if not isList(self.only): self.only = [ self.only ]
+      self.only = ensurelist(self.only)
     if self.veto:
-      if not isList(self.veto): self.veto = [ self.veto ]
+      self.veto = ensurelist(self.veto)
     if self.binlabels and len(self.binlabels)<self.nbins:
       LOG.warning("Variable.init: len(binlabels)=%d < %d=nbins"%(len(self.binlabels),self.nbins))
-    if self.addoverflowToLastBin:
-      self.addoverflowToLastBinInName()
-    self.contexttitle    = getcontextFromDict(kwargs, None,           key='ctitle'                ) # context-dependent title
-    self.contextbinning  = getcontextFromDict(kwargs, args,           key='cbinning',  regex=True ) # context-dependent binning
-    self.contextposition = getcontextFromDict(kwargs, self.position,  key='cposition', regex=True ) # context-dependent position
-    self.contextblind    = getcontextFromDict(kwargs, self.blindcuts, key='cblind',    regex=True ) # context-dependent blind limits
-    self.contextymargin  = getcontextFromDict(kwargs, self.ymargin,   key='cymargin',  regex=True ) # context-dependent ymargin
-    self.contextcut      = getcontextFromDict(kwargs, self.cut,       key='ccut',      regex=True ) # context-dependent cuts
-    self.contextweight   = getcontextFromDict(kwargs, self.weight,    key='cweight',   regex=True ) # context-dependent cuts
-  
-  @property
-  def var(self): return self.name
-  @var.setter
-  def var(self,value): self.name = value
+    if self.addoverflow_:
+      self.addoverflow()
+    if islist(self.blindcuts):
+      LOG.insist(len(self.blindcuts)==2,"Variable.init: blind cuts must be a string, or a pair of floats! Got: %s"%(self.blindcuts,))
+      self.blindcuts = self.blind(*self.blindcuts)
+    self.ctxtitle    = getcontext(kwargs, self.title,     key='ctitle',    regex=True ) # context-dependent title
+    self.ctxbins     = getcontext(kwargs, args,           key='cbins',     regex=True ) # context-dependent binning
+    self.ctxposition = getcontext(kwargs, self.position,  key='cposition', regex=True ) # context-dependent position
+    self.ctxblind    = getcontext(kwargs, self.blindcuts, key='cblind',    regex=True ) # context-dependent blind limits
+    self.ctxymargin  = getcontext(kwargs, self.ymargin,   key='cymargin',  regex=True ) # context-dependent ymargin
+    self.ctxcut      = getcontext(kwargs, self.cut,       key='ccut',      regex=True ) # context-dependent cuts
+    self.ctxweight   = getcontext(kwargs, self.weight,    key='cweight',   regex=True ) # context-dependent cuts
       
+  
   @property
   def xmin(self): return self.min
   @xmin.setter
@@ -134,7 +133,7 @@ class Variable(object):
     """Compare Variable objects."""
     return self.name==ovar.name and self.getbins()==ovar.getbins()
   
-  def printbinning(self,filename=False):
+  def printbins(self,filename=False):
     """Print the variable name with the binning."""
     if filename:
       return '%s(%s,%s,%s)'%(self.filename,self.nbins,self.xmin,self.xmax)
@@ -143,8 +142,8 @@ class Variable(object):
   
   def setbins(self,*args):
     """Set binning: (N,min,max), or bins if it is set"""
-    numbers         = [a for a in args if isNumber(a) ]
-    bins            = [a for a in args if isList(a)   ]
+    numbers         = [a for a in args if isnumber(a) ]
+    bins            = [a for a in args if islist(a)   ]
     if len(numbers)==3:
       self.nbins    = numbers[0]
       self.min      = numbers[1]
@@ -162,18 +161,18 @@ class Variable(object):
   
   def getbins(self,full=False):
     """Get binning: (N,xmin,xmax), or bins if it is set"""
-    if self.hasvariablebinning():
+    if self.hasvariablebins():
       return self.bins
     elif full:
       return [self.min+i*(self.max-self.min)/self.nbins for i in xrange(self.nbins+1)]
     else:
       return (self.nbins,self.min,self.max)
   
-  def hasvariablebinning(self):
+  def hasvariablebins(self):
     """True if bins is set."""
     return self.bins!=None
   
-  def hasintbinning(self):
+  def hasintbins(self):
     """True if binning is integer."""
     width = (self.max-self.min)/self.nbins
     return self.bins==None and int(self.min)==self.min and int(self.max)==self.max and width==1
@@ -204,40 +203,41 @@ class Variable(object):
   
   def changecontext(self,*args,**kwargs):
     """Change the contextual title, binning or position for a set of arguments, if it is available"""
-    if self.contexttitle:
-      title = self.contexttitle.getcontext(*args)
+    if self.ctxtitle:
+      title = self.ctxtitle.getcontext(*args)
       if title!=None:
         self.title = title
-    if self.contextbinning:
-      binning = self.contextbinning.getcontext(*args)
-      if isinstance(binning,list):
-        binning = (binning,)
-      if binning!=None:
-        self.setbins(*binning)
-      if self.addoverflowToLastBin:
-        self.addoverflowToLastBinInName() # in case the last bin changed
-      self.dividebybinsize = kwargs.get('dividebybinsize',self.hasvariablebinning())
-    if self.contextposition:
-      position = self.contextposition.getcontext(*args)
+    if self.ctxbins:
+      bins = self.ctxbins.getcontext(*args)
+      if isinstance(bins,list):
+        bins = (bins,)
+      if bins!=None:
+        self.setbins(*bins)
+      if self.addoverflow_:
+        self.addoverflow() # in case the last bin changed
+      self.dividebybinsize = kwargs.get('dividebybinsize',self.hasvariablebins())
+    if self.ctxposition:
+      position = self.ctxposition.getcontext(*args)
       if position!=None:
         self.position = position
-    if self.contextymargin:
-      ymargin = self.contextymargin.getcontext(*args)
+    if self.ctxymargin:
+      ymargin = self.ctxymargin.getcontext(*args)
       if ymargin!=None:
         self.ymargin = ymargin
-    if self.contextcut:
-      cut = self.contextcut.getcontext(*args)
+    if self.ctxcut:
+      cut = self.ctxcut.getcontext(*args)
       if cut!=None:
         self.cut = cut
-    if self.contextweight:
-      weight = self.contextweight.getcontext(*args)
+    if self.ctxweight:
+      weight = self.ctxweight.getcontext(*args)
       if weight!=None:
         self.weight = weight
   
   def plotfor(self,*strings,**kwargs):
     """Check is selection is vetoed for this variable."""
-    verbosity = LOG.getverbosity(kwargs)
+    verbosity = LOG.getverbosity(self,kwargs)
     strings   = list(strings)
+    LOG.verbose('Variable.plotfor: strings=%s, veto=%s, only=%s'%(strings,self.veto,self.only),verbosity,level=2)
     for i, string in enumerate(strings):
       if string.__class__.__name__=='Selection':
         string     = string.selection
@@ -269,15 +269,15 @@ class Variable(object):
     name = name.replace('(','').replace(')','').replace('[','').replace(']','').replace(',','-').replace('.','p')
     return name, title
   
-  def createTH1(self,name=None,title=None,**kwargs):
+  def gethist(self,name=None,title=None,**kwargs):
     """Create a 1D histogram."""
     tag     = kwargs.get('tag',     ""          )
     poisson = kwargs.get('poisson', False       )
     sumw2   = kwargs.get('sumw2',   not poisson )
     xtitle  = kwargs.get('xtitle',  self.title  )
-    #TH1Class = TH1D # TH1I if self.hasintbinning() else TH1D
+    #TH1Class = TH1D # TH1I if self.hasintbins() else TH1D
     name, title = self.getnametitle(name,title,tag)
-    if self.hasvariablebinning():
+    if self.hasvariablebins():
       hist = TH1D(name,title,self.nbins,array('d',list(self.bins)))
     else:
       hist = TH1D(name,title,self.nbins,self.min,self.max)
@@ -289,16 +289,16 @@ class Variable(object):
     #hist.SetDirectory(0)
     return hist
   
-  def createTH2(self,yvariable,name=None,title=None,**kwargs):
+  def gethist2D(self,yvariable,name=None,title=None,**kwargs):
     """Create a 2D histogram."""
     tag     = kwargs.get('tag',     ""          )
     poisson = kwargs.get('poisson', False       )
     sumw2   = kwargs.get('sumw2',   not poisson )
     xtitle  = kwargs.get('xtitle',  self.title  )
     name, title = self.getnametitle(name,title,tag)
-    if self.hasvariablebinning() and yvariable.hasvariablebinning():
+    if self.hasvariablebins() and yvariable.hasvariablebins():
       hist = TH2D(name,title,self.nbins,array('d',list(self.bins)),yvariable.nbins,array('d',list(yvariable.bins)))
-    elif self.hasvariablebinning():
+    elif self.hasvariablebins():
       hist = TH2D(name,title,self.nbins,array('d',list(self.bins)),yvariable.nbins,yvariable.min,yvariable.max)
     else:
       hist = TH2D(name,title,self.nbins,self.min,self.max,yvariable.nbins,yvariable.min,yvariable.max)
@@ -309,7 +309,7 @@ class Variable(object):
     hist.GetXaxis().SetTitle(xtitle)
     return hist
   
-  def drawcommand(self,name=None,tag="",bins=False):
+  def drawcmd(self,name=None,tag="",bins=False):
     """Create variable expression for the Tree.Draw method."""
     histname, title = self.getnametitle(name,None,tag)
     if bins:
@@ -318,38 +318,42 @@ class Variable(object):
       cmd = "%s >> %s"%(self.name,histname)
     return cmd
   
-  def drawcommand2D(self,yvariable,name=None,tag="",bins=False):
+  def drawcmd2D(self,yvar,name=None,tag="",bins=False):
     """Create variable expression for the Tree.Draw method."""
     histname, title = self.getnametitle(name,None,tag)
     if bins:
-      cmd = "%s:%s >> %s(%d,%s,%s,%d,%s,%s)"%(yvariable.name,self.name,histname,self.nbins,self.min,self.max,yvariable.nbins,yvariable.min,yvariable.max)
+      cmd = "%s:%s >> %s(%d,%s,%s,%d,%s,%s)"%(yvar.name,self.name,histname,self.nbins,self.min,self.max,yvar.nbins,yvar.min,yvar.max)
     else:
-      cmd = "%s:%s >> %s"%(yvariable.name,self.name,histname)
+      cmd = "%s:%s >> %s"%(yvar.name,self.name,histname)
     return cmd
   
   def shift(self,jshift,**kwargs):
     """Create new variable with a shift tag added to its name."""
     if len(jshift)>0 and jshift[0]!='_':
       jshift = '_'+jshift
-    newname               = shift(self.name,jshift,**kwargs)
-    newvariable           = deepcopy(self)
-    newvariable.name      = newname
-    if not kwargs.get('keepFilename',False) and self.name != newname:
-      newvariable.filename += jshift
+    newname     = shift(self.name,jshift,**kwargs)
+    newvar      = deepcopy(self)
+    newvar.name = newname
+    if not kwargs.get('keepfile',False) and self.name!=newname:
+      newvar.filename += jshift
     return newvariable
   
   def shiftname(self,jshift,**kwargs):
     return shift(self.name,jshift,**kwargs)
   
-  def blind(self,bmin,bmax):
+  def blind(self,bmin=None,bmax=None,**kwargs):
     """Return selection string that blinds some window (bmin,bmax),
-    making sure the cuts match the bin edges of some (N,xmin,xmax) binning."""
+    making sure the cuts match the bin edges of some (nbins,xmin,xmax) binning."""
+    verbosity = LOG.getverbosity(self,kwargs)
+    if bmin==None:
+      bmin = self.blindcuts[0]
+    if bmax<bmin:
+      bmax, bmin = bmin, bmax
+    LOG.insist(bmax>bmin,'Variable.blind: "%s" has window a = %s <= %s = b !'%(self.name_,bmin,bmax))
     blindcut = ""
-    if bmax<=bmin:
-     LOG.ERROR('Variable.blind: "%s" has window a = %s <= %s = b !'%(self.name0,bmin,bmax))
     xlow, xhigh = bmin, bmax
     nbins, xmin, xmax = self.nbins, self.min, self.max
-    if self.hasvariablebinning():
+    if self.hasvariablebins():
       bins = self.bins
       for xval in bins:
         if xval>bmin: break
@@ -368,21 +372,20 @@ class Variable(object):
           bin   += 1
         xhigh    = bin*binwidth
     blindcut = "(%s<%s || %s<%s)"%(self.name,xlow,xhigh,self.name)
-    LOG.verbose('Variable.blind: blindcut = "%s" for a (%s,%s) window and (%s,%s,%s) binning'%(blindcut,bmin,bmax,nbins,xmin,xmax),verbosity,level=2) 
+    LOG.verb('Variable.blind: blindcut = "%s" for a (%s,%s) window and (%s,%s,%s) binning'%(blindcut,bmin,bmax,nbins,xmin,xmax),verbosity,2) 
     return blindcut
   
   def addoverflow(self,**kwargs):
     """Modify variable name in order to add the overflow to the last bin."""
-    verbose = kwargs.get('verbose', False)
-    if self.hasvariablebinning():
+    verbosity = LOG.getverbosity(self,kwargs)
+    if self.hasvariablebins():
       width     = self.bins[-1]-self.bins[-2]
       threshold = self.bins[-2] + 0.90*width
     else:
       width     = (self.max-self.min)/float(self.nbins)
       threshold = self.max - 0.90*width
-    self.name   = "min(%s,%s)"%(self.name0,threshold)
-    if verbose:
-      print "Variable.addoverflow: '%s' -> '%s' for binning '%s'"%(self.name0,self.name,self.getbins())
+    self.name   = "min(%s,%s)"%(self.name_,threshold)
+    LOG.verb("Variable.addoverflow: '%s' -> '%s' for binning '%s'"%(self.name_,self.name,self.getbins()),verbosity,2)
     return self.name
  
 var = Variable # short name
@@ -398,13 +401,13 @@ def wrapvariable(*args,**kwargs):
   return None
   
 
-def unwrapvariablebinning(*args,**kwargs):
+def unwrapvariablebins(*args,**kwargs):
   """Help function to unwrap variable arguments to return variable name, number of bins,
   minumum and maximum x axis value."""
   if len(args)==4:
     return args # (var,nbins,xmin,xmax)
   elif len(args)==1 and isintance(args[0],Variable):
     return args[0].unwrap()
-  LOG.warning('unwrapvariablebinning: Could not unwrap arguments "%s" to a Variable object. Returning None.'%args)
+  LOG.warning('unwrapvariablebins: Could not unwrap arguments "%s" to a Variable object. Returning None.'%args)
   return None
   
