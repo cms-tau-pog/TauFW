@@ -75,7 +75,7 @@ hist = var.gethist()
 ```
 and `Variable.drawcmd` can parse a draw command for [`TTree::Draw`](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45):
 ```
-var  = Variable('pt_1',40,0,200),
+var  = Variable('pt_1',40,0,200)
 hist = var.gethist('hist') # returns a TH1D
 dcmd = var.drawcmd('hist') # returns a string, e.g. "pt_1 >> hist"
 tree.Draw(dcmd)            # loops over tree events and fills the histogram 'hist'

@@ -12,6 +12,9 @@ LOG.verbosity = 1
 def main():
   
   mvisbins  = [0,30,40,50,60,70,75,80,90,100,120,200]
+  
+  # Test several initializations of Variable object.
+  # Note that key-word arguments starting with 'c' are used for context-dependent attributes
   variables = [
     Variable('m_vis',     "m_{vis} [GeV]", 40, 0,200),
     Variable('njets',     "Number of jets", 8, 0,  8),
@@ -42,7 +45,7 @@ def main():
     print ">>> hist=%s, (nbins,xmin,xmax)=(%s,%s,%s), variable=%s"%(
                hist,hist.GetXaxis().GetNbins(),hist.GetXaxis().GetXmin(),hist.GetXaxis().GetXmax(),hist.GetXaxis().IsVariableBinSize())
     gDirectory.Delete(hist.GetName())
-    for sel in selections:
+    for sel in selections: # context-dependent attributes
       var.changecontext(sel)
       print ">>> context: '%s'"%color(sel,'grey')
       print ">>>   plotfor=%s, name='%s', title='%s'"%(var.plotfor(sel),color(var.name),color(var.title))

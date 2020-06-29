@@ -234,7 +234,7 @@ class Variable(object):
         self.weight = weight
   
   def plotfor(self,*strings,**kwargs):
-    """Check is selection is vetoed for this variable."""
+    """Check if given string is filtered (with 'only') or vetoed (with 'veto') for this variable."""
     verbosity = LOG.getverbosity(self,kwargs)
     strings   = list(strings)
     LOG.verbose('Variable.plotfor: strings=%s, veto=%s, only=%s'%(strings,self.veto,self.only),verbosity,level=2)
