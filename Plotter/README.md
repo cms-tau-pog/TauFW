@@ -2,8 +2,8 @@
 
 #### Table of Contents  
 * [Installation](#Installation)<br>
-* [Basic plots](#Basic_plots)<br>
-* [CMS style](#CMS_style)<br>
+* [Basic plots](#Basic-plots)<br>
+* [CMS style](#CMS-style)<br>
 * [Variable](#Variable)<br>
 
 ## Installation
@@ -33,6 +33,7 @@ plot = Stack("p_{T}",datahist,exphists)
 plot.plot(ratio=True)
 plot.setlegend()
 plot.saveas("stack.png")
+plot.saveas("stack.pdf")
 plots.close
 ```
 More examples of usage are provided in [`test/`](test/), run as
@@ -72,7 +73,7 @@ For example, `Variable.gethist` can create a histogram for you:
 ```
 hist = var.gethist()
 ```
-and `Variable.drawcmd` can parse a [draw command](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45):
+and `Variable.drawcmd` can parse a draw command for [`TTree::Draw`](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45):
 ```
 var  = Variable('pt_1',40,0,200),
 hist = var.gethist('hist') # returns a TH1D
@@ -84,3 +85,4 @@ It can also be used to initialize a `Plot` or `Stack` object, e.g.
 var  = Variable('pt_1',40,0,200,logy=True,ymargin=1.4),
 plot = Plot(var,hists)
 ```
+Examples are provided in [`test/testVariables.py`](test/testVariables.py).
