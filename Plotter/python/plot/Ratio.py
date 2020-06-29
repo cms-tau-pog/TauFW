@@ -3,8 +3,7 @@
 import os, re
 from TauFW.Plotter.plot.utils import *
 import ROOT
-from ROOT import gDirectory, gPad, gStyle, TH1, TH1D, THStack, TProfile,\
-                 TGraph, TGraphAsymmErrors, TLine
+from ROOT import gPad, TH1, THStack, TProfile, TGraph, TGraphAsymmErrors, TLine
 
 
 class Ratio(object):
@@ -14,7 +13,7 @@ class Ratio(object):
     """Make a ratio of two histograms bin by bin. Second hist may be a stack, to do data / MC stack."""
     verbosity      = LOG.getverbosity(kwargs)
     self.ratios    = [ ]
-    self.error     = None
+    self.errband   = None
     self.title     = kwargs.get('title',       "ratio"     )
     self.line      = kwargs.get('line',        True        )
     self.drawzero  = kwargs.get('drawzero',    True        ) # draw ratio of two zero bins as 1
@@ -23,7 +22,6 @@ class Ratio(object):
     option         = kwargs.get('option',      ""          )
     denom          = kwargs.get('denom',       None        )
     histnums       = unwraplistargs(histnums)
-    errorX         = 0 if gStyle.GetErrorX()==0 else 1
     
     # SETUP NUMERATOR/DENOMINATOR
     if len(histnums)==0:
@@ -45,16 +43,16 @@ class Ratio(object):
     #  copystyle(histtemp,histden)
     #  histden = histtemp
     #  self.garbage.append(histtemp)
-    if verbosity>=2:
-      print ">>> Ratio.__init__: denom=%s, histden=%s, histnums=%s, errband=%s"%(denom,histden,histnums,errband)
+    LOG.verb("Ratio.init: denom=%s, histden=%s, histnums=%s, errband=%s"%(denom,histden,histnums,errband),verbosity,2)
     
     # MAKE RATIOS
     for i, histnum in enumerate(histnums):
       tag = str(i)
       if isinstance(histnum,TH1) or isinstance(histnum,THStack):
         ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero)
-      #elif isinstance(hist,TGraph):
-      #  LOG.warning("Ratio.init: TGraph not tested")
+      elif isinstance(histnum,TGraph):
+        LOG.warning("Ratio.init: TGraph not validated!")
+        ratio = getgraphratio(histnum,histden,tag=tag,drawzero=self.drawzero)
       #elif isinstance(hist,TProfile):
       #  histtemp = hist.ProjectionX(hist.GetName()+"_projx",'E')
       #  copystyle(histtemp,hist)
@@ -74,10 +72,11 @@ class Ratio(object):
     
     # MAKE ERROR BAND RATIO
     if isinstance(errband,TGraphAsymmErrors):
-      errband = getgraphratio(errband,histden)
+      self.errband = getgraphratio(errband,histden)
+      copystyle(self.errband,errband)
+      #seterrorbandstyle(self.errband,style='hatched',color=errband.GetFillColor())
     
     self.histden = histden
-    self.errband = errband
     self.frame   = self.histden.Clone("frame_ratio_%s"%(self.histden.GetName()))
     self.frame.Reset() # make empty
     self.frame.SetLineColor(0)
@@ -85,11 +84,10 @@ class Ratio(object):
     self.frame.SetMarkerSize(0)
     
   
-  def Draw(self, *args, **kwargs):
+  def draw(self, option=None, **kwargs):
     """Draw all objects."""
-    
+    verbosity   = LOG.getverbosity(kwargs,self)
     ratios      = self.ratios
-    option      = args[0] if len(args)>0 else 'PEZ0'
     xmin        = kwargs.get('xmin',    self.frame.GetXaxis().GetXmin() )
     xmax        = kwargs.get('xmax',    self.frame.GetXaxis().GetXmax() )
     ymin        = kwargs.get('ymin',    0.5     )
@@ -116,7 +114,6 @@ class Ratio(object):
     frame.Draw('HIST') # 'AXIS' breaks grid
     
     if self.errband:
-      seterrorbandstyle(self.errband,style='hatched')
       self.errband.Draw('2 SAME')
     
     if self.line:
@@ -131,15 +128,17 @@ class Ratio(object):
         self.line.SetLineStyle(1)
       self.line.Draw('SAME') # only draw line if a histogram has been drawn!
     
-    for i, ratio in enumerate(self.ratios):
+    for ratio in self.ratios:
       ratio.SetMaximum(ymax*1e10)
-      if (ratio.GetLineWidth()==0 or 'E' in ratio.GetOption()) and ratio.GetMarkerSize()>0:
-        if 'E' in ratio.GetOption():
-          ratio.Draw(ratio.GetOption()+'SAME')
-        else:
-          ratio.Draw('E SAME')
+      if option:
+        roption = option
+      elif (ratio.GetLineWidth()==0 or 'E' in ratio.GetOption()) and ratio.GetMarkerSize()>0:
+        roption = ratio.GetOption() if 'E' in ratio.GetOption() else 'E'
       else:
-        ratio.Draw(option+'SAME')
+        roption = 'HIST' if isinstance(ratio,TH1) else 'PEZ0'
+      roption += 'SAME'
+      ratio.Draw(roption)
+      LOG.verb("Ratio.draw: ratio=%s, roption=%r"%(ratio,roption),verbosity,2)
     
     return frame
     

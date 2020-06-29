@@ -37,7 +37,8 @@ class Stack(Plot):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
     # https://root.cern.ch/doc/master/classTHStack.html
     # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
-    vartitle        = args[0] if args else self.xtitle or ""
+    verbosity       = LOG.getverbosity(self,kwargs)
+    xtitle          = (args[0] if args else self.xtitle) or ""
     ratio           = kwargs.get('ratio',           self.ratio           ) # make ratio plot
     square          = kwargs.get('square',          False                ) # square canvas
     lmargin         = kwargs.get('lmargin',         1.                   ) # canvas left margin
@@ -45,12 +46,12 @@ class Stack(Plot):
     tmargin         = kwargs.get('tmargin',         1.                   ) # canvas bottom margin
     bmargin         = kwargs.get('bmargin',         1.                   ) # canvas top margin
     errbars         = kwargs.get('errbars',         False                ) # add error bars to histogram
-    staterror       = kwargs.get('staterror',       True                 ) # create stat. error band
+    staterr         = kwargs.get('staterr',         True                 ) # create stat. error band
     sysvars         = kwargs.get('sysvars',         [ ]                  ) # create sys. error band from variations
     errtitle        = kwargs.get('errtitle',        None                 ) # title for error band
     norm            = kwargs.get('norm',            self.norm            ) # normalize all histograms
     title           = kwargs.get('title',           self.title           ) # title for legend
-    xtitle          = kwargs.get('xtitle',          vartitle             )
+    xtitle          = kwargs.get('xtitle',          xtitle               )
     ytitle          = "A.U." if norm else "Events"
     ytitle          = kwargs.get('ytitle',          self.ytitle          ) or ytitle
     rtitle          = kwargs.get('rtitle',          "Obs. / Exp."        )
@@ -80,9 +81,9 @@ class Stack(Plot):
     lstyles         = kwargs.get('lstyles',         lstyles              ) or self.lstyles
     lwidth          = kwargs.get('lwidth',          2                    )
     mstyle          = kwargs.get('mstyle',          None                 )
-    roption         = kwargs.get('roption',         'PEZ0'               )
     option          = kwargs.get('option',          'HIST'               )
     options         = kwargs.get('options',         [ ]                  )
+    roption         = kwargs.get('roption',         None                 )
     enderrorsize    = kwargs.get('enderrorsize',    2.0                  )
     errorX          = kwargs.get('errorX',          False                ) # no horizontal error bars for CMS style
     divideByBinSize = kwargs.get('divideByBinSize', self.divideByBinSize )
@@ -94,30 +95,28 @@ class Stack(Plot):
     self.lcolors    = lcolors
     self.fcolors    = fcolors
     self.lstyles    = lstyles
-    if errbars: option = 'E0 '+option
     hists           = self.hists
     
     # DIVIDE BY BINSIZE
     if divideByBinSize:
-      for hlist in [self.exphists,self.sighists]:
-        for i, oldhist in enumerate(self.hists):
-          newhist = divideBinsByBinSize(hist,zero=True,zeroErrors=False)
-          if hist!=newhist:
+      datahists = [self.datahist]
+      for hlist in [datahists,self.exphists,self.sighists]:
+        for i, oldhist in enumerate(hlist):
+          newhist = divideBinsByBinSize(oldhist,zero=True,zeroerrs=False)
+          if oldhist!=newhist:
+            LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
             hlist[i] = newhist
-            self.garbage.append(hist)
-      if self.datahist:
-        oldhist = self.datahist
-        newhist = divideBinsByBinSize(self.datahist,zero=True,zeroErrors=False)
-        if oldhist!=newhist:
-          self.datahist = newhist
-          self.garbage.append(oldhist)
+            if oldhist in self.hists:
+              self.hists[self.hists.index(oldhist)] = newhist
+            self.garbage.append(oldhist)
+      self.datahist = datahists[0]
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
-      #    divideBinsByBinSize(histup,  zero=True,zeroErrors=False)
-      #    divideBinsByBinSize(histdown,zero=True,zeroErrors=False)
+      #    divideBinsByBinSize(histup,  zero=True,zeroerrs=False)
+      #    divideBinsByBinSize(histdown,zero=True,zeroerrs=False)
       #    if hist not in self.hists:
-      #      divideBinsByBinSize(hist,zero=True,zeroErrors=False)
+      #      divideBinsByBinSize(hist,zero=True,zeroerrs=False)
     
     # DRAW OPTIONS
     if len(options)==0:
@@ -125,7 +124,7 @@ class Stack(Plot):
     else:
       while len(options)<len(hists):
         options.append(options[-1])
-    #if not self.histsD and staterror and errbars:
+    #if not self.histsD and staterr and errbars:
     #  i = denominator-1 if denominator>0 else 0
     #  options[i] = options[i].replace('E0','')
     gStyle.SetEndErrorSize(enderrorsize)
@@ -157,7 +156,7 @@ class Stack(Plot):
         self.datahist.SetOption('E0 SAME') # for legend and ratio
       else:
         self.datahist.Draw('PZE0 SAME')
-        self.datahist.SetOption('PZE0 SAME') # for legend and ratio
+        self.datahist.GetOption = lambda: 'PZE0 SAME' # for legend and ratio
     
     # STYLE
     if stack:
@@ -174,7 +173,7 @@ class Stack(Plot):
       CMSStyle.setCMSLumiStyle(gPad,0)
     
     # ERROR BAND
-    if staterror or sysvars:
+    if staterr or sysvars:
       self.errband = geterrorband(self.exphists,name=makehistname("errband",self.name),title=errtitle,sysvars=sysvars)
       self.errband.Draw('E2 SAME')
     
@@ -186,11 +185,10 @@ class Stack(Plot):
     # RATIO
     if ratio:
       self.canvas.cd(2)
-      roption    = 'HISTE' if errbars else option
       histden    = stack
       histnums   = [self.datahist]+self.sighists
       self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,option=roption)
-      self.ratio.Draw(roption,xmin=xmin,xmax=xmax,data=True)
+      self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
                    ratiorange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
       self.canvas.cd(1)

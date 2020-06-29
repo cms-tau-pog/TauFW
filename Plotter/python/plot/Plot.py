@@ -117,7 +117,8 @@ class Plot(object):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
     # https://root.cern.ch/doc/master/classTHStack.html
     # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
-    vartitle        = args[0] if args else self.xtitle or ""
+    verbosity       = LOG.getverbosity(self,kwargs)
+    xtitle          = (args[0] if args else self.xtitle) or ""
     ratio           = kwargs.get('ratio',           self.ratio           ) # make ratio plot
     square          = kwargs.get('square',          False                ) # square canvas
     lmargin         = kwargs.get('lmargin',         1.                   ) # canvas left margin
@@ -125,12 +126,12 @@ class Plot(object):
     tmargin         = kwargs.get('tmargin',         1.                   ) # canvas bottom margin
     bmargin         = kwargs.get('bmargin',         1.                   ) # canvas top margin
     errbars         = kwargs.get('errbars',         True                 ) # add error bars to histogram
-    staterror       = kwargs.get('staterror',       False                ) # create stat. error band
+    staterr         = kwargs.get('staterr',         False                ) # create stat. error band
     sysvars         = kwargs.get('sysvars',         [ ]                  ) # create sys. error band from variations
     errtitle        = kwargs.get('errtitle',        None                 ) # title for error band
     norm            = kwargs.get('norm',            self.norm            ) # normalize all histograms
     title           = kwargs.get('title',           self.title           ) # title for legend
-    xtitle          = kwargs.get('xtitle',          vartitle             )
+    xtitle          = kwargs.get('xtitle',          xtitle               )
     ytitle          = "A.U." if norm else "Events"
     ytitle          = kwargs.get('ytitle',          self.ytitle          ) or ytitle
     rtitle          = kwargs.get('rtitle',          "Ratio"              )
@@ -160,9 +161,9 @@ class Plot(object):
     lstyles         = kwargs.get('lstyles',         lstyles              ) or self.lstyles
     lwidth          = kwargs.get('lwidth',          2                    )
     mstyle          = kwargs.get('mstyle',          None                 )
-    roption         = kwargs.get('roption',         'PEZ0'               )
     option          = kwargs.get('option',          'HIST'               )
     options         = kwargs.get('options',         [ ]                  )
+    roption         = kwargs.get('roption',         None                 )
     enderrorsize    = kwargs.get('enderrorsize',    2.0                  )
     errorX          = kwargs.get('errorX',          True                 ) # horizontal error bars
     divideByBinSize = kwargs.get('divideByBinSize', self.divideByBinSize )
@@ -172,7 +173,6 @@ class Plot(object):
     self.lcolors    = lcolors
     self.fcolors    = fcolors
     self.lstyles    = lstyles
-    if errbars: option = 'E0 '+option
     if not xmin:  xmin = self.xmin
     if not xmax:  xmax = self.xmax
     hists           = self.hists
@@ -186,25 +186,32 @@ class Plot(object):
     # DIVIDE BY BINSIZE
     if divideByBinSize:
       for i, oldhist in enumerate(self.hists):
-        newhist = divideBinsByBinSize(oldhist,zero=True,zeroErrors=False)
+        newhist = divideBinsByBinSize(oldhist,zero=True,zeroerrs=False)
         if oldhist!=newhist:
+          LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
           self.hists[i] = newhist
           self.garbage.append(oldhist)
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
-      #    divideBinsByBinSize(histup,  zero=True,zeroErrors=False)
-      #    divideBinsByBinSize(histdown,zero=True,zeroErrors=False)
+      #    divideBinsByBinSize(histup,  zero=True,zeroerrs=False)
+      #    divideBinsByBinSize(histdown,zero=True,zeroerrs=False)
       #    if hist not in self.hists:
-      #      divideBinsByBinSize(hist,zero=True,zeroErrors=False)
+      #      divideBinsByBinSize(hist,zero=True,zeroerrs=False)
     
     # DRAW OPTIONS
+    if errbars:
+      option = 'E0 '+option
+      if not roption:
+        roption = 'HISTE'
     if len(options)==0:
       options = [ option ]*len(hists)
+      if staterr:
+        options[0] = 'HIST' # E3'
     else:
       while len(options)<len(hists):
         options.append(options[-1])
-    #if not self.histsD and staterror and errbars:
+    #if not self.histsD and staterr and errbars:
     #  i = denominator-1 if denominator>0 else 0
     #  options[i] = options[i].replace('E0','')
     gStyle.SetEndErrorSize(enderrorsize)
@@ -222,11 +229,10 @@ class Plot(object):
     #self.frame.Draw('AXIS') # 'AXIS' breaks grid
     for i, (hist, option1) in enumerate(zip(hists,options)):
       if triple and i%3==2:
-        hist.Draw('E1 SAME')
-        hist.SetOption('E1')
-      else:
-        hist.Draw(option1+" SAME")
-        hist.SetOption(option1+" SAME")
+        option1 = 'E1'
+      option1 += " SAME"
+      hist.Draw(option1)
+      LOG.verb("Plot.draw: i=%s, hist=%s, option%s"%(i,hist,option1),verbosity,2)
     
     # STYLE
     lhists, mhists = [ ], [ ]
@@ -241,11 +247,12 @@ class Plot(object):
       #mainpad = self.canvas.GetPad(1 if ratio else 0)
       CMSStyle.setCMSLumiStyle(gPad,0)
     
-    ## ERROR BAND
-    #if staterror:
-    #  stathist = self.histsB if stack else self.histsB[denominator-1] if denominator>1 else self.histsB[0] #if not self.histsD
-    #  self.errband = geterrorband(stathist,name=makeHistName("errband",self.name),title=errtitle,sysvars=sysvars)
-    #  self.errband.Draw('E2 SAME')
+    # ERROR BAND
+    if staterr or sysvars:
+      #seterrorbandstyle(hists[0],fill=False)
+      self.errband = geterrorband(self.hists[0],sysvars=sysvars,color=self.hists[0].GetLineColor(),
+                                  name=makehistname("errband",self.name),title=errtitle)
+      self.errband.Draw('E2 SAME')
     
     # AXES
     self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
@@ -255,9 +262,8 @@ class Plot(object):
     # RATIO
     if ratio:
       self.canvas.cd(2)
-      roption = 'HISTE' if errbars else option
       self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,option=roption)
-      self.ratio.Draw(roption,xmin=xmin,xmax=xmax)
+      self.ratio.draw(roption,xmin=xmin,xmax=xmax)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
                    ratiorange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
       self.canvas.cd(1)
@@ -351,7 +357,7 @@ class Plot(object):
   
   def setaxes(self, *args, **kwargs):
     """Make axis."""
-    verbosity = LOG.getverbosity(kwargs)
+    verbosity = LOG.getverbosity(self,kwargs)
     hists     = [ ]
     binning   = [ ]
     for arg in args[:]:
@@ -523,7 +529,7 @@ class Plot(object):
     #if not ratio:
     #  tsize *= 0.80
     #  signaltsize *= 0.80
-    verbosity   = LOG.getverbosity(kwargs)
+    verbosity   = LOG.getverbosity(self,kwargs)
     hists       = self.hists
     scale       = 550./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     errstyle    = 'lep' if gStyle.GetErrorX() else 'ep'
@@ -679,7 +685,7 @@ class Plot(object):
   
   def drawcornertext(self,*texts,**kwargs):
     """Draw TLaTeX text in the corner."""
-    verbosity = LOG.getverbosity(kwargs)
+    verbosity = LOG.getverbosity(self,kwargs)
     scale     = 550./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     position  = kwargs.get('position', 'topleft' ).lower()
     tsize     = kwargs.get('tsize',    _lsize    )*scale
@@ -722,7 +728,7 @@ class Plot(object):
   
   def setlinestyle(self,hists,**kwargs):
     """Set the line style for a list of histograms."""
-    verbosity    = LOG.getverbosity(kwargs)
+    verbosity    = LOG.getverbosity(self,kwargs)
     pair         = kwargs.get('pair',         False  )
     triple       = kwargs.get('triple',       False  )
     colors       = kwargs.get('color',        None   )

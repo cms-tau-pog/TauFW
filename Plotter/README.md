@@ -31,4 +31,8 @@ plot.setlegend()
 plot.saveas("stack.png")
 plots.close
 ```
-More examples of usage are provided in [`test/`](test/).
+More examples of usage are provided in [`test/`](test/), run as
+```
+test/plotHists.py
+test/plotStacks.py
+```
