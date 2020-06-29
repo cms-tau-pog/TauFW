@@ -1,0 +1,249 @@
+# Author: Izaak Neutelings (June 2020)
+# -*- coding: utf-8 -*-
+from TauFW.Plotter.plot.Plot import *
+from TauFW.Plotter.plot.Plot import _tsize
+
+class Stack(Plot):
+  """Class to automatically make CMS plot with data compared to expectation (as a stack)."""
+  
+  def __init__(self, variable, datahist, exphists, sighists=[ ], **kwargs):
+    """
+    Initialize as:
+      plot = Stack(variable,datahist,exphists,sighists)
+    with 
+    - variable: string or Variable object
+    - datahist: single TH1 or TGraph object
+    - exphists: list of TH1s for expected processes
+    - sighists: list of TH1s for signals
+    """
+    self.verbosity = LOG.getverbosity(kwargs)
+    #variable       = None
+    #hists          = None
+    #if len(args)==1 and islist(args[0]):
+    #  hists        = None
+    #elif len(args)==2:
+    #  variable     = args[0]
+    #  hists        = args[1]
+    #else:
+    #  LOG.throw(IOError,"Plot: Wrong input %s"%(args))
+    self.datahist  = datahist
+    self.exphists  = ensurelist(exphists)
+    self.sighists  = ensurelist(sighists)
+    self.hists     = [datahist]+self.exphists+self.sighists
+    super(Stack,self).__init__(variable,self.hists,**kwargs)
+    
+  
+  def draw(self,*args,**kwargs):
+    """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
+    # https://root.cern.ch/doc/master/classTHStack.html
+    # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
+    vartitle        = args[0] if args else self.xtitle or ""
+    ratio           = kwargs.get('ratio',           self.ratio           ) # make ratio plot
+    square          = kwargs.get('square',          False                ) # square canvas
+    lmargin         = kwargs.get('lmargin',         1.                   ) # canvas left margin
+    rmargin         = kwargs.get('rmargin',         1.                   ) # canvas righ margin
+    tmargin         = kwargs.get('tmargin',         1.                   ) # canvas bottom margin
+    bmargin         = kwargs.get('bmargin',         1.                   ) # canvas top margin
+    errbars         = kwargs.get('errbars',         False                ) # add error bars to histogram
+    staterror       = kwargs.get('staterror',       True                 ) # create stat. error band
+    sysvars         = kwargs.get('sysvars',         [ ]                  ) # create sys. error band from variations
+    errtitle        = kwargs.get('errtitle',        None                 ) # title for error band
+    norm            = kwargs.get('norm',            self.norm            ) # normalize all histograms
+    title           = kwargs.get('title',           self.title           ) # title for legend
+    xtitle          = kwargs.get('xtitle',          vartitle             )
+    ytitle          = "A.U." if norm else "Events"
+    ytitle          = kwargs.get('ytitle',          self.ytitle          ) or ytitle
+    rtitle          = kwargs.get('rtitle',          "Obs. / Exp."        )
+    latex           = kwargs.get('latex',           self.latex           )
+    xmin            = kwargs.get('xmin',            self.xmin            )
+    xmax            = kwargs.get('xmax',            self.xmax            )
+    ymin            = kwargs.get('ymin',            self.ymin            )
+    ymax            = kwargs.get('ymax',            self.ymax            )
+    rmin            = kwargs.get('rmin',            self.rmin            ) or 0.45 # ratio ymin
+    rmax            = kwargs.get('rmax',            self.rmax            ) or 1.55 # ratio ymax
+    ratiorange      = kwargs.get('ratiorange',      None                 ) # ratio range around 1.0
+    binlabels       = kwargs.get('binlabels',       self.binlabels       ) # list of alphanumeric bin labels
+    ytitleoffset    = kwargs.get('ytitleoffset',    1.0                  )
+    xtitleoffset    = kwargs.get('xtitleoffset',    1.0                  )
+    logx            = kwargs.get('logx',            self.logx            )
+    logy            = kwargs.get('logy',            self.logy            )
+    ymargin         = kwargs.get('ymargin',         self.ymargin         ) # margin between hist maximum and plot's top
+    logyrange       = kwargs.get('logyrange',       self.logyrange       )
+    grid            = kwargs.get('grid',            False                )
+    tsize           = kwargs.get('tsize',           _tsize               ) # text size for axis title
+    pair            = kwargs.get('pair',            False                )
+    triple          = kwargs.get('triple',          False                )
+    ncols           = kwargs.get('ncols',           1                    ) # number of columns in legend
+    lcolors         = kwargs.get('lcolors',         None                 ) or self.lcolors
+    fcolors         = kwargs.get('fcolors',         None                 ) or self.fcolors
+    lstyles         = kwargs.get('lstyle',          None                 )
+    lstyles         = kwargs.get('lstyles',         lstyles              ) or self.lstyles
+    lwidth          = kwargs.get('lwidth',          2                    )
+    mstyle          = kwargs.get('mstyle',          None                 )
+    roption         = kwargs.get('roption',         'PEZ0'               )
+    option          = kwargs.get('option',          'HIST'               )
+    options         = kwargs.get('options',         [ ]                  )
+    enderrorsize    = kwargs.get('enderrorsize',    2.0                  )
+    errorX          = kwargs.get('errorX',          False                ) # no horizontal error bars for CMS style
+    divideByBinSize = kwargs.get('divideByBinSize', self.divideByBinSize )
+    drawdata        = kwargs.get('drawdata',        True                 ) and bool(self.datahist)
+    drawsignal      = kwargs.get('drawsignal',      True                 ) and bool(self.sighists)
+    lcolors         = ensurelist(lcolors)
+    fcolors         = ensurelist(fcolors)
+    lstyles         = ensurelist(lstyles)
+    self.lcolors    = lcolors
+    self.fcolors    = fcolors
+    self.lstyles    = lstyles
+    if errbars: option = 'E0 '+option
+    hists           = self.hists
+    
+    # DIVIDE BY BINSIZE
+    if divideByBinSize:
+      for hlist in [self.exphists,self.sighists]:
+        for i, oldhist in enumerate(self.hists):
+          newhist = divideBinsByBinSize(hist,zero=True,zeroErrors=False)
+          if hist!=newhist:
+            hlist[i] = newhist
+            self.garbage.append(hist)
+      if self.datahist:
+        oldhist = self.datahist
+        newhist = divideBinsByBinSize(self.datahist,zero=True,zeroErrors=False)
+        if oldhist!=newhist:
+          self.datahist = newhist
+          self.garbage.append(oldhist)
+      #if sysvars:
+      #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
+      #  for (histup,hist,histdown) in histlist:
+      #    divideBinsByBinSize(histup,  zero=True,zeroErrors=False)
+      #    divideBinsByBinSize(histdown,zero=True,zeroErrors=False)
+      #    if hist not in self.hists:
+      #      divideBinsByBinSize(hist,zero=True,zeroErrors=False)
+    
+    # DRAW OPTIONS
+    if len(options)==0:
+      options = [ option ]*len(hists)
+    else:
+      while len(options)<len(hists):
+        options.append(options[-1])
+    #if not self.histsD and staterror and errbars:
+    #  i = denominator-1 if denominator>0 else 0
+    #  options[i] = options[i].replace('E0','')
+    gStyle.SetEndErrorSize(enderrorsize)
+    if errorX:
+      gStyle.SetErrorX(0.5)
+    else:
+      gStyle.SetErrorX(0)
+    
+    # CANVAS
+    self.canvas = self.setcanvas(square=square,ratio=ratio,
+                                 lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
+    
+    # DRAW
+    self.canvas.cd(1)
+    stack = THStack(makehistname('stack',self.name),"") # stack (expected)
+    self.stack = stack
+    self.frame = stack
+    for hist in self.exphists:
+      stack.Add(hist)
+    stack.Draw('HIST')
+    if drawsignal: # signal
+      for hist in self.sighists:
+        hist.Draw(option+" SAME")
+        hist.SetOption(option+" SAME") # for legend and ratio
+    if drawdata: # data
+      self.datahist.SetFillStyle(0)
+      if isinstance(self.datahist,TH1):
+        self.datahist.Draw('E0 SAME')
+        self.datahist.SetOption('E0 SAME') # for legend and ratio
+      else:
+        self.datahist.Draw('PZE0 SAME')
+        self.datahist.SetOption('PZE0 SAME') # for legend and ratio
+    
+    # STYLE
+    if stack:
+      self.setfillstyle(self.exphists)
+      for hist in self.exphists:
+        hist.SetMarkerStyle(1)
+    if drawsignal:
+      self.setlinestyle(self.sighists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
+    if drawdata:
+      self.setmarkerstyle(self.datahist)
+    
+    # CMS LUMI
+    if CMSStyle.lumiText:
+      CMSStyle.setCMSLumiStyle(gPad,0)
+    
+    # ERROR BAND
+    if staterror or sysvars:
+      self.errband = geterrorband(self.exphists,name=makehistname("errband",self.name),title=errtitle,sysvars=sysvars)
+      self.errband.Draw('E2 SAME')
+    
+    # AXES
+    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
+                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,
+                 binlabels=binlabels,ymargin=ymargin,logyrange=logyrange,main=ratio,grid=grid,latex=latex)
+    
+    # RATIO
+    if ratio:
+      self.canvas.cd(2)
+      roption    = 'HISTE' if errbars else option
+      histden    = stack
+      histnums   = [self.datahist]+self.sighists
+      self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,option=roption)
+      self.ratio.Draw(roption,xmin=xmin,xmax=xmax,data=True)
+      self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
+                   ratiorange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
+      self.canvas.cd(1)
+    
+
+#def isListOfHists(args):
+#  """Help function to test if list of arguments is a list of histograms."""
+#  if not islist(args):
+#    return False
+#  for arg in args:
+#    if not (isinstance(arg,TH1) or isinstance(arg,TGraphAsymmErrors)):
+#      return False
+#  return True
+  
+
+# def unwrapHistogramLists(*args):
+#   """Help function to unwrap arguments for initialization of Plot object in order:
+#      1) variable, 2) data, 3), backgrounds, 4) signals."""
+#   args = list(args)
+#   variable = None
+#   varname  = ""
+#   binning  = [ ]
+#   for arg in args[:]:
+#     if isinstance(arg,Variable) and not variable:
+#       variable = arg
+#       args.remove(arg)
+#       break
+#     if isinstance(arg,str):
+#       varname = arg
+#       args.remove(arg)
+#     if isNumber(arg):
+#       args.remove(arg)
+#       binning.append(arg)
+#   if not variable and len(binning)>2:
+#     variable(varname,*binning[:3])
+#   
+#   if isListOfHists(args):
+#       return variable, [ ], args, [ ]
+#   if len(args)==1:
+#     if isListOfHists(args[0]):
+#       return variable, [ ], args[0], [ ]
+#   if len(args)==2:
+#     args0 = args[0]
+#     if isListOfHists(args[0]) and len(args[0])==1:
+#       args0 = args0[0]
+#     if isinstance(args0,TH1) and isListOfHists(args[1]):
+#       return variable, [args0], args[1], [ ]
+#   if len(args)==3:
+#     if args[0]==None: args[0] = [ ]
+#     if isinstance(args[0],TH1) and isListOfHists(args[1]) and isListOfHists(args[2]):
+#       return variable, [args[0]], args[1], args[2]
+#     if isListOfHists(args[0]) and isListOfHists(args[1]) and isListOfHists(args[2]):
+#       return variable, args[0], args[1], args[2]
+#   print error('unwrapHistogramLists: Could not unwrap "%s"'%(args))
+#   exit(1)
+

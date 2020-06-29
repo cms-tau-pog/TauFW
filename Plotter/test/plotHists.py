@@ -8,26 +8,31 @@ from ROOT import TH1D, gRandom
 from TauFW.Plotter.plot.utils import LOG
 LOG.verbosity = 2
 
-def plothist(ratio=False):
+
+def plothist(ratio=False,logy=False):
   
   # SETTING
-  outdir  = ensuredir("plots/")
+  outdir   = ensuredir("plots/")
+  fname    = outdir+"testhist"
   if ratio:
-    fname = outdir+"testhist"
-  else:
-    fname = outdir+"testhist_ratio"
-  nbins   = 50
-  xmin    = 0
-  xmax    = 100
-  nhist   = 2
-  nevts   = 100000
-  rrange  = 0.5
-  xtitle  = "p_{T}^{MET} [GeV]"
-  #xtitle  = "Leading jet p_{T} [GeV]"
-  text    = "#mu#tau_{h}"
-  hists   = [ ]
+    fname += "_ratio"
+  if logy:
+    fname += "_logy"
+  nbins    = 50
+  xmin     = 0
+  xmax     = 100
+  nhist    = 3
+  nevts    = 100000
+  rrange   = 0.5
+  xtitle   = "p_{T}^{MET} [GeV]"
+  #xtitle   = "Leading jet p_{T} [GeV]"
+  text     = "#mu#tau_{h}"
+  grid     = True #and False
+  lstyle   = 1 # solid
+  hists    = [ ]
   
   # HISTS
+  gRandom.SetSeed(1777)
   for i in xrange(1,nhist+1):
     hname = "hist%d"%(i)
     hist  = TH1D(hname,hname,nbins,xmin,xmax)
@@ -37,9 +42,9 @@ def plothist(ratio=False):
   
   # PLOT
   plot = Plot(xtitle,hists)
-  plot.plot(ratio=ratio,ratiorange=rrange)
-  plot.setlegend()
-  plot.setcornertext(text)
+  plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,lstyle=lstyle,grid=grid)
+  plot.drawlegend()
+  plot.drawcornertext(text)
   plot.saveas(fname+".png")
   #plot.saveas(fname+".C")
   #plot.saveas(fname+".png",fname+".C")
@@ -49,8 +54,10 @@ def plothist(ratio=False):
 
 def main():
   CMSStyle.setCMSEra(2018)
-  plothist(ratio=False)
-  plothist(ratio=True)
+  #plothist(ratio=False,logy=False)
+  for ratio in [True,False]:
+    for logy in [True,False]:
+      plothist(ratio=ratio,logy=logy)
   
 
 if __name__ == "__main__":

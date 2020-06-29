@@ -52,15 +52,20 @@ def islist(arg):
 def ensurelist(arg,nonzero=False):
   """Ensure argument is a list, if it is not already a tuple or list."""
   if not islist(arg):
-    arg = [a for a in arg if a] if nonzero else [arg]
+    arg = [ ] if (nonzero and not arg) else [arg]
+  elif nonzero:
+    arg = [a for a in arg if a]
   return arg
   
+  
 
-def unwrapargs(args):
+def unwraplistargs(args):
   """Unwrap arguments from function's *args,
   works as long as expected args are not lists or tuples."""
   if len(args)==1 and islist(args[0]):
     args = args[0]
+  if isinstance(args,tuple): # convert tuple to list
+    args = list(args)
   return args
   
 

@@ -62,6 +62,8 @@ class Logger(object):
     for arg in args:
       if isinstance(arg,dict):
         verbosity = arg.get('verb',0) + arg.get('verbosity',0) + 0
+      elif hasattr(arg,verbosity):
+        verbosity = arg.verbosity
       else:
         verbosity = int(bool(arg) or 0)
       verbs.append(verbosity)
