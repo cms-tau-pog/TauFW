@@ -53,7 +53,7 @@ A [`Variable`](python/plot/Variable.py) class is provided to contain variable na
 title (e.g. `Leading p_{T} [GeV]`) and the binning, for example:
 ```
 variables = [
-  Variable('pt_1',  "m_{vis} [GeV]", 40, 0,200),
+  Variable('pt_1',  "p_{T} [GeV]",   40, 0,200),
   Variable('m_vis', "m_{vis} [GeV]", [0,20,40,50,60,65,70,75,80,85,90,100,120,150]),
   Variable('njets', "Number of jets", 8, 0,  8),
 ]
@@ -61,8 +61,14 @@ variables = [
 A `Variable` object can contain a lot of information, passed as key-word arguments that are
 useful when making plots (e.g. `ymin`, `ymax`, `logx`, `logy`, `ymargin`, ...)
 or selection strings (e.g. `cut`, `blind`, `weight`, ...).
-It also has several handy functions. For example, it can create a histogram for you:
+It also has several handy functions that provide shortcuts for common routines.
+For example, `Variable.gethist` can create a histogram for you:
 ```
 hist = var.gethist()
 ```
-
+and `Variable.drawcmd` can parse a [draw command](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45):
+```
+hist = var.gethist('hist') # returns a TH1D
+dcmd = var.drawcmd('hist') # returns a string, e.g. "pt_1 >> hist"
+tree.Draw(dcmd)            # fills a histogram
+```
