@@ -25,7 +25,8 @@ plots.close
 ```
 
 <p align="center">
-  <img src="../docs/testHists_ratio_logy.png" alt="Gaussians with Plot class" width="420"/>
+  <img src="../docs/testHists.png" alt="Gaussians with Plot class" width="420"/>
+  <img src="../docs/testHists_ratio_logy.png" alt="Gaussians with Plot class and ratio plot" width="420"/>
 </p>
 
 If you want to make a data-MC comparison between a data histogram `datahist` and

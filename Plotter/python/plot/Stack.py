@@ -134,7 +134,7 @@ class Stack(Plot):
     stack = THStack(makehistname('stack',self.name),"") # stack (expected)
     self.stack = stack
     self.frame = stack
-    for hist in self.exphists:
+    for hist in reversed(self.exphists): # stacked bottom to top 
       stack.Add(hist)
     stack.Draw('HIST')
     if drawsignal: # signal

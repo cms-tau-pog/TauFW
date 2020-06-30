@@ -107,19 +107,19 @@ def main():
   mvisbins = [0,30,40,50,55,60,65,70,75,80,85,90,95,100,110,120,140,200,300]
   plotset  = [ # make "pseudo"-MC with random generators, and "pseudo" data
     (('m_vis',"m_{vis} [GeV]",40,0,200), [
-      ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
-      ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus, ( 72, 9)),
+      ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
+      ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
      ]),
     (('m_vis_var',"m_{vis} [GeV]",mvisbins), [ # variable binning
-       ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
-       ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
        ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus, ( 72, 9)),
+       ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
+       ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
      ]),
     (('njets',"Number of jets",8,0,8), [
-      ('TT', "t#bar{t}",                0.2, gRandom.Poisson, (2.5,)),
-      ('QCD', "QCD multiplet",          0.3, gRandom.Poisson, (2.0,)),
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Poisson, (0.2,)),
+      ('QCD', "QCD multiplet",          0.3, gRandom.Poisson, (2.0,)),
+      ('TT', "t#bar{t}",                0.2, gRandom.Poisson, (2.5,)),
      ]),
     #(Variable('m_vis',"m_{vis} [GeV]",40,0,200), [
     #  ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
