@@ -1,6 +1,6 @@
 # TauFW Plotter
 
-#### Table of Contents  
+### Table of Contents  
 * [Installation](#Installation)<br>
 * [Basic plots](#Basic-plots)<br>
 * [CMS style](#CMS-style)<br>
@@ -23,8 +23,10 @@ plot.setlegend()
 plot.saveas("plot.png")
 plots.close
 ```
-<img src="../docs/testHists_ratio_logy.png" alt="Gaussians with Plot class" width="420"/>
 
+<p align="center">
+  <img src="../docs/testHists_ratio_logy.png" alt="Gaussians with Plot class" width="420"/>
+</p>
 
 If you want to make a data-MC comparison between a data histogram `datahist` and
 a list of expected SM processes, `exphists`,
@@ -45,8 +47,8 @@ test/plotHists.py
 test/plotStacks.py
 ```
 
-<p float="middle">
-  <img src="../docs/testStacks_m_vis_ratio.png" alt="Data-MC with Stack class" width="420"/>
+<p align="center">
+  <img src="../docs/testStacks_m_vis_ratio.png" alt="Data-MC with Stack class" width="420" hspace="20"/>
   <img src="../docs/testStacks_njets_ratio_logy.png" alt="Data-MC comparison with Stack class" width="420"/>
 </p>
 

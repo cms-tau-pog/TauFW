@@ -37,8 +37,8 @@ scram b
 ```
 
 ### Fitter and Combine tools
-If you want to use the Combine tools in `Fitter`, install
-[Combine](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation),
+If you want to use the `Combine` tools in `Fitter`, install
+[`Combine`](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation),
 ```
 cd $CMSSW_BASE/src
 git clone https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git HiggsAnalysis/CombinedLimit

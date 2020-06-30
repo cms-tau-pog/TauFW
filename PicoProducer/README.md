@@ -16,7 +16,8 @@ You can link several skimming or analysis codes to _channels_.
 
 <img src="../docs/PicoProducer_workflow.png" alt="TauFW PicoProducer workflow" max-width="800"/>
 
-#### Table of Contents  
+
+### Table of Contents  
 * [Installation](#Installation)<br>
 * [Configuration](#Configuration)<br>
   * [Skimming](#Skimming)

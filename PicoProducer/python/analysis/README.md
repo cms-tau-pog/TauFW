@@ -9,7 +9,7 @@ The analysis modules are run on nanoAOD with the [post-processors](https://githu
 for example with [`picojob.py`](../processors/skimjob.py).
 The output is a custom analysis ntuple, we refer to as the _pico_ format.
 
-#### Table of Contents  
+### Table of Contents  
 * [Run](#Run)<br>
 * [Accessing nanoAOD](#Accessing-nanoAOD)<br>
 * [Custom tree format](#Custom-tree-format)<br>
@@ -148,7 +148,9 @@ More information on data types:
 * In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
 * In `numpy`: https://numpy.org/devdocs/user/basics.types.html
 
-<img src="../../../docs/file_pico_mutau_simple.png" alt="Pico file of ModuleMuTauSimple" width="400"/>
+<p align="center">
+  <img src="../../../docs/file_pico_mutau_simple.png" alt="Pico file of ModuleMuTauSimple" width="700"/>
+</p>
 
 To make your life easier, you can use separate "tree producer" classes.
 For example, [`TreeProducer`](TreeProducer.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
@@ -204,8 +206,9 @@ class ModuleMuTau(ModuleTauPair):
     return True
 ```
 
-
-<img src="../../../docs/cutflow.png" alt="Cutflow (mutau)" width="400"/>
+<p align="center">
+  <img src="../../../docs/cutflow.png" alt="Cutflow (mutau)" width="600"/>
+</p>
 
 ## Tau pair analysis
 A set of full analysis modules for the basic study of events with a pair of tau decay candidates
