@@ -2,15 +2,21 @@
   "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
   "channels": {
     "skim": "skimjob.py", 
-    "gen": "GenDumper", 
-    "mutau": "ModuleMuTauSimple"
+    "mutau": "ModuleMuTau", 
+    "lq": "LQ.ModuleGenLQ", 
+    "etau": "ModuleETau", 
+    "gen": "GenDumper"
   }, 
   "eras": {
-    "2016": "examples/samples_2016.py", 
-    "2017": "examples/samples_2017.py", 
-    "2018": "examples/samples_2018.py"
+    "2016": "samples_2016.py", 
+    "2017": "samples_2017.py", 
+    "2018": "samples_2018.py"
   }, 
-  "batch": "HTCondor", 
+  "batch": "SLURM", 
   "nfilesperjob": 1, 
+  "basedir": "/work/ineuteli/analysis/CMSSW_10_3_3_TauPOG/src/TauFW/PicoProducer", 
+  "outdir": "/work/ineuteli/analysis/CMSSW_10_3_3_TauPOG/src/TauFW/PicoProducer/output/$ERA/$CHANNEL/$SAMPLE", 
+  "nanodir": "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/nano/$ERA/$DAS", 
+  "picodir": "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/analysis/$ERA/$GROUP", 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt"
 }

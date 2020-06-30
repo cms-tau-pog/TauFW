@@ -59,7 +59,7 @@ CMSStyle.setCMSEra(2018)
 ```
 but can be manually set as
 ```
-CMSStyle.setCMSEra(2018,lumi=59.7,cme=13)
+CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary")
 ```
 
 

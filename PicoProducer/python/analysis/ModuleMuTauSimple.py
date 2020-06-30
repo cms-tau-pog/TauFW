@@ -29,17 +29,17 @@ class ModuleMuTauSimple(Module):
     
     # TREE
     self.tree   = TTree('tree','tree')
-    self.pt_1   = np.zeros(1,dtype=float)
-    self.eta_1  = np.zeros(1,dtype=float)
-    self.q_1    = np.zeros(1,dtype=int)
-    self.id_1   = np.zeros(1,dtype=bool)
-    self.iso_1  = np.zeros(1,dtype=float)
-    self.pt_2   = np.zeros(1,dtype=float)
-    self.eta_2  = np.zeros(1,dtype=float)
-    self.q_2    = np.zeros(1,dtype=int)
-    self.id_2   = np.zeros(1,dtype=int)
-    self.iso_2  = np.zeros(1,dtype=float)
-    self.m_vis  = np.zeros(1,dtype=float)
+    self.pt_1   = np.zeros(1,dtype='f')
+    self.eta_1  = np.zeros(1,dtype='f')
+    self.q_1    = np.zeros(1,dtype='i')
+    self.id_1   = np.zeros(1,dtype='?')
+    self.iso_1  = np.zeros(1,dtype='f')
+    self.pt_2   = np.zeros(1,dtype='f')
+    self.eta_2  = np.zeros(1,dtype='f')
+    self.q_2    = np.zeros(1,dtype='i')
+    self.id_2   = np.zeros(1,dtype='i')
+    self.iso_2  = np.zeros(1,dtype='f')
+    self.m_vis  = np.zeros(1,dtype='f')
     self.tree.Branch('pt_1',   self.pt_1,  'pt_1/F' )
     self.tree.Branch('eta_1',  self.eta_1, 'eta_1/F')
     self.tree.Branch('q_1',    self.q_1,   'q_1/I'  )
@@ -86,6 +86,9 @@ class ModuleMuTauSimple(Module):
       if tau.pt<20: continue
       if abs(tau.eta)>2.4: continue
       if abs(tau.dz)>0.2: continue
+      if tau.idDeepTau2017v2p1VSe<8: continue
+      if tau.idDeepTau2017v2p1VSmu<1: continue
+      if tau.idDeepTau2017v2p1VSjet<8: continue
       taus.append(tau)
     if len(taus)<1: return False
     self.cutflow.Fill(self.cut_tau)

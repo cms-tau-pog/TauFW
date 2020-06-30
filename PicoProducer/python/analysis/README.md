@@ -128,12 +128,12 @@ class ModuleMuTauSimple(Module):
     self.outfile = TFile(fname,'RECREATE')
   def beginJob(self):
     self.tree = TTree('tree','tree')
-    self.pt_1 = np.zeros(1,dtype=float) # float
-    self.q_1  = np.zeros(1,dtype=int)   # integer
-    self.id_1 = np.zeros(1,dtype=bool)  # boolean
-    self.tree.Branch('pt_1',self.pt_1,'pt_1/F')
-    self.tree.Branch('q_1', self.q_1, 'q_1/I')
-    self.tree.Branch('id_1',self.id_1,'id_1/O')
+    self.pt_1 = np.zeros(1,dtype='f') # 32-bit float
+    self.q_1  = np.zeros(1,dtype='i') # 32-bit integer
+    self.id_1 = np.zeros(1,dtype='?') # 1 byte boolean
+    self.tree.Branch('pt_1',self.pt_1,'pt_1/F') # Float_t
+    self.tree.Branch('q_1', self.q_1, 'q_1/I')  # Int_t
+    self.tree.Branch('id_1',self.id_1,'id_1/O') # Boot_t
   def analyze(self, event):
     self.pt_1[0] = 20.0
     self.q_1[0]  = -1
@@ -146,7 +146,9 @@ class ModuleMuTauSimple(Module):
 ```
 More information on data types:
 * In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
-* In `numpy`: https://numpy.org/doc/stable/reference/arrays.dtypes.html#specifying-and-constructing-data-types
+* In `numpy`: https://numpy.org/devdocs/user/basics.types.html
+
+<img src="../../../docs/file_pico_mutau_simple.png" alt="Pico file of ModuleMuTauSimple" width="400"/>
 
 To make your life easier, you can use separate "tree producer" classes.
 For example, [`TreeProducer`](TreeProducer.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
@@ -201,6 +203,9 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.fill('tau')
     return True
 ```
+
+
+<img src="../../../docs/cutflow.png" alt="Cutflow (mutau)" width="400"/>
 
 ## Tau pair analysis
 A set of full analysis modules for the basic study of events with a pair of tau decay candidates

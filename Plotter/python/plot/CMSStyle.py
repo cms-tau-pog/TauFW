@@ -42,7 +42,9 @@ outOfFrame  = False
 def setCMSEra(*eras,**kwargs):
   global cmsText, extraText, lumiText
   cmsText   = "CMS"
-  extraText = kwargs.get('extraText',"Preliminary")
+  extra     = kwargs.get('extra',None)
+  if extra:
+    extraText = extra
   strings   = [ ]
   for era in eras:
     era     = str(era)
@@ -69,6 +71,13 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
   lumiText_     = kwargs.get('lumiText', lumiText)
   if outOfFrame:
     lumiTextSize_ *= 0.90
+  
+  if 'era' in kwargs: # one era
+    era = kwargs.get('era')
+    setCMSEra(era,**kwargs)
+  elif 'eras' in kwargs:  # list of multiple eras
+    eras = kwargs.get('eras')
+    setCMSEra(*eras,**kwargs)
   
   #if lumiText=="":
   #  if iPeriod==1:

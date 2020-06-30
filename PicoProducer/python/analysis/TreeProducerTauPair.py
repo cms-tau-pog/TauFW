@@ -14,9 +14,6 @@ class TreeProducerTauPair(TreeProducer):
     super(TreeProducerTauPair,self).__init__(filename,module,**kwargs)
     print "Loading TreeProducerTauPair for %r"%(filename)
     
-    # PILEUP
-    self.pileup = TH1D('pileup', 'pileup', 100, 0, 100)
-    
     
     #############
     #   EVENT   #

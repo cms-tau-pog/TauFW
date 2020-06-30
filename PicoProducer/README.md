@@ -14,6 +14,8 @@ A central script called [`pico.py`](scripts/pico.py) allows you to run both mode
 either locally or on a batch system.
 You can link several skimming or analysis codes to _channels_.
 
+<img src="../docs/PicoProducer_workflow.png" alt="TauFW PicoProducer workflow" max-width="800"/>
+
 #### Table of Contents  
 * [Installation](#Installation)<br>
 * [Configuration](#Configuration)<br>
