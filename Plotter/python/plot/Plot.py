@@ -1,18 +1,18 @@
 # Author: Izaak Neutelings (June 2020)
 # -*- coding: utf-8 -*-
 import os, re
+from math import log10
 from TauFW.common.tools.utils import ensurelist, islist, isnumber
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.strings import makelatex, maketitle, makehistname
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Ratio import Ratio
 import ROOT
-from ROOT import gDirectory, gROOT, gPad, gStyle, TFile, TCanvas, TPad, TPaveText,\
+from ROOT import gDirectory, gROOT, gPad, gStyle, TFile, TCanvas,\
                  TH1, TH1D, TH2, THStack, TGraph, TGraphAsymmErrors, TLine, TProfile,\
                  TLegend, TAxis, TGaxis, Double, TLatex, TBox, TColor,\
                  kBlack, kGray, kWhite, kRed, kBlue, kGreen, kYellow, kAzure, kCyan, kMagenta,\
                  kOrange, kPink, kSpring, kTeal, kViolet, kSolid, kDashed, kDotted
-from math import sqrt, pow, log, log10, floor, ceil
 gROOT.SetBatch(True)
 #gStyle.SetEndErrorSize(0)
 #whiteTransparent  = TColor(4000, 0.9, 0.9, 0.9, "kWhiteTransparent", 0.5)
@@ -449,7 +449,12 @@ class Plot(object):
         LOG.verb("Plot.setaxes: logy=%s, hmax=%.6g, magnitude(hmax)=%s, logyrange=%s, ymin=%.6g"%(
                                 logy,hmax,magnitude(hmax),logyrange,ymin),verbosity+2,2)
       if ymax==None:
-        ymax = ymin+(hmax-ymin)**ymargin
+        if hmax>ymin>0:
+          span = abs(log10(hmax/ymin))*ymargin
+          ymax = ymin*(10**span)
+          LOG.verb("Plot.setaxes: log10(hmax/ymin)=%.6g, span=%.6g, ymax=%.6g"%(log10(hmax/ymin),span,ymax),verbosity+2,2)
+        else:
+          ymax = hmax*ymargin
       gPad.Update(); gPad.SetLogy()
     elif ymax==None:
       ymax = hmax*ymargin
@@ -538,7 +543,8 @@ class Plot(object):
     bands       = kwargs.get('band',        [self.errband] ) # error bands
     bands       = ensurelist(bands,nonzero=True)
     bandentries = kwargs.get('bandentries', [ ]            )
-    title       = kwargs.get('title',       ""             ) or ""
+    title       = kwargs.get('header',      None           )
+    title       = kwargs.get('title',       title          )
     style       = kwargs.get('style',       None           )
     style0      = kwargs.get('style0',      None           ) # style of first histogram
     errstyle    = kwargs.get('errstyle',    errstyle       ) # style for an error point
@@ -614,7 +620,7 @@ class Plot(object):
     
     # POSITION
     if not position:
-      position = 'top' if title else 'topleft'
+      position = 'left' if title else 'topleft'
     position = position.lower()
     if   'leftleft'     in position: x1 = 0.04+L; x2 = x1 + width
     elif 'rightright'   in position: x2 = 0.94-R; x1 = x2 - width

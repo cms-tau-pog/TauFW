@@ -23,6 +23,8 @@ plot.setlegend()
 plot.saveas("plot.png")
 plots.close
 ```
+[plot-ratio](../docs/testHists_ratio_logy.png "Gaussians")
+
 If you want to make a data-MC comparison between a data histogram `datahist` and
 a list of expected SM processes, `exphists`,
 you can use the [`Stack`](python/plot/Stack.py) class, with something like
@@ -41,6 +43,7 @@ More examples of usage are provided in [`test/`](test/), run as
 test/plotHists.py
 test/plotStacks.py
 ```
+[stack-ratio](../docs/testStacks_m_vis_ratio.png "Data-MC comparison")
 
 
 ## CMS style

@@ -1,6 +1,6 @@
 # Author: Izaak Neutelings (June 2020)
 # -*- coding: utf-8 -*-
-from math import sqrt, log, ceil, floor
+from math import sqrt, log10, ceil, floor
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs
 from TauFW.common.tools.log import Logger
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
@@ -25,7 +25,7 @@ def magnitude(x):
   """Get magnitude of a number. E.g. 45 is 2, 2304 is 4, 0.84 is -1"""
   if x==0: return 0
   if x==1: return 1
-  logx = round(log(abs(x),10)*1e6)/1e6
+  logx = round(log10(abs(x))*1e6)/1e6
   if x%10==0: return int(logx)+1
   if x<1: return int(floor(logx))
   return int(ceil(logx))
@@ -100,7 +100,7 @@ def deletehist(*hists,**kwargs):
   for hist in hists:
     hclass  = hist.__class__.__name__
     hname   = hist.GetName() if hasattr(hist,'GetName') else None
-    LOG.verb("deletehist: deleting %s %r"%(hclass,hname or hist),verbosity,1)
+    LOG.verb("deletehist: deleting %s %r"%(hclass,hname or hist),verbosity,2)
     #try:
     if hist:
       if hasattr(hist,'GetDirectory') and hist.GetDirectory()==None:
@@ -383,7 +383,7 @@ def geterrorband(*hists,**kwargs):
 def divideBinsByBinSize(hist,**kwargs):
   """Divide each bin by its bin width. If a histogram has assymmetric errors (e.g. data with Poisson),
   return a TGraphAsymmErrors instead."""
-  verbosity = LOG.getverbosity(kwargs)+2
+  verbosity = LOG.getverbosity(kwargs)
   LOG.verbose('divideByBinSize: "%s"'%(hist.GetName()),verbosity,2)
   zero     = kwargs.get('zero',     True ) # include bins that are zero in TGraph
   zeroerrs = kwargs.get('zeroerrs', True )

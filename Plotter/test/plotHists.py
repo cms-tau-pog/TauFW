@@ -9,7 +9,7 @@ from TauFW.Plotter.plot.utils import LOG
 LOG.verbosity = 2
 
 
-def plothist(xtitle,hists,ratio=False,logy=False):
+def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
   
   # SETTING
   outdir   = ensuredir("plots/")
@@ -18,17 +18,20 @@ def plothist(xtitle,hists,ratio=False,logy=False):
     fname += "_ratio"
   if logy:
     fname += "_logy"
+  if norm:
+    fname += "_norm" # normalize each histogram
   rrange   = 0.5
-  text     = "#mu#tau_{h}"
+  header   = "Gaussians"     # legend header
+  text     = "#mu#tau_{h}"   # corner text
   grid     = True #and False
-  staterr  = True and False
-  lstyle   = 1 # solid
+  staterr  = True and False  # add uncertainty band to first histogram
+  lstyle   = 1               # solid lines
   
   # PLOT
   LOG.header(fname)
-  plot = Plot(xtitle,hists)
+  plot = Plot(xtitle,hists,norm=norm)
   plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,lstyle=lstyle,grid=grid,staterr=staterr)
-  plot.drawlegend()
+  plot.drawlegend(header=header)
   plot.drawcornertext(text)
   plot.saveas(fname+".png")
   #plot.saveas(fname+".C")
@@ -45,13 +48,16 @@ def createhists():
   xmax     = 100
   nevts    = 10000
   rrange   = 0.5
-  hists   = [ ]
+  hists    = [ ]
   gRandom.SetSeed(1777)
   for i in xrange(1,nhist+1):
-    hname = "hist%d"%(i)
-    hist  = TH1D(hname,hname,nbins,xmin,xmax)
+    mu     = 48+i
+    sigma  = 10
+    hname  = "hist%d"%(i)
+    htitle = "#mu = %s, #sigma = %s"%(mu,sigma)
+    hist   = TH1D(hname,hname,nbins,xmin,xmax)
     for j in xrange(nevts):
-      hist.Fill(gRandom.Gaus(48+i,10))
+      hist.Fill(gRandom.Gaus(mu,sigma))
     hists.append(hist)
   return hists
   
@@ -65,8 +71,9 @@ def main():
   #plothist(variable,hists,ratio=False,logy=False)
   for ratio in [True,False]:
     for logy in [True,False]:
-      hists = createhists()
-      plothist(xtitle,hists,ratio=ratio,logy=logy)
+      for norm in [True,False]:
+        hists = createhists()
+        plothist(xtitle,hists,ratio=ratio,logy=logy,norm=norm)
   
 
 if __name__ == "__main__":

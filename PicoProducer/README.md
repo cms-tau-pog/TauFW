@@ -5,6 +5,7 @@ There are two modes:
 1. **Skimming**: Skim nanoAOD by removing [unneeded branches](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt),
                  bad data events (using [data certification JSONs](data/json)),
                  add things like JetMET corrections. Output still has a nanoAOD format.
+                 This step is optional, but allows you to run your analysis faster.
 2. **Analysis**: Analyze nanoAOD events by pre-selecting events and objects and constructing variables.
                  The main analysis code is found in [`python/analysis/`](python/analysis).
                  The output is a custom tree format we will refer to as _pico_.

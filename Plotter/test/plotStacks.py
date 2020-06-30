@@ -5,8 +5,7 @@
 from array import array
 from TauFW.common.tools.file import ensuredir
 from TauFW.Plotter.plot.Stack import Stack, CMSStyle
-from ROOT import TH1D, gRandom, TColor,\
-                 kBlack, kWhite, kBlue, kOrange, kMagenta
+from ROOT import TH1D, gRandom, TColor, kBlack, kWhite, kBlue, kOrange, kMagenta
 from TauFW.Plotter.plot.utils import LOG
 from TauFW.Plotter.plot.Variable import Variable
 LOG.verbosity = 2
@@ -30,7 +29,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False):
   if logy:
     fname += "_logy"
   rrange   = 0.5
-  text     = "#mu#tau_{h}"
+  text     = "#mu#tau_{h} baseline"
   grid     = True and False
   position = 'topright' if logy else 'right'
   
@@ -80,21 +79,23 @@ def createhists(procs,binning,nevts):
   # OBSERVED: PSEUDO DATA
   datahist = TH1D('data','Observed',*binning)
   datahist.SetBinErrorOption(TH1D.kPoisson)
-  print ">>> createhists: Creating pseudo data:"
-  print ">>> %5s [%5s, %5s]      %-17s   %s"%('bin','xlow','xup','exp','data')
+  if LOG.verbosity>=1:
+    print ">>> createhists: Creating pseudo data:"
+    print ">>> %5s [%5s, %5s]      %-17s   %s"%('bin','xlow','xup','exp','data')
   for ibin in xrange(0,nbins+2):
     exp    = tothist.GetBinContent(ibin)
     xlow   = hist.GetXaxis().GetBinLowEdge(ibin)
     xup    = hist.GetXaxis().GetBinUpEdge(ibin)
     experr = tothist.GetBinError(ibin)
-    if ibin==int(0.3*nbins): # add a large deviation
-      exp *= 0.5
-    elif ibin==int(0.8*nbins): # add a large deviation
-      exp *= 1.51
+    #if ibin==int(0.3*nbins): # add a large deviation to test points falling off ratio plot
+    #  exp *= 0.5
+    #elif ibin==int(0.8*nbins): # add a large deviation to test points falling off ratio plot
+    #  exp *= 1.51
     data   = int(gRandom.Poisson(exp))
     datahist.SetBinContent(ibin,data)
-    print ">>> %5d [%5s, %5s] %8.1f +- %5.1f %8d +%5.1f -%5.1f"%(
-               ibin,xlow,xup,exp,experr,data,datahist.GetBinErrorUp(ibin),datahist.GetBinErrorLow(ibin))
+    if LOG.verbosity>=1:
+      print ">>> %5d [%5s, %5s] %8.1f +- %5.1f %8d +%5.1f -%5.1f"%(
+                 ibin,xlow,xup,exp,experr,data,datahist.GetBinErrorUp(ibin),datahist.GetBinErrorLow(ibin))
   
   return datahist, exphists
   

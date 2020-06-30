@@ -46,7 +46,7 @@ cd HiggsAnalysis/CombinedLimit
 git fetch origin
 git checkout v8.1.0
 ```
-and then [CombineHarvester](https://github.com/cms-analysis/CombineHarvester),
+and then [`CombineHarvester`](https://github.com/cms-analysis/CombineHarvester),
 ```
 cd $CMSSW_BASE/src
 git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
