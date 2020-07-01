@@ -64,7 +64,7 @@ def getconfig(verb=0,refresh=False):
     update = False
     for key in _cfgdefaults.keys(): # check for missing keys
       if key not in cfgdict:
-        LOG.warning("Key '%s' not set in config file %s. Setting to default %r"%(key,cfgname,_cfgdefaults[key]))
+        LOG.warning("Key '%s' not set in config file %s. Setting to default %r"%(key,os.path.relpath(cfgname),_cfgdefaults[key]))
         cfgdict[key] = _cfgdefaults[key]
         update = True
     if update:

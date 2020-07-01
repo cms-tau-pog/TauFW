@@ -105,7 +105,7 @@ def main_get(args):
           print ">>> %-12s = %r"%('channel',channel)
         
         # GET SAMPLES
-        assert era in CONFIG.eras, "Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras)
+        LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
         samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
         
         # LOOP over SAMPLES
@@ -305,7 +305,7 @@ def main_run(args):
       
       # CHANNEL -> MODULE
       skim = 'skim' in channel.lower()
-      assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
+      LOG.insist(channel in CONFIG.channels,"Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels))
       module = CONFIG.channels[channel]
       if not skim: # channel!='test' and
         ensuremodule(module)
@@ -337,7 +337,7 @@ def main_run(args):
       
       # GET SAMPLES
       if filters or vetoes or dtypes:
-        assert era in CONFIG.eras, "Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras)
+        LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
         samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,moddict=moddict,verb=verbosity)
         if nsamples>0:
           samples = samples[:nsamples]
@@ -448,7 +448,7 @@ def preparejobs(args):
       
       # CHANNEL -> MODULE
       skim = 'skim' in channel.lower()
-      assert channel in CONFIG.channels, "Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels)
+      LOG.insist(channel in CONFIG.channels,"Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels))
       module = CONFIG.channels[channel]
       if not skim: #channel!='test'
         ensuremodule(module)
@@ -487,7 +487,7 @@ def preparejobs(args):
           print ">>> %-12s = %s"%('jobcfgs',jobcfgs)
         samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       else:
-        assert era in CONFIG.eras, "Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras)
+        LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
         samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,moddict=moddict,verb=verbosity)
       if verbosity>=2:
         print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
