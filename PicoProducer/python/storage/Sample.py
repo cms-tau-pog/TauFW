@@ -23,12 +23,13 @@ def dasgoclient(query,**kwargs):
     LOG.verb(repr(dascmd),verbosity)
     cmdout    = execute(dascmd,verb=verbosity-1)
   except CalledProcessError as e:
+    print
     LOG.error("Failed to call 'dasgoclient' command. Please make sure:\n"
-              "1) You have a valid VOMS proxy. Use 'voms-proxy-init -voms cms -valid 200:0' or 'source utils/setupVOMS.sh'\n"
-              "2) The DAS dataset in '%s' exists!\n"%(dascmd))
+              "  1) You have a valid VOMS proxy. Use 'voms-proxy-init -voms cms -valid 200:0' or 'source utils/setupVOMS.sh'.\n"
+              "  2) The DAS dataset in '%s' exists!\n"%(dascmd))
     raise e
   return cmdout
-
+  
 
 class Sample(object):
   
