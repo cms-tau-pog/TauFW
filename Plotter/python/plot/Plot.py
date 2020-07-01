@@ -648,7 +648,7 @@ class Plot(object):
     if x1_user!=None:
       x2 = x1 + width if x2_user==None else x2_user
     if y1_user!=None:
-      y2 = y1 + height if y2_user==None else y2_user
+      y2 = y1 - height if y2_user==None else y2_user
     legend = TLegend(x1,y1,x2,y2)
     LOG.verb("Plot.drawlegend: position=%r, height=%.3f, width=%.3f, x1=%.3f, y1=%.3f, x2=%.3f, y2=%.3f"%(
                                position,height,width,x1,y1,x2,y2),verbosity,1)
