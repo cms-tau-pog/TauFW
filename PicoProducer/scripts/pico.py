@@ -1165,7 +1165,7 @@ if __name__ == "__main__":
                           metavar='PATTERN',    help="filter these samples; glob patterns like '*' and '?' wildcards are allowed" )
   parser_sam.add_argument('-x', '--veto',       dest='vetoes', nargs='+', default=[ ], action='store',
                           metavar='PATTERN',    help="exclude/veto these samples; glob patterns are allowed" )
-  parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=GLOB._dtypes, nargs='+',
+  parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=[ ], nargs='+',
                                                 help='filter these data type(s)')
   parser_sam.add_argument('-D','--das',         dest='checkdas', default=False, action='store_true',
                                                 help="check DAS for total number of events" )

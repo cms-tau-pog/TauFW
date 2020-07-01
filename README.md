@@ -12,7 +12,7 @@ First, setup a CMSSW release, for example,
 export CMSSW=CMSSW_10_6_13
 export SCRAM_ARCH=slc7_amd64_gcc700
 cmsrel $CMSSW
-cd $CMSSW_BASE/src
+cd $CMSSW/src
 cmsenv
 ```
 Then, install `TauFW`:

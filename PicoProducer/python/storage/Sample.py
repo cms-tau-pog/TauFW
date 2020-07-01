@@ -10,9 +10,23 @@ import os, re, json
 import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
-from TauFW.common.tools.utils import execute, repkey
+from TauFW.common.tools.utils import execute, CalledProcessError, repkey
 from TauFW.common.tools.file import ensurefile
 from TauFW.PicoProducer.storage.utils import LOG, getstorage
+
+
+def dasgoclient(query,**kwargs):
+  """Help function to call dasgoclient."""
+  try:
+    verbosity = kwargs.get('verb', 0)
+    dascmd    = 'dasgoclient --query="%s"'%(query)
+    LOG.verb(repr(dascmd),verbosity)
+    cmdout    = execute(dascmd,verb=verbosity-1)
+  except CalledProcessError as e:
+    LOG.throw(CalledProcessError,"Failed to call 'dasgoclient' command. Please make sure:\n"
+                                 "1) You have a valid VOMS proxy. Use 'voms-proxy-init -voms cms -valid 200:0' or 'source utils/setupVOMS.sh'\n"
+                                 "2) The DAS dataset in '%s' exists!\n"%(dascmd))
+  return cmdout
 
 
 class Sample(object):
@@ -168,9 +182,7 @@ class Sample(object):
           storage = getstorage(sepath,verb=verb-1)
           outlist = storage.getfiles(url=url,verb=verb-1)
         else: # get files from DAS
-          dascmd  = 'dasgoclient --query="file dataset=%s instance=%s"'%(path,self.instance) #--limit=0
-          LOG.verb(repr(dascmd),verb)
-          cmdout  = execute(dascmd,verb=verb-1)
+          cmdout  = dasgoclient("file dataset=%s instance=%s"%(path,self.instance))
           outlist = cmdout.split(os.linesep)
         for line in outlist: # filter root files
           line = line.strip()
@@ -187,9 +199,7 @@ class Sample(object):
     nevents = self.nevents
     if nevents<=0 or refresh:
       for path in self.paths:
-        dascmd   = 'dasgoclient --query="summary dataset=%s instance=%s"'%(path,self.instance)
-        LOG.verb(repr(dascmd),verb)
-        cmdout   = execute(dascmd,verb=verb-1)
+        cmdout = dasgoclient("summary dataset=%s instance=%s"%(path,self.instance))
         if "nevents" in cmdout:
           ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
         else:
