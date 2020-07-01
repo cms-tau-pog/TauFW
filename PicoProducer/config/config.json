@@ -12,5 +12,5 @@
   }, 
   "batch": "HTCondor", 
   "nfilesperjob": 1, 
-  "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt" 
 }
