@@ -110,6 +110,7 @@ class Plot(object):
     self.canvas            = None
     self.frame             = frame
     self.legend            = None
+    self.texts             = [ ] # to save TLatex objects made by drawtext
     self.garbage           = [ ]
     
   
@@ -554,10 +555,10 @@ class Plot(object):
     option      = kwargs.get('option',      ''             )
     border      = kwargs.get('border',      False          )
     transparent = kwargs.get('transparent', True           )
-    #x1          = kwargs.get('x1',          None           )
-    #x2          = kwargs.get('x2',          None           )
-    #y1          = kwargs.get('y1',          None           )
-    #y2          = kwargs.get('y2',          None           )
+    x1_user     = kwargs.get('x1',          None           )
+    x2_user     = kwargs.get('x2',          None           )
+    y1_user     = kwargs.get('y1',          None           )
+    y2_user     = kwargs.get('y2',          None           )
     width       = kwargs.get('width',       -1             ) # legend width
     height      = kwargs.get('height',      -1             ) # legend height
     tsize       = kwargs.get('tsize',       _lsize         )*scale
@@ -644,6 +645,10 @@ class Plot(object):
     elif 'y='           in position:
       y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
       y2 = B + (1-T-B)*y2; y1 = y2 - height
+    if x1_user!=None:
+      x2 = x1 + width if x2_user==None else x2_user
+    if y1_user!=None:
+      y2 = y1 + height if y2_user==None else y2_user
     legend = TLegend(x1,y1,x2,y2)
     LOG.verb("Plot.drawlegend: position=%r, height=%.3f, width=%.3f, x1=%.3f, y1=%.3f, x2=%.3f, y2=%.3f"%(
                                position,height,width,x1,y1,x2,y2),verbosity,1)
@@ -691,13 +696,16 @@ class Plot(object):
     return legend
     
   
-  def drawcornertext(self,*texts,**kwargs):
+  def drawtext(self,*texts,**kwargs):
     """Draw TLaTeX text in the corner."""
     verbosity = LOG.getverbosity(self,kwargs)
     scale     = 550./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
-    position  = kwargs.get('position', 'topleft' ).lower()
+    position  = kwargs.get('pos',      'topleft' )
+    position  = kwargs.get('position', position  ).lower()
     tsize     = kwargs.get('tsize',    _lsize    )*scale
     bold      = kwargs.get('bold',     False     )
+    xuser     = kwargs.get('x',        None      )
+    yuser     = kwargs.get('y',        None      )
     texts     = unwraplistargs(texts)
     if not any(t!="" for t in texts):
       return None
@@ -717,8 +725,8 @@ class Plot(object):
       y = 0.95; align += 3
     #x1 = float(re.findall(r"x=(\d\.\d+)",position)[0])
     #y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
-    x = L + (1-L-R)*x
-    y = B + (1-T-B)*y
+    x = L + (1-L-R)*x if xuser==None else xuser
+    y = B + (1-T-B)*y if yuser==None else yuser
     
     # LATEX
     latex = TLatex()
@@ -731,6 +739,8 @@ class Plot(object):
       yline = y-i*1.2*tsize
       latex.DrawLatex(x,yline,line)
       LOG.verb("Plot.drawcornertext: i=%d, x=%d, y=%d, text=%r"%(i,x,yline,line),verbosity,2)
+    self.texts.append(latex)
+    
     return latex
     
   

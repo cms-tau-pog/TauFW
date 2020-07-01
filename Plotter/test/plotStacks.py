@@ -38,7 +38,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False):
   plot = Stack(xtitle,datahist,exphists)
   plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,grid=grid)
   plot.drawlegend(position=position)
-  plot.drawcornertext(text)
+  plot.drawtext(text)
   plot.saveas(fname+".png")
   #plot.saveas(fname+".C")
   #plot.saveas(fname+".png",fname+".C")

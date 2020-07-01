@@ -11,6 +11,8 @@ See [the README.md in the parent directory](../../../#taufw).
 
 
 ## Basic plots
+
+### Histogram comparisons
 Some classes are provided to facilitate making plots in CMS style.
 If you have a list of histograms, `hists`, you want to compare with a ratio plot,
 use the [`Plot`](python/plot/Plot.py) class, e.g.
@@ -18,17 +20,18 @@ use the [`Plot`](python/plot/Plot.py) class, e.g.
 from TauFW.Plotter.plot.Plot import Plot, CMSStyle
 CMSStyle.setCMSEra(2018)
 plot = Plot("x",hists)
-plot.plot(ratio=True,grid=True)
-plot.setlegend()
+plot.draw(ratio=True,grid=True,logy=True)
+plot.drawlegend()
 plot.saveas("plot.png")
 plots.close
 ```
 
-<p align="center">
-  <img src="../docs/testHists.png" alt="Gaussians with Plot class" width="420"/>
+<p align="center" vertical-align: middle>
+  <img src="../docs/testHists.png" alt="Gaussians with Plot class" width="420" hspace="20"/>
   <img src="../docs/testHists_ratio_logy.png" alt="Gaussians with Plot class and ratio plot" width="420"/>
 </p>
 
+### Data-MC comparisons
 If you want to make a data-MC comparison between a data histogram `datahist` and
 a list of expected SM processes, `exphists`,
 you can use the [`Stack`](python/plot/Stack.py) class, with something like
@@ -36,8 +39,8 @@ you can use the [`Stack`](python/plot/Stack.py) class, with something like
 from TauFW.Plotter.plot.Stack import Stack, CMSStyle
 CMSStyle.setCMSEra(2018)
 plot = Stack("p_{T}",datahist,exphists)
-plot.plot(ratio=True)
-plot.setlegend()
+plot.draw(ratio=True,logy=False)
+plot.drawlegend()
 plot.saveas("stack.png")
 plot.saveas("stack.pdf")
 plots.close

@@ -32,7 +32,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
   plot = Plot(xtitle,hists,norm=norm)
   plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,lstyle=lstyle,grid=grid,staterr=staterr)
   plot.drawlegend(header=header)
-  plot.drawcornertext(text)
+  plot.drawtext(text)
   plot.saveas(fname+".png")
   #plot.saveas(fname+".C")
   #plot.saveas(fname+".png",fname+".C")
