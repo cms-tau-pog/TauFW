@@ -74,6 +74,7 @@ CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary")
 A [`Variable`](python/plot/Variable.py) class is provided to contain variable name (e.g. `pt_1`),
 title (e.g. `Leading p_{T} [GeV]`) and the binning (`(nbins,xmin,xmax)` or a list for variable binning), for example:
 ```
+from TauFW.Plotter.plot.Variable import Variable
 variables = [
   Variable('pt_1',  "p_{T} [GeV]",   40, 0,200),
   Variable('m_vis', "m_{vis} [GeV]", [0,20,40,50,60,65,70,75,80,85,90,100,120,150]),

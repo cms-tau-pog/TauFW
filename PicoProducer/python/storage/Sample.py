@@ -152,9 +152,9 @@ class Sample(object):
           break
     if verb>=2:
       if match_:
-        LOG.warning("Sample.match: '%s' match to '%s'!"%(sample,pattern))
+        print ">>> Sample.match: '%s' match to '%s'!"%(sample,pattern)
       else:
-        LOG.warning("Sample.match: NO '%s' match to '%s'!"%(sample,pattern))
+        print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
     return match_
   
   def getfiles(self,refresh=False,url=True,verb=0):

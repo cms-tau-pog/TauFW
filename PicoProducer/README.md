@@ -56,7 +56,10 @@ source utils/setupVOMS.sh
 
 ## Configuration
 
-The user configuration is saved in [`config/config.json`](config/config.json).
+The user configuration is saved in [`config/config.json`](config/config.json). Check the contents with `cat`, or use
+```
+pico.py list
+```
 You can manually edit the file, or set some variable with
 <pre>
 pico.py set <i>&lt;variables&gt; &lt;value&gt;</i>
@@ -94,8 +97,8 @@ and you should avoid characters that are not safe for filenames, including `_`, 
 This framework allows to implement many analysis modules called channels
 (e.g. different final states like mutau or etau).
 All analysis code should be saved in [`python/analysis/`](python/analysis), or a subdirectory.
-An simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py),
-and more detailed instructions are in [`python/analysis/README.md`](python/analysis/README.md).
+A simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py),
+and more detailed instructions are in [`python/analysis/README.md`](python/analysis).
 The `pico.py` script runs all analysis modules with the post-processor [`picojob.py`](python/processors/picojob.py).
 
 You can link any analysis module to a custom channel short name (e.g. `mutau`):

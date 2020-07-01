@@ -36,6 +36,36 @@ def main_install(args):
 
 
 ###########
+#   LIST   #
+###########
+
+def main_list(args):
+  """List contents of configuration for those lazy to do 'cat config/config.json'."""
+  if args.verbosity>=1:
+    print ">>> main_list", args
+  verbosity = args.verbosity
+  cfgname   = CONFIG._path
+  if verbosity>=1:
+    print '-'*80
+    print ">>> %-14s = %s"%('cfgname',cfgname)
+    print ">>> %-14s = %s"%('config',CONFIG)
+    print '-'*80
+  
+  print ">>> Configuration %s:"%(cfgname)
+  for variable, value in CONFIG.iteritems():
+    variable = "'"+color(variable)+"'"
+    if isinstance(value,dict):
+      print ">>>  %s:"%(variable)
+      for key, item in value.iteritems():
+        if isinstance(item,basestring): item = str(item)
+        print ">>>    %-12r -> %r"%(str(key),str(item))
+    else:
+      if isinstance(value,basestring): value = str(value)
+      print ">>>  %-24s = %r"%(variable,value)
+  
+
+
+###########
 #   GET   #
 ###########
 
@@ -330,6 +360,7 @@ def main_run(args):
         
         # SETTINGS
         filetag = tag
+        dtype   = None
         if sample:
           filetag += '_%s_%s'%(era,sample.name)
         if verbosity>=1:
@@ -341,9 +372,11 @@ def main_run(args):
         if sample:
           nevents = 0
           infiles = sample.getfiles(verb=verbosity)
+          dtype   = sample.dtype
           if nfiles>0:
             infiles = infiles[:nfiles]
           if verbosity==1:
+            print ">>> %-12s = %r"%('dtype',dtype)
             print ">>> %-12s = %s"%('nfiles',len(infiles))
             print ">>> %-12s = [ "%('infiles')
             for file in infiles:
@@ -360,8 +393,10 @@ def main_run(args):
         ###  runcmd += " -o %s"%(outdir)
         else: # analysis
           runcmd += " -y %s -c %s -M %s -o %s"%(era,channel,module,outdir)
+        if dtype:
+          runcmd += " -d %r"%(dtype)
         if filetag:
-          runcmd += " -t %s"%(filetag)
+          runcmd += " -t %r"%(filetag)
         if maxevts:
           runcmd += " -m %s"%(maxevts)
         if infiles:
@@ -469,6 +504,7 @@ def preparejobs(args):
         # DIRECTORIES
         subtry        = sample.subtry+1 if resubmit else 1
         jobids        = sample.jobcfg.get('jobids',[ ])
+        dtype         = sample.dtype
         postfix       = "_%s%s"%(channel,tag)
         jobtag        = '_%s%s_try%d'%(channel,tag,subtry)
         jobname       = sample.name+jobtag.rstrip('try1').rstrip('_')
@@ -490,6 +526,7 @@ def preparejobs(args):
           print '-'*80
           print ">>> Preparing job %ssubmission for '%s'"%("re" if resubmit else "",sample.name)
           print ">>> %-12s = %r"%('processor',processor)
+          print ">>> %-12s = %r"%('dtype',dtype)
           print ">>> %-12s = %r"%('jobname',jobname)
           print ">>> %-12s = %r"%('jobtag',jobtag)
           print ">>> %-12s = %r"%('postfix',postfix)
@@ -568,11 +605,11 @@ def preparejobs(args):
               filetag  += "_%d"%(ichunk)
             jobcmd      = processor
             if skim:
-              jobcmd += " -y %s --copydir %s -t %s --jec-sys"%(era,outdir,filetag)
+              jobcmd += " -y %s -d %r --copydir %s -t %s --jec-sys"%(era,dtype,outdir,filetag)
             ###elif channel=='test':
             ###  jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
             else:
-              jobcmd += " -y %s -c %s -M %s --copydir %s -t %s"%(era,channel,module,outdir,filetag)
+              jobcmd += " -y %s -d %r -c %s -M %s --copydir %s -t %s"%(era,dtype,channel,module,outdir,filetag)
             if prefetch:
               jobcmd += " -p"
             if extraopts:
@@ -588,7 +625,7 @@ def preparejobs(args):
         jobcfg = OrderedDict([
           ('time',str(datetime.now())),
           ('group',sample.group), ('paths',sample.paths), ('name',sample.name), ('nevents',nevents),
-          ('dtype',sample.dtype), ('channel',channel),    ('module',module),
+          ('dtype',dtype),        ('channel',channel),    ('module',module),
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
           ('try',subtry),         ('jobids',jobids),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),
@@ -1159,6 +1196,7 @@ if __name__ == "__main__":
   # SUBCOMMANDS
   subparsers = parser.add_subparsers(title="sub-commands",dest='subcommand',help="sub-command help")
   parser_ins = subparsers.add_parser('install',  parents=[parser_cmn], help='install')
+  parser_lst = subparsers.add_parser('list',     parents=[parser_cmn], help='list configuration')
   parser_get = subparsers.add_parser('get',      parents=[parser_sam], help='get information from configuration or samples')
   parser_set = subparsers.add_parser('set',      parents=[parser_cmn], help='set given variable in the configuration file')
   parser_rmv = subparsers.add_parser('rm',       parents=[parser_cmn], help='remove given variable from the configuration file')
@@ -1203,7 +1241,7 @@ if __name__ == "__main__":
     subcmds = [ # fix order
       'channel','era',
       'run','submit','resubmit','status','hadd',
-      'install','set','rm',
+      'install','list','set','rm'
     ]
     for subcmd in subcmds:
       if args[0] in subcmd[:len(args[0])]: # match abbreviation
@@ -1218,6 +1256,8 @@ if __name__ == "__main__":
   os.chdir(CONFIG.basedir)
   if args.subcommand=='install':
     main_install(args)
+  if args.subcommand=='list':
+    main_list(args)
   elif args.subcommand=='get':
     main_get(args)
   elif args.subcommand=='set':

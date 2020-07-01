@@ -1,5 +1,4 @@
 {
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
   "channels": {
     "skim": "skimjob.py", 
     "gen": "GenDumper", 
@@ -12,5 +11,6 @@
   }, 
   "batch": "HTCondor", 
   "nfilesperjob": 1, 
-  "filelistdir": "samples/files/$ERA/$SAMPLE.txt" 
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
 }

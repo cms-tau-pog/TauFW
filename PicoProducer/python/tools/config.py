@@ -155,6 +155,10 @@ class Config(object):
   def __iter__(self):
     return iter(self._dict)
   
+  def iteritems(self):
+    for x in self._dict.iteritems():
+      yield x
+  
   def __len__(self):
     return len(self._dict)
   
