@@ -550,15 +550,15 @@ class Plot(object):
     style0      = kwargs.get('style0',      None           ) # style of first histogram
     errstyle    = kwargs.get('errstyle',    errstyle       ) # style for an error point
     styles      = kwargs.get('styles',      [ ]            )
-    position    = kwargs.get('pos',         None           )
+    position    = kwargs.get('pos',         None           ) # legend position
     position    = kwargs.get('position',    position       ) or self.position
     option      = kwargs.get('option',      ''             )
     border      = kwargs.get('border',      False          )
     transparent = kwargs.get('transparent', True           )
-    x1_user     = kwargs.get('x1',          None           )
-    x2_user     = kwargs.get('x2',          None           )
-    y1_user     = kwargs.get('y1',          None           )
-    y2_user     = kwargs.get('y2',          None           )
+    x1_user     = kwargs.get('x1',          None           ) # legend left side
+    x2_user     = kwargs.get('x2',          None           ) # legend right side
+    y1_user     = kwargs.get('y1',          None           ) # legend top side
+    y2_user     = kwargs.get('y2',          None           ) # legend bottom side
     width       = kwargs.get('width',       -1             ) # legend width
     height      = kwargs.get('height',      -1             ) # legend height
     tsize       = kwargs.get('tsize',       _lsize         )*scale
@@ -566,7 +566,7 @@ class Plot(object):
     texts       = kwargs.get('text',        [ ]            ) # extra text below legend
     ncols       = kwargs.get('ncols',       1              ) # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
-    bold        = kwargs.get('bold',        True           )
+    bold        = kwargs.get('bold',        True           ) # bold legend header
     texts       = ensurelist(texts,nonzero=True)
     entries     = ensurelist(entries,nonzero=False)
     bandentries = ensurelist(bandentries,nonzero=True)

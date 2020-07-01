@@ -38,9 +38,10 @@ you can use the [`Stack`](python/plot/Stack.py) class, with something like
 ```
 from TauFW.Plotter.plot.Stack import Stack, CMSStyle
 CMSStyle.setCMSEra(2018)
-plot = Stack("p_{T}",datahist,exphists)
+plot = Stack("p_{T} [GeV]",datahist,exphists)
 plot.draw(ratio=True,logy=False)
 plot.drawlegend()
+plot.drawtext("#mu#tau_{h} baseline")
 plot.saveas("stack.png")
 plot.saveas("stack.pdf")
 plots.close
@@ -71,7 +72,7 @@ CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary")
 
 ## Variable
 A [`Variable`](python/plot/Variable.py) class is provided to contain variable name (e.g. `pt_1`),
-title (e.g. `Leading p_{T} [GeV]`) and the binning, for example:
+title (e.g. `Leading p_{T} [GeV]`) and the binning (`(nbins,xmin,xmax)` or a list for variable binning), for example:
 ```
 variables = [
   Variable('pt_1',  "p_{T} [GeV]",   40, 0,200),
@@ -96,7 +97,7 @@ tree.Draw(dcmd)            # loops over tree events and fills the histogram 'his
 ```
 It can also be used to initialize a `Plot` or `Stack` object, e.g.
 ```
-var  = Variable('pt_1',40,0,200,logy=True,ymargin=1.4),
+var  = Variable('pt_1',40,0,200,logy=True,ymargin=1.4)
 plot = Plot(var,hists)
 ```
 Examples are provided in [`test/testVariables.py`](test/testVariables.py).
