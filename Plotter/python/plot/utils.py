@@ -66,15 +66,16 @@ def partition(list,nparts):
   
 
 def normalize(*hists,**kwargs):
-  """Normalize histogram."""
-  hists = unwraplistargs(hists)
+  """Normalize histogram(s)."""
+  hists = unwraplistargs(args)
+  scale = kwargs.get('scale',None) or 1.0
   for hist in hists:    
     if hist.GetBinErrorOption()==TH1.kPoisson:
       hist.SetBinErrorOption(TH1.kNormal)
       hist.Sumw2()
     integral = hist.Integral()
     if integral:
-      hist.Scale(1./integral)
+      hist.Scale(scale/integral)
     else:
       LOG.warning("norm: Could not normalize; integral = 0!")
   

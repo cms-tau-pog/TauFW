@@ -97,7 +97,7 @@ class Plot(object):
       self.position        = kwargs.get('position',  ""             )
       self.latex           = kwargs.get('latex',     True           )
       self.dividebybinsize = kwargs.get('dividebybinsize', frame.GetXaxis().IsVariableBinSize())
-    self.ytitle            = kwargs.get('ytitle',    frame.GetYaxis().GetTitle() )
+    self.ytitle            = kwargs.get('ytitle',    frame.GetYaxis().GetTitle() ) or None
     self.name              = kwargs.get('name',      None           ) or (self.hists[0].GetName() if self.hists else "noname")
     self.title             = kwargs.get('title',     None           )
     self.errband           = None
@@ -133,7 +133,7 @@ class Plot(object):
     norm            = kwargs.get('norm',            self.norm            ) # normalize all histograms
     title           = kwargs.get('title',           self.title           ) # title for legend
     xtitle          = kwargs.get('xtitle',          xtitle               ) # x axis title
-    ytitle          = kwargs.get('ytitle',          None                 ) # y axis title (if None, automatically set by Plot.setaxis)
+    ytitle          = kwargs.get('ytitle',          self.ytitle          ) # y axis title (if None, automatically set by Plot.setaxis)
     rtitle          = kwargs.get('rtitle',          "Ratio"              ) # y axis title of ratio panel
     latex           = kwargs.get('latex',           self.latex           ) # use automatic latexing with makelatex
     xmin            = kwargs.get('xmin',            self.xmin            )
@@ -179,9 +179,12 @@ class Plot(object):
     denom           = ratio if isinstance(ratio,int) and (ratio!=0) else False
     denom           = max(0,min(len(hists),kwargs.get('denom', denom ))) # denominator histogram in ratio plot
     
-    # NORM
+    # NORMALIZE
     if norm:
-      normalize(self.hists)
+      if ytitle==None:
+        ytitle = "A.U."
+      scale =  1.0 if isinstance(norm,bool) else norm
+      normalize(self.hists,scale=scale)
     
     # DIVIDE BY BINSIZE
     if dividebybinsize:
@@ -476,7 +479,7 @@ class Plot(object):
         ytitle = "A.U."
       else:
         binwidth  = frame.GetXaxis().GetBinWidth(0)
-        binwidstr = ("%.3f"%binwidth).rstrip("0").rstrip(".")
+        binwidstr = ("%.3f"%binwidth).rstrip('0').rstrip('.')
         units     = re.findall(r' \[(.+)\]',xtitle) #+ re.findall(r' (.+)',xtitle)
         if frame.GetXaxis().IsVariableBinSize():
           if units:
