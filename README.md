@@ -15,6 +15,8 @@ cmsrel $CMSSW
 cd $CMSSW/src
 cmsenv
 ```
+Which CMSSW version should matter for post-processing of nanoAOD,
+but if you like to use Combine in the same repository, it is better to use at least `CMSSW_10_2_X`.
 Then, install `TauFW`:
 ```
 cd $CMSSW_BASE/src/

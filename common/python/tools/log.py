@@ -79,6 +79,9 @@ class Logger(object):
       verb   = self.verbosity
     if verb>=level:
       pre = self.pre+kwargs.get('pre',"")
+      col = kwargs.get('color',False)
+      if col:
+        string = color(string,col) if isinstance(col,str) else color(string)
       print pre+string
       return True
     return False

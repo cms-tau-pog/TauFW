@@ -132,11 +132,10 @@ class Plot(object):
     errtitle        = kwargs.get('errtitle',        None                 ) # title for error band
     norm            = kwargs.get('norm',            self.norm            ) # normalize all histograms
     title           = kwargs.get('title',           self.title           ) # title for legend
-    xtitle          = kwargs.get('xtitle',          xtitle               )
-    ytitle          = "A.U." if norm else "Events"
-    ytitle          = kwargs.get('ytitle',          self.ytitle          ) or ytitle
-    rtitle          = kwargs.get('rtitle',          "Ratio"              )
-    latex           = kwargs.get('latex',           self.latex           )
+    xtitle          = kwargs.get('xtitle',          xtitle               ) # x axis title
+    ytitle          = kwargs.get('ytitle',          None                 ) # y axis title (if None, automatically set by Plot.setaxis)
+    rtitle          = kwargs.get('rtitle',          "Ratio"              ) # y axis title of ratio panel
+    latex           = kwargs.get('latex',           self.latex           ) # use automatic latexing with makelatex
     xmin            = kwargs.get('xmin',            self.xmin            )
     xmax            = kwargs.get('xmax',            self.xmax            )
     ymin            = kwargs.get('ymin',            self.ymin            )
@@ -391,7 +390,7 @@ class Plot(object):
     logyrange     = kwargs.get('logyrange',    None             ) or 3 # log(y) range from hist maximum to ymin
     negativey     = kwargs.get('negativey',    True             ) # allow negative y values
     xtitle        = kwargs.get('xtitle',       frame.GetTitle() )
-    ytitle        = kwargs.get('ytitle',       ""               )
+    ytitle        = kwargs.get('ytitle',       None             )
     grid          = kwargs.get('grid',         False            )
     ycenter       = kwargs.get('center',       False            )
     nxdivisions   = kwargs.get('nxdiv',        510              )
@@ -448,12 +447,12 @@ class Plot(object):
       if not ymin or ymin<=0: # avoid zero or negative ymin for log plots
         ymin = 10**(magnitude(hmax)-logyrange) #max(0.1,10**(magnitude(ymax)-3))
         LOG.verb("Plot.setaxes: logy=%s, hmax=%.6g, magnitude(hmax)=%s, logyrange=%s, ymin=%.6g"%(
-                                logy,hmax,magnitude(hmax),logyrange,ymin),verbosity+2,2)
+                                logy,hmax,magnitude(hmax),logyrange,ymin),verbosity,2)
       if ymax==None:
         if hmax>ymin>0:
           span = abs(log10(hmax/ymin))*ymargin
           ymax = ymin*(10**span)
-          LOG.verb("Plot.setaxes: log10(hmax/ymin)=%.6g, span=%.6g, ymax=%.6g"%(log10(hmax/ymin),span,ymax),verbosity+2,2)
+          LOG.verb("Plot.setaxes: log10(hmax/ymin)=%.6g, span=%.6g, ymax=%.6g"%(log10(hmax/ymin),span,ymax),verbosity,2)
         else:
           ymax = hmax*ymargin
       gPad.Update(); gPad.SetLogy()
@@ -469,21 +468,31 @@ class Plot(object):
     frame.SetMinimum(ymin)
     frame.SetMaximum(ymax)
     
-    if not ytitle:
+    if ytitle==None:
       #ytitle = "Events"
       if "multiplicity" in xtitle.lower():
         ytitle = "Events"
-      elif frame.GetXaxis().IsVariableBinSize():
-        ytitle = "Events / GeV"
+      elif hmax<1.:
+        ytitle = "A.U."
       else:
-        ytitle = ("Events / %.3f"%frame.GetXaxis().GetBinWidth(0)).rstrip("0").rstrip(".")
-        units = re.findall(r' \[(.+)\]',xtitle) #+ re.findall(r' (.+)',xtitle)
-        if units:
-          if ytitle[-2]==" 1":
-            ytitle = ytitle[:-2]
-          ytitle += " "+units[0]
-        elif ytitle[-4:]==" / 1":
-          ytitle = ytitle[:-4]
+        binwidth  = frame.GetXaxis().GetBinWidth(0)
+        binwidstr = ("%.3f"%binwidth).rstrip("0").rstrip(".")
+        units     = re.findall(r' \[(.+)\]',xtitle) #+ re.findall(r' (.+)',xtitle)
+        if frame.GetXaxis().IsVariableBinSize():
+          if units:
+            ytitle = "Events / "+units[-1]
+          else:
+            ytitle = "Events / bin size"
+        elif units:
+          if binwidth!=1:
+            ytitle = "Events / %s %s"%(binwidstr,units[-1])
+          else:
+            ytitle = "Events / "+units[-1]
+        elif binwidth!=1:
+          ytitle = "Events / "+binwidstr
+        else:
+          ytitle = "Events"
+        LOG.verb("Plot.setaxes: ytitle=%r, units=%s, binwidth=%s, binwidstr=%r"%(ytitle,units,binwidth,binwidstr),verbosity,2)
     
     # alphanumerical bin labels
     if binlabels:
