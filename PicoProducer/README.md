@@ -71,9 +71,9 @@ For example:
 pico.py set batch HTCondor
 pico.py set jobdir 'output/$ERA/$CHANNEL/$SAMPLE'
 ```
-The configurable variables include
-* `batch`: Batch system to use (e.g. `HTCondor`)
-* `jobdir`: Directory to output job configuration and log files (e.g. `output/$ERA/$CHANNEL/$SAMPLE`)
+The configurable variables include:
+* `batch`: Batch system to use (e.g. `HTCondor`).
+* `jobdir`: Directory to output job configuration and log files (e.g. `output/$ERA/$CHANNEL/$SAMPLE`).
 * `outdir`: Directory to copy the output pico files from analysis jobs.
 * `nanodir`: Directory to store the output nanoAOD files from skimming jobs (e.g. on EOS, T2, T3, ...).
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output (e.g. on EOS, T2, T3, ...).
@@ -262,13 +262,13 @@ This will not work for channels with `skim` in the name,
 as it is preferred to keep skimmed nanoAOD files split for batch submission.
 
 
-
 ## Plug-ins
 
 This framework might not work for your computing system... yet.
 It was created with a modular design in mind, meaning that users can add their own
 "plug-in" modules to make it work with their own batch system and storage system.
-If you like to contribute, please make sure it works, push the changes to a fork and make a pull request.
+If you like to contribute, please make sure the changes run as expected,
+push the changes to a fork and make a pull request.
 
 ### Batch system
 To plug in your own batch system, make a subclass of [`BatchSystem`](python/batch/BatchSystem.py),
@@ -293,7 +293,7 @@ def main_submit(args):
 Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py)
 in [`python/storage/`](python/storage).
 Currently, the code automatically assigns a path to a storage system, so you also need to 
-edit `getstorage`in [`python/storage/utils.py`](python/storage/utils.py), e.g.
+edit `getstorage` in [`python/storage/utils.py`](python/storage/utils.py), e.g.
 ```
 def getstorage(path,verb=0,ensure=False):
   ...
