@@ -551,8 +551,8 @@ def preparejobs(args):
         # CHECKS
         if os.path.isfile(cfgname):
           # TODO: check for running jobs
-          LOG.warning("Job configuration '%s' already exists and will be overwritten! "+
-                      "Beware of conflicting job output!"%(cfgname))
+          LOG.warning("Job configuration %r already exists and will be overwritten! "%(cfgname)+
+                      "Beware of conflicting job output!")
         if not resubmit:
           cfgpattern = re.sub(r"(?<=try)\d+(?=.json$)",r"*",cfgname)
           cfgnames   = [f for f in glob.glob(cfgpattern) if not f.endswith("_try1.json")]
@@ -1185,7 +1185,7 @@ if __name__ == "__main__":
   parser_sam.add_argument('-f','--force',       dest='force', action='store_true',
                                                 help='force overwrite')
   parser_sam.add_argument('-d','--dry',         dest='dryrun', action='store_true',
-                                                help='dry run for debugging purposes')
+                                                help='dry run: prepare job without submitting for debugging purposes')
   parser_sam.add_argument('-E', '--opts',       dest='extraopts', type=str, nargs='+', default=[ ],
                           metavar='KEY=VALUE',  help="extra options for the skim or analysis module, "
                                                      "passed as list of 'KEY=VALUE', separated by spaces")
