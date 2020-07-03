@@ -1151,7 +1151,8 @@ def main_status(args):
 if __name__ == "__main__":
   
   # COMMON
-  parser = ArgumentParser(prog='run.py')
+  description = "Central script to process nanoAOD for skimming or analysis."
+  parser = ArgumentParser(prog='pico.py',description=description,epilog="Good luck!")
   parser_cmn = ArgumentParser(add_help=False)
   parser_cmn.add_argument('-v', '--verbose',    dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                                 help="set verbosity" )
@@ -1195,18 +1196,30 @@ if __name__ == "__main__":
   
   # SUBCOMMANDS
   subparsers = parser.add_subparsers(title="sub-commands",dest='subcommand',help="sub-command help")
-  parser_ins = subparsers.add_parser('install',  parents=[parser_cmn], help='install')
-  parser_lst = subparsers.add_parser('list',     parents=[parser_cmn], help='list configuration')
-  parser_get = subparsers.add_parser('get',      parents=[parser_sam], help='get information from configuration or samples')
-  parser_set = subparsers.add_parser('set',      parents=[parser_cmn], help='set given variable in the configuration file')
-  parser_rmv = subparsers.add_parser('rm',       parents=[parser_cmn], help='remove given variable from the configuration file')
-  parser_chl = subparsers.add_parser('channel',  parents=[parser_lnk], help='link a channel to a module in the configuration file')
-  parser_era = subparsers.add_parser('era',      parents=[parser_lnk], help='link an era to a sample list in the configuration file')
-  parser_run = subparsers.add_parser('run',      parents=[parser_sam], help='run local post processor')
-  parser_sub = subparsers.add_parser('submit',   parents=[parser_job], help='submit post-processing jobs')
-  parser_res = subparsers.add_parser('resubmit', parents=[parser_job], help='resubmit failed post-processing jobs')
-  parser_sts = subparsers.add_parser('status',   parents=[parser_chk], help='status of post-processing jobs')
-  parser_hdd = subparsers.add_parser('hadd',     parents=[parser_chk], help='hadd post-processing job output')
+  help_ins = "install"
+  help_lst = "list configuration"
+  help_get = "get information from configuration or samples"
+  help_set = "set given variable in the configuration file"
+  help_rmv = "remove given variable from the configuration file"
+  help_chl = "link a channel to a module in the configuration file"
+  help_era = "link an era to a sample list in the configuration file"
+  help_run = "run local post processor"
+  help_sub = "submit post-processing jobs"
+  help_res = "resubmit failed post-processing jobs"
+  help_sts = "status of post-processing jobs"
+  help_hdd = "hadd post-processing job output"
+  parser_ins = subparsers.add_parser('install',  parents=[parser_cmn], help=help_ins, description=help_ins)
+  parser_lst = subparsers.add_parser('list',     parents=[parser_cmn], help=help_lst, description=help_lst)
+  parser_get = subparsers.add_parser('get',      parents=[parser_sam], help=help_get, description=help_get)
+  parser_set = subparsers.add_parser('set',      parents=[parser_cmn], help=help_set, description=help_set)
+  parser_rmv = subparsers.add_parser('rm',       parents=[parser_cmn], help=help_rmv, description=help_rmv)
+  parser_chl = subparsers.add_parser('channel',  parents=[parser_lnk], help=help_chl, description=help_chl)
+  parser_era = subparsers.add_parser('era',      parents=[parser_lnk], help=help_era, description=help_era)
+  parser_run = subparsers.add_parser('run',      parents=[parser_sam], help=help_run, description=help_run)
+  parser_sub = subparsers.add_parser('submit',   parents=[parser_job], help=help_sub, description=help_sub)
+  parser_res = subparsers.add_parser('resubmit', parents=[parser_job], help=help_res, description=help_res)
+  parser_sts = subparsers.add_parser('status',   parents=[parser_chk], help=help_sts, description=help_sts)
+  parser_hdd = subparsers.add_parser('hadd',     parents=[parser_chk], help=help_hdd, description=help_hdd)
   #parser_get.add_argument('variable',           help='variable to change in the config file')
   parser_get.add_argument('variable',           help='variable to get information on')
   parser_set.add_argument('variable',           help='variable to change in the config file')

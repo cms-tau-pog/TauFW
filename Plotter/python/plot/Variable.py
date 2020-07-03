@@ -313,19 +313,27 @@ class Variable(object):
     """Create variable expression for the Tree.Draw method."""
     histname, title = self.getnametitle(name,None,tag)
     if bins:
-      cmd = "%s >> %s(%d,%s,%s)"%(self.name,histname,self.nbins,self.min,self.max)
+      dcmd = "%s >> %s(%d,%s,%s)"%(self.name,histname,self.nbins,self.min,self.max)
     else:
-      cmd = "%s >> %s"%(self.name,histname)
-    return cmd
+      dcmd = "%s >> %s"%(self.name,histname)
+    return dcmd
   
   def drawcmd2D(self,yvar,name=None,tag="",bins=False):
     """Create variable expression for the Tree.Draw method."""
     histname, title = self.getnametitle(name,None,tag)
     if bins:
-      cmd = "%s:%s >> %s(%d,%s,%s,%d,%s,%s)"%(yvar.name,self.name,histname,self.nbins,self.min,self.max,yvar.nbins,yvar.min,yvar.max)
+      dcmd = "%s:%s >> %s(%d,%s,%s,%d,%s,%s)"%(yvar.name,self.name,histname,self.nbins,self.min,self.max,yvar.nbins,yvar.min,yvar.max)
     else:
-      cmd = "%s:%s >> %s"%(yvar.name,self.name,histname)
-    return cmd
+      dcmd = "%s:%s >> %s"%(yvar.name,self.name,histname)
+    return dcmd
+  
+  def draw(self,tree,cut,name=None,title=None,**kwargs):
+    """Create and fill histogram from tree."""
+    hist   = self.gethist(name,title,**kwargs)
+    option = kwargs.get('option','gOff')
+    dcmd   = self.drawcmd(name,**kwargs)
+    tree.Draw(dcmd,cut,option)
+    return hist
   
   def shift(self,jshift,**kwargs):
     """Create new variable with a shift tag added to its name."""

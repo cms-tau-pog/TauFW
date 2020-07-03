@@ -67,9 +67,9 @@ def partition(list,nparts):
 
 def normalize(*hists,**kwargs):
   """Normalize histogram(s)."""
-  hists = unwraplistargs(args)
+  hists = unwraplistargs(hists)
   scale = kwargs.get('scale',None) or 1.0
-  for hist in hists:    
+  for hist in hists:
     if hist.GetBinErrorOption()==TH1.kPoisson:
       hist.SetBinErrorOption(TH1.kNormal)
       hist.Sumw2()

@@ -2,9 +2,8 @@
 # Description: Simple module to pre-select mutau events
 from ROOT import TFile, TTree, TH1D
 import numpy as np
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 
 class ModuleMuTauSimple(Module):
   

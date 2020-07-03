@@ -97,7 +97,7 @@ class Plot(object):
       self.position        = kwargs.get('position',  ""             )
       self.latex           = kwargs.get('latex',     True           )
       self.dividebybinsize = kwargs.get('dividebybinsize', frame.GetXaxis().IsVariableBinSize())
-    self.ytitle            = kwargs.get('ytitle',    frame.GetYaxis().GetTitle() ) or None
+    self.ytitle            = kwargs.get('ytitle',    frame.GetYaxis().GetTitle() or None )
     self.name              = kwargs.get('name',      None           ) or (self.hists[0].GetName() if self.hists else "noname")
     self.title             = kwargs.get('title',     None           )
     self.errband           = None
@@ -579,6 +579,7 @@ class Plot(object):
     ncols       = kwargs.get('ncols',       1              ) # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
     bold        = kwargs.get('bold',        True           ) # bold legend header
+    panel       = kwargs.get('panel',       1              ) # panel (top=1, bottom=2)
     texts       = ensurelist(texts,nonzero=True)
     entries     = ensurelist(entries,nonzero=False)
     bandentries = ensurelist(bandentries,nonzero=True)
@@ -586,7 +587,7 @@ class Plot(object):
     
     # CHECK
     LOG.insist(self.canvas,"Canvas does not exist!")
-    self.canvas.cd(1)
+    self.canvas.cd(panel)
     
     # ENTRIES
     #if len(bandentries)==len(bands) and len(entries)>len(hists):
@@ -718,6 +719,7 @@ class Plot(object):
     bold      = kwargs.get('bold',     False     )
     xuser     = kwargs.get('x',        None      )
     yuser     = kwargs.get('y',        None      )
+    panel     = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
     texts     = unwraplistargs(texts)
     if not any(t!="" for t in texts):
       return None
@@ -741,6 +743,7 @@ class Plot(object):
     y = B + (1-T-B)*y if yuser==None else yuser
     
     # LATEX
+    self.canvas.cd(panel)
     latex = TLatex()
     latex.SetTextSize(tsize)
     latex.SetTextAlign(align)

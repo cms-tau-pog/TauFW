@@ -8,7 +8,6 @@ from TauFW.Plotter.plot.Stack import Stack, CMSStyle
 from ROOT import TH1D, gRandom, TColor, kBlack, kWhite, kBlue, kOrange, kMagenta
 from TauFW.Plotter.plot.utils import LOG
 from TauFW.Plotter.plot.Variable import Variable
-LOG.verbosity = 2
 
 
 coldict = { # HTT / TauPOG colors
@@ -149,5 +148,14 @@ def main():
   
 
 if __name__ == "__main__":
+  import sys
+  from argparse import ArgumentParser
+  argv = sys.argv
+  description = '''Script to test the Plot class for comparing histograms.'''
+  parser = ArgumentParser(prog="plotHists",description=description,epilog="Good luck!")
+  parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
+                                         help="set verbosity" )
+  args = parser.parse_args()
+  LOG.verbosity = args.verbosity
   main()
   

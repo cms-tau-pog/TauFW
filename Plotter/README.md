@@ -46,10 +46,11 @@ plot.saveas("stack.png")
 plot.saveas("stack.pdf")
 plots.close
 ```
-More examples of usage are provided in [`test/`](test/), run as
+
+More examples of usage of `Plot` and `Stack` are provided in [`test/`](test/), run as
 ```
-test/plotHists.py
-test/plotStacks.py
+test/plotHists.py -v 2
+test/plotStacks.py -v 2
 ```
 
 <p align="center">

@@ -28,7 +28,9 @@ def ensuredir(*dirnames,**kwargs):
   dirname   = os.path.join(*dirnames)
   empty     = kwargs.get('empty', False)
   verbosity = kwargs.get('verb',  0    )
-  if not os.path.exists(dirname):
+  if not dirname:
+    pass
+  elif not os.path.exists(dirname):
     os.makedirs(dirname)
     if verbosity>=1:
       print '>>> Made directory "%s"'%(dirname)

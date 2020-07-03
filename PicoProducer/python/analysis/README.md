@@ -71,6 +71,7 @@ Without loss of performance, you can make the latter more readable using
 [`Collection`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py):
 ```
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 class ModuleMuTauSimple(Module):
   def analyze(self, event):
     muons = [ ]
@@ -86,8 +87,8 @@ Triggers are saved as booleans, e.g.
     if not event.HLT_IsoMu24:
       return False
 ```
-To save space, some identification working points (WPs) are saved in nanoAOD as `UChar_t`, which is 1 byte (8 bits),
-instead of 4 bytes (64 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
+To reduce the nanoAOD file size, some identification working points (WPs) are saved in nanoAOD as `UChar_t`, which is 1 byte (8 bits),
+instead of 4 bytes (32 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
 you see in the [documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau)
 that it corresponds to the fifth bit, i.e. `16`.
 To access them in `python`, you may need the [built-in function `ord`](https://docs.python.org/3/library/functions.html#ord), e.g.
@@ -111,11 +112,11 @@ use [bitwise operators](https://www.tutorialspoint.com/python/bitwise_operators_
 isPrompt    = GenPart_statusFlags[i] & 1
 hardProcess = GenPart_statusFlags[i] & 128
 ```
-which has values `0` or `1`. Here `128` is computed as `2**7` or `1<<7`.
+which has values `0` or `1`. Here, `128` is computed as a power of 2, `2**7`, or a bitwise left shift, `1<<7`.
 The help function `hasbit` in [`utils.py`](utils.py) can be used:
 ```
 isPrompt    = hasbit(GenPart_statusFlags[i],0)
-hardProcess = hasbit(GenPart_statusFlags[i],8)
+hardProcess = hasbit(GenPart_statusFlags[i],7)
 ```
 
 

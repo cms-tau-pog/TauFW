@@ -30,7 +30,9 @@ You can link several skimming or analysis codes to _channels_.
   * [Resubmission](#Resubmission)
   * [Finalize](#Finalize)
 * [Plug-ins](#Plug-ins)<br>
-
+  * [Batch system](#Batch-system)
+  * [Storage system](#Storage-system)
+  * [Analysis module](#Analysis-module)
 
 ## Installation
 
@@ -64,6 +66,11 @@ You can manually edit the file, or set some variable with
 <pre>
 pico.py set <i>&lt;variables&gt; &lt;value&gt;</i>
 </pre>
+For example:
+```
+pico.py set batch HTCondor
+pico.py set jobdir 'output/$ERA/$CHANNEL/$SAMPLE'
+```
 The configurable variables include
 * `batch`: Batch system to use (e.g. `HTCondor`)
 * `jobdir`: Directory to output job configuration and log files (e.g. `output/$ERA/$CHANNEL/$SAMPLE`)
@@ -147,6 +154,9 @@ Other optional keyword arguments are
   This can speed things up if DAS is slow or unreliable,
   or you want to avoid retrieving the files from a local storage element on the fly each time.
   Note that this list is used for both skimming and analysis jobs.
+* `nevents`: The total number of nanoAOD events, that you can optionally compare to the number of processed events (with the `--das` flag).
+  By default, it will be obtained from DAS, but it can be set by the user to speed things up,
+  or in case the sample is not available on DAS.
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
   This overrides the default `nfilesperjob` in the configuration.
@@ -200,7 +210,8 @@ pico.py run --help
 ## Batch submission
 
 ### Submission
-Once configured, submit with
+Once the module run locally, everything is [configured](#Configuration) and
+[your batch system is installed](#Plug-ins), you can submit with
 ```
 pico.py submit -y 2016 -c mutau
 ```
@@ -254,12 +265,64 @@ as it is preferred to keep skimmed nanoAOD files split for batch submission.
 
 ## Plug-ins
 
+This framework might not work for your computing system... yet.
+It was created with a modular design in mind, meaning that users can add their own
+"plug-in" modules to make it work with their own batch system and storage system.
+If you like to contribute, please make sure it works, push the changes to a fork and make a pull request.
+
+### Batch system
 To plug in your own batch system, make a subclass of [`BatchSystem`](python/batch/BatchSystem.py),
 overriding the abstract methods (e.g. `submit`).
 Your subclass has to be saved in separate python module in [`python/batch/`](python/batch),
-and the module's filename should be the same as the class. See for example [`HTCondor.py`](python/batch/HTCondor.py).
-Then you need to add your `submit` command to the `main_submit` function in [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/a5730daa5d0595f4baf15a606790d8e512cd2219/PicoProducer/scripts/pico.py#L885-L897).
+and the module's filename should be the same as the class.
+See for example [`HTCondor.py`](python/batch/HTCondor.py).
+If you need extra (shell) scripts, leave them in `python/batch` as well.
+Then you need to add your `submit` command to the `main_submit` function in
+[`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/9c3addaa1cd09cf4f866d279e4fa53a328f4997b/PicoProducer/scripts/pico.py#L973-L985).
+```
+def main_submit(args):
+  ...
+    elif batch.system=='SLURM':
+      script  = "python/batch/submit_SLURM.sh %s"%(joblist)
+      logfile = os.path.join(logdir,"%x.%A.%a")
+      jobid   = batch.submit(script,name=jobname,log=logfile,dry=dryrun,...)
+  ...
+```
 
-Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py) in [`python/storage/`](python/storage).
+### Storage system
+Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py)
+in [`python/storage/`](python/storage).
+Currently, the code automatically assigns a path to a storage system, so you also need to 
+edit `getstorage`in [`python/storage/utils.py`](python/storage/utils.py), e.g.
+```
+def getstorage(path,verb=0,ensure=False):
+  ...
+  elif path.startswith('/pnfs/psi.ch/'):
+    from TauFW.PicoProducer.storage.T3_PSI import T3_PSI
+    storage = T3_PSI(path,ensure=ensure,verb=verb)
+  ...
+  return storage
+```
+If you want, you can also add the path of your storage element to `getsedir` in the same file.
+This help function automatically sets the default paths for new users, based on the host and user name.
 
+### Analysis module
+Detailed instructions to create an analysis module are provided [in the README](python/analysis/).
 
+If you want to share your analysis module (e.g. for TauPOG measurements),
+please make a new directory in [`python/analysis`](python/analysis),
+where you save your analysis modules with a [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py)
+subclass. For example, reusing the full examples:
+```
+cd python/analysis
+mkdir MuTauFakeRate
+cp TreeProducerMuTau.py MuTauFakeRate/TreeProducerMuMu.py
+cp ModuleMuTau.py MuTauFakeRate/ModuleMuMu.py
+```
+Rename the module class to the filename (in this example `ModuleMuMu`) and
+edit the the pre-selection and tree format in these modules to your liking.
+Test run as
+```
+pico.py channel mumu python/analysis/MuTauFakeRate/ModuleMuMu.py
+pico.py run -c mumu -y 2018
+```
