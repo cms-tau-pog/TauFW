@@ -967,6 +967,9 @@ def main_submit(args):
   resubmit  = args.subcommand=='resubmit'
   force     = args.force #or True
   dryrun    = args.dryrun #or True
+  testrun   = args.testrun #or True
+  queue     = args.queue
+  batchopts = args.batchopts
   batch     = getbatch(CONFIG,verb=verbosity+1)
   
   for jobcfg in preparejobs(args):
@@ -984,13 +987,15 @@ def main_submit(args):
       script  = "python/batch/submit_HTCondor.sub"
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
-      queue   = "arg from %s"%(joblist)
+      if testrun and not queue:
+        queue = "espresso"
+      qcmd    = "arg from %s"%(joblist)
       option  = "" #-dry-run dryrun.log"
-      jobid   = batch.submit(script,name=jobname,opt=option,app=appcmds,queue=queue,dry=dryrun)
+      jobid   = batch.submit(script,name=jobname,opt=option,app=appcmds,qcmd=qcmd,queue=queue,dry=dryrun)
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
       logfile = os.path.join(logdir,"%x.%A.%a") # $JOBNAME.o$JOBID.$TASKID
-      jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,dry=dryrun)
+      jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,queue=queue,dry=dryrun)
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
     else:
@@ -1197,8 +1202,10 @@ if __name__ == "__main__":
   parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1, action='store',
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
-  #parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
-  #                                              help='extra options for the batch system')
+  parser_job.add_argument('-q','--queue',       dest='queue', default=None,
+                                                help='queue of batch system')
+  parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
+                                                help='extra options for the batch system')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=CONFIG.nfilesperjob,
                                                 help='number of files per job, default=%(default)d')
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1, action='store',

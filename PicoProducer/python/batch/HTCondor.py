@@ -20,7 +20,8 @@ class HTCondor(BatchSystem):
     #queue     = kwargs.get('queue', 'microcentury'  )
     appcmds   = kwargs.get('app',   [ ]            )
     options   = kwargs.get('opt',   None           )
-    queue     = kwargs.get('queue', None           )
+    qcmd      = kwargs.get('qcmd',  None           )
+    queue     = kwargs.get('queue', None           ) # 'espresso', 'microcentury', 'longlunch', 'workday', ...
     name      = kwargs.get('name',  None           )
     dry       = kwargs.get('dry',   False          )
     verbosity = kwargs.get('verb',  self.verbosity )
@@ -33,11 +34,13 @@ class HTCondor(BatchSystem):
       subcmd += " -batch-name %s"%(name)
     if options:
       subcmd += " "+options
+    if queue:
+      appcmds.append("+JobFlavour=%s"%(queue))
     for appcmd in appcmds:
       subcmd += " -append %s"%(appcmd)
     subcmd += " "+script
-    if queue:
-      subcmd += " -queue %s"%(queue)
+    if qcmd:
+      subcmd += " -queue %s"%(qcmd)
     out = self.execute(subcmd,dry=dry,verb=verbosity)
     fail = False
     for line in out.split(os.linesep):
