@@ -83,7 +83,7 @@ def ensureTFile(filename,option='READ'):
   if not os.path.isfile(filename):
     raise IOError('File in path "%s" does not exist!'%(filename))
     exit(1)
-  file = ROOT.TFile(filename,option)
+  file = ROOT.TFile.Open(filename,option)
   if not file or file.IsZombie():
     raise IOError('Could not open file by name "%s"'%(filename))
     exit(1)

@@ -225,7 +225,7 @@ def main_link(args):
       value = ''.join(value.split('samples/')[1:])
     path = os.path.join("samples",repkey(value,ERA='*',CHANNEL='*',TAG='*'))
     LOG.insist(glob.glob(path),"Did not find any sample lists '%s'"%(path))
-    ensureinit(path,by="pico.py")
+    ensureinit(os.path.dirname(path),by="pico.py")
   if value!=oldval:
     print ">>> Converted '%s' to '%s'"%(oldval,value)
   
