@@ -990,12 +990,12 @@ def main_submit(args):
       if testrun and not queue:
         queue = "espresso"
       qcmd    = "arg from %s"%(joblist)
-      option  = "" #-dry-run dryrun.log"
-      jobid   = batch.submit(script,name=jobname,opt=option,app=appcmds,qcmd=qcmd,queue=queue,dry=dryrun)
+      #batchopts += "-dry-run dryrun.log"
+      jobid   = batch.submit(script,name=jobname,app=appcmds,qcmd=qcmd,opt=batchopts,queue=queue,dry=dryrun)
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
       logfile = os.path.join(logdir,"%x.%A.%a") # $JOBNAME.o$JOBID.$TASKID
-      jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,queue=queue,dry=dryrun)
+      jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,opt=batchopts,queue=queue,dry=dryrun)
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
     else:
