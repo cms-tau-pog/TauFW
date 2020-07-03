@@ -46,8 +46,6 @@ class SLURM(BatchSystem):
       subcmd += " --time='%s'"%(time) # e.g. "04:20:00"
     if mem:
       subcmd += " --mem=%sM"%(mem) # e.g. 5000
-    if opt:
-      subcmd += " %s"%(opt)
     if options:
       subcmd += " "+options
     subcmd += " "+script

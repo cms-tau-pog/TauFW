@@ -41,8 +41,6 @@ class HTCondor(BatchSystem):
     subcmd += " "+script
     if qcmd:
       subcmd += " -queue %s"%(qcmd)
-    if opt:
-      subcmd += " %s"%(opt)
     out = self.execute(subcmd,dry=dry,verb=verbosity)
     fail = False
     for line in out.split(os.linesep):
