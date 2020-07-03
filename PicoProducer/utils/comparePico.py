@@ -35,9 +35,13 @@ def compare(fnames,variables,**kwargs):
     tree = file.Get(tname)
     files.append(file)
     trees.append(tree)
+    for variable in variables[:]:
+      if not hasattr(tree,variable.name):
+        LOG.warning("compare: tree %s:%s does not contain branch %r! Skipping..."%(fname,tname,variable.name))
+        variables.remove(variable)
   while len(entries)<len(trees):
     i     = len(entries)
-    entry = "%s %d"%(tnames[i],i)
+    entry = "%s %d"%(tnames[i],i+1)
     entries.append(entry)
   
   # PLOT
@@ -75,30 +79,35 @@ def compare(fnames,variables,**kwargs):
 
 def main(args):
   
-  CMSStyle.setCMSEra(2018)
-  CMSStyle.lumiText = ""
+  CMSStyle.setCMSEra('(13 TeV)')
   
   files     = args.files
   outdir    = args.outdir
   tree      = args.trees
+  cut       = args.cut
   tag       = args.tag
   verbosity = args.verbosity
   
   variables = [
-    Variable("pt_1",         40, 0,100),
-    Variable("pt_2",         40, 0,100),
-    Variable("genPartFlav_1",11,-1, 10),
-    Variable("genPartFlav_2",11,-1, 10),
+    Variable("pt_1",          40, 0,100),
+    Variable("pt_2",          40, 0,100),
+    Variable("genPartFlav_1", 11,-1, 10),
+    Variable("genPartFlav_2", 11,-1, 10),
+    Variable("idweight_1",   100,-1,  4),
+    Variable("idweight_2",   100,-1,  4),
+    Variable("ltfweight_1",  100,-1,  4),
+    Variable("ltfweight_2",  100,-1,  4),
   ]
   
   if verbosity>=1:
     print ">>> %-14s = %s"%('files',files)
     print ">>> %-14s = %r"%('outdir',outdir)
     print ">>> %-14s = %s"%('tree',tree)
+    print ">>> %-14s = %r"%('cut',cut)
     print ">>> %-14s = %r"%('tag',tag)
   
   for norm in [True,False]:
-    compare(files,variables,outdir=outdir,tag=tag,tree=tree,norm=norm)
+    compare(files,variables,outdir=outdir,tag=tag,cut=cut,tree=tree,norm=norm)
   
 
 if __name__ == "__main__":
@@ -115,6 +124,8 @@ if __name__ == "__main__":
                                              help="create pdf version as well as png" )
   parser.add_argument('-t', '--tag',         type=str, default='', action='store',
                                              help="add tag to plots" )
+  parser.add_argument('-c', '--cut',         type=str, default="", action='store',
+                                             help="selection cut" )
   parser.add_argument('-o', '--out',         dest='outdir',type=str, default="compare", action='store',
                                              help="output directory, default=%(default)r" )
   parser.add_argument('-v', '--verbose',     dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',

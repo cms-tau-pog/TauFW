@@ -288,6 +288,7 @@ def main_run(args):
   force     = args.force
   extraopts = args.extraopts
   maxevts   = args.maxevts
+  userfiles = args.infiles
   nfiles    = args.nfiles
   nsamples  = args.nsamples
   dryrun    = args.dryrun
@@ -336,7 +337,7 @@ def main_run(args):
         print ">>> %-12s = %r"%('outdir',outdir)
       
       # GET SAMPLES
-      if filters or vetoes or dtypes:
+      if not userfiles and (filters or vetoes or dtypes):
         LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
         samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,moddict=moddict,verb=verbosity)
         if nsamples>0:
@@ -368,8 +369,10 @@ def main_run(args):
           print ">>> %-12s = %r"%('filetag',filetag)
         
         # GET FILES
-        infiles = 0
-        if sample:
+        infiles = [ ]
+        if userfiles:
+          infiles = userfiles[:]
+        elif sample:
           nevents = 0
           infiles = sample.getfiles(verb=verbosity)
           dtype   = sample.dtype
@@ -1243,6 +1246,8 @@ if __name__ == "__main__":
                                                 help="maximum number of input files to process (per sample), default=%(default)d")
   parser_run.add_argument('-S', '--nsamples',   dest='nsamples', type=int, default=1,
                                                 help="number of samples to run, default=%(default)d")
+  parser_run.add_argument('-i', '--input',      dest='infiles', nargs='+', default=[ ],
+                                                help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',

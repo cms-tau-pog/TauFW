@@ -316,13 +316,13 @@ subclass. For example, reusing the full examples:
 ```
 cd python/analysis
 mkdir MuTauFakeRate
-cp TreeProducerMuTau.py MuTauFakeRate/TreeProducerMuMu.py
-cp ModuleMuTau.py MuTauFakeRate/ModuleMuMu.py
+cp TreeProducerMuTau.py MuTauFakeRate/TreeProducerMuTau.py
+cp ModuleMuTau.py MuTauFakeRate/ModuleMuTau.py
 ```
-Rename the module class to the filename (in this example `ModuleMuMu`) and
+Rename the module class to the filename (in this example `ModuleMuTau` stays the same) and
 edit the the pre-selection and tree format in these modules to your liking.
 Test run as
 ```
-pico.py channel mumu python/analysis/MuTauFakeRate/ModuleMuMu.py
-pico.py run -c mumu -y 2018
+pico.py channel mutau python/analysis/MuTauFakeRate/ModuleMuTau.py
+pico.py run -c mutau -y 2018
 ```
