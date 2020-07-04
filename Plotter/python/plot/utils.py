@@ -3,6 +3,7 @@
 from math import sqrt, log10, ceil, floor
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs
 from TauFW.common.tools.log import Logger
+from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gDirectory, gROOT, TH1, THStack, TGraphErrors, TGraphAsymmErrors, Double,\

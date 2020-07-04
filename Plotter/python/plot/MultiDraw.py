@@ -5,34 +5,29 @@
 #              This script injects a MultiDraw method into TTree when it is imported.
 # Source: https://github.com/pwaller/minty/blob/master/minty/junk/MultiDraw.py
 import os, re
-from time import time
-from ROOT import gROOT, gSystem, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
-    TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
-#from PlotTools import modulepath
-modulepath = os.path.dirname(__file__)
-gROOT.ProcessLine(".L %s/MultiDraw.cxx+O"%modulepath)
+from ROOT import gROOT, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
+                 TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
+moddir = os.path.dirname(__file__)
+gROOT.ProcessLine(".L %s/MultiDraw.cxx+O"%moddir)
 from ROOT import MultiDraw as _MultiDraw
 from ROOT import MultiDraw2D as _MultiDraw2D
 
-#gROOT.ProcessLine(".L PlotTools/fakeRate/fakeRate.cxx+0")
-#gSystem.Load("PlotTools/fakeRate/fakeRate_C.so")
+def makeTObjArray(theList):
+  """Turn a python iterable into a ROOT TObjArray"""
+  # Make PyROOT give up ownership of the things that are being placed in the
+  # TObjArary. They get deleted because of result.SetOwner()
+  result = TObjArray()
+  result.SetOwner()
+  for item in theList:
+    SetOwnership(item, False)
+    result.Add(item)
+  return result
+  
 
-def MakeTObjArray(theList):
-    """Turn a python iterable into a ROOT TObjArray"""
-    # Make PyROOT give up ownership of the things that are being placed in the
-    # TObjArary. They get deleted because of result.SetOwner()
-    result = TObjArray()
-    result.SetOwner()
-    for item in theList:
-      SetOwnership(item, False)
-      result.Add(item)
-    return result
-    
-
-varexppattern   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$")
-varexppattern2  = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$")
-binningpattern  = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
-binningpattern2 = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
+varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$")
+varregex2D = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$")
+binregex   = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
+binregex2D = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
 def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     """Draws multiple histograms in one loop over a tree (self).
     Instead of:
@@ -49,10 +44,11 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     Alternatively it can be a tuple, with  said string, and an additional
     string specifying the weight to be applied to that histogram only."""
     
-    verbose   = kwargs.get('verbosity', 0     )
-    poisson   = kwargs.get('poisson',   False ) # kPoisson errors for data
-    sumw2     = kwargs.get('sumw2',     False ) # sumw2 for MC
-    histlist  = kwargs.get('hists',     [ ]   ) # to not rely on gDirectory.Get(histname)
+    selection = kwargs.get('cut',       selection ) # selections cuts
+    verbosity = kwargs.get('verbosity', 0         ) # verbosity
+    poisson   = kwargs.get('poisson',   False     ) # kPoisson errors for data
+    sumw2     = kwargs.get('sumw2',     False     ) # sumw2 for MC
+    histlist  = kwargs.get('hists',     [ ]       ) # to not rely on gDirectory.Get(histname)
     
     hists     = { }
     results, xformulae, yformulae, weights = [ ], [ ], [ ], [ ]
@@ -76,13 +72,13 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
           varexp, weight = varexp, '1'
         
         # PREPARE histogram
-        match = varexppattern.match(varexp)
+        match = varregex.match(varexp)
         if match:
             xvar, name, binning = match.group(1), match.group(2), match.group(3)
             
             # 1D histogram
             if xvar.count(':')==0:
-              match = binningpattern.match(binning)
+              match = binregex.match(binning)
               if not match:
                 raise RuntimeError('MultiDraw: Could not parse formula: "%s"'%varexp)
               nxbins, xmin, xmax = int(match.group(1)), float(match.group(2)), float(match.group(3))
@@ -91,7 +87,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
             # 2D histogram
             else:
               xvar, yvar = xvar.split(':')
-              match = binningpattern2.match(binning)
+              match = binregex2D.match(binning)
               if not match:
                 raise RuntimeError('MultiDraw: Could not parse formula: "%s"'%varexp)
               nxbins, xmin, xmax = int(match.group(1)), float(match.group(2)), float(match.group(3))
@@ -99,7 +95,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
               hist = TH2D(name, name, nxbins, xmin, xmax, nybins, ymin, ymax)
             
         else:
-            match = varexppattern2.match(varexp)
+            match = varregex2D.match(varexp)
             if not match:
               raise RuntimeError('MultiDraw: Could not parse formula: "%s"'%varexp)
             xvar, name = match.groups()
@@ -120,7 +116,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
               yvar, xvar = xvar.split(':')
               if not isinstance(hist,TH2):
                 raise RuntimeError('MultiDraw: Existing histogram with name "%s" is not 2D! Found xvar="%s", yvar="%s"...'%(name,xvar,yvar))
-        
+            
         if sumw2:
           hist.Sumw2()
         elif poisson:
@@ -145,14 +141,14 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
             xformulae.append(TObject())
         
         if yvar!=None:
-          if yvar!=lastYVar:
-            formula = TTreeFormula("formula%i"%i, yvar, self)
-            if not formula.GetTree():
-              raise RuntimeError('MultiDraw: TTreeFormula did not compile:\n  yvar:    "%s"\n  varexp:  "%s"'%(yvar,varexp))
-            formula.SetQuickLoad(True)
-            yformulae.append(formula)
-          else:
-            yformulae.append(TObject())
+            if yvar!=lastYVar:
+              formula = TTreeFormula("formula%i"%i, yvar, self)
+              if not formula.GetTree():
+                raise RuntimeError('MultiDraw: TTreeFormula did not compile:\n  yvar:    "%s"\n  varexp:  "%s"'%(yvar,varexp))
+              formula.SetQuickLoad(True)
+              yformulae.append(formula)
+            else:
+              yformulae.append(TObject())
         
         if weight!=lastWeight:
             formula = TTreeFormula("weight%i"%i, weight, self)
@@ -166,7 +162,6 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
         lastXVar, lastYVar, lastWeight = xvar, yvar, weight
     
     # CHECK that formulae are told when tree changes
-    #start = time()
     manager = TTreeFormulaManager()
     for formula in xformulae + yformulae + weights + [commonFormula, ]:
       if isinstance(formula,TTreeFormula):
@@ -176,15 +171,16 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     self.SetNotify(manager)
     
     # DRAW
-    #print xformulae, yformulae, weights, results
+    if verbosity>=2:
+      print ">>> MultiDraw: xformulae=%s, yformulae=%s"%(xformulae,yformulae)
+      print ">>> MultiDraw: weights=%s, results=%s"%(weights,results)
     if len(yformulae)==0:
-      _MultiDraw(self,commonFormula,MakeTObjArray(xformulae),MakeTObjArray(weights),MakeTObjArray(results),len(xformulae))
+      _MultiDraw(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae))
     elif len(xformulae)==len(yformulae):
-      _MultiDraw2D(self,commonFormula,MakeTObjArray(xformulae),MakeTObjArray(yformulae),MakeTObjArray(weights),MakeTObjArray(results),len(xformulae))
+      _MultiDraw2D(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(yformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae))
     else:
       raise RuntimeError("MultiDraw: Given a mix of arguments for 1D (%d) and 2D (%d) histograms"%(len(xformulae),len(yformulae)))
     
-    #print "Took %.2fs"%(time()-start)+' '*10
     return results
     
-TTree.MultiDraw = MultiDraw
+TTree.MultiDraw = MultiDraw # add MultiDraw to TTree as a class method

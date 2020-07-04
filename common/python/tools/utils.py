@@ -57,7 +57,6 @@ def ensurelist(arg,nonzero=False):
     arg = [a for a in arg if a]
   return arg
   
-  
 
 def unwraplistargs(args):
   """Unwrap arguments from function's *args,

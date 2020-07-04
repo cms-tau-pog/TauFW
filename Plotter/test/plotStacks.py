@@ -115,6 +115,11 @@ def main():
        ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
        ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
      ]),
+    (('pt_1',"Leading p_{T} [GeV]",50,0,100), [
+      ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Landau, (30,2)),
+      ('QCD', "QCD multiplet",          0.3, gRandom.Landau, (30,5)),
+      ('TT', "t#bar{t}",                0.2, gRandom.Landau, (40,6)),
+     ]),
     (('njets',"Number of jets",8,0,8), [
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Poisson, (0.2,)),
       ('QCD', "QCD multiplet",          0.3, gRandom.Poisson, (2.0,)),

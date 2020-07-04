@@ -307,10 +307,10 @@ If you want, you can also add the path of your storage element to `getsedir` in 
 This help function automatically sets the default paths for new users, based on the host and user name.
 
 ### Analysis module
-Detailed instructions to create an analysis module are provided [in the README](python/analysis/).
+Detailed instructions to create an analysis module are provided [in the README of `python/analysis`](python/analysis/#PicoProducer-Analysis-Code).
 
 If you want to share your analysis module (e.g. for TauPOG measurements),
-please make a new directory in [`python/analysis`](python/analysis),
+please make a new directory in `python/analysis`,
 where you save your analysis modules with a [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py)
 subclass. For example, reusing the full examples:
 ```

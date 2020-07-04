@@ -42,22 +42,24 @@ class TreeProducer(object):
     self.pileup   = TH1D('pileup', 'pileup', 100, 0, 100)
     self.tree     = TTree('tree','tree')
   
-  def addBranch(self, name, dtype='f', default=None, arrname=None):
+  def addBranch(self, name, dtype='f', default=None, title=None, arrname=None):
     """Add branch with a given name, and create an array of the same name as address."""
     if hasattr(self,name):
       raise IOError("Branch of name '%s' already exists!"%(name))
     if not arrname:
       arrname = name
-    if isinstance(dtype,str):  # Set correct data type for numpy:
-      if dtype.lower()=='f':   # 'F' = 'complex64', which do not work for filling float branches
-        dtype = 'float32'      # 'f' = 'float32' -> 'F' -> Float_t
-    if isinstance(dtype,str):  # Set correct data type for numpy:
-      if dtype.lower()=='d':   # 'D' = 'complex128', which do not work for filling float branches
-        dtype = 'float64'      # 'd' = 'float64' -> 'D' -> Double_t
+    if isinstance(dtype,str): # Set correct data type for numpy:
+      if dtype=='F':          # 'F' = 'complex64', which do not work for filling float branches
+        dtype = 'float32'     # 'f' = 'float32' -> 'F' -> Float_t
+    if isinstance(dtype,str): # Set correct data type for numpy:
+      if dtype=='D':          # 'D' = 'complex128', which do not work for filling float branches
+        dtype = 'float64'     # 'd' = 'float64' -> 'D' -> Double_t
     setattr(self,arrname,np.zeros(1,dtype=dtype))
-    self.tree.Branch(name,getattr(self,arrname),'%s/%s'%(name,root_dtype[dtype]))
+    branch = self.tree.Branch(name,getattr(self,arrname),'%s/%s'%(name,root_dtype[dtype]))
     if default!=None:
       getattr(self,name)[0] = default
+    if title:
+      branch.SetTitle(title)
   
   def fill(self):
     """Fill tree."""

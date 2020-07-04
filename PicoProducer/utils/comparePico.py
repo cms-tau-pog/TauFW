@@ -55,6 +55,7 @@ def compare(fnames,variables,**kwargs):
     grid     = True #and False
     staterr  = True #and False # add uncertainty band to first histogram
     lstyle   = 1               # solid lines
+    LOG.header(fname)
     
     # GET HISOGRAMS
     hists    = [ ]
@@ -63,11 +64,12 @@ def compare(fnames,variables,**kwargs):
       #hist   = variable.gethist(hname,htitle)
       #dcmd   = variable.drawcmd(hname)
       hist   = variable.draw(tree,cut,name=hname,title=htitle) # create and fill hist from tree
-      hist.SetTitle("%s (%d)"%(htitle,hist.GetEntries()))
+      evts   = hist.GetEntries()
+      hist.SetTitle("%s (%d)"%(htitle,evts))
       hists.append(hist)
+      print ">>>   %r: entries=%d, integral=%s, mean=%#.6g, s.d.=%#.6g"%(htitle,evts,hist.Integral(),hist.GetMean(),hist.GetStdDev())
     
     # DRAW PLOT
-    LOG.header(fname)
     plot = Plot(variable,hists,norm=norm)
     plot.draw(ratio=True,logy=logy,ratiorange=rrange,lstyle=lstyle,grid=grid,staterr=staterr)
     plot.drawlegend(header=header)
@@ -97,6 +99,7 @@ def main(args):
     Variable("idweight_2",   100,-1,  4),
     Variable("ltfweight_1",  100,-1,  4),
     Variable("ltfweight_2",  100,-1,  4),
+    Variable("btagweight",   100,-1,  4),
   ]
   
   if verbosity>=1:

@@ -449,13 +449,13 @@ class Plot(object):
     if logy:
       if not ymin or ymin<=0: # avoid zero or negative ymin for log plots
         ymin = 10**(magnitude(hmax)-logyrange) #max(0.1,10**(magnitude(ymax)-3))
-        LOG.verb("Plot.setaxes: logy=%s, hmax=%.6g, magnitude(hmax)=%s, logyrange=%s, ymin=%.6g"%(
+        LOG.verb("Plot.setaxes: logy=%s, hmax=%6.6g, magnitude(hmax)=%s, logyrange=%s, ymin=%6.6g"%(
                                 logy,hmax,magnitude(hmax),logyrange,ymin),verbosity,2)
       if ymax==None:
         if hmax>ymin>0:
           span = abs(log10(hmax/ymin))*ymargin
           ymax = ymin*(10**span)
-          LOG.verb("Plot.setaxes: log10(hmax/ymin)=%.6g, span=%.6g, ymax=%.6g"%(log10(hmax/ymin),span,ymax),verbosity,2)
+          LOG.verb("Plot.setaxes: log10(hmax/ymin)=%6.6g, span=%6.6g, ymax=%6.6g"%(log10(hmax/ymin),span,ymax),verbosity,2)
         else:
           ymax = hmax*ymargin
       gPad.Update(); gPad.SetLogy()
@@ -527,16 +527,16 @@ class Plot(object):
     if verbosity>=2:
       print ">>> Plot.setaxes: frame=%s"%(frame)
       print ">>> Plot.setaxes: hists=%s"%(hists)
-      print ">>> Plot.setaxes: [hmin,hmax] = [%.6g,%.6g], [xmin,xmax] = [%.6g,%.6g], [ymin,ymax] = [%.6g,%.6g]"%(hmin,hmax,xmin,xmax,ymin,ymax)
-      print ">>> Plot.setaxes: xtitlesize=%.4g, xlabelsize=%.4g, xtitleoffset=%.4g, xtitle=%r"%(xtitlesize,xlabelsize,xtitleoffset,xtitle)
-      print ">>> Plot.setaxes: ytitlesize=%.4g, ylabelsize=%.4g, ytitleoffset=%.4g, ytitle=%r"%(ytitlesize,ylabelsize,ytitleoffset,ytitle)
-      print ">>> Plot.setaxes: scale=%.4g, nxdivisions=%s, nydivisions=%s, ymargin=%.3f, logyrange=%.3f"%(scale,nxdivisions,nydivisions,ymargin,logyrange)
+      print ">>> Plot.setaxes: [hmin,hmax] = [%6.6g,%6.6g], [xmin,xmax] = [%6.6g,%6.6g], [ymin,ymax] = [%6.6g,%6.6g]"%(hmin,hmax,xmin,xmax,ymin,ymax)
+      print ">>> Plot.setaxes: xtitlesize=%4.4g, xlabelsize=%4.4g, xtitleoffset=%4.4g, xtitle=%r"%(xtitlesize,xlabelsize,xtitleoffset,xtitle)
+      print ">>> Plot.setaxes: ytitlesize=%4.4g, ylabelsize=%4.4g, ytitleoffset=%4.4g, ytitle=%r"%(ytitlesize,ylabelsize,ytitleoffset,ytitle)
+      print ">>> Plot.setaxes: scale=%4.4g, nxdivisions=%s, nydivisions=%s, ymargin=%.3f, logyrange=%.3f"%(scale,nxdivisions,nydivisions,ymargin,logyrange)
     if main:
       if any(a!=None and a!=b for a, b in [(self.xmin,xmin),(self.xmax,xmax)]):
-        LOG.warning("Plot.setaxes: x axis range changed: [xmin,xmax] = [%.6g,%.6g] -> [%.6g,%.6g]"%(
+        LOG.warning("Plot.setaxes: x axis range changed: [xmin,xmax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
                     self.xmin,self.xmax,xmin,xmax))
       if any(a!=None and a!=b for a, b in [(self.ymin,ymin),(self.ymax,ymax)]):
-        LOG.warning("Plot.setaxes: y axis range changed: [ymin,ymax] = [%.6g,%.6g] -> [%.6g,%.6g]"%(
+        LOG.warning("Plot.setaxes: y axis range changed: [ymin,ymax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
                     self.ymin,self.ymax,ymin,ymax))
       self.xmin, self.xmax = xmin, xmax
       self.ymin, self.ymax = ymin, ymax
