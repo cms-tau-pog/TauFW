@@ -144,11 +144,11 @@ hist = sample.gethist('m_vis',40,0,200,"pt_1>30 && pt_2>30")
 hist = sample.gethist('m_vis',[0,40,50,60,70,90,100,120,200],"pt_1>30 && pt_2>30")
 hist = sample.gethist(var,"pt_1>30 && pt_2>30")
 ```
-To speed up things, it can create histograms in parallel for you, using [`MultiDraw`](python/plot/MultiDraw.py):
+To speed up things, it can create histograms in parallel with [`MultiDraw`](python/plot/MultiDraw.py):
 ```
-hists = sample.gethist(variables,"pt_1>30 && pt_2>30")
+hists = sample.gethist(vars,"pt_1>30 && pt_2>30")
 ```
-where `variables` is a list of variables as above, and the returned `hists` is a list of `TH1D`s.
+where `vars` is a list of variables as above, and the returned `hists` is a list of `TH1D`s.
 Similarly, `Sample.gethist2D` is available for 2D histograms (`TH2D`).
 
 You can also split samples into different components (like real/misidentified or decay mode)
@@ -158,7 +158,7 @@ sample.split(('ZTT',"Real tau","genmatch_2==5"),
              ('ZJ', "Fake tau","genmatch_2!=5"))
 hists = { }
 for subsample in sample.splitsamples:
-  hists[subsample] = subsample.gethist(variables,"pt_1>50")
+  hists[subsample] = subsample.gethist(vars,"pt_1>50")
 ```
 Examples are provided in [`test/testSamples.py`](test/testSamples.py):
 ```
@@ -183,14 +183,22 @@ samples.printtable()
 ```
 It can create and fill histograms for you:
 ```
-result = samples.gethists(variables,selection)
-print result.vars  # list of Variable
-print result.data  # dictionary of Variable object to TH1D
-print result.exp   # dictionary of Variable object to list of TH1Ds
-for var, datahist, exphists in results:
-  print var, datahist, exphists
+result = samples.gethists(var,selection)
+print result.var                 # Variable
+print result.data                # TH1D
+print result.exp                 # list of TH1Ds
+var, datahist, exphists = result # Variable, TH1D, list
 ```
-Here `result` is a [`HistSet`](python/sample/HistSet.py) object, which contains a list of `Variable` objects,
+Or with `MultiDraw`:
+```
+result = samples.gethists(vars,selection)
+print result.vars                # list of Variable
+print result.data                # dictionary of Variable object to TH1D
+print result.exp                 # dictionary of Variable object to list of TH1Ds
+for var, datahist, exphists in result:
+  print var, datahist, exphists  # Variable, TH1D, list
+```
+Here, `result` is a [`HistSet`](python/sample/HistSet.py) object, which contains a list of `Variable` objects,
 and dictionaries for data and MC histograms.
 
 Alternatively, you can immediately prepare the histograms into a `Stack` plot:

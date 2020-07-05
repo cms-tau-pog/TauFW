@@ -459,7 +459,7 @@ class Sample(object):
     name       = kwargs.get('name',     self.name      ) # hist name
     name      += kwargs.get('tag',      ""             ) # tag for hist name
     title      = kwargs.get('title',    self.title     ) # hist title
-    blind      = kwargs.get('blind',    False          ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
+    blind      = kwargs.get('blind',    None           ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
     fcolor     = kwargs.get('color',    self.fillcolor ) # fill color
     lcolor     = kwargs.get('lcolor',   self.linecolor ) # line color
     #replaceweight = kwargs.get('replaceweight', None )
@@ -489,20 +489,18 @@ class Sample(object):
     varexps = [ ]
     for variable in variables:
       
-      # BLIND
-      blindcuts = ""
-      if blind:
-        if isinstance(blind,tuple) and len(blind)==2:
-          blindcuts = variable.blind(*blind)
-        elif variable.name_ in self.blinddict:
-          blindcuts = variable.blind(*self.blinddict[variable.name_])
-      elif variable.blindcuts:
-        blindcuts = variable.blindcuts
-      
       # VAREXP
       hname  = makehistname(variable.filename,name)
       varcut = ""
-      if self.isdata and (blindcuts or variable.cut or variable.weightdata):
+      if self.isdata and (blind or variable.blindcuts or variable.cut or variable.weightdata):
+        blindcuts = ""
+        if blind:
+          if isinstance(blind,tuple) and len(blind)==2:
+            blindcuts = variable.blind(*blind)
+          elif variable.name_ in self.blinddict:
+            blindcuts = variable.blind(*self.blinddict[variable.name_])
+        elif variable.blindcuts:
+          blindcuts = variable.blindcuts
         varcut = joincuts(blindcuts,variable.cut,weight=variable.weightdata)
       elif not self.isdata and (variable.cut or variable.weight):
         varcut = joincuts(variable.cut,weight=variable.weight)
@@ -546,8 +544,9 @@ class Sample(object):
       print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
       print ">>>   %r"%(cuts)
       if verbosity>=3:
-        for variable in variables:
-          print '>>>   Variable %r, cut=%r, weight=%r'%(variable.name,variable.cut,variable.weight)
+        for var, varexp in zip(variables,varexps):
+          print '>>>   Variable %r: varexp=%r'%(var.name,varexp)
+          #print '>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp)
     
     if issingle:
       return hists[0]

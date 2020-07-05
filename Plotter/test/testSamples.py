@@ -102,6 +102,7 @@ def testSampleSet(datasample,expsamples,tag=""):
   LOG.header("testSampleSet")
   print ">>> Joining samples in one set"%(expsamples)
   checkMergedSample = True and False
+  singlevar    = True and False
   if checkMergedSample:
     color      = expsamples[0].fillcolor
     bkgsample  = MergedSample('Bkg',"Background",expsamples[1:],color=color)
@@ -117,21 +118,34 @@ def testSampleSet(datasample,expsamples,tag=""):
   
   # GET HISTS
   for selection, weight in selections:
-    #result = samples.gethists(variables[0],selection)
-    result = samples.gethists(variables,selection)
+    if singlevar:
+      result = samples.gethists(variables[0],selection)
+      result.printall()
+      #var, datahist, exphists = result
+      #print var
+      #print datahist
+      #print exphists
+    else:
+      result = samples.gethists(variables,selection)
     result.printall()
   
   # PLOT
   outdir = ensuredir("plots")
   fname  = "%s/testSamplesSet_$VAR%s.png"%(outdir,tag)
   for selection, weight in selections:
-    #stack = samples.getstack(variables[0],selection)
-    stacks = samples.getstack(variables,selection)
-    for stack in stacks:
+    if singlevar:
+      stack = samples.getstack(variables[0],selection)
       stack.draw()
       stack.drawlegend(position=position)
       stack.saveas(fname) #tag="_SampleSet",outdir=outdir)
       stack.close()
+    else:
+      stacks = samples.getstack(variables,selection)
+      for stack in stacks:
+        stack.draw()
+        stack.drawlegend(position=position)
+        stack.saveas(fname) #tag="_SampleSet",outdir=outdir)
+        stack.close()
   
 
 def main():
@@ -143,7 +157,7 @@ def main():
     ('Data', "Observed",                -1 ),
   ]
   lumi       = 0.001 # [fb-1] to cancel xsec [pb]
-  nevts      = 50000
+  nevts      = 100000
   snames     = [n[0] for n in sampleset]
   scales     = {n[0]: n[2] for n in sampleset} # relative contribtions to pseudo data
   outdir     = ensuredir('plots')

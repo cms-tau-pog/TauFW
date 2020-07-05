@@ -273,15 +273,15 @@ class SampleSet(object):
     self.refresh()
     variables, selection, issingle = self.changecontext(*args)
     result = self.gethists(variables,selection,**kwargs)
-    if issingle:
-      stacks = Stack(variables[0],*result,**kwargs)
-    else:
-      stacks = { }
-      for args in result:
-        stack = Stack(*args,**kwargs)
-        stacks[stack] = args[0]
+    stacks = { }
     self.nplots += len(result.vars)
-    return stacks
+    for args in result:
+      stack = Stack(*args,**kwargs)
+      if issingle:
+        return stack # Stack
+      else:
+        stacks[stack] = args[0]
+    return stacks # dictionary: Stack -> Variable
   
   def getTHStack(self, *args, **kwargs):
     """Get stack of backgrounds histogram."""
@@ -289,18 +289,17 @@ class SampleSet(object):
     kwargs.update({'data':False, 'signal':False, 'exp':True})
     variables, selection, issingle = self.changecontext(*args)
     result = self.gethists(variables,selection,**kwargs)
-    if issingle:
-      stacks = THStack(name,name)
-      for hist in reversed(result.exp):
-        stacks.Add(hist)
-    else:
-      stacks = { }
-      for var in result.vars:
-        stacks[var] = THStack(name,name)
-        for hist in reversed(result.exp[var]):
-          stacks[var].Add(hist)
-    self.nplots += 1
-    return stacks
+    stacks = { }
+    self.nplots += len(result.vars)
+    for var in result.vars:
+      stack = THStack(name,name)
+      for hist in reversed(result.exp[var]):
+        stack.Add(hist)
+      if issingle:
+        return stack # TH1Stack
+      else:
+        stacks[stack] = var
+    return stacks # dictionary: THStack -> Variable
   
   def getdata(self, *args, **kwargs):
     """Create and fill histograms of background simulations and make a stack."""
@@ -323,7 +322,7 @@ class SampleSet(object):
     weightdata    = kwargs.get('weightdata',      ""      ) # extra weight for data
     replaceweight = kwargs.get('replaceweight',   None    ) # replace substring of weight
     split         = kwargs.get('split',           True    ) # split samples into components
-    blind         = kwargs.get('blind',           True    ) # blind data in some given range: blind={xvar:(xmin,xmax)}
+    blind         = kwargs.get('blind',           None    ) # blind data in some given range: blind={xvar:(xmin,xmax)}
     scaleup       = kwargs.get('scaleup',         0.0     ) # scale up histograms
     reset         = kwargs.get('reset',           False   ) # reset scales
     parallel      = kwargs.get('parallel',        False   ) # create and fill hists in parallel
@@ -377,7 +376,7 @@ class SampleSet(object):
       #print ">>> split=%s, makeQCD=%s, makeJTF=%s, nojtf=%s, keepWJ=%s"%(split,makeQCD,makeJTF,nojtf,keepWJ)
       print '>>>   with extra weights "%s" for MC and "%s" for data'%(weight,weightdata)
     elif self.loadingbar and verbosity<=1:
-      bar = LoadingBar(len(samples),width=16,pre=">>> %s: %s: "%(selection,task),counter=True,remove=True) #.title
+      bar = LoadingBar(len(samples),width=16,pre=">>> %s: "%(task),counter=True,remove=True) # %s: selection.title
     
     # GET HISTOGRAMS (PARALLEL)
     if parallel:
