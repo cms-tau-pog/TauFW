@@ -54,8 +54,8 @@ plots.close
 
 More examples of usage of `Plot` and `Stack` are provided in [`test/`](test/), run as
 ```
-test/plotHists.py -v 2
-test/plotStacks.py -v 2
+test/plotHists.py -v2
+test/plotStacks.py -v2
 ```
 
 <p align="center">
@@ -148,7 +148,10 @@ hists = { }
 for subsample in sample.splitsamples:
   hists[subsample] = subsample.gethist(variables,"pt_1>50")
 ```
-Examples are provided in [`test/testSamples.py`](test/testSamples.py).
+Examples are provided in [`test/testSamples.py`](test/testSamples.py):
+```
+test/testSamples.py -v2
+```
 
 ### Sample style
 The color and title style is predefined by dictionaries in [`python/sample/SampleStyle.py`](python/sample/SampleStyle.py).
@@ -169,17 +172,25 @@ samples.printtable()
 It can create and fill histograms for you:
 ```
 result = samples.gethists(variables,selection)
+print result.vars  # list of Variable
+print result.data  # dictionary of Variable object to TH1D
+print result.exp   # dictionary of Variable object to list of TH1Ds
+for var, datahist, exphists in results:
+  print var, datahist, exphists
 ```
-or immediately prepare them into a `Stack` plot:
+Here `result` is a [`HistSet`](python/sample/HistSet.py) object, which contains a list of `Variable` objects,
+and dictionaries for data and MC histograms.
+
+Alternatively, you can immediately prepare the histograms into a `Stack` plot:
 ```
 stacks = samples.getstack(variables,selection)
 for stack in stacks:
   stack.draw()
-  stack.drawlegend(position=position)
+  stack.drawlegend()
   stack.saveas()
   stack.close()
 ```
-Examples are provided in [`test/testSamples.py`](test/testSamples.py).
+Examples are provided in `test/testSamples.py`.
 
 [To be added: data-driven background methods like QCD.]
 

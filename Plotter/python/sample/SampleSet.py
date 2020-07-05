@@ -593,7 +593,7 @@ class SampleSet(object):
     self.samples.insert(index0,mergedsample)
   
   def split(self,*args,**kwargs):
-    """Split sample for some dictionairy of cuts."""
+    """Split sample for some dictionary of cuts."""
     searchterms      = [ arg for arg in args if isinstance(arg,str)  ]
     splitlist        = [ arg for arg in args if islist(arg)          ][0]
     kwargs['unique'] = True
