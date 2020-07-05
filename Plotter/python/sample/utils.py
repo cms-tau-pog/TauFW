@@ -272,7 +272,7 @@ def unwrap_gethist_args_2D(*args,**kwargs):
 #    exit(1)
   
 
-from TauFW.Plotter.sample.Sample import Sample
+from TauFW.Plotter.sample.Sample import *
 from TauFW.Plotter.sample.MergedSample import MergedSample
 from TauFW.Plotter.sample.SampleSet import SampleSet
 import TauFW.Plotter.sample.SampleStyle as STYLE

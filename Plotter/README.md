@@ -4,7 +4,7 @@
 * [Installation](#Installation)<br>
 * [Basic plots](#Basic-plots)<br>
   * [Histogram comparison](#Histogram-comparison)<br>
-  * [Data-MC comparisons](#Data-MC-comparison)<br>
+  * [Data-MC comparison](#Data-MC-comparison)<br>
   * [CMS style](#CMS-style)<br>
 * [Variable](#Variable)<br>
 * [Sample](#Sample)<br>
@@ -36,7 +36,7 @@ plots.close
   <img src="../docs/testHists_ratio_logy.png" alt="Gaussians with Plot class and ratio plot" width="420"/>
 </p>
 
-### Data-MC comparisons
+### Data-MC comparison
 If you want to make a data-MC comparison between a data histogram `datahist` and
 a list of expected SM processes, `exphists`,
 you can use the [`Stack`](python/plot/Stack.py) class, with something like
@@ -45,7 +45,7 @@ from TauFW.Plotter.plot.Stack import Stack, CMSStyle
 CMSStyle.setCMSEra(2018)
 plot = Stack("p_{T} [GeV]",datahist,exphists)
 plot.draw(ratio=True,logy=False)
-plot.drawlegend()
+plot.drawlegend(pos='right')
 plot.drawtext("#mu#tau_{h} baseline")
 plot.saveas("stack.png")
 plot.saveas("stack.pdf")

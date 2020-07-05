@@ -651,4 +651,16 @@ class Sample(object):
     return exclusive
   
 
+def Data(*args,**kwargs):
+  kwargs['isdata'] = True
+  kwargs['isexp']  = False
+  return Sample(*args,**kwargs)
+  
+
+def MC(*args,**kwargs):
+  kwargs['isdata'] = False
+  kwargs['isexp']  = True
+  return Sample(*args,**kwargs)
+  
+
 from TauFW.Plotter.sample.MergedSample import MergedSample
