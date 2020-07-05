@@ -22,6 +22,7 @@ class Sample(object):
   """
   
   def __init__(self, name, title, filename, xsec=-1.0, **kwargs):
+    import TauFW.Plotter.sample.utils as GLOB
     LOG.setverbosity(kwargs)
     self.name         = name                            # short name to use for files, histograms, etc.
     self.title        = title                           # title for histogram entries
@@ -37,7 +38,7 @@ class Sample(object):
     self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum weights
     self.binnevts     = kwargs.get('binnevts',      1           ) # cutflow bin with total number of (unweighted) events
     self.binsumw      = kwargs.get('binsumw',      15           ) # cutflow bin with total sum of weight
-    self.lumi         = kwargs.get('lumi',         -1           ) # integrated luminosity
+    self.lumi         = kwargs.get('lumi',         GLOB.lumi    ) # integrated luminosity
     self.norm         = kwargs.get('norm',         1.0          ) # lumi*xsec/binsumw normalization
     self.scale        = kwargs.get('scale',        1.0          ) # scales factor (e.g. for W+Jets renormalization)
     self.upscale      = kwargs.get('upscale',      1.0          ) # drawing up/down scaling
@@ -307,11 +308,12 @@ class Sample(object):
     return self.nevents
   
   def normalize(self,lumi=None,xsec=None,sumw=None,**kwargs):
-    """Calculate and set the normalization for simulation as lumi*xsec/sumw"""
+    """Calculate and set the normalization for simulation as lumi*xsec/sumw,
+    where sumw is the sum of generator event weights."""
     norm     = 1.
     if lumi==None: lumi = self.lumi
     if xsec==None: xsec = self.xsec
-    if sumw==None: sumw = self.sumweights
+    if sumw==None: sumw = self.sumweights or self.nevents
     if self.isdata:
       LOG.warning('Sample.normalize: Ignoring data sample %r'%(self.name))
     elif lumi<=0 or xsec<=0 or sumw<=0:

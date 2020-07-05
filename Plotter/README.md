@@ -118,12 +118,24 @@ To initialize, you need to pass a unique name, a title (for legends) and a filen
 sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76)
 ```
 The fourth argument can be a float that will be used to compute the normalization to
-the luminosity times cross section. The total number of events will automatically
-be taken from the [`'cutflow'` histogram](../PicoProducer/python/analysis/#Cutflow),
+the integrated luminosity times cross section. The total number of events will automatically
+be taken from the [`'cutflow'` histogram](../PicoProducer/python/analysis/#Cutflow) if it exists,
 otherwise pass it with `nevts` (total, raw number of MC events) or `sumw` (sum of generator weights).
 ```
-sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76,nevts=76915549)
+sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76,nevts=76915549,lumi=59.7)
 ```
+Instead of passing the integrated luminosity with `lumi` to `Sample`, you can set it globally
+(in [`python/sample/utils.py`](python/sample/utils.py)) by passing the era like this:
+```
+from TauFW.Plotter.sample.utils as setera
+setera(2018)
+```
+This will also immediately set the era for plots via `CMSStyle`. To set the era manually,
+directly edit the dictionary `lumi_dict` in the `python/sample/utils.py`, or use
+```
+setera(2018,59.7)
+```
+
 `Sample` provides a useful method that can create and fill a histogram (`TH1D`) for some variable.
 It can be called in several ways:
 ```

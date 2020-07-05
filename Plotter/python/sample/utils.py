@@ -9,12 +9,38 @@ import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gDirectory, gROOT, TH1, THStack, kDotted, kBlack, kWhite
 gROOT.SetBatch(True)
-LOG = Logger('Sample')
-xsecsNLO = {
+LOG  = Logger('Sample')
+era  = None # data period: 2016, 2017, 2018, ...
+lumi = -1   # integrated luminosity [fb-1]
+cme  = 13   # center-of-mass energy [TeV]
+lumi_dict      = {
+  '7':      5.1,    '2016': 35.9,
+  '8':      19.7,   '2017': 41.5,
+  '2012':   19.7,   '2018': 59.7,
+  'Run2':   137.1,
+  'Phase2': 3000,
+}
+xsecs_nlo = { # NLO cross sections to compute k-factor for stitching
   'DYJetsToLL_M-50':     3*2025.74,
   'DYJetsToLL_M-10to50':  18610.0,
   'WJetsToLL':            61526.7,
 }
+
+
+def setera(era_,lumi_=None,**kwargs):
+  """Set global era and integrated luminosity for Samples and CMSStyle."""
+  global era, lumi, cme
+  era   = str(era_)
+  lumi  = kwargs.get('lumi',lumi_)
+  if lumi==None:
+    lumi = lumi_dict.get(era,None)
+  else:
+    kwargs['lumi'] = lumi
+  cme  = kwargs.get('cme', 13 )
+  CMSStyle.setCMSEra(era,**kwargs)
+  LOG.verb("setera: era = %r, lumi = %r / fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
+  return lumi
+  
 
 def unwrap_MergedSamples_args(*args,**kwargs):
   """Help function to unwrap arguments for MergedSamples."""

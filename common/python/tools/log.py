@@ -84,11 +84,13 @@ class Logger(object):
   def verbose(self,string,verb=None,level=1,**kwargs):
     """Check verbosity and print if verbosity level is matched."""
     if verb==None:
-      verb   = self.verbosity
+      verb = self.verbosity
+    elif isinstance(verb,dict):
+      verb = self.getverbosity(verb)
     if verb>=level:
-      pre = self.pre+kwargs.get('pre',"")
-      col = kwargs.get('c',False)
-      col = kwargs.get('color',col)
+      pre  = self.pre+kwargs.get('pre',"")
+      col  = kwargs.get('c',False)
+      col  = kwargs.get('color',col)
       if col:
         string = color(string,col) if isinstance(col,str) else color(string)
       print pre+string

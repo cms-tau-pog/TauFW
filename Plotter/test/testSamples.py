@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (July 2020)
-# Description: Test Sample initiation
+# Description: Test Sample, MergedSample and SampleSet methods
 #   test/testSamples.py -v2
-from TauFW.Plotter.sample.utils import LOG, STYLE, CMSStyle, ensuredir, Sample, MergedSample, SampleSet
+from TauFW.Plotter.sample.utils import LOG, STYLE, setera, CMSStyle, ensuredir,\
+                                       Sample, MergedSample, SampleSet
 #import TauFW.Plotter.sample.SampleStyle as STYLE
-from TauFW.Plotter.sample.SampleStyle import getcolor, sample_colors
+#from TauFW.Plotter.sample.SampleStyle import getcolor, sample_colors
 #from TauFW.Plotter.sample.Sample import Sample
 #from TauFW.Plotter.sample.MergedSample import MergedSample
 #from TauFW.Plotter.sample.SampleSet import SampleSet
@@ -83,8 +84,8 @@ def testMergedSamples(datasample,expsamples):
   LOG.header("testMergedSamples")
   print ">>> Joining samples %s"%(expsamples)
   #color      = expsamples[0].fillcolor
-  sample_colors['Exp'] = STYLE.kPink
-  sample_colors['Bkg'] = STYLE.kPink
+  STYLE.sample_colors['Exp'] = STYLE.kOrange
+  STYLE.sample_colors['Bkg'] = STYLE.kOrange
   bkgsample  = MergedSample("Bkg","Background",expsamples[1:]) #,color=color)
   expsamples = [expsamples[0],bkgsample]
   expsample  = MergedSample("Exp","Expected",expsamples) #,color=color)
@@ -135,7 +136,6 @@ def testSampleSet(datasample,expsamples,tag=""):
 
 def main():
   LOG.header("Prepare samples")
-  CMSStyle.setCMSEra(2018)
   sampleset = [
     ('ZTT',  "Z -> #tau_{mu}#tau_{h}", 1.0 ),
     ('QCD',  "QCD multijet",           0.3 ),
@@ -151,13 +151,16 @@ def main():
   filedict   = makesamples(nevts,sample=snames,scales=scales,outdir=outdir)
   datasample = None
   expsamples = [ ]
+  #CMSStyle.setCMSEra(2018)
+  setera(2018,lumi)
   for name, title, xsec in sampleset:
     file, tree = filedict[name]
     fname = file.GetName()
     color = None #STYLE.getcolor(name,verb=2)
     data  = name.lower()=='data'
     file.Close()
-    sample = Sample(name,title,fname,xsec,lumi=lumi,color=color,data=data)
+    sample = Sample(name,title,fname,xsec,color=color,data=data)
+    #sample = Sample(name,title,fname,xsec,lumi=lumi,color=color,data=data)
     if sample.isdata:
       datasample = sample
     else:
