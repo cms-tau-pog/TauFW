@@ -1,5 +1,9 @@
-# Author: Izaak Neutelings (June 2020)
 # -*- coding: utf-8 -*-
+# Author: Izaak Neutelings (June 2020)
+# Sources:
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PoissonErrorBars
+#   https://twiki.cern.ch/twiki/bin/view/CMS/StatComWideBins
+#   https://twiki.cern.ch/twiki/bin/view/CMS/DataMCComparison
 import os, re
 from TauFW.Plotter.plot.utils import *
 import ROOT

@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
 # Source: https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python

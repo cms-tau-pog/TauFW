@@ -146,7 +146,7 @@ def multidraw2D(tree,variables,selections,predefine=False,outdir='plots'):
 
 def main():
   nevts      = 1000000
-  predefine  = True #and False # initialize histogram before calling Filling
+  predefine  = True #and False # initialize histogram before calling filling
   sample     = 'ZTT' #'Data'
   outdir     = ensuredir('plots')
   filedict   = makesamples(nevts,sample=sample,outdir=outdir)

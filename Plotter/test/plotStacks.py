@@ -1,12 +1,11 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
 # Description: Test script for Stack class
-#   test/plotStacks.py && eog plots/testStacks*.png
+#   test/plotStacks.py -v2 && eog plots/testStacks*.png
 from array import array
-from TauFW.common.tools.file import ensuredir
+from TauFW.Plotter.plot.utils import LOG, ensuredir
 from TauFW.Plotter.plot.Stack import Stack, CMSStyle
 from ROOT import TH1D, gRandom, TColor, kBlack, kWhite, kBlue, kOrange, kMagenta
-from TauFW.Plotter.plot.utils import LOG
 from TauFW.Plotter.plot.Variable import Variable
 
 

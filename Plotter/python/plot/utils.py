@@ -1,6 +1,7 @@
-# Author: Izaak Neutelings (June 2020)
 # -*- coding: utf-8 -*-
+# Author: Izaak Neutelings (June 2020)
 from math import sqrt, log10, ceil, floor
+from TauFW.common.tools.file import ensuredir, ensureTFile
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs
 from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
@@ -30,6 +31,23 @@ def magnitude(x):
   if x%10==0: return int(logx)+1
   if x<1: return int(floor(logx))
   return int(ceil(logx))
+  
+
+def round2digit(x,digit=1,multiplier=1):
+  """Round off number x to first signicant digit."""
+  x = float(x)/multiplier
+  precision = (digit-1)-magnitude(x)
+  if multiplier!=1 and int(x*10**precision)==1: precision += 1
+  return multiplier*round(x,precision)
+  
+
+def ceil2digit(x,digit=1,multiplier=1):
+  """Round up number x to first signicant digit."""
+  if x==0: return 0
+  x = float(x)
+  e = int(floor(log(abs(x),10)))-(digit-1)
+  if multiplier>1: e = e - ceil(log(multiplier,10))
+  return ceil(x/multiplier/(10.**e))*(10.**e)*multiplier
   
 
 def columnize(oldlist,ncol=2):
@@ -117,6 +135,17 @@ def deletehist(*hists,**kwargs):
     #  print ">>> AttributeError: "
     #  raise AttributeError
     del hist
+  
+
+def printhist(hist,min_=0,max_=None,**kwargs):
+  """Help function to print bin errors."""
+  nbins  = hist.GetNbinsX()
+  minbin = kwargs.get('min',min_)
+  maxbin = kwargs.get('max',max_) or nbins+1
+  print ">>> %6s %9s %9s %8s %r" % ("ibin","xval","content","error",hist.GetName())
+  for ibin in range(minbin,maxbin+1):
+    xval = hist.GetXaxis().GetBinCenter(ibin)
+    print ">>> %6s %9.6g %9.2f %8.2f"%(ibin,xval,hist.GetBinContent(ibin),hist.GetBinError(ibin))
   
 
 def getTGraphYRange(graphs,ymin=+10e10,ymax=-10e10,margin=0.0):
@@ -356,7 +385,7 @@ def geterrorband(*hists,**kwargs):
   error.SetName(name)
   error.SetTitle(title)
   LOG.verb("geterrorband: Making error band for %s"%(hists),verbosity,2)
-  LOG.verb("%4s %8s %8s %8s %11s   %-20s   %-20s   %-20s"%(
+  LOG.verb("%5s %7s %6s %10s %11s   %-20s   %-20s   %-20s"%(
            "ibin","xval","xerr","nevts","sqrt(nevts)","statistical","systematical","total"),verbosity,2)
   for ibin in range(0,nbins+2):
     xval        = hist0.GetXaxis().GetBinCenter(ibin)
@@ -374,7 +403,7 @@ def geterrorband(*hists,**kwargs):
     ylow2, yupp2 = statlow2+syslow2, statupp2+sysupp2,
     error.SetPoint(ibin,xval,yval)
     error.SetPointError(ibin,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
-    LOG.verb("%4d %8.6g %8.6g %8.3f %11.3f   +%8.2f  -%8.2f   +%8.2f  -%8.2f   +%8.2f  -%8.2f"%(
+    LOG.verb("%5d %7.6g %6.6g %10.2f %11.2f   +%8.2f  -%8.2f   +%8.2f  -%8.2f   +%8.2f  -%8.2f"%(
              ibin,xval,xerr,yval,sqrt(yval),sqrt(statupp2),sqrt(statlow2),sqrt(sysupp2),sqrt(syslow2),sqrt(yupp2),sqrt(ylow2)),verbosity,2)
   seterrorbandstyle(error,color=color)
   #error.SetLineColor(hist0.GetLineColor())

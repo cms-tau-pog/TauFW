@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
 import re
@@ -6,10 +5,9 @@ from math import sqrt, pow, log
 from array import array
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
-from TauFW.common.tools.utils import isnumber, islist, ensurelist
 from TauFW.Plotter.plot.strings import *
 from TauFW.Plotter.plot.Context import getcontext
-from TauFW.Plotter.plot.utils import LOG
+from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist, unwraplistargs
 
 
 class Variable(object):
@@ -26,7 +24,7 @@ class Variable(object):
   def __init__(self, name, *args, **kwargs):
     strings              = [a for a in args if isinstance(a,str) ]
     self.name            = name
-    self.name_           = name # back up for addoverflow
+    self.name_           = name # backup for addoverflow
     self.title           = strings[0] if strings else self.name
     self.filename        = makefilename(self.name.replace('/',"_"))
     self.title           = kwargs.get('title',           self.title    ) # for plot axes
@@ -395,27 +393,41 @@ class Variable(object):
     self.name   = "min(%s,%s)"%(self.name_,threshold)
     LOG.verb("Variable.addoverflow: '%s' -> '%s' for binning '%s'"%(self.name_,self.name,self.getbins()),verbosity,2)
     return self.name
- 
-var = Variable # short name
 
 
 def wrapvariable(*args,**kwargs):
   """Help function to wrap variable arguments into a Variable object."""
   if len(args)==4 or len(args)==5:
-    return Variable(args) # (var,nbins,xmin,xmax)
+    return Variable(args) # (xvar,nxbins,xmin,xmax)
   elif len(args)==1 and isinstance(args[0],Variable):
     return args[0]
   LOG.warning('wrapvariable: Could not unwrap arguments "%s" to a Variable object. Returning None.'%args)
   return None
   
 
-def unwrapvariablebins(*args,**kwargs):
+def unwrap_variable_bins(*args,**kwargs):
   """Help function to unwrap variable arguments to return variable name, number of bins,
   minumum and maximum x axis value."""
   if len(args)==4:
-    return args # (var,nbins,xmin,xmax)
+    return args # (xvar,nxbins,xmin,xmax)
   elif len(args)==1 and isintance(args[0],Variable):
     return args[0].unwrap()
-  LOG.warning('unwrapvariablebins: Could not unwrap arguments "%s" to a Variable object. Returning None.'%args)
-  return None
+  LOG.throw(IOError,'unwrap_variable_bins: Could not unwrap arguments "%s" to a Variable object.'%args)
+  
+
+def ensurevar(*args,**kwargs):
+  """Help function to ensure arguments are one Variable object:
+      - xvar, nxbins, xmin, xmax (str, int, float, float)
+      - xvar, xbins (str, list)
+      - var (str)
+  """
+  args = unwraplistargs(args)
+  if len(args)==4:
+    return Variable(*args) # (xvar,nxbins,xmin,xmax)
+  elif len(args)==2 and islist(args[1]):
+    return Variable(*args)  # (xvar,xbins)
+  elif len(args)==1 and isinstance(args[0],Variable):
+    return args[0]
+  else:
+    LOG.throw(IOError,'unwrap_variable_args: Could not unwrap arguments %s, len(args)=%d. Returning None.'%(args,len(args)))
   

@@ -1,11 +1,10 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
 # Description: Test script for Plot class
-#   test/plotHists.py && eog plots/testHists*.png
-from TauFW.common.tools.file import ensuredir
+#   test/plotHists.py -v2 && eog plots/testHists*.png
+from TauFW.Plotter.plot.utils import LOG, ensuredir
 from TauFW.Plotter.plot.Plot import Plot, CMSStyle
 from ROOT import TH1D, gRandom
-from TauFW.Plotter.plot.utils import LOG
 
 
 def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
@@ -64,8 +63,8 @@ def createhists():
 def main():
   
   CMSStyle.setCMSEra(2018)
-  xtitle   = "p_{T}^{MET} [GeV]"
-  #xtitle   = "Leading jet p_{T} [GeV]"
+  xtitle = "p_{T}^{MET} [GeV]"
+  #xtitle = "Leading jet p_{T} [GeV]"
   
   #plothist(variable,hists,ratio=False,logy=False)
   for ratio in [True,False]:

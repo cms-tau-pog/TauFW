@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2019)
 # Description: Efficiently draw multiple histograms with one loop over all events in a TTree

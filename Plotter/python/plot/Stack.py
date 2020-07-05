@@ -1,5 +1,9 @@
-# Author: Izaak Neutelings (June 2020)
 # -*- coding: utf-8 -*-
+# Author: Izaak Neutelings (June 2020)
+# Sources:
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PoissonErrorBars
+#   https://twiki.cern.ch/twiki/bin/view/CMS/StatComWideBins
+#   https://twiki.cern.ch/twiki/bin/view/CMS/DataMCComparison
 from TauFW.Plotter.plot.Plot import *
 from TauFW.Plotter.plot.Plot import _tsize
 
@@ -31,6 +35,7 @@ class Stack(Plot):
     self.sighists  = ensurelist(sighists)
     self.hists     = [datahist]+self.exphists+self.sighists
     super(Stack,self).__init__(variable,self.hists,**kwargs)
+    self.ratio     = kwargs.get('ratio', True )
     
   
   def draw(self,*args,**kwargs):
@@ -80,7 +85,8 @@ class Stack(Plot):
     lstyles         = kwargs.get('lstyles',         lstyles              ) or self.lstyles
     lwidth          = kwargs.get('lwidth',          2                    ) # line width
     mstyle          = kwargs.get('mstyle',          None                 ) # marker style
-    option          = kwargs.get('option',          'HIST'               ) # draw option for data
+    option          = kwargs.get('option',          'HIST'               ) # draw option
+    doption         = kwargs.get('doption',         'E1'                 ) # draw option for data
     roption         = kwargs.get('roption',         None                 ) # draw option of ratio plot
     enderrorsize    = kwargs.get('enderrorsize',    2.0                  ) # size of line at end of error bar
     errorX          = kwargs.get('errorX',          False                ) # no horizontal error bars for CMS style
@@ -90,6 +96,7 @@ class Stack(Plot):
     lcolors         = ensurelist(lcolors)
     fcolors         = ensurelist(fcolors)
     lstyles         = ensurelist(lstyles)
+    self.ratio      = ratio
     self.lcolors    = lcolors
     self.fcolors    = fcolors
     self.lstyles    = lstyles
@@ -122,7 +129,7 @@ class Stack(Plot):
     if errorX:
       gStyle.SetErrorX(0.5)
     else:
-      gStyle.SetErrorX(0)
+      gStyle.SetErrorX(0) # 'XE0' should also work
     
     # CANVAS
     self.canvas = self.setcanvas(square=square,ratio=ratio,
@@ -143,10 +150,10 @@ class Stack(Plot):
     if drawdata: # data
       self.datahist.SetFillStyle(0)
       if isinstance(self.datahist,TH1):
-        self.datahist.Draw('E0 SAME')
-        self.datahist.SetOption('E0 SAME') # for legend and ratio
+        self.datahist.Draw(doption+' SAME')
+        self.datahist.SetOption(doption+' SAME') # for legend and ratio
       else:
-        self.datahist.Draw('PZE0 SAME')
+        self.datahist.Draw(doption+'PZ SAME')
         self.datahist.GetOption = lambda: 'PZE0 SAME' # for legend and ratio
     
     # STYLE

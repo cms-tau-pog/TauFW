@@ -5,6 +5,7 @@
 * [Basic plots](#Basic-plots)<br>
 * [CMS style](#CMS-style)<br>
 * [Variable](#Variable)<br>
+* [Sample](#Sample)<br>
 
 ## Installation
 See [the README.md in the parent directory](../../../#taufw).
@@ -103,3 +104,29 @@ var  = Variable('pt_1',40,0,200,logy=True,ymargin=1.4)
 plot = Plot(var,hists)
 ```
 Examples are provided in [`test/testVariables.py`](test/testVariables.py).
+
+
+## Sample
+A [`Sample`](python/sample/Sample.py) class is provided to contain a sample' information,
+like title (for legends), filename, cross section, normalization, etc.
+```
+sample = Sample("TT,"t#bar{t}","TT.root",831.76)
+```
+It provides a useful method that can draw many histograms in parallel for you,
+using [`MultiDraw`](python/plot/MultiDraw.py):
+```
+hists  = sample.gethist(variables,"pt_1>30 && pt_2>30")
+```
+where `variables` is a list of variables as above, and the returned `hists` is a list of `TH1D`s.
+
+You can also split samples into subsamples based on some cut, e.g.
+```
+sample.split([
+  ('ZTT',"real tau","genmatch_2==5"),
+  ('ZJ', "fake tau","genmatch_2!=5"),
+])
+hists = { }
+for subsample in sample.splitsamples:
+  hists[subsample] = subsample.gethist(variables,"pt_1>50")
+```
+Examples are provided in [`test/testSamples.py`](test/testSamples.py).

@@ -77,7 +77,7 @@ class Sample(object):
     self.nfilesperjob = kwargs.get('nfilesperjob', -1  )
     self.subtry       = kwargs.get('subtry',        0  ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',       { } ) # to help keep track of resubmission
-    self.nevents      = kwargs.get('nevents',        0 )
+    self.nevents      = kwargs.get('nevents',        0 ) # number of nanoAOD events that can be processed
     self.files        = kwargs.get('files',        [ ] ) # list of ROOT files, OR text file with list of files
     self.era          = kwargs.get('era',           "" ) # for expansion of $ERA variable
     self.verbosity    = kwargs.get('verbosity',      0 ) # verbosity level for debugging

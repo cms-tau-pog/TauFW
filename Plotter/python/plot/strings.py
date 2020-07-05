@@ -1,10 +1,9 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
 import re
 from TauFW.Plotter.plot.utils import LOG
 
-varlist = {
+var_dict = {
     'njets':       "Number of jets",          'njets20':     "Number of jets (pt>20 GeV)",
     'nfjets':      "Number of forward jets",  'nfjets20':    "Number of forward jets (pt>20 GeV)",
     'ncjets':      "Number of central jets",  'ncjets20':    "Number of central jets (pt>20 GeV)",
@@ -26,11 +25,13 @@ varlist = {
     'DM10':        "h^{#pm}h^{#mp}h^{#pm}",
     'DM11':        "h^{#pm}h^{#mp}h^{#pm}h^{0}",
 }
-varlist_sorted = sorted(varlist,key=lambda x: len(x),reverse=True)
+var_dict_sorted = sorted(var_dict,key=lambda x: len(x),reverse=True)
 
 
+funcexpr = re.compile(r"(\w+)\(([^,]+),([^,]+)\)")
 def makelatex(string,**kwargs):
   """Convert patterns in a string to LaTeX format."""
+  global var_dict_sorted
   verbosity = LOG.getverbosity(kwargs)
   if not isinstance(string,str):
     return string
@@ -42,10 +43,12 @@ def makelatex(string,**kwargs):
   cm    = False
   
   # PREDEFINED
-  for var in varlist_sorted:
+  if len(var_dict_sorted)!=len(var_dict):
+    var_dict_sorted = sorted(var_dict,key=lambda x: len(x),reverse=True)
+  for var in var_dict_sorted:
     if var in string:
-      string = string.replace(var,varlist[var])
-      #string = re.sub(r"\b%s\b"%var,varlist[var],string,re.IGNORECASE)
+      string = string.replace(var,var_dict[var])
+      #string = re.sub(r"\b%s\b"%var,var_dict[var],string,re.IGNORECASE)
       break
   
   # SPLIT LINE
@@ -61,99 +64,112 @@ def makelatex(string,**kwargs):
         i = part1.rfind(' ')
         string = "#splitline{"+string[:i]+'}{'+string[i+1:]+"}"
   
-  # REPLACE PATTERNS
-  strings = [ ]
-  for substr in string.split(' / '):
-    strlow = substr.lower()
+  # REPLACE PATTERNS (RECURSIVELY)
+  match = funcexpr.match(string) # for min(), max(), ...
+  if ' / ' in string:
+    kwargs['units'] = False
+    string = ' / '.join(makelatex(s,**kwargs) for s in string.split(' / '))
+  elif match:
+    kwargs['units'] = False
+    arg1   = makelatex(match.group(2),**kwargs)
+    arg2   = makelatex(match.group(3),**kwargs)
+    old    = "%s(%s,%s)"%(match.group(1),match.group(2),match.group(3))
+    new    = "%s(%s,%s)"%(match.group(1),arg1,arg2)
+    string = string.replace(old,new)
+    #print ">>> %r -> %r, %r -> %r, %r -> %r, %r"%(match.group(2),arg1,match.group(3),arg2,old,new,string)
+  elif '+' in string:
+    kwargs['units'] = False
+    string = '+'.join(makelatex(s,**kwargs) for s in string.split('+'))
+  else:
+    strlow = string.lower()
     if "p_" in strlow:
-      substr = re.sub(r"(?<!i)(p)_([^{}()|<>=\ ]+)",r"\1_{\2}",substr,flags=re.IGNORECASE).replace('{t}','{T}')
+      string = re.sub(r"(?<!i)(p)_([^{}()|<>=\ ]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
       GeV    = True
     if re.search(r"(?<!le)(?<!byphoton)(?<!dee)pt(?!weight)",strlow):
-      substr = re.sub(r"(?<!k)(?<!Dee)(?<!OverTau)(p)[tT]_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",substr,flags=re.IGNORECASE)
-      substr = re.sub(r"\b(?<!Dee)(p)[tT]\b",r"\1_{T}",substr,flags=re.IGNORECASE)
+      string = re.sub(r"(?<!k)(?<!Dee)(?<!OverTau)(p)[tT]_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
+      string = re.sub(r"\b(?<!Dee)(p)[tT]\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     if "m_" in strlow:
-      substr = re.sub(r"(?<!u)(m)_([^{}()|<>=\ \^]+)",r"\1_{\2}",substr,flags=re.IGNORECASE).replace('{t}','{T}')
+      string = re.sub(r"(?<!u)(m)_([^{}()|<>=\ \^]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
       GeV    = True
     if "mt_" in strlow:
-      substr = re.sub(r"(m)t_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",substr,flags=re.IGNORECASE)
+      string = re.sub(r"(m)t_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
       GeV    = True
     if re.search(r"(?<!weig)(?<!daug)ht",strlow):
-      substr = re.sub(r"\b(h)t\b",r"\1_{T}",substr,flags=re.IGNORECASE)
+      string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     if " d_" in strlow:
-      substr = re.sub(r"(\ d)_([^{}()\|<>=\ ]+)",r"\1_{\2}",substr,flags=re.IGNORECASE)
+      string = re.sub(r"(\ d)_([^{}()\|<>=\ ]+)",r"\1_{\2}",string,flags=re.IGNORECASE)
       cm     = True
     if "deltar_" in strlow:
-      substr = re.sub(r"(?<!\#)deltar_([^{}()|<>=\ ]+)",r"#DeltaR_{\1}",substr,flags=re.IGNORECASE)
+      string = re.sub(r"(?<!\#)deltar_([^{}()|<>=\ ]+)",r"#DeltaR_{\1}",string,flags=re.IGNORECASE)
     elif "deltar" in strlow:
-      substr = re.sub(r"(?<!\#)deltar",r"#DeltaR",substr,flags=re.IGNORECASE)
-    if "dR" in substr:
-      substr = re.sub(r"(?<!\w)dR_([^{}()|<>=\ ]+)",r"#DeltaR_{\1}",substr)
+      string = re.sub(r"(?<!\#)deltar",r"#DeltaR",string,flags=re.IGNORECASE)
+    if "dR" in string:
+      string = re.sub(r"(?<!\w)dR_([^{}()|<>=\ ]+)",r"#DeltaR_{\1}",string)
     if "tau" in strlow:
-      #substr = re.sub(r"(?<!^)tau(?!\ )",r"#tau",substr,re.IGNORECASE)
-      substr = re.sub(r"(?<!Deep)(?<!Over)tau",r"#tau",substr,flags=re.IGNORECASE)
-      #substr = re.sub(r" #tau ",r" tau ",substr,flags=re.IGNORECASE)
-      #substr = re.sub(r"^#tau ",r"tau ",substr,flags=re.IGNORECASE)
-      substr = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",substr,flags=re.IGNORECASE)
+      #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)
+      string = re.sub(r"(?<!Deep)(?<!Over)tau",r"#tau",string,flags=re.IGNORECASE)
+      #string = re.sub(r" #tau ",r" tau ",string,flags=re.IGNORECASE)
+      #string = re.sub(r"^#tau ",r"tau ",string,flags=re.IGNORECASE)
+      string = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",string,flags=re.IGNORECASE)
     if "chi" in strlow:
-      substr = re.sub(r"(?<!#)chi(?!ng)",r"#chi",substr,flags=re.IGNORECASE)
-      substr = re.sub(r"chi_([^{}()^|<>=\ ]+)",r"chi_{\1}",substr,flags=re.IGNORECASE)
+      string = re.sub(r"(?<!#)chi(?!ng)",r"#chi",string,flags=re.IGNORECASE)
+      string = re.sub(r"chi_([^{}()^|<>=\ ]+)",r"chi_{\1}",string,flags=re.IGNORECASE)
     if "phi" in strlow:
       if "dphi" in strlow:
-        substr = substr.replace("dphi","#Delta#phi")
+        string = string.replace("dphi","#Delta#phi")
       else:
-        substr = substr.replace("phi","#phi")
-      substr = re.sub(r"phi_([^{}()|<>=\ ]+)",r"phi_{\1}",substr,flags=re.IGNORECASE)
+        string = string.replace("phi","#phi")
+      string = re.sub(r"phi_([^{}()|<>=\ ]+)",r"phi_{\1}",string,flags=re.IGNORECASE)
     if "zeta" in strlow and "#zeta" not in strlow:
-      if "Dzeta" in substr:
-        substr = substr.replace("Dzeta","D_{zeta}")
+      if "Dzeta" in string:
+        string = string.replace("Dzeta","D_{zeta}")
         GeV    = True
       if "zeta_" in strlow:
-        substr = re.sub(r"(?<!#)(zeta)_([^{}()|<>=\ ]+)",r"#\1_{\2}",substr,flags=re.IGNORECASE)
+        string = re.sub(r"(?<!#)(zeta)_([^{}()|<>=\ ]+)",r"#\1_{\2}",string,flags=re.IGNORECASE)
       else:
-        substr = re.sub(r"(?<!#)(zeta)",r"#\1",substr,flags=re.IGNORECASE)
+        string = re.sub(r"(?<!#)(zeta)",r"#\1",string,flags=re.IGNORECASE)
       GeV      = True
     if "eta" in strlow: #and "#eta" not in strlow and "#zeta" not in strlow and "deta" not in strlow:
-      substr = substr.replace("deta","#Deltaeta")
-      substr = re.sub(r"(?<!\#[Bbz])eta",r"#eta",substr)
-      substr = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",substr)
-    if "abs(" in substr and ")" in substr:
-      substr = re.sub(r"abs\(([^)]+)\)",r"|\1|",substr)
-      #substr = substr.replace("abs(","|").replace(")","") + "|" # TODO: split at next space
+      string = string.replace("deta","#Deltaeta")
+      string = re.sub(r"(?<!\#[Bbz])eta",r"#eta",string)
+      string = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",string)
+    if "abs(" in string and ")" in string:
+      string = re.sub(r"abs\(([^)]+)\)",r"|\1|",string)
+      #string = string.replace("abs(","|").replace(")","") + "|" # TODO: split at next space
     if "mu" in strlow:
-      substr = re.sub(r"(?<!VS)mu(?![lo])",r"#mu",substr)
-      #substr = substr.replace("mu","#mu").replace("Mu","#mu")
-      #substr = substr.replace("si#mulation","simulation")
+      string = re.sub(r"(?<!VS)mu(?![lo])",r"#mu",string)
+      #string = string.replace("mu","#mu").replace("Mu","#mu")
+      #string = string.replace("si#mulation","simulation")
     if "nu" in strlow:
-      substr = re.sub(r"nu(?![pm])",r"#nu",substr)
+      string = re.sub(r"nu(?![pm])",r"#nu",string)
     if "ttbar" in strlow:
-      substr = re.sub(r"ttbar","t#bar{t}",substr,flags=re.IGNORECASE)
+      string = re.sub(r"ttbar","t#bar{t}",string,flags=re.IGNORECASE)
     if "npv" in strlow:
-      substr = re.sub(r"npvs?","number of vertices",substr)
-    if '->' in substr:
-      substr = substr.replace('->','#rightarrow')
-    if "=" in substr:
-      substr = substr.replace(">=","#geq").replace("<=","#leq")
-    strings.append(substr.replace('##','#'))
-  newstr = ' / '.join(strings)
+      string = re.sub(r"npvs?","number of vertices",string)
+    if '->' in string:
+      string = string.replace('->','#rightarrow')
+    if "=" in string:
+      string = string.replace(">=","#geq").replace("<=","#leq")
+    string = string.replace('##','#')
   
   # UNITS
   if isinstance(units,str):
     if re.search(r"[(\[].*[)\]]",units):
-      newstr += " "+units.strip()
+      string += " "+units.strip()
     else:
-      newstr += " [%s]"%units.strip()
-  elif units and not '/' in newstr:
-    if GeV or "mass" in newstr or "S_{T}" in newstr or (any(m in newstr.lower() for m in ["met","p_{T}^{miss}"]) and "phi" not in newstr):
-      if "GeV" not in newstr:
-        newstr += " [GeV]"
+      string += " [%s]"%units.strip()
+  elif units and not '/' in string:
+    if GeV or "mass" in string or "S_{T}" in string or (any(m in string.lower() for m in ["met","p_{T}^{miss}"]) and "phi" not in string):
+      if "GeV" not in string:
+        string += " [GeV]"
       if cm:
         LOG.warning("makelatex: Flagged units are both GeV and cm!")
-    elif cm: #or 'd_' in newstr
-      newstr += " [cm]"
+    elif cm: #or 'd_' in string
+      string += " [cm]"
   
-  return newstr
+  return string
   
 
 
@@ -196,12 +212,54 @@ def makefilename(string,**kwargs):
   return fname
   
 
+def joinweights(*weights,**kwargs):
+  """Join weight strings multiplicatively."""
+  verbosity = LOG.getverbosity(kwargs)
+  weights   = [w for w in weights if w and isinstance(w,str)]
+  if weights:
+    weights = "*".join(weights)
+    weights = weights.replace('*/','/')
+  else:
+    weights = ""
+  return weights
+  
+
+def joincuts(*cuts,**kwargs):
+  """Joins selection strings and apply weight if needed."""
+  verbosity = LOG.getverbosity(kwargs)
+  cuts      = [c for c in cuts if c and isinstance(c,str)]
+  weight    = kwargs.get('weight', False)
+  if any('||' in c for c in cuts):
+    LOG.warning('joincuts: Be careful with those "or" statements in %s! Not sure how to join...'%(cuts,))
+    for i, cut in enumerate(cuts):
+      if '||' in cut:
+        cuts[i] = "(%s)"%(cut)
+  if weight:
+    string = re.sub("\(.+\)","",weight)
+    if any(c in string for c in '=<>+-&|'):
+      weight = "(%s)"%(weight)
+  if cuts:
+    cuts = " && ".join(cuts)
+    if weight:
+      string = re.sub("\(.+\)","",cuts)
+      cuts   = "(%s)*%s"%(cuts,weight)
+  elif weight:
+    cuts = weight
+  else:
+    cuts = ""
+  #print cuts
+  return cuts
+  
 
 def shift(*args,**kwargs):
   """Shift all jet variable in a given string (e.g. to propagate JEC/JER)."""
   return shiftjetvars(*args,**kwargs)
   
 
+def undoshift(string):
+  shiftless = re.sub(r"_[a-zA-Z]+(Up|Down|nom)","",string)
+  return shiftless
+  
 
 def shiftjetvars(var, jshift, **kwargs):
   """Shift all jet variable in a given string (e.g. to propagate JEC/JER)."""
@@ -223,10 +281,3 @@ def shiftjetvars(var, jshift, **kwargs):
     print '>>>    -> "%s"'%jshift
   return varshift
   
-
-
-def undoshift(string):
-  shiftless = re.sub(r"_[a-zA-Z]+(Up|Down|nom)","",string)
-  return shiftless
-  
-
