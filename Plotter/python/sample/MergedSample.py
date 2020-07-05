@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (July 2020)
-#import os, re
-#from TauFW.Plotter.plot.Variable import Variable
-#from TauFW.Plotter.sample.SampleStyle import *
 from TauFW.Plotter.sample.Sample import *
-#from ROOT import TTree
 
 
 class MergedSample(Sample):
@@ -15,18 +11,19 @@ class MergedSample(Sample):
     self.samples = samples
     Sample.__init__(self,name,title,"",**kwargs)
     if self.samples:
-      self.init(samples[0])
+      self.init(samples[0],**kwargs)
   
   def init(self, sample, **kwargs):
     """Set some relevant attributes (inherited from the Sample class) with a given sample."""
     self.filename     = sample.filename
-    self._treename    = sample.treename
-    self.issignal     = sample.issignal
+    self.treename     = sample.treename
     self.isdata       = sample.isdata
-    self.dtype        = sample.dtype
+    self.isembed      = sample.isembed
+    self.isexp        = sample.isexp
+    self.issignal     = sample.issignal
     self.lumi         = sample.lumi
-    self.fillcolor    = sample.fillcolor
-    self.linecolor    = sample.linecolor
+    self.fillcolor    = kwargs.get('color',    self.fillcolor) or sample.fillcolor
+    self.linecolor    = kwargs.get('linecolor',self.linecolor) or sample.linecolor
   
   def __len__(self):
     """Return number of samples."""

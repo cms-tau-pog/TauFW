@@ -65,10 +65,11 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
         yvar = None
         
         # EXPAND varexp
+        weight = None
         if isinstance(varexp,tuple):
           varexp, weight = varexp
-        else:
-          varexp, weight = varexp, '1'
+        if not varexp: varexp = '1'
+        if not weight: weight = '1'
         
         # PREPARE histogram
         match = varregex.match(varexp)
@@ -131,32 +132,32 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
         # dynamic cast in MultiDraw.cxx fails, giving 'NULL', and the previous
         # value is used. This saves the recomputing of identical values
         if xvar!=lastXVar:
-            formula = TTreeFormula("formula%i"%i, xvar, self)
-            if not formula.GetTree():
-              raise RuntimeError('MultiDraw: TTreeFormula did not compile:\n  xvar:    "%s"\n  varexp:  "%s"'%(xvar,varexp))
-            formula.SetQuickLoad(True)
-            xformulae.append(formula)
+          formula = TTreeFormula("formula%i"%i,xvar,self)
+          if not formula.GetTree():
+            raise RuntimeError("MultiDraw: TTreeFormula 'xvar' did not compile:\n  xvar:    %r\n  varexp:  %r"%(xvar,varexp))
+          formula.SetQuickLoad(True)
+          xformulae.append(formula)
         else:
-            xformulae.append(TObject())
+          xformulae.append(TObject())
         
         if yvar!=None:
-            if yvar!=lastYVar:
-              formula = TTreeFormula("formula%i"%i, yvar, self)
-              if not formula.GetTree():
-                raise RuntimeError('MultiDraw: TTreeFormula did not compile:\n  yvar:    "%s"\n  varexp:  "%s"'%(yvar,varexp))
-              formula.SetQuickLoad(True)
-              yformulae.append(formula)
-            else:
-              yformulae.append(TObject())
+          if yvar!=lastYVar:
+            formula = TTreeFormula("formula%i"%i,yvar,self)
+            if not formula.GetTree():
+              raise RuntimeError("MultiDraw: TTreeFormula 'yvar' did not compile:\n  yvar:    %r\n  varexp:  %r"%(yvar,varexp))
+            formula.SetQuickLoad(True)
+            yformulae.append(formula)
+          else:
+            yformulae.append(TObject())
         
         if weight!=lastWeight:
-            formula = TTreeFormula("weight%i"%i, weight, self)
-            if not formula.GetTree():
-              raise RuntimeError('MultiDraw: TTreeFormula did not compile:\n  weight:  "%s"\n  varexp:  "%s"'%(weight,varexp))
-            formula.SetQuickLoad(True)
-            weights.append(formula)
+          formula = TTreeFormula("weight%i"%i,weight,self)
+          if not formula.GetTree():
+            raise RuntimeError("MultiDraw: TTreeFormula 'weight' did not compile:\n  weight:  %r\n  varexp:  %r"%(weight,varexp))
+          formula.SetQuickLoad(True)
+          weights.append(formula)
         else:
-            weights.append(TObject())
+          weights.append(TObject())
         
         lastXVar, lastYVar, lastWeight = xvar, yvar, weight
     

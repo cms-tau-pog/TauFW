@@ -7,7 +7,7 @@ from ROOT import TColor, kBlack, kWhite, kGray, kAzure, kBlue, kCyan,\
                  kGreen, kSpring, kTeal, kYellow,\
                  kOrange, kRed, kPink, kMagenta, kViolet
 
-sample_title_dict = {
+sample_titles = {
   'DY':       "Z + jets", #Drell-Yan
   'ZTT':      "Z -> tau_{mu}tau_{h}",
   'ZTT_DM0':  "Z -> tau_{mu}tau_{h}, h^{#pm}",
@@ -31,7 +31,7 @@ sample_title_dict = {
   'data_obs': "Observed",
 }
 
-colors_sample_dict = {
+sample_colors = {
   'DY':        kOrange-4,
   'ZL':        TColor.GetColor(100,182,232), #kAzure+5,
   'ZJ':        kGreen-6,
@@ -56,8 +56,8 @@ colors_sample_dict = {
 
 
 def set_sample_colors(coldict):
-  global colors_sample_dict
-  colors_sample_dict = OrderedDict([
+  global sample_colors
+  sample_colors = OrderedDict([
     ('DY',               coldict['DY']),
     ('ZTT',              coldict['DY']),
     ('ZL',               coldict['ZL']),
@@ -115,17 +115,17 @@ def set_sample_colors(coldict):
     ('Data',             coldict['Data']),
     ('Observed',         coldict['Data']),
   ])
-set_sample_colors(colors_sample_dict)
+set_sample_colors(sample_colors)
 
 def getcolor(sample,color=kWhite,**kwargs):
   """Get color for some sample name."""
   verbosity = LOG.getverbosity(kwargs)
   if hasattr(sample,'name'):
     sample = sample.name
-  for key in colors_sample_dict: #sorted(colors_sample_dict,key=lambda x: len(x),reverse=True)
+  for key in sample_colors: #sorted(sample_colors,key=lambda x: len(x),reverse=True)
     if re.findall(key.replace('*',".*"),sample): # glob -> regex wildcard
-      LOG.verb("getcolor: Found color %s for %r from searchterm %r!"%(colors_sample_dict[key],sample,key),verbosity,level=2)
-      color = colors_sample_dict[key]
+      LOG.verb("getcolor: Found color %s for %r from searchterm %r!"%(sample_colors[key],sample,key),verbosity,level=2)
+      color = sample_colors[key]
       break
   else:
     LOG.warning("getcolor: Could not find color for %r!"%sample)

@@ -7,6 +7,7 @@
 from TauFW.Plotter.plot.Plot import *
 from TauFW.Plotter.plot.Plot import _tsize
 
+
 class Stack(Plot):
   """Class to automatically make CMS plot with data compared to expectation (as a stack)."""
   

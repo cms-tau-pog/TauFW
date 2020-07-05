@@ -150,7 +150,7 @@ def makelatex(string,**kwargs):
       string = re.sub(r"npvs?","number of vertices",string)
     if '->' in string:
       string = string.replace('->','#rightarrow')
-    if "=" in string:
+    if '=' in string:
       string = string.replace(">=","#geq").replace("<=","#leq")
     string = string.replace('##','#')
   
@@ -229,10 +229,10 @@ def joincuts(*cuts,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
   cuts      = [c for c in cuts if c and isinstance(c,str)]
   weight    = kwargs.get('weight', False)
-  if any('||' in c for c in cuts):
+  if any('||' in c and not ('(' in c and ')' in c) for c in cuts):
     LOG.warning('joincuts: Be careful with those "or" statements in %s! Not sure how to join...'%(cuts,))
     for i, cut in enumerate(cuts):
-      if '||' in cut:
+      if '||' in cut and not ('(' in cut and ')' in cut):
         cuts[i] = "(%s)"%(cut)
   if weight:
     string = re.sub("\(.+\)","",weight)

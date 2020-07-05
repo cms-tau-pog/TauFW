@@ -3,9 +3,13 @@
 ### Table of Contents  
 * [Installation](#Installation)<br>
 * [Basic plots](#Basic-plots)<br>
-* [CMS style](#CMS-style)<br>
+  * [Histogram comparison](#Histogram-comparison)<br>
+  * [Data-MC comparisons](#Data-MC-comparison)<br>
+  * [CMS style](#CMS-style)<br>
 * [Variable](#Variable)<br>
 * [Sample](#Sample)<br>
+  * [Sample style](#Sample-style)<br>
+  * [Sample set](#Sample-set)<br>
 
 ## Installation
 See [the README.md in the parent directory](../../../#taufw).
@@ -13,7 +17,7 @@ See [the README.md in the parent directory](../../../#taufw).
 
 ## Basic plots
 
-### Histogram comparisons
+### Histogram comparison
 Some classes are provided to facilitate making plots in CMS style.
 If you have a list of histograms, `hists`, you want to compare with a ratio plot,
 use the [`Plot`](python/plot/Plot.py) class, e.g.
@@ -60,8 +64,8 @@ test/plotStacks.py -v 2
 </p>
 
 
-## CMS style
-[CMSStyle.py](python/plot/CMSStyle.py) provides tools to make a plot have the CMS style.
+### CMS style
+[`CMSStyle.py`](python/plot/CMSStyle.py) provides tools to make a plot have the CMS style.
 The luminosity and center-of-mass energy are automatically set for a given year,
 ```
 CMSStyle.setCMSEra(2018)
@@ -74,7 +78,7 @@ CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary")
 
 ## Variable
 A [`Variable`](python/plot/Variable.py) class is provided to contain variable name (e.g. `pt_1`),
-title (e.g. `Leading p_{T} [GeV]`) and the binning (`(nbins,xmin,xmax)` or a list for variable binning), for example:
+title (e.g. `Leading p_{T} [GeV]`) and the binning (`nbins,xmin,xmax` or a list of bins edges), for example:
 ```
 from TauFW.Plotter.plot.Variable import Variable
 variables = [
@@ -109,24 +113,73 @@ Examples are provided in [`test/testVariables.py`](test/testVariables.py).
 ## Sample
 A [`Sample`](python/sample/Sample.py) class is provided to contain a sample' information,
 like title (for legends), filename, cross section, normalization, etc.
+To initialize, you need to pass a unique name, a title (for legends) and a filename:
 ```
-sample = Sample("TT,"t#bar{t}","TT.root",831.76)
+sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76)
 ```
-It provides a useful method that can draw many histograms in parallel for you,
-using [`MultiDraw`](python/plot/MultiDraw.py):
+The fourth argument can be a float that will be used to compute the normalization to
+the luminosity times cross section. The total number of events will automatically
+be taken from the [`'cutflow'` histogram](../PicoProducer/python/analysis/#Cutflow),
+otherwise pass it with `nevts` (total, raw number of MC events) or `sumw` (sum of generator weights).
 ```
-hists  = sample.gethist(variables,"pt_1>30 && pt_2>30")
+sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76,nevts=76915549)
+```
+`Sample` provides a useful method that can create and fill a histogram (`TH1D`) for some variable.
+It can be called in several ways:
+```
+var  = Variable('m_vis',40,0,200)
+hist = sample.gethist('m_vis',40,0,200,"pt_1>30 && pt_2>30")
+hist = sample.gethist('m_vis',[0,40,50,60,70,90,100,120,200],"pt_1>30 && pt_2>30")
+hist = sample.gethist(var,"pt_1>30 && pt_2>30")
+```
+To speed up things, it can create histograms in parallel for you, using [`MultiDraw`](python/plot/MultiDraw.py):
+```
+hists = sample.gethist(variables,"pt_1>30 && pt_2>30")
 ```
 where `variables` is a list of variables as above, and the returned `hists` is a list of `TH1D`s.
+Similarly, `Sample.gethist2D` is available for 2D histograms (`TH2D`).
 
-You can also split samples into subsamples based on some cut, e.g.
+You can also split samples into different components (like real/misidentified or decay mode)
+based on some cuts. e.g.
 ```
-sample.split([
-  ('ZTT',"real tau","genmatch_2==5"),
-  ('ZJ', "fake tau","genmatch_2!=5"),
-])
+sample.split(('ZTT',"Real tau","genmatch_2==5"),
+             ('ZJ', "Fake tau","genmatch_2!=5"))
 hists = { }
 for subsample in sample.splitsamples:
   hists[subsample] = subsample.gethist(variables,"pt_1>50")
 ```
 Examples are provided in [`test/testSamples.py`](test/testSamples.py).
+
+### Sample style
+The color and title style is predefined by dictionaries in [`python/sample/SampleStyle.py`](python/sample/SampleStyle.py).
+These dictionaries are used to automatically set the color for `Sample` object if none is passed.
+You can change the colors to your preference as
+```
+from TauFW.Plotter.sample.SampleStyle as STYLE
+STYLE.sample_colors['ZTT'] = kOrange-4
+```
+
+### Sample set
+The [`SampleSet`](python/sample/SampleSet.py) class helps to contain data and MC samples:
+```
+from TauFW.Plotter.sample.SampleSet import SampleSet
+samples = SampleSet(datasample,expsample)
+samples.printtable()
+```
+It can create and fill histograms for you:
+```
+result = samples.gethists(variables,selection)
+```
+or immediately prepare them into a `Stack` plot:
+```
+stacks = samples.getstack(variables,selection)
+for stack in stacks:
+  stack.draw()
+  stack.drawlegend(position=position)
+  stack.saveas()
+  stack.close()
+```
+Examples are provided in [`test/testSamples.py`](test/testSamples.py).
+
+[To be added: data-driven background methods like QCD.]
+

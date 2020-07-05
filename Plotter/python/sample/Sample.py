@@ -13,12 +13,12 @@ from ROOT import TTree
 class Sample(object):
   """
   Sample class to
-    - hold all relevant sample information: file, name, cross section, number of events,
-      type, extra weight, extra scale, color, ...
-    - calculate and set normalization (norm) based on integrated luminosity, cross section
-      and number of events
-    - make histograms
-    - split histograms into components (e.g. based on some (generator-level) selections)
+  - hold all relevant sample information: file, name, cross section, number of events,
+    type, extra weight, extra scale factor, color, ...
+  - calculate and set normalization (norm) based on integrated luminosity, cross section
+    and number of events
+  - create and fill histograms from tree
+  - split histograms into components (e.g. based on some (generator-level) selections)
   """
   
   def __init__(self, name, title, filename, xsec=-1.0, **kwargs):
@@ -31,35 +31,34 @@ class Sample(object):
     self._file        = None                            # TFile file
     self._tree        = None                            # TTree tree
     self.splitsamples = [ ]                             # samples when splitting into subsamples
-    self.treename     = kwargs.get('tree',            None                ) or 'tree'
-    self.nevents      = kwargs.get('nevts',           -1                  ) # "raw" number of events
-    self.nexpevts     = kwargs.get('nexp',            -1                  ) # number of events you expect to be processed for check
-    self.sumweights   = kwargs.get('sumw',            -1                  ) # sum weights
-    self.binnevts     = kwargs.get('binnevts',         1                  ) # cutflow bin with total number of (unweighted) events
-    self.binsumw      = kwargs.get('binsumw',         15                  ) # cutflow bin with total sum of weight
-    self.lumi         = kwargs.get('lumi',            -1                  ) # integrated luminosity
-    self.norm         = kwargs.get('norm',            1.0                 ) # lumi*xsec/binsumw normalization
-    self.scale        = kwargs.get('scale',           1.0                 ) # renormalization scales (e.g. W+Jets)
-    self.upscale      = kwargs.get('upscale',         1.0                 ) # drawing up/down scaling
+    self.treename     = kwargs.get('tree',         None         ) or 'tree'
+    self.nevents      = kwargs.get('nevts',        -1           ) # "raw" number of events
+    self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed for check
+    self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum weights
+    self.binnevts     = kwargs.get('binnevts',      1           ) # cutflow bin with total number of (unweighted) events
+    self.binsumw      = kwargs.get('binsumw',      15           ) # cutflow bin with total sum of weight
+    self.lumi         = kwargs.get('lumi',         -1           ) # integrated luminosity
+    self.norm         = kwargs.get('norm',         1.0          ) # lumi*xsec/binsumw normalization
+    self.scale        = kwargs.get('scale',        1.0          ) # scales factor (e.g. for W+Jets renormalization)
+    self.upscale      = kwargs.get('upscale',      1.0          ) # drawing up/down scaling
     self._scale       = self.scale # back up scale to overwrite previous renormalizations
-    self.weight       = kwargs.get('weight',          ""                  ) # weights
-    self.extraweight  = kwargs.get('extraweight',     ""                  ) # extra weights particular to this sample
-    self.cuts         = kwargs.get('cuts',            ""                  ) # extra cuts particular to this sample
-    self.channel      = kwargs.get('channel',         ""                  )
-    self.dtype        = kwargs.get('dtype',           ""                  ).lower() # data type: 'data', 'mc', 'embed'
-    self.isdata       = kwargs.get('data',            self.dtype=='data'  ) # isdata flag
-    self.issignal     = kwargs.get('signal',          False               ) # issignal flag
-    self.blinddict    = kwargs.get('blind',           { }                 ) # dictionary: { xvar: (xmin,xmax) }
-    self.fillcolor    = kwargs.get('color',           None                ) or self.setcolor() # fill color
-    self.linecolor    = kwargs.get('lcolor',          kBlack              ) # line color
-    if self.isdata:
-      self.dtype = 'data'
+    self.weight       = kwargs.get('weight',       ""           ) # weights
+    self.extraweight  = kwargs.get('extraweight',  ""           ) # extra weights particular to this sample
+    self.cuts         = kwargs.get('cuts',         ""           ) # extra cuts particular to this sample
+    self.channel      = kwargs.get('channel',      ""           ) # channel
+    self.isdata       = kwargs.get('data',         False        ) # flag for observed data
+    self.issignal     = kwargs.get('signal',       False        ) # flag for (new physics) signal
+    self.isembed      = kwargs.get('embed',        False        ) # flag for embedded sample
+    self.isexp        = kwargs.get('exp',          self.isembed ) or not (self.isdata or self.issignal) # background MC (expected SM process)
+    self.blinddict    = kwargs.get('blind',        { }          ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
+    self.fillcolor    = kwargs.get('color',        None         ) or self.setcolor() # fill color
+    self.linecolor    = kwargs.get('lcolor',       kBlack       ) # line color
     if not isinstance(self,MergedSample):
       file = ensureTFile(self.filename) # check file
       file.Close()
       if self.isdata:
         self.setnevents(self.binnevts,self.binsumw)
-      elif self.dtype!='embed': #self.xsec>=0:
+      elif not self.isembed: #self.xsec>=0:
         self.setnevents(self.binnevts,self.binsumw)
         self.normalize(lumi=self.lumi,xsec=self.xsec,sumw=self.sumweights)
       if 0<self.nevents<self.nexpevts*0.97:
@@ -89,7 +88,7 @@ class Sample(object):
             pre,name,self.title,self.xsec,self.nevents,self.sumweights,self.norm,self.extraweight)
   
   def printobjs(self,title=""):
-    """Recursively print all sample objects"""
+    """Print all sample objects recursively."""
     print ">>> %s%r"%(title,self)
     if isinstance(self,MergedSample):
       for sample in self.samples:
@@ -167,7 +166,8 @@ class Sample(object):
     deep                    = kwargs.get('deep',     False ) # deep copy
     close                   = kwargs.get('close',    False ) # keep new sample closed for memory space
     splitsamples            = [s.clone(samename=samename,deep=deep) for s in self.splitsamples] if deep else self.splitsamples[:]
-    kwargs['dtype']         = self.dtype
+    kwargs['isdata']        = self.isdata
+    kwargs['isembed']       = self.isembed
     newsample               = type(self)(name,title,filename,**kwargs)
     newdict                 = self.__dict__.copy()
     newdict['name']         = name
@@ -176,7 +176,7 @@ class Sample(object):
     if deep and self.file: # force new, separate file
       newdict['file'] = None #ensureTFile(self.file.GetName())
     newsample.__dict__.update(newdict)
-    #LOG.verbose('Sample.clone: %r, weight = %r'%(newsample.name,newsample.weight),1)
+    #LOG.verb('Sample.clone: %r, weight = %r'%(newsample.name,newsample.weight),1)
     if close:
       newsample.close()
     return newsample
@@ -192,7 +192,7 @@ class Sample(object):
   ###    newfilename = oldfilename if file_app in oldfilename else oldfilename.replace(globalTag,file_app+globalTag)
   ###  else:
   ###    newfilename = oldfilename if file_app in oldfilename else oldfilename.replace(".root",file_app+".root")
-  ###  LOG.verbose('replacing %r with %r'%(oldfilename,self.filename),verbosity,3)
+  ###  LOG.verb('replacing %r with %r'%(oldfilename,self.filename),verbosity,3)
   ###  self.filename = newfilename
   ###  if file_app  not in self.name:
   ###    self.name  += file_app
@@ -239,7 +239,7 @@ class Sample(object):
     verbosity = LOG.getverbosity(kwargs)
     if self.file:
       if verbosity>3:
-        LOG.verbose('Sample.reload: closing and deleting %s with content:'%(self.file.GetName()),verbosity,2)
+        LOG.verb('Sample.reload: closing and deleting %s with content:'%(self.file.GetName()),verbosity,2)
         self.file.ls()
       self.file.Close()
       del self.file
@@ -262,7 +262,7 @@ class Sample(object):
     verbosity = LOG.getverbosity(kwargs)
     if self.file:
       if verbosity>1:
-        LOG.verbose('Sample.close: closing and deleting %s with content:'%(self.file.GetName()),verbosity,3)
+        LOG.verb('Sample.close: closing and deleting %s with content:'%(self.file.GetName()),verbosity,3)
         self.file.ls()
       self.file.Close()
       del self.file
@@ -334,10 +334,10 @@ class Sample(object):
     verbosity = LOG.getverbosity(kwargs)
     """Reset scale to BU scale."""
     if scale!=1. or self.scale!=self._scale:
-      LOG.verbose("Sample.resetscale: %s"%(self.name),verbosity,level=2)
+      LOG.verb("Sample.resetscale: %s"%(self.name),verbosity,level=2)
       oldscale   = self.scale
       self.scale = self._scale*scale # only rescale top sample
-      LOG.verbose("     scale = %s -> %s"%(oldscale,self.scale),verbosity,level=2)
+      LOG.verb("     scale = %s -> %s"%(oldscale,self.scale),verbosity,level=2)
     for sample in self.splitsamples:
         sample.resetscale(1.0,**kwargs) # only rescale top sample
     if isinstance(self,MergedSample):
@@ -365,14 +365,14 @@ class Sample(object):
   
   def addweight(self, weight):
     """Add weight. Join with existing weight if it exists."""
-    #LOG.verbose('Sample.addweight: combine weights %r with %r'%(self.weight,weight),1)
+    #LOG.verb('Sample.addweight: combine weights %r with %r'%(self.weight,weight),1)
     if isinstance(self,MergedSample):
       for sample in self.samples:
         sample.addweight(weight)
     else:
-      LOG.verbose('Sample.addweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('Sample.addweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
       self.weight = joinweights(self.weight, weight)
-      LOG.verbose('                  after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('                  after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
     for sample in self.splitsamples:
         sample.addweight(weight)
   
@@ -382,9 +382,9 @@ class Sample(object):
       for sample in self.samples:
         sample.addextraweight(weight)
     else:
-      LOG.verbose('Sample.addextraweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('Sample.addextraweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
       self.extraweight = joinweights(self.extraweight, weight)
-      LOG.verbose('                       after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('                       after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
     for sample in self.splitsamples:
       sample.addextraweight(weight)
   
@@ -394,9 +394,9 @@ class Sample(object):
       for sample in self.samples:
         sample.setweight(weight)
     else:
-      LOG.verbose('Sample.setweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('Sample.setweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
       self.weight = weight
-      LOG.verbose('                  after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('                  after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
     for sample in self.splitsamples:
         sample.setweight(weight)
   
@@ -406,9 +406,9 @@ class Sample(object):
       for sample in self.samples:
         sample.setextraweight(weight)
     else:
-      LOG.verbose('Sample.setextraweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('Sample.setextraweight: before: %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
       self.extraweight = weight
-      LOG.verbose('                       after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
+      LOG.verb('                       after:  %s, self.weight = %r, self.extraweight = %r'%(self,self.weight,self.extraweight),level=2)
     for sample in self.splitsamples:
         sample.setextraweight(weight)
   
@@ -419,20 +419,21 @@ class Sample(object):
         sample.replaceweight(oldweight,newweight)
     else:
       if oldweight in self.weight:
-        LOG.verbose('Sample.replaceweight: before %r'%(self.weight))
+        LOG.verb('Sample.replaceweight: before %r'%(self.weight))
         self.weight = self.weight.replace(oldweight,newweight)
-        LOG.verbose('                      after  %r'%(self.weight))
+        LOG.verb('                      after  %r'%(self.weight))
       if oldweight in self.extraweight:
-        LOG.verbose('Sample.replaceweight: before %r'%(self.extraweight))
+        LOG.verb('Sample.replaceweight: before %r'%(self.extraweight))
         self.extraweight = self.extraweight.replace(oldweight,newweight)
-        LOG.verbose('                      after  %r'%(self.extraweight))
+        LOG.verb('                      after  %r'%(self.extraweight))
   
-  def split(self,splitlist,**kwargs):
-    """Split sample using a dictionairy of cuts, e.g.
-      sample.split([('ZTT',"real tau","genmatch_2==5"),
-                    ('ZJ', "fake tau","genmatch_2!=5"),])
+  def split(self,*splitlist,**kwargs):
+    """Split sample into different components with some cuts, e.g.
+      sample.split(('ZTT',"Real tau","genmatch_2==5"),
+                   ('ZJ', "Fake tau","genmatch_2!=5"))
     """
     verbosity      = LOG.getverbosity(kwargs)
+    splitlist      = unwraplistargs(splitlist)
     splitsamples   = [ ]
     for i, info in enumerate(reversed(splitlist)): #split_dict.items()
       name  = "%s_split%d"%(self.name,i)
@@ -440,7 +441,7 @@ class Sample(object):
         name, title, cut = info[:3]
       elif len(info)==2:
         name, cut = info[0], info[1]
-        title = sample_title_dict.get(name,name) # from SampleStyle
+        title = sample_titles.get(name,name) # from SampleStyle
       sample       = self.clone(name,title)
       sample.cuts  = joincuts(self.cuts,cut)
       sample.color = getcolor(sample)
@@ -456,7 +457,7 @@ class Sample(object):
     name       = kwargs.get('name',     self.name      ) # hist name
     name      += kwargs.get('tag',      ""             ) # tag for hist name
     title      = kwargs.get('title',    self.title     ) # hist title
-    blind      = kwargs.get('blind',    False          ) # blinding window for data
+    blind      = kwargs.get('blind',    False          ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
     fcolor     = kwargs.get('color',    self.fillcolor ) # fill color
     lcolor     = kwargs.get('lcolor',   self.linecolor ) # line color
     #replaceweight = kwargs.get('replaceweight', None )
@@ -475,10 +476,10 @@ class Sample(object):
     #  if len(replaceweight)==2 and not isList(replaceweight[0]):
     #    replaceweight = [replaceweight]
     #  for pattern, substitution in replaceweight:
-    #    LOG.verbose('Sample.gethist: replacing weight: before %r'%weight,verbosity,2)
+    #    LOG.verb('Sample.gethist: replacing weight: before %r'%weight,verbosity,2)
     #    weight = re.sub(pattern,substitution,weight)
     #    weight = weight.replace("**","*").strip('*')
-    #    LOG.verbose('Sample.gethist: replacing weight: after  %r'%weight,verbosity,2)
+    #    LOG.verb('Sample.gethist: replacing weight: after  %r'%weight,verbosity,2)
     cuts = joincuts(cuts,weight=weight)
     
     # PREPARE HISTOGRAMS
@@ -493,14 +494,17 @@ class Sample(object):
           blindcuts = variable.blind(*blind)
         elif variable.name_ in self.blinddict:
           blindcuts = variable.blind(*self.blinddict[variable.name_])
+      elif variable.blindcuts:
+        blindcuts = variable.blindcuts
       
       # VAREXP
-      hname = makehistname(variable.filename,name)
-      if blindcuts or variable.cut or (variable.weight and not self.isdata) or (variable.weightdata and self.isdata):
-        if self.isdata:
-          varcut = joincuts(blindcuts,variable.cut,weight=variable.weightdata)
-        else:
-          varcut = joincuts(blindcuts,variable.cut,weight=variable.weight)
+      hname  = makehistname(variable.filename,name)
+      varcut = ""
+      if self.isdata and (blindcuts or variable.cut or variable.weightdata):
+        varcut = joincuts(blindcuts,variable.cut,weight=variable.weightdata)
+      elif not self.isdata and (variable.cut or variable.weight):
+        varcut = joincuts(variable.cut,weight=variable.weight)
+      if varcut:
         varexp = (variable.drawcmd(hname),varcut)
       else:
         varexp = variable.drawcmd(hname)

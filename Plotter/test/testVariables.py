@@ -37,7 +37,7 @@ def main():
   for var in variables:
     LOG.header(var.name)
     print ">>> string=%s, repr=%r"%(var,var)
-    print ">>> name='%s', title='%s'"%(color(var.name),color(var.title))
+    print ">>> name='%s', filename='%s', title='%s'"%(color(var.name),color(var.filename),color(var.title))
     print ">>> (nbins,xmin,xmax)=(%s,%s,%s), bins=%s"%(var.nbins,var.xmin,var.xmax,var.bins)
     print ">>> hasintbins=%s, hasvariablebins=%s"%(var.hasintbins(),var.hasvariablebins())
     print ">>> cut=%r, blindcuts=%r, blind(50,60)=%r"%(var.cut,var.blindcuts,var.blind(50,60))

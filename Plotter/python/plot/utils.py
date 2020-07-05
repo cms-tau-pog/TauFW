@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
+import os
 from math import sqrt, log10, ceil, floor
 from TauFW.common.tools.file import ensuredir, ensureTFile
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs
@@ -9,6 +10,7 @@ import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gDirectory, gROOT, TH1, THStack, TGraphErrors, TGraphAsymmErrors, Double,\
                  kSolid, kDashed, kDotted, kBlack, kWhite
+#moddir = os.path.dirname(__file__)
 gROOT.SetBatch(True)
 LOG = Logger('Plot')
 

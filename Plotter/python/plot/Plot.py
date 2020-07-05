@@ -277,16 +277,20 @@ class Plot(object):
   
   def saveas(self,*fnames,**kwargs):
     """Save plot, close canvas and delete the histograms."""
-    save  = kwargs.get('save',  True  )
-    close = kwargs.get('close', False )
-    exts  = kwargs.get('ext',   [ ]   ) #[".png"]
-    pdf   = kwargs.get('pdf',   False )
-    exts  = ensurelist(exts)
+    save   = kwargs.get('save',   True  )
+    close  = kwargs.get('close',  False )
+    outdir = kwargs.get('outdir', ""    ) # output directory
+    tag    = kwargs.get('tag',    ""    ) # extra tag for output file
+    exts   = kwargs.get('ext',    [ ]   ) # [".png"]
+    pdf    = kwargs.get('pdf',    False )
+    exts   = ensurelist(exts)
     if pdf:
       exts.append(".pdf")
+    if not fnames:
+      fnames = [self.name+tag]
     if save:
       for fname in fnames:
-        fname = fname.replace('$VAR',self.name).replace('$NAME',self.name)
+        fname = os.path.join(outdir,fname.replace('$VAR',self.name).replace('$NAME',self.name))
         if exts:
           for ext in ensurelist(exts):
             if not ext.startswith('.'):
@@ -312,7 +316,6 @@ class Plot(object):
     for hist in self.garbage:
       deletehist(hist)
     if isinstance(self.ratio,Ratio):
-      print self.ratio
       self.ratio.close()
     
   
@@ -619,7 +622,7 @@ class Plot(object):
         styles.append(style)
       elif hasattr(hist,'GetFillStyle') and hist.GetFillStyle()>0:
         styles.append('f')
-      elif 'E0' in hist.GetOption():
+      elif 'E0' in hist.GetOption() or 'E1' in hist.GetOption():
         styles.append(errstyle)
       else:
         styles.append('lp')
