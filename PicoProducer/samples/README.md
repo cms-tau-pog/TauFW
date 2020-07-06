@@ -15,5 +15,7 @@ pico.py era 2016 samples/sample_2016.py
 ```
 You can also make your own subdirectory in `samples/` and do for example
 ```
-pico.py era 2016 samples/examples/sample_2016.py
+mkdir samples/MyAnalysis
+cp samples/sample_2016.py samples/MyAnalysis/
+pico.py era 2016 samples/MyAnalysis/sample_2016.py
 ```

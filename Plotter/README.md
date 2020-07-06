@@ -9,7 +9,9 @@
 * [Variable](#Variable)<br>
 * [Sample](#Sample)<br>
   * [Sample style](#Sample-style)<br>
-  * [Sample set](#Sample-set)<br>
+* [Sample set](#Sample-set)<br>
+* [Data-driven methods](#Data-driven-methods)<br>
+
 
 ## Installation
 See [the README.md in the parent directory](../../../#taufw).
@@ -174,11 +176,19 @@ from TauFW.Plotter.sample.SampleStyle as STYLE
 STYLE.sample_colors['ZTT'] = kOrange-4
 ```
 
-### Sample set
+<p align="center">
+  <img src="../docs/testStyle_legend.png" alt="Legend with common SM processes" width="300" hspace="20"/>
+  <img src="../docs/testStyle_legend_split.png" alt="Legend with some processes split" width="300" hspace="20"/>
+  <img src="../docs/testStyle_legend_DMs.png" alt="Legend with Z -> tautau split into decay modes" width="300" hspace="20"/>
+</p>
+
+
+
+## Sample set
 The [`SampleSet`](python/sample/SampleSet.py) class helps to contain data and MC samples:
 ```
 from TauFW.Plotter.sample.SampleSet import SampleSet
-samples = SampleSet(datasample,expsample)
+samples = SampleSet(datasample,expsamples)
 samples.printtable()
 ```
 It can create and fill histograms for you:
@@ -189,7 +199,7 @@ print result.data                # TH1D
 print result.exp                 # list of TH1Ds
 var, datahist, exphists = result # Variable, TH1D, list
 ```
-Or with `MultiDraw`:
+Or with `MultiDraw` for many variables:
 ```
 result = samples.gethists(vars,selection)
 print result.vars                # list of Variable
@@ -212,5 +222,6 @@ for stack in stacks:
 ```
 Examples are provided in `test/testSamples.py`.
 
+## Data-driven methods
 [To be added: data-driven background methods like QCD.]
 
