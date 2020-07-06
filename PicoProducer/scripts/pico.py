@@ -364,13 +364,17 @@ def main_run(args):
               print ">>> %s"%(bold(path))
         
         # SETTINGS
-        filetag = tag
-        dtype   = None
+        filetag    = tag
+        dtype      = None
+        extraopts_ = extraopts[:]
         if sample:
           filetag += '_%s_%s'%(era,sample.name)
+          if sample.extraopts:
+            extraopts_.extend(sample.extraopts)
         if verbosity>=1:
           print ">>> %-12s = %s"%('sample',sample)
           print ">>> %-12s = %r"%('filetag',filetag)
+          print ">>> %-12s = %s"%('extraopts',extraopts_)
         
         # GET FILES
         infiles = [ ]
@@ -408,8 +412,8 @@ def main_run(args):
           runcmd += " -m %s"%(maxevts)
         if infiles:
           runcmd += " -i %s"%(' '.join(infiles))
-        if extraopts:
-          runcmd += " --opt %s"%(' '.join(extraopts))
+        if extraopts_:
+          runcmd += " --opt %s"%(' '.join(extraopts_))
         #elif nfiles:
         #  runcmd += " --nfiles %s"%(nfiles)
         print ">>> Executing: "+bold(runcmd)
@@ -512,23 +516,26 @@ def preparejobs(args):
           print ">>> %s"%(bold(path))
         
         # DIRECTORIES
-        subtry        = sample.subtry+1 if resubmit else 1
-        jobids        = sample.jobcfg.get('jobids',[ ])
-        dtype         = sample.dtype
-        postfix       = "_%s%s"%(channel,tag)
-        jobtag        = '_%s%s_try%d'%(channel,tag,subtry)
-        jobname       = sample.name+jobtag.rstrip('try1').rstrip('_')
+        subtry     = sample.subtry+1 if resubmit else 1
+        jobids     = sample.jobcfg.get('jobids',[ ])
+        dtype      = sample.dtype
+        postfix    = "_%s%s"%(channel,tag)
+        jobtag     = '_%s%s_try%d'%(channel,tag,subtry)
+        jobname    = sample.name+jobtag.rstrip('try1').rstrip('_')
+        extraopts_ = extraopts[:]
+        if sample.extraopts:
+          extraopts_.extend(sample.extraopts)
         nfilesperjob_ = sample.nfilesperjob if sample.nfilesperjob>0 else nfilesperjob
         if split_nfpj>1:
           nfilesperjob_ = min(1,nfilesperjob_/split_nfpj)
-        outdir        = repkey(outdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
-                                            DAS=sample.paths[0].strip('/'),GROUP=sample.group)
-        jobdir        = ensuredir(repkey(jobdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
-                                                      DAS=sample.paths[0].strip('/'),GROUP=sample.group))
-        cfgdir        = ensuredir(jobdir,"config")
-        logdir        = ensuredir(jobdir,"log")
-        cfgname       = "%s/jobconfig%s.json"%(cfgdir,jobtag)
-        joblist       = '%s/jobarglist%s.txt'%(cfgdir,jobtag)
+        outdir     = repkey(outdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
+                                         DAS=sample.paths[0].strip('/'),GROUP=sample.group)
+        jobdir     = ensuredir(repkey(jobdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
+                                                   DAS=sample.paths[0].strip('/'),GROUP=sample.group))
+        cfgdir     = ensuredir(jobdir,"config")
+        logdir     = ensuredir(jobdir,"log")
+        cfgname    = "%s/jobconfig%s.json"%(cfgdir,jobtag)
+        joblist    = '%s/jobarglist%s.txt'%(cfgdir,jobtag)
         if verbosity==1:
           print ">>> %-12s = %s"%('cfgname',cfgname)
           print ">>> %-12s = %s"%('joblist',joblist)
@@ -541,6 +548,7 @@ def preparejobs(args):
           print ">>> %-12s = %r"%('jobtag',jobtag)
           print ">>> %-12s = %r"%('postfix',postfix)
           print ">>> %-12s = %r"%('outdir',outdir)
+          print ">>> %-12s = %r"%('extraopts',extraopts_)
           print ">>> %-12s = %r"%('cfgdir',cfgdir)
           print ">>> %-12s = %r"%('logdir',logdir)
           print ">>> %-12s = %r"%('cfgname',cfgname)
@@ -624,8 +632,8 @@ def preparejobs(args):
               jobcmd += " -p"
             if testrun:
               jobcmd += " -m %d"%(testrun) # process a limited amount of events
-            if extraopts:
-              runcmd += " --opt %s"%(' '.join(extraopts))
+            if extraopts_:
+              jobcmd += " --opt %s"%(' '.join(extraopts_))
             jobcmd += " -i %s"%(jobfiles) # add last
             if args.verbosity>=1:
               print jobcmd
@@ -637,7 +645,7 @@ def preparejobs(args):
         jobcfg = OrderedDict([
           ('time',str(datetime.now())),
           ('group',sample.group), ('paths',sample.paths), ('name',sample.name), ('nevents',nevents),
-          ('dtype',dtype),        ('channel',channel),    ('module',module),
+          ('dtype',dtype),        ('channel',channel),    ('module',module),    ('extraopts',extraopts_),
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
           ('try',subtry),         ('jobids',jobids),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),

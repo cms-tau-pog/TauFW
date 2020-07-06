@@ -266,7 +266,7 @@ class ModuleMuTau(ModuleTauPair):
     #  # DEFAULTS
     #  self.out.idweight_2[0]              = 1.
     #  self.out.ltfweight_2[0]             = 1.
-    #  if not self.doTight:
+    #  if not self.dotight:
     #    self.out.idweightUp_2[0]          = 1.
     #    self.out.idweightDown_2[0]        = 1.
     #    self.out.ltfweightUp_2[0]         = 1.
@@ -275,23 +275,23 @@ class ModuleMuTau(ModuleTauPair):
     #  # TAU WEIGHTS
     #  if tau.genPartFlav==5:
     #    self.out.idweight_2[0]              = self.tauSFs.getSFvsPT(tau.pt)
-    #    if not self.doTight:
+    #    if not self.dotight:
     #      self.out.idweightUp_2[0]          = self.tauSFs.getSFvsPT(tau.pt,unc='Up')
     #      self.out.idweightDown_2[0]        = self.tauSFs.getSFvsPT(tau.pt,unc='Down')
     #  elif tau.genPartFlav in [1,3]:
     #    self.out.ltfweight_2[0]             = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
-    #    if not self.doTight:
+    #    if not self.dotight:
     #      self.out.ltfweightUp_2[0]         = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Up')
     #      self.out.ltfweightDown_2[0]       = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Down')')
     #  elif tau.genPartFlav in [2,4]:
     #    self.out.ltfweight_2[0]             = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
-    #    if not self.doTight:
+    #    if not self.dotight:
     #      self.out.ltfweightUp_2[0]         = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Up')
     #      self.out.ltfweightDown_2[0]       = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Down')
     #  #elif 0<tau.genPartFlav<5:
     #  #  ltfTool = self.etfSFs if tau.genPartFlav in [1,3] else self.mtfSFs
     #  #  self.out.ltfweight_2[0]         = ltfTool.getSFvsEta(tau.eta,tau.genPartFlav)
-    #  #  if not self.doTight:
+    #  #  if not self.dotight:
     #  #    self.out.ltfweightUp_2[0]     = ltfTool.getSFvsEta(tau.eta,tau.genPartFlav,unc='Up')
     #  #    self.out.ltfweightDown_2[0]   = ltfTool.getSFvsEta(tau.eta,tau.genPartFlav,unc='Down')
     #  

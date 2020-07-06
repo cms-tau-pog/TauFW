@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
-import os, sys
+import os, sys, re
 from itertools import islice
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 
@@ -40,8 +40,23 @@ def execute(command,dry=False,fatal=True,verb=0):
   return out
   
 
-def isnumber(arg):
-  return isinstance(arg,float) or isinstance(arg,int)
+def isnumber(obj):
+  """Check if object is float or int."""
+  return isinstance(obj,float) or isinstance(obj,int)
+  
+
+def convertstr(string):
+  """Convert a string to a boolean, float or int if possible."""
+  if isinstance(string,str):
+    if string.isdigit():
+      string = int(string)
+    elif string=='True':
+      string = True
+    elif string=='False':
+      string = False
+    elif string.count('.')==1 and re.match(r'^[-+]?[\d.]+\d*$',string):
+      string = float(string)
+  return string
   
 
 def islist(arg):

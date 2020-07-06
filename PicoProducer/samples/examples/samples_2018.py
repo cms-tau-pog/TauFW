@@ -8,23 +8,23 @@ samples  = [
   # DRELL-YAN
   M('DY','DYJetsToLL_M-50',
     "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,
+    store=storage,url=url,file=filelist,opts='zpt=True',
   ),
   
   # TTBAR
   M('TT','TTTo2L2Nu',
     "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,
+    store=storage,url=url,file=filelist,opts='toppt=True',
   ),
   M('TT','TTToSemiLeptonic',
     "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
     "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20_ext3-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,
+    store=storage,url=url,file=filelist,opts='toppt=True',
   ),
   M('TT','TTToHadronic',
     "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v3/NANOAODSIM",
     "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20_ext2-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,
+    store=storage,url=url,file=filelist,opts='toppt=True',
   ),
   
   # DATA

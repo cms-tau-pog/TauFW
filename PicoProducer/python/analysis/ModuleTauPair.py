@@ -28,19 +28,19 @@ class ModuleTauPair(Module):
     self.ismc             = self.dtype=='mc'
     self.isdata           = self.dtype=='data' or self.dtype=='embed'
     self.isembed          = self.dtype=='embed'
-    self.channel          = kwargs.get('channel',    'none'             )
-    self.year             = kwargs.get('year',       2017               )
-    self.tes              = kwargs.get('tes',        None               ) # set TES manually
-    self.tessys           = kwargs.get('tessys',     None               ) # vary TES: 'Up', 'Down'
-    self.ees              = kwargs.get('ees',        1.0                )
-    self.ltf              = kwargs.get('ltf',        1.0                ) or 1.0
-    self.jtf              = kwargs.get('jtf',        1.0                ) or 1.0
-    self.doTTpt           = kwargs.get('doTTpt',     'TT' in filename   )
-    self.doZpt            = kwargs.get('doZpt',      'DY' in filename   )
-    self.doRecoil         = kwargs.get('doRecoil',   False              ) #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
-    self.doTight          = kwargs.get('doTight',    self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
-    self.dojec            = kwargs.get('dojec',      True               ) #and self.year==2016 #False
-    self.dojecsys         = kwargs.get('dojecsys',   self.dojec         ) and not self.doTight and self.ismc #and self.dojec #and False
+    self.channel          = kwargs.get('channel',  'none'             )
+    self.year             = kwargs.get('year',     2017               )
+    self.tes              = kwargs.get('tes',      None               ) # set TES manually
+    self.tessys           = kwargs.get('tessys',   None               ) # vary TES: 'Up', 'Down'
+    self.ees              = kwargs.get('ees',      1.0                )
+    self.ltf              = kwargs.get('ltf',      1.0                ) or 1.0
+    self.jtf              = kwargs.get('jtf',      1.0                ) or 1.0
+    self.dotoppt          = kwargs.get('toppt',    'TT' in filename   )
+    self.dozpt            = kwargs.get('zpt',      'DY' in filename   )
+    self.doRecoil         = kwargs.get('recoil',   False              ) #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
+    self.dotight          = kwargs.get('tight',    self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
+    self.dojec            = kwargs.get('jec',      True               ) #and self.year==2016 #False
+    self.dojecsys         = kwargs.get('jecsys',   self.dojec         ) and not self.dotight and self.ismc #and self.dojec #and False
     self.jetCutPt         = 30
     self.bjetCutEta       = 2.7
     
@@ -57,7 +57,7 @@ class ModuleTauPair(Module):
     if self.ismc:
       self.puTool         = PileupWeightTool(year=self.year,sample=filename)
       self.btagTool       = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta)
-    #  if self.doZpt:
+    #  if self.dozpt:
     #    self.zptTool      = ZptCorrectionTool(year=self.year)
     #  if self.doRecoil:
     #    self.recoilTool   = RecoilCorrectionTool(year=self.year)
@@ -92,12 +92,12 @@ class ModuleTauPair(Module):
       print ">>> %-12s = %s"%('jtf',     self.jtf)
     #if self.channel.count('ele')>0:
     #  print ">>> %-12s = %s"%('ees',     self.ees)
-    #print ">>> %-12s = %s"%('doTTpt',    self.doTTpt)
-    #print ">>> %-12s = %s"%('doZpt',     self.doZpt)
+    print ">>> %-12s = %s"%('dotoppt',    self.dotoppt)
+    print ">>> %-12s = %s"%('dozpt',     self.dozpt)
     #print ">>> %-12s = %s"%('doRecoil',  self.doRecoil)
     #print ">>> %-12s = %s"%('dojec',     self.dojec)
     #print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
-    #print ">>> %-12s = %s"%('doTight',   self.doTight)
+    print ">>> %-12s = %s"%('dotight',   self.dotight)
     print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
     print ">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta)
     
@@ -273,23 +273,23 @@ class ModuleTauPair(Module):
     #  for unc in self.metUncLabels:
     #    self.recoilTool.CorrectPFMETByMeanResolution(met_vars[unc],boson,boson_vis,njets_vars.get(unc,len(jets)))
     #  
-    #  if self.doZpt:
+    #  if self.dozpt:
     #    self.out.zptweight[0]      = self.zptTool.getzptweight(boson.Pt(),boson.M())
     #
-    #elif self.doZpt:
+    #elif self.dozpt:
     #  zboson = getZBoson(event)
     #  self.out.m_genboson[0]       = zboson.M()
     #  self.out.pt_genboson[0]      = zboson.Pt()
     #  self.out.zptweight[0]        = self.zptTool.getzptweight(zboson.Pt(),zboson.M())
     #
-    #elif self.doTTpt:
+    #elif self.dotoppt:
     #  toppt1, toppt2               = getTTPt(event)
     #  self.out.ttptweight[0]       = getTTptWeight(toppt1,toppt2)
     
     self.out.genweight[0]          = event.genWeight
     self.out.puweight[0]           = self.puTool.getWeight(event.Pileup_nTrueInt)
     self.out.btagweight[0]         = self.btagTool.getWeight(jets)
-    #if not self.doTight:
+    #if not self.dotight:
     #  self.out.btagweightUp[0]   = self.btagTool.getWeight(jets50,unc='Up')
     #  self.out.btagweightDown[0] = self.btagTool.getWeight(jets50,unc='Down')
     #if self.year in [2016,2017]:

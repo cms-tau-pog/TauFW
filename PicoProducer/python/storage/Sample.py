@@ -74,7 +74,8 @@ class Sample(object):
     self.url          = kwargs.get('url',          None)
     self.blacklist    = kwargs.get('blacklist',    [ ] ) # black list file
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global')
-    self.nfilesperjob = kwargs.get('nfilesperjob', -1  )
+    self.nfilesperjob = kwargs.get('nfilesperjob', -1  ) # number of nanoAOD files per job
+    self.extraopts    = kwargs.get('opts',         [ ] ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
     self.subtry       = kwargs.get('subtry',        0  ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',       { } ) # to help keep track of resubmission
     self.nevents      = kwargs.get('nevents',        0 ) # number of nanoAOD events that can be processed
@@ -82,6 +83,12 @@ class Sample(object):
     self.era          = kwargs.get('era',           "" ) # for expansion of $ERA variable
     self.verbosity    = kwargs.get('verbosity',      0 ) # verbosity level for debugging
     self.refreshable  = not self.files                   # allow refresh on file list in getfiles()
+    
+    # ENSURE LIST
+    if isinstance(self.extraopts,str):
+      if ',' in self.extraopts:
+        self.extraopts = self.extraopts.split(',')
+      self.extraopts = [self.extraopts]
     
     # STORAGE & URL DEFAULTS
     if self.storage:
@@ -128,17 +135,18 @@ class Sample(object):
     """Initialize sample from job config JSON file."""
     with open(cfgname,'r') as file:
       jobcfg = json.load(file)
-    for key in ['group','name','paths','try','channel','chunkdict']:
-      LOG.insist(key in jobcfg,"Did not find key '%s' in %s"%(key,cfgname))
+    for key in ['group','name','paths','try','channel','chunkdict','dtype','extraopts']:
+      LOG.insist(key in jobcfg,"Did not find key '%s' in job configuration %s"%(key,cfgname))
     jobcfg['config']    = cfgname
     jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
     dtype    = jobcfg['dtype']
     channels = [jobcfg['channel']]
+    opts     = jobcfg['extraopts']
     subtry   = int(jobcfg['try'])
     nevents  = int(jobcfg['nevents'])
     sample   = Sample(jobcfg['group'],jobcfg['name'],jobcfg['paths'],dtype=dtype,channels=channels,
-                      subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,nevents=nevents)
+                       subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,nevents=nevents,opts=opts)
     return sample
   
   def split(self):

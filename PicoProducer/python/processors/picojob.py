@@ -5,7 +5,7 @@ import os, re
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from TauFW.PicoProducer.analysis.utils import getmodule
+from TauFW.PicoProducer.analysis.utils import getmodule, convertstr
 from TauFW.PicoProducer.processors import moddir
 #from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
 from argparse import ArgumentParser
@@ -74,8 +74,9 @@ if dtype==None:
 kwargs    = { 'year': year, 'dtype': dtype, }
 for option in args.extraopts:
   assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)
-  key, val    = option.split('=')
-  kwargs[key] = val
+  split       = option.split('=')
+  key, val    = split[0], ''.join(split[1:])
+  kwargs[key] = convertstr(val) # convert to bool, float or int if possible
 
 # PRINT
 print '-'*80
