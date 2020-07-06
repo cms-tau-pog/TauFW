@@ -195,7 +195,7 @@ class Sample(object):
           storage = getstorage(sepath,verb=verb-1)
           outlist = storage.getfiles(url=url,verb=verb-1)
         else: # get files from DAS
-          postfix = self.postfix+'.root'
+          postfix = '.root'
           cmdout  = dasgoclient("file dataset=%s instance=%s"%(path,self.instance))
           outlist = cmdout.split(os.linesep)
         for line in outlist: # filter root files
