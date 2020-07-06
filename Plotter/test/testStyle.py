@@ -61,7 +61,6 @@ def main():
     'VV',
   ])
   checklegend([
-    'Data',
     'ZTT', 'ZL', 'ZJ',
     'TTT', 'TTL', 'TTJ',
     'STT', 'STL', 'STJ',
