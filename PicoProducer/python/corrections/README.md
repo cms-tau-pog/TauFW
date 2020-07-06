@@ -30,9 +30,9 @@ You can find out if your favorite samples has a buggy pileup profile by passing 
 ```
 
 <p align="center">
-  <img src="../../..docs/pileup_Data-MC_2016_69p2.png" alt="Pileup profiles for 2016" width="240" hspace="10"/>
-  <img src="../../..docs/pileup_Data-MC_2017_69p2.png" alt="Pileup profiles for 2017" hspace="10"/>
-  <img src="../../../docs/pileup_Data-MC_2018_69p2.png" alt="Pileup profiles for 2018" width="240"/>
+  <img src="../../../docs/pileup_Data-MC_2016_69p2.png" alt="Pileup profiles for 2016" width="270" hspace="10"/>
+  <img src="../../../docs/pileup_Data-MC_2017_69p2.png" alt="Pileup profiles for 2017" width="270" hspace="10"/>
+  <img src="../../../docs/pileup_Data-MC_2018_69p2.png" alt="Pileup profiles for 2018" width="270"/>
 </p>
 
 
@@ -62,7 +62,7 @@ git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
 
 ## Tau scale factors
 
-Please use the official TauID tool. Installation instructions are given in the [top README](../../../../..).
+Please use the official TauID tool. Installation instructions are given in the [top README](../../../../../#picoproducer).
 
 
 ## B tagging tools
