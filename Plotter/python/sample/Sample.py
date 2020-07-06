@@ -34,7 +34,7 @@ class Sample(object):
     self.splitsamples = [ ]                             # samples when splitting into subsamples
     self.treename     = kwargs.get('tree',         None         ) or 'tree'
     self.nevents      = kwargs.get('nevts',        -1           ) # "raw" number of events
-    self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed for check
+    self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed for check for missing events
     self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum weights
     self.binnevts     = kwargs.get('binnevts',      1           ) # cutflow bin with total number of (unweighted) events
     self.binsumw      = kwargs.get('binsumw',      15           ) # cutflow bin with total sum of weight
@@ -62,8 +62,6 @@ class Sample(object):
       elif not self.isembed: #self.xsec>=0:
         self.setnevents(self.binnevts,self.binsumw)
         self.normalize(lumi=self.lumi,xsec=self.xsec,sumw=self.sumweights)
-      if 0<self.nevents<self.nexpevts*0.97:
-         LOG.warning('Sample: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
   
   def __str__(self):
     """Returns string."""
@@ -305,6 +303,8 @@ class Sample(object):
     self.nevents    = cfhist.GetBinContent(binnevts)
     self.sumweights = cfhist.GetBinContent(binsumw)
     file.Close()
+    if 0<self.nevents<self.nexpevts*0.97: # check for missing events
+       LOG.warning('Sample: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
     return self.nevents
   
   def normalize(self,lumi=None,xsec=None,sumw=None,**kwargs):

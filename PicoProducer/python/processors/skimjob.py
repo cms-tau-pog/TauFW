@@ -9,14 +9,15 @@ from TauFW.PicoProducer.processors import moddir
 from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
 from argparse import ArgumentParser
 parser = ArgumentParser()
-parser.add_argument('-i', '--infiles',  dest='infiles',  type=str, default=[ ], nargs='+')
-parser.add_argument('-o', '--outdir',   dest='outdir',   type=str, default='.')
-parser.add_argument('-C', '--copydir',  dest='copydir',  type=str, default=None)
-parser.add_argument('-m', '--maxevts',  dest='maxevts',  type=int, default=-1)
-parser.add_argument('-t', '--tag',      dest='tag',      type=str, default="")
-parser.add_argument('-d', '--dtype',    dest='dtype',    choices=['data','mc','embed'], default=None)
-parser.add_argument('-y','-e','--era',  dest='era',      type=str, default="")
-parser.add_argument('-p', '--prefetch', dest='prefetch', action='store_true', default=False)
+parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
+parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
+parser.add_argument('-C', '--copydir',  dest='copydir',   type=str, default=None)
+parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=-1)
+parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="")
+parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
+parser.add_argument('-y','-e','--era',  dest='era',       type=str, default="")
+parser.add_argument('-E', '--opts',     dest='extraopts', type=str, default=[ ], nargs='+')
+parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true', default=False)
 parser.add_argument('-J', '--jec',      dest='doJEC',     action='store_true', default=False)
 parser.add_argument('-S', '--jec-sys',  dest='doJECSys',  action='store_true', default=False)
 args = parser.parse_args()
@@ -67,7 +68,7 @@ if dtype=='data':
     era = getera(infiles[0],era,dtype=dtype) # gets data run (e.g. '2016B') from filename
   assert all(era in f for f in infiles), "Not all files names are of the same era '%s': %s"%(era,infiles)
   json  = getjson(era,dtype)
-else:
+elif doJEC or doJECSys:
   jmecalib = getjmecalib(era,era="",redoJEC=doJEC,doSys=doJECSys,dtype='mc')
   modules.append(jmecalib)
 

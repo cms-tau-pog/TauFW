@@ -94,7 +94,6 @@ and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` fi
 The event weight is calculated according to [this method](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagSFMethods#1a_Event_reweighting_using_scale).
 
 ### Computing the b tag efficiencies
-
 The b tag efficiencies are analysis-dependent. They can be computed from the analysis output run on MC samples.
 For each MC event, fill the numerator and denominator histograms with `BTagWeightTool.fillEfficiencies`,
 after removing overlap with other selected objects, e.g. the muon and tau object in [`ModuleMuTau.py`](../python/analysis/ModuleMuTau.py):

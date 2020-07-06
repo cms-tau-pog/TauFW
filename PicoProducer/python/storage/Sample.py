@@ -69,19 +69,20 @@ class Sample(object):
     self.name         = name
     self.paths        = paths # DAS path
     self.dtype        = dtype
-    self.channels     = kwargs.get('channels',     None)
-    self.storage      = kwargs.get('store',        None) # if stored elsewhere than DAS
-    self.url          = kwargs.get('url',          None)
-    self.blacklist    = kwargs.get('blacklist',    [ ] ) # black list file
+    self.channels     = kwargs.get('channels',     None )
+    self.storage      = kwargs.get('store',        None ) # if stored elsewhere than DAS
+    self.url          = kwargs.get('url',          None )
+    self.blacklist    = kwargs.get('blacklist',    [ ]  ) # black list file
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global')
-    self.nfilesperjob = kwargs.get('nfilesperjob', -1  ) # number of nanoAOD files per job
-    self.extraopts    = kwargs.get('opts',         [ ] ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
-    self.subtry       = kwargs.get('subtry',        0  ) # to help keep track of resubmission
-    self.jobcfg       = kwargs.get('jobcfg',       { } ) # to help keep track of resubmission
-    self.nevents      = kwargs.get('nevents',        0 ) # number of nanoAOD events that can be processed
-    self.files        = kwargs.get('files',        [ ] ) # list of ROOT files, OR text file with list of files
-    self.era          = kwargs.get('era',           "" ) # for expansion of $ERA variable
-    self.verbosity    = kwargs.get('verbosity',      0 ) # verbosity level for debugging
+    self.nfilesperjob = kwargs.get('nfilesperjob', -1   ) # number of nanoAOD files per job
+    self.extraopts    = kwargs.get('opts',         [ ]  ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
+    self.subtry       = kwargs.get('subtry',        0   ) # to help keep track of resubmission
+    self.jobcfg       = kwargs.get('jobcfg',       { }  ) # to help keep track of resubmission
+    self.nevents      = kwargs.get('nevents',        0  ) # number of nanoAOD events that can be processed
+    self.files        = kwargs.get('files',        [ ]  ) # list of ROOT files, OR text file with list of files
+    self.postfix      = kwargs.get('postfix',      None ) or "" # post-fix (before '.root') for stored ROOT files
+    self.era          = kwargs.get('era',          ""   ) # for expansion of $ERA variable
+    self.verbosity    = kwargs.get('verbosity',     0   ) # verbosity level for debugging
     self.refreshable  = not self.files                   # allow refresh on file list in getfiles()
     
     # ENSURE LIST
@@ -131,7 +132,7 @@ class Sample(object):
     return '<%s("%s") at %s>'%(self.__class__.__name__,self.name,hex(id(self)))
   
   @staticmethod
-  def loadJSON(cfgname):
+  def loadjson(cfgname):
     """Initialize sample from job config JSON file."""
     with open(cfgname,'r') as file:
       jobcfg = json.load(file)
@@ -140,9 +141,9 @@ class Sample(object):
     jobcfg['config']    = cfgname
     jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
-    dtype    = jobcfg['dtype']
-    channels = [jobcfg['channel']]
-    opts     = jobcfg['extraopts']
+    dtype    = str(jobcfg['dtype'])
+    channels = [str(jobcfg['channel'])]
+    opts     = [str(s) for s in jobcfg['extraopts']]
     subtry   = int(jobcfg['try'])
     nevents  = int(jobcfg['nevents'])
     sample   = Sample(jobcfg['group'],jobcfg['name'],jobcfg['paths'],dtype=dtype,channels=channels,
@@ -184,20 +185,22 @@ class Sample(object):
   
   def getfiles(self,refresh=False,url=True,verb=0):
     """Get list of files from DAS."""
-    files = self.files
+    files   = self.files
     if self.refreshable and (not files or refresh):
       files = [ ]
       for path in self.paths:
         if self.storage: # get files from storage system
+          postfix = self.postfix+'.root'
           sepath  = repkey(self.storage,PATH=path).replace('//','/')
           storage = getstorage(sepath,verb=verb-1)
           outlist = storage.getfiles(url=url,verb=verb-1)
         else: # get files from DAS
+          postfix = self.postfix+'.root'
           cmdout  = dasgoclient("file dataset=%s instance=%s"%(path,self.instance))
           outlist = cmdout.split(os.linesep)
         for line in outlist: # filter root files
           line = line.strip()
-          if line.endswith('.root') and not any(f.endswith(line) for f in self.blacklist):
+          if line.endswith(postfix) and not any(f.endswith(line) for f in self.blacklist):
             if url and self.url not in line and 'root://' not in line:
               line = self.url+line
             files.append(line)

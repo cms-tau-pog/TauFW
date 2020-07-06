@@ -1,6 +1,7 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/NANOAOD_2016/$PATH"
+#storage  = "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/nano/2016/$PATH"
 url      = None #"root://cms-xrd-global.cern.ch/"
 filelist = None #"samples/files/2016/$SAMPLE.txt"
 samples  = [
@@ -51,7 +52,7 @@ samples  = [
   # TTBAR
   M('TT','TT',
     "/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7-v2/NANOAODSIM",
-    store=storage,url=url,file=filelist,opts='toppt=True',
+    store=storage,url=url,file=filelist,opts='toppt=True', #postfix='skim-jec',
   ),
   
   # W+JETS

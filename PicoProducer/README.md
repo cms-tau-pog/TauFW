@@ -34,6 +34,7 @@ You can link several skimming or analysis codes to _channels_.
   * [Storage system](#Storage-system)
   * [Analysis module](#Analysis-module)
 
+
 ## Installation
 
 You need to have CMSSW and [NanoAODTools](https://github.com/cms-nanoAOD/nanoAOD-tools) installed,
@@ -97,7 +98,11 @@ You can link your skimming script to a custom channel short name
 pico.py channel skim skimjob.py
 ```
 This can be whatever string you want, but it should be unique, contain `skim` to differentiate from analysis channels,
-and you should avoid characters that are not safe for filenames, including `_`, `-`, `:` and `/`.
+and you should avoid characters that are not safe for filenames, including `:` and `/`.
+Extra options to the skimming script can be passed as well:
+```
+pico.py channel skimjec 'skimjob.py --jec-sys'
+```
 
 
 ### Analysis
@@ -113,7 +118,7 @@ You can link any analysis module to a custom channel short name (e.g. `mutau`):
 pico.py channel mutau ModuleMuTauSimple
 ```
 The channel short name can be whatever string you like (e.g. `mt`, `mymutau`, `MuTau`, ...).
-However, you should avoid characters that are not safe for filenames, including `_`, `-`,`:` and `/`,
+However, you should avoid characters that are not safe for filenames, including `:` and `/`,
 and it should not contain `skim` (reserved for skimming).
 
 ### Sample list
@@ -133,7 +138,7 @@ The file must include a python list called `samples`, containing [`Sample`](pyth
 samples = [
   Sample('DY','DYJetsToLL_M-50',
     "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7_ext1-v1/NANOAODSIM",
-    dtype='mc',store=None,url="root://cms-xrd-global.cern.ch/",
+    dtype='mc',store=None,url="root://cms-xrd-global.cern.ch/",opts='zpt=True',
   )
 ]
 ```
@@ -161,6 +166,8 @@ Other optional keyword arguments are
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
   This overrides the default `nfilesperjob` in the configuration.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
+* `opts`: Extra key-worded options (`key=value`) to be passed to the analysis modules.
+  Can be a comma-separated string (`opt1=val1,opt2=val2`) or a list of strings (`['opt1=val1','opt2=val2']`).
 
 Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanoAOD files)
 for the same era as specified in the configuration.
@@ -184,6 +191,7 @@ For example, to run the `mutau` channel on a `2016` sample, do
 ```
 pico.py run -y 2016 -c mutau
 ```
+Use `-m 1000` to limit the number of processed events.
 By default, the output will be saved in a new directory called `ouput/`.
 Because `mutau` is an analysis module, the output will be a root file that contains a tree called `'tree'`
 with a custom format defined in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).

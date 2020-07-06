@@ -118,6 +118,7 @@ def main_get(args):
               ndasevents = sample.getnevents(verb=verbosity+1)
               print ">>> %-12s = %s"%('ndasevents',ndasevents)
             print ">>> %-12s = %r"%('url',sample.url)
+            print ">>> %-12s = %r"%('postfix',sample.postfix)
             print ">>> %-12s = %s"%('nfiles',len(infiles))
             print ">>> %-12s = [ "%('infiles')
             for file in infiles:
@@ -205,13 +206,15 @@ def main_link(args):
     CONFIG[varkey] = { }
   LOG.insist(isinstance(CONFIG[varkey],dict),"%s in %s has to be a dictionary"%(varkey,cfgname))
   oldval = value
-  for char in '_-/\,:;!?\'"':
+  for char in '/\,:;!?\'"':
     if char in key:
       LOG.throw(IOError,"Given key '%s', but keys cannot contain any of these characters: %s"%(key,char))
   if varkey=='channels':
     if 'skim' in key.lower(): #or 'test' in key:
-      value = os.path.basename(value)
-      ensurefile("python/processors",value)
+      parts  = value.split(' ')
+      script = os.path.basename(parts[0]) # separate script from options
+      ensurefile("python/processors",script)
+      value  = ' '.join([script]+parts[1:])
     else:
       if 'python/analysis/' in value: # useful for tab completion
         value = value.split('python/analysis/')[-1].replace('/','.')
@@ -317,8 +320,11 @@ def main_run(args):
       outdir = ensuredir(outdir.lstrip('/'))
       
       # PROCESSOR
+      procopts_  = "" # extra options for processor
       if skim:
-        processor = module
+        parts     = module.split(' ')
+        processor = parts[0]
+        procopts_ = ' '.join(parts[1:])
       ###elif channel=='test':
       ###  processor = module
       else:
@@ -373,7 +379,7 @@ def main_run(args):
             extraopts_.extend(sample.extraopts)
         if verbosity>=1:
           print ">>> %-12s = %s"%('sample',sample)
-          print ">>> %-12s = %r"%('filetag',filetag)
+          print ">>> %-12s = %r"%('filetag',filetag) # postfix
           print ">>> %-12s = %s"%('extraopts',extraopts_)
         
         # GET FILES
@@ -398,8 +404,10 @@ def main_run(args):
         
         # RUN
         runcmd = processor
+        if procopts_:
+          runcmd += " %s"%(procopts_)
         if skim:
-          runcmd += " -y %s -o %s --jec-sys"%(era,outdir)
+          runcmd += " -y %s -o %s"%(era,outdir)
         ###elif 'test' in channel:
         ###  runcmd += " -o %s"%(outdir)
         else: # analysis
@@ -407,13 +415,13 @@ def main_run(args):
         if dtype:
           runcmd += " -d %r"%(dtype)
         if filetag:
-          runcmd += " -t %r"%(filetag)
+          runcmd += " -t %r"%(filetag) # postfix
         if maxevts:
           runcmd += " -m %s"%(maxevts)
         if infiles:
           runcmd += " -i %s"%(' '.join(infiles))
         if extraopts_:
-          runcmd += " --opt %s"%(' '.join(extraopts_))
+          runcmd += " --opt '%s'"%("' '".join(extraopts_))
         #elif nfiles:
         #  runcmd += " --nfiles %s"%(nfiles)
         print ">>> Executing: "+bold(runcmd)
@@ -429,7 +437,8 @@ def main_run(args):
 ####################
 
 def preparejobs(args):
-  """Help function to iterate over samples per given channel and era and prepare job config and list."""
+  """Help function for (re)submission to iterate over samples per given channel and era
+  and prepare job config and list."""
   if args.verbosity>=1:
     print ">>> preparejobs", args
   
@@ -473,8 +482,11 @@ def preparejobs(args):
         print ">>> %-12s = %r"%('dtypes',dtypes)
       
       # PROCESSOR
+      procopts_ = ""
       if skim:
-        processor = module
+        parts     = module.split(' ')
+        processor = parts[0]
+        procopts_ = ' '.join(parts[1:])
       ###elif channel=='test':
       ###  processor = module
       else:
@@ -520,7 +532,7 @@ def preparejobs(args):
         jobids     = sample.jobcfg.get('jobids',[ ])
         dtype      = sample.dtype
         postfix    = "_%s%s"%(channel,tag)
-        jobtag     = '_%s%s_try%d'%(channel,tag,subtry)
+        jobtag     = '_%s_try%d'%(postfix,subtry)
         jobname    = sample.name+jobtag.rstrip('try1').rstrip('_')
         extraopts_ = extraopts[:]
         if sample.extraopts:
@@ -611,35 +623,38 @@ def preparejobs(args):
         # WRITE JOB LIST with arguments per job
         if args.verbosity>=1:
           print ">>> Creating job list %s..."%(joblist)
-        with open(joblist,'w') as listfile:
-          ichunk = 0
-          for fchunk in fchunks:
-            while ichunk in chunkdict:
-              ichunk   += 1 # allows for different nfilesperjob on resubmission
-              continue
-            jobfiles    = ' '.join(fchunk) # list of input files
-            filetag     = postfix
-            if not skim:
-              filetag  += "_%d"%(ichunk)
-            jobcmd      = processor
-            if skim:
-              jobcmd += " -y %s -d %r --copydir %s -t %s --jec-sys"%(era,dtype,outdir,filetag)
-            ###elif channel=='test':
-            ###  jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
-            else:
-              jobcmd += " -y %s -d %r -c %s -M %s --copydir %s -t %s"%(era,dtype,channel,module,outdir,filetag)
-            if prefetch:
-              jobcmd += " -p"
-            if testrun:
-              jobcmd += " -m %d"%(testrun) # process a limited amount of events
-            if extraopts_:
-              jobcmd += " --opt %s"%(' '.join(extraopts_))
-            jobcmd += " -i %s"%(jobfiles) # add last
-            if args.verbosity>=1:
-              print jobcmd
-            listfile.write(jobcmd+'\n')
-            chunkdict[ichunk] = fchunk
-            chunks.append(ichunk)
+        if fchunks:
+          with open(joblist,'w') as listfile:
+            ichunk = 0
+            for fchunk in fchunks:
+              while ichunk in chunkdict:
+                ichunk  += 1 # allows for different nfilesperjob on resubmission
+                continue
+              jobfiles   = ' '.join(fchunk) # list of input files
+              filetag    = postfix
+              if not skim:
+                filetag += "_%d"%(ichunk)
+              jobcmd     = processor
+              if procopts_:
+                jobcmd  += " %s"%(procopts_)
+              if skim:
+                jobcmd  += " -y %s -d '%s' --copydir %s -t %s"%(era,dtype,outdir,filetag)
+              ###elif channel=='test':
+              ###  jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
+              else:
+                jobcmd  += " -y %s -d %r -c %s -M %s --copydir %s -t %s"%(era,dtype,channel,module,outdir,filetag)
+              if prefetch:
+                jobcmd  += " -p"
+              if testrun:
+                jobcmd  += " -m %d"%(testrun) # process a limited amount of events
+              if extraopts_:
+                jobcmd  += " --opt '%s'"%("' '".join(extraopts_))
+              jobcmd    += " -i %s"%(jobfiles) # add last
+              if args.verbosity>=1:
+                print jobcmd
+              listfile.write(jobcmd+'\n')
+              chunkdict[ichunk] = fchunk
+              chunks.append(ichunk)
         
         # JSON CONFIG
         jobcfg = OrderedDict([
@@ -938,7 +953,7 @@ def checkchuncks(sample,**kwargs):
     ratio = 100.0*nprocevents/ndasevents
     rcol  = 'green' if ratio>90. else 'yellow' if ratio>80. else 'red'
     rtext = ": "+color("%d/%d (%d%%)"%(nprocevents,ndasevents,ratio),rcol,bold=True)
-  printchunks(goodchunks,'SUCCES', "Chunks with output in outdir"+rtext,'green')
+  printchunks(goodchunks,'SUCCESS', "Chunks with output in outdir"+rtext,'green')
   printchunks(pendchunks,'PEND',"Chunks with pending or running jobs",'white',True)
   printchunks(badchunks, 'FAIL', "Chunks with corrupted output in outdir",'red',True)
   printchunks(misschunks,'MISS',"Chunks with no output in outdir",'red',True)
@@ -1110,13 +1125,14 @@ def main_status(args):
         if hadd:
           jobdir   = sample.jobcfg['jobdir']
           outdir   = sample.jobcfg['outdir']
+          postfix  = sample.jobcfg['postfix']
           storedir = repkey(storedirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
                                            DAS=sample.paths[0].strip('/'),GROUP=sample.group)
           storage  = getstorage(storedir,ensure=True,verb=verbosity)
           outfile  = '%s_%s%s.root'%(sample.name,channel,tag)
-          infiles  = os.path.join(outdir,'*_%s%s_[0-9]*.root'%(channel,tag))
-          cfgfiles = os.path.join(sample.jobcfg['cfgdir'],'job*_%s%s_try[0-9]*.*'%(channel,tag))
-          logfiles = os.path.join(sample.jobcfg['logdir'],'*_%s%s_try[0-9]*.*.*.log'%(channel,tag))
+          infiles  = os.path.join(outdir,'*_%s_[0-9]*.root'%(postfix))
+          cfgfiles = os.path.join(sample.jobcfg['cfgdir'],'job*_%s_try[0-9]*.*'%(postfix))
+          logfiles = os.path.join(sample.jobcfg['logdir'],'*_%s_try[0-9]*.*.*.log'%(postfix))
           if verbosity>=1:
             print ">>> Hadd'ing job output for '%s'"%(sample.name)
             print ">>> %-12s = %r"%('jobdir',jobdir)
@@ -1228,11 +1244,11 @@ if __name__ == "__main__":
   help_rmv = "remove given variable from the configuration file"
   help_chl = "link a channel to a module in the configuration file"
   help_era = "link an era to a sample list in the configuration file"
-  help_run = "run local post processor"
-  help_sub = "submit post-processing jobs"
-  help_res = "resubmit failed post-processing jobs"
-  help_sts = "status of post-processing jobs"
-  help_hdd = "hadd post-processing job output"
+  help_run = "run nanoAOD processor locally"
+  help_sub = "submit processing jobs"
+  help_res = "resubmit failed processing jobs"
+  help_sts = "status of processing jobs"
+  help_hdd = "hadd processing job output"
   parser_ins = subparsers.add_parser('install',  parents=[parser_cmn], help=help_ins, description=help_ins)
   parser_lst = subparsers.add_parser('list',     parents=[parser_cmn], help=help_lst, description=help_lst)
   parser_get = subparsers.add_parser('get',      parents=[parser_sam], help=help_get, description=help_get)

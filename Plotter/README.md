@@ -30,7 +30,7 @@ plot = Plot("x",hists)
 plot.draw(ratio=True,grid=True,logy=True)
 plot.drawlegend()
 plot.saveas("plot.png")
-plots.close
+plots.close()
 ```
 
 <p align="center" vertical-align: middle>
@@ -51,7 +51,7 @@ plot.drawlegend(pos='right')
 plot.drawtext("#mu#tau_{h} baseline")
 plot.saveas("stack.png")
 plot.saveas("stack.pdf")
-plots.close
+plots.close()
 ```
 
 More examples of usage of `Plot` and `Stack` are provided in [`test/`](test/), run as

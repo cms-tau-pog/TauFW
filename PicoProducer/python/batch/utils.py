@@ -72,7 +72,7 @@ def getcfgsamples(jobcfgnames,filter=[ ],veto=[ ],dtype=[ ],verb=0):
   for cfgname in sorted(jobcfgs):
     if verb>=2:
       print ">>>   %s"%(cfgname)
-    sample = Sample.loadJSON(cfgname)
+    sample = Sample.loadjson(cfgname)
     if filters and not sample.match(filters,verb): continue
     if vetoes and sample.match(vetoes,verb): continue
     if sample.dtype not in dtypes: continue

@@ -32,6 +32,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
   plot.drawlegend(header=header)
   plot.drawtext(text)
   plot.saveas(fname+".png")
+  plot.saveas(fname+".pdf")
   #plot.saveas(fname+".C")
   #plot.saveas(fname+".png",fname+".C")
   #plot.saveas(fname,ext=['png','pdf'])
