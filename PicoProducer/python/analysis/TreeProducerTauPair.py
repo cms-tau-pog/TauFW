@@ -24,16 +24,16 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('evt',                 'i')
     self.addBranch('data',                '?', module.isdata)
     
-    self.addBranch('npv',                 'i') # number of offline primary vertices
+    self.addBranch('npv',                 'i', title="number of offline primary vertices")
     self.addBranch('npv_good',            'i')
-    self.addBranch('rho',                 'f') # fixedGridRhoFastjetAll
+    self.addBranch('rho',                 'f', title="fixedGridRhoFastjetAll")
     self.addBranch('metfilter',           '?')
     
     if module.ismc:
       # https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/NPUTablesProducer.cc
-      self.addBranch('npu',               'i', -1) # number of in-time pu interactions added (getPU_NumInteractions -> nPU)
-      self.addBranch('npu_true',          'i', -1) # true mean number of Poisson distribution (getTrueNumInteractions -> nTrueInt)
-      self.addBranch('NUP',               'i', -1) # number of partons for stitching (LHE_Njets)
+      self.addBranch('npu',               'i', -1, title="number of in-time pu interactions added (getPU_NumInteractions -> nPU)")
+      self.addBranch('npu_true',          'i', -1, title="true mean number of Poisson distribution (getTrueNumInteractions -> nTrueInt)")
+      self.addBranch('NUP',               'i', -1, title="number of partons for stitching (LHE_Njets)")
     
     
     ##############
@@ -41,12 +41,12 @@ class TreeProducerTauPair(TreeProducer):
     ##############
     
     if module.ismc:
-      self.addBranch('weight',            'f', 1.)
+      self.addBranch('weight',            'f', 1., title="weight combining others (to reduce selection string length)")
       self.addBranch('genweight',         'f', 1.)
       self.addBranch('trigweight',        'f', 1.)
-      self.addBranch('puweight',          'f', 1.)
-      self.addBranch('zptweight',         'f', 1.)
-      self.addBranch('ttptweight',        'f', 1.)
+      self.addBranch('puweight',          'f', 1., title="pileup up reweighting")
+      self.addBranch('zptweight',         'f', 1., title="Z pT reweighting")
+      self.addBranch('ttptweight',        'f', 1., title="top pT reweighting")
       self.addBranch('btagweight',        'f', 1.)
       self.addBranch('prefireweight',     'f', 1.)
       self.addBranch('prefireweightUp',   'f', 1.)
@@ -60,10 +60,10 @@ class TreeProducerTauPair(TreeProducer):
     #   JETS   #
     ############
     
-    self.addBranch('njets',               'i') # number of jets (pT > 30 GeV, |eta| < 4.7)
-    self.addBranch('ncjets',              'i') # number of central jets (|eta| < 2.4)
-    self.addBranch('nfjets',              'i') # number of forward jets (2.4 < |eta| < 4.7)
-    self.addBranch('nbtag',               'i') # number of b tagged jets (pT > 30 GeV, |eta| < 2.7)
+    self.addBranch('njets',               'i', title="number of jets (pT > 30 GeV, |eta| < 4.7)")
+    self.addBranch('ncjets',              'i', title="number of central jets (|eta| < 2.4)")
+    self.addBranch('nfjets',              'i', title="number of forward jets (2.4 < |eta| < 4.7)")
+    self.addBranch('nbtag',               'i', title="number of b tagged jets (pT > 30 GeV, |eta| < 2.7)")
     
     self.addBranch('jpt_1',               'f')
     self.addBranch('jeta_1',              'f')
@@ -123,7 +123,7 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('pzetamiss',           'f')
     self.addBranch('pzetavis',            'f')
     self.addBranch('dzeta',               'f')
-    self.addBranch('chi',                 'f') # exp|y_2-y_1|
+    self.addBranch('chi',                 'f', title="exp|y_2-y_1|")
     
     ###for unc in module.metUncLabels:
     ###  unc = '_'+unc
@@ -137,7 +137,7 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('lepton_vetoes_notau', '?')
     
     if module.ismc:
-      self.addBranch('m_moth',            'f', -1) # generator mother: Z boson, W boson, top quark, ...
-      self.addBranch('pt_moth',           'f', -1)
+      self.addBranch('m_moth',            'f', -1, title="generator mother mass (Z boson, W boson, top quark, ...)")
+      self.addBranch('pt_moth',           'f', -1, title="generator mother pT (Z boson, W boson, top quark, ...)")
     
 

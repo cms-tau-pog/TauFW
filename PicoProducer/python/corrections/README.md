@@ -3,28 +3,38 @@ Several tools to get corrections, efficiencies, scale factors (SFs), event weigh
 
 * [Pileup reweighting](#pileup-reweighting)<br>
 * [Lepton efficiencies](#lepton-efficiencies)<br>
+* [Tau scale factors](#Tau-scale-factors)<br>
 * [B tagging tools](#b-tagging-tools)<br>
 * [Test SFs](test-sfs)
+
+Data for corrections is saved in in [`../../data/`](../../data)
 
 
 ## Pileup reweighting
 
-[`PileupTool.py`](../python/corrections/PileupTool.py) provides the pileup event weight based on the data and MC profiles in [`pileup/`](pileup).
+[`PileupTool.py`](PileupTool.py) provides the pileup event weight based on the data and MC profiles in [`data/pileup/`](pileup).
 
 The data profile can be computed with the `pileupCalc.py` tool.
 The MC profile can be taken from the distribution of the `Pileup_nTrueInt` variable in nanoAOD, for each MC event:
 ```
     self.out.pileup.Fill(event.Pileup_nTrueInt)
 ```
-and then extracted with [`pileup/getPileupProfiles.py`](pileup/getPileupProfiles.py). Comparisons are shown [here for 2016](https://ineuteli.web.cern.ch/ineuteli/pileup/2016/), [here for 2017](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/) and [here for 2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/).
+and then extracted with [`data/pileup/getPileupProfiles.py`](../../data/pileup/getPileupProfiles.py). Comparisons are shown [here for 2016](https://ineuteli.web.cern.ch/ineuteli/pileup/2016/), [here for 2017](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/) and [here for 2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/).
 
 Please note that some 2017 samples had a buggy pileup module, and need to be treated separately, see [this](https://hypernews.cern.ch/HyperNews/CMS/get/generators/4060.html?inline=-1) or [this HyperNews post](https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/3128.html).
 `PileupTool.py` manually checks for some of these samples with the `hasBuggyPU` help function.
-Also, [`pileup/getPileupProfiles.py`](pileup/getPileupProfiles.py) splits the 2017 MC pileup profiles into those of the buggy (`old_pmx`) and fixed (`new_pmx`) samples.
-You can find out if your favorite samples has a buggy pileup profile by passing its DAS path to [`pileup/checkBuggyPileup2017.sh`](pileup/checkBuggyPileup2017.sh), which makes use of `dasgoclient`:
+Also, [`data/pileup/getPileupProfiles.py`](../../data/pileup/getPileupProfiles.py) splits the 2017 MC pileup profiles into those of the buggy (`old_pmx`) and fixed (`new_pmx`) samples.
+You can find out if your favorite samples has a buggy pileup profile by passing its DAS path to [`data/pileup/checkBuggyPileup2017.sh`](../../data/pileup/checkBuggyPileup2017.sh), which makes use of `dasgoclient`:
 ```
 ./pileup/checkBuggyPileup2017.sh /DY*JetsToLL_M-50_TuneCP5*mad*/RunIIFall17*/NANOAOD*
 ```
+
+<p align="center">
+  <img src="../../..docs/pileup_Data-MC_2016_69p2.png" alt="Pileup profiles for 2016" width="240" hspace="10"/>
+  <img src="../../..docs/pileup_Data-MC_2017_69p2.png" alt="Pileup profiles for 2017" hspace="10"/>
+  <img src="../../../docs/pileup_Data-MC_2018_69p2.png" alt="Pileup profiles for 2018" width="240"/>
+</p>
+
 
 
 ## Lepton efficiencies
@@ -50,10 +60,14 @@ git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
 ```
 
 
+## Tau scale factors
+
+Please use the official TauID tool. Installation instructions are given in the [top README](../../../../..).
+
 
 ## B tagging tools
 
-[`BTagTool.py`](../python/corrections/BTagTool.py) provides two classes: `BTagWPs` for saving the working points (WPs) per year and type of tagger, and `BTagWeightTool` to provide b tagging weights. These can be called during the initialization of you analysis module, e.g.:
+[`BTagTool.py`](BTagTool.py) provides two classes: `BTagWPs` for saving the working points (WPs) per year and type of tagger, and `BTagWeightTool` to provide b tagging weights. These can be called during the initialization of you analysis module, e.g.:
 ```
 class ModuleMuTau(Module):
   
@@ -76,7 +90,7 @@ class ModuleMuTau(Module):
 ```
 
 `BTagWeightTool` calculates b tagging reweighting based on the [SFs provided from the BTagging group](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation#Recommendation_for_13_TeV_Data)
-and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` files in [`btag/`](btag).
+and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` files in [`data/btag/`](../../data/btag).
 The event weight is calculated according to [this method](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagSFMethods#1a_Event_reweighting_using_scale).
 
 ### Computing the b tag efficiencies
@@ -101,11 +115,16 @@ after removing overlap with other selected objects, e.g. the muon and tau object
 </pre>
 Do this for as many MC samples as possible, to gain as many events as possible
 (also note that jets in Drell-Yan, W+jets and ttbar events typically have different jet flavor content).
-Then edit and run [`btag/getBTagEfficiencies.py`](btag/getBTagEfficiencies.py) to extract all histograms from analysis output,
+Then edit and run [`data/btag/getBTagEfficiencies.py`](../../data/btag/getBTagEfficiencies.py) to extract all histograms from analysis output,
 add them together for maximum statistics, and compute the efficiencies. (You should edit this script to read in your analysis output.)
 Examples of efficiency maps per jet flavor, and as a function of jet pT versus jet eta for the mutau analysis in 2017 are shown
 [here](https://ineuteli.web.cern.ch/ineuteli/btag/2017/?match=mutau).
 
+<p align="center">
+  <img src="../../..docs/eff_DeepCSV_b_medium_mutau_log.png" alt="B tagging efficiency map" width="240" hspace="10"/>
+  <img src="../../..docs/eff_DeepCSV_c_medium_mutau_log.png" alt="B tagging c misidentification map" width="240" hspace="10"/>
+  <img src="../../../docs/eff_DeepCSV_udsg_medium_mutau_log.png" alt="B tagging misidentification map" width="240"/>
+</p>
 
 
 ## Test SFs

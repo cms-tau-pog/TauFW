@@ -25,7 +25,7 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('dxy_1',                      'f')
     self.addBranch('dz_1',                       'f')
     self.addBranch('q_1',                        'i')
-    self.addBranch('iso_1',                      'f') # pfRelIso04_all_1
+    self.addBranch('iso_1',                      'f', title="pfRelIso04_all_1")
     
     
     ###########
@@ -40,7 +40,7 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('dxy_2',                      'f')
     self.addBranch('dz_2',                       'f')
     self.addBranch('q_2',                        'i')
-    self.addBranch('iso_2',                      'f') # rawIso_2
+    self.addBranch('iso_2',                      'f', title="rawIso_2")
     self.addBranch('idiso_2',                    'i')
     self.addBranch('dm_2',                       'i')
     self.addBranch('rawAntiEle_2',               'f')
@@ -51,9 +51,9 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('rawDeepTau2017v2p1VSjet_2',  'f')
     self.addBranch('idAntiEle_2',                'i')
     self.addBranch('idAntiMu_2',                 'i')
-    self.addBranch('idDecayMode_2',              '?')
-    self.addBranch('idDecayModeNewDMs_2',        '?') # oldDecayModeFinding
-    self.addBranch('idMVAoldDM2017v2_2',         'i') # newDecayModeFinding
+    self.addBranch('idDecayMode_2',              '?', title="oldDecayModeFinding")
+    self.addBranch('idDecayModeNewDMs_2',        '?', title="newDecayModeFinding")
+    self.addBranch('idMVAoldDM2017v2_2',         'i')
     self.addBranch('idMVAnewDM2017v2_2',         'i')
     self.addBranch('idDeepTau2017v2p1VSe_2',     'i')
     self.addBranch('idDeepTau2017v2p1VSmu_2',    'i')
@@ -73,13 +73,12 @@ class TreeProducerMuTau(TreeProducerTauPair):
       self.addBranch('genvistaueta_2',           'f', -9)
       self.addBranch('genvistauphi_2',           'f', -9)
       self.addBranch('gendm_2',                  'i', -1)
-      self.addBranch('idisoweight_1',            'f', 1.)
-      self.addBranch('idisoweight_2',            'f', 1.)
-      self.addBranch('idweight_2',               'f', 1.)
-      self.addBranch('ltfweight_2',              'f', 1.)
-      #if not module.doTight:
-      #  self.addBranch('idweightUp_2',           'f', 1.)
-      #  self.addBranch('idweightDown_2',         'f', 1.)
-      #  self.addBranch('ltfweightUp_2',          'f', 1.)
-      #  self.addBranch('ltfweightDown_2',        'f', 1.)
+      self.addBranch('idisoweight_1',            'f', 1., title="muon ID/iso efficiency SF")
+      self.addBranch('idweight_2',               'f', 1., title="tau ID efficiency SF")
+      self.addBranch('ltfweight_2',              'f', 1., title="lepton -> tau fake rate SF")
+      if not module.dotight:
+        self.addBranch('idweightUp_2',           'f', 1.)
+        self.addBranch('idweightDown_2',         'f', 1.)
+        self.addBranch('ltfweightUp_2',          'f', 1.)
+        self.addBranch('ltfweightDown_2',        'f', 1.)
     

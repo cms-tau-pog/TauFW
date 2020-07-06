@@ -7,7 +7,7 @@ from ROOT import TLorentzVector, TVector3
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 from TauFW.PicoProducer.corrections.PileupTool import *
-#from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
+from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 #from TauFW.PicoProducer.corrections.PreFireTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
@@ -19,47 +19,47 @@ tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco' }
 
 class ModuleTauPair(Module):
   
-  def __init__(self, filename, **kwargs):
+  def __init__(self, fname, **kwargs):
     print header(self.__class__.__name__)
     
     # SETTINGS
-    self.filename         = filename
-    self.dtype            = kwargs.get('dtype',      'data'             )
-    self.ismc             = self.dtype=='mc'
-    self.isdata           = self.dtype=='data' or self.dtype=='embed'
-    self.isembed          = self.dtype=='embed'
-    self.channel          = kwargs.get('channel',  'none'             )
-    self.year             = kwargs.get('year',     2017               )
-    self.tes              = kwargs.get('tes',      None               ) # set TES manually
-    self.tessys           = kwargs.get('tessys',   None               ) # vary TES: 'Up', 'Down'
-    self.ees              = kwargs.get('ees',      1.0                )
-    self.ltf              = kwargs.get('ltf',      1.0                ) or 1.0
-    self.jtf              = kwargs.get('jtf',      1.0                ) or 1.0
-    self.dotoppt          = kwargs.get('toppt',    'TT' in filename   )
-    self.dozpt            = kwargs.get('zpt',      'DY' in filename   )
-    self.doRecoil         = kwargs.get('recoil',   False              ) #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
-    self.dotight          = kwargs.get('tight',    self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
-    self.dojec            = kwargs.get('jec',      True               ) #and self.year==2016 #False
-    self.dojecsys         = kwargs.get('jecsys',   self.dojec         ) and not self.dotight and self.ismc #and self.dojec #and False
-    self.jetCutPt         = 30
-    self.bjetCutEta       = 2.7
+    self.filename   = fname
+    self.dtype      = kwargs.get('dtype',   'data'        )
+    self.ismc       = self.dtype=='mc'
+    self.isdata     = self.dtype=='data' or self.dtype=='embed'
+    self.isembed    = self.dtype=='embed'
+    self.channel    = kwargs.get('channel', 'none'        )
+    self.year       = kwargs.get('year',    2017          )
+    self.tes        = kwargs.get('tes',     None          ) # if None, recommended values are applied
+    self.tessys     = kwargs.get('tessys',  None          ) # vary TES: 'Up', 'Down'
+    self.ees        = kwargs.get('ees',     1.0           )
+    self.ltf        = kwargs.get('ltf',     1.0           ) or 1.0
+    self.jtf        = kwargs.get('jtf',     1.0           ) or 1.0
+    self.dotoppt    = kwargs.get('toppt',   'TT' in fname )
+    self.dozpt      = kwargs.get('zpt',     'DY' in fname )
+    self.dorecoil   = kwargs.get('recoil',  False         ) #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
+    self.dotight    = kwargs.get('tight',   self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
+    self.dojec      = kwargs.get('jec',     True          ) #and self.year==2016 #False
+    self.dojecsys   = kwargs.get('jecsys',  self.dojec    ) and not self.dotight and self.ismc #and self.dojec #and False
+    self.jetCutPt   = 30
+    self.bjetCutEta = 2.7
     
     assert self.year in [2016,2017,2018], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
-    self.met              = getmet(self.year,"nom" if self.dojec else "")
-    self.filter           = getmetfilters(self.year,self.isdata)
+    self.met        = getmet(self.year,"nom" if self.dojec else "")
+    self.filter     = getmetfilters(self.year,self.isdata)
     
     # CORRECTIONS
     self.jecUncLabels     = [ ]
     self.metUncLabels     = [ ]
     if self.ismc:
-      self.puTool         = PileupWeightTool(year=self.year,sample=filename)
-      self.btagTool       = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta)
-    #  if self.dozpt:
-    #    self.zptTool      = ZptCorrectionTool(year=self.year)
-    #  if self.doRecoil:
+      self.puTool         = PileupWeightTool(year=self.year,sample=self.filename)
+      self.btagTool       = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+      if self.dozpt:
+        self.zptTool      = ZptCorrectionTool(year=self.year)
+    #  if self.dorecoil:
     #    self.recoilTool   = RecoilCorrectionTool(year=self.year)
     #  if self.year in [2016,2017]:
     #    self.prefireTool  = PreFireTool(self.year)
@@ -94,9 +94,9 @@ class ModuleTauPair(Module):
     #  print ">>> %-12s = %s"%('ees',     self.ees)
     print ">>> %-12s = %s"%('dotoppt',    self.dotoppt)
     print ">>> %-12s = %s"%('dozpt',     self.dozpt)
-    #print ">>> %-12s = %s"%('doRecoil',  self.doRecoil)
-    #print ">>> %-12s = %s"%('dojec',     self.dojec)
-    #print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
+    #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
+    print ">>> %-12s = %s"%('dojec',     self.dojec)
+    print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
     print ">>> %-12s = %s"%('dotight',   self.dotight)
     print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
     print ">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta)
@@ -264,7 +264,7 @@ class ModuleTauPair(Module):
   def fillCommonCorrBraches(self, event, jets, met, njets_vars, met_vars):
     """Help function to apply common corrections, and fill weight branches."""
     
-    #if self.doRecoil:
+    #if self.dorecoil:
     #  boson, boson_vis           = getBoson(event)
     #  self.recoilTool.CorrectPFMETByMeanResolution(met,boson,boson_vis,len(jets))
     #  self.out.m_moth[0]         = boson.M()
@@ -276,43 +276,44 @@ class ModuleTauPair(Module):
     #  if self.dozpt:
     #    self.out.zptweight[0]      = self.zptTool.getzptweight(boson.Pt(),boson.M())
     #
-    #elif self.dozpt:
-    #  zboson = getZBoson(event)
-    #  self.out.m_genboson[0]       = zboson.M()
-    #  self.out.pt_genboson[0]      = zboson.Pt()
-    #  self.out.zptweight[0]        = self.zptTool.getzptweight(zboson.Pt(),zboson.M())
-    #
-    #elif self.dotoppt:
-    #  toppt1, toppt2               = getTTPt(event)
-    #  self.out.ttptweight[0]       = getTTptWeight(toppt1,toppt2)
+    if self.dozpt:
+      zboson = getzboson(event)
+      self.out.m_moth[0]           = zboson.M()
+      self.out.m_moth[0]           = zboson.Pt()
+      self.out.zptweight[0]        = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
+    
+    elif self.dotoppt:
+      toppt1, toppt2               = gettoppt(event)
+      self.out.pt_moth[0]          = toppt1
+      self.out.ttptweight[0]       = getTopPtWeight(toppt1,toppt2)
     
     self.out.genweight[0]          = event.genWeight
     self.out.puweight[0]           = self.puTool.getWeight(event.Pileup_nTrueInt)
     self.out.btagweight[0]         = self.btagTool.getWeight(jets)
     #if not self.dotight:
-    #  self.out.btagweightUp[0]   = self.btagTool.getWeight(jets50,unc='Up')
-    #  self.out.btagweightDown[0] = self.btagTool.getWeight(jets50,unc='Down')
+    #  self.out.btagweightUp[0]   = self.btagTool.getWeight(jets,unc='Up')
+    #  self.out.btagweightDown[0] = self.btagTool.getWeight(jets,unc='Down')
     #if self.year in [2016,2017]:
     #  self.out.prefireweightDown[0], self.out.prefireweight[0], self.out.prefireweightUp[0] = self.prefireTool.getWeight(event)
     
   
   def fillMETAndDiLeptonBranches(self, event, tau1, tau2, met, met_vars):
     """Help function to compute variable related to the MET and visible tau candidates,
-    (passed as TLVs) and fill the corresponding branches."""
+    (passed as TLorentzVectors) and fill the corresponding branches."""
     
-    ## PROPAGATE LTF/JTF shift to MET
-    #if self.ismc and 'tau' in self.channel:
-    #  # TODO: TES as well
-    #  if self.ltf!=1.0:
-    #    dp = tau2*(1.-1./self.ltf) # assume shift is already applied
-    #    if self.channel=='tautau':
-    #      dp += tau1*(1.-1./self.ltf)
-    #    correctmet(met,dp)
-    #  elif self.jtf!=1.0:
-    #    dp = tau2*(1.-1./self.jtf)
-    #    if self.channel=='tautau':
-    #      dp += tau1*(1.-1./self.jtf)
-    #    correctmet(met,dp)
+    # PROPAGATE LTF/JTF shift to MET (assume shift is already applied to object)
+    if self.ismc and 'tau' in self.channel:
+      # TODO: TES as well
+      if self.ltf!=1.0:
+        dp = tau2*(1.-1./self.ltf)
+        if self.channel=='tautau':
+          dp += tau1*(1.-1./self.ltf)
+        correctmet(met,dp)
+      elif self.jtf!=1.0:
+        dp = tau2*(1.-1./self.jtf)
+        if self.channel=='tautau':
+          dp += tau1*(1.-1./self.jtf)
+        correctmet(met,dp)
     
     # MET
     self.out.met[0]       = met.Pt()

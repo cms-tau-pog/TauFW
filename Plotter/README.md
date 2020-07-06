@@ -179,7 +179,7 @@ STYLE.sample_colors['ZTT'] = kOrange-4
 <p align="center">
   <img src="../docs/testStyle_legend.png" alt="Legend with common SM processes" width="220" hspace="10"/>
   <img src="../docs/testStyle_legend_split.png" alt="Legend with some processes split" width="220" hspace="10"/>
-  <img src="../docs/testStyle_legend_DMs.png" alt="Legend with Z -> tautau split into decay modes" width="200" hspace="10"/>
+  <img src="../docs/testStyle_legend_DMs.png" alt="Legend with Z -> tautau split into decay modes" width="200"/>
 </p>
 
 

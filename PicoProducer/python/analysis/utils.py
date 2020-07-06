@@ -127,7 +127,7 @@ def getmetfilters(year,isData):
 def loosestIso(tau):
   """Return a method to check whether event passes the VLoose working
   point of all available tau IDs. (For tau ID measurement.)"""
-  return tau.idDeepTau2017v2p1VSjet>1 # VVLoose
+  return tau.idDeepTau2017v2p1VSjet>=2 # VVLoose
   #ord(e.Tau_idMVAnewDM2017v2[i])>0 or ord(e.Tau_idMVAoldDM2017v2[i])>0
   #ord(e.Tau_idMVAoldDM[i])>0 or ord(e.Tau_idMVAoldDM2017v1[i])>0
   
@@ -243,6 +243,7 @@ class Cutflow(object):
     if index==None:
       index = self.nextidx
       self.nextidx += 1
+    assert all(index!=i for n,i in self.cuts.iteritems()), "Index %d for %r already in use! Taken: %s"%(index,name,self.cuts)
     #assert not hasattr(self,name), "%s already has attribute '%s'!"%(self,name)
     #setattr(self,name,index)
     bin = 1+index

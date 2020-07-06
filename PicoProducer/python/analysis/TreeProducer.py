@@ -12,7 +12,7 @@
 #   Float_t   'F'     'f'/'float32'        32-bit float
 #   Double_t  'D'     'd'/'float64'/float  64-bit float
 import numpy as np
-from ROOT import TTree, TFile
+from ROOT import TTree, TFile, TH1D
 from TauFW.PicoProducer.analysis.utils import Cutflow
 
 root_dtype = { # python/numpy -> root data type

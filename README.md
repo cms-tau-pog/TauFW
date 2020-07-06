@@ -22,7 +22,7 @@ Then, install `TauFW`:
 ```
 cd $CMSSW_BASE/src/
 git clone https://github.com/cms-tau-pog/TauFW TauFW
-scram b
+scram b -j4
 ```
 With each new session, do
 ```
@@ -31,12 +31,19 @@ cd $CMSSW/src
 cmsenv
 ```
 
-### PicoProducer and nanoAOD tools
-If you want to process nanoAOD using `PicoProducer`, install [`NanoAODTools`](https://github.com/cms-nanoAOD/nanoAOD-tools)
+### PicoProducer
+If you want to process nanoAOD using `PicoProducer`, install [`NanoAODTools`](https://github.com/cms-nanoAOD/nanoAOD-tools):
 ```
 cd $CMSSW_BASE/src/
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
-scram b
+scram b -j4
+```
+If you want to use tau ID SF, please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauIDSFs):
+```
+cd $CMSSW_BASE/src
+git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
+cmsenv
+scram b -j4
 ```
 
 ### Fitter and Combine tools
