@@ -30,8 +30,8 @@ You can find out if your favorite samples has a buggy pileup profile by passing 
 ```
 
 <p align="center">
-  <img src="../../../docs/pileup_Data-MC_2016_69p2.png" alt="Pileup profiles for 2016" width="270" hspace="10"/>
-  <img src="../../../docs/pileup_Data-MC_2017_69p2.png" alt="Pileup profiles for 2017" width="270" hspace="10"/>
+  <img src="../../../docs/pileup_Data-MC_2016_69p2.png" alt="Pileup profiles for 2016" width="270" hspace="8"/>
+  <img src="../../../docs/pileup_Data-MC_2017_69p2.png" alt="Pileup profiles for 2017" width="270" hspace="8"/>
   <img src="../../../docs/pileup_Data-MC_2018_69p2.png" alt="Pileup profiles for 2018" width="270"/>
 </p>
 
@@ -120,8 +120,8 @@ Examples of efficiency maps per jet flavor, and as a function of jet pT versus j
 [here](https://ineuteli.web.cern.ch/ineuteli/btag/2017/?match=mutau).
 
 <p align="center">
-  <img src="../../../docs/eff_DeepCSV_b_medium_mutau_log.png" alt="B tagging efficiency map" width="270" hspace="10"/>
-  <img src="../../../docs/eff_DeepCSV_c_medium_mutau_log.png" alt="B tagging c misidentification map" width="270" hspace="10"/>
+  <img src="../../../docs/eff_DeepCSV_b_medium_mutau_log.png" alt="B tagging efficiency map" width="270" hspace="8"/>
+  <img src="../../../docs/eff_DeepCSV_c_medium_mutau_log.png" alt="B tagging c misidentification map" width="270" hspace="8"/>
   <img src="../../../docs/eff_DeepCSV_udsg_medium_mutau_log.png" alt="B tagging misidentification map" width="270"/>
 </p>
 

@@ -1,4 +1,12 @@
 *.pyc
+*.d
+*.so
+*.pcm
 *~
 *.root
 core.*
+__init__.py
+PicoProducer/samples/files
+PicoProducer/output
+Plotter/plots
+Plotter/compare

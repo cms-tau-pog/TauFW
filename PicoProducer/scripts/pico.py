@@ -996,6 +996,7 @@ def main_submit(args):
   batch     = getbatch(CONFIG,verb=verbosity+1)
   
   for jobcfg in preparejobs(args):
+    jobid   = None
     cfgname = jobcfg['cfgname']
     jobdir  = jobcfg['jobdir']
     logdir  = jobcfg['logdir']
@@ -1003,6 +1004,9 @@ def main_submit(args):
     joblist = jobcfg['joblist']
     jobname = jobcfg['jobname']
     nchunks = jobcfg['nchunks']
+    jkwargs = { # key-word arguments for batch.submit
+      'name': jobname, 'queue':queue, 'opt': batchopts, 'dry': dryrun
+    }
     if nchunks<=0:
       print ">>>   Nothing to %ssubmit!"%('re' if resubmit else '')
       continue
@@ -1013,44 +1017,48 @@ def main_submit(args):
       if testrun and not queue:
         queue = "espresso"
       qcmd    = "arg from %s"%(joblist)
-      #batchopts += "-dry-run dryrun.log"
-      jobid   = batch.submit(script,name=jobname,app=appcmds,qcmd=qcmd,opt=batchopts,queue=queue,dry=dryrun)
+      jkwargs.update({'app': appcmds, 'qcmd': qcmd })
+      #jobid   = batch.submit(script,name=jobname,app=appcmds,qcmd=qcmd,opt=batchopts,queue=queue,dry=dryrun)
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
       logfile = os.path.join(logdir,"%x.%A.%a") # $JOBNAME.o$JOBID.$TASKID
-      jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,opt=batchopts,queue=queue,dry=dryrun)
+      jkwargs.update({'queue':queue, 'log': logfile, 'array': nchunks })
+      #jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,opt=batchopts,queue=queue,dry=dryrun)
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
     else:
       LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
     
-    ## SUBMIT
-    #if args.force:
-    #  jobid = batch.submit(*jargs,**jkwargs)
-    #else:
-    #  while True:
-    #    submit = raw_input(">>> Do you also want to submit %d jobs to the batch system? [y/n] "%(nchunks))
-    #    if any(s in submit.lower() for s in ['quit','exit']):
-    #      exit(0)
-    #    elif 'force' in submit.lower():
-    #      submit = 'y'
-    #      args.force = True
-    #    if 'y' in submit.lower():
-    #      jobid = batch.submit(*jargs,**jkwargs)
-    #      break
-    #    elif 'n' in submit.lower():
-    #      print "Not submitting."
-    #      break
-    #    else:
-    #      print "'%s' is not a valid answer, please choose y/n."%submit
-    #print
+    # SUBMIT
+    if args.prompt:
+      while True:
+        submit = raw_input(">>> Do you want to submit %d jobs to the batch system? [y/n] "%(nchunks))
+        if any(s in submit.lower() for s in ['q','exit']):
+          print ">>> Quitting..."
+          exit(0)
+        elif any(s in submit.lower() for s in ['f','all']):
+          print ">>> Force submission..."
+          submit = 'y'
+          args.prompt = False # stop asking for next samples
+        if 'y' in submit.lower():
+          jobid = batch.submit(script,**jkwargs)
+          break
+        elif 'n' in submit.lower():
+          print ">>> Not submitting."
+          break
+        else:
+          print ">>> '%s' is not a valid answer, please choose y/n."%submit
+    else:
+      jobid = batch.submit(script,**jkwargs)
+    print
     
     # WRITE JOBCONFIG
-    jobcfg['jobids'].append(jobid)
-    if verbosity>=1:
-      print ">>> Creating config file '%s'..."%(cfgname)
-    with open(cfgname,'w') as file:
-      json.dump(jobcfg,file,indent=2)
+    if jobid!=None:
+      jobcfg['jobids'].append(jobid)
+      if verbosity>=1:
+        print ">>> Creating config file '%s'..."%(cfgname)
+      with open(cfgname,'w') as file:
+        json.dump(jobcfg,file,indent=2)
   
 
 
@@ -1221,13 +1229,15 @@ if __name__ == "__main__":
   parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', default=False, action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
-  parser_job.add_argument('--test',             dest='testrun', type=int, nargs='?', const=10000, default=0, action='store',
+  parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0, action='store',
                                                 help='run a test with limited nummer of jobs, default=%(default)d' )
   parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1, action='store',
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
   parser_job.add_argument('-q','--queue',       dest='queue', default=None,
                                                 help='queue of batch system')
+  parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
+                                                help='ask user permission before submitting a sample')
   parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
                                                 help='extra options for the batch system')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=CONFIG.nfilesperjob,
@@ -1291,10 +1301,10 @@ if __name__ == "__main__":
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
                           metavar='FILE',       help="write file list, default=%(const)r" )
   
-  # ABBREVIATIONS
+  # SUBCOMMAND ABBREVIATIONS
   args = sys.argv[1:]
   if args:
-    subcmds = [ # fix order
+    subcmds = [ # fix order for abbreviations
       'channel','era',
       'run','submit','resubmit','status','hadd',
       'install','list','set','rm'

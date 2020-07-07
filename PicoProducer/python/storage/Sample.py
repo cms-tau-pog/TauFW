@@ -76,9 +76,9 @@ class Sample(object):
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global')
     self.nfilesperjob = kwargs.get('nfilesperjob', -1   ) # number of nanoAOD files per job
     self.extraopts    = kwargs.get('opts',         [ ]  ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
-    self.subtry       = kwargs.get('subtry',        0   ) # to help keep track of resubmission
+    self.subtry       = kwargs.get('subtry',       0    ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',       { }  ) # to help keep track of resubmission
-    self.nevents      = kwargs.get('nevents',        0  ) # number of nanoAOD events that can be processed
+    self.nevents      = kwargs.get('nevents',      0    ) # number of nanoAOD events that can be processed
     self.files        = kwargs.get('files',        [ ]  ) # list of ROOT files, OR text file with list of files
     self.postfix      = kwargs.get('postfix',      None ) or "" # post-fix (before '.root') for stored ROOT files
     self.era          = kwargs.get('era',          ""   ) # for expansion of $ERA variable
@@ -138,7 +138,7 @@ class Sample(object):
       jobcfg = json.load(file)
     for key in ['group','name','paths','try','channel','chunkdict','dtype','extraopts']:
       LOG.insist(key in jobcfg,"Did not find key '%s' in job configuration %s"%(key,cfgname))
-    jobcfg['config']    = cfgname
+    jobcfg['config']    = str(cfgname)
     jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
     dtype    = str(jobcfg['dtype'])

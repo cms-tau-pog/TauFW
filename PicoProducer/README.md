@@ -167,7 +167,7 @@ Other optional keyword arguments are
   This overrides the default `nfilesperjob` in the configuration.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 * `opts`: Extra key-worded options (`key=value`) to be passed to the analysis modules.
-  Can be a comma-separated string (`opt1=val1,opt2=val2`) or a list of strings (`['opt1=val1','opt2=val2']`).
+  Can be a comma-separated string (`'opt1=val1,opt2=val2'`) or a list of strings (`['opt1=val1','opt2=val2']`).
 
 Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanoAOD files)
 for the same era as specified in the configuration.

@@ -119,6 +119,9 @@ class Config(object):
     """Container class for a global configuration."""
     self._dict = cfgdict
     self._path    = path
+    for key in self._dict.keys():
+      if isinstance(self._dict[key],unicode):
+        self._dict[key] = str(self._dict[key]) # convert unicode to str
   
   def __str__(self):
     return str(self._dict)
@@ -130,7 +133,6 @@ class Config(object):
       raise AttributeError("Did not find '%s'"%(key))
     else:
       val = self._dict[key]
-      #self.__dict__[key] = val # cache
     return val
   
   def __getitem__(self,key):
@@ -144,8 +146,7 @@ class Config(object):
     elif key.startswith('_'):
       self.__dict__[key] = val
     else:
-      self._dict[key] = val
-      #self.__dict__[key] = val # cache
+      self._dict[key] = val # cache
     return val
   
   def __setitem__(self,key,val):
