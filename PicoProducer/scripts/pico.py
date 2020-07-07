@@ -1017,12 +1017,12 @@ def main_submit(args):
       if testrun and not queue:
         queue = "espresso"
       qcmd    = "arg from %s"%(joblist)
-      jkwargs.update({'app': appcmds, 'qcmd': qcmd })
+      jkwargs.update({'queue':queue, 'app': appcmds, 'qcmd': qcmd })
       #jobid   = batch.submit(script,name=jobname,app=appcmds,qcmd=qcmd,opt=batchopts,queue=queue,dry=dryrun)
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
       logfile = os.path.join(logdir,"%x.%A.%a") # $JOBNAME.o$JOBID.$TASKID
-      jkwargs.update({'queue':queue, 'log': logfile, 'array': nchunks })
+      jkwargs.update({'log': logfile, 'array': nchunks })
       #jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,opt=batchopts,queue=queue,dry=dryrun)
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':

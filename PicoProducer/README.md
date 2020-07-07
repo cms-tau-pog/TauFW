@@ -37,7 +37,7 @@ You can link several skimming or analysis codes to _channels_.
 
 ## Installation
 
-You need to have CMSSW and [NanoAODTools](https://github.com/cms-nanoAOD/nanoAOD-tools) installed,
+You need to have CMSSW and [`NanoAODTools`](https://github.com/cms-nanoAOD/nanoAOD-tools) installed,
 see the [README in the parent directory](../../../#taufw). Test the installation with
 ```
 pico.py --help
@@ -106,7 +106,7 @@ pico.py channel skimjec 'skimjob.py --jec-sys'
 
 
 ### Analysis
-This framework allows to implement many analysis modules called channels
+This framework allows to implement many analysis modules called "channels"
 (e.g. different final states like mutau or etau).
 All analysis code should be saved in [`python/analysis/`](python/analysis), or a subdirectory.
 A simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py),
@@ -276,7 +276,7 @@ This framework might not work for your computing system... yet.
 It was created with a modular design in mind, meaning that users can add their own
 "plug-in" modules to make it work with their own batch system and storage system.
 If you like to contribute, please make sure the changes run as expected,
-push the changes to a fork and make a pull request.
+and then push the changes to a fork to make a pull request.
 
 ### Batch system
 To plug in your own batch system, make a subclass of [`BatchSystem`](python/batch/BatchSystem.py),
@@ -285,15 +285,16 @@ Your subclass has to be saved in separate python module in [`python/batch/`](pyt
 and the module's filename should be the same as the class.
 See for example [`HTCondor.py`](python/batch/HTCondor.py).
 If you need extra (shell) scripts, leave them in `python/batch` as well.
-Then you need to add your `submit` command to the `main_submit` function in
-[`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/9c3addaa1cd09cf4f866d279e4fa53a328f4997b/PicoProducer/scripts/pico.py#L973-L985).
+Then you need to implement your `submit` command to the `main_submit` function in
+[`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/b4d14574226b095d020936eb54c3d8bb995624d3/PicoProducer/scripts/pico.py#L1007-L1030),
+where you define the script and some extra key-worded options via `jkwargs`, for example:
 ```
 def main_submit(args):
   ...
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
-      logfile = os.path.join(logdir,"%x.%A.%a")
-      jobid   = batch.submit(script,name=jobname,log=logfile,dry=dryrun,...)
+      logfile = os.path.join(logdir,"%x.%A.%a") # $JOBNAME.o$JOBID.$TASKID
+      jkwargs.update({'log': logfile })
   ...
 ```
 
