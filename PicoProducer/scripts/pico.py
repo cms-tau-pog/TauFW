@@ -1030,7 +1030,7 @@ def main_submit(args):
       LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
     
     # SUBMIT
-    if args.prompt:
+    if args.prompt: # ask before submitting
       while True:
         submit = raw_input(">>> Do you want to submit %d jobs to the batch system? [y/n] "%(nchunks))
         if any(s in submit.lower() for s in ['q','exit']):

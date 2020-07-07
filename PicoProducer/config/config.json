@@ -1,26 +1,16 @@
 {
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
   "channels": {
     "skim": "skimjob.py", 
-    "mutau": "ModuleMuTau", 
-    "lq": "LQ.ModuleGenLQ", 
-    "etau": "ModuleETau", 
+    "skim-jec": "skimjob.py --jec-sys",
     "gen": "GenDumper", 
-    "skimjec": "skimjob.py --jec", 
-    "skimnojec": "skimjob.py", 
-    "skim-jec": "skimjob.py --jec-sys", 
-    "skim-nojec": "skimjob.py"
+    "mutau": "ModuleMuTauSimple"
   }, 
   "eras": {
-    "2016": "TauID/samples_2016.py", 
-    "2017": "TauID/samples_2017.py", 
-    "2018": "TauID/samples_2018.py"
+    "2016": "examples/samples_2016.py", 
+    "2017": "examples/samples_2017.py", 
+    "2018": "examples/samples_2018.py"
   }, 
-  "batch": "SLURM", 
   "nfilesperjob": 1, 
-  "basedir": "/work/ineuteli/analysis/CMSSW_10_3_3_TauPOG/src/TauFW/PicoProducer", 
-  "outdir": "/work/ineuteli/analysis/CMSSW_10_3_3_TauPOG/src/TauFW/PicoProducer/output/$ERA/$CHANNEL/$SAMPLE", 
-  "nanodir": "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/nano/$ERA/$DAS", 
-  "picodir": "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/analysis/$ERA/$GROUP", 
-  "filelistdir": "samples/files/$ERA/$SAMPLE.txt"
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
 }

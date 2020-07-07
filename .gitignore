@@ -6,7 +6,7 @@
 *.root
 core.*
 __init__.py
+*/compare
 PicoProducer/samples/files
 PicoProducer/output
 Plotter/plots
-Plotter/compare
