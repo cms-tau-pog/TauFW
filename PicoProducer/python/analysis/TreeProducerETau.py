@@ -70,8 +70,8 @@ class TreeProducerETau(TreeProducerTauPair):
     self.addBranch('photonsOutsideSignalCone_2', 'f')
     self.addBranch('puCorr_2',                   'f')
     
+    self.addBranch('jpt_match_2',                'f', -1)
     if self.module.ismc:
-      self.addBranch('jpt_match_2',              'f', -1)
       self.addBranch('jpt_genmatch_2',           'f', -1)
       self.addBranch('genmatch_1',               'i', -1)
       self.addBranch('genmatch_2',               'i', -1)

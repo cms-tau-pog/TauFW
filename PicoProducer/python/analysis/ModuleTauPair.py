@@ -39,7 +39,7 @@ class ModuleTauPair(Module):
     self.dozpt      = kwargs.get('zpt',     'DY' in fname )
     self.dorecoil   = kwargs.get('recoil',  False         ) #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
     self.dotight    = kwargs.get('tight',   self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
-    self.dojec      = kwargs.get('jec',     True          ) #and self.year==2016 #False
+    self.dojec      = kwargs.get('jec',     True          ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',  self.dojec    ) and not self.dotight and self.ismc #and self.dojec #and False
     self.jetCutPt   = 30
     self.bjetCutEta = 2.7
@@ -52,6 +52,7 @@ class ModuleTauPair(Module):
     self.filter     = getmetfilters(self.year,self.isdata)
     
     # CORRECTIONS
+    self.ptnom            = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
     self.jecUncLabels     = [ ]
     self.metUncLabels     = [ ]
     if self.ismc:
@@ -65,8 +66,6 @@ class ModuleTauPair(Module):
     #    self.prefireTool  = PreFireTool(self.year)
       if self.dojec:
         self.ptnom = lambda j: j.pt_nom # use 'pt_nom' as nominal jet pt
-      else:
-        self.ptnom = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
     #  if self.dojecsys:
     #    self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
     #    self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]

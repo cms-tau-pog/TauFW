@@ -319,7 +319,9 @@ def main_run(args):
   
   # LOOP over ERAS
   if not eras:
-    print ">>> Please specify a valid era (-y) and a channel (-c)."
+    print ">>> Please specify a valid era (-y)."
+  if not channels:
+    print ">>> Please specify a valid channel (-c)."
   for era in eras:
     moddict = { } # save time by loading samples and get their files only once
     

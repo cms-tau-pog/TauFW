@@ -285,7 +285,7 @@ class ModuleMuTau(ModuleTauPair):
           self.out.ltfweightUp_2[0]         = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Up')
           self.out.ltfweightDown_2[0]       = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Down')
       self.out.weight[0]        = self.out.genweight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0] #*self.out.idisoweight_2[0]
-    elif self.isEmbed:
+    elif self.isembed:
       ###self.applyCommonEmbdedCorrections(event,jets,jetIds50,met,njets_vars,met_vars)
       self.out.genweight[0]     = event.genWeight
       self.out.trackweight[0]   = 0.975 if tau.decayMode==0 else 1.0247 if tau.decayMode==1 else 0.927 if tau.decayMode==10 else 0.974 if tau.decayMode==11 else 1.0
