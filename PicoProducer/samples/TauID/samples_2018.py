@@ -45,16 +45,16 @@ samples  = [
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2018A', "/SingleMuon/Run2018A-Nano25Oct2019-v1/NANOAOD",
-   store=storage,url=url,file=filelist,
+   store=storage,url=url,file=filelist,channels=['mutau','mumu'],
   ),
   D('Data','SingleMuon_Run2018B', "/SingleMuon/Run2018B-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,
+    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
   ),
   D('Data','SingleMuon_Run2018C', "/SingleMuon/Run2018C-Nano25Oct2019-v1/NANOAOD",
-   store=storage,url=url,file=filelist,
+   store=storage,url=url,file=filelist,channels=['mutau','mumu'],
   ),
   D('Data','SingleMuon_Run2018D', "/SingleMuon/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD",
-   store=storage,url=url,file=filelist,
+   store=storage,url=url,file=filelist,channels=['mutau','mumu'],
   ),
   
   # LQ

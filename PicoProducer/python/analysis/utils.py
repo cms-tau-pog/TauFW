@@ -9,7 +9,7 @@ from TauFW.PicoProducer import basedir
 from TauFW.common.tools.utils import convertstr # for picojob.py
 from TauFW.common.tools.file import ensurefile
 from TauFW.common.tools.log import Logger
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 LOG = Logger('Analysis')
 
 
@@ -34,6 +34,31 @@ def getmodule(modname):
   module   = ensuremodule(modname)
   modclass = modname.split('.')[-1]
   return getattr(module,modclass)
+  
+
+def ensurebranches(tree,branches):
+  """Check if these branches are available in the tree branch list,
+  if not, redirect them."""
+  if tree.GetEntries()<1:
+    print "WARNING! Empty tree!"
+    return
+  fullbranchlist = tree.GetListOfBranches()
+  for b in fullbranchlist:
+    if 'MET' in b:
+      print b
+  for newbranch, oldbranch in branches:
+    if newbranch not in fullbranchlist:
+      redirectbranch(oldbranch,newbranch)
+  
+
+def redirectbranch(oldbranch,newbranch):
+  """Redirect some branch names. newbranch -> oldbranch"""
+  if isinstance(oldbranch,str): # rename
+    print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
+    exec "setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch)
+  else: # set default
+    print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
+    exec "setattr(Event,newbranch,%s)"%(oldbranch)  
   
 
 def hasbit(value,bit):

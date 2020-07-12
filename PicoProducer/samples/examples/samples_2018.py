@@ -29,7 +29,7 @@ samples  = [
   
   # DATA
   D('Data','SingleMuon_Run2018B', "/SingleMuon/Run2018B-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,
+    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
   ),
   
   

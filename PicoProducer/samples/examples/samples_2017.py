@@ -28,7 +28,7 @@ samples  = [
   
   # DATA
   D('Data','SingleMuon_Run2017C', "/SingleMuon/Run2017C-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,
+    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
   ),
   
 ]

@@ -69,7 +69,8 @@ class Sample(object):
     self.name         = name
     self.paths        = paths # DAS dataset path
     self.dtype        = dtype
-    self.channels     = kwargs.get('channels',     None )
+    self.channels     = kwargs.get('channel',      None )
+    self.channels     = kwargs.get('channels',     self.channels )
     self.storage      = kwargs.get('store',        None ) # if stored elsewhere than DAS
     self.url          = kwargs.get('url',          None )
     self.blacklist    = kwargs.get('blacklist',    [ ]  ) # black list file
@@ -86,6 +87,8 @@ class Sample(object):
     self.refreshable  = not self.files                   # allow refresh on file list in getfiles()
     
     # ENSURE LIST
+    if self.channels!=None and not isinstance(self.channels,list):
+      self.channels = [self.channels]
     if isinstance(self.extraopts,str):
       if ',' in self.extraopts:
         self.extraopts = self.extraopts.split(',')

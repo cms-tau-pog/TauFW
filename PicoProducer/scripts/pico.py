@@ -550,7 +550,7 @@ def preparejobs(args):
         jobids     = sample.jobcfg.get('jobids',[ ])
         dtype      = sample.dtype
         postfix    = "_%s%s"%(channel,tag)
-        jobtag     = '_%s_try%d'%(postfix,subtry)
+        jobtag     = '%s_try%d'%(postfix,subtry)
         jobname    = sample.name+jobtag.rstrip('try1').rstrip('_')
         extraopts_ = extraopts[:]
         if sample.extraopts:
@@ -1068,7 +1068,6 @@ def main_submit(args):
           print ">>> '%s' is not a valid answer, please choose y/n."%submit
     else:
       jobid = batch.submit(script,**jkwargs)
-    print
     
     # WRITE JOBCONFIG
     if jobid!=None:
@@ -1156,9 +1155,9 @@ def main_status(args):
                                            DAS=sample.paths[0].strip('/'),GROUP=sample.group)
           storage  = getstorage(storedir,ensure=True,verb=verbosity)
           outfile  = '%s_%s%s.root'%(sample.name,channel,tag)
-          infiles  = os.path.join(outdir,'*_%s_[0-9]*.root'%(postfix))
-          cfgfiles = os.path.join(sample.jobcfg['cfgdir'],'job*_%s_try[0-9]*.*'%(postfix))
-          logfiles = os.path.join(sample.jobcfg['logdir'],'*_%s_try[0-9]*.*.*.log'%(postfix))
+          infiles  = os.path.join(outdir,'*%s_[0-9]*.root'%(postfix))
+          cfgfiles = os.path.join(sample.jobcfg['cfgdir'],'job*%s_try[0-9]*.*'%(postfix))
+          logfiles = os.path.join(sample.jobcfg['logdir'],'*%s_try[0-9]*.*.*.log'%(postfix))
           if verbosity>=1:
             print ">>> Hadd'ing job output for '%s'"%(sample.name)
             print ">>> %-12s = %r"%('jobdir',jobdir)
@@ -1194,10 +1193,14 @@ def main_status(args):
         
         # ONLY CHECK STATUS
         else:
+          jobdir   = sample.jobcfg['jobdir']
           outdir   = sample.jobcfg['outdir']
+          logdir   = sample.jobcfg['logdir']
           if verbosity>=1:
-            print ">>> Checking job status for '%s'"%(sample.name) 
+            print ">>> Checking job status for '%s'"%(sample.name)
+            print ">>> %-12s = %r"%('jobdir',jobdir)
             print ">>> %-12s = %r"%('outdir',outdir)
+            print ">>> %-12s = %r"%('logdir',logdir)
           checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,
                        checkqueue=checkqueue,das=checkdas,verb=verbosity)
         
