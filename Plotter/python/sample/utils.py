@@ -38,12 +38,19 @@ def setera(era_,lumi_=None,**kwargs):
     kwargs['lumi'] = lumi
   cme  = kwargs.get('cme', 13 )
   CMSStyle.setCMSEra(era,**kwargs)
-  LOG.verb("setera: era = %r, lumi = %r / fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
+  LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   return lumi
   
 
 def unwrap_MergedSamples_args(*args,**kwargs):
-  """Help function to unwrap arguments for MergedSamples."""
+  """
+  Help function to unwrap arguments for MergedSamples initialization:
+    - name (str)
+    - name, title (str, str)
+    - name, samples (str, list)
+    - name, title, samples (str, str, list)
+  where samples is a list of Sample objects.
+  """
   strings = [ ]
   name    = "noname"
   title   = "No title"
@@ -68,14 +75,15 @@ def unwrap_MergedSamples_args(*args,**kwargs):
   
 
 def unwrap_gethist_args(*args,**kwargs):
-  """Help function to unwrap argument list that contain variable(s) and selection:
-     - variable, cuts
-     - varlist, cuts
-     where variable can be
-     - xvar, nxbins, xmin, xmax (str, int, float, float)
-     - xvar, xbins (str, list)
-     - var (Variable)
-     or valist is a list of such variables.
+  """
+  Help function to unwrap argument list that contain variable(s) and selection:
+    - variable, cuts
+    - varlist, cuts
+  where cuts is a string and variable can be
+    - xvar, nxbins, xmin, xmax (str, int, float, float)
+    - xvar, xbins (str, list)
+    - var (Variable)
+  or valist is a list of such variables.
   """
   vars   = None  # list of Variable objects
   sel    = None  # selection (string)
@@ -99,13 +107,14 @@ def unwrap_gethist_args(*args,**kwargs):
   
 
 def unwrap_gethist_args_2D(*args,**kwargs):
-  """Help function to unwrap argument list that contain variable(s) and selection:
-     - xvar, yvar, cuts
-     - xvarlist, yvarlist, cuts
-     - (xvar,yvar), cuts
-     - varlist, cuts
-     - xvar, nxbins, xmin, xmax, yvar, nybins, ymin, ymax, cuts
-     where xvar and yvar are Variable objects or arguments, and [xy]varlist is a list of such pairs.
+  """
+  Help function to unwrap argument list that contain variable(s) and selection:
+    - xvar, yvar, cuts
+    - xvarlist, yvarlist, cuts
+    - (xvar,yvar), cuts
+    - varlist, cuts
+    - xvar, nxbins, xmin, xmax, yvar, nybins, ymin, ymax, cuts
+  where xvar and yvar are Variable objects or arguments, and [xy]varlist is a list of such pairs.
   """
   vars   = None  # list of Variable objects
   sel    = None  # selection (string)
@@ -135,130 +144,158 @@ def unwrap_gethist_args_2D(*args,**kwargs):
   return vars, sel, single
   
 
-#def join(sampleList,*searchterms,**kwargs):
-#  """Merge samples from a sample list, that match a set of search terms."""
-#  from Sample import MergedSample, SampleSet
-#  
-#  verbosity = LOG.getverbosity(kwargs,1)
-#  name0     = kwargs.get('name',  searchterms[0] )
-#  title0    = kwargs.get('title', name0          )
-#  color0    = kwargs.get('color', None           )
-#  LOG.verbose("",verbosity,level=2)
-#  LOG.verbose(" merging %s"%(name0),verbosity,level=1)
-#  
-#  # GET samples containing names and searchterm
-#  mergeList = [ s for s in sampleList if s.isPartOf(*searchterms,exclusive=False) ]
-#  if len(mergeList) < 2:
-#    LOG.warning('Could not merge "%s": less than two "%s" samples (%d)'%(name0,name0,len(mergeList)))
-#    return sampleList
-#  fill = max([ len(s.name) for s in mergeList ])+2 # number of spaces
-#  
-#  # ADD samples with name0 and searchterm
-#  mergedsample = MergedSample(name0,title0,color=color0)
-#  for sample in mergeList:
-#    samplename = ('"%s"'%(sample.name)).ljust(fill)
-#    LOG.verbose("   merging %s to %s: %s"%(samplename,name0,sample.filenameshort),verbosity,level=2)
-#    mergedsample.add(sample)
-#  
-#  # REMOVE replace merged samples from sampleList, preserving the order
-#  if mergedsample.samples and sampleList:
-#    if isinstance(sampleList,SampleSet):
-#      sampleList.replaceMergedSamples(mergedsample)
-#    else:
-#      index0 = len(sampleList)
-#      for sample in mergedsample.samples:
-#        index = sampleList.index(sample)
-#        if index<index0: index0 = index
-#        sampleList.remove(sample)
-#      sampleList.insert(index,mergedsample)
-#  return sampleList
+def join(samplelist,*searchterms,**kwargs):
+  """Join samples from a sample list into one merged sample, that match a set of search terms.
+  E.g. samplelist = join(samplelist,'DY','M-50',name='DY_highmass')."""
+  verbosity = LOG.getverbosity(kwargs,1)
+  name      = kwargs.get('name',  searchterms[0] ) # name of new merged sample
+  title     = kwargs.get('title', None           ) # title of new merged sample
+  color     = kwargs.get('color', None           ) # color of new merged sample
+  LOG.verbose("join: merging '%s' into %s"%("', '".join(searchterms),name),verbosity,level=1)
+  
+  # GET samples containing names and searchterm
+  mergelist = [s for s in samplelist if s.match(*searchterms,incl=False)]
+  if len(mergelist)<=1:
+    LOG.warning("Could not merge %r: fewer than two %r samples (%d)"%(name,name,len(mergelist)))
+    return samplelist
+  padding = max([len(s.name) for s in mergelist])+2 # number of spaces
+  
+  # ADD samples with name and searchterm
+  mergedsample = MergedSample(name,title,color=color)
+  for sample in mergelist:
+    samplestr = repr(sample.name).ljust(padding)
+    LOG.verbose("  adding %s to %r (%s)"%(samplestr,name,sample.fnameshort),verbosity,level=2)
+    mergedsample.add(sample)
+  
+  # REPLACE matched samples with merged sample in samplelist, preserving the order
+  if mergedsample.samples and samplelist:
+    if isinstance(samplelist,SampleSet):
+      samplelist.replace(mergedsample)
+    else:
+      oldindex = len(samplelist)
+      for sample in mergedsample.samples:
+        index = samplelist.index(sample)
+        if index<oldindex:
+          oldindex = index
+        samplelist.remove(sample)
+      samplelist.insert(index,mergedsample)
+  return samplelist
   
 
-#def stitch(sampleList,*searchterms,**kwargs):
-#  """Stitching samples: merge samples and reweight inclusive
-#  sample and rescale jet-binned samples."""
-#  verbosity         = LOG.getverbosity(kwargs,1)
-#  name0             = kwargs.get('name',      searchterms[0]  )
-#  title0            = kwargs.get('title',     ""              )
-#  name_incl         = kwargs.get('name_incl', name0           )
-#  npartons          = kwargs.get('npartons',  'NUP'           ) # variable name of number of partons
-#  LOG.verbose("",verbosity,level=2)
-#  LOG.verbose(" stiching %s: rescale, reweight and merge samples"%(name0),verbosity,level=1)
-#  
-#  # CHECK if sample list of contains to-be-stitched-sample
-#  stitchList = sampleList.samples if isinstance(sampleList,SampleSet) else sampleList
-#  stitchList = [ s for s in stitchList if s.isPartOf(*searchterms) ]
-#  if len(stitchList) < 2:
-#    LOG.warning("stitch: Could not stitch %s: less than two %s samples (%d)"%(name0,name0,len(stitchList)))
-#    for s in stitchList: print ">>>   %s"%s.name
-#    if len(stitchList)==0: return sampleList
-#  fill = max([ len(s.name) for s in stitchList ])+2
-#  name = kwargs.get('name',stitchList[0].name)
-#  
-#  # FIND inclusive sample
-#  sample_incls = [s for s in stitchList if s.isPartOf(name_incl)]
-#  if len(sample_incls)==0: LOG.error('stitch: Could not find inclusive sample "%s"!'%(name0))
-#  if len(sample_incls) >1: LOG.error('stitch: Found more than one inclusive sample "%s"!'%(name0))
-#  sample_incl = sample_incls[0]
-#  
-#  # k-factor
-#  N_incl         = sample_incl.sumweights
-#  weights        = [ ]
-#  xsec_incl_LO  = sample_incl.xsec
-#  xsec_incl_NLO = crossSectionsNLO(name0,*searchterms)
-#  kfactor        = xsec_incl_NLO / xsec_incl_LO
-#  norm0          = -1
-#  maxNUP         = -1
-#  LOG.verbose("   %s k-factor = %.2f = %.2f / %.2f"%(name0,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
-#  
-#  # SET renormalization scales with effective luminosity
-#  # assume first sample in the list s the inclusive sample
-#  for sample in stitchList:
-#    N_tot = sample.sumweights
-#    N_eff = N_tot
-#    xsec = sample.xsec # inclusive or jet-binned cross section
-#    if sample.isPartOf(name_incl):
-#      NUP = 0
-#    else:
-#      N_eff = N_tot + N_incl*xsec/xsec_incl_LO # effective luminosity    
-#      matches = re.findall("(\d+)Jets",sample.filenameshort)
-#      LOG.verbose('   %s: N_eff = N_tot + N_incl * xsec / xsec_incl_LO = %.1f + %.1f * %.2f / %.2f = %.2f'%\
-#                     (sample.name,N_tot,N_incl,xsec,xsec_incl_LO,N_eff),verbosity,2)
-#      if len(matches)==0: LOG.error('stitch: Could not stitch "%s": could not find right NUP for "%s"!'%(name0,sample.name))
-#      if len(matches)>1:  LOG.warning('stitch: More than one "\\d+Jets" match for "%s"! matches = %s'%(sample.name,matches))
-#      NUP = int(matches[0])
-#    norm = sample.lumi * kfactor * xsec * 1000 / N_eff
-#    if NUP==0:     norm0 = norm
-#    if NUP>maxNUP: maxNUP = NUP
-#    weights.append("(NUP==%i ? %s : 1)"%(NUP,norm))
-#    LOG.verbose('   %s, NUP==%d: norm = luminosity * kfactor * xsec * 1000 / N_eff = %.2f * %.2f * %.2f * 1000 / %.2f = %.2f'%\
-#                    (name0,NUP,sample.lumi,kfactor,xsec,N_eff,norm),verbosity,2)
-#    LOG.verbose("   stitching %s with normalization %7.3f and cross section %8.2f pb"%(sample.name.ljust(fill), norm, xsec),verbosity,2)
-#    #print ">>> weight.append(%s)"%weights[-1]
-#    sample.norm = norm # apply lumi-cross section normalization
-#    if len(stitchList)==1: return sampleList
-#  
-#  # ADD weights for NUP > maxNUP
-#  if norm0>0 and maxNUP>0:
-#    weights.append("(NUP>%i ? %s : 1)"%(maxNUP,norm0))
-#  else:
-#    LOG.warning("   found no weight for NUP==0 (%.1f) or no maximum NUP (%d)..."%(norm0,maxNUP))
-#  
-#  # SET weight of inclusive sample
-#  sample_incl.norm = 1.0 # apply lumi-cross section normalization via weights
-#  stitchweights    = '*'.join(weights)
-#  if npartons!='NUP':
-#    stitchweights  = stitchweights.replace('NUP',npartons)
-#  LOG.verbose("   stitch weights = %s"%(stitchweights),verbosity,4)
-#  sample_incl.addWeight(stitchweights)
-#  if not title0: title0 = sample_incl.title
-#  
-#  # MERGE
-#  join(sampleList,name0,*searchterms,title=title0,verbosity=verbosity)
-#  return sampleList
+def stitch(samplelist,*searchterms,**kwargs):
+  """Stitching samples: merge samples and reweight inclusive
+  sample and rescale jet-binned samples, e.g. DY*Jets or W*Jets."""
+  verbosity = LOG.getverbosity(kwargs,1)
+  name      = kwargs.get('name',    searchterms[0] )
+  name_incl = kwargs.get('incl',    searchterms[0] ) # name of inclusive sample
+  xsec_incl = kwargs.get('xsec',    None           ) # (N)NLO cross section to compute k-factor
+  kfactor   = kwargs.get('kfactor', None           ) # k-factor
+  npartvar  = kwargs.get('npart',   'NUP'          ) # variable name of number of partons
+  LOG.verbose("stitch: rescale, reweight and merge %r samples"%(name),verbosity,level=1)
+  
+  # GET list samples to-be-stitched
+  stitchlist = samplelist.samples if isinstance(samplelist,SampleSet) else samplelist
+  stitchlist = [s for s in stitchlist if s.match(*searchterms,incl=True)]
+  if len(stitchlist)<2:
+    LOG.warning("stitch: Could not stitch %r: fewer than two %s samples (%d) match '%s'"%(
+                 name,name,len(stitchlist),"', '".join(searchterms)))
+    for s in stitchlist:
+      print ">>>   %s"%s.name
+    if len(stitchlist)==0:
+      return samplelist
+  name  = kwargs.get('name',stitchlist[0].name)
+  title = kwargs.get('title',stitchlist[0].title)
+  
+  # FIND inclusive sample
+  sample_incls = [s for s in stitchlist if s.match(name_incl)]
+  if len(sample_incls)==0:
+    LOG.warning('stitch: Could not find inclusive sample "%s"! Just joining...'%(name))
+    return join(samplelist,*searchterms,**kwargs)
+  elif len(sample_incls)>1:
+    LOG.warning("stitch: Found more than one inclusive sample %r with '%s' searchterms: %s"%(
+                name,"', '".join(searchterms),sample_incls))
+  
+  # (N)NLO/LO k-factor
+  sample_incl     = sample_incls[0]
+  nevts_incl      = sample_incl.sumweights
+  xsec_incl_LO    = sample_incl.xsec
+  if kfactor:
+    xsec_incl_NLO = kfactor*xsec_incl_LO
+  else:
+    xsec_incl_NLO = xsec_incl or xsec_incl_LO #getxsec_nlo(name,*searchterms)
+    kfactor       = xsec_incl_NLO / xsec_incl_LO
+  LOG.verbose("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
+  
+  # GET effective number of events per jet bin
+  # assume first sample in the list is the inclusive sample
+  neffs     = [ ]
+  if verbosity>=2:
+    print ">>>   Get effective number of events:"
+    LOG.ul("%-15s %8s = %8s + %12s * %7s / %10s"%('name','neff','nevts','nevts_incl','xsec','xsec_incl_LO'),pre="    ")
+  for sample in stitchlist:
+    nevts = sample.sumweights
+    neff  = nevts
+    xsec  = sample.xsec # LO inclusive or jet-binned cross section
+    if sample==sample_incl: #.match(name_incl):
+      LOG.verbose("%-15s %8s = %8.1f"%(sample.name,neff,nevts),verbosity,2,pre="    ")
+    else:
+      neff = nevts + nevts_incl*xsec/xsec_incl_LO # effective luminosity, no k-factor to preserve npart distribution
+      LOG.verbose("%-15s %8.4f = %8.1f + %12.2f * %7.2f / %10.2f"%(sample.name,neff,nevts,nevts_incl,xsec,xsec_incl_LO),verbosity,2,pre="    ")
+    neffs.append(neff)
+  
+  # SET normalization with effective luminosity
+  weights   = [ ]
+  norm_incl = -1
+  npart_max = -1
+  if verbosity>=2:
+    print ">>>   Get lumi-xsec normalization:"
+    LOG.ul('%-15s %7s %9s = %7s * %7s * %8s * 1000 / %8s'%('name','npart','norm','lumi','kfactor','xsec','neff'),pre="    ")
+  for sample, neff in zip(stitchlist,neffs):
+    if sample==sample_incl: #.match(name_incl):
+      npart = 0
+    else:
+      matches = re.findall("(\d+)Jets",sample.fnameshort)      
+      if len(matches)==0:
+        LOG.throw(IOError,'stitch: Could not stitch %r: no "\\d+Jets" pattern found in %r!'%(name,sample.name))
+      elif len(matches)>1:
+        LOG.warning('stitch: More than one "\\d+Jets" match found in %r! matches = %s'%(sample.name,matches))
+      npart = int(matches[0])
+    xsec = sample.xsec # LO inclusive or jet-binned xsec
+    norm = sample.lumi * kfactor * xsec * 1000 / neff
+    if npart==0:
+      norm_incl = norm # new normalization of inclusive sample (with k-factor included)
+    if npart>npart_max:
+      npart_max = npart
+    weights.append("(NUP==%d?%.6g:1)"%(npart,norm))
+    LOG.verbose('%-15s %7d %9.4f = %7.2f * %7.3f * %8.2f * 1000 / %8.2f'%(sample.name,npart,norm,sample.lumi,kfactor,xsec,neff),verbosity,2,pre="    ")
+    if sample==sample_incl: #.match(name_incl):
+      sample.norm = 1.0 # apply lumi-xsec normalization via weights instead of Sample.norm attribute
+    else:
+      sample.norm = norm # apply lumi-xsec normalization
+  if len(stitchlist)==1:
+    return samplelist # only k-factor was applied to lumi-xsec normalization
+  
+  # ADD weights for NUP > npart_max
+  if norm_incl>0 and npart_max>0:
+    weights.append("(NUP>%d?%.6g:1)"%(npart_max,norm_incl))
+  else:
+    LOG.warning("   found no weight for %s==0 (%.1f) or no maximum %s (%d)..."%(npartvar,norm_incl,npartvar,npart_max))
+  
+  # SET stich weight of inclusive sample
+  stitchweights = '*'.join(weights)
+  if npartvar!='NUP':
+    stitchweights = stitchweights.replace('NUP',npartvar)
+  LOG.verbose("  Inclusive stitch weight:\n>>>     %r"%(stitchweights),verbosity,2)
+  sample_incl.addweight(stitchweights)
+  if not title:
+    title = sample_incl.title
+  
+  # JOIN
+  join(samplelist,*searchterms,name=name,title=title,verbosity=verbosity)
+  return samplelist
   
 
-#def crossSectionsNLO(*searchterms,**kwargs):
+#def getxsec_nlo(*searchterms,**kwargs):
 #  """Returns inclusive (N)NLO cross section for stitching og DY and WJ."""
 #  # see /shome/ytakahas/work/TauTau/SFrameAnalysis/TauTauResonances/plot/config.py
 #  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV#List_of_processes

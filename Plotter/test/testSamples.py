@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (July 2020)
-# Description: Test Sample, MergedSample and SampleSet methods
+# Description: Test the Sample class
 #   test/testSamples.py -v2
 from TauFW.Plotter.sample.utils import LOG, STYLE, setera, CMSStyle, ensuredir,\
                                        Sample, MergedSample, SampleSet
@@ -18,13 +18,13 @@ selections = [
   ('pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4', 'weight'),
 ]
 variables = [
-  Variable('m_vis',            30,  0, 150, blind=(120,130)),
+  Variable('m_vis',            32,  0, 160, blind=(120,130)),
   ###Variable('m_vis',            [0,20,40,50,60,65,70,75,80,85,90,95,100,110,130,160,200]),
   Variable('pt_1',             40,  0, 120),
   Variable('pt_2',             40,  0, 120),
   Variable('pt_1+pt_2',        40,  0, 200),
-  Variable('eta_1',            30, -3,   3, ymargin=1.5),
-  Variable('eta_2',            30, -3,   3, ymargin=1.5),
+  Variable('eta_1',            30, -3,   3, ymargin=1.65),
+  Variable('eta_2',            30, -3,   3, ymargin=1.65),
   Variable('min(eta_1,eta_2)', 30, -3,   3, fname="minetas"),
   Variable('njets',            10,  0,  10),
 ]
@@ -38,6 +38,7 @@ variables2D = [
 ]
 text     = "#mu#tau_{h} baseline"
 position = 'topright'
+
 
 def plotsamples(datasample,expsamples,tag=""):
   """Test Sample.gethist method and plot data/MC comparison."""
@@ -151,13 +152,14 @@ def testSampleSet(datasample,expsamples,tag=""):
 def main():
   LOG.header("Prepare samples")
   sampleset = [
-    ('ZTT',  "Z -> #tau_{mu}#tau_{h}", 1.0 ),
-    ('QCD',  "QCD multijet",           0.3 ),
-    ('TT',   "t#bar{t}",               0.2 ),
+    ('ZTT',  "Z -> #tau_{mu}#tau_{h}", 1.00),
+    ('WJ',   "W + jets",               0.40),
+    ('QCD',  "QCD multijet",           0.30),
+    ('TT',   "t#bar{t}",               0.15),
     ('Data', "Observed",                -1 ),
   ]
   lumi       = 0.001 # [fb-1] to cancel xsec [pb]
-  nevts      = 100000
+  nevts      = 50000
   snames     = [n[0] for n in sampleset]
   scales     = {n[0]: n[2] for n in sampleset} # relative contribtions to pseudo data
   outdir     = ensuredir('plots')
@@ -189,8 +191,8 @@ if __name__ == "__main__":
   import sys
   from argparse import ArgumentParser
   argv = sys.argv
-  description = '''Script to test the Plot class for comparing histograms.'''
-  parser = ArgumentParser(prog="plotHists",description=description,epilog="Good luck!")
+  description = """Test the Sample class"""
+  parser = ArgumentParser(prog="testSamples",description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()

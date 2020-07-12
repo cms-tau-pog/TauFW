@@ -1177,7 +1177,7 @@ def main_status(args):
                                                checkqueue=checkqueue,das=checkdas,verb=verbosity)
           if len(resubfiles)>0 and not force:
             LOG.warning("Cannot hadd job output because %d chunks need to be resubmitted..."%(len(resubfiles))+
-                        "Please use -f or --force to hadd anyway.")
+                        "Please use -f or --force to hadd anyway.\n")
             continue
           #haddcmd = 'hadd -f %s %s'%(outfile,infiles)
           #haddout = execute(haddcmd,dry=dryrun,verb=max(1,verbosity))

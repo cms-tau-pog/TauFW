@@ -86,7 +86,7 @@ def unwraplistargs(args):
 def repkey(string,**kwargs):
   """Replace keys with '$'."""
   for key, value in kwargs.iteritems():
-    string = string.replace('$'+key,value)
+    string = string.replace('$'+key,str(value))
   return string
   
 

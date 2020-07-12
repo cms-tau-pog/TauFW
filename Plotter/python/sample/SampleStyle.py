@@ -130,7 +130,7 @@ def getcolor(sample,color=kWhite,**kwargs):
     sample = sample.name
   for key in sample_colors: #sorted(sample_colors,key=lambda x: len(x),reverse=True)
     if re.findall(key.replace('*',".*"),sample): # glob -> regex wildcard
-      LOG.verb("SampleStyle.getcolor: Found color %s for %r from searchterm %r!"%(sample_colors[key],sample,key),kwargs,level=2)
+      LOG.verb("SampleStyle.getcolor: Found color %s for %r from search term %r!"%(sample_colors[key],sample,key),kwargs,level=2)
       color = sample_colors[key]
       break
   else:

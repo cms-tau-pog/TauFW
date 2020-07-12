@@ -44,10 +44,23 @@ class SampleSet(object):
   and allow data-driven background estimations.
   """
   
-  def __init__(self, datasample, expsamples, sigsamples=[ ], **kwargs):
-    self.datasample     = datasample       # data sample
-    self.expsamples     = list(expsamples) # background sample (exp. SM process like Drell-Yan, ttbar, W+jets, ...)
-    self.sigsamples     = list(sigsamples) # signal samples (for new physics searches)
+  def __init__(self, *args, **kwargs):
+    datasample = None
+    expsamples = [ ]
+    sigsamples = [ ]
+    if len(args)==2:
+      datasample, expsamples = args[0], list(args[1])
+    elif len(args)==3:
+      datasample, expsamples, sigsamples = args[0], list(args[1]), list(args[2])
+    elif len(args)==1 or len(args)>3:
+      expsamples = unwraplistargs(args)
+    if datasample and not isinstance(datasample,Sample):
+      LOG.throw(IOError,"SampleSet.__init__: Did not recognize data sample: %s"%(datasample))
+    if expsamples and not (isinstance(expsamples,list) and all(isinstance(s,Sample) for s in expsamples)):
+      LOG.throw(IOError,"SampleSet.__init__: Did not recognize expected (MC) sample: %s"%(expsamples))
+    self.datasample     = datasample # data sample
+    self.expsamples     = expsamples # background sample (exp. SM process like Drell-Yan, ttbar, W+jets, ...)
+    self.sigsamples     = sigsamples # signal samples (for new physics searches)
     self.verbosity      = LOG.getverbosity(kwargs)
     self.name           = kwargs.get('name',       ""   )
     self.label          = kwargs.get('label',      ""   )
@@ -62,18 +75,22 @@ class SampleSet(object):
   
   def __str__(self):
     """Returns string representation of Sample object."""
-    return ', '.join(repr(s.name) for s in [self.datasample]+self.mcsamples)
+    return ', '.join(repr(s.name) for s in [self.datasample]+self.mcsamples if s)
   
   def printobjs(self,title=""):
     for sample in self.samples:
       sample.printobjs(title="")
   
-  def printtable(self,title=""):
+  def printtable(self,title=None):
     """Print table of all samples."""
-    #print ">>>\n>>> %s samples with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(title,GLOB.luminosity)
-    self.samples[0].printheader()
+    import TauFW.Plotter.sample.utils as GLOB
+    if not title:
+      print ">>>\n>>> Samples with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(GLOB.lumi)
+    justname  = 8+max(len(s.name) for s in self.samples)
+    justtitle = 3+max(len(s.title) for s in self.samples)
+    Sample.printheader(title,justname=justname,justtitle=justtitle)
     for sample in self.samples:
-      sample.printrow()
+      sample.printrow(justname=justname,justtitle=justtitle)
     print ">>> "
   
   def __iter__(self):
@@ -88,7 +105,10 @@ class SampleSet(object):
   @property
   def samples(self):
     """Getter for "samples" attribute of SampleSet."""
-    return [self.datasample]+self.expsamples+self.sigsamples
+    if self.datasample:
+      return [self.datasample]+self.expsamples+self.sigsamples
+    else:
+      return self.expsamples+self.sigsamples
   
   #@samples.setter
   #def samples(self, value):
@@ -105,13 +125,15 @@ class SampleSet(object):
   def mcsamples(self):
     return self.expsamples + self.sigsamples
   
-  #@mcsamples.setter
-  #def mcsamples(self, value):
-  #  expsamples, sigsamples = [ ], [ ]
-  #  for sample in value:
-  #    if sample.issignal: sigsamples.append(sample)
-  #    else:               expsamples.append(sample)
-  #  self.expsamples, self.sigsamples = expsamples, sigsamples
+  @mcsamples.setter
+  def mcsamples(self, value):
+    expsamples, sigsamples = [ ], [ ]
+    for sample in value:
+      if sample.issignal:
+        sigsamples.append(sample)
+      else:
+        expsamples.append(sample)
+    self.expsamples, self.sigsamples = expsamples, sigsamples
   
   def index(self,sample):
     """Return index of sample."""
@@ -206,12 +228,12 @@ class SampleSet(object):
     deep          = kwargs.get('deep',        True        )
     filterterms   = filter if islist(filter) else ensurelist(filter) if isinstance(filter,str) else [ ]
     shareterms    = share  if islist(share)  else ensurelist(share)  if isinstance(share,str)  else [ ]
-    datasample    = { }
+    datasample    = None
     expsamples    = [ ]
     sigsamples    = [ ]
     sharedsamples = [ ]
     for sample in self.expsamples:
-      if filter and sample.match(*filterterms,excl=False):
+      if filter and sample.match(*filterterms,incl=False):
         if share:
           newsample = sample
           sharedsamples.append(newsample)
@@ -219,14 +241,14 @@ class SampleSet(object):
           newsample = sample.clone(samename=True,deep=deep)
         expsamples.append(newsample)
       elif not filter:
-        if share or (shareterms and sample.match(*shareterms,excl=False)):
+        if share or (shareterms and sample.match(*shareterms,incl=False)):
           newsample = sample
           sharedsamples.append(newsample)
         else:
           newsample = sample.clone(samename=True,deep=deep)
         expsamples.append(newsample)
     for sample in self.sigsamples:
-      if filter and sample.match(*filterterms,excl=False):
+      if filter and sample.match(*filterterms,incl=False):
         if share:
           newsample = sample
           sharedsamples.append(newsample)
@@ -234,7 +256,7 @@ class SampleSet(object):
           newsample = sample.clone(samename=True,deep=deep)
         expsamples.append(newsample)
       elif not filter:
-        if share or (shareterms and sample.match(*shareterms,excl=False)):
+        if share or (shareterms and sample.match(*shareterms,incl=False)):
           newsample = sample
           sharedsamples.append(newsample)
         else:
@@ -584,12 +606,13 @@ class SampleSet(object):
   
   def replace(self,mergedsample):
     """Help function to replace sample in the same position."""
-    index0 = len(self.samples)
+    oldindex = len(self.samples)
     for sample in mergedsample:
       index = self.samples.index(sample)
-      if index<index0: index0 = index
+      if index<oldindex:
+        oldindex = index
       self.samples.remove(sample)
-    self.samples.insert(index0,mergedsample)
+    self.samples.insert(oldindex,mergedsample)
   
   def split(self,*args,**kwargs):
     """Split sample for some dictionary of cuts."""
@@ -600,7 +623,7 @@ class SampleSet(object):
     if sample:
       sample.split(splitlist,**kwargs)
     else:
-      LOG.warning('SampleSet.splitSample - Could not find sample with searchterms "%s"'%('", "').join(searchterms))
+      LOG.warning('SampleSet.split - Could not find sample with searchterms "%s"'%('", "').join(searchterms))
   
   def shift(self,searchterms,file_app,title_app,**kwargs):
     """Shift samples in samples set by creating new samples with new filename/titlename."""
@@ -614,12 +637,12 @@ class SampleSet(object):
     kwargs.setdefault('channel',   self.channel             )
     searchterms     = ensurelist(searchterms)
     all             = searchterms==['*']
-    datasample      = { }
+    datasample      = None
     expsamples      = [ ]
     sigsamples      = [ ]
     sharedsamples   = [ ]
     for sample in self.expsamples:
-      if all or sample.match(*searchterms,excl=False):
+      if all or sample.match(*searchterms,incl=False):
         newsample = sample.clone(samename=True,deep=True)
         newsample.appendFileName(file_app,title_app=title_app,title_veto=title_veto)
         if close: newsample.close()
@@ -629,7 +652,7 @@ class SampleSet(object):
         expsamples.append(newsample)
         if share: sharedsamples.append(newsample)
     for sample in self.sigsamples:
-      if all or sample.match(*searchterms,excl=False):
+      if all or sample.match(*searchterms,incl=False):
         newsample = sample.clone(samename=True,deep=True)
         newsample.appendFileName(file_app,title_app=title_app,title_veto=title_veto)
         if close: newsample.close()
@@ -651,14 +674,13 @@ class SampleSet(object):
     filter          = kwargs.get('filter',      False       ) # filter other samples
     share           = kwargs.get('share',       False       ) # share other samples (as opposed to cloning them)
     extra           = kwargs.get('extra',       True        ) # replace extra weight
-    
     if not islist(searchterms):
       searchterms = [ searchterms ]
-    datasample      = { }
+    datasample      = None
     expsamples      = [ ]
     sigsamples      = [ ]
     for sample in self.expsamples:
-      if sample.match(*searchterms,excl=False):
+      if sample.match(*searchterms,incl=False):
         newsample = sample.clone(samename=True,deep=True)
         #LOG.verbose('SampleSet.shiftweight: "%s" - weight "%s", extra weight "%s"'%(newsample.name,newsample.weight,newsample.extraweight),1)
         if extra:
@@ -671,7 +693,7 @@ class SampleSet(object):
         newsample = sample if share else sample.clone(samename=True,deep=True)
         expsamples.append(newsample)
     for sample in self.sigsamples:
-      if sample.match(*searchterms,excl=False):
+      if sample.match(*searchterms,incl=False):
         newsample = sample.clone(samename=True,deep=True)
         if extra:
           newsample.setExtraWeight(newweight)
@@ -683,6 +705,5 @@ class SampleSet(object):
         sigsamples.append(newsample)
     if not filter:
         datasample = self.datasample
-    
     return SampleSet(datasample,expsamples,sigsamples,**kwargs)
   

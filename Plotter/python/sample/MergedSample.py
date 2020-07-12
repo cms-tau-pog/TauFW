@@ -44,18 +44,19 @@ class MergedSample(Sample):
       self.init(sample)
     self.samples.append(sample)
   
-  def row(self,pre="",indent=0):
+  def row(self,pre="",indent=0,justname=25,justtitle=25):
     """Returns string that can be used as a row in a samples summary table."""
     xsec   = "%.2f"%self.xsec if self.xsec>0 else ""
-    nevts  = "%i"%self.nevents if self.nevents>=0 else ""
-    sumw   = "%i"%self.sumweights if self.sumweights>=0 else ""
+    nevts  = "%.1f"%self.nevents if self.nevents>=0 else ""
+    sumw   = "%.2f"%self.sumweights if self.sumweights>=0 else ""
     norm   = "%.3f"%self.norm
-    name   = self.name.ljust(21-indent)
-    string = ">>> %s%s %-26s %12s %11s %11s %10.3s  %s" %\
-             (pre,name,self.title,xsec,nevts,sumw,norm,self.extraweight)
+    name   = self.name.ljust(justname-indent)
+    title  = self.title.ljust(justtitle)
+    string = ">>> %s%s %s %12s %12s %13s %9s  %s" %\
+             (pre,name,title,xsec,nevts,sumw,norm,self.extraweight)
     for i, sample in enumerate(self.samples):
       subpre  = ' '*indent+("├─ " if i<len(self.samples)-1 else "└─ ")
-      string += "\n" + sample.row(pre=subpre,indent=indent+3)
+      string += "\n" + sample.row(pre=subpre,indent=indent+3,justname=justname,justtitle=justtitle)
     return string
   
   def clone(self,*args,**kwargs):
