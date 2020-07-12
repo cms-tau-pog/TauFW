@@ -75,6 +75,7 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
     if filters and not sample.match(filters,verb): continue
     if vetoes and sample.match(vetoes,verb): continue
     if dtypes and sample.dtype not in dtypes: continue
+    if channel and sample.channels and channel not in sample.channels: continue
     if sample.name in sampledict:
       LOG.throw(IOError,"Sample short names should be unique. Found two samples '%s'!\n\t%s\n\t%s"%(
                     sample.name,','.join(sampledict[sample.name].paths),','.join(sample.paths)))
@@ -85,3 +86,4 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
       samples.append(sample)
     sampledict[sample.name] = sample
   return samples
+  

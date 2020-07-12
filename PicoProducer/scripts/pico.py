@@ -87,6 +87,8 @@ def main_get(args):
   if verbosity>=1:
     print '-'*80
     print ">>> %-14s = %s"%('variable',variable)
+    print ">>> %-14s = %s"%('eras',eras)
+    print ">>> %-14s = %s"%('channels',channels)
     print ">>> %-14s = %s"%('cfgname',cfgname)
     print ">>> %-14s = %s"%('config',CONFIG)
     print '-'*80
@@ -96,8 +98,11 @@ def main_get(args):
     if not eras:
       LOG.warning("Please specify an era to get a sample for.")
     for era in eras:
-      print ">>> Getting sample list for era %r"%(era)
       for channel in channels:
+        if channel:
+          print ">>> Getting file list for era %r, channel %r"%(era,channel)
+        else:
+          print ">>> Getting file list for era %r"%(era)
         samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
         if not samples:
           LOG.warning("No samples found for era %r."%(era))
@@ -113,8 +118,11 @@ def main_get(args):
     if not eras:
       LOG.warning("Please specify an era to get a sample for.")
     for era in eras:
-      print ">>> Getting file list for era %r"%(era)
       for channel in channels:
+        if channel:
+          print ">>> Getting file list for era %r, channel %r"%(era,channel)
+        else:
+          print ">>> Getting file list for era %r"%(era)
         
         # VERBOSE
         if verbosity>=1:
