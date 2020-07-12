@@ -10,8 +10,8 @@ from TauFW.common.tools.file import ensuredir, ensurefile, ensureinit, getline
 from TauFW.common.tools.utils import execute, chunkify, repkey
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
-from TauFW.PicoProducer.batch.utils import getbatch, getsamples, getcfgsamples
-from TauFW.PicoProducer.storage.utils import getstorage
+from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples
+from TauFW.PicoProducer.storage.utils import getstorage, getsamples
 from argparse import ArgumentParser
 os.chdir(GLOB.basedir)
 CONFIG = GLOB.getconfig(verb=0)
@@ -75,10 +75,10 @@ def main_get(args):
     print ">>> main_get", args
   variable  = args.variable
   eras      = args.eras
+  channels  = args.channels or [""]
   dtypes    = args.dtypes
   filters   = args.samples
   vetoes    = args.vetoes
-  channels  = args.channels or [""]
   checkdas  = args.checkdas
   writedir  = args.write # write sample file list to text file
   tag       = args.tag
@@ -91,13 +91,29 @@ def main_get(args):
     print ">>> %-14s = %s"%('config',CONFIG)
     print '-'*80
   
-  # SAMPLES
-  if variable=='files':
+  # LIST SAMPLES
+  if variable=='samples':
+    if not eras:
+      LOG.warning("Please specify an era to get a sample for.")
+    for era in eras:
+      print ">>> Getting sample list for era %r"%(era)
+      for channel in channels:
+        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
+        if not samples:
+          LOG.warning("No samples found for era %r."%(era))
+        for sample in samples:
+          print ">>> %s"%(bold(sample.name))
+          for path in sample.paths:
+            print ">>>   %s"%(path)
+  
+  # LIST SAMPLE FILES
+  elif variable=='files':
     
     # LOOP over ERAS & CHANNELS
     if not eras:
       LOG.warning("Please specify an era to get a sample for.")
     for era in eras:
+      print ">>> Getting file list for era %r"%(era)
       for channel in channels:
         
         # VERBOSE
