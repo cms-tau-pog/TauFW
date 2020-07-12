@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
 # Description: Test script for Stack class
-#   test/plotStacks.py -v2 && eog plots/testStacks*.png
+#   test/testStack.py -v2 && eog plots/testStacks*.png
 from array import array
 from TauFW.Plotter.plot.utils import LOG, ensuredir
 from TauFW.Plotter.plot.Stack import Stack, CMSStyle
@@ -21,7 +21,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False):
   
   # SETTING
   outdir   = ensuredir("plots")
-  fname    = "%s/testStacks_%s"%(outdir,xname)
+  fname    = "%s/testStack_%s"%(outdir,xname)
   if ratio:
     fname += "_ratio"
   if logy:
@@ -157,7 +157,7 @@ if __name__ == "__main__":
   from argparse import ArgumentParser
   argv = sys.argv
   description = '''Script to test the Plot class for comparing histograms.'''
-  parser = ArgumentParser(prog="plotHists",description=description,epilog="Good luck!")
+  parser = ArgumentParser(prog="testStack",description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()

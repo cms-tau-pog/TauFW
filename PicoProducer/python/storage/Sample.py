@@ -10,7 +10,7 @@ import os, re, json
 import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
-from TauFW.common.tools.utils import execute, CalledProcessError, repkey
+from TauFW.common.tools.utils import execute, CalledProcessError, repkey, ensurelist
 from TauFW.common.tools.file import ensurefile
 from TauFW.PicoProducer.storage.utils import LOG, getstorage
 
@@ -67,7 +67,7 @@ class Sample(object):
     # ATTRIBUTES
     self.group        = group
     self.name         = name
-    self.paths        = paths # DAS path
+    self.paths        = paths # DAS dataset path
     self.dtype        = dtype
     self.channels     = kwargs.get('channels',     None )
     self.storage      = kwargs.get('store',        None ) # if stored elsewhere than DAS
@@ -162,11 +162,10 @@ class Sample(object):
     return samples
   
   def match(self,patterns,verb=0):
-    """Match sample name to some pattern."""
-    sample = self.name.strip('/')
-    if not isinstance(patterns,list):
-      patterns = [patterns]
-    match_ = False
+    """Match sample name to some (glob) pattern."""
+    patterns = ensurelist(patterns)
+    sample   = self.name.strip('/')
+    match_   = False
     for pattern in patterns:
       if '*' in pattern or '?' in pattern or ('[' in pattern and ']' in pattern):
         if fnmatch(sample,pattern+'*'):

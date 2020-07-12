@@ -56,8 +56,8 @@ plots.close()
 
 More examples of usage of `Plot` and `Stack` are provided in [`test/`](test/), run as
 ```
-test/plotHists.py -v2
-test/plotStacks.py -v2
+test/testPlot.py -v2
+test/testStack.py -v2
 ```
 
 <p align="center">
@@ -170,11 +170,15 @@ test/testSamples.py -v2
 ### Sample style
 The color and title style is predefined by dictionaries in [`python/sample/SampleStyle.py`](python/sample/SampleStyle.py).
 These dictionaries are used to automatically set the color for `Sample` object if none is passed.
-You can change the colors to your preference as
+You can change the default sample colors and title to your preference as
 ```
 from TauFW.Plotter.sample.SampleStyle as STYLE
 STYLE.sample_colors['ZTT'] = kOrange-4
+STYLE.sample_titles['ZTT'] = "Z -> #tau#tau
 ```
+Some string patterns for axis titles and legend entries are automatically converted to LaTeX format
+by `makelatex` in [`python/plot/strings.py`](python/plot/strings.py). To disable use the `latex=False`
+option of the `Plot.draw`, `Plot.drawlegend` and , `Plot.drawtext` functions.
 
 <p align="center">
   <img src="../docs/testStyle_legend.png" alt="Legend with common SM processes" width="220" hspace="10"/>

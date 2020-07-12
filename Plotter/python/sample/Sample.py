@@ -2,7 +2,7 @@
 # Author: Izaak Neutelings (July 2020)
 import os, re
 from TauFW.Plotter.sample.utils import *
-from TauFW.Plotter.plot.strings import *
+from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist, round2digit
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.sample.SampleStyle import *
@@ -459,7 +459,7 @@ class Sample(object):
     name       = kwargs.get('name',     self.name      ) # hist name
     name      += kwargs.get('tag',      ""             ) # tag for hist name
     title      = kwargs.get('title',    self.title     ) # hist title
-    blind      = kwargs.get('blind',    None           ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
+    blind      = kwargs.get('blind',    self.isData    ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
     fcolor     = kwargs.get('color',    self.fillcolor ) # fill color
     lcolor     = kwargs.get('lcolor',   self.linecolor ) # line color
     #replaceweight = kwargs.get('replaceweight', None )
@@ -478,10 +478,10 @@ class Sample(object):
     #  if len(replaceweight)==2 and not isList(replaceweight[0]):
     #    replaceweight = [replaceweight]
     #  for pattern, substitution in replaceweight:
-    #    LOG.verb('Sample.gethist: replacing weight: before %r'%weight,verbosity,2)
+    #    LOG.verb('Sample.gethist: replacing weight: before %r'%weight,verbosity,3)
     #    weight = re.sub(pattern,substitution,weight)
     #    weight = weight.replace("**","*").strip('*')
-    #    LOG.verb('Sample.gethist: replacing weight: after  %r'%weight,verbosity,2)
+    #    LOG.verb('Sample.gethist: replacing weight: after  %r'%weight,verbosity,3)
     cuts = joincuts(cuts,weight=weight)
     
     # PREPARE HISTOGRAMS
@@ -529,7 +529,7 @@ class Sample(object):
     for variable, hist in zip(variables,hists):
       if scale!=1.0:   hist.Scale(scale)
       if scale==0.0:   LOG.warning("Scale of %s is 0!"%self.name)
-      if verbosity>=3: printhist(hist)
+      if verbosity>=4: printhist(hist)
       hist.SetLineColor(lcolor)
       hist.SetFillColor(kWhite if self.isdata or self.issignal else fcolor)
       hist.SetMarkerColor(lcolor)
@@ -538,12 +538,12 @@ class Sample(object):
         integral = hist.Integral()
     
     # PRINT
-    if verbosity>=2:
+    if verbosity>=3:
       print ">>>\n>>> Sample.gethist: %s, %s"%(color(self.name,color="grey"),self.fnameshort)
       print ">>>   entries: %d (%.2f integral)"%(nentries,integral)
       print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
       print ">>>   %r"%(cuts)
-      if verbosity>=3:
+      if verbosity>=4:
         for var, varexp in zip(variables,varexps):
           print '>>>   Variable %r: varexp=%r'%(var.name,varexp)
           #print '>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp)

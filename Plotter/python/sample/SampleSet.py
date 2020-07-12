@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from ctypes import c_double
 from TauFW.Plotter.sample.utils import *
 from TauFW.Plotter.sample.HistSet import HistSet
-from TauFW.Plotter.plot.strings import makelatex, maketitle, makehistname
+from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Stack import Stack
 from TauFW.Plotter.plot.MultiThread import MultiProcessor
@@ -322,7 +322,7 @@ class SampleSet(object):
     weightdata    = kwargs.get('weightdata',      ""      ) # extra weight for data
     replaceweight = kwargs.get('replaceweight',   None    ) # replace substring of weight
     split         = kwargs.get('split',           True    ) # split samples into components
-    blind         = kwargs.get('blind',           None    ) # blind data in some given range: blind={xvar:(xmin,xmax)}
+    blind         = kwargs.get('blind',           True    ) # blind data in some given range: blind={xvar:(xmin,xmax)}
     scaleup       = kwargs.get('scaleup',         0.0     ) # scale up histograms
     reset         = kwargs.get('reset',           False   ) # reset scales
     parallel      = kwargs.get('parallel',        False   ) # create and fill hists in parallel

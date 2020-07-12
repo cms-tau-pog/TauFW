@@ -5,7 +5,7 @@ from math import sqrt, pow, log
 from array import array
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
-from TauFW.Plotter.plot.strings import *
+from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.Context import getcontext
 from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist, unwraplistargs
 

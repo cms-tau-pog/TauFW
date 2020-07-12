@@ -4,7 +4,7 @@ import os, re
 from math import log10
 from TauFW.common.tools.utils import ensurelist, islist, isnumber
 from TauFW.Plotter.plot.utils import *
-from TauFW.Plotter.plot.strings import makelatex, maketitle, makehistname
+from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Ratio import Ratio
 import ROOT
@@ -79,7 +79,7 @@ class Plot(object):
       self.ymargin         = kwargs.get('ymargin',   variable.ymargin   )
       self.logyrange       = kwargs.get('logyrange', variable.logyrange )
       self.position        = kwargs.get('position',  variable.position  )
-      self.latex           = kwargs.get('latex',     False              )
+      self.latex           = kwargs.get('latex',     False              ) # already done by Variable.__init__
       self.dividebybinsize = kwargs.get('dividebybinsize', variable.dividebybinsize)
     else:
       self.variable        = variable
@@ -137,7 +137,7 @@ class Plot(object):
     xtitle          = kwargs.get('xtitle',          xtitle               ) # x axis title
     ytitle          = kwargs.get('ytitle',          self.ytitle          ) # y axis title (if None, automatically set by Plot.setaxis)
     rtitle          = kwargs.get('rtitle',          "Ratio"              ) # y axis title of ratio panel
-    latex           = kwargs.get('latex',           self.latex           ) # use automatic latexing with makelatex
+    latex           = kwargs.get('latex',           self.latex           ) # automatically format strings as LaTeX with makelatex
     xmin            = kwargs.get('xmin',            self.xmin            )
     xmax            = kwargs.get('xmax',            self.xmax            )
     ymin            = kwargs.get('ymin',            self.ymin            )
@@ -402,6 +402,7 @@ class Plot(object):
     negativey     = kwargs.get('negativey',    True             ) # allow negative y values
     xtitle        = kwargs.get('xtitle',       frame.GetTitle() )
     ytitle        = kwargs.get('ytitle',       None             )
+    latex         = kwargs.get('latex',        True             ) # automatically format strings as LaTeX
     grid          = kwargs.get('grid',         False            )
     ycenter       = kwargs.get('center',       False            )
     nxdivisions   = kwargs.get('nxdiv',        510              )
@@ -418,6 +419,8 @@ class Plot(object):
     if main:
       xtitlesize  = 0.0
       xlabelsize  = 0.0
+    if latex:
+      xtitle      = makelatex(xtitle)
     LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f)"%(nbins,xmin,xmax),verbosity,2)
     
     if ratiorange:
@@ -568,7 +571,8 @@ class Plot(object):
     bands       = ensurelist(bands,nonzero=True)
     bandentries = kwargs.get('bandentries', [ ]            )
     title       = kwargs.get('header',      None           )
-    title       = kwargs.get('title',       title          )
+    title       = kwargs.get('title',       title          ) # legend header/title
+    latex       = kwargs.get('latex',       True           ) # automatically format strings as LaTeX
     style       = kwargs.get('style',       None           )
     style0      = kwargs.get('style0',      None           ) # style of first histogram
     errstyle    = kwargs.get('errstyle',    errstyle       ) # style for an error point
@@ -683,13 +687,6 @@ class Plot(object):
     else:
       margin = 0.042/width
     legend.SetMargin(margin)
-    if verbosity>=2:
-      print ">>> Plot.drawlegend: title=%r, texts=%s"%(title,texts)
-      print ">>> Plot.drawlegend: hists=%s"%(hists)
-      print ">>> Plot.drawlegend: entries=%s"%(entries)
-      print ">>> Plot.drawlegend: styles=%s"%(styles)
-      print ">>> Plot.drawlegend: nlines=%s, len(hists)=%s, len(texts)=%s, ncols=%s, margin=%s"%(
-                                  nlines,len(hists),len(texts),ncols,margin)
     
     # STYLE
     if transparent: legend.SetFillStyle(0) # 0 = transparent
@@ -703,17 +700,31 @@ class Plot(object):
     
     # HEADER
     if title:
-      legend.SetHeader(maketitle(title))
+      if latex:
+        title = maketitle(title)
+      legend.SetHeader(title)
     legend.SetTextFont(42) # no bold for entries
     
     # ENTRIES
     if hists:
       for hist1, entry1, style1 in columnize(zip(hists,entries,styles),ncols):
         for entry in entry1.split('\n'):
-          legend.AddEntry(hist1,maketitle(entry),style1)
+          if latex:
+            entry = maketitle(entry)
+          legend.AddEntry(hist1,entry,style1)
           hist1, style1 = 0, ''
     for line in texts:
-      legend.AddEntry(0,maketitle(line),'')
+      if latex:
+        line = maketitle(line)
+      legend.AddEntry(0,line,'')
+    
+    if verbosity>=2:
+      print ">>> Plot.drawlegend: title=%r, texts=%s, latex=%s"%(title,texts,latex)
+      print ">>> Plot.drawlegend: hists=%s"%(hists)
+      print ">>> Plot.drawlegend: entries=%s"%(entries)
+      print ">>> Plot.drawlegend: styles=%s"%(styles)
+      print ">>> Plot.drawlegend: nlines=%s, len(hists)=%s, len(texts)=%s, ncols=%s, margin=%s"%(
+                                  nlines,len(hists),len(texts),ncols,margin)
     
     legend.Draw(option)
     self.legend = legend
@@ -728,6 +739,7 @@ class Plot(object):
     position  = kwargs.get('position', position  ).lower()
     tsize     = kwargs.get('tsize',    _lsize    )*scale
     bold      = kwargs.get('bold',     False     )
+    dolatex   = kwargs.get('latex',    False     ) # automatically format strings as LaTeX
     xuser     = kwargs.get('x',        None      )
     yuser     = kwargs.get('y',        None      )
     panel     = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
@@ -736,10 +748,10 @@ class Plot(object):
       return None
     
     # POSITION
-    font     = 62 if bold else 42
-    align    = 13
-    L, R     = gPad.GetLeftMargin(), gPad.GetRightMargin()
-    T, B     = gPad.GetTopMargin(),  gPad.GetBottomMargin()
+    font  = 62 if bold else 42
+    align = 13
+    L, R  = gPad.GetLeftMargin(), gPad.GetRightMargin()
+    T, B  = gPad.GetTopMargin(),  gPad.GetBottomMargin()
     if 'right' in position:
       x, align = 0.96, 30
     else:
@@ -762,6 +774,8 @@ class Plot(object):
     #latex.SetTextColor(kRed)
     latex.SetNDC(True)
     for i, line in enumerate(texts):
+      if dolatex:
+        line = makelatex(line)
       yline = y-i*1.2*tsize
       latex.DrawLatex(x,yline,line)
       LOG.verb("Plot.drawcornertext: i=%d, x=%d, y=%d, text=%r"%(i,x,yline,line),verbosity,2)

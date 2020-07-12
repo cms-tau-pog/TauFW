@@ -3,7 +3,7 @@
 import os, re
 from collections import OrderedDict
 from TauFW.Plotter.sample.utils import LOG
-from TauFW.Plotter.plot.strings import makelatex
+from TauFW.Plotter.plot.string import makelatex
 from ROOT import TColor, kBlack, kWhite, kGray, kAzure, kBlue, kCyan,\
                  kGreen, kSpring, kTeal, kYellow,\
                  kOrange, kRed, kPink, kMagenta, kViolet

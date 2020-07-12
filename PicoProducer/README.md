@@ -287,7 +287,7 @@ See for example [`HTCondor.py`](python/batch/HTCondor.py).
 If you need extra (shell) scripts, leave them in `python/batch` as well.
 Then you need to implement your `submit` command to the `main_submit` function in
 [`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/b4d14574226b095d020936eb54c3d8bb995624d3/PicoProducer/scripts/pico.py#L1007-L1030),
-where you define the script and some extra key-worded options via `jkwargs`, for example:
+where you define the script and some extra keyword options via `jkwargs`, for example:
 ```
 def main_submit(args):
   ...

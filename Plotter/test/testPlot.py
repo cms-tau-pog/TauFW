@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
 # Description: Test script for Plot class
-#   test/plotHists.py -v2 && eog plots/testHists*.png
+#   test/testPlot.py -v2 && eog plots/testPlot*.png
 from TauFW.Plotter.plot.utils import LOG, ensuredir
 from TauFW.Plotter.plot.Plot import Plot, CMSStyle
 from ROOT import TH1D, gRandom
@@ -11,7 +11,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
   
   # SETTING
   outdir   = ensuredir("plots/")
-  fname    = outdir+"testHists"
+  fname    = outdir+"testPlot"
   if ratio:
     fname += "_ratio"
   if logy:
@@ -80,7 +80,7 @@ if __name__ == "__main__":
   from argparse import ArgumentParser
   argv = sys.argv
   description = '''Script to test the Plot class for comparing histograms.'''
-  parser = ArgumentParser(prog="plotHists",description=description,epilog="Good luck!")
+  parser = ArgumentParser(prog="testPlot",description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()

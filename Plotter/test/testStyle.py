@@ -11,7 +11,7 @@ gStyle.SetErrorX(0)
 def checklegend(samples,tag=""):
   """Check legend entries: colors, titles, ..."""
   # https://root.cern.ch/doc/master/classTLegend.html
-  LOG.header("checklegend")
+  LOG.header("checklegend"+tag.replace(' ',''))
   output = ensuredir('plots')
   fname  = "%s/testStyle_legend%s"%(output,tag)
   #height = 0.05*(len(samples))

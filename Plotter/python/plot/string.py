@@ -37,10 +37,11 @@ def makelatex(string,**kwargs):
     return string
   if string and string[0]=='{' and string[-1]=='}':
     return string[1:-1]
-  units = kwargs.get('units', True  )
-  split = kwargs.get('split', False )
-  GeV   = False
-  cm    = False
+  units  = kwargs.get('units', True  )
+  split  = kwargs.get('split', False )
+  GeV    = False
+  cm     = False
+  oldstr = string
   
   # PREDEFINED
   if len(var_dict_sorted)!=len(var_dict):
@@ -161,14 +162,15 @@ def makelatex(string,**kwargs):
     else:
       string += " [%s]"%units.strip()
   elif units and not '/' in string:
-    if GeV or "mass" in string or "S_{T}" in string or (any(m in string.lower() for m in ["met","p_{T}^{miss}"]) and "phi" not in string):
+    if GeV or "mass" in string or "S_{T}" in string or (any(m in string.lower() for m in ["met","p_{t}^{miss}"]) and "phi" not in string):
       if "GeV" not in string:
         string += " [GeV]"
       if cm:
         LOG.warning("makelatex: Flagged units are both GeV and cm!")
     elif cm: #or 'd_' in string
       string += " [cm]"
-  
+  if (verbosity>=2 and string!=oldstr) or verbosity>=3:
+    print ">>> makelatex: %r -> %r"%(oldstr,string)
   return string
   
 

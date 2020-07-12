@@ -60,7 +60,7 @@ class Stack(Plot):
     xtitle          = kwargs.get('xtitle',          xtitle               ) # x axis title
     ytitle          = kwargs.get('ytitle',          self.ytitle          ) # y axis title (if None, automatically set by Plot.setaxis)
     rtitle          = kwargs.get('rtitle',          "Obs. / Exp."        ) # y axis title of ratio panel
-    latex           = kwargs.get('latex',           self.latex           ) # use automatic latexing with makelatex
+    latex           = kwargs.get('latex',           self.latex           ) # automatically format strings as LaTeX with makelatex
     xmin            = kwargs.get('xmin',            self.xmin            )
     xmax            = kwargs.get('xmax',            self.xmax            )
     ymin            = kwargs.get('ymin',            self.ymin            )
