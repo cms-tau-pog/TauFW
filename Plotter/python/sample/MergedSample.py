@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (July 2020)
 from TauFW.Plotter.sample.Sample import *
+from TauFW.Plotter.plot.MultiThread import MultiProcessor
 
 
 class MergedSample(Sample):
@@ -86,10 +87,16 @@ class MergedSample(Sample):
     newdict['title']        = title
     newdict['samples']      = samples
     newdict['splitsamples'] = splitsamples
+    newdict['cuts']         = kwargs.get('cuts',   self.cuts      )
+    newdict['weight']       = kwargs.get('weight', self.weight    )
+    newdict['extraweight']  = kwargs.get('extraweight', self.extraweight )
+    newdict['fillcolor']    = kwargs.get('color',  self.fillcolor )
     newsample               = type(self)(name,title,*samples,**kwargs)
     newsample.__dict__.update(newdict)
     if close:
       newsample.close()
+    LOG.verb('MergedSample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
+             newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),level=2)
     return newsample
   
   def gethist(self, *args, **kwargs):
@@ -113,7 +120,7 @@ class MergedSample(Sample):
       hkwargs['parallel'] = False
       processor = MultiProcessor()
       for sample in self.samples:
-        processor.start(sample.hist,hargs,hkwargs,name=sample.title)        
+        processor.start(sample.gethist,hargs,hkwargs,name=sample.title)        
       for process in processor:
         allhists.append(process.join())
     else:
@@ -125,7 +132,7 @@ class MergedSample(Sample):
     # SUM
     sumhists = [ ]
     if any(len(subhists)<len(variables) for subhists in allhists):
-      LOG.error("MergedSample.hist: len(subhists) = %s < %s = len(variables)"%(len(subhists),len(variables)))
+      LOG.error("MergedSample.gethist: len(subhists) = %s < %s = len(variables)"%(len(subhists),len(variables)))
     for ivar, variable in enumerate(variables):
       subhists = [subhists[ivar] for subhists in allhists]
       sumhist  = None

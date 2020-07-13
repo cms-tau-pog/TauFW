@@ -79,6 +79,7 @@ class Plot(object):
       self.ymargin         = kwargs.get('ymargin',   variable.ymargin   )
       self.logyrange       = kwargs.get('logyrange', variable.logyrange )
       self.position        = kwargs.get('position',  variable.position  )
+      self.ncols           = kwargs.get('ncols',     variable.ncols     )
       self.latex           = kwargs.get('latex',     False              ) # already done by Variable.__init__
       self.dividebybinsize = kwargs.get('dividebybinsize', variable.dividebybinsize)
     else:
@@ -97,6 +98,7 @@ class Plot(object):
       self.ymargin         = kwargs.get('ymargin',   None               )
       self.logyrange       = kwargs.get('logyrange', None               )
       self.position        = kwargs.get('position',  ""                 )
+      self.ncols           = kwargs.get('ncols',     None               )
       self.latex           = kwargs.get('latex',     True               )
       self.dividebybinsize = kwargs.get('dividebybinsize', frame.GetXaxis().IsVariableBinSize())
     self.ytitle            = kwargs.get('ytitle',    frame.GetYaxis().GetTitle() or None )
@@ -156,7 +158,6 @@ class Plot(object):
     tsize           = kwargs.get('tsize',           _tsize               ) # text size for axis title
     pair            = kwargs.get('pair',            False                )
     triple          = kwargs.get('triple',          False                )
-    ncols           = kwargs.get('ncols',           1                    ) # number of columns in legend
     lcolors         = kwargs.get('lcolors',         None                 ) or self.lcolors
     fcolors         = kwargs.get('fcolors',         None                 ) or self.fcolors
     lstyles         = kwargs.get('lstyle',          None                 )
@@ -347,7 +348,7 @@ class Plot(object):
       canvas.Divide(2)
       canvas.cd(1)
       gPad.SetPad('pad1','pad1',0.0,0.33,1.0,1.0)
-      gPad.SetMargin(0.145*lmargin,0.04*rmargin,0.029,0.07*tmargin)
+      gPad.SetMargin(0.145*lmargin,0.04*rmargin,0.029,0.075*tmargin)
       gPad.SetFillColor(0)
       gPad.SetFillStyle(4000) # transparant (for pdf)
       #gPad.SetFillStyle(0)
@@ -557,14 +558,14 @@ class Plot(object):
     return xmin, xmax, ymin, ymax
     
   
-  def drawlegend(self,**kwargs):
+  def drawlegend(self,position=None,**kwargs):
     """Create and draw legend."""
     #if not ratio:
     #  tsize *= 0.80
     #  signaltsize *= 0.80
     verbosity   = LOG.getverbosity(self,kwargs)
     hists       = self.hists
-    scale       = 550./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
+    scale       = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     errstyle    = 'lep' if gStyle.GetErrorX() else 'ep'
     entries     = kwargs.get('entries',     [ ]            )
     bands       = kwargs.get('band',        [self.errband] ) # error bands
@@ -577,7 +578,7 @@ class Plot(object):
     style0      = kwargs.get('style0',      None           ) # style of first histogram
     errstyle    = kwargs.get('errstyle',    errstyle       ) # style for an error point
     styles      = kwargs.get('styles',      [ ]            )
-    position    = kwargs.get('pos',         None           ) # legend position
+    position    = kwargs.get('pos',         position       ) # legend position
     position    = kwargs.get('position',    position       ) or self.position
     option      = kwargs.get('option',      ''             )
     border      = kwargs.get('border',      False          )
@@ -591,7 +592,7 @@ class Plot(object):
     tsize       = kwargs.get('tsize',       _lsize         )*scale
     twidth      = kwargs.get('twidth',      1.0            ) # scalefactor for legend width
     texts       = kwargs.get('text',        [ ]            ) # extra text below legend
-    ncols       = kwargs.get('ncols',       1              ) # number of legend columns
+    ncols       = kwargs.get('ncols',       self.ncols     ) or 1 # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
     bold        = kwargs.get('bold',        True           ) # bold legend header
     panel       = kwargs.get('panel',       1              ) # panel (top=1, bottom=2)
@@ -649,7 +650,7 @@ class Plot(object):
     
     # POSITION
     if not position:
-      position = 'left' if title else 'topleft'
+      position = 'toprightright' if ncols>1 else 'right' if title else 'topright'
     position = position.lower()
     if   'leftleft'     in position: x1 = 0.04+L; x2 = x1 + width
     elif 'rightright'   in position: x2 = 0.94-R; x1 = x2 - width
@@ -674,8 +675,10 @@ class Plot(object):
       y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
       y2 = B + (1-T-B)*y2; y1 = y2 - height
     if x1_user!=None:
+      x1 = x1_user
       x2 = x1 + width if x2_user==None else x2_user
     if y1_user!=None:
+      y1 = y1_user
       y2 = y1 - height if y2_user==None else y2_user
     legend = TLegend(x1,y1,x2,y2)
     LOG.verb("Plot.drawlegend: position=%r, height=%.3f, width=%.3f, x1=%.3f, y1=%.3f, x2=%.3f, y2=%.3f"%(
@@ -734,7 +737,7 @@ class Plot(object):
   def drawtext(self,*texts,**kwargs):
     """Draw TLaTeX text in the corner."""
     verbosity = LOG.getverbosity(self,kwargs)
-    scale     = 550./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
+    scale     = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     position  = kwargs.get('pos',      'topleft' )
     position  = kwargs.get('position', position  ).lower()
     tsize     = kwargs.get('tsize',    _lsize    )*scale

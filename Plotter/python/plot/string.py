@@ -185,7 +185,7 @@ def maketitle(title,**kwargs):
 
 def makehistname(*labels,**kwargs):
   """Use label and var to make an unique and valid histogram name."""
-  hname = '_'.join(labels)
+  hname = '_'.join(s.strip('_') for s in labels)
   hname = hname.replace('+','-').replace(' - ','-').replace('.','p').replace(',','-').replace(' ','_').replace(
                         '(','-').replace(')','-').replace('[','-').replace(']','-').replace('||','OR').replace('&&','AND').replace(
                         '/','_').replace('<','lt').replace('>','gt').replace('=','e').replace('*','x')
@@ -282,4 +282,35 @@ def shiftjetvars(var, jshift, **kwargs):
     print '>>>   "%s"'%var
     print '>>>    -> "%s"'%jshift
   return varshift
+  
+
+doubleboolrexp = re.compile(r"(?:&&|\|\|) *(?:&&|\|\|)")
+def cleanbool(string):
+  """Clean boolean operators."""
+  return doubleboolrexp.sub(r"&&",string).strip(' ').strip('&').strip(' ')
+  
+
+def invertcharge(oldcuts,target='SS',**kwargs):
+  """Help function to find, invert and replace charge selections."""
+  verbosity = LOG.getverbosity(kwargs)
+  newcuts   = oldcuts
+  if oldcuts=="":
+    newcuts = "q_1*q_2<0" if target=='OS' else "q_1*q_2>0" if target=='OS' else ""
+  else:
+    matchOS = re.findall(r"q_[12]\s*\*\s*q_[12]\s*<\s*0",oldcuts)
+    matchSS = re.findall(r"q_[12]\s*\*\s*q_[12]\s*>\s*0",oldcuts)
+    LOG.verbose("invertcharge: oldcuts=%r"%(oldcuts),verbosity,2)
+    LOG.verbose("invertcharge: matchOS=%r, matchSS=%r"%(matchOS,matchSS),verbosity,2)
+    if (len(matchOS)+len(matchSS))>1:
+      LOG.warning('invertcharge: more than one charge match (%d OS, %d SS) in "%s"'%(len(matchOS),len(matchSS),oldcuts))
+    if target=='OS':
+      for match in matchSS: newcuts = oldcuts.replace(match,"q_1*q_2<0") # invert SS to OS
+    elif target=='SS':
+      for match in matchOS: newcuts = oldcuts.replace(match,"q_1*q_2>0") # invert OS to SS
+    else:
+      for match in matchOS: newcuts = oldcuts.replace(match,"") # REMOVE
+      for match in matchSS: newcuts = oldcuts.replace(match,"") # REMOVE
+    newcuts = cleanbool(newcuts)
+  LOG.verbose('  %r\n>>>   -> %r %s\n>>>'%(oldcuts,newcuts,target),verbosity,2)
+  return newcuts
   

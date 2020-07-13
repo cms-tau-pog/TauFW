@@ -4,7 +4,6 @@ import os, re
 from TauFW.Plotter.sample.utils import *
 from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist, round2digit
-from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.sample.SampleStyle import *
 from TauFW.Plotter.plot.MultiDraw import MultiDraw
 from ROOT import TTree
@@ -113,10 +112,10 @@ class Sample(object):
   
   def getfile(self,refresh=False):
     if not self._file:
-      LOG.verb("Sample.getfile: Opening file %s..."%(self.filename),level=2)
+      LOG.verb("Sample.getfile: Opening file %s..."%(self.filename),level=3)
       self._file = ensureTFile(self.filename)
     elif refresh:
-      LOG.verb("Sample.getfile: Closing and opening file %s..."%(self.filename),level=2)
+      LOG.verb("Sample.getfile: Closing and opening file %s..."%(self.filename),level=3)
       self._file.Close()
       self._file = ensureTFile(self.filename)
     return self._file
@@ -132,12 +131,12 @@ class Sample(object):
   @property
   def tree(self):
     if not self.file:
-      LOG.verb("Sample.tree: Opening file %s to get tree %r..."%(self.filename,self.treename),level=2)
+      LOG.verb("Sample.tree: Opening file %s to get tree %r..."%(self.filename,self.treename),level=3)
       self._tree = self.file.Get(self.treename)
     elif self._tree and isinstance(self._tree,TTree):
-      LOG.verb("Sample.tree: Getting existing tree %s..."%(self._tree),level=2)
+      LOG.verb("Sample.tree: Getting existing tree %s..."%(self._tree),level=3)
     else:
-      LOG.verb("Sample.tree: No valid tree (%s). Retrieving tree %r from file %s..."%(self._tree,self.treename,self.filename),level=2)
+      LOG.verb("Sample.tree: No valid tree (%s). Retrieving tree %r from file %s..."%(self._tree,self.treename,self.filename),level=3)
       self._tree = self.file.Get(self.treename)
     return self._tree
   
@@ -162,7 +161,7 @@ class Sample(object):
   def clone(self,name=None,title=None,filename=None,**kwargs):
     """Shallow copy."""
     if name==None:
-      name = self.name  + ("" if samename else  "_clone" )
+      name = self.name + ("" if samename else  "_clone" )
     if title==None:
       title = self.title
     if filename==None:
@@ -173,15 +172,20 @@ class Sample(object):
     splitsamples            = [s.clone(samename=samename,deep=deep) for s in self.splitsamples] if deep else self.splitsamples[:]
     kwargs['isdata']        = self.isdata
     kwargs['isembed']       = self.isembed
-    newsample               = type(self)(name,title,filename,**kwargs)
-    newdict                 = self.__dict__.copy()
     newdict['name']         = name
     newdict['title']        = title
-    newdict['splitsamples'] = splitsamples
+    newdict['splitsamples'] = splitsamplescuts
+    newdict['cuts']         = kwargs.get('cuts',   self.cuts      )
+    newdict['weight']       = kwargs.get('weight', self.weight    )
+    newdict['extraweight']  = kwargs.get('extraweight', self.extraweight )
+    newdict['fillcolor']    = kwargs.get('color',  self.fillcolor )
     if deep and self.file: # force new, separate file
       newdict['file'] = None #ensureTFile(self.file.GetName())
+    newsample               = type(self)(name,title,filename,**kwargs)
+    newdict                 = self.__dict__.copy()
     newsample.__dict__.update(newdict)
-    #LOG.verb('Sample.clone: %r, weight=%r'%(newsample.name,newsample.weight),1)
+    LOG.verb('Sample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
+             newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),1)
     if close:
       newsample.close()
     return newsample
@@ -441,18 +445,21 @@ class Sample(object):
                    ('ZJ', "Fake tau","genmatch_2!=5"))
     """
     verbosity      = LOG.getverbosity(kwargs)
+    color_dict     = kwargs.get('colors', { }) # dictionary with colors
     splitlist      = unwraplistargs(splitlist)
     splitsamples   = [ ]
-    for i, info in enumerate(reversed(splitlist)): #split_dict.items()
+    for i, info in enumerate(splitlist): #split_dict.items()
       name  = "%s_split%d"%(self.name,i)
       if len(info)>=3:
         name, title, cut = info[:3]
       elif len(info)==2:
         name, cut = info[0], info[1]
         title = sample_titles.get(name,name) # from SampleStyle
-      sample       = self.clone(name,title)
-      sample.cuts  = joincuts(self.cuts,cut)
-      sample.color = getcolor(sample)
+      cuts   = joincuts(self.cuts,cut)
+      color  = color_dict.get(name,getcolor(name))
+      sample = self.clone(name,title,cuts=cuts,color=color) # make clone of self
+      #LOG.verb('Sample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
+      #         newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),1)
       splitsamples.append(sample)
     self.splitsamples = splitsamples # save list of split samples
     return splitsamples
@@ -498,7 +505,7 @@ class Sample(object):
       # VAREXP
       hname  = makehistname(variable.filename,name)
       varcut = ""
-      if self.isdata and (blind or variable.blindcuts or variable.cut or variable.weightdata):
+      if self.isdata and (blind or variable.blindcuts or variable.cut or variable.dataweight):
         blindcuts = ""
         if blind:
           if isinstance(blind,tuple) and len(blind)==2:
@@ -507,7 +514,7 @@ class Sample(object):
             blindcuts = variable.blind(*self.blinddict[variable.name_])
           elif variable.blindcuts:
             blindcuts = variable.blindcuts
-        varcut = joincuts(blindcuts,variable.cut,weight=variable.weightdata)
+        varcut = joincuts(blindcuts,variable.cut,weight=variable.dataweight)
       elif not self.isdata and (variable.cut or variable.weight):
         varcut = joincuts(variable.cut,weight=variable.weight)
       if varcut:

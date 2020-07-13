@@ -130,7 +130,7 @@ def getcolor(sample,color=kWhite,**kwargs):
     sample = sample.name
   for key in sample_colors: #sorted(sample_colors,key=lambda x: len(x),reverse=True)
     if re.findall(key.replace('*',".*"),sample): # glob -> regex wildcard
-      LOG.verb("SampleStyle.getcolor: Found color %s for %r from search term %r!"%(sample_colors[key],sample,key),kwargs,level=2)
+      LOG.verb("SampleStyle.getcolor: Found color %s for %r from search term %r!"%(sample_colors[key],sample,key),kwargs,level=3)
       color = sample_colors[key]
       break
   else:
@@ -141,7 +141,7 @@ def getcolor(sample,color=kWhite,**kwargs):
 def gettitle(sample,**kwargs):
   """Get title for some sample name."""
   if sample in sample_titles:
-    LOG.verb("SampleStyle.gettitle: Found title %s for %r!"%(sample_titles[sample],sample),kwargs,level=2)
+    LOG.verb("SampleStyle.gettitle: Found title %s for %r!"%(sample_titles[sample],sample),kwargs,level=3)
     sample = sample_titles[sample]
   else:
     LOG.warning("SampleStyle.gettitle: Could not find title for %r! Returning %r..."%(sample,sample))

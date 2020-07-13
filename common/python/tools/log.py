@@ -163,4 +163,4 @@ class Logger(object):
   #  """Print row of table."""
   #  self._table.row(*args)
   
-
+LOG = Logger('Global')

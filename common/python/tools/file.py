@@ -1,8 +1,9 @@
 # Author: Izaak Neutelings (May 2020)
 import os, re, shutil
-from abc import ABCMeta, abstractmethod
-from subprocess import Popen, PIPE, STDOUT
+import importlib, traceback
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+from TauFW.common.tools.log import LOG
+basedir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 
 def writetemplate(templatename,outfilename,sublist=[],rmlist=[],**kwargs):
@@ -59,6 +60,22 @@ def ensurefile(*paths,**kwargs):
   return path
   
 
+def ensuremodule(modname,package):
+  """Ensure Sample method exists in python/methods."""
+  # TODO: absolute path
+  modfile  = ensurefile(basedir,package.replace('.','/python/',1),"%s.py"%(modname.replace('.','/')))
+  modpath  = "TauFW.%s.%s"%(package,modname) #modfile.replace('.py','').replace('/','.')
+  modclass = modname.split('.')[-1]
+  try:
+    module = importlib.import_module(modpath)
+  except Exception as err:
+    print traceback.format_exc()
+    LOG.throw(ImportError,"Importing module '%s' failed. Please check %s! cwd=%r"%(modpath,modfile,os.getcwd()))
+  if not hasattr(module,modclass):
+    LOG.throw(IOError,"Module '%s' in %s does not have a module named '%s'!"%(module,modfile,modname))
+  return module
+  
+
 def rmfile(filepaths):
   """Remove (list of) files."""
   if isinstance(filepaths,str):
@@ -81,11 +98,11 @@ def getline(fname,iline):
 def ensureTFile(filename,option='READ'):
   """Open TFile, checking if the file in the given path exists."""
   if not os.path.isfile(filename):
-    raise IOError('File in path "%s" does not exist!'%(filename))
+    LOG.throw(IOError,'File in path "%s" does not exist!'%(filename))
     exit(1)
   file = ROOT.TFile.Open(filename,option)
   if not file or file.IsZombie():
-    raise IOError('Could not open file by name "%s"'%(filename))
+    LOG.throw(IOError,'Could not open file by name "%s"'%(filename))
     exit(1)
   return file
   

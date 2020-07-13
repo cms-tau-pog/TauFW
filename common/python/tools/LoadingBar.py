@@ -28,7 +28,7 @@ class LoadingBar(object):
     sys.stdout.write("%s[%s]" % (self.prepend," "*self.width))
     sys.stdout.flush()
     sys.stdout.write("\b"*(self.width+1)) # return to start of line, after '['
-    if self.counter: self.updateCounter()
+    if self.counter: self.update()
     if self.message_: self.message(self.message_)
   
   def count(self,*args,**kwargs):
@@ -48,7 +48,7 @@ class LoadingBar(object):
     sys.stdout.write(self.symbol*step)
     sys.stdout.flush()
     self.tally += i
-    if self.counter: self.updateCounter()
+    if self.counter: self.update()
     if message: self.message(message)
     if self.tally >= self.steps:
         if self.append: self.message(self.append,moveback=self.remove)
@@ -59,7 +59,7 @@ class LoadingBar(object):
         elif not self.append: self.message("\n")
         self.done = True
   
-  def updateCounter(self,**kwargs):
+  def update(self,**kwargs):
     """Update the counter."""
     self.counter = " %s/%i" % (self.counterformat%self.tally,self.steps)
     sys.stdout.write("%s]%s" % (' '*(self.width-self.position), self.counter))

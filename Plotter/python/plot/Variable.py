@@ -39,7 +39,7 @@ class Variable(object):
     self.bins            = None
     self.cut             = kwargs.get('cut',         ""            ) # extra cut when filling histograms
     self.weight          = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
-    self.weightdata      = kwargs.get('weightdata',  ""            ) # extra weight when filling histograms for data
+    self.dataweight      = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
     self.setbins(*args)
     self.dividebybinsize = kwargs.get('dividebybinsize', self.hasvariablebins() )
     self.data            = kwargs.get('data',        True          ) # also draw data
@@ -53,8 +53,9 @@ class Variable(object):
     self.logy            = kwargs.get('logy',        False         )
     self.ymargin         = kwargs.get('ymargin',     None          ) # margin between hist maximum and plot's top
     self.logyrange       = kwargs.get('logyrange',   None          ) # log(y) range from hist maximum to ymin
-    self.position        = kwargs.get('position',    ""            ) # legend position
-    self.ncols           = kwargs.get('ncols',       1             ) # number of legend columns
+    self.position        = kwargs.get('pos',         ""            ) # legend position
+    self.position        = kwargs.get('position',    self.position ) # legend position
+    self.ncols           = kwargs.get('ncols',       None          ) # number of legend columns
     #self.plot            = kwargs.get('plots',       True          )
     self.only            = kwargs.get('only',        [ ]           ) # only plot for these patterns
     self.veto            = kwargs.get('veto',        [ ]           ) # do not plot for these patterns
@@ -393,6 +394,8 @@ class Variable(object):
     self.name   = "min(%s,%s)"%(self.name_,threshold)
     LOG.verb("Variable.addoverflow: '%s' -> '%s' for binning '%s'"%(self.name_,self.name,self.getbins()),verbosity,2)
     return self.name
+  
+Var = Variable
 
 
 def wrapvariable(*args,**kwargs):

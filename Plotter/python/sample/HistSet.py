@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (July 2020)
+# Description: Container class for histgrams lists to separate those of observed data from MC.
 from TauFW.Plotter.sample.utils import LOG, islist, TH1
 
 
 class HistSet(object):
-  """Container for histgrams lists to separate those of observed data from MC."""
+  """Container class for histgrams lists to separate those of observed data from MC."""
   
   def __init__(self, vars=[ ], data=True, exp=True, sig=False):
     self.vars   = vars
