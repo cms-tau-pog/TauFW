@@ -113,8 +113,8 @@ Examples are provided in [`test/testVariables.py`](test/testVariables.py).
 
 
 ## Sample
-A [`Sample`](python/sample/Sample.py) class is provided to contain a sample' information,
-like title (for legends), filename, cross section, normalization, etc.
+A [`Sample`](python/sample/Sample.py) class is provided to contain and interface your analysis ntuples (`pico`).
+It keeps track of a sample's information like title (for legends), filename, cross section, normalization, etc.
 To initialize, you need to pass a unique name, a title (for legends) and a filename:
 ```
 sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76)
@@ -153,7 +153,7 @@ hists = sample.gethist(vars,"pt_1>30 && pt_2>30")
 where `vars` is a list of variables as above, and the returned `hists` is a list of `TH1D`s.
 Similarly, `Sample.gethist2D` is available for 2D histograms (`TH2D`).
 
-You can also split samples into different components (like real/misidentified or decay mode)
+You can also split samples into different components (e.g. real/misidentified, or decay mode)
 based on some cuts. e.g.
 ```
 sample.split(('ZTT',"Real tau","genmatch_2==5"),
@@ -162,6 +162,8 @@ hists = { }
 for subsample in sample.splitsamples:
   hists[subsample] = subsample.gethist(vars,"pt_1>50")
 ```
+Each component is defined by a unique name (e.g. `'ZTT'` and `'ZJ'`), a title `"Real tau"`, and a cut,
+which must be orthogonal to the others to avoid overlap.
 Examples are provided in [`test/testSamples.py`](test/testSamples.py):
 ```
 test/testSamples.py -v2
@@ -189,13 +191,93 @@ option of the `Plot.draw`, `Plot.drawlegend` and , `Plot.drawtext` functions.
 
 
 ## Sample set
-The [`SampleSet`](python/sample/SampleSet.py) class helps to contain data and MC samples:
+The [`SampleSet`](python/sample/SampleSet.py) class helps to contain data and MC `Samples` objects:
 ```
 from TauFW.Plotter.sample.SampleSet import SampleSet
 samples = SampleSet(datasample,expsamples)
 samples.printtable()
 ```
-It can create and fill histograms for you:
+Here, `datasample` is a single `Sample` object of observed data,
+while `expsamples` is a simple python list of `Sample` objects wrapping MC ntuples.
+
+### Initialization via table
+To make initialization of sample sets of `pico` ntuples easier,
+you can use the help function [`getsampleset`](python/sample/utils.py), for example:
+```
+expsamples = [ # table of MC samples to be converted to Sample objects
+  ('DY', "DYJetsToLL_M-10to50",  "Drell-Yan 10-50", 18610.0, {'extraweight': 'zptweight'} ),
+  ('WJ', "WJetsToLNu",           "W + jets",        50260.0, ),
+  ('VV', "WW",                   "WW",                 75.88 ),
+  ('VV', "WZ",                   "WZ",                 27.6  ),
+  ('VV', "ZZ",                   "ZZ",                 12.14 ),
+  ('ST', "ST_t-channel_top",     "ST t-channel t",    136.02 ),
+  ('ST', "ST_t-channel_antitop", "ST t-channel at",    80.95 ),
+  ('ST', "ST_tW_top",            "ST tW",              35.85 ),
+  ('ST', "ST_tW_antitop",        "ST atW",             35.85 ),
+  ('TT', "TT",                   "ttbar",             831.76 ),
+]
+datasamples = ('Data', "SingleMuon_Run2016?", "Observed") # to be converted to Sample object
+sampleset = getsampleset(datasamples,expsamples,era=2016)
+```
+Here, `expsamples` is a list of python tuples:
+```
+  ( GROUP, SAMPLE, TITLE, XSEC )
+```
+To pass special options via keywords, use an extra dictionary.
+Here, `GROUP` and sample name `SAMPLE` correspond to what was used during [`pico` production](../PicoProducer#Samples).
+Data is a single tuple:
+```
+  ( GROUP, SAMPLE, TITLE )
+```
+By default, `getsampleset` will automatically assume the samples found via
+```
+"$PICODIR/$SAMPLE_$CHANNEL.root"
+```
+where `PICODIR` will be retrieved from the [`PicoProducer` config file](../PicoProducer#Configuration).
+You can instead specify to `getsampleset` the file name pattern with the keyword `file`.
+
+A full example is given in [`test/plotPico.py`](test/plotPico.py).
+This script assumes a complete list of 2016 `pico` ntuples in the [`mutau` channel](../PicoProducer/python/analysis/ModuleMuTau.py)).
+
+### Joining samples
+Sometimes you want to group samples into one bigger merged sample,
+to reduce the number of backgrounds on your plots, or treat them as one in a measurement.
+This can be done with by using the [`MergedSample`](python/sample/MergedSample.py) class,
+but `SampleSet` provides a help function that does it for you, for example,
+```
+sampleset.join('DY',               name='DY', title="Drell-Yan"           )
+sampleset.join('VV','WZ','WW','ZZ',name='VV', title="Diboson"             )
+sampleset.join('TT','ST',          name='Top',title="ttbar and single top")
+```
+The name and (legend) title of the merged sample is passed by the keyword arguments `name` and `title`.
+The first string arguments are different search terms or glob patterns (with `*` wildcards) that can be used to identify the samples you want to merge.
+
+### Stitching samples
+In the TauPOG, typically "jet-binned" samples of Drell-Yan (Z+jets) and W+jets are used,
+like `DY[1-4]JetsToLL_M-50*` or `W[1-4]JetsToLNu*`.
+They increase the statistics, but overlap with their respective jet-inclusive sample.
+Therefore a special "stitching" procedure is needed that changes the effective
+lumi-cross section normalization per "jet-bin".
+You can use the [`join` help function](python/sample/utils.py) to do it automatically:
+```
+sampleset.stitch("W*Jets",   incl='WJ', name='WJ'                               )
+sampleset.stitch("DY*J*M-50",incl='DYJ',name="DY_M-50",title="Drell-Yan M=50GeV")
+```
+Again, the first strings arguments are search terms or patterns to identify the samples you want to stitch together.
+The keyword argument `incl` is the search term to identify the inclusive samples (e.g. `DYJetsToLL_M-50` or `WJetsToLNu`).
+
+### Splitting samples
+Like described [above](#Sample), you can split samples via `SampleSet`:
+```
+sampleset.split('DY',[
+  ('ZTT',"Z -> tau_{#mu}tau_{h}",      "genmatch_2==5"),
+  ('ZL', "Drell-Yan with l -> tau_{h}","genmatch_2>0 && genmatch_2<5"),
+  ('ZJ', "Drell-Yan with j -> tau_{h}","genmatch_2==0")
+])
+```
+
+### Data/MC plots
+The `SampleSet` class can create and fill histograms for you:
 ```
 result = samples.gethists(var,selection)
 print result.var                 # Variable
@@ -227,5 +309,20 @@ for stack in stacks:
 Examples are provided in `test/testSamples.py`.
 
 ## Data-driven methods
-[To be added: data-driven background methods like QCD.]
-
+Data-driven background methods like QCD or j → 𝜏<sub>h<sub> fake estimation can be added as plug-ins
+in [`python/methods/`](python/methods/). A python file should contain a function of the same name,
+e.g. for the [`QCD_OSSS.py`](python/methods/QCD_OSSS.py) example:
+```
+from TauFW.Plotter.sample.SampleSet import SampleSet
+def QCD_OSSS(self, variables, selection, **kwargs):
+  ...
+  return qcdhists
+SampleSet.QCD_OSSS = QCD_OSSS # add as class method of SampleSet
+```
+To use them, specify the method name when using `SampleSet.getstack` or `SampleSet.gethists`:
+```
+stacks = samples.getstack(variables,selection,method='QCD_OSSS')
+```
+This will load the file and make the method available.
+You can set the position of the new histogram in the stack via `imethod`,
+where `0` means on the top, and `-1` means on the bottom.

@@ -61,21 +61,28 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     expsamples[i] = sample
   
   # DATA (OBSERVED)
+  title = 'Observed'
   datakwargs = kwargs.copy()
   datakwargs['weight'] = dataweight
   if isinstance(datasample,dict) and channel:
     datasample = datasample[channel]
   if len(datasample)==2:
     group, name = datasample
-  elif len(datasample)==3 and isinstance(datasample[2],dict):
-    group, name, newkwargs = datasample
+  elif len(datasample)==3:
+    group, name = datasample[:2]
+    if isinstance(datasample[2],dict): # dictionary
+      datakwargs.update(datasample[2])
+    else: # string
+      title = datasample[2]
+  elif len(datasample)==4 and isinstance(datasample[3],dict):
+    group, name, title, newkwargs = datasample
     datakwargs.update(newkwargs)
   else:
     LOG.throw(IOError,"Did not recognize data row %s"%(datasample))
   fnames   = glob.glob(repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel))
   #print fnames
   if len(fnames)==1:
-    datasample = Data(name,'Observed',fnames)
+    datasample = Data(name,title,fnames)
   elif len(fnames)>1:
     namerexp = re.compile(name.replace('?','.').replace('*','.*'))
     name     = name.replace('?','').replace('*','')

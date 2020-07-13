@@ -106,22 +106,26 @@ def main():
   mvisbins = [0,30,40,50,55,60,65,70,75,80,85,90,95,100,110,120,140,200,300]
   plotset  = [ # make "pseudo"-MC with random generators, and "pseudo" data
     (('m_vis',"m_{vis} [GeV]",40,0,200), [
-      ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus, ( 72, 9)),
-      ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
-      ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
+      ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus,   ( 72, 9)),
+      ('WJ', "W + jets",                1.0, gRandom.Landau, ( 60,28)),
+      ('QCD', "QCD multiplet",          0.8, gRandom.Gaus,   ( 90,44)),
+      ('TT', "t#bar{t}",                0.8, gRandom.Gaus,   (110,70)),
      ]),
     (('m_vis_var',"m_{vis} [GeV]",mvisbins), [ # variable binning
-       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus, ( 72, 9)),
-       ('QCD', "QCD multiplet",          1.2, gRandom.Gaus, ( 80,60)),
-       ('TT', "t#bar{t}",                1.0, gRandom.Gaus, (120,70)),
+      ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus,   ( 72, 9)),
+      ('WJ', "W + jets",                1.0, gRandom.Landau, ( 60,28)),
+      ('QCD', "QCD multiplet",          0.8, gRandom.Gaus,   ( 90,44)),
+      ('TT', "t#bar{t}",                0.8, gRandom.Gaus,   (110,70)),
      ]),
     (('pt_1',"Leading p_{T} [GeV]",50,0,100), [
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Landau, (30,2)),
-      ('QCD', "QCD multiplet",          0.3, gRandom.Landau, (30,5)),
-      ('TT', "t#bar{t}",                0.2, gRandom.Landau, (40,6)),
+      ('WJ', "W + jets",                0.2, gRandom.Landau, (30,2)),
+      ('QCD', "QCD multiplet",          0.3, gRandom.Landau, (36,5)),
+      ('TT', "t#bar{t}",                0.2, gRandom.Landau, (48,6)),
      ]),
     (('njets',"Number of jets",8,0,8), [
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Poisson, (0.2,)),
+      ('WJ', "W + jets",                0.2, gRandom.Poisson, (0.4,)),
       ('QCD', "QCD multiplet",          0.3, gRandom.Poisson, (2.0,)),
       ('TT', "t#bar{t}",                0.2, gRandom.Poisson, (2.5,)),
      ]),

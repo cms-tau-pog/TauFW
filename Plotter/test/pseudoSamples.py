@@ -134,7 +134,7 @@ def makesamples(nevts=10000,**kwargs):
     tree.SetDirectory(file)
     hist.SetDirectory(file)
     hist.SetBinContent( 1,1)
-    hist.SetBinContent(15,1)
+    hist.SetBinContent(17,1)
     histdict[sample] = hist
     filedict[sample] = (file,tree)
   for sample in scaledict:

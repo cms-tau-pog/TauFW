@@ -30,8 +30,8 @@ def makesamples(channel,era,fpattern):
     ('ST', "ST_tW_antitop",         "ST atW",                35.85 ),
     ('TT', "TT",                    "ttbar",                831.76, {'extraweight': 'ttptweight'} ),
   ]
-  datasamples = {
-    'mutau': ('Data', "SingleMuon_Run%d?"%era),
+  datasamples = { # table of data samples (per channel) to be converted to Sample objects
+    'mutau': ('Data', "SingleMuon_Run%d?"%era, 'Observed'),
     'etau':  ('Data', "SingleElectron_Run%d?"%era),
   }
   
@@ -40,14 +40,14 @@ def makesamples(channel,era,fpattern):
   sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'                                 )
   sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M-50", title="Drell-Yan M=50GeV" )
   #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M-10to50", title="Drell-Yan 10<M<50GeV"  )
-  sampleset.join('DY',                name='DY',   title="Drell-Yan"             )
-  sampleset.join('VV','WZ','WW','ZZ', name='VV',   title="Diboson"               )
-  sampleset.join('TT','ST',           name='Top',  title="ttbar and single top"  )
+  sampleset.join('DY',                name='DY',  title="Drell-Yan"            )
+  sampleset.join('VV','WZ','WW','ZZ', name='VV',  title="Diboson"              )
+  sampleset.join('TT','ST',           name='Top', title="ttbar and single top" )
   sampleset.split('DY',[
     ('ZTT',"Z -> tau_{#mu}tau_{h}",      "genmatch_2==5"),
     ('ZL', "Drell-Yan with l -> tau_{h}","genmatch_2>0 && genmatch_2<5"),
-    ('ZJ', "Drell-Yan with j -> tau_{h}","genmatch_2==0")]
-  )
+    ('ZJ', "Drell-Yan with j -> tau_{h}","genmatch_2==0")
+  ])
   sampleset.printtable()
   return sampleset
   
