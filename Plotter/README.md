@@ -378,7 +378,7 @@ for stack in stacks:
 Examples are provided in `test/testSamples.py`.
 
 ### Data-driven methods
-Data-driven background methods like QCD or j → 𝜏<sub>h<sub> fake estimation can be added as plug-ins
+Data-driven background methods like QCD or j → 𝜏<sub>h</sub> fake estimation can be added as plug-ins
 in [`python/methods/`](python/methods/). A python file should contain a function of the same name,
 e.g. for the [`QCD_OSSS.py`](python/methods/QCD_OSSS.py) example:
 ```
