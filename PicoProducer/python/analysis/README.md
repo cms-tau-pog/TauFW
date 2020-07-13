@@ -206,6 +206,9 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.fill('tau')
     return True
 ```
+Note that if the generator weight in MC is very different than 1.0 (e.g. for some ttbar samples),
+it can be useful to save the total sum of weights for the denominator in lumi-cross section normalization,
+instead of using the total number of MC events.
 
 <p align="center">
   <img src="../../../docs/cutflow.png" alt="Cutflow (mutau)" width="600"/>

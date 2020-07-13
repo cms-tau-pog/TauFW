@@ -67,8 +67,8 @@ test/testStack.py -v2
 ```
 
 <p align="center">
-  <img src="../docs/testStacks_m_vis_ratio.png" alt="Data-MC with Stack class" width="420" hspace="20"/>
-  <img src="../docs/testStacks_njets_ratio_logy.png" alt="Data-MC comparison with Stack class" width="420"/>
+  <img src="../docs/testStack_m_vis_ratio.png" alt="Data-MC with Stack class" width="420" hspace="20"/>
+  <img src="../docs/testStack_njets_ratio_logy.png" alt="Data-MC comparison with Stack class" width="420"/>
 </p>
 
 
@@ -229,7 +229,12 @@ Data is a single tuple:
 ```
   ( GROUP, SAMPLE, TITLE )
 ```
-By default, `getsampleset` will automatically assume the samples found via
+Here, `SAMPLE` should be the data set name (e.g. `SingleMuon_Run2016`) corresponding to a single `pico` file
+(e.g. `SingleMuon_Run2016_mutau.root`) containing processed events of the whole data period,
+or it can be a pattern (e.g. `SingleMuon_Run2016?`) for multiple files
+(e.g. `SingleMuon_Run2016B_mutau.root`, `SingleMuon_Run2016C_mutau.root`, ...) 
+
+By default, `getsampleset` will automatically assume the samples can be found via the pattern
 ```
 "$PICODIR/$SAMPLE_$CHANNEL.root"
 ```
@@ -254,11 +259,11 @@ sampleset.printtable()
 ```
 
 A full example is given in [`test/plotPico.py`](test/plotPico.py).
-This script assumes a complete list of 2016 `pico` ntuples in the [`mutau` channel](../PicoProducer/python/analysis/ModuleMuTau.py)).
+This script assumes a complete list of 2016 `pico` ntuples in the [`mutau` channel](../PicoProducer/python/analysis/ModuleMuTau.py).
 
 ### Joining samples
 Sometimes you want to group samples into one bigger merged sample,
-to reduce the number of backgrounds on your plots, or treat them as one in a measurement.
+to reduce the number of backgrounds on your plots, or treat them as one in a fit.
 This can be done with by using the [`MergedSample`](python/sample/MergedSample.py) class,
 but `SampleSet` provides a help function that does it for you, for example,
 ```
@@ -271,7 +276,7 @@ The first string arguments are different search terms or glob patterns (with `*`
 
 ### Stitching samples
 In the TauPOG, typically "jet-binned" samples of Drell-Yan (Z+jets) and W+jets are used,
-like `DY[1-4]JetsToLL_M-50*` or `W[1-4]JetsToLNu*`.
+like `DY[1-4]JetsToLL_M-50*` or `W[1-4]JetsToLNu*`. (Here "jet" means number of LHE-level partons.)
 They increase the statistics, but overlap with their respective jet-inclusive sample.
 Therefore a special "stitching" procedure is needed that changes the effective
 lumi-cross section normalization per "jet-bin", before they are merged into one big sample.
@@ -282,6 +287,8 @@ sampleset.stitch("DY*J*M-50",incl='DYJ',name="DY_M-50",title="Drell-Yan M=50GeV"
 ```
 Again, the first strings arguments are search terms or patterns to identify the samples you want to stitch together.
 The keyword argument `incl` is the search term to identify the inclusive samples (e.g. `DYJetsToLL_M-50` or `WJetsToLNu`).
+As per HTT convention, the branch variable name that indicates the number of partons ("jets") is called `NUP`.
+This variable corresponds to [`LHE_Njets` in nanoAOD](https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/LHETablesProducer.cc).
 
 To understand how the normalization is computed, look in [python/sample/utils.py](python/sample/utils.py),
 and pass `stitch` the option `verbosity=2` to printout a table.
