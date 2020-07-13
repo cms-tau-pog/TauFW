@@ -9,8 +9,14 @@
 * [Variable](#Variable)<br>
 * [Sample](#Sample)<br>
   * [Sample style](#Sample-style)<br>
+  * [Splitting](#Splitting)<br>
 * [Sample set](#Sample-set)<br>
-* [Data-driven methods](#Data-driven-methods)<br>
+  * [Initialization via table](#Initialization-via-table)<br>
+  * [Joining samples](#Joining-samples)<br>
+  * [Stitching samples](#Stitching-samples)<br>
+  * [Splitting samples](#Splitting-samples)<br>
+  * [Data/MC plots](#DataMC-plots)<br>
+  * [Data-driven methods](#Data-driven-methods)<br>
 
 
 ## Installation
@@ -153,6 +159,7 @@ hists = sample.gethist(vars,"pt_1>30 && pt_2>30")
 where `vars` is a list of variables as above, and the returned `hists` is a list of `TH1D`s.
 Similarly, `Sample.gethist2D` is available for 2D histograms (`TH2D`).
 
+### Splitting
 You can also split samples into different components (e.g. real/misidentified, or decay mode)
 based on some cuts. e.g.
 ```
@@ -207,13 +214,6 @@ you can use the help function [`getsampleset`](python/sample/utils.py), for exam
 expsamples = [ # table of MC samples to be converted to Sample objects
   ('DY', "DYJetsToLL_M-10to50",  "Drell-Yan 10-50", 18610.0, {'extraweight': 'zptweight'} ),
   ('WJ', "WJetsToLNu",           "W + jets",        50260.0, ),
-  ('VV', "WW",                   "WW",                 75.88 ),
-  ('VV', "WZ",                   "WZ",                 27.6  ),
-  ('VV', "ZZ",                   "ZZ",                 12.14 ),
-  ('ST', "ST_t-channel_top",     "ST t-channel t",    136.02 ),
-  ('ST', "ST_t-channel_antitop", "ST t-channel at",    80.95 ),
-  ('ST', "ST_tW_top",            "ST tW",              35.85 ),
-  ('ST', "ST_tW_antitop",        "ST atW",             35.85 ),
   ('TT', "TT",                   "ttbar",             831.76 ),
 ]
 datasamples = ('Data', "SingleMuon_Run2016?", "Observed") # to be converted to Sample object
@@ -235,6 +235,23 @@ By default, `getsampleset` will automatically assume the samples found via
 ```
 where `PICODIR` will be retrieved from the [`PicoProducer` config file](../PicoProducer#Configuration).
 You can instead specify to `getsampleset` the file name pattern with the keyword `file`.
+To get an overview of the samples, use`
+```
+sampleset.printtable()
+>>> Samples with integrated luminosity L = 35.9 / fb at sqrt(s) = 13 TeV
+>>> Sample name                title                      xsec [pb]      nevents    sumweights      norm  weight        
+>>> SingleMuon_Run2016         Observed                                                            1.000  
+>>> ├─ SingleMuon_Run2016B     Observed                       -1.00  154054252.0  154054252.00     1.000  
+>>> ├─ SingleMuon_Run2016C     Observed                       -1.00   64718679.0   64718679.00     1.000  
+>>> ├─ SingleMuon_Run2016D     Observed                       -1.00   96657799.0   96657799.00     1.000  
+>>> ├─ SingleMuon_Run2016E     Observed                       -1.00   87378748.0   87378748.00     1.000  
+>>> ├─ SingleMuon_Run2016F     Observed                       -1.00   65047318.0   65047318.00     1.000  
+>>> ├─ SingleMuon_Run2016G     Observed                       -1.00  147941144.0  147941144.00     1.000  
+>>> └─ SingleMuon_Run2016H     Observed                       -1.00  171137991.0  171137991.00     1.000  
+>>> DYJetsToLL_M-50            Drell-Yan 50                 4963.00  146280395.0  146277764.00     1.000  zptweight
+>>> WJetsToLNu                 W + jets                    50260.00   86413370.0   86411825.00     1.000  
+>>> TT                         ttbar                         831.76   76915549.0   76914152.00     0.388  ttptweight
+```
 
 A full example is given in [`test/plotPico.py`](test/plotPico.py).
 This script assumes a complete list of 2016 `pico` ntuples in the [`mutau` channel](../PicoProducer/python/analysis/ModuleMuTau.py)).
@@ -257,14 +274,59 @@ In the TauPOG, typically "jet-binned" samples of Drell-Yan (Z+jets) and W+jets a
 like `DY[1-4]JetsToLL_M-50*` or `W[1-4]JetsToLNu*`.
 They increase the statistics, but overlap with their respective jet-inclusive sample.
 Therefore a special "stitching" procedure is needed that changes the effective
-lumi-cross section normalization per "jet-bin".
-You can use the [`join` help function](python/sample/utils.py) to do it automatically:
+lumi-cross section normalization per "jet-bin", before they are merged into one big sample.
+You can use the [`stitch` help function](python/sample/utils.py) to do it automatically:
 ```
 sampleset.stitch("W*Jets",   incl='WJ', name='WJ'                               )
 sampleset.stitch("DY*J*M-50",incl='DYJ',name="DY_M-50",title="Drell-Yan M=50GeV")
 ```
 Again, the first strings arguments are search terms or patterns to identify the samples you want to stitch together.
 The keyword argument `incl` is the search term to identify the inclusive samples (e.g. `DYJetsToLL_M-50` or `WJetsToLNu`).
+
+To understand how the normalization is computed, look in [python/sample/utils.py](python/sample/utils.py),
+and pass `stitch` the option `verbosity=2` to printout a table.
+
+The k-factor is computed on the fly. You can set the (N)NLO cross section via the `xsec` keyword,
+or by changing the hardcoded `xsecs_nlo` dictionary in `utils.py`.
+
+In the end, after merging and stitching, you might obtain something a summary table like this:
+```
+sampleset.printtable()
+>>> Samples with integrated luminosity L = 35.9 / fb at sqrt(s) = 13 TeV
+>>> Sample name                title                      xsec [pb]      nevents    sumweights      norm  weight        
+>>> SingleMuon_Run2016         Observed                                                            1.000  
+>>> ├─ SingleMuon_Run2016B     Observed                       -1.00  154054252.0  154054252.00     1.000  
+>>> ├─ SingleMuon_Run2016C     Observed                       -1.00   64718679.0   64718679.00     1.000  
+>>> ├─ SingleMuon_Run2016D     Observed                       -1.00   96657799.0   96657799.00     1.000  
+>>> ├─ SingleMuon_Run2016E     Observed                       -1.00   87378748.0   87378748.00     1.000  
+>>> ├─ SingleMuon_Run2016F     Observed                       -1.00   65047318.0   65047318.00     1.000  
+>>> ├─ SingleMuon_Run2016G     Observed                       -1.00  147941144.0  147941144.00     1.000  
+>>> └─ SingleMuon_Run2016H     Observed                       -1.00  171137991.0  171137991.00     1.000  
+>>> DY                         Drell-Yan                                                           1.000  
+>>> ├─ DYJetsToLL_M-10to50     Drell-Yan 10-50             18610.00   35114961.0   35114342.00    19.026  zptweight
+>>> └─ DY_M-50                 Drell-Yan M=50GeV                                                   1.000  
+>>>    ├─ DYJetsToLL_M-50      Drell-Yan 50                 4963.00  146280395.0  146277764.00     1.000  zptweight
+>>>    ├─ DY1JetsToLL_M-50     Drell-Yan 1J 50              1012.00   63730337.0   63729233.00     0.476  zptweight
+>>>    ├─ DY2JetsToLL_M-50     Drell-Yan 2J 50               334.70   19879279.0   19878905.00     0.495  zptweight
+>>>    ├─ DY3JetsToLL_M-50     Drell-Yan 3J 50               102.30    5857441.0    5857336.00     0.507  zptweight
+>>>    └─ DY4JetsToLL_M-50     Drell-Yan 4J 50                54.52    4197868.0    4197790.00     0.413  zptweight
+>>> WJ                         W + jets                                                            1.000  
+>>> ├─ WJetsToLNu              W + jets                    50260.00   86413370.0   86411825.00     1.000  
+>>> ├─ W1JetsToLNu             W + 1J                       9625.00   43773492.0   43772700.00     7.012  
+>>> ├─ W2JetsToLNu             W + 2J                       3161.00   60366929.0   60365816.00     2.111  
+>>> ├─ W3JetsToLNu             W + 3J                        954.80   59300029.0   59298987.00     0.689  
+>>> └─ W4JetsToLNu             W + 4J                        494.60   29941394.0   29940855.00     0.706  
+>>> VV                         Diboson                                                             1.000  
+>>> ├─ WW                      WW                             75.88    7982180.0    7982164.32     0.341  
+>>> ├─ WZ                      WZ                             27.60    3997571.0    3997499.00     0.248  
+>>> └─ ZZ                      ZZ                             12.14    1988098.0    1988063.00     0.219  
+>>> Top                        ttbar and single top                                                1.000  
+>>> ├─ ST_t-channel_top        ST t-channel t                136.02   31848000.0   31835196.51     0.153  
+>>> ├─ ST_t-channel_antitop    ST t-channel at                80.95   17780700.0   17771156.67     0.164  
+>>> ├─ ST_tW_top               ST tW                          35.85    4983500.0  173905506.74     0.007  
+>>> ├─ ST_tW_antitop           ST atW                         35.85    4980600.0  174107294.88     0.007  
+>>> └─ TT                      ttbar                         831.76   76915549.0   76914152.00     0.388  ttptweight
+```
 
 ### Splitting samples
 Like described [above](#Sample), you can split samples via `SampleSet`:
@@ -308,7 +370,7 @@ for stack in stacks:
 ```
 Examples are provided in `test/testSamples.py`.
 
-## Data-driven methods
+### Data-driven methods
 Data-driven background methods like QCD or j → 𝜏<sub>h<sub> fake estimation can be added as plug-ins
 in [`python/methods/`](python/methods/). A python file should contain a function of the same name,
 e.g. for the [`QCD_OSSS.py`](python/methods/QCD_OSSS.py) example:
