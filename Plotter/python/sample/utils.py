@@ -378,7 +378,7 @@ def stitch(samplelist,*searchterms,**kwargs):
       npart_max = npart
     weights.append("(NUP==%d?%.6g:1)"%(npart,norm))
     LOG.verbose('%-18s %5d %9.4f = %9.2f * %7.3f * %8.2f * 1000 / %8.2f'%(sample.name,npart,norm,sample.lumi,kfactor,xsec,neff),verbosity,2,pre="    ")
-    if sample==sample_incl: #.match(name_incl):
+    if sample==sample_incl and len(stitchlist)>1: #.match(name_incl):
       sample.norm = 1.0 # apply lumi-xsec normalization via weights instead of Sample.norm attribute
     else:
       sample.norm = norm # apply lumi-xsec normalization

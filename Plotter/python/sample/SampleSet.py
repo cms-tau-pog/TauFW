@@ -456,7 +456,8 @@ class SampleSet(object):
     if method:
       hists = getattr(self,method)(*dataargs,**kwargs)
       for var, hist in zip(datavars,hists):
-        result.exp[var].insert(imethod,hist)
+        idx = imethod if imethod>=0 else len(result.exp[var])+1+imethod
+        result.exp[var].insert(idx,hist)
     
     ## ADD QCD
     #if makeJTF:

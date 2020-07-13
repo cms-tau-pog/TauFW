@@ -8,6 +8,7 @@
   * [CMS style](#CMS-style)<br>
 * [Variable](#Variable)<br>
 * [Sample](#Sample)<br>
+  * [Creating histograms](#Creating-histograms)<br>
   * [Sample style](#Sample-style)<br>
   * [Splitting](#Splitting)<br>
 * [Sample set](#Sample-set)<br>
@@ -128,7 +129,7 @@ sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76)
 The fourth argument can be a float that will be used to compute the normalization to
 the integrated luminosity times cross section. The total number of events will automatically
 be taken from the [`'cutflow'` histogram](../PicoProducer/python/analysis/#Cutflow) if it exists,
-otherwise pass it with `nevts` (total, raw number of MC events) or `sumw` (sum of generator weights).
+otherwise pass it directly with `nevts` (total, raw number of MC events) or `sumw` (sum of generator weights).
 ```
 sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76,nevts=76915549,lumi=59.7)
 ```
@@ -144,6 +145,7 @@ directly edit the dictionary `lumi_dict` in the `python/sample/utils.py`, or use
 setera(2018,59.7)
 ```
 
+### Creating histograms
 `Sample` provides a useful method that can create and fill a histogram (`TH1D`) for some variable.
 It can be called in several ways:
 ```
@@ -257,6 +259,12 @@ sampleset.printtable()
 >>> WJetsToLNu                 W + jets                    50260.00   86413370.0   86411825.00     1.000  
 >>> TT                         ttbar                         831.76   76915549.0   76914152.00     0.388  ttptweight
 ```
+The lumi-cross section normalization is given by the `norm` column. This should be computed as
+```
+norm = lumi*xsec*1000/sumweights
+```
+if `sumweights` is given, otherwise total number of MC events `nevents` is used.
+These numbers are grabbed from [the cutflow histogram as described above](#Sample).
 
 A full example is given in [`test/plotPico.py`](test/plotPico.py).
 This script assumes a complete list of 2016 `pico` ntuples in the [`mutau` channel](../PicoProducer/python/analysis/ModuleMuTau.py).
@@ -290,7 +298,7 @@ The keyword argument `incl` is the search term to identify the inclusive samples
 As per HTT convention, the branch variable name that indicates the number of partons ("jets") is called `NUP`.
 This variable corresponds to [`LHE_Njets` in nanoAOD](https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/LHETablesProducer.cc).
 
-To understand how the normalization is computed, look in [python/sample/utils.py](python/sample/utils.py),
+To understand how the normalization is computed, look in [`python/sample/utils.py`](python/sample/utils.py),
 and pass `stitch` the option `verbosity=2` to printout a table.
 
 The k-factor is computed on the fly. You can set the (N)NLO cross section via the `xsec` keyword,
@@ -334,6 +342,8 @@ sampleset.printtable()
 >>> ├─ ST_tW_antitop           ST atW                         35.85    4980600.0  174107294.88     0.007  
 >>> └─ TT                      ttbar                         831.76   76915549.0   76914152.00     0.388  ttptweight
 ```
+This is the output of the full example given in [`test/plotPico.py`](test/plotPico.py).
+This script assumes a complete list of 2016 `pico` ntuples in the [`mutau` channel](../PicoProducer/python/analysis/ModuleMuTau.py).
 
 ### Splitting samples
 Like described [above](#Sample), you can split samples via `SampleSet`:
@@ -388,6 +398,9 @@ def QCD_OSSS(self, variables, selection, **kwargs):
   return qcdhists
 SampleSet.QCD_OSSS = QCD_OSSS # add as class method of SampleSet
 ```
+The method returns a list of `TH1` histograms that correspond one-to-one to the list of `variables`.
+These histograms are subsequently inserted in the list of MC histograms.
+
 To use them, specify the method name when using `SampleSet.getstack` or `SampleSet.gethists`:
 ```
 stacks = samples.getstack(variables,selection,method='QCD_OSSS')
