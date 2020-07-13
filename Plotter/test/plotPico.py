@@ -52,7 +52,7 @@ def makesamples(channel,era,fpattern):
   return sampleset
   
 
-def plotSampleSet(sampleset,tag="",outdir="plots"):
+def plotSampleSet(channel,sampleset,tag="",outdir="plots"):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plotSampleSet")
   
@@ -61,15 +61,15 @@ def plotSampleSet(sampleset,tag="",outdir="plots"):
   ]
   variables = [
     Var('m_vis', 40,  0, 200),
-    Var('mt_1',  40,  0, 200),
-    Var('pt_1',  40,  0, 120),
-    Var('pt_2',  40,  0, 120),
-    Var('eta_1', 30, -3,   3, ymargin=1.6, ncols=2),
-    Var('eta_2', 30, -3,   3, ymargin=1.6, ncols=2),
-    Var('njets', 10,  0,  10),
+    Var('mt_1',  "mt(mu,MET)", 40,  0, 200),
+    Var('pt_1',  "Muon pt",    40,  0, 120, ),
+    Var('pt_2',  "tau_h pt",   40,  0, 120, ),
+    Var('eta_1', "Muon eta",   30, -3, 3, ymargin=1.6, ncols=2),
+    Var('eta_2', "tau_h eta",  30, -3, 3, ymargin=1.6, ncols=2),
+    Var('njets', 8,  0,  8),
     Var('rawDeepTau2017v2p1VSjet_2', 'rawDeepTau2017v2p1VSjet', 22, 0.78, 1, pos='left'),
   ]
-  text = "#mu#tau_{h} baseline"
+  text = "#mu#tau_{h} baseline" if channel=='mutau' else "e#tau_{h} baseline"
   
   # PLOT
   outdir   = ensuredir(outdir)
@@ -92,7 +92,7 @@ def main():
   fname   = "$PICODIR/$SAMPLE_$CHANNEL.root"
   setera(era)
   sampleset = makesamples(channel,era,fname)
-  plotSampleSet(sampleset,tag="",outdir="plots")
+  plotSampleSet(channel,sampleset,tag="",outdir="plots")
   
 
 if __name__ == "__main__":

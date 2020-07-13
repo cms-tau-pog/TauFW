@@ -172,7 +172,7 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
       posX = 1 - r - relPosX_*(1-l-r) # right aligned
   
   if outOfFrame:
-    TGaxis.SetExponentOffset(-0.104*float(H)/W,0.015,'y')
+    TGaxis.SetExponentOffset(-0.12*float(H)/W,0.015,'y')
     latex.SetTextFont(cmsTextFont)
     latex.SetTextAlign(11)
     latex.SetTextSize(cmsTextSize*t)

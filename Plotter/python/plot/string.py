@@ -16,7 +16,9 @@ var_dict = {
     'jphi_2':      "Leading b jet phi",       'bphi_2':      "Subleading b jet phi",
     'met':         "p_{T}^{miss}",
     'metphi':      "MET phi",
-    'mt_1':        "m_t(l,MET)",
+    'pt_1':        "Lepton pt",               'pt_1':        "tau_h pt",
+    'eta_1':       "Lepton eta",              'eta_2':       "tau_h eta",
+    'mt_1':        "m_t(l,MET)",              'mt_2':        "m_t(tau,MET)",
     'dzeta':       "D_{zeta}",
     'pzetavis':    "p_{zeta}^{vis}",
     'pzetamiss':   "p_{zeta}^{miss}",
@@ -72,10 +74,11 @@ def makelatex(string,**kwargs):
     string = ' / '.join(makelatex(s,**kwargs) for s in string.split(' / '))
   elif match:
     kwargs['units'] = False
+    func   = makelatex(match.group(1),**kwargs)
     arg1   = makelatex(match.group(2),**kwargs)
     arg2   = makelatex(match.group(3),**kwargs)
     old    = "%s(%s,%s)"%(match.group(1),match.group(2),match.group(3))
-    new    = "%s(%s,%s)"%(match.group(1),arg1,arg2)
+    new    = "%s(%s,%s)"%(func,arg1,arg2)
     string = string.replace(old,new)
     #print ">>> %r -> %r, %r -> %r, %r -> %r, %r"%(match.group(2),arg1,match.group(3),arg2,old,new,string)
   elif '+' in string:
@@ -90,6 +93,8 @@ def makelatex(string,**kwargs):
       string = re.sub(r"(?<!k)(?<!Dee)(?<!OverTau)(p)[tT]_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
       string = re.sub(r"\b(?<!Dee)(p)[tT]\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
+    if strlow.strip()=="mt":
+      string = re.sub(r"(m)(t)",r"\1_{T}",string,flags=re.IGNORECASE)
     if "m_" in strlow:
       string = re.sub(r"(?<!u)(m)_([^{}()|<>=\ \^]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
       GeV    = True

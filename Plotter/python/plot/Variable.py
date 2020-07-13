@@ -155,8 +155,7 @@ class Variable(object):
       self.max      = bins[-1]
       self.bins     = bins
     else:
-      print error('Variable: bad arguments "%s" for binning!'%(args,))
-      exit(1)
+      LOG.throw(IOError,'Variable: bad arguments "%s" for binning!'%(args,))
   
   def getbins(self,full=False):
     """Get binning: (N,xmin,xmax), or bins if it is set"""
