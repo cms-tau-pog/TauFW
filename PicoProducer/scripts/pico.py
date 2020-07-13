@@ -18,7 +18,6 @@ CONFIG = GLOB.getconfig(verb=0)
 LOG    = Logger()
 
 
-
 ###############
 #   INSTALL   #
 ###############

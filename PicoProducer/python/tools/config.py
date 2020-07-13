@@ -15,6 +15,7 @@ from TauFW.PicoProducer.storage.utils import getsedir, gettmpdir
 LOG           = Logger('GLOB')
 CONFIG        = None
 _user         = getpass.getuser()
+_host         = platform.node()
 #basedir      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 _eras         = OrderedDict([
   ('2016','samples_2016.py'),
