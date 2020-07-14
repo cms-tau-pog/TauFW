@@ -6,32 +6,6 @@ import time
 #from TauFW.common.tools.log import Logger
 from TauFW.common.tools.LoadingBar import LoadingBar
 
-
-def printhist(nevts=10000,verb=0):
-  
-  # PREPARE HIST
-  hist = TH1D('gauss1','gauss1',14,-2,2)
-  for i in xrange(nevts):
-    hist.Fill(gRandom.Gaus(0,1))
-  
-  # SIMPLE TABLE
-  print ">>> Table from hist"
-  table = Table("%9d %10.2f %10.2f",verb=verb)
-  table.printheader('ibin','content','error')
-  for ibin in range(0,hist.GetXaxis().GetNbins()+1):
-    table.printrow(ibin,hist.GetBinContent(ibin),hist.GetBinError(ibin))
-  print
-  
-  # SIMPLE TABLE
-  print ">>> Table from hist"
-  table = Table("%9s %10s %9s %11s  ","%9d %10.2f  +%7.2f  -%9.2f",verb=verb)
-  table.printheader('ibin','content','error up','error down')
-  for ibin in range(0,hist.GetXaxis().GetNbins()+1):
-    table.printrow(ibin,hist.GetBinContent(ibin),hist.GetBinErrorUp(ibin),hist.GetBinErrorLow(ibin))
-  
-
-def main(args):
-  verbosity = args.verbosity
   
 def main():
   step = 0.1 # sleep
