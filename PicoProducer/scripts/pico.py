@@ -1036,7 +1036,11 @@ def main_submit(args):
       print ">>>   Nothing to %ssubmit!"%('re' if resubmit else '')
       continue
     if batch.system=='HTCondor':
-      script  = "python/batch/submit_HTCondor.sub"
+      # use specific settings for KIT condor
+      if 'etp' in GLOB._host:
+        script = "python/batch/submit_HTCondor_KIT.sub"
+      else:
+        script = "python/batch/submit_HTCondor.sub"
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
       if testrun and not queue:

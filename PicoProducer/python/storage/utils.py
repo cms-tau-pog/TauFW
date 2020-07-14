@@ -18,6 +18,8 @@ def getsedir():
     sedir = "/eos/user/%s/%s/"%(user[0],user)
   elif "t3" in host and "psi.ch" in host:
     sedir = "/pnfs/psi.ch/cms/trivcat/store/user/%s/"%(user)
+  elif "etp" in host:
+    sedir = "/store/user/{}/".format(user)
   return sedir
   
 
@@ -30,6 +32,8 @@ def gettmpdir():
     sedir = "/eos/user/%s/%s/"%(user[0],user)
   elif "t3" in host and "psi.ch" in host:
     sedir = basedir.rstrip('/')+'/' #output/$ERA/$CHANNEL/$SAMPLE/ #"/scratch/%s/"%(user)
+  elif "etp" in host:
+    sedir = "/tmp/{}/".format(user)
   return sedir
   
 
@@ -43,6 +47,9 @@ def getstorage(path,verb=0,ensure=False):
   elif path.startswith('/pnfs/psi.ch/'):
     from TauFW.PicoProducer.storage.T3_PSI import T3_PSI
     storage = T3_PSI(path,ensure=ensure,verb=verb)
+  elif path.startswith("/store/user"):
+    from TauFW.PicoProducer.storage.GridKA_NRG import GridKA_NRG
+    storage = GridKA_NRG(path,ensure=ensure,verb=verb)
   #elif path.startswith('/pnfs/lcg.cscs.ch/'):
   #  storage = T2_PSI(path,verb=verb)
   #elif path.startswith('/pnfs/iihe/'):
