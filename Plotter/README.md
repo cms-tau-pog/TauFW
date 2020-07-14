@@ -124,7 +124,7 @@ A [`Sample`](python/sample/Sample.py) class is provided to contain and interface
 It keeps track of a sample's information like title (for legends), filename, cross section, normalization, etc.
 To initialize, you need to pass a unique name, a title (for legends) and a filename:
 ```
-sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76)
+sample = Sample("TT","t#bar{t}","TT_mutau.root",831.76)
 ```
 The fourth argument can be a float that is the cross section (in units of pb).
 It will be used by `Sample.normalize` to compute the normalization to the integrated luminosity times cross section as
@@ -139,7 +139,7 @@ otherwise, the user should pass it directly with `nevts` or `sumw`:
 sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76,nevts=76915549,lumi=59.7)
 ```
 Instead of passing the integrated luminosity with `lumi` (in units of inverse fb) to `Sample`, you can set it globally
-(in [`python/sample/utils.py`](python/sample/utils.py)) by passing the era like this:
+in [`python/sample/utils.py`](python/sample/utils.py) by passing the era like this:
 ```
 from TauFW.Plotter.sample.utils as setera
 setera(2018)
@@ -266,12 +266,7 @@ sampleset.printtable()
 >>> WJetsToLNu                 W + jets                    50260.00   86413370.0   86411825.00     1.000  
 >>> TT                         ttbar                         831.76   76915549.0   76914152.00     0.388  ttptweight
 ```
-The lumi-cross section normalization is given by the `norm` column. This is automatically computed as
-```
-norm = lumi*xsec*1000/sumweights
-```
-if `sumweights` is given, otherwise total number of MC events `nevents` is used.
-These numbers are grabbed from [the cutflow histogram as described above](#Sample).
+The luminosity-cross section normalization is given by the `norm` column, which is [described above](#Sample).
 
 A full example is given in [`test/plotPico.py`](test/plotPico.py).
 This script assumes a complete list of 2016 `pico` ntuples in the [`mutau` channel](../PicoProducer/python/analysis/ModuleMuTau.py).
@@ -294,7 +289,7 @@ In the TauPOG, typically "jet-binned" samples of Drell-Yan (Z+jets) and W+jets a
 like `DY[1-4]JetsToLL_M-50*` or `W[1-4]JetsToLNu*`. (Here "jet" means number of LHE-level partons.)
 They increase the statistics, but overlap with their respective jet-inclusive sample.
 Therefore a special "stitching" procedure is needed that changes the effective
-lumi-cross section normalization per "jet-bin", before they are merged into one big sample.
+luminosity-cross section normalization per "jet-bin", before they are merged into one big sample.
 You can use the [`stitch` help function](python/sample/utils.py) to do it automatically:
 ```
 sampleset.stitch("W*Jets",   incl='WJ', name='WJ'                               )

@@ -47,6 +47,7 @@ def testStorage(path,verb=0):
   print ">>> "
   
   # EXPAND PATH
+  LOG.header("expandpath")
   pathargs = [
     ('test.py',),
     ('$PATH/test.py',),
