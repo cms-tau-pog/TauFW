@@ -314,10 +314,10 @@ class Sample(object):
     self.sumweights = cfhist.GetBinContent(binsumw)
     if self.nevents<=0:
       LOG.warning("Sample.setnevents: Bin %d of %r to retrieve nevents is %s<=0!"
-                  "In initialization, please specify the keyword 'binnevts' to select the right bin, or directly set the number of events with 'nevts'."%(binnevts,self.nevents,cutflow)
+                  "In initialization, please specify the keyword 'binnevts' to select the right bin, or directly set the number of events with 'nevts'."%(binnevts,self.nevents,cutflow))
     if self.sumweights<=0:
       LOG.warning("Sample.setnevents: Bin %d of %r to retrieve sumweights is %s<=0!"
-                  "In initialization, please specify the keyword 'binsumw' to select the right bin, or directly set the number of events with 'sumw'."%(binsumw,self.sumweights,cutflow)
+                  "In initialization, please specify the keyword 'binsumw' to select the right bin, or directly set the number of events with 'sumw'."%(binsumw,self.sumweights,cutflow))
       self.sumweights = self.nevents
     file.Close()
     if 0<self.nevents<self.nexpevts*0.97: # check for missing events
@@ -574,7 +574,7 @@ class Sample(object):
   
   def gethist2D(self, *args, **kwargs):
     """Create and fill a 2D histogram from a tree."""
-    variables, selection, issingle = unwrap_gethist_args_2D(*args)
+    variables, selection, issingle = unwrap_gethist2D_args(*args)
     verbosity = LOG.getverbosity(kwargs)
     scale     = kwargs.get('scale',         1.0        ) * self.scale * self.norm
     name      = kwargs.get('name',          self.name  )

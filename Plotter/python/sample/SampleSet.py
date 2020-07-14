@@ -505,7 +505,7 @@ class SampleSet(object):
   
   def gethists2D(self, *args, **kwargs):
     """Create and fill histograms for all samples and return lists of histograms."""
-    variables, selection, issingle = unwrap_gethist_args_2D(*args)
+    variables, selection, issingle = unwrap_gethist2D_args(*args)
     verbosity  = LOG.getverbosity(kwargs)
     dodata     = kwargs.get('data',       True     ) # create data hists
     domc       = kwargs.get('mc',         True     ) # create expected (SM background) hists

@@ -18,6 +18,7 @@ coldict = { # HTT / TauPOG colors
 
 
 def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False):
+  """Plot Stack objects for a given data hisogram and list of MC histograms."""
   
   # SETTING
   outdir   = ensuredir("plots")
@@ -160,7 +161,7 @@ if __name__ == "__main__":
   import sys
   from argparse import ArgumentParser
   argv = sys.argv
-  description = '''Script to test the Plot class for comparing histograms.'''
+  description = """Script to test the Plot class for comparing histograms"""
   parser = ArgumentParser(prog="testStack",description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )

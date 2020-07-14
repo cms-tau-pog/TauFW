@@ -167,7 +167,7 @@ class MergedSample(Sample):
   
   def gethist2D(self, *args, **kwargs):
     """Create and fill 2D histgram for multiple samples. Overrides Sample.gethist2D."""
-    variables, selection, issingle = unwrap_gethist_args(*args)
+    variables, selection, issingle = unwrap_gethist2D_args(*args)
     verbosity        = LOG.getverbosity(kwargs)
     name             = kwargs.get('name',               self.name+"_merged" )
     name            += kwargs.get('tag',                ""                  )
