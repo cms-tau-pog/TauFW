@@ -126,14 +126,19 @@ To initialize, you need to pass a unique name, a title (for legends) and a filen
 ```
 sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76)
 ```
-The fourth argument can be a float that will be used to compute the normalization to
-the integrated luminosity times cross section. The total number of events will automatically
-be taken from the [`'cutflow'` histogram](../PicoProducer/python/analysis/#Cutflow) if it exists,
-otherwise pass it directly with `nevts` (total, raw number of MC events) or `sumw` (sum of generator weights).
+The fourth argument can be a float that is the cross section (in units of pb).
+It will be used by `Sample.normalize` to compute the normalization to the integrated luminosity times cross section as
+```
+norm = lumi*xsec*1000/sumw
+```
+if the total sum of weights, `sumw`, of all MC samples is given, otherwise the total number of MC events `nevts` is used.
+The total number of events and total sum of weights will automatically be taken from the
+[`'cutflow'` histogram](../PicoProducer/python/analysis/#Cutflow) if it exists,
+otherwise, the user should pass it directly with `nevts` or `sumw`:
 ```
 sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76,nevts=76915549,lumi=59.7)
 ```
-Instead of passing the integrated luminosity with `lumi` to `Sample`, you can set it globally
+Instead of passing the integrated luminosity with `lumi` (in units of inverse fb) to `Sample`, you can set it globally
 (in [`python/sample/utils.py`](python/sample/utils.py)) by passing the era like this:
 ```
 from TauFW.Plotter.sample.utils as setera
@@ -188,8 +193,8 @@ STYLE.sample_colors['ZTT'] = kOrange-4
 STYLE.sample_titles['ZTT'] = "Z -> #tau#tau
 ```
 Some string patterns for axis titles and legend entries are automatically converted to LaTeX format
-by `makelatex` in [`python/plot/strings.py`](python/plot/strings.py). To disable use the `latex=False`
-option of the `Plot.draw`, `Plot.drawlegend` and , `Plot.drawtext` functions.
+by [`makelatex` in `python/plot/string.py`](python/plot/string.py). To disable this, pass the `latex=False`
+option to the `Plot.draw`, `Plot.drawlegend` and , `Plot.drawtext` functions.
 
 <p align="center">
   <img src="../docs/testStyle_legend.png" alt="Legend with common SM processes" width="220" hspace="10"/>
@@ -226,7 +231,7 @@ Here, `expsamples` is a list of python tuples:
   ( GROUP, SAMPLE, TITLE, XSEC )
 ```
 To pass special options via keywords, use an extra dictionary.
-Here, `GROUP` and sample name `SAMPLE` correspond to what was used during [`pico` production](../PicoProducer#Samples).
+Here, group name `GROUP` and sample name `SAMPLE` correspond to what was used during [`pico` production](../PicoProducer#Samples).
 Data is a single tuple:
 ```
   ( GROUP, SAMPLE, TITLE )
@@ -242,7 +247,9 @@ By default, `getsampleset` will automatically assume the samples can be found vi
 ```
 where `PICODIR` will be retrieved from the [`PicoProducer` config file](../PicoProducer#Configuration).
 You can instead specify to `getsampleset` the file name pattern with the keyword `file`.
-To get an overview of the samples, use`
+With the keyword option `url` you can pass a `XRootD` url that will be prepended to this pattern.
+
+To get an overview of the samples, use
 ```
 sampleset.printtable()
 >>> Samples with integrated luminosity L = 35.9 / fb at sqrt(s) = 13 TeV
@@ -259,7 +266,7 @@ sampleset.printtable()
 >>> WJetsToLNu                 W + jets                    50260.00   86413370.0   86411825.00     1.000  
 >>> TT                         ttbar                         831.76   76915549.0   76914152.00     0.388  ttptweight
 ```
-The lumi-cross section normalization is given by the `norm` column. This should be computed as
+The lumi-cross section normalization is given by the `norm` column. This is automatically computed as
 ```
 norm = lumi*xsec*1000/sumweights
 ```

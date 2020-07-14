@@ -35,8 +35,8 @@ class Sample(object):
     self.nevents      = kwargs.get('nevts',        -1           ) # "raw" number of events
     self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed for check for missing events
     self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum weights
-    self.binnevts     = kwargs.get('binnevts',      1           ) # cutflow bin with total number of (unweighted) events
-    self.binsumw      = kwargs.get('binsumw',      17           ) # cutflow bin with total sum of weight
+    self.binnevts     = kwargs.get('binnevts',     None         ) or 1  # cutflow bin with total number of (unweighted) events
+    self.binsumw      = kwargs.get('binsumw',      None         ) or 17 # cutflow bin with total sum of weight
     self.lumi         = kwargs.get('lumi',         GLOB.lumi    ) # integrated luminosity
     self.norm         = kwargs.get('norm',         1.0          ) # lumi*xsec/binsumw normalization
     self.scale        = kwargs.get('scale',        1.0          ) # scales factor (e.g. for W+Jets renormalization)
@@ -312,9 +312,16 @@ class Sample(object):
         LOG.throw(IOError,"Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     self.nevents    = cfhist.GetBinContent(binnevts)
     self.sumweights = cfhist.GetBinContent(binsumw)
+    if self.nevents<=0:
+      LOG.warning("Sample.setnevents: Bin %d of %r to retrieve nevents is %s<=0!"
+                  "In initialization, please specify the keyword 'binnevts' to select the right bin, or directly set the number of events with 'nevts'."%(binnevts,self.nevents,cutflow)
+    if self.sumweights<=0:
+      LOG.warning("Sample.setnevents: Bin %d of %r to retrieve sumweights is %s<=0!"
+                  "In initialization, please specify the keyword 'binsumw' to select the right bin, or directly set the number of events with 'sumw'."%(binsumw,self.sumweights,cutflow)
+      self.sumweights = self.nevents
     file.Close()
     if 0<self.nevents<self.nexpevts*0.97: # check for missing events
-       LOG.warning('Sample: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
+      LOG.warning('Sample.setnevents: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
     return self.nevents
   
   def normalize(self,lumi=None,xsec=None,sumw=None,**kwargs):

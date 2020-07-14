@@ -154,7 +154,7 @@ Other optional keyword arguments are
   Note that this path is used for both skimming and analysis jobs.
   This is useful if you have produced or skimmed your NanoAOD samples, and they are not available via DAS.
   The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
-* `url`: Redirector URL for XRootD protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
+* `url`: Redirector URL for `XRootD` protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
 * `files`: Either a list of nanoAOD files, OR a string to a text file with a list of nanoAOD files.
   This can speed things up if DAS is slow or unreliable,
   or you want to avoid retrieving the files from a local storage element on the fly each time.

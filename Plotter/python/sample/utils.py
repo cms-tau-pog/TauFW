@@ -29,11 +29,12 @@ xsecs_nlo = { # NLO cross sections to compute k-factor for stitching
 
 def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
   """Create sample set from a table of data and MC samples."""
-  channel    = kwargs.get('channel',    ""  )
-  era        = kwargs.get('era',        ""  )
-  fpattern   = kwargs.get('file',       None)
-  weight     = kwargs.pop('weight',     ""  )
-  dataweight = kwargs.pop('dataweight', ""  )
+  channel    = kwargs.get('channel',    ""   )
+  era        = kwargs.get('era',        ""   )
+  fpattern   = kwargs.get('file',       None )
+  weight     = kwargs.pop('weight',     ""   )
+  dataweight = kwargs.pop('dataweight', ""   )
+  url        = kwargs.pop('url',        ""   ) # XRootD url
   
   if not fpattern:
     fpattern = "$PICODIR/$SAMPLE_$CHANNEL.root"
@@ -42,6 +43,8 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     CONFIG   = GLOB.getconfig(verb=0)
     picodir  = CONFIG['picodir']
     fpattern = repkey(fpattern,PICODIR=picodir)
+  if url:
+    fpattern = "%s/%s"%(fpattern,url)
   LOG.verb("getsampleset: fpattern=%r"%(fpattern),level=1)
   
   # MC (EXPECTED)
