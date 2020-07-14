@@ -60,6 +60,13 @@ class MergedSample(Sample):
       string += "\n" + sample.row(pre=subpre,indent=indent+3,justname=justname,justtitle=justtitle)
     return string
   
+  def getmaxnamelen(self,indent=0):
+    """Help function for SampleSet.printtable to make automatic columns."""
+    namelens = [len(self.name)]
+    for sample in self.samples:
+      namelens.append(indent+sample.getmaxnamelen(indent=indent+3))
+    return max(namelens)
+  
   def clone(self,*args,**kwargs):
     """Shallow copy."""
     samename     = kwargs.get('samename', False )
@@ -147,8 +154,8 @@ class MergedSample(Sample):
           sumhists.append(sumhist)
         else:
           sumhist.Add(subhist)      
-      if verbosity>=3:
-        printhist(sumhist)
+      if verbosity>=4:
+        printhist(sumhist,pre=">>>   ")
       deletehist(subhists)
     
     # PRINT

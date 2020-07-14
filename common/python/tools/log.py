@@ -151,16 +151,18 @@ class Logger(object):
     """Assert condition throwing an exception."""
     return self.throw(error,string,trigger=(not condition),**kwargs)
   
-  #def table(self,format,**kwargs):
-  #  """Initiate new table."""
-  #  self._table = Table(format)
-  #
-  #def theader(self,*args):
-  #  """Print header of table."""
-  #  self._table.header(*args)
-  #
-  #def row(self,*args):
-  #  """Print row of table."""
-  #  self._table.row(*args)
+  def table(self,*args,**kwargs):
+    """Initiate new table."""
+    self._table = Table(*args,**kwargs)
+    return self._table
+  
+  def tableheader(self,*args):
+    """Print header of table."""
+    self._table.printheader(*args)
+  
+  def row(self,*args):
+    """Print row of table."""
+    self._table.printrow(*args)
   
 LOG = Logger('Global')
+from TauFW.common.tools.Table import Table

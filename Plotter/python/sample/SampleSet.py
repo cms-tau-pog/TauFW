@@ -83,7 +83,7 @@ class SampleSet(object):
     import TauFW.Plotter.sample.utils as GLOB
     if not title:
       print ">>>\n>>> Samples with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(GLOB.lumi)
-    justname  = 8+max(len(s.name) for s in self.samples)
+    justname  = 3+max(s.getmaxnamelen() for s in self.samples)
     justtitle = 3+max(len(s.title) for s in self.samples)
     Sample.printheader(title,justname=justname,justtitle=justtitle)
     for sample in self.samples:
@@ -484,19 +484,20 @@ class SampleSet(object):
       print ">>> selection:"
       print ">>>  '%s'"%(selection) #.selection
       print ">>> yields: "
-      print ">>> %11s %11s    %s"%("integral","entries","hist name")
+      TAB = LOG.table("%11.1f %11.2f    %r")
+      TAB.printheader("entries","integral","hist name")
       totint = 0
       totent = 0
       if dodata:
-        print ">>> %11.2f %11.1f    %r"%(result.data[var].Integral(),result.data[var].GetEntries(),result.data[var].GetName())
+        TAB.printrow(result.data[var].Integral(),result.data[var].GetEntries(),result.data[var].GetName())
       for hist in result.exp[var]:
         totint += hist.Integral()
         totent += hist.GetEntries()
-        print ">>> %11.2f %11.1f    %r"%(hist.Integral(),hist.GetEntries(),hist.GetName())
-      print ">>> %11.2f %11.1f    %s"%(totint,totent,"total exp.")
+        TAB.printrow(hist.Integral(),hist.GetEntries(),hist.GetName())
+      TAB.printrow(totint,totent,"total exp.")
       if dosignal:
         for hist in result.signal[var]:
-          print ">>> %11.2f %11.1f    '%r'"%(hist.Integral(),hist.GetEntries(),hist.GetName())
+          TAB.printrow(hist.Integral(),hist.GetEntries(),hist.GetName())
     
     if issingle:
       result.setsingle()

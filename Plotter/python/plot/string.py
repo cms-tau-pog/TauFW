@@ -16,7 +16,7 @@ var_dict = {
     'jphi_2':      "Leading b jet phi",       'bphi_2':      "Subleading b jet phi",
     'met':         "p_{T}^{miss}",
     'metphi':      "MET phi",
-    'pt_1':        "Lepton pt",               'pt_1':        "tau_h pt",
+    'pt_1':        "Lepton pt",               'pt_2':        "tau_h pt",
     'eta_1':       "Lepton eta",              'eta_2':       "tau_h eta",
     'mt_1':        "m_t(l,MET)",              'mt_2':        "m_t(tau,MET)",
     'dzeta':       "D_{zeta}",
@@ -167,7 +167,7 @@ def makelatex(string,**kwargs):
     else:
       string += " [%s]"%units.strip()
   elif units and not '/' in string:
-    if GeV or "mass" in string or "S_{T}" in string or (any(m in string.lower() for m in ["met","p_{t}^{miss}"]) and "phi" not in string):
+    if GeV or "mass" in string or "p_{T}" in string or "S_{T}" in string or (any(m in string.lower() for m in ["met","p_{t}^{miss}"]) and "phi" not in string):
       if "GeV" not in string:
         string += " [GeV]"
       if cm:

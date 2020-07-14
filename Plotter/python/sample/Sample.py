@@ -102,6 +102,10 @@ class Sample(object):
       for sample in self.splitsamples:
         sample.printobjs(title+"    ")
   
+  def getmaxnamelen(self,indent=0):
+    """Help function for SampleSet.printtable to make automatic columns."""
+    return indent+len(self.name)
+  
   @property
   def file(self):
     return self.getfile()
@@ -542,6 +546,8 @@ class Sample(object):
       file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
       out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists)
       file.Close()
+      LOG.insist(len(variables)==len(varexps)==len(hists),
+                 "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
     
     # FINISH
     nentries = 0
@@ -549,7 +555,6 @@ class Sample(object):
     for variable, hist in zip(variables,hists):
       if scale!=1.0:   hist.Scale(scale)
       if scale==0.0:   LOG.warning("Scale of %s is 0!"%self.name)
-      if verbosity>=4: printhist(hist)
       hist.SetLineColor(lcolor)
       hist.SetFillColor(kWhite if self.isdata or self.issignal else fcolor)
       hist.SetMarkerColor(lcolor)
@@ -567,6 +572,9 @@ class Sample(object):
         for var, varexp, hist in zip(variables,varexps,hists):
           print '>>>   Variable %r: varexp=%r, entries=%d, integral=%d'%(var.name,varexp,hist.GetEntries(),hist.Integral())
           #print '>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp)
+          if verbosity>=5:
+            printhist(hist,pre=">>>   ")
+      
     
     if issingle:
       return hists[0]
@@ -618,6 +626,8 @@ class Sample(object):
     file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
     out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists)
     file.Close()
+    LOG.insist(len(variables)==len(varexps)==len(hists),
+               "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
     
     # FINISH
     nentries = 0
@@ -625,7 +635,6 @@ class Sample(object):
     for variable, hist in zip(variables,hists):
       if scale!=1.0:   hist.Scale(scale)
       if scale==0.0:   LOG.warning("Scale of %s is 0!"%self.name)
-      if verbosity>=3: printhist(hist)
       if hist.GetEntries()>nentries:
         nentries = hist.GetEntries()
         integral = hist.Integral()
@@ -636,6 +645,12 @@ class Sample(object):
       print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
       print ">>>   entries: %d (%.2f integral)"%(nentries,integral)
       print ">>>   %s"%cuts
+      if verbosity>=4:
+        for var, varexp, hist in zip(variables,varexps,hists):
+          print '>>>   Variables (%r,%r): varexp=%r, entries=%d, integral=%d'%(var[0].name,var[1].name,varexp,hist.GetEntries(),hist.Integral())
+          #print '>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp)
+          if verbosity>=5:
+            printhist(hist,pre=">>>   ")
     
     if issingle:
       return hists[0]

@@ -81,7 +81,9 @@ def createhists(procs,binning,nevts):
   datahist.SetBinErrorOption(TH1D.kPoisson)
   if LOG.verbosity>=1:
     print ">>> createhists: Creating pseudo data:"
-    print ">>> %5s [%5s, %5s]      %-17s   %s"%('bin','xlow','xup','exp','data')
+    TAB = LOG.table("%5s [%5s, %5s]      %-14s   %-20s",
+                    "%5d [%5s, %5s] %8.1f +- %5.1f %8d +%5.1f -%5.1f")
+    TAB.printheader('bin','xlow','xup','exp','data')
   for ibin in xrange(0,nbins+2):
     exp    = tothist.GetBinContent(ibin)
     xlow   = hist.GetXaxis().GetBinLowEdge(ibin)
@@ -94,8 +96,7 @@ def createhists(procs,binning,nevts):
     data   = int(gRandom.Poisson(exp))
     datahist.SetBinContent(ibin,data)
     if LOG.verbosity>=1:
-      print ">>> %5d [%5s, %5s] %8.1f +- %5.1f %8d +%5.1f -%5.1f"%(
-                 ibin,xlow,xup,exp,experr,data,datahist.GetBinErrorUp(ibin),datahist.GetBinErrorLow(ibin))
+      TAB.printrow(ibin,xlow,xup,exp,experr,data,datahist.GetBinErrorUp(ibin),datahist.GetBinErrorLow(ibin))
   
   return datahist, exphists
   

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
+# Description: Class to automatically make CMS plot comparing data to expectation (as a stack)
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/view/CMS/PoissonErrorBars
 #   https://twiki.cern.ch/twiki/bin/view/CMS/StatComWideBins
@@ -9,7 +10,7 @@ from TauFW.Plotter.plot.Plot import _tsize
 
 
 class Stack(Plot):
-  """Class to automatically make CMS plot with data compared to expectation (as a stack)."""
+  """Class to automatically make CMS plot comparing data to expectation (as a stack)."""
   
   def __init__(self, variable, datahist, exphists, sighists=[ ], **kwargs):
     """
@@ -43,72 +44,72 @@ class Stack(Plot):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
     # https://root.cern.ch/doc/master/classTHStack.html
     # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
-    verbosity       = LOG.getverbosity(self,kwargs)
-    xtitle          = (args[0] if args else self.xtitle) or ""
-    ratio           = kwargs.get('ratio',           self.ratio           ) # make ratio plot
-    square          = kwargs.get('square',          False                ) # square canvas
-    lmargin         = kwargs.get('lmargin',         1.                   ) # canvas left margin
-    rmargin         = kwargs.get('rmargin',         1.                   ) # canvas righ margin
-    tmargin         = kwargs.get('tmargin',         1.                   ) # canvas bottom margin
-    bmargin         = kwargs.get('bmargin',         1.                   ) # canvas top margin
-    errbars         = kwargs.get('errbars',         False                ) # add error bars to histogram
-    staterr         = kwargs.get('staterr',         True                 ) # create stat. error band
-    sysvars         = kwargs.get('sysvars',         [ ]                  ) # create sys. error band from variations
-    errtitle        = kwargs.get('errtitle',        None                 ) # title for error band
-    norm            = kwargs.get('norm',            self.norm            ) # normalize all histograms
-    title           = kwargs.get('title',           self.title           ) # title for legend
-    xtitle          = kwargs.get('xtitle',          xtitle               ) # x axis title
-    ytitle          = kwargs.get('ytitle',          self.ytitle          ) # y axis title (if None, automatically set by Plot.setaxis)
-    rtitle          = kwargs.get('rtitle',          "Obs. / Exp."        ) # y axis title of ratio panel
-    latex           = kwargs.get('latex',           self.latex           ) # automatically format strings as LaTeX with makelatex
-    xmin            = kwargs.get('xmin',            self.xmin            )
-    xmax            = kwargs.get('xmax',            self.xmax            )
-    ymin            = kwargs.get('ymin',            self.ymin            )
-    ymax            = kwargs.get('ymax',            self.ymax            )
-    rmin            = kwargs.get('rmin',            self.rmin            ) or 0.45 # ratio ymin
-    rmax            = kwargs.get('rmax',            self.rmax            ) or 1.55 # ratio ymax
-    ratiorange      = kwargs.get('ratiorange',      None                 ) # ratio range around 1.0
-    binlabels       = kwargs.get('binlabels',       self.binlabels       ) # list of alphanumeric bin labels
-    ytitleoffset    = kwargs.get('ytitleoffset',    1.0                  )
-    xtitleoffset    = kwargs.get('xtitleoffset',    1.0                  )
-    logx            = kwargs.get('logx',            self.logx            )
-    logy            = kwargs.get('logy',            self.logy            )
-    ymargin         = kwargs.get('ymargin',         self.ymargin         ) # margin between hist maximum and plot's top
-    logyrange       = kwargs.get('logyrange',       self.logyrange       ) # log(y) range from hist maximum to ymin
-    grid            = kwargs.get('grid',            False                )
-    tsize           = kwargs.get('tsize',           _tsize               ) # text size for axis title
-    pair            = kwargs.get('pair',            False                )
-    triple          = kwargs.get('triple',          False                )
-    ncols           = kwargs.get('ncols',           1                    ) # number of columns in legend
-    lcolors         = kwargs.get('lcolors',         None                 ) or self.lcolors
-    fcolors         = kwargs.get('fcolors',         None                 ) or self.fcolors
-    lstyles         = kwargs.get('lstyle',          None                 )
-    lstyles         = kwargs.get('lstyles',         lstyles              ) or self.lstyles
-    lwidth          = kwargs.get('lwidth',          2                    ) # line width
-    mstyle          = kwargs.get('mstyle',          None                 ) # marker style
-    option          = kwargs.get('option',          'HIST'               ) # draw option
-    doption         = kwargs.get('doption',         'E1'                 ) # draw option for data
-    roption         = kwargs.get('roption',         None                 ) # draw option of ratio plot
-    enderrorsize    = kwargs.get('enderrorsize',    2.0                  ) # size of line at end of error bar
-    errorX          = kwargs.get('errorX',          False                ) # no horizontal error bars for CMS style
-    dividebybinsize = kwargs.get('dividebybinsize', self.dividebybinsize )
-    drawdata        = kwargs.get('drawdata',        True                 ) and bool(self.datahist)
-    drawsignal      = kwargs.get('drawsignal',      True                 ) and bool(self.sighists)
-    lcolors         = ensurelist(lcolors)
-    fcolors         = ensurelist(fcolors)
-    lstyles         = ensurelist(lstyles)
-    self.ratio      = ratio
-    self.lcolors    = lcolors
-    self.fcolors    = fcolors
-    self.lstyles    = lstyles
-    hists           = self.hists
+    verbosity    = LOG.getverbosity(self,kwargs)
+    xtitle       = (args[0] if args else self.xtitle) or ""
+    ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
+    square       = kwargs.get('square',       False           ) # square canvas
+    lmargin      = kwargs.get('lmargin',      1.              ) # canvas left margin
+    rmargin      = kwargs.get('rmargin',      1.              ) # canvas righ margin
+    tmargin      = kwargs.get('tmargin',      1.              ) # canvas bottom margin
+    bmargin      = kwargs.get('bmargin',      1.              ) # canvas top margin
+    errbars      = kwargs.get('errbars',      False           ) # add error bars to histogram
+    staterr      = kwargs.get('staterr',      True            ) # create stat. error band
+    sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
+    errtitle     = kwargs.get('errtitle',     None            ) # title for error band
+    norm         = kwargs.get('norm',         self.norm       ) # normalize all histograms
+    title        = kwargs.get('title',        self.title      ) # title for legend
+    xtitle       = kwargs.get('xtitle',       xtitle          ) # x axis title
+    ytitle       = kwargs.get('ytitle',       self.ytitle     ) # y axis title (if None, automatically set by Plot.setaxis)
+    rtitle       = kwargs.get('rtitle',       "Obs. / Exp."   ) # y axis title of ratio panel
+    latex        = kwargs.get('latex',        self.latex      ) # automatically format strings as LaTeX with makelatex
+    xmin         = kwargs.get('xmin',         self.xmin       )
+    xmax         = kwargs.get('xmax',         self.xmax       )
+    ymin         = kwargs.get('ymin',         self.ymin       )
+    ymax         = kwargs.get('ymax',         self.ymax       )
+    rmin         = kwargs.get('rmin',         self.rmin       ) or 0.45 # ratio ymin
+    rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
+    ratiorange   = kwargs.get('ratiorange',   None            ) # ratio range around 1.0
+    binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
+    ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
+    xtitleoffset = kwargs.get('xtitleoffset', 1.0             )
+    logx         = kwargs.get('logx',         self.logx       )
+    logy         = kwargs.get('logy',         self.logy       )
+    ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
+    logyrange    = kwargs.get('logyrange',    self.logyrange  ) # log(y) range from hist maximum to ymin
+    grid         = kwargs.get('grid',         False           )
+    tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
+    pair         = kwargs.get('pair',         False           )
+    triple       = kwargs.get('triple',       False           )
+    ncols        = kwargs.get('ncols',        1               ) # number of columns in legend
+    lcolors      = kwargs.get('lcolors',      None            ) or self.lcolors
+    fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors
+    lstyles      = kwargs.get('lstyle',       None            )
+    lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles
+    lwidth       = kwargs.get('lwidth',       2               ) # line width
+    mstyle       = kwargs.get('mstyle',       None            ) # marker style
+    option       = kwargs.get('option',       'HIST'          ) # draw option
+    doption      = kwargs.get('doption',      'E1'            ) # draw option for data
+    roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
+    enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
+    errorX       = kwargs.get('errorX',       False           ) # no horizontal error bars for CMS style
+    dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide each histogram bins by it bin size
+    drawdata     = kwargs.get('drawdata',     True            ) and bool(self.datahist)
+    drawsignal   = kwargs.get('drawsignal',   True            ) and bool(self.sighists)
+    lcolors      = ensurelist(lcolors)
+    fcolors      = ensurelist(fcolors)
+    lstyles      = ensurelist(lstyles)
+    self.ratio   = ratio
+    self.lcolors = lcolors
+    self.fcolors = fcolors
+    self.lstyles = lstyles
+    hists        = self.hists
     
     # DIVIDE BY BINSIZE
-    if dividebybinsize:
+    if dividebins:
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
-          newhist = divideBinsByBinSize(oldhist,zero=True,zeroerrs=False)
+          newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False)
           if oldhist!=newhist:
             LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
             hlist[i] = newhist
@@ -120,10 +121,10 @@ class Stack(Plot):
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
-      #    divideBinsByBinSize(histup,  zero=True,zeroerrs=False)
-      #    divideBinsByBinSize(histdown,zero=True,zeroerrs=False)
+      #    dividebybinsize(histup,  zero=True,zeroerrs=False)
+      #    dividebybinsize(histdown,zero=True,zeroerrs=False)
       #    if hist not in self.hists:
-      #      divideBinsByBinSize(hist,zero=True,zeroerrs=False)
+      #      dividebybinsize(hist,zero=True,zeroerrs=False)
     
     # DRAW OPTIONS
     gStyle.SetEndErrorSize(enderrorsize)

@@ -22,45 +22,45 @@ class Variable(object):
   """
   
   def __init__(self, name, *args, **kwargs):
-    strings              = [a for a in args if isinstance(a,str) ]
-    self.name            = name
-    self.name_           = name # backup for addoverflow
-    self.title           = strings[0] if strings else self.name
-    self.filename        = makefilename(self.name.replace('/',"_"))
-    self.title           = kwargs.get('title',       self.title    ) # for plot axes
-    self.filename        = kwargs.get('fname',       self.filename ) # for file
-    self.filename        = self.filename.replace('$NAME',self.name).replace('$VAR',self.name) #.replace('$FILE',self.filename)
-    self.tag             = kwargs.get('tag',         ""            )
-    self.units           = kwargs.get('units',       True          ) # for plot axes
-    self.latex           = kwargs.get('latex',       True          ) # for plot axes
-    self.nbins           = None
-    self.min             = None
-    self.max             = None
-    self.bins            = None
-    self.cut             = kwargs.get('cut',         ""            ) # extra cut when filling histograms
-    self.weight          = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
-    self.dataweight      = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
+    strings           = [a for a in args if isinstance(a,str) ]
+    self.name         = name
+    self.name_        = name # backup for addoverflow
+    self.title        = strings[0] if strings else self.name
+    self.filename     = makefilename(self.name.replace('/',"_"))
+    self.title        = kwargs.get('title',       self.title    ) # for plot axes
+    self.filename     = kwargs.get('fname',       self.filename ) # for file
+    self.filename     = self.filename.replace('$NAME',self.name).replace('$VAR',self.name) #.replace('$FILE',self.filename)
+    self.tag          = kwargs.get('tag',         ""            )
+    self.units        = kwargs.get('units',       True          ) # for plot axes
+    self.latex        = kwargs.get('latex',       True          ) # for plot axes
+    self.nbins        = None
+    self.min          = None
+    self.max          = None
+    self.bins         = None
+    self.cut          = kwargs.get('cut',         ""            ) # extra cut when filling histograms
+    self.weight       = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
+    self.dataweight   = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
     self.setbins(*args)
-    self.dividebybinsize = kwargs.get('dividebybinsize', self.hasvariablebins() )
-    self.data            = kwargs.get('data',        True          ) # also draw data
-    self.flag            = kwargs.get('flag',        ""            ) # flag, e.g. 'up', 'down', ...
-    self.binlabels       = kwargs.get('labels',      [ ]           ) # bin labels for x axis
-    self.ymin            = kwargs.get('ymin',        None          )
-    self.ymax            = kwargs.get('ymax',        None          )
-    self.rmin            = kwargs.get('rmin',        None          )
-    self.rmax            = kwargs.get('rmax',        None          )
-    self.logx            = kwargs.get('logx',        False         )
-    self.logy            = kwargs.get('logy',        False         )
-    self.ymargin         = kwargs.get('ymargin',     None          ) # margin between hist maximum and plot's top
-    self.logyrange       = kwargs.get('logyrange',   None          ) # log(y) range from hist maximum to ymin
-    self.position        = kwargs.get('pos',         ""            ) # legend position
-    self.position        = kwargs.get('position',    self.position ) # legend position
-    self.ncols           = kwargs.get('ncols',       None          ) # number of legend columns
-    #self.plot            = kwargs.get('plots',       True          )
-    self.only            = kwargs.get('only',        [ ]           ) # only plot for these patterns
-    self.veto            = kwargs.get('veto',        [ ]           ) # do not plot for these patterns
-    self.blindcuts       = kwargs.get('blind',       ""            ) # string for blind cuts to blind data
-    self.addoverflow_    = kwargs.get('addoverflow', False         ) # add overflow to last bin
+    self.dividebins   = kwargs.get('dividebins', self.hasvariablebins() ) # divide each histogram bins by it bin size
+    self.data         = kwargs.get('data',        True          ) # also draw data
+    self.flag         = kwargs.get('flag',        ""            ) # flag, e.g. 'up', 'down', ...
+    self.binlabels    = kwargs.get('labels',      [ ]           ) # bin labels for x axis
+    self.ymin         = kwargs.get('ymin',        None          )
+    self.ymax         = kwargs.get('ymax',        None          )
+    self.rmin         = kwargs.get('rmin',        None          )
+    self.rmax         = kwargs.get('rmax',        None          )
+    self.logx         = kwargs.get('logx',        False         )
+    self.logy         = kwargs.get('logy',        False         )
+    self.ymargin      = kwargs.get('ymargin',     None          ) # margin between hist maximum and plot's top
+    self.logyrange    = kwargs.get('logyrange',   None          ) # log(y) range from hist maximum to ymin
+    self.position     = kwargs.get('pos',         ""            ) # legend position
+    self.position     = kwargs.get('position',    self.position ) # legend position
+    self.ncols        = kwargs.get('ncols',       None          ) # number of legend columns
+    #self.plot         = kwargs.get('plots',       True          )
+    self.only         = kwargs.get('only',        [ ]           ) # only plot for these patterns
+    self.veto         = kwargs.get('veto',        [ ]           ) # do not plot for these patterns
+    self.blindcuts    = kwargs.get('blind',       ""            ) # string for blind cuts to blind data
+    self.addoverflow_ = kwargs.get('addoverflow', False         ) # add overflow to last bin
     if self.latex:
       self.title = makelatex(self.title,units=self.units)
       if 'ctitle' in kwargs:
