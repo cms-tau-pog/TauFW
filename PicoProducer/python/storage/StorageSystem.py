@@ -1,4 +1,6 @@
 # Author: Izaak Neutelings (May 2020)
+# Description: Superclass of a generic storage system with common operations like
+#              ls, cp, rm, mkdir, etc. to allow for easy implementation of storage system plug-ins.
 import os
 from fnmatch import fnmatch # for glob pattern
 from TauFW.common.tools.utils import execute
@@ -165,14 +167,15 @@ class StorageSystem(object):
       rmfile(htarget)
     return out
   
-  def rm(self,path,**kwargs):
+  def rm(self,*paths,**kwargs):
     """Remove given file or director."""
+    path = self.expandpath(*paths,here=True)
     verb = kwargs.get('verb',self.verbosity)
     return self.execute("%s %s%s"%(self.rmcmd,self.rmurl,path),verb=verb)
   
   def mkdir(self,dirname='$PATH',**kwargs):
     verb    = kwargs.get('verb',self.verbosity)
-    dirname = self.expandpath(dirname)
+    dirname = self.expandpath(dirname,here=True)
     return self.execute("%s %s%s"%(self.mkdrcmd,self.mkdrurl,dirname),verb=verb)
   
   def chmod(self,file,perm=None,**kwargs):

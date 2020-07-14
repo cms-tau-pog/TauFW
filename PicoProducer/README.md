@@ -312,6 +312,12 @@ def getstorage(path,verb=0,ensure=False):
   ...
   return storage
 ```
+You can test your implementation with
+<pre>
+test/testStorage.py <i>&lt;path&gt;</i> -v3
+</pre>
+where you pass an absolute path on your storage system. 
+
 If you want, you can also add the path of your storage element to `getsedir` in the same file.
 This help function automatically sets the default paths for new users, based on the host and user name.
 

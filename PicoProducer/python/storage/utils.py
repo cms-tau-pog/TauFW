@@ -6,13 +6,13 @@ from TauFW.PicoProducer import basedir
 from TauFW.common.tools.log import Logger
 from TauFW.common.tools.file import ensurefile
 from TauFW.common.tools.utils import repkey
-LOG = Logger('Storage')
+LOG  = Logger('Storage')
+host = platform.node()
 
 
 def getsedir():
   """Guess the storage element path for a given user and host."""
   user  = getpass.getuser()
-  host  = platform.node()
   sedir = ""
   if 'lxplus' in host:
     sedir = "/eos/user/%s/%s/"%(user[0],user)
@@ -26,7 +26,6 @@ def getsedir():
 def gettmpdir():
   """Guess the temporary directory for a given user and host."""
   user  = getpass.getuser()
-  host  = platform.node()
   sedir = ""
   if 'lxplus' in host:
     sedir = "/eos/user/%s/%s/"%(user[0],user)
@@ -47,7 +46,7 @@ def getstorage(path,verb=0,ensure=False):
   elif path.startswith('/pnfs/psi.ch/'):
     from TauFW.PicoProducer.storage.T3_PSI import T3_PSI
     storage = T3_PSI(path,ensure=ensure,verb=verb)
-  elif path.startswith("/store/user"):
+  elif path.startswith("/store/user") and "etp" in host:
     from TauFW.PicoProducer.storage.GridKA_NRG import GridKA_NRG
     storage = GridKA_NRG(path,ensure=ensure,verb=verb)
   #elif path.startswith('/pnfs/lcg.cscs.ch/'):
