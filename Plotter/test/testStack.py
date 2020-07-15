@@ -122,7 +122,7 @@ def main():
     (('pt_1',"Leading p_{T} [GeV]",50,0,100), [
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Landau, (30,2)),
       ('WJ', "W + jets",                0.2, gRandom.Landau, (30,2)),
-      ('QCD', "QCD multiplet",          0.3, gRandom.Landau, (36,5)),
+      ('QCD', "QCD multiplet",          0.3, gRandom.Landau, (37,5)),
       ('TT', "t#bar{t}",                0.2, gRandom.Landau, (48,6)),
      ]),
     (('njets',"Number of jets",8,0,8), [

@@ -40,8 +40,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
   print
   
 
-def createhists():
-  nhist    = 3
+def createhists(nhist=3):
   nbins    = 50
   xmin     = 0
   xmax     = 100

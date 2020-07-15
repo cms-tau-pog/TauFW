@@ -5,15 +5,17 @@ tcol_dict = { 'black':  30,  'red':     31, 'green': 32,
               'purple': 35,  'magenta': 36, 'white': 37,
               'grey':   90,  'none':     0 }
 bcol_dict = {k: (10+v if v else v) for k,v in tcol_dict.iteritems()}
-def color(string,c='green',b=False,**kwargs):
-  tcol_key   = kwargs.get('color',     c   )
-  bcol_key   = kwargs.get('background',None)
+def color(string,c='green',b=False,ul=False,**kwargs):
+  tcol_key   = kwargs.get('color',     c       )
+  bcol_key   = kwargs.get('bg',        None    )
+  bcol_key   = kwargs.get('background',bcol_key)
   bold_code  = "\033[1m" if kwargs.get('bold',b) else ""
+  ul_code    = "\033[32m" if ul else ""
   tcol_code  = "\033[%dm"%tcol_dict[tcol_key] if tcol_key!=None else ""
   bcol_code  = "\033[%dm"%bcol_dict[bcol_key] if bcol_key!=None else ""
   stop_code  = "\033[0m"
   reset_code = stop_code if kwargs.get('reset',False) else ""
-  return kwargs.get('pre',"") + reset_code + bcol_code + bold_code + tcol_code + string + stop_code
+  return kwargs.get('pre',"") + reset_code + bcol_code + bold_code + ul_code + tcol_code + string + stop_code
   
 
 def warning(string,**kwargs):
@@ -39,7 +41,7 @@ def underlined(string,**kwargs):
 #_headeri = 0
 def header(*strings):
   #global _headeri
-  title  = ', '.join([str(s).lstrip('_') for s in strings if s])
+  title  = ', '.join([str(s) for s in strings if s]) #.lstrip('_')
   string = "\n" +\
            "   ###%s\n"    % ('#'*(len(title)+3)) +\
            "   #  %s  #\n" % (title) +\

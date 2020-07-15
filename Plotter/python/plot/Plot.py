@@ -48,9 +48,9 @@ class Plot(object):
   def __init__(self, *args, **kwargs):
     """
     Initialize with list of histograms:
-      plot = Plot(hists)
+      Plot(hists)
     or with a variable (string or Variable object) as well:
-      plot = Plot(variable,hists)
+      Plot(variable,hists)
     """
     variable   = None
     hists      = None
@@ -114,7 +114,7 @@ class Plot(object):
     self.lstyles      = kwargs.get('lstyles',    _lstyles             )
     self.canvas       = None
     self.frame        = frame
-    self.legend       = None
+    self.legends      = [ ]
     self.texts        = [ ] # to save TLatex objects made by drawtext
     self.garbage      = [ ]
     
@@ -307,12 +307,13 @@ class Plot(object):
       self.close()
     
   
-  def close(self):
+  def close(self,keep=False):
     """Close canvas and delete the histograms."""
     if self.canvas:
       self.canvas.Close()
-    for hist in self.hists:
-      deletehist(hist)
+    if not keep:
+      for hist in self.hists:
+        deletehist(hist)
     if self.errband:
       deletehist(self.errband)
     for hist in self.garbage:
@@ -560,13 +561,30 @@ class Plot(object):
     
   
   def drawlegend(self,position=None,**kwargs):
-    """Create and draw legend."""
+    """Create and draw legend.
+    Legend position can be controlled in several ways
+      drawlegend(position)
+      drawlegend(position=position)
+    where position is a string which can contain the horizontal position, e.g.
+      'left', 'center', 'right', 'L', 'C', 'R', 'x=0.3', ...
+    where 'x' is the position (between 0 an 1) of the left side in the frame.
+    The position string can also contain the vertical position as e.g.
+      'top', 'middle', 'bottom', 'T', 'M', 'B', 'y=0.3', ...
+    where 'y' is the position (between 0 an 1) of the top side in the frame.
+    Instead of the strings, the exact legend coordinates can be controlled with
+    the keywords x1, x2, y1 and y2, or, x1, y1, width and height:
+      drawlegend(x1=0.2,width=0.4)
+      drawlegend(x1=0.2,width=0.4,y1=0.9,height=0.4)
+      drawlegend(x1=0.2,x2=0.6,y1=0.9,y2=0.4)
+    These floats are normalized to the axis frame, ignoring the canvas margins:
+    x=0 is the left, x=1 is the right, y=0 is the bottom and y=1 is the top side.
+    Values less than 0, or larger than 1, will put the legend outside the frame.
+    """
     #if not ratio:
     #  tsize *= 0.80
     #  signaltsize *= 0.80
     verbosity   = LOG.getverbosity(self,kwargs)
     hists       = self.hists
-    scale       = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     errstyle    = 'lep' if gStyle.GetErrorX() else 'ep'
     entries     = kwargs.get('entries',     [ ]            )
     bands       = kwargs.get('band',        [self.errband] ) # error bands
@@ -590,8 +608,9 @@ class Plot(object):
     y2_user     = kwargs.get('y2',          None           ) # legend bottom side
     width       = kwargs.get('width',       -1             ) # legend width
     height      = kwargs.get('height',      -1             ) # legend height
-    tsize       = kwargs.get('tsize',       _lsize         )*scale
-    twidth      = kwargs.get('twidth',      1.0            ) # scalefactor for legend width
+    tsize       = kwargs.get('tsize',       _lsize         ) # text size
+    twidth      = kwargs.get('twidth',      None           ) or 1 # scalefactor for legend width
+    theight     = kwargs.get('theight',     None           ) or 1 # scalefactor for legend height
     texts       = kwargs.get('text',        [ ]            ) # extra text below legend
     ncols       = kwargs.get('ncols',       self.ncols     ) or 1 # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
@@ -605,6 +624,8 @@ class Plot(object):
     # CHECK
     LOG.insist(self.canvas,"Canvas does not exist!")
     self.canvas.cd(panel)
+    scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
+    tsize *= scale # text size
     
     # ENTRIES
     #if len(bandentries)==len(bands) and len(entries)>len(hists):
@@ -641,55 +662,60 @@ class Plot(object):
     if title:   nlines += 1 + title.count('\n')
     
     # DIMENSIONS
-    L, R = gPad.GetLeftMargin(), gPad.GetRightMargin()
-    T, B = gPad.GetTopMargin(),  gPad.GetBottomMargin()
-    if width<0:  width  = 0.26*twidth
-    if height<0: height = 1.10*tsize*nlines
+    if width<0:  width  = twidth*0.35
+    if height<0: height = theight*1.34*tsize*nlines
     if ncols>1:  width *= ncols/(1-colsep)
-    x2 = 0.86-R; x1 = x2 - width
-    y2 = 0.90-T; y1 = y2 - height
+    x2 = 0.90; x1 = x2 - width
+    y1 = 0.92; y2 = y1 - height
     
     # POSITION
     if not position:
-      position = 'toprightright' if ncols>1 else 'right' if title else 'topright'
-    position = position.lower()
-    if   'leftleft'     in position: x1 = 0.04+L; x2 = x1 + width
-    elif 'rightright'   in position: x2 = 0.94-R; x1 = x2 - width
-    elif 'center'       in position:
-      if 'right'        in position: center = (1+L-R)/2 + 0.075
-      elif 'left'       in position: center = (1+L-R)/2 - 0.075
-      else:                          center = (1+L-R)/2
+      position = 'TRR' if ncols>1 else 'R' if title else 'TR'
+    position = position.replace('left','L').replace('center','C').replace('right','R').replace( #.lower()
+                                'top','T').replace('middle','M').replace('bottom','B')
+    if 'C'     in position:
+      if   'R' in position: center = 0.57
+      elif 'L' in position: center = 0.43
+      else:                 center = 0.50
       x1 = center-width/2; x2 = center+width/2
-    elif 'left'         in position: x1 = 0.10+L; x2 = x1 + width
-    elif 'right'        in position: x2 = 0.88-R; x1 = x2 - width
-    elif 'x='           in position:
+    elif 'LL'  in position: x1 = 0.03; x2 = x1 + width
+    elif 'L'   in position: x1 = 0.08; x2 = x1 + width
+    elif 'RR'  in position: x2 = 0.97; x1 = x2 - width
+    elif 'R'   in position: x2 = 0.92; x1 = x2 - width
+    elif 'x='  in position:
       x1 = float(re.findall(r"x=(\d\.\d+)",position)[0])
-      x1 = L + (1-L-R)*x1; x2 = x1 + width
-    if   'bottombottom' in position: y1 = 0.02+B; y2 = y1 + height
-    elif 'bottom'       in position: y1 = 0.08+B; y2 = y1 + height
-    elif 'toptop'       in position: y2 = 0.98-T; y1 = y2 - height
-    elif 'top'          in position: y2 = 0.95-T; y1 = y2 - height
-    elif 'middle'       in position:
-      middle = (1+B-T)/2
-      x1 = middle-height/2; x2 = middle+height/2
-    elif 'y='           in position:
+      x2 = x1 + width
+    if 'M'     in position:
+      if   'T' in position: middle = 0.57
+      elif 'B' in position: middle = 0.43
+      else:                 middle = 0.50
+      y1 = middle-height/2; y2 = middle+height/2
+    elif 'TT'  in position: y2 = 0.97; y1 = y2 - height
+    elif 'T'   in position: y2 = 0.92; y1 = y2 - height
+    elif 'BB'  in position: y1 = 0.03; y2 = y1 + height
+    elif 'B'   in position: y1 = 0.08; y2 = y1 + height
+    elif 'y='  in position:
       y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
-      y2 = B + (1-T-B)*y2; y1 = y2 - height
+      y1 = y2 - height
     if x1_user!=None:
       x1 = x1_user
       x2 = x1 + width if x2_user==None else x2_user
     if y1_user!=None:
       y1 = y1_user
       y2 = y1 - height if y2_user==None else y2_user
-    legend = TLegend(x1,y1,x2,y2)
-    LOG.verb("Plot.drawlegend: position=%r, height=%.3f, width=%.3f, x1=%.3f, y1=%.3f, x2=%.3f, y2=%.3f"%(
-                               position,height,width,x1,y1,x2,y2),verbosity,1)
+    L, R = gPad.GetLeftMargin(), gPad.GetRightMargin()
+    T, B = gPad.GetTopMargin(),  gPad.GetBottomMargin()
+    X1, X2 = L+(1-L-R)*x1, L+(1-L-R)*x2 # convert frame to canvas coordinates
+    Y1, Y2 = B+(1-T-B)*y1, B+(1-T-B)*y2 # convert frame to canvas coordinates
+    legend = TLegend(X1,Y1,X2,Y2)
+    LOG.verb("Plot.drawlegend: position=%r, height=%.3f, width=%.3f, (x1,y1,x2,y2)=(%.2f,%.2f,%.2f,%.2f), (X1,Y1,X2,Y2)=(%.2f,%.2f,%.2f,%.2f)"%(
+                               position,height,width,x1,y1,x2,y2,X1,Y1,X2,Y2),verbosity,1)
     
     # MARGIN
     if ncols>=2:
-      margin = 0.086/width
+      margin = 0.090/width
     else:
-      margin = 0.042/width
+      margin = 0.044/width
     legend.SetMargin(margin)
     
     # STYLE
@@ -731,46 +757,78 @@ class Plot(object):
                                   nlines,len(hists),len(texts),ncols,margin)
     
     legend.Draw(option)
-    self.legend = legend
+    self.legends.append(legend)
     return legend
     
   
   def drawtext(self,*texts,**kwargs):
-    """Draw TLaTeX text in the corner."""
-    verbosity = LOG.getverbosity(self,kwargs)
-    scale     = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
-    position  = kwargs.get('pos',      'topleft' )
-    position  = kwargs.get('position', position  ).lower()
-    tsize     = kwargs.get('tsize',    _lsize    )*scale
-    bold      = kwargs.get('bold',     False     )
-    dolatex   = kwargs.get('latex',    False     ) # automatically format strings as LaTeX
-    xuser     = kwargs.get('x',        None      )
-    yuser     = kwargs.get('y',        None      )
-    panel     = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
-    texts     = unwraplistargs(texts)
+    """
+    Draw TLaTeX text in the corner.
+      drawtext(str text)
+      drawtext(str text, str text, ...)
+      drawtext(list texts)
+    Text position can be controlled in several ways
+      drawlegend(text,position=position)
+    where position is a string which can contain the horizontal position, e.g.
+      'left', 'center', 'right', 'L', 'C', or 'R'
+    The position string can also contain the vertical position as e.g.
+      'top', 'middle', 'bottom', 'T', 'M', or 'B'
+    Instead of the strings, the exact coordinates can be controlled with
+    the keywords x and y:
+      drawtext(x=0.2,y=0.8)
+    These floats are normalized to the axis frame, ignoring the canvas margins:
+    x=0 is the left, x=1 is the right, y=0 is the bottom and y=1 is the top side.
+    Values less than 0, or larger than 1, will put the text outside the frame.
+    """
+    verbosity  = LOG.getverbosity(self,kwargs)
+    position   = kwargs.get('pos',      'topleft' )
+    position   = kwargs.get('position', position  ) #.lower()
+    tsize      = kwargs.get('tsize',    _lsize    ) # text size
+    theight    = kwargs.get('theight',  None      ) or 1
+    bold       = kwargs.get('bold',     False     ) # bold text
+    dolatex    = kwargs.get('latex',    False     ) # automatically format strings as LaTeX
+    xuser      = kwargs.get('x',        None      ) # horizontal position
+    yuser      = kwargs.get('y',        None      ) # vertical position
+    align_user = kwargs.get('align',    None      ) # text line
+    panel      = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
+    texts      = unwraplistargs(texts)
     if not any(t!="" for t in texts):
       return None
+    
+    # CHECK
+    LOG.insist(self.canvas,"Canvas does not exist!")
+    self.canvas.cd(panel)
+    scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
+    tsize *= scale # text size
     
     # POSITION
     font  = 62 if bold else 42
     align = 13
-    L, R  = gPad.GetLeftMargin(), gPad.GetRightMargin()
-    T, B  = gPad.GetTopMargin(),  gPad.GetBottomMargin()
-    if 'right' in position:
-      x, align = 0.96, 30
+    position = position.replace('left','L').replace('center','C').replace('right','R').replace( #.lower()
+                                'top','T').replace('middle','M').replace('bottom','B')
+    if 'R' in position:
+      x, align = 0.95, 30 # right
+    if 'C' in position:
+      x, align = 0.50, 20 # center
     else:
-      x, align = 0.05, 10
-    if 'bottom' in position:
-      y = 0.05; align += 1
+      x, align = 0.05, 10 # left
+    if 'B' in position:
+      y = 0.05; align += 1 # bottom
+    if 'M' in position:
+      y = 0.50; align += 2 # middle
     else:
-      y = 0.95; align += 3
+      y = 0.95; align += 3 # top
     #x1 = float(re.findall(r"x=(\d\.\d+)",position)[0])
     #y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
-    x = L + (1-L-R)*x if xuser==None else xuser
-    y = B + (1-T-B)*y if yuser==None else yuser
+    if xuser!=None: x = xuser
+    if yuser!=None: y = yuser
+    if align_user!=None: align = align_user
+    L, R  = gPad.GetLeftMargin(), gPad.GetRightMargin()
+    T, B  = gPad.GetTopMargin(),  gPad.GetBottomMargin()
+    x = L+(1-L-R)*x # convert frame to canvas coordinates
+    y = B+(1-T-B)*y # convert frame to canvas coordinates
     
     # LATEX
-    self.canvas.cd(panel)
     latex = TLatex()
     latex.SetTextSize(tsize)
     latex.SetTextAlign(align)
@@ -780,7 +838,7 @@ class Plot(object):
     for i, line in enumerate(texts):
       if dolatex:
         line = makelatex(line)
-      yline = y-i*1.2*tsize
+      yline = y-i*theight*1.2*tsize
       latex.DrawLatex(x,yline,line)
       LOG.verb("Plot.drawcornertext: i=%d, x=%d, y=%d, text=%r"%(i,x,yline,line),verbosity,2)
     self.texts.append(latex)

@@ -35,8 +35,11 @@ def createdummyroot(fname,nevts=10000):
   
 
 def testStorage(path,verb=0):
+  
+  # INITIALIZE
+  LOG.header("__init__")
   #storage = ensuremodule(system,"PicoProducer.storage"
-  storage = getstorage(path)
+  storage = getstorage(path,ensure=True,verb=verb)
   print ">>> %r"%(storage)
   print ">>> %-10s = %s"%('path',storage.path)
   print ">>> %-10s = %s"%('rmcmd',storage.rmcmd)
