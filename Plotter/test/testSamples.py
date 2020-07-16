@@ -98,58 +98,7 @@ def testMergedSamples(datasample,expsamples):
   plotsamples(datasample,[expsample],tag='_merged')
   
 
-def testSampleSet(datasample,expsamples,tag=""):
-  """Test SampleSet class: join samples, print out, and plot."""
-  LOG.header("testSampleSet")
-  print ">>> Joining samples in one set"%(expsamples)
-  checkMergedSample = True and False
-  singlevar    = True and False
-  if checkMergedSample:
-    color      = expsamples[0].fillcolor
-    bkgsample  = MergedSample('Bkg',"Background",expsamples[1:],color=color)
-    expsamples = [expsamples[0],bkgsample]
-    expsample  = MergedSample('Exp',"Expected",expsamples,color=color)
-    expsamples = [expsample]
-  samples = SampleSet(datasample,expsamples)
-  print ">>> samples=%s"%samples
-  print ">>> "
-  samples.printtable()
-  samples.printobjs()
-  print ">>> "
-  
-  # GET HISTS
-  for selection, weight in selections:
-    if singlevar:
-      result = samples.gethists(variables[0],selection)
-      result.printall()
-      #var, datahist, exphists = result
-      #print var
-      #print datahist
-      #print exphists
-    else:
-      result = samples.gethists(variables,selection)
-    result.printall()
-  
-  # PLOT
-  outdir = ensuredir("plots")
-  fname  = "%s/testSamplesSet_$VAR%s.png"%(outdir,tag)
-  for selection, weight in selections:
-    if singlevar:
-      stack = samples.getstack(variables[0],selection)
-      stack.draw()
-      stack.drawlegend(position=position)
-      stack.saveas(fname) #tag="_SampleSet",outdir=outdir)
-      stack.close()
-    else:
-      stacks = samples.getstack(variables,selection)
-      for stack in stacks:
-        stack.draw()
-        stack.drawlegend(position=position)
-        stack.saveas(fname) #tag="_SampleSet",outdir=outdir)
-        stack.close()
-  
-
-def main():
+def main(args):
   LOG.header("Prepare samples")
   sampleset = [
     ('ZTT',  "Z -> #tau_{mu}#tau_{h}", 1.00),
@@ -159,7 +108,7 @@ def main():
     ('Data', "Observed",                -1 ),
   ]
   lumi       = 0.001 # [fb-1] to cancel xsec [pb]
-  nevts      = 50000
+  nevts      = args.nevts
   snames     = [n[0] for n in sampleset]
   scales     = {n[0]: n[2] for n in sampleset} # relative contribtions to pseudo data
   outdir     = ensuredir('plots')
@@ -184,7 +133,6 @@ def main():
   plotsamples(datasample,expsamples)
   plotsamples2D(datasample,expsamples)
   testMergedSamples(datasample,expsamples)
-  testSampleSet(datasample,expsamples)
   
 
 if __name__ == "__main__":
@@ -193,11 +141,13 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Test the Sample class"""
   parser = ArgumentParser(prog="testSamples",description=description,epilog="Good luck!")
+  parser.add_argument('-n', '--nevts',   type=int, default=50000, action='store',
+                                         help="number of events to generate per sample" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity-1
-  main()
+  main(args)
   print ">>>\n>>> Done."
   

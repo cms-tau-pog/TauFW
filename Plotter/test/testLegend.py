@@ -20,7 +20,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,**kwargs):
   staterr  = True and False  # add uncertainty band to first histogram
   lstyle   = 1               # solid lines
   panel    = 1               # 1 = main (top) panel, 2 = ratio (bottom) panel
-  hists    = [h.Clone("%s_clone%d"%(h.GetName(),i)) for i, h in enumerate(hists)]
+  #hists    = [h.Clone("%s_clone%d"%(h.GetName(),i)) for i, h in enumerate(hists)]
   if kwargs.get('pos',False):
     fname += "_"+kwargs['pos'].replace(';','')
     header = kwargs['pos']
@@ -35,7 +35,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,**kwargs):
   plot.drawtext(text)
   plot.saveas(fname+".png")
   #plot.saveas(fname+".pdf")
-  plot.close()
+  plot.close(keep=True)
   print
   
 
@@ -43,7 +43,7 @@ def main():
   CMSStyle.setCMSEra(2018)
   xtitle = "p_{T}^{MET} [GeV]"
   hists = createhists(2)
-  for ratio in [True,False]: # True
+  for ratio in [False]: # True
     plothist(xtitle,hists,ratio=ratio,logy=True,norm=False)
     for hor in ['','L','LL','R','RR','C','CL','CR']:
       for ver in ['','T','TT','B','BB','M']:

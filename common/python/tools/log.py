@@ -15,7 +15,7 @@ def color(string,c='green',b=False,ul=False,**kwargs):
   bcol_code  = "\033[%dm"%bcol_dict[bcol_key] if bcol_key!=None else ""
   stop_code  = "\033[0m"
   reset_code = stop_code if kwargs.get('reset',False) else ""
-  return kwargs.get('pre',"") + reset_code + bcol_code + bold_code + ul_code + tcol_code + string + stop_code
+  return kwargs.get('pre',"") + reset_code + bcol_code + bold_code + ul_code + tcol_code + str(string) + stop_code
   
 
 def warning(string,**kwargs):
@@ -104,6 +104,10 @@ class Logger(object):
   
   def verb(self,*args,**kwargs):
     return self.verbose(*args,**kwargs)
+  
+  def getcolor(self,*args,**kwargs):
+    """Get color."""
+    return color(*args,**kwargs)
   
   def color(self,*args,**kwargs):
     """Print color."""

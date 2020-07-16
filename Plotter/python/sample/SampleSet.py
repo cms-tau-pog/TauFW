@@ -320,7 +320,7 @@ class SampleSet(object):
         stacks[stack] = var
     return stacks # dictionary: THStack -> Variable
   
-  def getdata(self, *args, **kwargs):
+  def getdatahist(self, *args, **kwargs):
     """Create and fill histograms of background simulations and make a stack."""
     name   = kwargs.get('name',"data")
     kwargs.update({'data':True, 'mc':False, 'signal':False, 'exp':False})
@@ -602,8 +602,8 @@ class SampleSet(object):
   def getexp(self,*searchterms,**kwargs):
     return getsample_with_flag(self.expsamples,'isexp',*searchterms,**kwargs)
   
-  def getmc(self,*searchterms,**kwargs):
-    return getsample_with_flag(self.mcsamples,'ismc',*searchterms,**kwargs)
+  #def getmc(self,*searchterms,**kwargs):
+  #  return getsample_with_flag(self.mcsamples,'ismc',*searchterms,**kwargs)
   
   def getsignal(self,*searchterms,**kwargs):
     return getsample_with_flag(self.sigsamples,'issignal',*searchterms,**kwargs)

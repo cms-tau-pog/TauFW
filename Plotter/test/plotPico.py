@@ -37,12 +37,12 @@ def makesamples(channel,era,fpattern):
   
   # SAMPLE SET
   sampleset = getsampleset(datasamples,expsamples,channel=channel,era=era,file=fpattern,weight=weight)
-  sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'                                 )
-  sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M-50", title="Drell-Yan M=50GeV" )
-  #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M-10to50", title="Drell-Yan 10<M<50GeV"  )
-  sampleset.join('DY',                name='DY',  title="Drell-Yan"            )
-  sampleset.join('VV','WZ','WW','ZZ', name='VV',  title="Diboson"              )
-  sampleset.join('TT','ST',           name='Top', title="ttbar and single top" )
+  sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'     ) #title="W + jets"
+  sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50" ) #title="Drell-Yan, M > 50 GeV"
+  #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M10to50" )
+  sampleset.join('DY',                name='DY'  ) #title="Drell-Yan"           
+  sampleset.join('VV','WZ','WW','ZZ', name='VV'  ) #title="Diboson"             
+  sampleset.join('TT','ST',           name='Top' ) #title="ttbar and single top"
   sampleset.split('DY',[
     ('ZTT',"Z -> tau_{#mu}tau_{h}",      "genmatch_2==5"),
     ('ZL', "Drell-Yan with l -> tau_{h}","genmatch_2>0 && genmatch_2<5"),

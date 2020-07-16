@@ -5,7 +5,14 @@ from TauFW.Plotter.plot.MultiThread import MultiProcessor
 
 
 class MergedSample(Sample):
-  """Class to join a list of Sample objects to make one histogram with the Plot class."""
+  """
+  Class to join a list of Sample objects to make one histogram with the Plot class.
+  Initialize as
+    - MergedSample(str name)
+    - MergedSample(str name, str title)
+    - MergedSample(str name, list samples)
+    - MergedSample(str name, str title, list samples)
+  """
   
   def __init__(self, *args, **kwargs):
     name, title, samples = unwrap_MergedSamples_args(*args,**kwargs)

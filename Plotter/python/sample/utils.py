@@ -130,7 +130,7 @@ def unwrap_MergedSamples_args(*args,**kwargs):
   """
   strings = [ ]
   name    = "noname"
-  title   = "No title"
+  title   = ""
   samples = [ ]
   #args    = unwraplistargs(args)
   for arg in args:
@@ -142,7 +142,7 @@ def unwrap_MergedSamples_args(*args,**kwargs):
       for sample in arg:
         samples.append(sample)
   if len(strings)==1:
-    name, title = strings[0], strings[0]
+    name = strings[0]
   elif len(strings)>1:
     name, title = strings[:2]
   elif len(samples)>1:
@@ -258,10 +258,11 @@ def getsample(samples,*searchterms,**kwargs):
     if sample.match(*searchterms,incl=inclusive) and filename in sample.filename:
       matches.append(sample)
   if not matches and warning:
-    LOG.warning("getsample: Could not find a sample with search terms %s..."%(', '.join(searchterms+(filename,))))
+    LOG.warning("getsample: Could not find a sample with search terms %s..."%(', '.join(repr(s) for s in searchterms+(filename,) if s)))
   elif unique:
     if len(matches)>1:
-      LOG.warning("getsample: Found more than one match to %s. Using first match only: %s"%(", ".join(searchterms),", ".join([s.name for s in matches])))
+      LOG.warning("getsample: Found more than one match to %s. Using first match only: %s"%(
+                  ", ".join(repr(s) for s in searchterms),", ".join([repr(s.name) for s in matches])))
     return matches[0]
   return matches
   
@@ -276,10 +277,10 @@ def getsample_with_flag(samples,flag,*searchterms,**kwargs):
        (not searchterms or sample.match(*searchterms,incl=inclusive)):
       matches.append(sample)
   if not matches:
-    LOG.warning("Could not find a signal sample...")
+    LOG.warning("Could not find a sample with %r=True..."%flag)
   elif unique:
     if len(matches)>1:
-      LOG.warning("Found more than one signal sample. Using first match only: %s"%(", ".join([s.name for s in matches])))
+      LOG.warning("Found more than one signal sample. Using first match only: %s"%(", ".join([repr(s.name) for s in matches])))
     return matches[0]
   return matches
   
@@ -344,7 +345,7 @@ def stitch(samplelist,*searchterms,**kwargs):
     if len(stitchlist)==0:
       return samplelist
   name  = kwargs.get('name',stitchlist[0].name)
-  title = kwargs.get('title',stitchlist[0].title)
+  title = kwargs.get('title',gettitle(name,stitchlist[0].title))
   
   # FIND inclusive sample
   sample_incls = [s for s in stitchlist if s.match(name_incl)]

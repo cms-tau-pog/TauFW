@@ -9,30 +9,33 @@ from ROOT import TColor, kBlack, kWhite, kGray, kAzure, kBlue, kCyan,\
                  kOrange, kRed, kPink, kMagenta, kViolet
 
 sample_titles = {
-  'DY':        "Z + jets", #Drell-Yan
-  'ZTT':       "Z -> tau_{mu}tau_{h}",
-  'ZTT_DM0':   "Z -> tau_{mu}tau_{h}, h^{#pm}",
-  'ZTT_DM1':   "Z -> tau_{mu}tau_{h}, h^{#pm}#pi^{0}",
-  'ZTT_DM10':  "Z -> tau_{mu}tau_{h}, h^{#pm}h^{#mp}h^{#pm}",
-  'ZTT_DM11':  "Z -> tau_{mu}tau_{h}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}",
-  'ZTT_other': "Z -> tau_{mu}tau_{h}, other",
-  'ZL':        "Z -> ll, l -> tau_h", #"Drell-Yan with l -> tau_h",
-  'ZJ':        "Drell-Yan, j -> tau_h",
-  'Top':       "ttbar and single t",
-  'TT':        "ttbar",
-  'TTT':       "ttbar, real tau_h",
-  'TTJ':       "ttbar other",
-  'TTL':       "ttbar, l -> tau_h",
-  'ST':        "Single t",
-  'STT':       "Single t, real tau_h",
-  'STL':       "Single t, l -> tau_h",
-  'STJ':       "Single t other",
-  'VV':        "Diboson",
-  'W':         "W + jets",
-  'JTF':       "j -> tau_h fakes",
-  'QCD':       "QCD multijet",
-  'Data':      "Observed",
-  'data_obs':  "Observed",
+  'DY':         "Drell-Yan", # Z + jets
+  'DY_M50':     "Drell-Yan, M > 50 GeV",
+  'DY_M10to50': "Drell-Yan, 10 GeV < M < 50 GeV ",
+  'ZTT':        "Z -> tau_{mu}tau_{h}",
+  'ZTT_DM0':    "Z -> tau_{mu}tau_{h}, h^{#pm}",
+  'ZTT_DM1':    "Z -> tau_{mu}tau_{h}, h^{#pm}#pi^{0}",
+  'ZTT_DM10':   "Z -> tau_{mu}tau_{h}, h^{#pm}h^{#mp}h^{#pm}",
+  'ZTT_DM11':   "Z -> tau_{mu}tau_{h}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}",
+  'ZTT_other':  "Z -> tau_{mu}tau_{h}, other",
+  'ZL':         "Z -> ll, l -> tau_h", #"Drell-Yan with l -> tau_h",
+  'ZJ':         "Drell-Yan, j -> tau_h",
+  'Top':        "ttbar and single t",
+  'TT':         "ttbar",
+  'TTT':        "ttbar, real tau_h",
+  'TTJ':        "ttbar other",
+  'TTL':        "ttbar, l -> tau_h",
+  'ST':         "Single t",
+  'STT':        "Single t, real tau_h",
+  'STL':        "Single t, l -> tau_h",
+  'STJ':        "Single t other",
+  'VV':         "Diboson",
+  'W':          "W + jets",
+  'WJ':         "W + jets",
+  'JTF':        "j -> tau_h fakes",
+  'QCD':        "QCD multijet",
+  'Data':       "Observed",
+  'data_obs':   "Observed",
 }
 
 sample_colors = {
@@ -138,11 +141,13 @@ def getcolor(sample,color=kWhite,**kwargs):
   return color
   
 
-def gettitle(sample,**kwargs):
+def gettitle(sample,default=None,**kwargs):
   """Get title for some sample name."""
   if sample in sample_titles:
     LOG.verb("SampleStyle.gettitle: Found title %s for %r!"%(sample_titles[sample],sample),kwargs,level=3)
     sample = sample_titles[sample]
+  elif default:
+    sample = default
   else:
     LOG.warning("SampleStyle.gettitle: Could not find title for %r! Returning %r..."%(sample,sample))
   if kwargs.get('latex',False):

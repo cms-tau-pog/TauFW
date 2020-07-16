@@ -18,21 +18,44 @@ class Sample(object):
     and number of events
   - create and fill histograms from tree
   - split histograms into components (e.g. based on some (generator-level) selections)
+  Initialize as
+    Sample(str name, str filename )
+    Sample(str name, str title, str filename )
+    Sample(str name, str title, str filename, float xsec )
+    Sample(str name, str title, str filename, float xsec, int nevts )
   """
   
-  def __init__(self, name, title, filename, xsec=-1.0, **kwargs):
+  def __init__(self, name, *args, **kwargs):
     import TauFW.Plotter.sample.utils as GLOB
     LOG.setverbosity(kwargs)
+    title    = ""
+    filename = ""
+    xsec     = -1.0
+    nevts    = -1
+    strargs  = [a for a in args if isinstance(a,str)]
+    numargs  = [a for a in args if isnumber(a)]
+    if len(strargs)==1:
+      filename = strargs[0]
+    elif len(strargs)==2:
+      title    = strargs[0]
+      filename = strargs[1]
+    else:
+      LOG.throw(IOError,"Sample.__init__: Invalid arguments; no filename was given: %r"%(args,))
+    if len(numargs)==1:
+      xsec  = numargs[0]
+    elif len(numargs)>=2:
+      xsec  = numargs[0]
+      nevts = numargs[1]
     self.name         = name                            # short name to use for files, histograms, etc.
-    self.title        = title                           # title for histogram entries
-    self.xsec         = xsec                            # cross section in units of pb
+    self.title        = title or gettitle(name,name)    # title for histogram entries
     self.filename     = filename                        # file name with tree
+    self.xsec         = xsec                            # cross section in units of pb
     self.fnameshort   = os.path.basename(self.filename) # short file name for printing
     self._file        = None                            # TFile file
     self._tree        = None                            # TTree tree
     self.splitsamples = [ ]                             # samples when splitting into subsamples
     self.treename     = kwargs.get('tree',         None         ) or 'tree'
-    self.nevents      = kwargs.get('nevts',        -1           ) # "raw" number of events
+    self.nevents      = kwargs.get('nevts',        nevts        ) # "raw" number of events
     self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed for check for missing events
     self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum weights
     self.binnevts     = kwargs.get('binnevts',     None         ) or 1  # cutflow bin with total number of (unweighted) events
@@ -662,14 +685,16 @@ class Sample(object):
     if not terms:
       return False
     found  = True
-    regex  = kwargs.get('regex', False   ) # use regexpr patterns
-    incl   = kwargs.get('incl',  True    ) # match only one term
-    start  = kwargs.get('start', False   ) # match only beginning
+    regex  = kwargs.get('regex', False   ) # use regexpr patterns (instead of glob)
+    incl   = kwargs.get('incl',  True    ) # match only at least one term
+    start  = kwargs.get('start', False   ) # match only beginning of string
     labels = [self.name,self.title]+self.tags
     for searchterm in terms:
-      if not regex:
-        searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm) # replace + with \+
-        searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
+      if not regex: # convert glob to regexp
+        #fnmatch.translate( '*.foo' )
+        #searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm)   # replace + with \+
+        #searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
+        searchterm = re.escape(searchterm).replace(r'\?', '.').replace(r'\*', '.*?')
       if start:
         searchterm = '^'+searchterm
       if incl: # inclusive: match only one search term
