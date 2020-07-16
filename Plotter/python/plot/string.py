@@ -101,7 +101,7 @@ def makelatex(string,**kwargs):
     if "mt_" in strlow:
       string = re.sub(r"(m)t_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
       GeV    = True
-    if re.search(r"(?<!weig)(?<!daug)ht",strlow):
+    if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow):
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     if " d_" in strlow:

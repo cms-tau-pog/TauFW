@@ -59,7 +59,18 @@ def main():
     'pt_1 / pt_2',
     'pt_1 + pt_2',
     'min(pt_1,pt_2)',
+    'mt(mu,tau)',
   ],tag='_recursive')
+  checklatex([
+    'mutau',
+    'etau',
+    'tautau',
+    'mutau_h',
+    'tau_htau_h',
+    'tau_{h}tau_{h}',
+    'mutau: baseline',
+    'tau_{h}tau_{h}: baseline',
+  ],tag='_text')
   
 
 if __name__ == "__main__":

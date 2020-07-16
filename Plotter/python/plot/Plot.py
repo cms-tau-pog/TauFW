@@ -786,7 +786,7 @@ class Plot(object):
     tsize      = kwargs.get('tsize',    _lsize    ) # text size
     theight    = kwargs.get('theight',  None      ) or 1
     bold       = kwargs.get('bold',     False     ) # bold text
-    dolatex    = kwargs.get('latex',    False     ) # automatically format strings as LaTeX
+    dolatex    = kwargs.get('latex',    True      ) # automatically format strings as LaTeX
     xuser      = kwargs.get('x',        None      ) # horizontal position
     yuser      = kwargs.get('y',        None      ) # vertical position
     align_user = kwargs.get('align',    None      ) # text line
