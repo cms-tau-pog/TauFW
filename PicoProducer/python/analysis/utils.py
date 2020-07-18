@@ -153,7 +153,34 @@ def idIso(tau):
   return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
   
 
-def getLeptonVetoes(event, electrons, muons, taus, channel):
+def matchgenvistau(event,tau,dRmin=0.5):
+  """Help function to match tau object to gen vis tau."""
+  # TO CHECK: taumatch.genPartIdxMother==tau.genPartIdx ?
+  taumatch = None
+  for genvistau in Collection(event,'GenVisTau'):
+    dR = genvistau.DeltaR(tau)
+    if dR<dRmin:
+      dRmin    = dR
+      taumatch = genvistau
+  if taumatch:
+    return taumatch.pt, taumatch.eta, taumatch.phi, taumatch.status
+  else:
+    return -1, -9, -9, -1
+  
+
+def matchtaujet(event,tau,ismc):
+  """Help function to match tau object to (gen) jet."""
+  jpt_match    = -1
+  jpt_genmatch = -1
+  if tau.jetIdx>=0:
+    jpt_match = event.Jet_pt[tau.jetIdx]
+    if ismc:
+      if event.Jet_genJetIdx[tau.jetIdx]>=0:
+        jpt_genmatch = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
+  return jpt_match, jpt_genmatch
+
+
+def getlepvetoes(event, electrons, muons, taus, channel):
   """Check if event has extra electrons or muons. (HTT definitions.)"""
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorkingLegacyRun2#Common_lepton_vetoes
   

@@ -221,6 +221,12 @@ class TrigObjMatcher:
   """Class to contain trigger filter(s)."""
   
   def __init__(self,triggers,**kwargs):
+    
+    # TRIGGERS
+    trigger = kwargs.get('trigger',None) # type of trigger: 'ditau', 'SingleMuon', ...
+    if isinstance(triggers,str) and trigger: # JSON file
+      trigdata = loadTriggerDataFromJSON(triggers,isdata=kwargs.get('isdata',True))
+      triggers = trigdata.combdict[trigger]
     if not isinstance(triggers,list):
       triggers = [triggers]
     assert triggers and all(isinstance(t,Trigger) for t in triggers),\

@@ -2,15 +2,12 @@
 # Description: Simple module to pre-select mutau events
 import sys
 import numpy as np
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
-from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from TauFW.PicoProducer import datadir
 from TauFW.PicoProducer.analysis.TreeProducerETau import *
 from TauFW.PicoProducer.analysis.ModuleTauPair import *
-from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso
+from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, matchgenvistau, matchtaujet
 from TauFW.PicoProducer.corrections.ElectronSFs import *
-from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
+from TauFW.PicoProducer.corrections.TrigObjMatcher import TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
@@ -23,8 +20,7 @@ class ModuleETau(ModuleTauPair):
     
     # TRIGGERS
     jsonfile       = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
-    trigdata       = loadTriggerDataFromJSON(jsonfile,isdata=self.isdata)
-    self.trigger   = TrigObjMatcher(trigdata.combdict['SingleElectron'])
+    self.trigger   = TrigObjMatcher(jsonfile,trigger='SingleElectron',isdata=self.isdata)
     self.eleCutPt  = self.trigger.ptmins[0]
     self.tauCutPt  = 20
     self.eleCutEta = 2.3
@@ -114,6 +110,9 @@ class ModuleETau(ModuleTauPair):
       if abs(tau.dz)>0.2: continue
       if tau.decayMode not in [0,1,10,11]: continue
       if abs(tau.charge)!=1: continue
+      if tau.idDeepTau2017v2p1VSe<1: continue  # VVVLoose
+      if tau.idDeepTau2017v2p1VSmu<1: continue # VLoose
+      #if tau.idDeepTau2017v2p1VSmu<1: continue # VVVLoose
       if self.ismc:
         genmatch = tau.genPartFlav
         if genmatch==5: # real tau
@@ -132,8 +131,6 @@ class ModuleETau(ModuleTauPair):
           tau.pt   *= self.jtf
           tau.mass *= self.jtf
       if tau.pt<self.tauCutPt: continue
-      if tau.idDeepTau2017v2p1VSe<1: continue
-      if tau.idDeepTau2017v2p1VSmu<1: continue
       taus.append(tau)
     if len(taus)==0:
       return False
@@ -157,8 +154,8 @@ class ModuleETau(ModuleTauPair):
     
     
     # VETOS
-    extramuon_veto, extraelec_veto, dilepton_veto = getLeptonVetoes(event,[electron],[ ],[tau],self.channel)
-    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getLeptonVetoes(event,[electron],[ ],[ ],self.channel)
+    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[electron],[ ],[tau],self.channel)
+    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[electron],[ ],[ ],self.channel)
     self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] or self.out.dilepton_veto[0]
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto
     

@@ -44,6 +44,9 @@ class TreeProducerTauPair(TreeProducer):
       self.addBranch('weight',            'f', 1., title="weight combining others (to reduce selection string length)")
       self.addBranch('genweight',         'f', 1.)
       self.addBranch('trigweight',        'f', 1.)
+      if not module.dotight:
+        self.addBranch('trigweightUp',    'f', 1.)
+        self.addBranch('trigweightDown',  'f', 1.)
       self.addBranch('puweight',          'f', 1., title="pileup up reweighting")
       self.addBranch('zptweight',         'f', 1., title="Z pT reweighting")
       self.addBranch('ttptweight',        'f', 1., title="top pT reweighting")
@@ -79,29 +82,8 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('bpt_2',               'f')
     self.addBranch('beta_2',              'f')
     
-    ###for unc in module.jecUncLabels:
-    ###  unc  = '_'+unc
-    ###  unc2 = unc.replace('Total','') # shorthand
-    ###  self.addBranch('njets'+unc2,         'i', arrname='njets'+unc        )
-    ###  self.addBranch('njets50'+unc2,       'i', arrname='njets50'+unc      )
-    ###  self.addBranch('nbtag50'+unc2,       'i', arrname='nbtag50'+unc      )
-    ###  self.addBranch('nbtag50_loose'+unc2, 'i', arrname='nbtag50_loose'+unc)
-    ###  self.addBranch('jpt_1'+unc2,         'f', arrname='jpt_1'+unc        )
-    ###  self.addBranch('jpt_2'+unc2,         'f', arrname='jpt_2'+unc        )
-    
     self.addBranch('met',                 'f')
     self.addBranch('metphi',              'f')
-    ###self.addBranch('puppimet',            'f')
-    ###self.addBranch('puppimetphi',         'f')
-    ###self.addBranch('metsignificance',     'f')
-    ###self.addBranch('mvacov00',            'f')
-    ###self.addBranch('mvacov01',            'f')
-    ###self.addBranch('mvacov11',            'f')
-    ###for unc in module.metUncLabels:
-    ###  unc = '_'+unc
-    ###  unc2 = unc.replace('Total','') # shorthand
-    ###  self.addBranch('met'+unc2,          'f', arrname='met'+unc,  )
-    ###  self.addBranch('metphi'+unc2,       'f', arrname='metphi'+unc)
     
     if module.ismc:
       self.addBranch('genmet',            'f', -1)
@@ -124,11 +106,6 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('pzetavis',            'f')
     self.addBranch('dzeta',               'f')
     self.addBranch('chi',                 'f', title="exp|y_2-y_1|")
-    
-    ###for unc in module.metUncLabels:
-    ###  unc = '_'+unc
-    ###  self.addBranch('mt_1'+unc,          'f')
-    ###  self.addBranch('dzeta'+unc,         'f')
     
     self.addBranch('dilepton_veto',       '?')
     self.addBranch('extraelec_veto',      '?')

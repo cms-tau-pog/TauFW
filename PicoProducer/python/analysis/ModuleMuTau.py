@@ -2,12 +2,9 @@
 # Description: Simple module to pre-select mutau events
 import sys
 import numpy as np
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
-from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from TauFW.PicoProducer.analysis.TreeProducerMuTau import *
 from TauFW.PicoProducer.analysis.ModuleTauPair import *
-from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso
+from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, matchgenvistau, matchtaujet
 from TauFW.PicoProducer.corrections.MuonSFs import *
 #from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
@@ -102,7 +99,7 @@ class ModuleMuTau(ModuleTauPair):
       if abs(muon.dxy) > 0.045: continue
       if not muon.mediumId: continue
       if muon.pfRelIso04_all>0.50: continue
-      muons.append(muon)    
+      muons.append(muon)
     if len(muons)==0:
       return False
     self.out.cutflow.fill('muon')
@@ -115,6 +112,9 @@ class ModuleMuTau(ModuleTauPair):
       if abs(tau.dz)>0.2: continue
       if tau.decayMode not in [0,1,10,11]: continue
       if abs(tau.charge)!=1: continue
+      if tau.idDeepTau2017v2p1VSe<1: continue # VVVLoose
+      if tau.idDeepTau2017v2p1VSmu<1: continue # VLoose
+      #if tau.idDeepTau2017v2p1VSjet<1: continue # VVVLoose
       if self.ismc:
         genmatch = tau.genPartFlav
         if genmatch==5: # real tau
@@ -133,8 +133,6 @@ class ModuleMuTau(ModuleTauPair):
           tau.pt   *= self.jtf
           tau.mass *= self.jtf
       if tau.pt<self.tauCutPt: continue
-      if tau.idDeepTau2017v2p1VSe<1: continue
-      if tau.idDeepTau2017v2p1VSmu<1: continue
       taus.append(tau)
     if len(taus)==0:
       return False
@@ -157,8 +155,8 @@ class ModuleMuTau(ModuleTauPair):
     
     
     # VETOS
-    extramuon_veto, extraelec_veto, dilepton_veto = getLeptonVetoes(event,[ ],[muon],[tau],self.channel)
-    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getLeptonVetoes(event,[ ],[muon],[ ],self.channel)
+    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon],[tau],self.channel)
+    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[muon],[ ],self.channel)
     self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] or self.out.dilepton_veto[0]
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto
     
@@ -217,36 +215,16 @@ class ModuleMuTau(ModuleTauPair):
     if self.ismc:
       self.out.genmatch_1[0] = muon.genPartFlav
       self.out.genmatch_2[0] = tau.genPartFlav
-      dRmin    = 0.5
-      taumatch = None
-      for genvistau in Collection(event,'GenVisTau'):
-        dR = genvistau.DeltaR(tau)
-        if dR<dRmin:
-          dRmin    = dR
-          taumatch = genvistau
-      if taumatch:
-        self.out.genvistaupt_2[0]  = taumatch.pt
-        self.out.genvistaueta_2[0] = taumatch.eta
-        self.out.genvistauphi_2[0] = taumatch.phi
-        self.out.gendm_2[0]        = taumatch.status
-      else:
-        self.out.genvistaupt_2[0]  = -1
-        self.out.genvistaueta_2[0] = -9
-        self.out.genvistauphi_2[0] = -9
-        self.out.gendm_2[0]        = -1
+      pt, phi, eta, status   = matchgenvistau(event,tau)
+      self.out.genvistaupt_2[0]  = pt
+      self.out.genvistaueta_2[0] = eta
+      self.out.genvistauphi_2[0] = phi
+      self.out.gendm_2[0]        = status
     
     
     # JETS
     jets, met, njets_vars, met_vars = self.fillJetBranches(event,muon,tau)
-    if tau.jetIdx>=0:
-      self.out.jpt_match_2[0] = event.Jet_pt[tau.jetIdx]
-      if self.ismc:
-        if event.Jet_genJetIdx[tau.jetIdx]>=0:
-          self.out.jpt_genmatch_2[0] = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
-        else:
-          self.out.jpt_genmatch_2[0] = -1
-    else:
-      self.out.jpt_match_2[0] = -1
+    self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau,self.ismc)
     
     
     # WEIGHTS

@@ -229,7 +229,7 @@ def main_link(args):
     CONFIG[varkey] = { }
   LOG.insist(isinstance(CONFIG[varkey],dict),"%s in %s has to be a dictionary"%(varkey,cfgname))
   oldval = value
-  for char in '/\,:;!?\'"':
+  for char in '/\,:;!?\'" ':
     if char in key:
       LOG.throw(IOError,"Given key '%s', but keys cannot contain any of these characters: %s"%(key,char))
   if varkey=='channels':
@@ -243,7 +243,6 @@ def main_link(args):
         value = value.split('python/analysis/')[-1].replace('/','.')
       value = value.rstrip('.py')
       path  = os.path.join('python/analysis/','/'.join(value.split('.')[:-1]))
-      print path
       ensureinit(path,by="pico.py")
       ensuremodule(value)
   elif varkey=='eras':

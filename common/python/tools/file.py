@@ -119,25 +119,25 @@ def ensureinit(*paths,**kwargs):
       file.write("# Generated%s to allow import of the sample list modules\n"%(script))
   
 
-#def extractTH1(file,histname,setdir=True,close=None):
-#  """Get histogram from a given file."""
-#  if isinstance(file,str):
-#    file = ensuretfile(file)
-#    if close==None: close = True
-#  if not file or file.IsZombie():
-#    raise OSError('Could not open file!')
-#    exit(1)
-#  hist = file.Get(histname)
-#  if not hist:
-#    raise OSError('Did not find histogram "%s" in file %s!'%(histname,file.GetName()))
-#    exit(1)
-#  if (close or setdir) and isinstance(hist,TH1):
-#    hist.SetDirectory(0)
-#  if close:
-#    file.Close()
-#  return hist
-#  
-#
+def gethist(file,histname,setdir=True,close=None):
+  """Get histogram from a given file."""
+  if isinstance(file,str):
+    file = ensureTFile(file)
+    if close==None: close = True
+  if not file or file.IsZombie():
+    raise OSError('Could not open file!')
+    exit(1)
+  hist = file.Get(histname)
+  if not hist:
+    raise OSError('Did not find histogram %r in file %s!'%(histname,file.GetName()))
+    exit(1)
+  if (close or setdir) and isinstance(hist,ROOT.TH1):
+    hist.SetDirectory(0)
+  if close:
+    file.Close()
+  return hist
+  
+
 #def ensureTFileAndTH1(filename,histname,verbose=True,setdir=True):
 #  """Open a TFile and get a histogram."""
 #  if verbose:

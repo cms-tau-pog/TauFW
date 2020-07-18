@@ -11,7 +11,7 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 #from TauFW.PicoProducer.corrections.PreFireTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
-from TauFW.PicoProducer.analysis.utils import ensurebranches, deltaPhi, getmet, getmetfilters, correctmet, getLeptonVetoes
+from TauFW.PicoProducer.analysis.utils import ensurebranches, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes
 __metaclass__ = type # to use super() with subclasses from CommonProducer
 tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco' }
 
