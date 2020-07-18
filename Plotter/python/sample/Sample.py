@@ -101,7 +101,7 @@ class Sample(object):
       print ">>> %s"%(title)
     name  = "Sample name".ljust(justname)
     title = "title".ljust(justtitle)
-    print ">>> \033[4m%s %s %12s %12s %13s %9s  %s\033[0m"%(
+    print ">>> \033[4m%s %s %10s %12s %15s %9s  %s\033[0m"%(
                name,title,"xsec [pb]","nevents","sumweights","norm","weight"+' '*8)
   
   def printrow(self,**kwargs):
@@ -111,7 +111,7 @@ class Sample(object):
     """Returns string that can be used as a row in a samples summary table"""
     name  = self.name.ljust(justname-indent)
     title = self.title.ljust(justtitle)
-    return ">>> %s%s %s %12.2f %12.1f %13.2f %9.3f  %s"%(
+    return ">>> %s%s %s %10.2f %12.1f %15.2f %9.3f  %s"%(
             pre,name,title,self.xsec,self.nevents,self.sumweights,self.norm,self.extraweight)
   
   def printobjs(self,title=""):
@@ -125,9 +125,23 @@ class Sample(object):
       for sample in self.splitsamples:
         sample.printobjs(title+"    ")
   
-  def getmaxnamelen(self,indent=0):
+  def get_max_name_len(self,indent=0):
     """Help function for SampleSet.printtable to make automatic columns."""
+    if isinstance(self,MergedSample):
+      namelens = [len(self.name)]
+      for sample in self.samples:
+        namelens.append(indent+sample.get_max_name_len(indent=indent+3))
+      return max(namelens)
     return indent+len(self.name)
+  
+  def get_max_title_len(self):
+    """Help function for SampleSet.printtable to make automatic columns."""
+    if isinstance(self,MergedSample):
+      namelens = [len(self.title)]
+      for sample in self.samples:
+        namelens.append(sample.get_max_title_len())
+      return max(namelens)
+    return len(self.title)
   
   @property
   def file(self):

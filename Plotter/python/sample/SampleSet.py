@@ -83,8 +83,8 @@ class SampleSet(object):
     import TauFW.Plotter.sample.utils as GLOB
     if not title:
       print ">>>\n>>> Samples with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(GLOB.lumi)
-    justname  = 3+max(s.getmaxnamelen() for s in self.samples)
-    justtitle = 3+max(len(s.title) for s in self.samples)
+    justname  = 2+max(s.get_max_name_len() for s in self.samples)
+    justtitle = 2+max(s.get_max_title_len() for s in self.samples)
     Sample.printheader(title,justname=justname,justtitle=justtitle)
     for sample in self.samples:
       sample.printrow(justname=justname,justtitle=justtitle)
@@ -393,6 +393,9 @@ class SampleSet(object):
     sigkwargs  = { 'tag':tag, 'weight': weight, 'replaceweight': replaceweight, 'verbosity': verbosity, 'scaleup': scaleup }
     datakwargs = { 'tag':tag, 'weight': dataweight, 'verbosity': verbosity, 'blind': blind, 'parallel': parallel }
     result     = HistSet(variables,dodata,doexp,dosignal) # container for dictionaries of histogram (list): data, exp, signal
+    if not variables:
+      LOG.warning("Sample.gethists: No variables to make histograms for...")
+      return result
     
     # PRINT
     bar = None
@@ -526,6 +529,9 @@ class SampleSet(object):
     sigkwargs  = { 'tag':tag, 'weight': weight, 'verbosity': verbosity }
     datakwargs = { 'tag':tag, 'weight': dataweight, 'verbosity': verbosity }
     result     = HistSet(variables,dodata,doexp,dosignal)
+    if not variables:
+      LOG.warning("Sample.gethists: No variables to make histograms for...")
+      return result
     
     # FILTER
     samples = [ ]

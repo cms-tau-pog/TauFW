@@ -47,6 +47,19 @@ def checklatex(texts,tag=""):
 def main():
   
   checklatex([
+    'pt','pT','PT','p_t','p_T','P_t','P_T',
+    "Forward jet pt", "Forward jet pt (|eta|<2.5)",
+    "Forward jet eta", "Forward jet eta (pt>30)", "Forward jet eta (pt > 30 GeV)",
+  ],tag='_pt')
+  checklatex([
+    'mt','mT','MT','m_t','m_T','M_t','M_T',
+  ],tag='_mt')
+  checklatex([
+    'st','sT','ST','s_t','s_T','S_t','S_T',
+    'stmet','STMET',
+    'pt_1+pt_2+jpt_1', 'pt_1+pt_2+jpt_1+met'
+  ],tag='_st')
+  checklatex([
     'Z -> tautau',
     'Z -> tautau_h',
     'Z -> tau_htau_h',

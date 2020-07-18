@@ -2,11 +2,26 @@
 # Author: Izaak Neutelings (July 2020)
 # Description: Test SampleStyle.py
 #   test/testStyle.py -v2
-from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir
+from TauFW.Plotter.sample.utils import LOG, STYLE, CMSStyle, ensuredir, ensurelist
 #import TauFW.Plotter.sample.SampleStyle as STYLE
 from ROOT import TCanvas, TLegend, gStyle, TH1F, kBlack
 gStyle.SetErrorX(0)
 
+
+def testCMSera():
+  """Test setCMSera"""
+  LOG.header("testCMSera")
+  erasets = [
+   '7', '8', '2012', (7,8),
+   2016, 2017, 2018, (2016,2017,2018), 'Run2',
+   'Phase2',
+  ]
+  for eras in erasets:
+    eras   = ensurelist(eras)
+    args   = ','.join(repr(y) for y in eras)
+    result = CMSStyle.setCMSEra(*eras)
+    print ">>> CMSStyle.setCMSera(%s) = %r"%(args,result)
+  
 
 def checklegend(samples,tag=""):
   """Check legend entries: colors, titles, ..."""
@@ -51,7 +66,8 @@ def checklegend(samples,tag=""):
   
 
 def main():
-
+  
+  testCMSera()
   checklegend([
     'Data',
     'DY', #ZTT', 'ZL', 'ZJ',

@@ -21,6 +21,8 @@ extraOverCmsTextSize = 0.78
 relPosX        = 0.045
 relPosY        = 0.035
 relExtraDY     = 1.2
+drawLogo       = False
+outOfFrame     = False
 lumi_dict      = {
   '7':      5.1,    '2016': 35.9,
   '8':      19.7,   '2017': 41.5,
@@ -35,9 +37,13 @@ cme_dict       = {
   'Run2':   13,
   'Phase2': 14,
 }
-drawLogo    = False
-outOfFrame  = False
-
+era_dict       = {
+  '7':      "",         'Run1': "Run 1",
+  '8':      "",         'Run2': "Run 2",
+  '13':     "Run 2",    'Run3': "Run 3",
+  'Phase1': "Phase I",
+  'Phase2': "Phase II",
+}
 
 def setCMSEra(*eras,**kwargs):
   global cmsText, extraText, lumiText
@@ -48,13 +54,15 @@ def setCMSEra(*eras,**kwargs):
   strings   = [ ]
   for era in eras:
     era     = str(era)
-    string  = era
+    string  = era_dict.get(era,   era   )
     lumi    = lumi_dict.get(era,  False )
     cme     = cme_dict.get(era,   False )
     lumi    = kwargs.get('lumi',  lumi  )
     cme     = kwargs.get('cme',   cme   )
     if lumi:
-      string += ", %s fb^{-1}"%(lumi)
+      if string:
+        string += ", "
+      string += "%s fb^{-1}"%(lumi)
     if cme:
       string += " (%s TeV)"%(cme)
     strings.append(string)

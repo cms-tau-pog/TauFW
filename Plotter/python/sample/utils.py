@@ -82,7 +82,8 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     datakwargs.update(newkwargs)
   else:
     LOG.throw(IOError,"Did not recognize data row %s"%(datasample))
-  fnames   = glob.glob(repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel))
+  fpattern = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel)
+  fnames   = glob.glob(fpattern)
   #print fnames
   if len(fnames)==1:
     datasample = Data(name,title,fnames)
@@ -95,7 +96,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
       #print setname
       datasample.add(Data(setname,'Observed',fname,**datakwargs))
   else:
-    LOG.throw(IOError,"Did not find data file %r"%(fnames))
+    LOG.throw(IOError,"Did not find data file %r"%(fpattern))
   
   # SAMPLE SET
   sampleset = SampleSet(datasample,expsamples,sigsamples,**kwargs)
@@ -331,7 +332,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   name_incl = kwargs.get('incl',    searchterms[0] ) # name of inclusive sample
   xsec_incl = kwargs.get('xsec',    None           ) # (N)NLO cross section to compute k-factor
   kfactor   = kwargs.get('kfactor', None           ) # k-factor
-  npartvar  = kwargs.get('npart',   'NUP'          ) # variable name of number of partons
+  npartvar  = kwargs.get('npart',   'NUP'          ) # variable name of number of partons; 'NUP', 'LHE_Njets', ...
   LOG.verbose("stitch: rescale, reweight and merge %r samples"%(name),verbosity,level=1)
   
   # GET list samples to-be-stitched

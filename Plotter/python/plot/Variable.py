@@ -13,12 +13,12 @@ from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist, unwrapli
 class Variable(object):
   """
   Variable class to:
-     - hold all relevant information of a variable that will be plotted;
-         var name, filename friendly name, LaTeX friendly title, binning, ...
-     - allow for variable binning into TH1
-     - allow for contextual binning, i.e. depending on channel/selection/...
-     - easy string conversions: filename, LaTeX, ...
-     - analysis-specific operations: applying variations, ...
+   - hold all relevant information of a variable that will be plotted;
+       var name, filename friendly name, LaTeX friendly title, binning, ...
+   - allow for variable binning into TH1
+   - allow for contextual binning, i.e. depending on channel/selection/...
+   - easy string conversions: filename, LaTeX, ...
+   - analysis-specific operations: applying variations, ...
   """
   
   def __init__(self, name, *args, **kwargs):
@@ -28,7 +28,8 @@ class Variable(object):
     self.title        = strings[0] if strings else self.name
     self.filename     = makefilename(self.name.replace('/',"_"))
     self.title        = kwargs.get('title',       self.title    ) # for plot axes
-    self.filename     = kwargs.get('fname',       self.filename ) # for file
+    self.filename     = kwargs.get('fname',       self.filename )
+    self.filename     = kwargs.get('filename',    self.filename ) # name for files, histograms
     self.filename     = self.filename.replace('$NAME',self.name).replace('$VAR',self.name) #.replace('$FILE',self.filename)
     self.tag          = kwargs.get('tag',         ""            )
     self.units        = kwargs.get('units',       True          ) # for plot axes
@@ -41,7 +42,7 @@ class Variable(object):
     self.weight       = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
     self.dataweight   = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
     self.setbins(*args)
-    self.dividebins   = kwargs.get('dividebins', self.hasvariablebins() ) # divide each histogram bins by it bin size
+    self.dividebins   = kwargs.get('dividebins', self.hasvariablebins() ) # divide each histogram bins by it bin size (done in Plot.draw)
     self.data         = kwargs.get('data',        True          ) # also draw data
     self.flag         = kwargs.get('flag',        ""            ) # flag, e.g. 'up', 'down', ...
     self.binlabels    = kwargs.get('labels',      [ ]           ) # bin labels for x axis

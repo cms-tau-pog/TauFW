@@ -6,7 +6,7 @@ import re
 from TauFW.Plotter.sample.utils import LOG, STYLE, setera, ensuredir,\
                                        getsampleset, Var
 
-def makesamples(channel,era,fpattern):
+def makesamples(channel,era,fname):
   LOG.header("makesamples")
   weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2" 
   expsamples = [ # table of MC samples to be converted to Sample objects
@@ -36,7 +36,7 @@ def makesamples(channel,era,fpattern):
   }
   
   # SAMPLE SET
-  sampleset = getsampleset(datasamples,expsamples,channel=channel,era=era,file=fpattern,weight=weight)
+  sampleset = getsampleset(datasamples,expsamples,channel=channel,era=era,file=fname,weight=weight)
   sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'     ) #title="W + jets"
   sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50" ) #title="Drell-Yan, M > 50 GeV"
   #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M10to50" )

@@ -60,19 +60,12 @@ class MergedSample(Sample):
     norm   = "%.3f"%self.norm
     name   = self.name.ljust(justname-indent)
     title  = self.title.ljust(justtitle)
-    string = ">>> %s%s %s %12s %12s %13s %9s  %s" %\
+    string = ">>> %s%s %s %10s %12s %15s %9s  %s" %\
              (pre,name,title,xsec,nevts,sumw,norm,self.extraweight)
     for i, sample in enumerate(self.samples):
       subpre  = ' '*indent+("├─ " if i<len(self.samples)-1 else "└─ ")
       string += "\n" + sample.row(pre=subpre,indent=indent+3,justname=justname,justtitle=justtitle)
     return string
-  
-  def getmaxnamelen(self,indent=0):
-    """Help function for SampleSet.printtable to make automatic columns."""
-    namelens = [len(self.name)]
-    for sample in self.samples:
-      namelens.append(indent+sample.getmaxnamelen(indent=indent+3))
-    return max(namelens)
   
   def clone(self,*args,**kwargs):
     """Shallow copy."""

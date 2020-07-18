@@ -91,9 +91,11 @@ title (e.g. `Leading p_{T} [GeV]`) and the binning (`nbins,xmin,xmax` or a list 
 ```
 from TauFW.Plotter.plot.Variable import Variable
 variables = [
-  Variable('pt_1',  "p_{T} [GeV]",   40, 0,200),
-  Variable('m_vis', "m_{vis} [GeV]", [0,20,40,50,60,65,70,75,80,85,90,100,120,150]),
+  Variable('pt_1',  "p_{T}",   40, 0,200),
+  Variable('m_vis', "m_{vis}", [0,20,40,50,60,65,70,75,80,85,90,100,120,150]),
   Variable('njets', "Number of jets", 8, 0,  8),
+  Variable('nbtag', "Number of b jets", 8, 0,  8, weight="btagweight"),
+  Variable('pt_1+pt_2+jpt_1', "S_{T}", 40, 0, 800, cut="jpt_1>50", fname="ST"),
 ]
 ```
 A `Variable` object can contain a lot of information, passed as key-word arguments that are
@@ -161,10 +163,19 @@ hist = sample.gethist(var,"pt_1>30 && pt_2>30")
 ```
 To speed up things, it can create histograms in parallel with [`MultiDraw`](python/plot/MultiDraw.py):
 ```
+vars = [
+  Variable('m_vis', 40,0,200),
+  Variable('nbtags', 8,0,  8, weight="btagweight"),
+  Variable('jpt_1', 40,0,200, cut="abs(jeta_1)<2.5", title="Forward jet pt"),
+]
 hists = sample.gethist(vars,"pt_1>30 && pt_2>30")
 ```
 where `vars` is a list of variables as above, and the returned `hists` is a list of `TH1D`s.
 Similarly, `Sample.gethist2D` is available for 2D histograms (`TH2D`).
+With `Variable` objects, you can include extra cuts or weights that are variable-specific.
+In the example above, the `btagweight` weight will only be applied to `nbtags`,
+and the `jpt_1>0` cut only to `jpt_1`.
+
 
 ### Splitting
 You can also split samples into different components (e.g. real/misidentified, or decay mode)

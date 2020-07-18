@@ -4,28 +4,28 @@ import re
 from TauFW.Plotter.plot.utils import LOG
 
 var_dict = {
-    'njets':       "Number of jets",          'njets20':     "Number of jets (pt>20 GeV)",
-    'nfjets':      "Number of forward jets",  'nfjets20':    "Number of forward jets (pt>20 GeV)",
-    'ncjets':      "Number of central jets",  'ncjets20':    "Number of central jets (pt>20 GeV)",
-    'nbtag':       "Number of b tagged jets", 'nbtag20':     "Number of b tagged jets (pt>20 GeV)",
-    'jpt_1':       "Leading jet pt",          'jpt_2':       "Subleading jet pt",
-    'bpt_1':       "Leading b jet pt",        'bpt_2':       "Subleading b jet pt",
-    'jeta_1':      "Leading jet eta",         'jeta_2':      "Subleading jet eta",
-    'beta_1':      "Leading b jet eta",       'beta_2':      "Subleading b jet eta",
-    'jphi_1':      "Leading jet phi",         'bphi_1':      "Subleading jet phi",
-    'jphi_2':      "Leading b jet phi",       'bphi_2':      "Subleading b jet phi",
-    'met':         "p_{T}^{miss}",
-    'metphi':      "MET phi",
-    'pt_1':        "Lepton pt",               'pt_2':        "tau_h pt",
-    'eta_1':       "Lepton eta",              'eta_2':       "tau_h eta",
-    'mt_1':        "m_t(l,MET)",              'mt_2':        "m_t(tau,MET)",
-    'dzeta':       "D_{zeta}",
-    'pzetavis':    "p_{zeta}^{vis}",
-    'pzetamiss':   "p_{zeta}^{miss}",
-    'DM0':         "h^{#pm}",
-    'DM1':         "h^{#pm}h^{0}",
-    'DM10':        "h^{#pm}h^{#mp}h^{#pm}",
-    'DM11':        "h^{#pm}h^{#mp}h^{#pm}h^{0}",
+    'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",
+    'nfjets':    "Number of forward jets",  'nfjets20': "Number of forward jets (pt>20 GeV)",
+    'ncjets':    "Number of central jets",  'ncjets20': "Number of central jets (pt>20 GeV)",
+    'nbtag':     "Number of b tagged jets", 'nbtag20':  "Number of b tagged jets (pt>20 GeV)",
+    'jpt_1':     "Leading jet pt",          'jpt_2':    "Subleading jet pt",
+    'bpt_1':     "Leading b jet pt",        'bpt_2':    "Subleading b jet pt",
+    'jeta_1':    "Leading jet eta",         'jeta_2':   "Subleading jet eta",
+    'beta_1':    "Leading b jet eta",       'beta_2':   "Subleading b jet eta",
+    'jphi_1':    "Leading jet phi",         'bphi_1':   "Subleading jet phi",
+    'jphi_2':    "Leading b jet phi",       'bphi_2':   "Subleading b jet phi",
+    'met':       "p_{T}^{miss}",
+    'metphi':    "MET phi",
+    'pt_1':      "Lepton pt",               'pt_2':     "tau_h pt",
+    'eta_1':     "Lepton eta",              'eta_2':    "tau_h eta",
+    'mt_1':      "m_t(l,MET)",              'mt_2':     "m_t(tau,MET)",
+    'dzeta':     "D_{zeta}",                'pt_1+pt_2+jpt_1':     "S_{T}^{MET}",
+    'pzetavis':  "p_{zeta}^{vis}",          'pt_1+pt_2+jpt_1+met': "S_{T}^{MET}",
+    'pzetamiss': "p_{zeta}^{miss}",         'stmet':    "S_{T}^{MET}",
+    'DM0':       "h^{#pm}",                 'STMET':    "S_{T}^{MET}",
+    'DM1':       "h^{#pm}h^{0}",
+    'DM10':      "h^{#pm}h^{#mp}h^{#pm}",
+    'DM11':      "h^{#pm}h^{#mp}h^{#pm}h^{0}",
 }
 var_dict_sorted = sorted(var_dict,key=lambda x: len(x),reverse=True)
 
@@ -85,7 +85,7 @@ def makelatex(string,**kwargs):
     kwargs['units'] = False
     string = '+'.join(makelatex(s,**kwargs) for s in string.split('+'))
   else:
-    strlow = string.lower()
+    strlow = string.lower().strip()
     if "p_" in strlow:
       string = re.sub(r"(?<!i)(p)_([^{}()|<>=\ ]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
       GeV    = True
@@ -93,16 +93,21 @@ def makelatex(string,**kwargs):
       string = re.sub(r"(?<!k)(?<!Dee)(?<!OverTau)(p)[tT]_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
       string = re.sub(r"\b(?<!Dee)(p)[tT]\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
-    if strlow.strip()=="mt":
+    if strlow=="mt":
       string = re.sub(r"(m)(t)",r"\1_{T}",string,flags=re.IGNORECASE)
-    if "m_" in strlow:
+      GeV    = True
+    elif "m_" in strlow:
       string = re.sub(r"(?<!u)(m)_([^{}()|<>=\ \^]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
       GeV    = True
-    if "mt_" in strlow:
+    elif "mt_" in strlow:
       string = re.sub(r"(m)t_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
       GeV    = True
-    if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow):
+    if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow): # HT
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
+      GeV    = True
+    if strlow[0]=='s' and 't' in strlow[1:3]: # scalar sum pT
+      string = re.sub(r"s_?t",r"S_{T}",string,flags=re.IGNORECASE)
+      string = re.sub(r"met",r"^{MET}",string,flags=re.IGNORECASE)
       GeV    = True
     if " d_" in strlow:
       string = re.sub(r"(\ d)_([^{}()\|<>=\ ]+)",r"\1_{\2}",string,flags=re.IGNORECASE)

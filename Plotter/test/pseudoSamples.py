@@ -71,6 +71,9 @@ def makesamples(nevts=10000,**kwargs):
     'eta_2': {
       '*': lambda: gRandom.Uniform(-2.5,2.5), # default
     },
+    'dm_2': {
+      '*':   lambda r: 0 if r<0.4 else 1 if r<0.6 else 10 if r<0.9 else 11, # default
+    },
     'njets': {
       '*':   lambda: gRandom.Poisson(0.2,), # default
       'ZTT': lambda: gRandom.Poisson(0.2,),
@@ -111,6 +114,7 @@ def makesamples(nevts=10000,**kwargs):
   m_vis    = np.zeros(1,dtype='f')
   pt_1     = np.zeros(1,dtype='f')
   pt_2     = np.zeros(1,dtype='f')
+  dm_2     = np.zeros(1,dtype='f')
   eta_1    = np.zeros(1,dtype='f')
   eta_2    = np.zeros(1,dtype='f')
   njets    = np.zeros(1,dtype='i')
@@ -125,6 +129,7 @@ def makesamples(nevts=10000,**kwargs):
     tree.Branch('m_vis',    m_vis,    'm_vis/F')
     tree.Branch('pt_1',     pt_1,     'pt_1/F')
     tree.Branch('pt_2',     pt_2,     'pt_2/F')
+    tree.Branch('dm_2',     dm_2,     'dm_2/I')
     tree.Branch('eta_1',    eta_1,    'eta_1/F')
     tree.Branch('eta_2',    eta_2,    'eta_2/F')
     tree.Branch('njets',    njets,    'njets/I')
@@ -153,6 +158,7 @@ def makesamples(nevts=10000,**kwargs):
       if m_vis[0]<0 or pt_1[0]<0 or pt_2[0]<0: continue
       if pt_1[0]<pt_1[0]:
         pt_1[0], pt_2[0] = pt_2[0], pt_1[0]
+      dm_2[0]   = getgenerator('dm_2', sample)(gRandom.Uniform(1.))
       eta_1[0]  = getgenerator('eta_1', sample)()
       eta_2[0]  = getgenerator('eta_2', sample)()
       njets[0]  = getgenerator('njets', sample)()

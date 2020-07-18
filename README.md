@@ -2,7 +2,7 @@
 
 Framework for tau analysis using NanoAOD at CMS. Three main packages are
 1. [`PicoProducer`](PicoProducer): Tools to process nanoAOD and make custom analysis ntuples.
-2. [`Plotter`](Plotter): Tools for analysis and plotting. [Under development.]
+2. [`Plotter`](Plotter): Tools for further analysis, auxiliary measurements, validation and plotting. [Under development.]
 3. [`Fitter`](Fitter): Tools for measurements and fits in combine. [Under development.]
 
 ## Installation

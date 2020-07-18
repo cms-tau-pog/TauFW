@@ -22,6 +22,8 @@ def makeTObjArray(theList):
     result.Add(item)
   return result
   
+def error(string):
+  return RuntimeError("\033[31m"+string+"\033[0m")
 
 varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$")
 varregex2D = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$")
@@ -58,7 +60,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     commonFormula.SetQuickLoad(True)
     
     if not commonFormula.GetTree():
-      raise RuntimeError('MultiDraw: TTreeFormula did not compile:\n  selection:  "%s"\n  varexps:    %s'%(selection,varexps))
+      raise error("MultiDraw: TTreeFormula 'selection' did not compile:\n  selection:  %r\n  varexps:    %s"%(selection,varexps))
     
     for i, varexp in enumerate(varexps):
         #print '  Variable expression: %s'%(varexp,)
@@ -80,7 +82,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
             if xvar.count(':')==0:
               match = binregex.match(binning)
               if not match:
-                raise RuntimeError('MultiDraw: Could not parse formula: "%s"'%varexp)
+                raise error('MultiDraw: Could not parse formula: "%s"'%varexp)
               nxbins, xmin, xmax = int(match.group(1)), float(match.group(2)), float(match.group(3))
               hist = TH1D(name, name, nxbins, xmin, xmax)
             
@@ -89,7 +91,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
               xvar, yvar = xvar.split(':')
               match = binregex2D.match(binning)
               if not match:
-                raise RuntimeError('MultiDraw: Could not parse formula: "%s"'%varexp)
+                raise error('MultiDraw: Could not parse formula: "%s"'%varexp)
               nxbins, xmin, xmax = int(match.group(1)), float(match.group(2)), float(match.group(3))
               nybins, ymin, ymax = int(match.group(4)), float(match.group(5)), float(match.group(6))
               hist = TH2D(name, name, nxbins, xmin, xmax, nybins, ymin, ymax)
@@ -97,7 +99,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
         else:
             match = varregex2D.match(varexp)
             if not match:
-              raise RuntimeError('MultiDraw: Could not parse formula: "%s"'%varexp)
+              raise error('MultiDraw: Could not parse formula: "%s"'%varexp)
             xvar, name = match.groups()
             if name.startswith("+") and name[1:] in hists:
               hist = hists[name[1:]] # add content to existing histogram
@@ -105,17 +107,17 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
               if i<len(histlist):
                 hist = histlist[i]
                 if hist.GetName()!=histlist[i].GetName():
-                  raise RuntimeError('MultiDraw: Hisogram mismatch: looking for "%s", but found "%s".'%(hist.GetName(),histlist[i].GetName()))
+                  raise error("MultiDraw: Hisogram mismatch: looking for %r, but found %r."%(hist.GetName(),histlist[i].GetName()))
               else:
                 hist = gDirectory.Get(name)
                 if not hist:
-                  raise RuntimeError('MultiDraw: Could not find histogram to fill "%s" in current directory (varexp "%s").'%(name,varexp))
+                  raise error("MultiDraw: Could not find histogram to fill %r in current directory (varexp %r)."%(name,varexp))
             
             # 2D histogram
             if xvar.count(':')!=xvar.count('?'):
               yvar, xvar = xvar.split(':')
               if not isinstance(hist,TH2):
-                raise RuntimeError('MultiDraw: Existing histogram with name "%s" is not 2D! Found xvar="%s", yvar="%s"...'%(name,xvar,yvar))
+                raise error("MultiDraw: Existing histogram with name %r is not 2D! Found xvar=%r, yvar=%r..."%(name,xvar,yvar))
             
         if sumw2:
           hist.Sumw2()
@@ -134,7 +136,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
         if xvar!=lastXVar:
           formula = TTreeFormula("formula%i"%i,xvar,self)
           if not formula.GetTree():
-            raise RuntimeError("MultiDraw: TTreeFormula 'xvar' did not compile:\n  xvar:    %r\n  varexp:  %r"%(xvar,varexp))
+            raise error("MultiDraw: TTreeFormula 'xvar' did not compile:\n  xvar:    %r\n  varexp:  %r"%(xvar,varexp))
           formula.SetQuickLoad(True)
           xformulae.append(formula)
         else:
@@ -144,7 +146,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
           if yvar!=lastYVar:
             formula = TTreeFormula("formula%i"%i,yvar,self)
             if not formula.GetTree():
-              raise RuntimeError("MultiDraw: TTreeFormula 'yvar' did not compile:\n  yvar:    %r\n  varexp:  %r"%(yvar,varexp))
+              raise error("MultiDraw: TTreeFormula 'yvar' did not compile:\n  yvar:    %r\n  varexp:  %r"%(yvar,varexp))
             formula.SetQuickLoad(True)
             yformulae.append(formula)
           else:
@@ -153,7 +155,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
         if weight!=lastWeight:
           formula = TTreeFormula("weight%i"%i,weight,self)
           if not formula.GetTree():
-            raise RuntimeError("MultiDraw: TTreeFormula 'weight' did not compile:\n  weight:  %r\n  varexp:  %r"%(weight,varexp))
+            raise error("MultiDraw: TTreeFormula 'weight' did not compile:\n  weight:  %r\n  varexp:  %r"%(weight,varexp))
           formula.SetQuickLoad(True)
           weights.append(formula)
         else:
@@ -179,7 +181,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     elif len(xformulae)==len(yformulae):
       _MultiDraw2D(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(yformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae))
     else:
-      raise RuntimeError("MultiDraw: Given a mix of arguments for 1D (%d) and 2D (%d) histograms"%(len(xformulae),len(yformulae)))
+      raise error("MultiDraw: Given a mix of arguments for 1D (%d) and 2D (%d) histograms"%(len(xformulae),len(yformulae)))
     
     return results
     

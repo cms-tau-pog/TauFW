@@ -62,6 +62,8 @@ class Plot(object):
       hists    = args[1]
     else:
       LOG.throw(IOError,"Plot: Wrong input %s"%(args))
+    if kwargs.get('clone',False):
+      hists = [h.Clone(h.GetName()+"_plot") for h in hists]
     self.hists = hists
     frame      = kwargs.get('frame', self.hists[0] )
     if isinstance(variable,Variable):
@@ -192,7 +194,7 @@ class Plot(object):
       normalize(self.hists,scale=scale)
     
     # DIVIDE BY BINSIZE
-    if dividebybinsize:
+    if dividebins:
       for i, oldhist in enumerate(self.hists):
         newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False)
         if oldhist!=newhist:
@@ -209,7 +211,7 @@ class Plot(object):
     
     # DRAW OPTIONS
     if errbars:
-      option = 'E0 '+option
+      option = 'E0 '+option #E01
       if not roption:
         roption = 'HISTE'
     if len(options)==0:
@@ -240,7 +242,7 @@ class Plot(object):
         option1 = 'E1'
       option1 += " SAME"
       hist.Draw(option1)
-      LOG.verb("Plot.draw: i=%s, hist=%s, option%s"%(i,hist,option1),verbosity,2)
+      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option1),verbosity,2)
     
     # STYLE
     lhists, mhists = [ ], [ ]
@@ -292,7 +294,7 @@ class Plot(object):
       fnames = [self.name+tag]
     if save:
       for fname in fnames:
-        fname = os.path.join(outdir,fname.replace('$VAR',self.name).replace('$NAME',self.name))
+        fname = os.path.join(outdir,fname.replace('$VAR',self.name).replace('$NAME',self.name).replace('$TAG',tag))
         if exts:
           for ext in ensurelist(exts):
             if not ext.startswith('.'):
@@ -840,7 +842,7 @@ class Plot(object):
         line = makelatex(line)
       yline = y-i*theight*1.2*tsize
       latex.DrawLatex(x,yline,line)
-      LOG.verb("Plot.drawcornertext: i=%d, x=%d, y=%d, text=%r"%(i,x,yline,line),verbosity,2)
+      LOG.verb("Plot.drawcornertext: i=%d, x=%.2f, y=%.2f, text=%r"%(i,x,yline,line),verbosity,2)
     self.texts.append(latex)
     
     return latex
