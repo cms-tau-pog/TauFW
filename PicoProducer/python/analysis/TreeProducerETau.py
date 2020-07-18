@@ -13,9 +13,9 @@ class TreeProducerETau(TreeProducerTauPair):
     super(TreeProducerETau,self).__init__(filename,module,**kwargs)
     
     
-    ############
-    #   MUON   #
-    ############
+    ################
+    #   ELECTRON   #
+    ################
     
     self.addBranch('pt_1',                       'f')
     self.addBranch('eta_1',                      'f')

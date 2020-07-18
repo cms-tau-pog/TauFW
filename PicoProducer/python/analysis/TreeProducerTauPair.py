@@ -12,7 +12,7 @@ class TreeProducerTauPair(TreeProducer):
   def __init__(self, filename, module, **kwargs):
     """Class to create and prepare a custom output file & tree."""
     super(TreeProducerTauPair,self).__init__(filename,module,**kwargs)
-    print "Loading TreeProducerTauPair for %r"%(filename)
+    #print "Loading TreeProducerTauPair for %r"%(filename)
     
     
     #############

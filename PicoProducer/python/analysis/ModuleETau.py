@@ -83,7 +83,7 @@ class ModuleETau(ModuleTauPair):
     self.out.cutflow.fill('trig')
     
     
-    ##### MUON #######################################
+    ##### ELECTRON ###################################
     electrons = [ ]
     for electron in Collection(event,'Electron'):
       #if self.ismc and self.ees!=1:
@@ -137,7 +137,7 @@ class ModuleETau(ModuleTauPair):
     self.out.cutflow.fill('tau')
     
     
-    ##### MUTAU PAIR #################################
+    ##### ETAU PAIR ##################################
     ltaus = [ ]
     for electron in electrons:
       for tau in taus:
@@ -164,7 +164,7 @@ class ModuleETau(ModuleTauPair):
     self.fillEventBranches(event)
     
     
-    # MUON
+    # ELECTRON
     self.out.pt_1[0]                       = electron.pt
     self.out.eta_1[0]                      = electron.eta
     self.out.phi_1[0]                      = electron.phi

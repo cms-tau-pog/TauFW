@@ -116,8 +116,8 @@ class ModuleTauTau(ModuleTauPair):
     
     ##### DITAU PAIR #################################
     ditaus = [ ]
-    for i, tau1 in enumerate(taus):
-      for tau2 in taus[:i]:
+    for i, tau1 in enumerate(taus,1):
+      for tau2 in taus[i:]:
         if tau1.DeltaR(tau2)<0.5: continue
         ditau = DiTauPair(tau1,tau1.rawDeepTau2017v2p1VSjet,tau2,tau2.rawDeepTau2017v2p1VSjet)
         ditaus.append(ditau)
