@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
 import re
-from math import sqrt, pow, log
 from array import array
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
@@ -26,7 +25,7 @@ class Variable(object):
     self.name         = name
     self.name_        = name # backup for addoverflow
     self.title        = strings[0] if strings else self.name
-    self.filename     = makefilename(self.name.replace('/',"_"))
+    self.filename     = makefilename(self.name.replace('/','_'))
     self.title        = kwargs.get('title',       self.title    ) # for plot axes
     self.filename     = kwargs.get('fname',       self.filename )
     self.filename     = kwargs.get('filename',    self.filename ) # name for files, histograms
@@ -104,7 +103,7 @@ class Variable(object):
   def __repr__(self):
     """Returns string representation of Variable object."""
     #return '<%s.%s("%s","%s",%s,%s,%s)>'%(self.__class__.__module__,self.__class__.__name__,self.name,self.title,self.nbins,self.xmin,self.xmax)
-    return '<%s("%s","%s",%s,%s,%s) at %s>'%(self.__class__.__name__,self.name,self.title,self.nbins,self.xmin,self.xmax,hex(id(self)))
+    return '<%s(%r,%r,%s,%s,%s) at %s>'%(self.__class__.__name__,self.name,self.title,self.nbins,self.xmin,self.xmax,hex(id(self)))
   
   def __iter__(self):
     """Start iteration over variable information."""
@@ -176,29 +175,9 @@ class Variable(object):
     width = (self.max-self.min)/self.nbins
     return self.bins==None and int(self.min)==self.min and int(self.max)==self.max and width==1
   
-  def ispartof(self, *searchterms, **kwargs):
-    """Check if all labels are in the variable's name, title."""
-    searchterms = [l for l in searchterms if l!='']
-    if not searchterms: return False
-    found       = True
-    regex       = kwargs.get('regex',     False )
-    exlcusive   = kwargs.get('exclusive', True  )
-    for searchterm in searchterms:
-      if not regex:
-        searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
-      if exlcusive:
-        for varlabel in [self.name,self.title]:
-          matches  = re.findall(searchterm,varlabel)
-          if matches:
-            break # try next searchterm, or return True
-        else:
-          return False # none of the labels contain the searchterm
-      else: # inclusive
-        for varlabel in [self.name,self.title]:
-          matches  = re.findall(searchterm,varlabel)
-          if matches:
-            return True # one of the searchterm has been found
-    return exlcusive
+  def match(self, *terms, **kwargs):
+    """Match search terms to the variable's name and title."""
+    return match(terms,[self.name,self.title])
   
   def changecontext(self,*args,**kwargs):
     """Change the contextual title, binning or position for a set of arguments, if it is available"""

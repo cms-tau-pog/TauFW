@@ -121,10 +121,10 @@ def setera(era_,lumi_=None,**kwargs):
 def unwrap_MergedSamples_args(*args,**kwargs):
   """
   Help function to unwrap arguments for MergedSamples initialization:
-    - MergedSample(str name)
-    - MergedSample(str name, str title)
-    - MergedSample(str name, list samples)
-    - MergedSample(str name, str title, list samples)
+    MergedSample(str name)
+    MergedSample(str name, str title)
+    MergedSample(str name, list samples)
+    MergedSample(str name, str title, list samples)
   where samples is a list of Sample objects.
   Returns a sample name, title and a list of Sample objects:
     (str name, str, title, list samples)
@@ -155,50 +155,61 @@ def unwrap_MergedSamples_args(*args,**kwargs):
 def unwrap_gethist_args(*args,**kwargs):
   """
   Help function to unwrap argument list that contain variable(s) and selection:
-    - gethist(str xvar, int nxbins, float xmin, float xmax, str cuts)
-    - gethist(str xvar, list xbins, str cuts)
-    - gethist(Variable xvar, str cuts)
-    - gethist(list varlist, str cuts)
+    gethist(str xvar, int nxbins, float xmin, float xmax, str cuts="")
+    gethist(str xvar, list xbins, str cuts="")
+    gethist(Variable xvar, str cuts="")
+    gethist(list varlist, str cuts="")
   where varlist is a list of Variables objects, or a list of tuples defining a variable:
     - [(str xvar, int nxbins, float xmin, float xmax), ... ]
     - [(str xvar, list xbins), ... ]
-  Returns a list of Variable objects, a selection string, and a boolean to flag a single
+  Returns a list of Variable objects, a Selection object, and a boolean to flag a single
   instead of a list of variables was given:
-    (list vars, str cut, bool single)
+    - (list vars, str cut, bool single)
   For testing, see test/testUnwrapping.py.
   """
-  vars   = None  # list of Variable objects
-  sel    = None  # selection (string)
-  single = False # only one Variable passed
-  if len(args)==2:
-    vars   = args[0]
-    sel    = args[1]
+  vars   = None     # list of Variable objects
+  sel    = None     # selection (string or Selection object)
+  single = False    # only one Variable passed
+  if len(args)>=1:
+    if isinstance(args[-1],Selection):
+      sel   = args[-1]
+      vargs = args[:-1]
+    elif isinstance(args[-1],str):
+      sel   = Selection(args[-1])
+      vargs = args[:-1]
+    else:
+      sel   = Selection() # no selection given
+      vargs = args
+  if len(vargs)==1:
+    vars  = vargs[0]
     if isinstance(vars,Variable):
       vars   = [vars]
       single = True
-    elif islist(args[0]):
-      vars = [ensurevar(v) for v in args[0]]
-  elif len(args) in [3,5]:
-    vars   = [Variable(*args[:len(args)-1])]
-    sel    = args[-1]
+    elif islist(vargs[0]):
+      vars = [ensurevar(v) for v in vargs[0]]
+  elif len(vargs) in [2,4]:
+    vars   = [Variable(*vargs)]
     single = True
   if vars==None or sel==None:
-    LOG.throw(IOError,'unwrap_gethist_args: Could not unwrap arguments %s, len(args)=%d, vars=%s, sel=%s.'%(args,len(args),vars,sel))
-  LOG.verb("unwrap_gethist_args: vars=%s, sel=%r, single=%r"%(vars,sel,single),level=3)
+    LOG.throw(IOError,'unwrap_gethist_args: Could not unwrap arguments %s, len(args)=%d, vars=%s, sel=%s.'%(
+                                                                       args,len(args),vars,sel.selection))
+  LOG.verb("unwrap_gethist_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),level=3)
   return vars, sel, single
   
 
 def unwrap_gethist2D_args(*args,**kwargs):
   """
   Help function to unwrap argument list that contain variable pair(s) and selection:
-    - gethist2D(str xvar, int nxbins, float xmin, float xmax, str yvar, int nybins, float ymin, float ymax, str cuts)
-    - gethist2D(str xvar, list xbins, str yvar, list ybins, str cuts)
-    - gethist2D(Variable xvar, Variable yvar, str cuts)
-    - gethist2D(tuple xvar, tuple yvar, str cuts)
-    - gethist2D(list xvarlist, list yvarlist, str cuts)
-    - gethist2D(list varlist, str cuts)
-    - gethist2D(tuple varpair, str cuts)
-  where the tuples xvar and yvar can be
+    gethist2D(str xvar, int nxbins, float xmin, float xmax, str yvar, int nybins, float ymin, float ymax, str cuts="")
+    gethist2D(str xvar, list xbins, str yvar, list ybins, str cuts="")
+    gethist2D(str xvar, int nxbins, float xmin, float xmax, str yvar, list ybins, str cuts="")
+    gethist2D(str xvar, list xbins, str yvar, int nybins, float ymin, float ymax, str cuts="")
+    gethist2D(Variable xvar, Variable yvar, str cuts="")
+    gethist2D(tuple xvar, tuple yvar, str cuts="")
+    gethist2D(list xvarlist, list yvarlist, str cuts="")
+    gethist2D(list varlist, str cuts="")
+    gethist2D(tuple varpair, str cuts="")
+  where the tuples xvar and yvar can be of the form
     – (str xvar, int nxbins, float xmin, float xmax)
     – (str xvar, list xbins)
   and the [xy]varlist is a list of Variables object pairs,
@@ -208,21 +219,31 @@ def unwrap_gethist2D_args(*args,**kwargs):
     - [(str xvar, list xbins), ...]
   and varpair is tuple of a single pair of Variable objects:
     - (Variable xvar,Variable yvar)
-  Returns a list of Variable pairs, a selection string, and a boolean to flag a single
+  Returns a list of Variable pairs, a Selection object, and a boolean to flag a single
   instead of a list of variables was given:
     (list varpairs, str cut, bool single)
   For testing, see test/testUnwrapping.py.
   """
-  vars   = None  # list of Variable objects
-  sel    = None  # selection (string)
-  single = False # only one pair of Variable objects passed
-  if len(args)==2:
-    vars, sel = args
-    single = len(vars)==2 and islist(vars) and all(isinstance(v,Variable) for v in vars)
+  vars   = None     # list of Variable objects
+  sel    = None     # selection (string or Selection object)
+  single = False    # only one Variable passed
+  if len(args)>=1:
+    if isinstance(args[-1],Selection):
+      sel   = args[-1]
+      vargs = args[:-1]
+    elif isinstance(args[-1],str):
+      sel   = Selection(args[-1])
+      vargs = args[:-1]
+    else:
+      sel   = Selection() # no selection given
+      vargs = args
+  if len(vargs)==1:
+    vars = vargs
+    single = len(vargs)==2 and islist(vargs) and all(isinstance(v,Variable) for v in vargs)
     if single:
       vars = [vars]
-  elif len(args)==3:
-    xvars, yvars, sel = args
+  elif len(vargs)==2:
+    xvars, yvars = vargs
     if isinstance(xvars,Variable) and isinstance(yvars,Variable):
       vars = [(xvars,yvars)]
       single = True
@@ -233,17 +254,24 @@ def unwrap_gethist2D_args(*args,**kwargs):
       single = True
     elif islist(xvars) and islist(yvars) and all(islist(x) for x in xvars) and all(islist(y) for y in yvars):
       vars = [(Variable(*x),Variable(*y)) for x, y in zip(xvars,yvars)]
-  elif len(args)==5:
-    vars   = [(Variable(*args[0:2]),Variable(*args[2:4]))]
-    sel    = args[-1]
+  elif len(vargs)==4:
+    vars   = [(Variable(*vargs[0:2]),Variable(*vargs[2:4]))]
     single = True
-  elif len(args)==9:
-    vars   = [(Variable(*args[0:4]),Variable(*args[4:8]))]
-    sel    = args[-1]
+  elif len(vargs)==6:
+    if isinstance(vargs[2],str):
+      vars   = [(Variable(*vargs[0:2]),Variable(*vargs[2:6]))]
+      single = True
+    elif isinstance(vargs[4],str):
+      vars   = [(Variable(*vargs[0:4]),Variable(*vargs[4:6]))]
+      single = True
+  elif len(vargs)==8:
+    vars   = [(Variable(*vargs[0:4]),Variable(*vargs[4:8]))]
     single = True
   if vars==None or sel==None:
     LOG.throw(IOError,'unwrap_gethist2D_args: Could not unwrap arguments %s, len(args)=%d, vars=%s, sel=%s.'%(args,len(args),vars,sel))
-  LOG.verb("unwrap_gethist2D_args: vars=%s, sel=%r, single=%r"%(vars,sel,single),level=3)
+  elif isinstance(sel,str):
+    sel = Selection(str)
+  LOG.verb("unwrap_gethist2D_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),level=3)
   return vars, sel, single
   
 

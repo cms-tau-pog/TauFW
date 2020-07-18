@@ -533,8 +533,8 @@ class Sample(object):
     if self.isdata:
       weight = joinweights(self.weight,self.extraweight,kwargs.get('weight',""))
     else:
-      weight = joinweights(self.weight,self.extraweight,kwargs.get('weight',"")) #,selection.weight)
-    cuts     = joincuts(selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',"")) #selection.selection
+      weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
+    cuts     = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
     #if replaceweight:
     #  if len(replaceweight)==2 and not isList(replaceweight[0]):
     #    replaceweight = [replaceweight]
@@ -632,8 +632,8 @@ class Sample(object):
     if self.isdata:
       weight  = joinweights(self.weight,self.extraweight,kwargs.get('weight',""))
     else:
-      weight  = joinweights(self.weight,self.extraweight,kwargs.get('weight',""),selection) #.weight
-    cuts      = joincuts(selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""),weight=weight) #.selection
+      weight  = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
+    cuts      = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""),weight=weight)
     
     # PREPARE
     hists     = [ ]
@@ -695,35 +695,7 @@ class Sample(object):
   
   def match(self, *terms, **kwargs):
     """Check if search terms match the sample's name, title and/or tags."""
-    terms = [l for l in terms if l!='']
-    if not terms:
-      return False
-    found  = True
-    regex  = kwargs.get('regex', False   ) # use regexpr patterns (instead of glob)
-    incl   = kwargs.get('incl',  True    ) # match only at least one term
-    start  = kwargs.get('start', False   ) # match only beginning of string
-    labels = [self.name,self.title]+self.tags
-    for searchterm in terms:
-      if not regex: # convert glob to regexp
-        #fnmatch.translate( '*.foo' )
-        #searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm)   # replace + with \+
-        #searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
-        searchterm = re.escape(searchterm).replace(r'\?', '.').replace(r'\*', '.*?')
-      if start:
-        searchterm = '^'+searchterm
-      if incl: # inclusive: match only one search term
-        for label in labels:
-          matches = re.findall(searchterm,label)
-          if matches:
-            break
-        else:
-          return False # none of the labels matched to the searchterm
-      else: # exclusive: match all search terms
-        for label in labels:
-          matches = re.findall(searchterm,label)
-          if matches:
-            return True # one of the search term has been matched
-    return incl # if incl==True, at least one search terms was matched
+    return match(terms,[self.name,self.title]+self.tags)
   
 
 def Data(*args,**kwargs):

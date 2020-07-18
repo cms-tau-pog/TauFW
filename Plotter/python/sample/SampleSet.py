@@ -283,7 +283,7 @@ class SampleSet(object):
          print ">>> plotstack: ignoring %s for %s"%(var.printbins(),selection) #.title
          invariables.remove(var)
          continue
-      var.changecontext(selection,self.channel) #.selection
+      var.changecontext(selection.selection,self.channel)
     return invariables, selection, issingle
   
   def getstack(self, *args, **kwargs):
@@ -485,7 +485,7 @@ class SampleSet(object):
     if verbosity>=2 and len(variables)>0:
       var = variables[0]
       print ">>> selection:"
-      print ">>>  '%s'"%(selection) #.selection
+      print ">>>  %r"%(selection.selection)
       print ">>> yields: "
       TAB = LOG.table("%11.1f %11.2f    %r")
       TAB.printheader("entries","integral","hist name")
