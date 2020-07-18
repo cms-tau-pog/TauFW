@@ -150,7 +150,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.iso_2[0] = muon2.pfRelIso04_all
     
     
-    # TAU for jet -> tau fake rate measurement
+    # TAU for jet -> tau fake rate measurement in mumu+tau events
     maxtau = None
     ptmax  = 20
     for tau in Collection(event,'Tau'):
@@ -171,14 +171,15 @@ class ModuleMuMu(ModuleTauPair):
       self.out.m_3[0]                      = tau.mass
       self.out.q_3[0]                      = tau.charge
       self.out.dm_3[0]                     = tau.decayMode
-      self.out.idAntiEle_3[0]              = ord(tau.idAntiEle)
-      self.out.idAntiMu_3[0]               = ord(tau.idAntiMu)
-      self.out.idMVAoldDM2017v2_3[0]       = ord(tau.idMVAoldDM2017v2)
-      self.out.idMVAnewDM2017v2_3[0]       = ord(tau.idMVAnewDM2017v2)
-      self.out.idDeepTau2017v2p1VSe_3[0]   = ord(tau.idDeepTau2017v2p1VSe)
-      self.out.idDeepTau2017v2p1VSmu_3[0]  = ord(tau.idDeepTau2017v2p1VSmu)
-      self.out.idDeepTau2017v2p1VSjet_3[0] = ord(tau.idDeepTau2017v2p1VSjet)
-      self.out.iso_3[0]                    = idIso(event,maxId)
+      self.out.iso_3[0]                    = tau.rawIso
+      self.out.idiso_2[0]                  = idIso(tau) # cut-based tau isolation (rawIso)
+      self.out.idAntiEle_3[0]              = tau.idAntiEle
+      self.out.idAntiMu_3[0]               = tau.idAntiMu
+      self.out.idMVAoldDM2017v2_3[0]       = tau.idMVAoldDM2017v2
+      self.out.idMVAnewDM2017v2_3[0]       = tau.idMVAnewDM2017v2
+      self.out.idDeepTau2017v2p1VSe_3[0]   = tau.idDeepTau2017v2p1VSe
+      self.out.idDeepTau2017v2p1VSmu_3[0]  = tau.idDeepTau2017v2p1VSmu
+      self.out.idDeepTau2017v2p1VSjet_3[0] = tau.idDeepTau2017v2p1VSjet
       self.out.jpt_match_3[0], self.out.jpt_genmatch_3[0] = matchtaujet(event,muon2,self.ismc)
       if self.ismc:
         self.out.genmatch_3[0]             = genmatch(event,maxId) #ord(tau.genPartFlav)

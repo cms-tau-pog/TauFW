@@ -27,7 +27,7 @@ class TreeProducerTauTau(TreeProducerTauPair):
     self.addBranch('q_1',                        'i')
     self.addBranch('dm_1',                       'i')
     self.addBranch('iso_1',                      'f', title="rawIso")
-    self.addBranch('idiso_1',                    'i')
+    self.addBranch('idiso_1',                    'i', title="rawIso WPs")
     self.addBranch('rawDeepTau2017v2p1VSe_1',    'f')
     self.addBranch('rawDeepTau2017v2p1VSmu_1',   'f')
     self.addBranch('rawDeepTau2017v2p1VSjet_1',  'f')
@@ -45,6 +45,7 @@ class TreeProducerTauTau(TreeProducerTauPair):
     self.addBranch('neutralIso_1',               'f')
     self.addBranch('photonsOutsideSignalCone_1', 'f')
     self.addBranch('puCorr_1',                   'f')
+    self.addBranch('jpt_match_1',                'f', -1, title="pt of jet matching tau")
     
         
     #############
@@ -61,7 +62,7 @@ class TreeProducerTauTau(TreeProducerTauPair):
     self.addBranch('q_2',                        'i')
     self.addBranch('dm_2',                       'i')
     self.addBranch('iso_2',                      'f', title="rawIso")
-    self.addBranch('idiso_2',                    'i')
+    self.addBranch('idiso_2',                    'i', title="rawIso WPs")
     self.addBranch('rawDeepTau2017v2p1VSe_2',    'f')
     self.addBranch('rawDeepTau2017v2p1VSmu_2',   'f')
     self.addBranch('rawDeepTau2017v2p1VSjet_2',  'f')
@@ -79,12 +80,11 @@ class TreeProducerTauTau(TreeProducerTauPair):
     self.addBranch('neutralIso_2',               'f')
     self.addBranch('photonsOutsideSignalCone_2', 'f')
     self.addBranch('puCorr_2',                   'f')
+    self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
     
-    self.addBranch('jpt_match_1',                'f', -1)
-    self.addBranch('jpt_match_2',                'f', -1)
     if self.module.ismc:
-      self.addBranch('jpt_genmatch_1',           'f', -1)
-      self.addBranch('jpt_genmatch_2',           'f', -1)
+      self.addBranch('jpt_genmatch_1',           'f', -1, title="pt of gen jet matching tau")
+      self.addBranch('jpt_genmatch_2',           'f', -1, title="pt of gen jet matching tau")
       self.addBranch('genmatch_1',               'i', -1)
       self.addBranch('genmatch_2',               'i', -1)
       self.addBranch('genvistaupt_1',            'f', -1)

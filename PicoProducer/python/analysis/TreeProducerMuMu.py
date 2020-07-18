@@ -52,7 +52,8 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('m_3',                      'f')
     self.addBranch('q_3',                      'f')
     self.addBranch('dm_3',                     'f')
-    self.addBranch('iso_3',                    'i')
+    self.addBranch('iso_3',                    'i', title="rawIso")
+    self.addBranch('idiso_3',                  'i', title="rawIso WPs")
     self.addBranch('idAntiEle_3',              'i')
     self.addBranch('idAntiMu_3',               'i')
     self.addBranch('idMVAoldDM2017v2_3',       'i')
@@ -60,7 +61,7 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('idDeepTau2017v2p1VSe_3',   'i')
     self.addBranch('idDeepTau2017v2p1VSmu_3',  'i')
     self.addBranch('idDeepTau2017v2p1VSjet_3', 'i')
-    self.addBranch('jpt_match_3',              'i')
+    self.addBranch('jpt_match_3',              'i', title="pt of jet matching tau")
     
     
     ###########
@@ -71,7 +72,7 @@ class TreeProducerMuMu(TreeProducerTauPair):
       self.addBranch('genmatch_1',     'i', -1)
       self.addBranch('genmatch_2',     'i', -1)
       self.addBranch('genmatch_3',     'i', -1)
-      self.addBranch('jpt_genmatch_3', 'i', -1)
+      self.addBranch('jpt_genmatch_3', 'i', -1, title="pt of gen jet matching tau")
       self.addBranch('genPartFlav_3',  'i', -1)
       self.addBranch('idisoweight_1',  'f', 1., title="muon ID/iso efficiency SF")
       self.addBranch('idisoweight_2',  'f', 1., title="muon ID/iso efficiency SF")
