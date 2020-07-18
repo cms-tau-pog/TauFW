@@ -8,7 +8,7 @@ from testPlot import createhists
 from ROOT import TH1D, gRandom
 
 
-def plothist(xtitle,hists,ratio=False,logy=False,norm=False,**kwargs):
+def plothist(xtitle,hists,ratio=False,logy=False,norm=False,tag="",**kwargs):
   
   # SETTING
   outdir   = ensuredir("plots/")
@@ -26,21 +26,22 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,**kwargs):
     header = kwargs['pos']
   if ratio:
     fname += "_ratio"
+  fname += tag
   
   # PLOT
   LOG.header(fname)
-  plot = Plot(xtitle,hists,norm=norm)
+  plot = Plot(xtitle,hists,norm=norm,clone=True)
   plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,lstyle=lstyle,grid=grid,staterr=staterr)
   plot.drawlegend(border=True,header=header,panel=panel,**kwargs)
   plot.drawtext(text)
   plot.saveas(fname+".png")
   #plot.saveas(fname+".pdf")
-  plot.close(keep=True)
+  plot.close(keep=False)
   print
   
 
-def main():
-  CMSStyle.setCMSEra(2018)
+def testposition():
+  """Test positioning of drawlegend."""
   xtitle = "p_{T}^{MET} [GeV]"
   hists = createhists(2)
   for ratio in [False]: # True
@@ -50,6 +51,34 @@ def main():
         pos = (hor+'-'+ver).strip('-')
         plothist(xtitle,hists,ratio=ratio,logy=True,norm=False,pos=pos)
   deletehist(hists)
+  
+
+def testwidth():
+  """Test automatic width of drawlegend."""
+  xtitle  = "p_{T}^{MET} [GeV]"
+  entries = [
+    "short",
+    "Z -> tautau",
+    "Z #rightarrow #tau_{h}tau_{h}",
+    "p_{T} > 20 GeV, |#eta| < 2.5",
+    "p_{T} > 20 GeV, 2.5 < |#eta| < 4.7",
+    "this is medium long",
+    "this is a very long legend entry",
+    "this is a very long Z -> tautau",
+    "line one\nline two",
+  ]
+  hists   = createhists(2)
+  for i, entry in enumerate(entries):
+    tag = "_width%d"%(i)
+    hists[0].SetTitle(entry)
+    plothist(xtitle,hists,ratio=False,logy=True,norm=False,tag=tag) #,pos='R'
+  deletehist(hists)
+  
+
+def main():
+  CMSStyle.setCMSEra(2018)
+  #testposition()
+  testwidth()
   
 
 if __name__ == "__main__":

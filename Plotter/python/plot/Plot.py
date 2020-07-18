@@ -5,7 +5,7 @@ import os, re
 from math import log10
 from TauFW.common.tools.utils import ensurelist, islist, isnumber
 from TauFW.Plotter.plot.utils import *
-from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname
+from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Ratio import Ratio
 import ROOT
@@ -639,6 +639,11 @@ class Plot(object):
       bandentries.append(bands[len(bandentries)].GetTitle())
     hists   = hists + bands
     entries = entries + bandentries
+    if latex:
+      title   = maketitle(title)
+      entries = [maketitle(e) for e in entries]
+      texts   = [maketitle(t) for t in texts]
+    maxlen  = estimatelen([title]+entries+texts)
     
     # STYLES
     if style0:
@@ -664,7 +669,7 @@ class Plot(object):
     if title:   nlines += 1 + title.count('\n')
     
     # DIMENSIONS
-    if width<0:  width  = twidth*0.35
+    if width<0:  width  = twidth*max(0.22,min(0.60,0.036+0.016*maxlen))
     if height<0: height = theight*1.34*tsize*nlines
     if ncols>1:  width *= ncols/(1-colsep)
     x2 = 0.90; x1 = x2 - width
@@ -732,8 +737,6 @@ class Plot(object):
     
     # HEADER
     if title:
-      if latex:
-        title = maketitle(title)
       legend.SetHeader(title)
     legend.SetTextFont(42) # no bold for entries
     
@@ -741,13 +744,9 @@ class Plot(object):
     if hists:
       for hist1, entry1, style1 in columnize(zip(hists,entries,styles),ncols):
         for entry in entry1.split('\n'):
-          if latex:
-            entry = maketitle(entry)
           legend.AddEntry(hist1,entry,style1)
           hist1, style1 = 0, ''
     for line in texts:
-      if latex:
-        line = maketitle(line)
       legend.AddEntry(0,line,'')
     
     if verbosity>=2:
