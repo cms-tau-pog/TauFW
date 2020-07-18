@@ -222,11 +222,15 @@ They follow this hierarchy:
   * [`TreeProducerTauPair`](TreeProducerTauPair.py) provides common branches in ditau analyses
     * [`TreeProducerMuTau`](TreeProducerMuTau.py) for the mutau channel
     * [`TreeProducerETau`](TreeProducerETau.py) for the etau channel
+    * [`TreeProducerTauTau`](TreeProducerTauTau.py) for the tautau channel
+    * [`TreeProducerMuMu`](TreeProducerMuMu.py) for the mumu channel
     * ...
 * [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py): general superclass for nanoAOD processing
   * [`ModuleTauPair`](ModuleTauPair.py) provides common routines like jet selection or ditau reconstruction (`m_vis`, `dR_ll`, etc.)
     * [`ModuleMuTau`](ModuleMuTau.py) for the mutau channel
     * [`ModuleETau`](ModuleETau.py) for the etau channel
+    * [`ModuleTauTau`](ModuleTauTau.py) for the tautau channel
+    * [`ModuleMuMu`](ModuleMuMu.py) for the mumu channel
     * ...
 
 (Note they are still under construction, and more will be added in the near future.)
