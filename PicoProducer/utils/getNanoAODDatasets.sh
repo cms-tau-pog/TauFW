@@ -10,16 +10,21 @@ MCSAMPLES="
   TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8
   TTToHadronic_TuneCP5_13TeV-powheg-pythia8
   ST_tW_*top_5f_inclusiveDecays_TuneC*
+  ST_tW_*top_*NoFullyHadronicDecay*_TuneC*
   ST_t-channel_*top_4f_InclusiveDecays_TuneC*
   WZ_TuneC*
   WW_TuneC*
   ZZ_TuneC*
 "
 DATASETS="SingleMuon SingleElectron EGamma Tau"
-MCYEARS="Summer16 Fall17 Autumn18"
-DATAYEARS="2016 2017 2018" # Run2018D"
-MCCAMP='NanoAODv6'
-DATACAMP='25Oct2019'
+#MCYEARS="Summer16 Fall17 Autumn18" # reminiAOD
+MCYEARS="Summer19UL16 Summer19UL17 Summer19UL18" # Ultra Legacy
+
+DATAYEARS="2016 2017 2018" # reminiAOD
+#MCCAMP="NanoAODv6"
+MCCAMP="NanoAOD"
+#DATACAMP="25Oct2019" # reminiAOD
+DATACAMP="UL201*02Dec2019" # Ultra Legacy
 YEAR=0
 NFILES=2
 
