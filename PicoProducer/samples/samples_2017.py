@@ -112,19 +112,19 @@ samples  = [
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2017B', "/SingleMuon/Run2017B-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
+    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017C', "/SingleMuon/Run2017C-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
+    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017D', "/SingleMuon/Run2017D-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
+    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017E', "/SingleMuon/Run2017E-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
+    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017F', "/SingleMuon/Run2017F-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
+    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
   ),
   
   # SINGLE ELECTRON
