@@ -49,8 +49,9 @@ def getstorage(path,verb=0,ensure=False):
   elif path.startswith("/store/user") and "etp" in host:
     from TauFW.PicoProducer.storage.GridKA_NRG import GridKA_NRG
     storage = GridKA_NRG(path,ensure=ensure,verb=verb)
-  #elif path.startswith('/pnfs/lcg.cscs.ch/'):
-  #  storage = T2_PSI(path,verb=verb)
+  elif path.startswith('/pnfs/lcg.cscs.ch/'):
+    from TauFW.PicoProducer.storage.T2_PSI import T2_PSI
+    storage = T2_PSI(path,ensure=ensure,verb=verb)
   #elif path.startswith('/pnfs/iihe/'):
   #  return T2_IIHE(path,verb=verb)
   else:
