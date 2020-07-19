@@ -18,8 +18,14 @@ from TauFW.PicoProducer.storage.utils import LOG, getstorage
 def dasgoclient(query,**kwargs):
   """Help function to call dasgoclient."""
   try:
-    verbosity = kwargs.get('verb', 0)
+    verbosity = kwargs.get('verb',  0  )
+    limit     = kwargs.get('limit', 0  )
+    option    = kwargs.get('opts',  "" )
     dascmd    = 'dasgoclient --query="%s"'%(query)
+    if limit>0:
+      dascmd += " --limit=%d"%(limit)
+    if option:
+      dascmd += " "+option.strip()
     LOG.verb(repr(dascmd),verbosity)
     cmdout    = execute(dascmd,verb=verbosity-1)
   except CalledProcessError as e:
@@ -79,7 +85,8 @@ class Sample(object):
     self.extraopts    = kwargs.get('opts',         [ ]  ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
     self.subtry       = kwargs.get('subtry',       0    ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',       { }  ) # to help keep track of resubmission
-    self.nevents      = kwargs.get('nevents',      0    ) # number of nanoAOD events that can be processed
+    self.nevents      = kwargs.get('nevts',        0    ) # number of nanoAOD events that can be processed
+    self.nevents      = kwargs.get('nevents',      self.nevents )
     self.files        = kwargs.get('files',        [ ]  ) # list of ROOT files, OR text file with list of files
     self.postfix      = kwargs.get('postfix',      None ) or "" # post-fix (before '.root') for stored ROOT files
     self.era          = kwargs.get('era',          ""   ) # for expansion of $ERA variable
@@ -185,7 +192,7 @@ class Sample(object):
         print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
     return match_
   
-  def getfiles(self,refresh=False,url=True,verb=0):
+  def getfiles(self,refresh=False,url=True,limit=-1,verb=0):
     """Get list of files from DAS."""
     files   = self.files
     if self.refreshable and (not files or refresh):
@@ -196,9 +203,11 @@ class Sample(object):
           sepath  = repkey(self.storage,PATH=path).replace('//','/')
           storage = getstorage(sepath,verb=verb-1)
           outlist = storage.getfiles(url=url,verb=verb-1)
+          if limit>0:
+            outlist = outlist[:limit]
         else: # get files from DAS
           postfix = '.root'
-          cmdout  = dasgoclient("file dataset=%s instance=%s"%(path,self.instance))
+          cmdout  = dasgoclient("file dataset=%s instance=%s"%(path,self.instance),limit=limit)
           outlist = cmdout.split(os.linesep)
         for line in outlist: # filter root files
           line = line.strip()

@@ -79,6 +79,7 @@ def main_get(args):
   filters   = args.samples
   vetoes    = args.vetoes
   checkdas  = args.checkdas
+  limit     = args.limit
   writedir  = args.write # write sample file list to text file
   tag       = args.tag
   verbosity = args.verbosity
@@ -111,17 +112,19 @@ def main_get(args):
             print ">>>   %s"%(path)
   
   # LIST SAMPLE FILES
-  elif variable=='files':
+  elif variable in ['files','nevents']:
     
     # LOOP over ERAS & CHANNELS
     if not eras:
       LOG.warning("Please specify an era to get a sample for.")
     for era in eras:
       for channel in channels:
+        target = "file list" if variable=='files' else "nevents"
         if channel:
-          print ">>> Getting file list for era %r, channel %r"%(era,channel)
+          print ">>> Getting %s for era %r, channel %r"%(target,era,channel)
         else:
-          print ">>> Getting file list for era %r"%(era)
+          print ">>> Getting %s for era %r"%(target,era)
+        print ">>> "
         
         # VERBOSE
         if verbosity>=1:
@@ -136,17 +139,18 @@ def main_get(args):
           print ">>> %s"%(bold(sample.name))
           for path in sample.paths:
             print ">>> %s"%(bold(path))
-            infiles = sample.getfiles(url=False,verb=verbosity+1)
-            if checkdas:
-              ndasevents = sample.getnevents(verb=verbosity+1)
-              print ">>> %-12s = %s"%('ndasevents',ndasevents)
-            print ">>> %-12s = %r"%('url',sample.url)
-            print ">>> %-12s = %r"%('postfix',sample.postfix)
-            print ">>> %-12s = %s"%('nfiles',len(infiles))
-            print ">>> %-12s = [ "%('infiles')
-            for file in infiles:
-              print ">>>   %r"%file
-            print ">>> ]"
+            infiles = sample.getfiles(url=False,limit=limit,verb=verbosity+1)
+            if variable=='nevents' or checkdas:
+              nevents = sample.getnevents(verb=verbosity+1)
+              print ">>>   %-7s = %s"%('nevents',nevents)
+            if variable=='files':
+              print ">>>   %-7s = %r"%('url',sample.url)
+              print ">>>   %-7s = %r"%('postfix',sample.postfix)
+              print ">>>   %-7s = %s"%('nfiles',len(infiles))
+              print ">>>   %-7s = [ "%('infiles')
+              for file in infiles:
+                print ">>>     %r"%file
+              print ">>>   ]"
             if writedir:
               flistname = repkey(writedir,ERA=era,GROUP=sample.group,SAMPLE=sample.name,TAG=tag)
               print ">>> Write list to %r..."%(flistname)
@@ -154,6 +158,7 @@ def main_get(args):
               with open(flistname,'w+') as flist:
                 for infile in infiles:
                   flist.write(infile+'\n')
+            print ">>> "
   
   # CONFIGURATION
   else:
@@ -1329,6 +1334,8 @@ if __name__ == "__main__":
                                                 help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
+  parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1, action='store',
+                          metavar='NMAX',       help="limit number files in list for 'get files'" )
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
                           metavar='FILE',       help="write file list, default=%(const)r" )
   
