@@ -235,6 +235,10 @@ They follow this hierarchy:
 
 (Note they are still under construction, and more will be added in the near future.)
 
+<p align="center">
+  <img src="../../../docs/tautau_decay_pie.png" alt="Pie chart of the decay channels of a tau lepton pair" width="280"/>
+</p>
+
 ## Corrections
 Correction tools are found in [`python/corrections/`](../corrections) and
 corresponding weights, scale factors and more in [`data/`](../../data).
