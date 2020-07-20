@@ -157,7 +157,7 @@ def main(args):
       expsamples.append(sample)
   samples = makeSampleSet(datasample,expsamples)
   testget(samples)
-  #plotSampleSet(samples)
+  plotSampleSet(samples)
   
 
 if __name__ == "__main__":

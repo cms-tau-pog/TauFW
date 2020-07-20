@@ -258,7 +258,7 @@ def match(terms, labels, **kwargs):
   LOG.verb("match: compare labels=%s -> searchterms=%s (incl=%s)"%(labels,terms,incl),verbosity,3)
   if not terms:
     return False
-  for searchterm in terms:
+  for i, searchterm in enumerate(terms):
     if not regex: # convert glob to regexp
       #fnmatch.translate( '*.foo' )
       #searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm)   # replace + with \+
@@ -266,16 +266,19 @@ def match(terms, labels, **kwargs):
       searchterm = re.escape(searchterm).replace(r'\?', '.').replace(r'\*', '.*?')
     if start:
       searchterm = '^'+searchterm
-    if incl: # inclusive: match only one search term
+    terms[i] = searchterm
+  if incl: # inclusive: match only one search term
+    for searchterm in terms:
       for label in labels:
         matches = re.findall(searchterm,label)
         if matches:
-          LOG.verb("  matched %r -> %r"%(label,searchterm),verbosity,3)
-          return True
+          LOG.verb("  matched %r -> %r; return True"%(label,searchterm),verbosity,3)
+          return True # one search terms is matched
         else:
           LOG.verb("  not matched %r -> %r"%(label,searchterm),verbosity,3)
-      return False # none of the search terms have been matched
-    else: # exclusive: match all search terms
+    return False # no search term was matched
+  else: # exclusive: match all search terms
+    for searchterm in terms:
       for label in labels:
         matches = re.findall(searchterm,label)
         if matches:
@@ -284,8 +287,8 @@ def match(terms, labels, **kwargs):
         else:
           LOG.verb("  not matched %r -> %r"%(label,searchterm),verbosity,3)
       else:
-        return False # one of the search terms has not been match
-      return True # all search terms have been matched
+        return False # this search terms was not matched
+    return True # all search terms were matched
   
 
 def joinweights(*weights,**kwargs):
