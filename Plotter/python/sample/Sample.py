@@ -695,7 +695,8 @@ class Sample(object):
   
   def match(self, *terms, **kwargs):
     """Check if search terms match the sample's name, title and/or tags."""
-    return match(terms,[self.name,self.title]+self.tags)
+    labels = [self.name,self.title]+self.tags
+    return match(terms,labels,**kwargs)
   
 
 def Data(*args,**kwargs):

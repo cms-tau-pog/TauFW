@@ -374,7 +374,7 @@ class Variable(object):
     LOG.verb("Variable.addoverflow: '%s' -> '%s' for binning '%s'"%(self.name_,self.name,self.getbins()),verbosity,2)
     return self.name
   
-Var = Variable
+Var = Variable # short alias
 
 
 def wrapvariable(*args,**kwargs):

@@ -5,6 +5,7 @@ from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistarg
 from TauFW.common.tools.file import ensuredir, ensureTFile, ensuremodule
 from TauFW.common.tools.log import Logger, color
 from TauFW.Plotter.plot.Variable import Variable, Var, ensurevar
+from TauFW.Plotter.plot.Selection import Selection, Sel
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gDirectory, gROOT, TH1, THStack, kDotted, kBlack, kWhite
@@ -116,40 +117,6 @@ def setera(era_,lumi_=None,**kwargs):
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   return lumi
-  
-
-def unwrap_MergedSamples_args(*args,**kwargs):
-  """
-  Help function to unwrap arguments for MergedSamples initialization:
-    MergedSample(str name)
-    MergedSample(str name, str title)
-    MergedSample(str name, list samples)
-    MergedSample(str name, str title, list samples)
-  where samples is a list of Sample objects.
-  Returns a sample name, title and a list of Sample objects:
-    (str name, str, title, list samples)
-  """
-  strings = [ ]
-  name    = "noname"
-  title   = ""
-  samples = [ ]
-  #args    = unwraplistargs(args)
-  for arg in args:
-    if isinstance(arg,str):
-      strings.append(arg)
-    elif isinstance(arg,Sample):
-      samples.append(arg)
-    elif islist(arg) and all(isinstance(s,Sample) for s in arg):
-      for sample in arg:
-        samples.append(sample)
-  if len(strings)==1:
-    name = strings[0]
-  elif len(strings)>1:
-    name, title = strings[:2]
-  elif len(samples)>1:
-    name, title = '-'.join([s.name for s in samples]), ', '.join([s.title for s in samples])
-  LOG.verb("unwrap_MergedSamples_args: name=%r, title=%r, samples=%s"%(name,title,samples),level=3)
-  return name, title, samples
   
 
 def unwrap_gethist_args(*args,**kwargs):

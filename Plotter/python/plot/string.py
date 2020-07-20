@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
 import re
-from TauFW.Plotter.plot.utils import LOG, unwraplistargs
+from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist
 
 var_dict = {
     'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",
@@ -240,23 +240,24 @@ def estimatelen(*strings):
       string = symregx.sub("x",string)
       for old, new in replace:
         string = string.replace(old,new)
-      print string
       strlen = len(string)
     if strlen>maxlen:
       maxlen = strlen
   return maxlen
   
 
-def match(self, terms, labels, **kwargs):
+def match(terms, labels, **kwargs):
   """Match given search terms (strings) to some given list of labels."""
-  terms  = ensurelist(terms,nonzero=True) # search terms
-  labels = ensurelist(terms,nonzero=True) # labels to match to
+  verbosity = LOG.getverbosity(kwargs)
+  terms     = ensurelist(terms, nonzero=True) # search terms
+  labels    = ensurelist(labels,nonzero=True) # labels to match to
+  found  = True
+  regex  = kwargs.get('regex', False ) # use regexpr patterns (instead of glob)
+  incl   = kwargs.get('incl',  True  ) # match only at least one term
+  start  = kwargs.get('start', False ) # match only beginning of string
+  LOG.verb("match: compare labels=%s -> searchterms=%s (incl=%s)"%(labels,terms,incl),verbosity,3)
   if not terms:
     return False
-  found  = True
-  regex  = kwargs.get('regex', False   ) # use regexpr patterns (instead of glob)
-  incl   = kwargs.get('incl',  True    ) # match only at least one term
-  start  = kwargs.get('start', False   ) # match only beginning of string
   for searchterm in terms:
     if not regex: # convert glob to regexp
       #fnmatch.translate( '*.foo' )
@@ -269,16 +270,23 @@ def match(self, terms, labels, **kwargs):
       for label in labels:
         matches = re.findall(searchterm,label)
         if matches:
-          break
-      else:
-        return False # none of the labels matched to the searchterm
+          LOG.verb("  matched %r -> %r"%(label,searchterm),verbosity,3)
+          return True
+        else:
+          LOG.verb("  not matched %r -> %r"%(label,searchterm),verbosity,3)
+      return False # none of the search terms have been matched
     else: # exclusive: match all search terms
       for label in labels:
         matches = re.findall(searchterm,label)
         if matches:
-          return True # one of the search term has been matched
-  return incl # if incl==True, at least one search terms was matched
-
+          LOG.verb("  matched %r -> %r"%(label,searchterm),verbosity,3)
+          break
+        else:
+          LOG.verb("  not matched %r -> %r"%(label,searchterm),verbosity,3)
+      else:
+        return False # one of the search terms has not been match
+      return True # all search terms have been matched
+  
 
 def joinweights(*weights,**kwargs):
   """Join weight strings multiplicatively."""

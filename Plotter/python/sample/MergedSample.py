@@ -210,3 +210,37 @@ class MergedSample(Sample):
       return hists[0]
     return hists
   
+
+def unwrap_MergedSamples_args(*args,**kwargs):
+  """
+  Help function to unwrap arguments for MergedSamples initialization:
+    MergedSample(str name)
+    MergedSample(str name, str title)
+    MergedSample(str name, list samples)
+    MergedSample(str name, str title, list samples)
+  where samples is a list of Sample objects.
+  Returns a sample name, title and a list of Sample objects:
+    (str name, str, title, list samples)
+  """
+  strings = [ ]
+  name    = "noname"
+  title   = ""
+  samples = [ ]
+  #args    = unwraplistargs(args)
+  for arg in args:
+    if isinstance(arg,str):
+      strings.append(arg)
+    elif isinstance(arg,Sample):
+      samples.append(arg)
+    elif islist(arg) and all(isinstance(s,Sample) for s in arg):
+      for sample in arg:
+        samples.append(sample)
+  if len(strings)==1:
+    name = strings[0]
+  elif len(strings)>1:
+    name, title = strings[:2]
+  elif len(samples)>1:
+    name, title = '-'.join([s.name for s in samples]), ', '.join([s.title for s in samples])
+  LOG.verb("unwrap_MergedSamples_args: name=%r, title=%r, samples=%s"%(name,title,samples),level=3)
+  return name, title, samples
+  

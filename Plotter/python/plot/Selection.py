@@ -173,5 +173,5 @@ class Selection(object):
     """Match search terms to the selection's name, title and selection strings."""
     return match(terms,[self.name,self.title,self.selection])
   
-
+Sel = Selection # short alias
 from TauFW.Plotter.plot.string import *
