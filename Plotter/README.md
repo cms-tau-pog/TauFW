@@ -176,7 +176,6 @@ With `Variable` objects, you can include extra cuts or weights that are variable
 In the example above, the `btagweight` weight will only be applied to `nbtags`,
 and the `jpt_1>0` cut only to `jpt_1`.
 
-
 ### Splitting
 You can also split samples into different components (e.g. real/misidentified, or decay mode)
 based on some cuts. e.g.
@@ -212,7 +211,6 @@ option to the `Plot.draw`, `Plot.drawlegend` and , `Plot.drawtext` functions.
   <img src="../docs/testStyle_legend_split.png" alt="Legend with some processes split" width="220" hspace="10"/>
   <img src="../docs/testStyle_legend_DMs.png" alt="Legend with Z -> tautau split into decay modes" width="200"/>
 </p>
-
 
 
 ## Sample set
