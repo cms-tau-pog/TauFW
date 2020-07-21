@@ -284,7 +284,7 @@ def getsample_with_flag(samples,flag,*searchterms,**kwargs):
 def join(samplelist,*searchterms,**kwargs):
   """Join samples from a sample list into one merged sample, that match a set of search terms.
   E.g. samplelist = join(samplelist,'DY','M-50',name='DY_highmass')."""
-  verbosity = LOG.getverbosity(kwargs,1)
+  verbosity = LOG.getverbosity(kwargs)
   name      = kwargs.get('name',  searchterms[0] ) # name of new merged sample
   title     = kwargs.get('title', None           ) # title of new merged sample
   color     = kwargs.get('color', None           ) # color of new merged sample
@@ -322,7 +322,7 @@ def join(samplelist,*searchterms,**kwargs):
 def stitch(samplelist,*searchterms,**kwargs):
   """Stitching samples: merge samples and reweight inclusive
   sample and rescale jet-binned samples, e.g. DY*Jets or W*Jets."""
-  verbosity = LOG.getverbosity(kwargs,1)
+  verbosity = LOG.getverbosity(kwargs)
   name      = kwargs.get('name',    searchterms[0] )
   name_incl = kwargs.get('incl',    searchterms[0] ) # name of inclusive sample
   xsec_incl = kwargs.get('xsec',    None           ) # (N)NLO cross section to compute k-factor

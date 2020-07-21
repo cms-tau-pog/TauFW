@@ -61,7 +61,7 @@ class Sample(object):
     self.binnevts     = kwargs.get('binnevts',     None         ) or 1  # cutflow bin with total number of (unweighted) events
     self.binsumw      = kwargs.get('binsumw',      None         ) or 17 # cutflow bin with total sum of weight
     self.lumi         = kwargs.get('lumi',         GLOB.lumi    ) # integrated luminosity
-    self.norm         = kwargs.get('norm',         1.0          ) # lumi*xsec/binsumw normalization
+    self.norm         = kwargs.get('norm',         None         ) # lumi*xsec/binsumw normalization
     self.scale        = kwargs.get('scale',        1.0          ) # scales factor (e.g. for W+Jets renormalization)
     self.upscale      = kwargs.get('upscale',      1.0          ) # drawing up/down scaling
     self._scale       = self.scale # back up scale to overwrite previous renormalizations
@@ -83,8 +83,14 @@ class Sample(object):
       if self.isdata:
         self.setnevents(self.binnevts,self.binsumw)
       elif not self.isembed: #self.xsec>=0:
-        self.setnevents(self.binnevts,self.binsumw)
-        self.normalize(lumi=self.lumi,xsec=self.xsec,sumw=self.sumweights)
+        if self.nevents<0:
+          self.setnevents(self.binnevts,self.binsumw) # set nevents and sumweights from cutflow histogram
+        if self.sumweights<0:
+          self.sumweights = self.nevents # set sumweights to nevents (assume genweight==1)
+        if self.norm==None:
+          self.normalize(lumi=self.lumi,xsec=self.xsec,sumw=self.sumweights)
+    if self.norm==None:
+      self.norm = 1.0
   
   def __str__(self):
     """Returns string."""
