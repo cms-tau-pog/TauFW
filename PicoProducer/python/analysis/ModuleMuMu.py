@@ -16,20 +16,22 @@ class ModuleMuMu(ModuleTauPair):
     kwargs['channel'] = 'mumu'
     super(ModuleMuMu,self).__init__(fname,**kwargs)
     self.out = TreeProducerMuMu(fname,self)
+    self.zwindow = kwargs.get('ZWindow', True )
     
     # TRIGGERS
     if self.year==2016:
       self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
-      self.muonCutPt  = lambda e: 23
+      self.muon1CutPt = lambda e: 23
       self.muonCutEta = lambda e: 2.4 if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25 if e.HLT_IsoMu24 else 28
+      self.muon1CutPt = lambda e: 25 if e.HLT_IsoMu24 else 28
       self.muonCutEta = lambda e: 2.4
     else:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25
+      self.muon1CutPt = lambda e: 25
       self.muonCutEta = lambda e: 2.4
+    self.muon2CutPt   = 15
     self.tauCutPt     = 20
     self.tauCutEta    = 2.3
     
@@ -49,7 +51,8 @@ class ModuleMuMu(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleMuMu,self).beginJob()
-    print ">>> %-12s = %s"%('muonCutPt',  self.muonCutPt)
+    print ">>> %-12s = %s"%('muon1CutPt', self.muon1CutPt)
+    print ">>> %-12s = %s"%('muon2CutPt', self.muon2CutPt)
     print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
     print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
     print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
@@ -88,7 +91,7 @@ class ModuleMuMu(ModuleTauPair):
     ##### MUON #######################################
     muons = [ ]
     for muon in Collection(event,'Muon'):
-      if muon.pt<self.muonCutPt(event): continue
+      if muon.pt<self.muon2CutPt: continue # lower pt cut
       if abs(muon.eta)>self.muonCutEta(event): continue
       if abs(muon.dz)>0.2: continue
       if abs(muon.dxy)>0.045: continue
@@ -102,9 +105,12 @@ class ModuleMuMu(ModuleTauPair):
     
     ##### MUMU PAIR #################################
     dileps = [ ]
+    ptcut  = self.muon1CutPt(event) # trigger dependent
     for i, muon1 in enumerate(muons,1):
       for muon2 in muons[i:]:
         if muon2.DeltaR(muon1)<0.5: continue
+        if muon1.pt<ptcut and muon2.pt<ptcut: continue # larger pt cut
+        if self.zwindow and not (70<(muon1.p4()+muon2.p4()).M()<110): continue # Z mass
         ltau = LeptonPair(muon1,muon1.pfRelIso04_all,muon2,muon2.pfRelIso04_all)
         dileps.append(ltau)
     if len(dileps)==0:
