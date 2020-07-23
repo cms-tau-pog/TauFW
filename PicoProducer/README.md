@@ -201,10 +201,11 @@ Automatically, the first file of the first sample in the era's list will be run,
 specify a sample that is available in the [sample list linked to the era](samples/samples_2016.py),
 by passing the `-s` flag a pattern:
 ```
-pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
 pico.py run -y 2016 -c mutau -s SingleMuon
+pico.py run -y 2016 -c mutau -s 'DYJets*M-50'
+pico.py run -y 2016 -c mutau -s 'DY[23]Jets*M-50'
 ```
-Glob patterns like `*` or `?` wildcards are allowed.
+Glob patterns like `*`, `?` or `[…]` wildcards are allowed.
 Some modules allow extra options via keyword arguments. You can specify these using the `--opts` flag:
 ```
 pico.py run -y 2016 -c mutau -s DYJets*M-50 --opts tes=1.1

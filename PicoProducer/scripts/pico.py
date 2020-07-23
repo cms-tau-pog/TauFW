@@ -72,18 +72,20 @@ def main_get(args):
   """Get information of given variable in configuration or samples."""
   if args.verbosity>=1:
     print ">>> main_get", args
-  variable  = args.variable
-  eras      = args.eras
-  channels  = args.channels or [""]
-  dtypes    = args.dtypes
-  filters   = args.samples
-  vetoes    = args.vetoes
-  checkdas  = args.checkdas
-  limit     = args.limit
-  writedir  = args.write # write sample file list to text file
-  tag       = args.tag
-  verbosity = args.verbosity
-  cfgname   = CONFIG._path
+  variable   = args.variable
+  eras       = args.eras
+  channels   = args.channels or [""]
+  dtypes     = args.dtypes
+  filters    = args.samples
+  vetoes     = args.vetoes
+  inclurl    = args.inclurl    # include URL in filelist
+  checkdas   = args.checkdas   # check file list in DAS
+  checklocal = args.checklocal # check nevents in local files
+  limit      = args.limit
+  writedir   = args.write      # write sample file list to text file
+  tag        = args.tag
+  verbosity  = args.verbosity
+  cfgname    = CONFIG._path
   if verbosity>=1:
     print '-'*80
     print ">>> %-14s = %s"%('variable',variable)
@@ -112,7 +114,7 @@ def main_get(args):
             print ">>>   %s"%(path)
   
   # LIST SAMPLE FILES
-  elif variable in ['files','nevents']:
+  elif variable in ['files','nevents','nevts']:
     
     # LOOP over ERAS & CHANNELS
     if not eras:
@@ -139,11 +141,12 @@ def main_get(args):
           print ">>> %s"%(bold(sample.name))
           for path in sample.paths:
             print ">>> %s"%(bold(path))
-            infiles = sample.getfiles(url=False,limit=limit,verb=verbosity+1)
-            if variable=='nevents' or checkdas:
-              nevents = sample.getnevents(verb=verbosity+1)
-              print ">>>   %-7s = %s"%('nevents',nevents)
+            if variable in ['nevents','nevts'] or checkdas or checklocal:
+              nevents = sample.getnevents(das=(not checklocal),verb=verbosity+1)
+              storage = sample.storage.__class__.__name__ if checklocal else "DAS"
+              print ">>>   %-7s = %s (%s)"%('nevents',nevents,storage)
             if variable=='files':
+              infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
               print ">>>   %-7s = %r"%('url',sample.url)
               print ">>>   %-7s = %r"%('postfix',sample.postfix)
               print ">>>   %-7s = %s"%('nfiles',len(infiles))
@@ -1334,8 +1337,12 @@ if __name__ == "__main__":
                                                 help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
+  parser_get.add_argument('-U','--URL',         dest='inclurl', default=False, action='store_true',
+                                                help="include XRootD url in filename for 'get files'" )
   parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1, action='store',
                           metavar='NMAX',       help="limit number files in list for 'get files'" )
+  parser_get.add_argument('-l','--local',       dest='checklocal', default=False, action='store_true',
+                                                help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'" )
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
                           metavar='FILE',       help="write file list, default=%(const)r" )
   

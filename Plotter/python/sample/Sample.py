@@ -586,11 +586,14 @@ class Sample(object):
     
     # FILL HISTOGRAMS
     if varexps:
-      file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
-      out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists)
-      file.Close()
       LOG.insist(len(variables)==len(varexps)==len(hists),
                  "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
+      try:
+        file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
+        out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists)
+        file.Close()
+      except KeyboardInterrupt:
+        LOG.throw(KeyboardInterrupt,"Interrupted Sample.gethist for %r (%d histograms)"%(self.name,len(varexps)))
     
     # FINISH
     nentries = 0
@@ -666,11 +669,11 @@ class Sample(object):
       hist.SetOption(drawopt)
     
     # DRAW
+    LOG.insist(len(variables)==len(varexps)==len(hists),
+               "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
     file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
     out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists)
     file.Close()
-    LOG.insist(len(variables)==len(varexps)==len(hists),
-               "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
     
     # FINISH
     nentries = 0

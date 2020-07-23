@@ -11,7 +11,7 @@ import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
 from TauFW.common.tools.utils import execute, CalledProcessError, repkey, ensurelist
-from TauFW.common.tools.file import ensurefile
+from TauFW.common.tools.file import ensurefile, ensureTFile
 from TauFW.PicoProducer.storage.utils import LOG, getstorage
 
 
@@ -77,7 +77,8 @@ class Sample(object):
     self.dtype        = dtype
     self.channels     = kwargs.get('channel',      None )
     self.channels     = kwargs.get('channels',     self.channels )
-    self.storage      = kwargs.get('store',        None ) # if stored elsewhere than DAS
+    self.storage      = None
+    self.storepath    = kwargs.get('store',        None ) # if stored elsewhere than DAS
     self.url          = kwargs.get('url',          None )
     self.blacklist    = kwargs.get('blacklist',    [ ]  ) # black list file
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global')
@@ -102,16 +103,16 @@ class Sample(object):
       self.extraopts = [self.extraopts]
     
     # STORAGE & URL DEFAULTS
-    if self.storage:
-      self.storage = repkey(self.storage,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    if self.storepath:
+      self.storepath = repkey(self.storepath,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
     if not self.url:
-      if self.storage:
+      if self.storepath:
         from TauFW.PicoProducer.storage.StorageSystem import Local
-        storage = getstorage(repkey(self.storage,PATH=self.paths[0]))
-        if isinstance(storage,Local):
-          self.url = "root://cms-xrd-global.cern.ch/"
+        self.storage = getstorage(repkey(self.storepath,PATH=self.paths[0]),ensure=False)
+        if isinstance(self.storage,Local):
+          self.url = "" #root://cms-xrd-global.cern.ch/
         else:
-          self.url = storage.fileurl
+          self.url = self.storage.fileurl
       else:
         self.url = "root://cms-xrd-global.cern.ch/"
     
@@ -192,22 +193,21 @@ class Sample(object):
         print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
     return match_
   
-  def getfiles(self,refresh=False,url=True,limit=-1,verb=0):
-    """Get list of files from DAS."""
+  def getfiles(self,das=False,refresh=False,url=True,limit=-1,verb=0):
+    """Get list of files from storage system (default), or DAS (if no storage system of das=True)."""
     files   = self.files
     if self.refreshable and (not files or refresh):
       files = [ ]
-      for path in self.paths:
-        if self.storage: # get files from storage system
+      for daspath in self.paths:
+        if self.storage and not das: # get files from storage system
           postfix = self.postfix+'.root'
-          sepath  = repkey(self.storage,PATH=path).replace('//','/')
-          storage = getstorage(sepath,verb=verb-1)
-          outlist = storage.getfiles(url=url,verb=verb-1)
+          sepath  = repkey(self.storepath,PATH=daspath).replace('//','/')
+          outlist = self.storage.getfiles(sepath,url=url,verb=verb-1)
           if limit>0:
             outlist = outlist[:limit]
         else: # get files from DAS
           postfix = '.root'
-          cmdout  = dasgoclient("file dataset=%s instance=%s"%(path,self.instance),limit=limit)
+          cmdout  = dasgoclient("file dataset=%s instance=%s"%(daspath,self.instance),limit=limit)
           outlist = cmdout.split(os.linesep)
         for line in outlist: # filter root files
           line = line.strip()
@@ -216,21 +216,38 @@ class Sample(object):
               line = self.url+line
             files.append(line)
       files.sort() # for consistent list order
-      self.files = files
+      self.files = files # save for efficiency
+    elif url and any(self.url not in f for f in files): # add url if missing
+      files = [(self.url+f if self.url not in f else f) for f in files]
+    elif not url and any(self.url in f for f in files): # remove url
+      files = [f.replace(self.url,"") for f in files]
     return files
   
-  def getnevents(self,refresh=False,verb=0):
-    """Get number of files from DAS."""
+  def getnevents(self,das=True,refresh=False,treename='Events',verb=0):
+    """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
     nevents = self.nevents
     if nevents<=0 or refresh:
-      for path in self.paths:
-        cmdout = dasgoclient("summary dataset=%s instance=%s"%(path,self.instance))
-        if "nevents" in cmdout:
-          ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
-        else:
-          ndasevts = 0
-          LOG.warning("Could not get number of events from DAS for %r."%(self.name))
-        nevents += ndasevts
+      if self.storage and not das: # get number of events from storage system
+        files = self.getfiles(url=True,refresh=refresh,verb=verb)
+        for fname in files:
+          file     = ensureTFile(fname)
+          tree     = file.Get(treename)
+          if not tree:
+            LOG.warning("getnevents: No %r tree in events in %r!"%('Events',fname))
+            continue
+          nevts    = tree.GetEntries()
+          file.Close()
+          nevents += nevts
+          LOG.verb("getnevents: Found %d events in %r."%(nevts,fname),verb,3)
+      else: # get number of events from DAS
+        for daspath in self.paths:
+          cmdout = dasgoclient("summary dataset=%s instance=%s"%(daspath,self.instance))
+          if "nevents" in cmdout:
+            ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
+          else:
+            ndasevts = 0
+            LOG.warning("Could not get number of events from DAS for %r."%(self.name))
+          nevents += ndasevts
       self.nevents = nevents
     return nevents
   
