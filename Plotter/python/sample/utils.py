@@ -191,6 +191,7 @@ def unwrap_gethist2D_args(*args,**kwargs):
     (list varpairs, str cut, bool single)
   For testing, see test/testUnwrapping.py.
   """
+  verbosity = LOG.getverbosity(kwargs)
   vars   = None     # list of Variable objects
   sel    = None     # selection (string or Selection object)
   single = False    # only one Variable passed
@@ -205,8 +206,8 @@ def unwrap_gethist2D_args(*args,**kwargs):
       sel   = Selection() # no selection given
       vargs = args
   if len(vargs)==1:
-    vars = vargs
-    single = len(vargs)==2 and islist(vargs) and all(isinstance(v,Variable) for v in vargs)
+    vars = vargs[0]
+    single = len(vars)==2 and islist(vars) and all(isinstance(v,Variable) for v in vars)
     if single:
       vars = [vars]
   elif len(vargs)==2:
@@ -238,7 +239,8 @@ def unwrap_gethist2D_args(*args,**kwargs):
     LOG.throw(IOError,'unwrap_gethist2D_args: Could not unwrap arguments %s, len(args)=%d, vars=%s, sel=%s.'%(args,len(args),vars,sel))
   elif isinstance(sel,str):
     sel = Selection(str)
-  LOG.verb("unwrap_gethist2D_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),level=3)
+  LOG.verb("unwrap_gethist2D_args: args=%r"%(args,),verbosity,3)
+  LOG.verb("unwrap_gethist2D_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),verbosity,3)
   return vars, sel, single
   
 

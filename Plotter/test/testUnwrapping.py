@@ -66,12 +66,13 @@ def main():
     printIO(name,func,'m_vis',40,0,200,'pt_1',40,0,200,selection)
     printIO(name,func,'m_vis',mvisbins,'pt_1',pt_1bins,selection)
     printIO(name,func,'m_vis',40,0,200,'pt_1',pt_1bins,selection)
-    
     printIO(name,func,'m_vis',mvisbins,'pt_1',40,0,200,selection)
     printIO(name,func,xvar,yvar,selection)
     printIO(name,func,(xvar,yvar),selection)
+    printIO(name,func,[(xvar,yvar)],selection)
     printIO(name,func,xvarlist1,yvarlist1,selection)
     printIO(name,func,xvarlist2,yvarlist2,selection)
+    printIO(name,func,zip(xvarlist1,yvarlist1),selection)
     print ">>> "
   
 
