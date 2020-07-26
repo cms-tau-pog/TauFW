@@ -55,7 +55,8 @@ class Variable(object):
     self.logyrange    = kwargs.get('logyrange',   None          ) # log(y) range from hist maximum to ymin
     self.position     = kwargs.get('pos',         ""            ) # legend position
     self.position     = kwargs.get('position',    self.position ) # legend position
-    self.ncols        = kwargs.get('ncols',       None          ) # number of legend columns
+    self.ncols        = kwargs.get('ncol',        None          ) # number of legend columns
+    self.ncols        = kwargs.get('ncols',       self.ncols    ) # number of legend columns
     #self.plot         = kwargs.get('plots',       True          )
     self.only         = kwargs.get('only',        [ ]           ) # only plot for these patterns
     self.veto         = kwargs.get('veto',        [ ]           ) # do not plot for these patterns

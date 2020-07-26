@@ -47,7 +47,7 @@ def makesamples(nevts=10000,**kwargs):
       'QCD': lambda gm: gRandom.Gaus( 80,44),
       'TT':  lambda gm: gRandom.Gaus(110,70),
     },
-    'genmatch': { # chance that genmatch==5 (real tau)
+    'genmatch_2': { # chance that genmatch_2==5 (real tau)
       '*':   0.9, # default
       'ZTT': 1.0,
       'WJ':  0.5,
@@ -109,33 +109,33 @@ def makesamples(nevts=10000,**kwargs):
   
   # PREPARE TREES
   ensuredir(outdir)
-  filedict = { }
-  histdict = { }
-  m_vis    = np.zeros(1,dtype='f')
-  pt_1     = np.zeros(1,dtype='f')
-  pt_2     = np.zeros(1,dtype='f')
-  dm_2     = np.zeros(1,dtype='f')
-  eta_1    = np.zeros(1,dtype='f')
-  eta_2    = np.zeros(1,dtype='f')
-  njets    = np.zeros(1,dtype='i')
-  genmatch = np.zeros(1,dtype='i') # genmatch: 5 = real tau; 0 = fake tau
-  NUP      = np.zeros(1,dtype='i') # number of LHE-level partons for jet stitching
-  weight   = np.zeros(1,dtype='f')
+  filedict   = { }
+  histdict   = { }
+  m_vis      = np.zeros(1,dtype='f')
+  pt_1       = np.zeros(1,dtype='f')
+  pt_2       = np.zeros(1,dtype='f')
+  dm_2       = np.zeros(1,dtype='f')
+  eta_1      = np.zeros(1,dtype='f')
+  eta_2      = np.zeros(1,dtype='f')
+  njets      = np.zeros(1,dtype='i')
+  genmatch_2 = np.zeros(1,dtype='i') # genmatch_2: 5 = real tau; 0 = fake tau
+  NUP        = np.zeros(1,dtype='i') # number of LHE-level partons for jet stitching
+  weight     = np.zeros(1,dtype='f')
   def makesample(sample): # help function to create file with tree
     fname = "%s/%s_%s.root"%(outdir,sample,channel)
     file  = TFile(fname,'RECREATE')
     hist  = TH1D('cutflow','cutflow',20,0,20)
     tree  = TTree('tree','tree')
-    tree.Branch('m_vis',    m_vis,    'm_vis/F')
-    tree.Branch('pt_1',     pt_1,     'pt_1/F')
-    tree.Branch('pt_2',     pt_2,     'pt_2/F')
-    tree.Branch('dm_2',     dm_2,     'dm_2/I')
-    tree.Branch('eta_1',    eta_1,    'eta_1/F')
-    tree.Branch('eta_2',    eta_2,    'eta_2/F')
-    tree.Branch('njets',    njets,    'njets/I')
-    tree.Branch('genmatch', genmatch, 'genmatch/I')
-    tree.Branch('NUP',      NUP,      'NUP/I')
-    tree.Branch('weight',   weight,   'weight/F')
+    tree.Branch('m_vis',      m_vis,      'm_vis/F')
+    tree.Branch('pt_1',       pt_1,       'pt_1/F')
+    tree.Branch('pt_2',       pt_2,       'pt_2/F')
+    tree.Branch('dm_2',       dm_2,       'dm_2/I')
+    tree.Branch('eta_1',      eta_1,      'eta_1/F')
+    tree.Branch('eta_2',      eta_2,      'eta_2/F')
+    tree.Branch('njets',      njets,      'njets/I')
+    tree.Branch('genmatch_2', genmatch_2, 'genmatch_2/I')
+    tree.Branch('NUP',        NUP,        'NUP/I')
+    tree.Branch('weight',     weight,     'weight/F')
     tree.SetDirectory(file)
     hist.SetDirectory(file)
     hist.SetBinContent( 1,1)
@@ -151,10 +151,10 @@ def makesamples(nevts=10000,**kwargs):
     else: return vardict[var]['*']
   def fill(sample,tree,nevts): # help function to fill trees
     for i in xrange(nevts):
-      genmatch[0] = 5 if gRandom.Uniform(1.)<getgenerator('genmatch',sample) else 0
-      m_vis[0]    = getgenerator('m_vis',sample)(genmatch[0])
-      pt_1[0]     = getgenerator('pt_1', sample)()
-      pt_2[0]     = getgenerator('pt_2', sample)()
+      genmatch_2[0] = 5 if gRandom.Uniform(1.)<getgenerator('genmatch_2',sample) else 0
+      m_vis[0]      = getgenerator('m_vis',sample)(genmatch_2[0])
+      pt_1[0]       = getgenerator('pt_1', sample)()
+      pt_2[0]       = getgenerator('pt_2', sample)()
       if m_vis[0]<0 or pt_1[0]<0 or pt_2[0]<0: continue
       if pt_1[0]<pt_1[0]:
         pt_1[0], pt_2[0] = pt_2[0], pt_1[0]

@@ -8,7 +8,7 @@ from ROOT import gROOT, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
                  TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
 moddir = os.path.dirname(os.path.realpath(__file__))
 macro  = os.path.join(moddir,"MultiDraw.cxx")
-def error(string): # raise RuntimeError in red
+def error(string): # raise RuntimeError in red color
   return RuntimeError("\033[31m"+string+"\033[0m")
 
 # LOAD MultiDraw macro
@@ -18,9 +18,8 @@ try:
   from ROOT import MultiDraw2D as _MultiDraw2D
 except:
   print traceback.format_exc()
-  raise error('MultiDraw.py: Failed to load the MultiDraw macro "%s"'%macro)
+  raise error('MultiDraw.py: Failed to import the MultiDraw macro "%s"'%macro)
   
-
 def makeTObjArray(theList):
   """Turn a python iterable into a ROOT TObjArray"""
   # Make PyROOT give up ownership of the things that are being placed in the
@@ -31,7 +30,7 @@ def makeTObjArray(theList):
     SetOwnership(item, False)
     result.Add(item)
   return result
-
+  
 varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$")
 varregex2D = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$")
 binregex   = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")

@@ -219,6 +219,7 @@ class Sample(object):
     splitsamples            = [s.clone(samename=samename,deep=deep) for s in self.splitsamples] if deep else self.splitsamples[:]
     kwargs['isdata']        = self.isdata
     kwargs['isembed']       = self.isembed
+    kwargs['norm']          = self.norm # prevent automatic norm computation without xsec
     newdict                 = self.__dict__.copy()
     newdict['name']         = name
     newdict['title']        = title
@@ -230,7 +231,7 @@ class Sample(object):
     if deep and self.file: # force new, separate file
       newdict['file'] = None #ensureTFile(self.file.GetName())
     newsample               = type(self)(name,title,filename,**kwargs)
-    newsample.__dict__.update(newdict)
+    newsample.__dict__.update(newdict) # overwrite defaults
     LOG.verb('Sample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
              newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),1)
     if close:

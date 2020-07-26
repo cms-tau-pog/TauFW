@@ -250,10 +250,20 @@ def getsample(samples,*searchterms,**kwargs):
   filename    = kwargs.get('filename', ""    )
   unique      = kwargs.get('unique',   False )
   warning     = kwargs.get('warning',  True  )
-  inclusive   = kwargs.get('incl',     True  )
+  split       = kwargs.get('split',    False )
   matches     = [ ]
+  if split:
+    newsamples = [ ]
+    for sample in samples:
+      if sample.splitsamples:
+        newsamples.extend(sample.splitsamples)
+      else:
+        newsamples.append(sample)
+    print samples
+    print newsamples
+    samples = newsamples
   for sample in samples:
-    if sample.match(*searchterms,incl=inclusive) and filename in sample.filename:
+    if sample.match(*searchterms,**kwargs) and filename in sample.filename:
       matches.append(sample)
   if not matches and warning:
     LOG.warning("getsample: Could not find a sample with search terms %s..."%(', '.join(repr(s) for s in searchterms+(filename,) if s)))
@@ -268,11 +278,10 @@ def getsample(samples,*searchterms,**kwargs):
 def getsample_with_flag(samples,flag,*searchterms,**kwargs):
   """Help function to get sample with some flag from a list of samples."""
   matches   = [ ]
-  inclusive = kwargs.get('incl',   True  )
   unique    = kwargs.get('unique', False )
   for sample in samples:
     if hasattr(sample,flag) and getattr(sample,flag) and\
-       (not searchterms or sample.match(*searchterms,incl=inclusive)):
+       (not searchterms or sample.match(*searchterms,**kwargs)):
       matches.append(sample)
   if not matches:
     LOG.warning("Could not find a sample with %r=True..."%flag)

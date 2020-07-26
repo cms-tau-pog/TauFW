@@ -106,7 +106,7 @@ def makelatex(string,**kwargs):
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     if strlow[0]=='s' and 't' in strlow[1:3]: # scalar sum pT
-      string = re.sub(r"s_?t",r"S_{T}",string,flags=re.IGNORECASE)
+      string = re.sub(r"s_?t(?!at)",r"S_{T}",string,flags=re.IGNORECASE)
       string = re.sub(r"met",r"^{MET}",string,flags=re.IGNORECASE)
       GeV    = True
     if " d_" in strlow:
@@ -255,7 +255,7 @@ def match(terms, labels, **kwargs):
   regex  = kwargs.get('regex', False ) # use regexpr patterns (instead of glob)
   incl   = kwargs.get('incl',  True  ) # match only at least one term
   start  = kwargs.get('start', False ) # match only beginning of string
-  LOG.verb("match: compare labels=%s -> searchterms=%s (incl=%s)"%(labels,terms,incl),verbosity,3)
+  LOG.verb("match: compare labels=%s -> searchterms=%s (incl=%s,regex=%s)"%(labels,terms,incl,regex),verbosity,3)
   if not terms:
     return False
   for i, searchterm in enumerate(terms):

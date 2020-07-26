@@ -19,8 +19,8 @@ variables = [
   Variable('pt_1',             40,  0, 120),
   Variable('pt_2',             40,  0, 120),
   Variable('pt_1+pt_2',        40,  0, 200),
-  Variable('eta_1',            30, -3,   3, ymargin=1.65),
-  Variable('eta_2',            30, -3,   3, ymargin=1.65),
+  Variable('eta_1',            30, -3,   3, ymargin=1.6, ncol=2),
+  Variable('eta_2',            30, -3,   3, ymargin=1.6, ncol=2),
   Variable('min(eta_1,eta_2)', 30, -3,   3, fname="minetas"),
   Variable('njets',            10,  0,  10),
 ]
@@ -36,9 +36,23 @@ text     = "#mu#tau_{h} baseline"
 position = 'topright'
 
 
-def makeSampleSet(datasample,expsamples,join=False):
+def makeSampleSet(sampleset,filedict,join=False):
   """Create a SampleSet."""
   #LOG.header("makeSampleSet")
+  datasample = None
+  expsamples = [ ]
+  for name, title, xsec in sampleset:
+    file, tree = filedict[name]
+    fname = file.GetName()
+    color = None #STYLE.getcolor(name,verb=2)
+    data  = name.lower()=='data'
+    file.Close()
+    sample = Sample(name,title,fname,xsec,color=color,data=data)
+    #sample = Sample(name,title,fname,xsec,lumi=lumi,color=color,data=data)
+    if sample.isdata:
+      datasample = sample
+    else:
+      expsamples.append(sample)
   print ">>> Joining samples into one set"%(expsamples)
   if join:
     color      = expsamples[0].fillcolor
@@ -47,6 +61,10 @@ def makeSampleSet(datasample,expsamples,join=False):
     expsample  = MergedSample('Exp',"Expected",expsamples,color=color)
     expsamples = [expsample]
   samples = SampleSet(datasample,expsamples)
+  samples.split('TT',[
+    ('TTT',"ttbar real tau_{h}","genmatch_2==5"),
+    ('TTJ',"ttbar fake tau_{h}","genmatch_2!=5"),
+  ],start=True)
   print ">>> samples=%s"%samples
   print ">>> "
   samples.printtable()
@@ -63,13 +81,16 @@ def testget(samples):
     for unique in [True,False]:
       kwargs = { 'unique':unique, 'incl':incl, 'regex':regex }
       print ">>> unique=%s, incl=%s, regex=%s"%(LOG.getcolor(unique),incl,LOG.getcolor(regex))
-      print ">>>   SampleSet.get('DY', unique=%s,regex=%s): %r"%(unique,regex,samples.get('DY',**kwargs))
-      print ">>>   SampleSet.get('ZTT',unique=%s,regex=%s): %r"%(unique,regex,samples.get('ZTT',**kwargs))
-      print ">>>   SampleSet.get('WJ', unique=%s,regex=%s): %r"%(unique,regex,samples.get('WJ',**kwargs))
-      print ">>>   SampleSet.get('TT', unique=%s,regex=%s): %r"%(unique,regex,samples.get('TT',**kwargs))
-      print ">>>   SampleSet.get('*TT',unique=%s,regex=%s): %r"%(unique,regex,samples.get('*TT',**kwargs))
-      print ">>>   SampleSet.get('?TT',unique=%s,regex=%s): %r"%(unique,regex,samples.get('?TT',**kwargs))
-      print ">>>   SampleSet.get('?TT',unique=%s,regex=%s): %r"%(unique,regex,samples.get('?TT',**kwargs))
+      print ">>>   SampleSet.get('DY', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('DY',**kwargs))
+      print ">>>   SampleSet.get('ZTT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('ZTT',**kwargs))
+      print ">>>   SampleSet.get('WJ', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('WJ',**kwargs))
+      print ">>>   SampleSet.get('TT', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('TT',**kwargs))
+      if not regex:
+        print ">>>   SampleSet.get('*TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('*TT',**kwargs))
+        print ">>>   SampleSet.get('?TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('?TT',**kwargs))
+      else:
+        print ">>>   SampleSet.get('.*TT',unique=%s,regex=%s): %r"%(unique,regex,samples.get('.*TT',**kwargs))
+        print ">>>   SampleSet.get('.TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('.TT', **kwargs))
       print ">>> "
   regex  = False
   for incl in [True,False]:
@@ -79,6 +100,7 @@ def testget(samples):
       print ">>>   SampleSet.get('ZTT','TT',unique=%s,incl=%s): %r"%(unique,incl,samples.get('ZTT','TT',**kwargs))
       print ">>>   SampleSet.get('QCD','WJ',unique=%s,incl=%s): %r"%(unique,incl,samples.get('QCD','WJ',**kwargs))
       print ">>> "
+  print ">>> SampleSet.get('TT?',unique=False,regex=False,split=True): %r"%(samples.get('TT?',unique=False,regex=False,split=True))
   print ">>> SampleSet.getexp():     %r"%(samples.getexp())
   print ">>> SampleSet.getexp('TT'): %r"%(samples.getexp('TT'))
   #print ">>> SampleSet.getmc():   %r"%(samples.getmc())
@@ -86,22 +108,21 @@ def testget(samples):
   print ">>> "
   
 
-def plotSampleSet(samples,tag=""):
+def plotSampleSet(samples,tag="",singlevar=False):
   """Test SampleSet class: join samples, print out, and plot."""
   LOG.header("testSampleSet")
-  singlevar = True and False
   
   # GET HISTS
   for selection, weight in selections:
     if singlevar:
-      result = samples.gethists(variables[0],selection)
+      result = samples.gethists(variables[0],selection,split=False)
       result.printall()
       #var, datahist, exphists = result
       #print var
       #print datahist
       #print exphists
     else:
-      result = samples.gethists(variables,selection)
+      result = samples.gethists(variables,selection,split=False)
     result.printall()
   
   # PLOT
@@ -109,13 +130,13 @@ def plotSampleSet(samples,tag=""):
   fname  = "%s/testSamplesSet_$VAR%s.png"%(outdir,tag)
   for selection, weight in selections:
     if singlevar:
-      stack = samples.getstack(variables[0],selection)
+      stack = samples.getstack(variables[0],selection,split=False)
       stack.draw()
       stack.drawlegend(position=position)
       stack.saveas(fname) #tag="_SampleSet",outdir=outdir)
       stack.close()
     else:
-      stacks = samples.getstack(variables,selection)
+      stacks = samples.getstack(variables,selection,split=False)
       for stack in stacks:
         stack.draw()
         stack.drawlegend(position=position)
@@ -139,23 +160,10 @@ def main(args):
   outdir     = ensuredir('plots')
   indir      = outdir
   filedict   = makesamples(nevts,sample=snames,scales=scales,outdir=outdir)
-  datasample = None
-  expsamples = [ ]
   #CMSStyle.setCMSEra(2018)
   setera(2018,lumi)
-  for name, title, xsec in sampleset:
-    file, tree = filedict[name]
-    fname = file.GetName()
-    color = None #STYLE.getcolor(name,verb=2)
-    data  = name.lower()=='data'
-    file.Close()
-    sample = Sample(name,title,fname,xsec,color=color,data=data)
-    #sample = Sample(name,title,fname,xsec,lumi=lumi,color=color,data=data)
-    if sample.isdata:
-      datasample = sample
-    else:
-      expsamples.append(sample)
-  samples = makeSampleSet(datasample,expsamples)
+  
+  samples = makeSampleSet(sampleset,filedict)
   testget(samples)
   plotSampleSet(samples)
   
