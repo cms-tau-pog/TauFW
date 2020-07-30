@@ -7,7 +7,7 @@
 import os, re
 from TauFW.Plotter.plot.utils import *
 import ROOT
-from ROOT import gPad, TH1, THStack, TProfile, TGraph, TGraphAsymmErrors, TLine
+from ROOT import gStyle, gPad, TH1, THStack, TProfile, TGraph, TGraphAsymmErrors, TLine
 
 
 class Ratio(object):
@@ -25,6 +25,7 @@ class Ratio(object):
     errband        = kwargs.get('errband',     None        ) # error band (e.g. stat. and/or sys. unc.)
     option         = kwargs.get('option',      ""          )
     denom          = kwargs.get('denom',       None        )
+    errorX         = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
     histnums       = unwraplistargs(histnums)
     
     # SETUP NUMERATOR/DENOMINATOR
@@ -53,10 +54,10 @@ class Ratio(object):
     for i, histnum in enumerate(histnums):
       tag = str(i)
       if isinstance(histnum,TH1) or isinstance(histnum,THStack):
-        ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero)
+        ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       elif isinstance(histnum,TGraph):
         LOG.warning("Ratio.init: TGraph ratio not validated! Please check verbose output...")
-        ratio = getgraphratio(histnum,histden,tag=tag,drawzero=self.drawzero)
+        ratio = getgraphratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       #elif isinstance(hist,TProfile):
       #  histtemp = hist.ProjectionX(hist.GetName()+"_projx",'E')
       #  copystyle(histtemp,hist)
@@ -76,7 +77,7 @@ class Ratio(object):
     
     # MAKE ERROR BAND RATIO
     if isinstance(errband,TGraphAsymmErrors):
-      self.errband = getgraphratio(errband,histden)
+      self.errband = getgraphratio(errband,histden,errorX=True)
       copystyle(self.errband,errband)
       #seterrorbandstyle(self.errband,style='hatched',color=errband.GetFillColor())
     
@@ -139,7 +140,7 @@ class Ratio(object):
       elif (ratio.GetLineWidth()==0 or 'E' in ratio.GetOption()) and ratio.GetMarkerSize()>0:
         roption = ratio.GetOption() if 'E' in ratio.GetOption() else 'E'
       else:
-        roption = 'HIST' if isinstance(ratio,TH1) else 'PEZ0'
+        roption = 'HIST' if isinstance(ratio,TH1) else 'PE0'
       roption += 'SAME'
       ratio.Draw(roption)
       LOG.verb("Ratio.draw: ratio=%s, roption=%r"%(ratio,roption),verbosity,2)

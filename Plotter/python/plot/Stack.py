@@ -109,7 +109,7 @@ class Stack(Plot):
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
-          newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False)
+          newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,errorX=errorX)
           if oldhist!=newhist:
             LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
             hlist[i] = newhist
@@ -155,8 +155,8 @@ class Stack(Plot):
         self.datahist.Draw(doption+' SAME')
         self.datahist.SetOption(doption+' SAME') # for legend and ratio
       else:
-        self.datahist.Draw(doption+'PZ SAME')
-        self.datahist.GetOption = lambda: 'PZE0 SAME' # for legend and ratio
+        self.datahist.Draw(doption+'PE0 SAME')
+        self.datahist.GetOption = lambda: 'PE0 SAME' # for legend and ratio
     
     # STYLE
     if stack:
@@ -187,7 +187,7 @@ class Stack(Plot):
       self.canvas.cd(2)
       histden    = stack
       histnums   = [self.datahist]+self.sighists
-      self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,option=roption)
+      self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,errorX=errorX,option=roption)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
                    ratiorange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)

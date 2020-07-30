@@ -8,7 +8,7 @@ from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gDirectory, gROOT, TH1, THStack, TGraphErrors, TGraphAsymmErrors, Double,\
+from ROOT import gDirectory, gROOT, gStyle, TH1, THStack, TGraphErrors, TGraphAsymmErrors, Double,\
                  kSolid, kDashed, kDotted, kBlack, kWhite
 #moddir = os.path.dirname(__file__)
 gROOT.SetBatch(True)
@@ -265,7 +265,8 @@ def gethistratio(histnum,histden,**kwargs):
   hname     = kwargs.get('name',     hname )
   tag       = kwargs.get('tag',      ""    )
   yinf      = kwargs.get('yinf',     1e12  ) # if denominator is 0
-  zero      = kwargs.get('zero', True  ) # ratio=1 if both num and den bins are zero
+  zero      = kwargs.get('zero',     True  ) # ratio=1 if both num and den bins are zero
+  errorX    = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
   if tag:
     hname += tag
   if isinstance(histden,THStack):
@@ -326,6 +327,7 @@ def getgraphratio(graphnum,histden,**kwargs):
   eval      = kwargs.get('eval',     False ) # use interpolation
   yinf      = kwargs.get('yinf',     1e12  ) # if denominator is 0
   zero      = kwargs.get('zero',     True  ) # ratio=1 if both num and den bins are zero
+  errorX    = kwargs.get('errorX',   gStyle.GetErrorX()  ) # horizontal error bars
   #color     = kwargs.get('color',    None  )
   nbins     = histden.GetXaxis().GetNbins()
   if tag:
@@ -343,7 +345,7 @@ def getgraphratio(graphnum,histden,**kwargs):
   if isinstance(histden,TH1):
     for ibin in range(0,nbins+2):
       xval = histden.GetXaxis().GetBinCenter(ibin)
-      xerr = histden.GetXaxis().GetBinWidth(ibin)/2
+      xerr = histden.GetXaxis().GetBinWidth(ibin)/2 if errorX else 0
       yden = histden.GetBinContent(ibin)
       ig   = -1
       if eval:
@@ -379,7 +381,7 @@ def getgraphratio(graphnum,histden,**kwargs):
 def geterrorband(*hists,**kwargs):
   """Make an error band histogram for a list of histograms, or stack.
   Returns an TGraphAsymmErrors object."""
-  verbosity = LOG.getverbosity(kwargs)
+  verbosity = LOG.getverbosity(kwargs)+3
   hists     = unwraplistargs(hists)
   hists     = [h.GetStack().Last() if isinstance(h,THStack) else h for h in hists]
   sysvars   = kwargs.get('sysvars',     [ ]    ) # list of tuples with up/cent/down variation histograms
@@ -426,7 +428,8 @@ def dividebybinsize(hist,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
   LOG.verbose('dividebybinsize: "%s"'%(hist.GetName()),verbosity,2)
   zero     = kwargs.get('zero',     True ) # include bins that are zero in TGraph
-  zeroerrs = kwargs.get('zeroerrs', True )
+  zeroerrs = kwargs.get('zeroerrs', True ) # include errors for zero bins
+  errorX   = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
   nbins    = hist.GetXaxis().GetNbins()
   TAB = LOG.table("%5s %8.6g %8.6g %10.3f %9.4f %8.4f %8.4f %10.4f",verb=verbosity,level=3)
   TAB.printheader("ibin","xval","width","yval","yerr","yupp","ylow","yerr/width")
@@ -439,6 +442,7 @@ def dividebybinsize(hist,**kwargs):
     for ibin in xrange(1,nbins+1):
       xval  = hist.GetXaxis().GetBinCenter(ibin)
       width = hist.GetXaxis().GetBinWidth(ibin)
+      xerr  = width/2 if errorX else 0
       yval  = hist.GetBinContent(ibin)
       yerr  = hist.GetBinError(ibin)
       yupp  = hist.GetBinErrorUp(ibin)
@@ -449,9 +453,9 @@ def dividebybinsize(hist,**kwargs):
       if yval!=0 or zero:
         graph.SetPoint(ip,xval,yval/width)
         if yval!=0 or zeroerrs:
-          graph.SetPointError(ip,width/2,width/2,ylow/width,yupp/width)
+          graph.SetPointError(ip,xerr,xerr,ylow/width,yupp/width)
         else:
-          graph.SetPointError(ip,width/2,width/2,0,0)
+          graph.SetPointError(ip,xerr,xerr,0,0)
         ip += 1
     return graph
   else:
