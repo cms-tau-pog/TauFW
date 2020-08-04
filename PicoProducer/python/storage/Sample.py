@@ -13,6 +13,7 @@ from fnmatch import fnmatch
 from TauFW.common.tools.utils import execute, CalledProcessError, repkey, ensurelist
 from TauFW.common.tools.file import ensurefile, ensureTFile
 from TauFW.PicoProducer.storage.utils import LOG, getstorage
+dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
 
 
 def dasgoclient(query,**kwargs):
@@ -80,8 +81,9 @@ class Sample(object):
     self.storage      = None
     self.storepath    = kwargs.get('store',        None ) # if stored elsewhere than DAS
     self.url          = kwargs.get('url',          None )
+    self.dasurl       = kwargs.get('dasurl',       None ) or "root://cms-xrd-global.cern.ch/"
     self.blacklist    = kwargs.get('blacklist',    [ ]  ) # black list file
-    self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global')
+    self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global') # if None, does not exist in DAS
     self.nfilesperjob = kwargs.get('nfilesperjob', -1   ) # number of nanoAOD files per job
     self.extraopts    = kwargs.get('opts',         [ ]  ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
     self.subtry       = kwargs.get('subtry',       0    ) # to help keep track of resubmission
@@ -91,6 +93,7 @@ class Sample(object):
     self.files        = kwargs.get('files',        [ ]  ) # list of ROOT files, OR text file with list of files
     self.postfix      = kwargs.get('postfix',      None ) or "" # post-fix (before '.root') for stored ROOT files
     self.era          = kwargs.get('era',          ""   ) # for expansion of $ERA variable
+    self.dosplit      = kwargs.get('split', len(self.paths)>=2 ) # allow splitting (if multiple DAS datasets)
     self.verbosity    = kwargs.get('verbosity',     0   ) # verbosity level for debugging
     self.refreshable  = not self.files                   # allow refresh on file list in getfiles()
     
@@ -105,6 +108,8 @@ class Sample(object):
     # STORAGE & URL DEFAULTS
     if self.storepath:
       self.storepath = repkey(self.storepath,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    if not self.dasurl:
+      self.dasurl = self.url if (self.url in dasurls) else dasurls[0]
     if not self.url:
       if self.storepath:
         from TauFW.PicoProducer.storage.StorageSystem import Local
@@ -114,7 +119,7 @@ class Sample(object):
         else:
           self.url = self.storage.fileurl
       else:
-        self.url = "root://cms-xrd-global.cern.ch/"
+        self.url = self.dasurl
     
     # GET FILE LIST FROM TEXT FILE
     if isinstance(self.files,str):
@@ -161,15 +166,19 @@ class Sample(object):
                        subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,nevents=nevents,opts=opts)
     return sample
   
-  def split(self):
-    """Split if multiple das paths."""
+  def split(self,tag="ext"):
+    """Split if multiple DAS dataset paths."""
     samples = [ ]
-    for i, path in enumerate(self.paths):
-      sample = deepcopy(self)
-      if i>1:
-        sample.name += "_ext%d"%i
-      sample.paths = [path]
-      samples.append(sample)
+    if self.dosplit:
+      for i, path in enumerate(self.paths):
+        sample = deepcopy(self)
+        if i>0:
+          sample.name += "_%s%d"%(tag,i) # rename to distinguish jobs
+        sample.paths = [path]
+        sample.dosplit = False
+        samples.append(sample)
+    else:
+      samples.append(self)
     return samples
   
   def match(self,patterns,verb=0):
@@ -196,10 +205,11 @@ class Sample(object):
   def getfiles(self,das=False,refresh=False,url=True,limit=-1,verb=0):
     """Get list of files from storage system (default), or DAS (if no storage system of das=True)."""
     files   = self.files
-    if self.refreshable and (not files or refresh):
+    url_    = self.dasurl if (das and self.storage) else self.url
+    if self.refreshable and (not files or das or refresh):
       files = [ ]
       for daspath in self.paths:
-        if self.storage and not das: # get files from storage system
+        if (self.storage and not das) or (not self.instance): # get files from storage system
           postfix = self.postfix+'.root'
           sepath  = repkey(self.storepath,PATH=daspath).replace('//','/')
           outlist = self.storage.getfiles(sepath,url=url,verb=verb-1)
@@ -212,15 +222,16 @@ class Sample(object):
         for line in outlist: # filter root files
           line = line.strip()
           if line.endswith(postfix) and not any(f.endswith(line) for f in self.blacklist):
-            if url and self.url not in line and 'root://' not in line:
-              line = self.url+line
+            if url and url_ not in line and 'root://' not in line:
+              line = url_+line
             files.append(line)
       files.sort() # for consistent list order
-      self.files = files # save for efficiency
-    elif url and any(self.url not in f for f in files): # add url if missing
-      files = [(self.url+f if self.url not in f else f) for f in files]
-    elif not url and any(self.url in f for f in files): # remove url
-      files = [f.replace(self.url,"") for f in files]
+      if not das or not self.storage:
+        self.files = files # save for efficiency
+    elif url and any(url_ not in f for f in files): # add url if missing
+      files = [(url_+f if url_ not in f else f) for f in files]
+    elif not url and any(url_ in f for f in files): # remove url
+      files = [f.replace(url_,"") for f in files]
     return files
   
   def getnevents(self,das=True,refresh=False,treename='Events',verb=0):

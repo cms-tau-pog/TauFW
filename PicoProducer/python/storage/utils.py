@@ -86,7 +86,7 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
     if sample.name in sampledict:
       LOG.throw(IOError,"Sample short names should be unique. Found two samples '%s'!\n\t%s\n\t%s"%(
                     sample.name,','.join(sampledict[sample.name].paths),','.join(sample.paths)))
-    if 'skim' in channel and len(sample.paths)>=2:
+    if 'skim' in channel and sample.dosplit: # split samples with multiple DAS dataset paths, and submit as separate jobs
       for subsample in sample.split():
         samples.append(subsample) # keep correspondence sample to one sample in DAS
     else:

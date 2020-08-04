@@ -79,7 +79,7 @@ def main_get(args):
   filters    = args.samples
   vetoes     = args.vetoes
   inclurl    = args.inclurl    # include URL in filelist
-  checkdas   = args.checkdas   # check file list in DAS
+  checkdas   = args.checkdas or args.dasfiles # check file list in DAS
   checklocal = args.checklocal # check nevents in local files
   limit      = args.limit
   writedir   = args.write      # write sample file list to text file
@@ -192,7 +192,7 @@ def main_set(args):
       LOG.throw(IOError,"Variable '%s' is reserved for dictionaries!"%(variable))
   if verbosity>=1:
     print '-'*80
-  print ">>> Setting variable '%s' to '%s' config"%(variable,value)
+  print ">>> Setting variable '%s' to '%s' config"%(color(variable),value)
   if verbosity>=1:
     print ">>> %-14s = %s"%('cfgname',cfgname)
     print ">>> %-14s = %s"%('config',CONFIG)
@@ -224,7 +224,7 @@ def main_link(args):
   cfgname   = CONFIG._path
   if verbosity>=1:
     print '-'*80
-  print ">>> Linking %s '%s' to '%s' in the configuration..."%(variable,key,value)
+  print ">>> Linking %s '%s' to '%s' in the configuration..."%(variable,color(key),value)
   if verbosity>=1:
     print ">>> %-14s = %s"%('cfgname',cfgname)
     print ">>> %-14s = %s"%('key',key)
@@ -325,6 +325,7 @@ def main_run(args):
   force     = args.force
   extraopts = args.extraopts
   maxevts   = args.maxevts
+  dasfiles  = args.dasfiles
   userfiles = args.infiles
   nfiles    = args.nfiles
   nsamples  = args.nsamples
@@ -406,7 +407,7 @@ def main_run(args):
         dtype      = None
         extraopts_ = extraopts[:]
         if sample:
-          filetag += '_%s_%s'%(era,sample.name)
+          filetag += '_%s_%s%s'%(era,sample.name,tag)
           if sample.extraopts:
             extraopts_.extend(sample.extraopts)
         if verbosity>=1:
@@ -420,7 +421,7 @@ def main_run(args):
           infiles = userfiles[:]
         elif sample:
           nevents = 0
-          infiles = sample.getfiles(verb=verbosity)
+          infiles = sample.getfiles(das=dasfiles,verb=verbosity)
           dtype   = sample.dtype
           if nfiles>0:
             infiles = infiles[:nfiles]
@@ -481,6 +482,7 @@ def preparejobs(args):
   dtypes       = args.dtypes
   filters      = args.samples
   vetoes       = args.vetoes
+  dasfiles     = args.dasfiles
   checkdas     = args.checkdas
   checkqueue   = args.checkqueue
   extraopts    = args.extraopts
@@ -548,7 +550,7 @@ def preparejobs(args):
       if verbosity>=2:
         print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
       if testrun:
-        samples = samples[:2] # only run two samples
+        samples = samples[:2] # run at most two samples
       
       # SAMPLE over SAMPLES
       found = False
@@ -623,7 +625,7 @@ def preparejobs(args):
                                          checkqueue=checkqueue,das=checkdas,verb=verbosity)
           nevents = sample.jobcfg['nevents'] # updated in checkchuncks
         else: # first-time submission
-          infiles   = sample.getfiles(verb=verbosity-1)
+          infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
           if checkdas:
             nevents = sample.getnevents()
           chunkdict = { }
@@ -1256,6 +1258,8 @@ if __name__ == "__main__":
                                                 help='filter these data type(s)')
   parser_sam.add_argument('-D','--das',         dest='checkdas', default=False, action='store_true',
                                                 help="check DAS for total number of events" )
+  parser_sam.add_argument('--dasfiles',         dest='dasfiles', default=False, action='store_true',
+                                                help="get files from DAS (instead of local storage, if predefined)" )
   parser_sam.add_argument('-t','--tag',         dest='tag', default="",
                                                 help='tag for output file name')
   parser_sam.add_argument('-f','--force',       dest='force', action='store_true',
