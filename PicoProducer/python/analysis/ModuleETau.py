@@ -240,15 +240,10 @@ class ModuleETau(ModuleTauPair):
     
     # JETS
     jets, met, njets_vars, met_vars = self.fillJetBranches(event,electron,tau)
-    if tau.jetIdx>=0:
-      self.out.jpt_match_2[0] = event.Jet_pt[tau.jetIdx]
-      if self.ismc:
-        if event.Jet_genJetIdx[tau.jetIdx]>=0:
-          self.out.jpt_genmatch_2[0] = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
-        else:
-          self.out.jpt_genmatch_2[0] = -1
+    if self.ismc:
+      self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau,self.ismc)
     else:
-      self.out.jpt_match_2[0] = -1
+      self.out.jpt_match_2[0] = matchtaujet(event,tau,self.ismc)[0]
     
     
     # WEIGHTS

@@ -224,7 +224,10 @@ class ModuleMuTau(ModuleTauPair):
     
     # JETS
     jets, met, njets_vars, met_vars = self.fillJetBranches(event,muon,tau)
-    self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau,self.ismc)
+    if self.ismc:
+      self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau,self.ismc)
+    else:
+      self.out.jpt_match_2[0] = matchtaujet(event,tau,self.ismc)[0]
     
     
     # WEIGHTS
