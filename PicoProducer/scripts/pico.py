@@ -7,7 +7,7 @@ import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import TFile
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureinit, getline
-from TauFW.common.tools.utils import execute, chunkify, repkey
+from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
 from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples
@@ -722,19 +722,21 @@ def preparejobs(args):
 def checkchuncks(sample,**kwargs):
   """Help function to check jobs status: success, pending, failed or missing.
   Return list of files to be resubmitted, and a dictionary between chunk index and input files."""
-  outdir       = kwargs.get('outdir',      None)
-  channel      = kwargs.get('channel',     None)
-  tag          = kwargs.get('tag',         None)
-  checkqueue   = kwargs.get('checkqueue', False)
-  pendjobs     = kwargs.get('jobs',         [ ])
-  checkdas     = kwargs.get('das',         True)
-  verbosity    = kwargs.get('verb',           0)
+  outdir       = kwargs.get('outdir',     None  )
+  channel      = kwargs.get('channel',    None  )
+  tag          = kwargs.get('tag',        None  )
+  checkqueue   = kwargs.get('checkqueue', False ) # check queue of batch system for pending jobs
+  pendjobs     = kwargs.get('jobs',       [ ]   )
+  checkdas     = kwargs.get('das',        True  ) # check number of events from DAS
+  showlogs     = kwargs.get('showlogs',   False ) # print log files of failed jobs
+  verbosity    = kwargs.get('verb',       0     )
   oldjobcfg    = sample.jobcfg
   oldcfgname   = oldjobcfg['config']
   chunkdict    = oldjobcfg['chunkdict'] # filenames
   jobids       = oldjobcfg['jobids']
   joblist      = oldjobcfg['joblist']
   postfix      = oldjobcfg['postfix']
+  logdir       = oldjobcfg['logdir']
   nfilesperjob = oldjobcfg['nfilesperjob']
   if outdir==None:
     outdir     = oldjobcfg['outdir']
@@ -991,6 +993,14 @@ def checkchuncks(sample,**kwargs):
   printchunks(pendchunks,'PEND',"Chunks with pending or running jobs",'white',True)
   printchunks(badchunks, 'FAIL', "Chunks with corrupted output in outdir",'red',True)
   printchunks(misschunks,'MISS',"Chunks with no output in outdir",'red',True)
+  logchunks = badchunks+misschunks
+  if showlogs and logchunks:
+    lognames = os.path.join(logdir,"*.*.*") #.log
+    logexp   = re.compile(".*\.(\d{3,})\.(\d+)(?:\.log)?$") #.log
+    for logname in sorted(glob.glob(lognames),key=alphanum_key):
+      matches = logexp.findall(logname)
+      if matches and int(matches[0][1]) in logchunks:
+        print ">>>   %s"%(logname)
   
   return resubfiles, chunkdict
   
@@ -1059,7 +1069,7 @@ def main_submit(args):
       #jobid   = batch.submit(script,name=jobname,app=appcmds,qcmd=qcmd,opt=batchopts,queue=queue,dry=dryrun)
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
-      logfile = os.path.join(logdir,"%x.%A.%a") # $JOBNAME.o$JOBID.$TASKID
+      logfile = os.path.join(logdir,"%x.%A.%a.log") # $JOBNAME.o$JOBID.$TASKID.log
       jkwargs.update({'log': logfile, 'array': nchunks })
       #jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,opt=batchopts,queue=queue,dry=dryrun)
     #elif batch.system=='SGE':
@@ -1127,6 +1137,11 @@ def main_status(args):
   jobdirformat   = CONFIG.jobdir
   storedirformat = CONFIG.picodir
   jobs           = [ ]
+  if not hadd:
+    if not channels:
+      channels = ['*']
+    if not eras:
+      eras     = ['*']
   
   # LOOP over ERAS
   for era in eras:
@@ -1155,7 +1170,7 @@ def main_status(args):
       # SAMPLE over SAMPLES
       found = False
       for sample in samples:
-        if sample.channels and channel not in sample.channels: continue
+        if channel!='*' and sample.channels and channel not in sample.channels: continue
         found = True
         print ">>> %s"%(bold(sample.name))
         for path in sample.paths:
@@ -1213,6 +1228,7 @@ def main_status(args):
         
         # ONLY CHECK STATUS
         else:
+          showlogs = args.showlogs # print log files of failed jobs
           jobdir   = sample.jobcfg['jobdir']
           outdir   = sample.jobcfg['outdir']
           logdir   = sample.jobcfg['logdir']
@@ -1221,7 +1237,7 @@ def main_status(args):
             print ">>> %-12s = %r"%('jobdir',jobdir)
             print ">>> %-12s = %r"%('outdir',outdir)
             print ">>> %-12s = %r"%('logdir',logdir)
-          checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,
+          checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,showlogs=showlogs,
                        checkqueue=checkqueue,das=checkdas,verb=verbosity)
         
         print
@@ -1327,10 +1343,14 @@ if __name__ == "__main__":
   parser_era.add_argument('value',              metavar='samples', help='samplelist linked to by given era')
   parser_ins.add_argument('type',               choices=['standalone','cmmsw'], #default=None,
                                                 help='type of installation: standalone or compiled in CMSSW')
-  #parser_hdd.add_argument('--keep',             dest='cleanup', default=True, action='store_false',
-  #                                              help="do not remove job output after hadd'ing" )
-  parser_hdd.add_argument('-r','--clean',       dest='cleanup', default=False, action='store_true',
-                                                help="remove job output after hadd'ing" )
+  parser_get.add_argument('-U','--URL',         dest='inclurl', default=False, action='store_true',
+                                                help="include XRootD url in filename for 'get files'" )
+  parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1, action='store',
+                          metavar='NMAX',       help="limit number files in list for 'get files'" )
+  parser_get.add_argument('-l','--local',       dest='checklocal', default=False, action='store_true',
+                                                help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'" )
+  parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
+                          metavar='FILE',       help="write file list, default=%(const)r" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                                                 help='maximum number of events (per file) to process')
   parser_run.add_argument('-n','--nfiles',      dest='nfiles', type=int, default=1,
@@ -1341,14 +1361,12 @@ if __name__ == "__main__":
                                                 help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
-  parser_get.add_argument('-U','--URL',         dest='inclurl', default=False, action='store_true',
-                                                help="include XRootD url in filename for 'get files'" )
-  parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1, action='store',
-                          metavar='NMAX',       help="limit number files in list for 'get files'" )
-  parser_get.add_argument('-l','--local',       dest='checklocal', default=False, action='store_true',
-                                                help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'" )
-  parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
-                          metavar='FILE',       help="write file list, default=%(const)r" )
+  parser_sts.add_argument('-l','--log',         dest='showlogs', default=False, action='store_true',
+                                                help="show log files of failed jobs" )
+  #parser_hdd.add_argument('--keep',             dest='cleanup', default=True, action='store_false',
+  #                                              help="do not remove job output after hadd'ing" )
+  parser_hdd.add_argument('-r','--clean',       dest='cleanup', default=False, action='store_true',
+                                                help="remove job output after hadd'ing" )
   
   # SUBCOMMAND ABBREVIATIONS
   args = sys.argv[1:]

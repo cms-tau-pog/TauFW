@@ -100,3 +100,20 @@ def chunkify(iterable,chunksize):
     item = list(islice(it,chunksize))
   return chunks
   
+
+def tryint(x):
+  """Convert to integer, if it is possible."""
+  try:
+    return int(x)
+  except ValueError:
+    return x
+  
+
+def alphanum_key(string):
+  """Turn a string into a list of string and number chunks,
+  e.g. "z23a" -> ["z", 23, "a"]
+  Useful for sorting a list of strings containing numbers 'naturally'/'alphanumerically',
+  e.g. sorted(['z10','z1','z2','z20'],key=alphanum_key)"""
+  # https://nedbatchelder.com/blog/200712/human_sorting.html
+  return [ tryint(x) for x in re.split('([0-9]+)',string) ]
+  
