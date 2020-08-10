@@ -996,10 +996,10 @@ def checkchuncks(sample,**kwargs):
   logchunks = badchunks+misschunks
   if showlogs and logchunks:
     lognames = os.path.join(logdir,"*.*.*") #.log
-    logexp   = re.compile(".*\.(\d{3,})\.(\d+)(?:\.log)?$") #.log
+    logexp   = re.compile(".*\.(\d{3,})\.(\d+)(?:\.log)?$") #$JOBNAME.$JOBID.$TASKID.log
     for logname in sorted(glob.glob(lognames),key=alphanum_key):
       matches = logexp.findall(logname)
-      if matches and int(matches[0][1]) in logchunks:
+      if matches and int(matches[0][1])-1 in logchunks: # chunck = taskid - 1
         print ">>>   %s"%(logname)
   
   return resubfiles, chunkdict
@@ -1293,12 +1293,12 @@ if __name__ == "__main__":
   parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1, action='store',
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
+  parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
+                                                help='extra options for the batch system')
   parser_job.add_argument('-q','--queue',       dest='queue', default=None,
                                                 help='queue of batch system')
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
                                                 help='ask user permission before submitting a sample')
-  parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
-                                                help='extra options for the batch system')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=CONFIG.nfilesperjob,
                                                 help='number of files per job, default=%(default)d')
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1, action='store',
