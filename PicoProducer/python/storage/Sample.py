@@ -152,13 +152,16 @@ class Sample(object):
     """Initialize sample from job config JSON file."""
     with open(cfgname,'r') as file:
       jobcfg = json.load(file)
+    for key, value in jobcfg.items():
+      if isinstance(value,unicode):
+        jobcfg[key] = str(value)
     for key in ['group','name','paths','try','channel','chunkdict','dtype','extraopts']:
       LOG.insist(key in jobcfg,"Did not find key '%s' in job configuration %s"%(key,cfgname))
     jobcfg['config']    = str(cfgname)
     jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
-    dtype    = str(jobcfg['dtype'])
-    channels = [str(jobcfg['channel'])]
+    dtype    = jobcfg['dtype']
+    channels = [jobcfg['channel']]
     opts     = [str(s) for s in jobcfg['extraopts']]
     subtry   = int(jobcfg['try'])
     nevents  = int(jobcfg['nevents'])
@@ -217,7 +220,7 @@ class Sample(object):
             outlist = outlist[:limit]
         else: # get files from DAS
           postfix = '.root'
-          cmdout  = dasgoclient("file dataset=%s instance=%s"%(daspath,self.instance),limit=limit)
+          cmdout  = dasgoclient("file dataset=%s instance=%s"%(daspath,self.instance),limit=limit,verb=verb-1)
           outlist = cmdout.split(os.linesep)
         for line in outlist: # filter root files
           line = line.strip()
@@ -252,7 +255,7 @@ class Sample(object):
           LOG.verb("getnevents: Found %d events in %r."%(nevts,fname),verb,3)
       else: # get number of events from DAS
         for daspath in self.paths:
-          cmdout = dasgoclient("summary dataset=%s instance=%s"%(daspath,self.instance))
+          cmdout = dasgoclient("summary dataset=%s instance=%s"%(daspath,self.instance),verb=verb-1)
           if "nevents" in cmdout:
             ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
           else:
