@@ -381,7 +381,7 @@ def getgraphratio(graphnum,histden,**kwargs):
 def geterrorband(*hists,**kwargs):
   """Make an error band histogram for a list of histograms, or stack.
   Returns an TGraphAsymmErrors object."""
-  verbosity = LOG.getverbosity(kwargs)+3
+  verbosity = LOG.getverbosity(kwargs)
   hists     = unwraplistargs(hists)
   hists     = [h.GetStack().Last() if isinstance(h,THStack) else h for h in hists]
   sysvars   = kwargs.get('sysvars',     [ ]    ) # list of tuples with up/cent/down variation histograms

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (July 2020)
 # Description: Simple plotting script for pico analysis tuples
-#   plot.py -v2
+#   test/plotPico.py -v2
 import re
 from TauFW.Plotter.sample.utils import LOG, STYLE, setera, ensuredir,\
                                        getsampleset, Var

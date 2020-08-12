@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
 import re, glob
-from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, repkey
+from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, repkey, getyear
 from TauFW.common.tools.file import ensuredir, ensureTFile, ensuremodule
 from TauFW.common.tools.log import Logger, color
 from TauFW.Plotter.plot.Variable import Variable, Var, ensurevar
@@ -32,13 +32,14 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
   """Create sample set from a table of data and MC samples."""
   channel    = kwargs.get('channel',    ""   )
   era        = kwargs.get('era',        ""   )
-  fpattern   = kwargs.get('file',       None )
-  weight     = kwargs.pop('weight',     ""   )
-  dataweight = kwargs.pop('dataweight', ""   )
+  fpattern   = kwargs.get('file',       None ) # file name pattern, e.g. $PICODIR/$SAMPLE_$CHANNEL$TAG.root
+  weight     = kwargs.pop('weight',     ""   ) # common weight for MC samples
+  dataweight = kwargs.pop('dataweight', ""   ) # weight for data samples
   url        = kwargs.pop('url',        ""   ) # XRootD url
+  tag        = kwargs.pop('tag',        ""   ) # extra tag for file name
   
   if not fpattern:
-    fpattern = "$PICODIR/$SAMPLE_$CHANNEL.root"
+    fpattern = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   if '$PICODIR' in fpattern:
     import TauFW.PicoProducer.tools.config as GLOB
     CONFIG   = GLOB.getconfig(verb=0)
@@ -59,7 +60,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
       expkwargs.update(newkwargs)
     else:
       LOG.throw(IOError,"Did not recognize mc row %s"%(info))
-    fname = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel)
+    fname = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel,TAG=tag)
     #print fname
     sample = MC(name,title,fname,xsec,**expkwargs)
     expsamples[i] = sample
@@ -83,7 +84,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     datakwargs.update(newkwargs)
   else:
     LOG.throw(IOError,"Did not recognize data row %s"%(datasample))
-  fpattern = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel)
+  fpattern = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel,TAG=tag)
   fnames   = glob.glob(fpattern)
   #print fnames
   if len(fnames)==1:
@@ -302,7 +303,7 @@ def join(samplelist,*searchterms,**kwargs):
   LOG.verbose("join: merging '%s' into %r"%("', '".join(searchterms),name),verbosity,level=1)
   
   # GET samples containing names and searchterm
-  mergelist = [s for s in samplelist if s.match(*searchterms,incl=False)]
+  mergelist = [s for s in samplelist if s.match(*searchterms,incl=True)]
   if len(mergelist)<=1:
     LOG.warning("Could not merge %r: fewer than two %r samples (%d)"%(name,name,len(mergelist)))
     return samplelist
@@ -453,13 +454,15 @@ def getxsec_nlo(*searchterms,**kwargs):
   for searchterm in searchterms:
     if 'DY' in searchterm:
       if any('10to50' in s for s in searchterms):
-        xsec_nlo = xsecs_nlo['DYJetsToLL_M-10to50']
-        break
+        key ='DYJetsToLL_M-10to50'
       else:
-        xsec_nlo = xsecs_nlo['DYJetsToLL_M-50']
-        break
+        key = 'DYJetsToLL_M-50'
     elif 'WJ' in searchterm:
-      xsec_nlo = xsecs_nlo['WJetsToLNu']
+      key = 'WJetsToLNu'
+    elif searchterm in xsecs_nlo:
+      key = searchterm
+    if key in xsecs_nlo:
+      xsec_nlo = xsecs_nlo[key]
       break
   else:
     LOG.warning("getxsec_nlo: Did not find a DY or WJ match in '%s'!"%("', '".join(searchterms)))

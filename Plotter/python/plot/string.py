@@ -370,6 +370,7 @@ def cleanbool(string):
 def invertcharge(oldcuts,target='SS',**kwargs):
   """Help function to find, invert and replace charge selections."""
   verbosity = LOG.getverbosity(kwargs)
+  oldcuts   = getselstr(oldcuts)
   newcuts   = oldcuts
   if oldcuts=="":
     newcuts = "q_1*q_2<0" if target=='OS' else "q_1*q_2>0" if target=='OS' else ""
@@ -547,9 +548,9 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 
 def getselstr(selection,**kwargs):
   """Make sure returned object is a string."""
-  if isinstance(selection,Selection):
+  if hasattr(selection,"selection"): #isinstance(selection,Selection):
     return selection.selection
   return selection
   
 
-from TauFW.Plotter.plot.Selection import Selection
+#from TauFW.Plotter.plot.Selection import Selection

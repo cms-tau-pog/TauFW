@@ -18,6 +18,7 @@
   * [Splitting samples](#Splitting-samples)<br>
   * [Data/MC plots](#DataMC-plots)<br>
   * [Data-driven methods](#Data-driven-methods)<br>
+* [Plotting script](#Plotting-script)<br>
 
 
 ## Installation
@@ -419,3 +420,15 @@ stacks = samples.getstack(variables,selection,method='QCD_OSSS')
 This will load the file and make the method available.
 You can set the position of the new histogram in the stack via `imethod`,
 where `0` means on the top, and `-1` means on the bottom.
+
+
+## Plotting script
+An example of a plotting script is given by [`plot.py`](plot.py).
+It can be run for a given channel and era as
+```
+./plot.py -c mutau -y 2018
+```
+It will load a `SampleSet` from `config/samples.py`, which by default will look for pico samples in `$PICODIR`.
+You can edit the scripts and this config file to your specifications and liking.
+
+

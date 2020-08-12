@@ -3,7 +3,7 @@
 # Description: Class to automatically make CMS plot comparing histograms.
 import os, re
 from math import log10
-from TauFW.common.tools.utils import ensurelist, islist, isnumber
+from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable
@@ -294,7 +294,7 @@ class Plot(object):
       fnames = [self.name+tag]
     if save:
       for fname in fnames:
-        fname = os.path.join(outdir,fname.replace('$VAR',self.name).replace('$NAME',self.name).replace('$TAG',tag))
+        fname = os.path.join(outdir,repkey(fname,VAR=self.name,NAME=self.name,TAG=tag))
         if exts:
           for ext in ensurelist(exts):
             if not ext.startswith('.'):
