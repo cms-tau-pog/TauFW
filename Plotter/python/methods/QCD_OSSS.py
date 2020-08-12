@@ -16,7 +16,7 @@ def QCD_OSSS(self, variables, selection, **kwargs):
   if verbosity>=2:
     LOG.header("Estimating QCD for variables %s"%(', '.join(v.filename for v in variables)))
     #LOG.verbose("\n>>> estimating QCD for variable %s"%(self.var),verbosity,level=2)
-  cuts_OS        = selection #.selection
+  cuts_OS        = selection.selection
   cuts_SS        = invertcharge(cuts_OS,to='SS')
   isjetcat       = re.search(r"(nc?btag|n[cf]?jets)",cuts_OS)
   #relax          = 'emu' in self.channel or isjetcat
@@ -29,12 +29,18 @@ def QCD_OSSS(self, variables, selection, **kwargs):
   weight         = kwargs.get('weight',          ""             )
   dataweight     = kwargs.get('dataweight',      ""             )
   replaceweight  = kwargs.get('replaceweight',   ""             )
-  scale          = kwargs.get('scale',           None           ) or 1.0 if "q_1*q_2>0" in cuts_OS else 2.0 if "emu" in self.channel else 1.10 # OS/SS ratio
+  scale          = kwargs.get('scale',           None           ) # OS/SS ratio
   shift          = kwargs.get('shift',           0.0            ) #+ self.shiftQCD # for systematics
   #vetoRelax      = kwargs.get('vetoRelax',       relax          )
   #relax          = kwargs.get('relax',           relax          ) #and not vetoRelax
   #file           = kwargs.get('saveto',          None           )
   parallel       = kwargs.get('parallel',        False          )
+  
+  # SCALE
+  if "q_1*q_2>0" in cuts_OS.replace(' ',''):
+    scale = 1.0
+  elif not scale:
+    scale = 2.0 if "emu" in self.channel else 1.10
   scale          = scale*(1.0+shift) # OS/SS scale & systematic variation
   LOG.verbose("  QCD: scale=%s, shift=%s"%(scale,shift),verbosity,level=2)
   
