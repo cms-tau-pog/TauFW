@@ -54,7 +54,7 @@ def convertstr(string):
       string = True
     elif string=='False':
       string = False
-    elif string.count('.')==1 and re.match(r'^[-+]?[\d.]+\d*$',string):
+    elif string.count('.')==1 and re.match(r"^[-+]?[\d.]+\d*$",string):
       string = float(string)
   return string
   
@@ -115,5 +115,18 @@ def alphanum_key(string):
   Useful for sorting a list of strings containing numbers 'naturally'/'alphanumerically',
   e.g. sorted(['z10','z1','z2','z20'],key=alphanum_key)"""
   # https://nedbatchelder.com/blog/200712/human_sorting.html
-  return [ tryint(x) for x in re.split('([0-9]+)',string) ]
+  return [ tryint(x) for x in re.split("([0-9]+)",string) ]
+  
+
+def getyear(string):
+  """Recognize year from era string."""
+  year = string
+  if isinstance(string,str):
+    matches = re.findall(r"(?:20)?[0-3]\d",string)
+    if matches:
+      matches.sort(key=lambda x: len(x),reverse=True)
+      year = int(matches[0])
+      if year<2000:
+        year += 2000
+  return year
   
