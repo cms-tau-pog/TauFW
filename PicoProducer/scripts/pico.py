@@ -595,6 +595,7 @@ def preparejobs(args):
           print ">>> %-12s = %r"%('postfix',postfix)
           print ">>> %-12s = %r"%('outdir',outdir)
           print ">>> %-12s = %r"%('extraopts',extraopts_)
+          print ">>> %-12s = %r"%('prefetch',prefetch)
           print ">>> %-12s = %r"%('cfgdir',cfgdir)
           print ">>> %-12s = %r"%('logdir',logdir)
           print ">>> %-12s = %r"%('cfgname',cfgname)
@@ -993,14 +994,18 @@ def checkchuncks(sample,**kwargs):
   printchunks(pendchunks,'PEND',"Chunks with pending or running jobs",'white',True)
   printchunks(badchunks, 'FAIL', "Chunks with corrupted output in outdir",'red',True)
   printchunks(misschunks,'MISS',"Chunks with no output in outdir",'red',True)
-  logchunks = badchunks+misschunks
-  if showlogs and logchunks:
-    lognames = os.path.join(logdir,"*.*.*") #.log
-    logexp   = re.compile(".*\.(\d{3,})\.(\d+)(?:\.log)?$") #$JOBNAME.$JOBID.$TASKID.log
-    for logname in sorted(glob.glob(lognames),key=alphanum_key):
-      matches = logexp.findall(logname)
-      if matches and int(matches[0][1])-1 in logchunks: # chunck = taskid - 1
-        print ">>>   %s"%(logname)
+  if showlogs and (badchunks or misschunks):
+    logglob  = os.path.join(logdir,"*.*.*") #.log
+    lognames = sorted(glob.glob(logglob),key=alphanum_key,reverse=True)
+    for chunk in sorted(badchunks+misschunks):
+      logexp  = re.compile(".*\.\d{3,}\.%d(?:\.log)?$"%(chunk+1)) #$JOBNAME.$JOBID.$TASKID.log
+      matches = [f for f in lognames if logexp.match(f)]
+      if matches:
+        print ">>>   %s"%(matches[0])
+        for logname in matches:
+          lognames.remove(logname)
+      else:
+        LOG.warning("Did not find log file for chunk %d"%(chunk))
   
   return resubfiles, chunkdict
   
