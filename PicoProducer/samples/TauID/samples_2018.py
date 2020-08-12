@@ -3,6 +3,7 @@ from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = "/pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/NANOAOD_2018/$PATH"
 url      = None #"root://cms-xrd-global.cern.ch/"
 filelist = None #"samples/files/2016/$SAMPLE.txt"
+skimchls = ['skimjec'] # common skim channels
 samples  = [
   
   # DRELL-YAN
@@ -106,54 +107,54 @@ samples  = [
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2018A', "/SingleMuon/Run2018A-Nano25Oct2019-v1/NANOAOD",
-   store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+   store=storage,url=url,file=filelist,channels=skimchls+['mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2018B', "/SingleMuon/Run2018B-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+    store=storage,url=url,file=filelist,channels=skimchls+['mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2018C', "/SingleMuon/Run2018C-Nano25Oct2019-v1/NANOAOD",
-   store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+   store=storage,url=url,file=filelist,channels=skimchls+['mutau','mumu','emu'],
   ),
-  D('Data','SingleMuon_Run2018D', "/SingleMuon/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD",
-   store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+  D('Data','SingleMuon_Run2018D', "/SingleMuon/Run2018D-Nano25Oct2019-v1/NANOAOD", # /SingleMuon/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD ???
+   store=storage,url=url,file=filelist,channels=skimchls+['mutau','mumu','emu'],
   ),
   
   # SINGLE ELECTRON
   D('Data','EGamma_Run2017A', "/EGamma/Run2018A-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=skimchls+['etau','ee'],
   ),
   D('Data','EGamma_Run2017B', "/EGamma/Run2018B-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=skimchls+['etau','ee'],
   ),
   D('Data','EGamma_Run2017C', "/EGamma/Run2018C-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=skimchls+['etau','ee'],
   ),
   D('Data','EGamma_Run2017D', "/EGamma/Run2018D-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=skimchls+['etau','ee'],
   ),
   
   # TAU
   D('Data','Tau_Run2017A', "/Tau/Run2018A-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=skimchls+['tautau'],
   ),
   D('Data','Tau_Run2017B', "/Tau/Run2018B-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=skimchls+['tautau'],
   ),
   D('Data','Tau_Run2017C', "/Tau/Run2018C-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=skimchls+['tautau'],
   ),
   D('Data','Tau_Run2017D', "/Tau/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=skimchls+['tautau'],
   ),
   
-  # LQ
-  M('LQ','SLQ_single_M1100_L1p0_old',
-    "/LQ_Single_M1000/LegacyRun2_2018_deepTauIDv2p1/USER",
-    store=storage,url=url,file=filelist,nfilesperjob=30,
-  ),
-  M('LQ','SLQ_single_M1100_L1p0',
-    "/SingleScalarLQ_InclusiveDecay_M-1100_L-1p0_TuneCP2_13TeV-madgraph-pythia8/RunIIAutumn18NanoAODv7-Nano02Apr2020_102X_upgrade2018_realistic_v21-v1/NANOAODSIM",
-    #store=storage,url=url,file=filelist,
-  ),
+  ## LQ
+  #M('LQ','SLQ_single_M1100_L1p0_old',
+  #  "/LQ_Single_M1000/LegacyRun2_2018_deepTauIDv2p1/USER",
+  #  store=storage,url=url,file=filelist,nfilesperjob=30,
+  #),
+  #M('LQ','SLQ_single_M1100_L1p0',
+  #  "/SingleScalarLQ_InclusiveDecay_M-1100_L-1p0_TuneCP2_13TeV-madgraph-pythia8/RunIIAutumn18NanoAODv7-Nano02Apr2020_102X_upgrade2018_realistic_v21-v1/NANOAODSIM",
+  #  #store=storage,url=url,file=filelist,
+  #),
   
 ]

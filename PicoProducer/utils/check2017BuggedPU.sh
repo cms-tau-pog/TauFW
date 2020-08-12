@@ -1,7 +1,8 @@
 #! /bin/bash
+# Author: Izaak Neutelings (2019)
 # dasgoclient -query="dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAODv5_PU2017RECOSIMstep_12Apr2018_v1-DeepTauv2p1_TauPOG-v1/USER instance=prod/phys03"
 
-BUGFILE="tools/Fall17_oldPU.txt" # /afs/cern.ch/user/g/gurpreet/public/Fall17_oldPU.txt
+BUGFILE="utils/Fall17_oldPU.txt" # /afs/cern.ch/user/g/gurpreet/public/Fall17_oldPU.txt
 SAMPLES='/DY*JetsToLL_M-50_TuneCP5*mad*/RunIIFall17*NanoAODv6*/NANOAOD*'
 
 [[ $@ ]] && SAMPLES="$@"

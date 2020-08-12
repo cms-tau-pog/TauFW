@@ -21,17 +21,19 @@ DATASETS="SingleMuon SingleElectron EGamma Tau"
 MCYEARS="Summer19UL16 Summer19UL17 Summer19UL18" # Ultra Legacy
 
 DATAYEARS="2016 2017 2018" # reminiAOD
-#MCCAMP="NanoAODv6"
 MCCAMP="NanoAOD"
+#MCCAMP="NanoAODv6"
 #DATACAMP="25Oct2019" # reminiAOD
 DATACAMP="UL201*02Dec2019" # Ultra Legacy
 YEAR=0
 NFILES=2
 
-while getopts e:d:m:n:y: option; do case "${option}" in
-  d) DATASETS=${OPTARG//,/ };;
+while getopts e:d:D:m:M:n:y: option; do case "${option}" in
+  d) DATASETS=${OPTARG//,/ }; MCSAMPLES="";;
+  D) DATACAMP=${OPTARG//,/ };;
   e) DATAYEARS=${OPTARG//,/ };; # eras
-  m) MCSAMPLES=${OPTARG//,/ };;
+  m) MCSAMPLES=${OPTARG//,/ }; DATASETS="";;
+  M) MCCAMP=${OPTARG//,/ };;
   n) NFILES=${OPTARG};;
   y) YEAR=${OPTARG};;
 esac; done
@@ -40,8 +42,8 @@ esac; done
 for dataset in $MCSAMPLES; do
   for year in $MCYEARS; do
     [[ $YEAR -gt 0 ]] && [[ $year != *$YEAR ]] && continue
-    [[ $dataset = "TT_TuneC"* ]] && [[ $year != *16 ]] && continue
-    [[ $dataset = "TTTo"*"_TuneCP5"* ]] && [[ $year = *16 ]] && continue
+    [[ $dataset = "TT_TuneC"* ]] && [[ $year != *Summer16 ]] && continue
+    [[ $dataset = "TTTo"*"_TuneCP5"* ]] && [[ $year = *Summer16 ]] && continue
     pattern="/$dataset/RunII${year}*${MCCAMP}*/NANOAODSIM"
     echo
     echo -e "\e[1m\e[32m$pattern\e[0m"
