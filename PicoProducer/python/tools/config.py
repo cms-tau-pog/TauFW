@@ -79,7 +79,7 @@ def getconfig(verb=0,refresh=False):
   
   # SANITY CHECKS - format of values for required keys
   for key in rqdstrs:
-    assert key in rqdstrs, "Required key '%s' not found in the configuration file..."%(key)
+    assert key in cfgdict, "Required key '%s' not found in the configuration file..."%(key)
     assert isinstance(cfgdict[key],basestring),\
       "Required value for '%s' must be a string or unicode! Instead is of type %s: %r"%(key,type(cfgdict[key]),key)
   for key in rqddicts:
@@ -122,7 +122,14 @@ class Config(object):
     self._path    = path
     for key in self._dict.keys():
       if isinstance(self._dict[key],unicode):
-        self._dict[key] = str(self._dict[key]) # convert unicode to str
+        self._dict[str(key)] = str(self._dict[key]) # convert unicode to str
+      elif isinstance(self._dict[key],dict):
+        for subkey in self._dict[key].keys():
+          item = self._dict[key][subkey]
+          if isinstance(item,unicode):
+            item = str(item)
+          self._dict[str(key)].pop(subkey,None)
+          self._dict[str(key)][str(subkey)] = item # convert unicode to str
   
   def __str__(self):
     return str(self._dict)
@@ -142,6 +149,8 @@ class Config(object):
   def __setattr__(self,key,val):
     if key in self.__dict__:
       self.__dict__[key] = val
+      if key in self._dict[key]:
+        self._dict[key] = val
     elif (key.startswith('__') and key.endswith('__')):
       raise AttributeError("Did not find '%s'"%(key))
     elif key.startswith('_'):
