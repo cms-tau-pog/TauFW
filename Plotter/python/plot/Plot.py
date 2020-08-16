@@ -676,8 +676,8 @@ class Plot(object):
     y1 = 0.92; y2 = y1 - height
     
     # POSITION
-    if not position:
-      position = 'TRR' if ncols>1 else 'R' if title else 'TR'
+    if not position: # set default
+      position = 'TRR' if ncols>1 else 'TR' #'R' if title else
     position = position.replace('left','L').replace('center','C').replace('right','R').replace( #.lower()
                                 'top','T').replace('middle','M').replace('bottom','B')
     if 'C'     in position:

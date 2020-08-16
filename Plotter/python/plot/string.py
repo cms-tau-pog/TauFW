@@ -193,9 +193,9 @@ def maketitle(title,**kwargs):
   
 
 
-def makehistname(*labels,**kwargs):
+def makehistname(*strings,**kwargs):
   """Use label and var to make an unique and valid histogram name."""
-  hname = '_'.join(s.strip('_') for s in labels)
+  hname = '_'.join(getfilename(s).strip('_') for s in strings)
   hname = hname.replace('+','-').replace(' - ','-').replace('.','p').replace(',','-').replace(' ','_').replace(
                         '(','-').replace(')','-').replace('[','-').replace(']','-').replace('||','OR').replace('&&','AND').replace(
                         '/','_').replace('<','lt').replace('>','gt').replace('=','e').replace('*','x')
@@ -203,9 +203,10 @@ def makehistname(*labels,**kwargs):
   
 
 
-def makefilename(string,**kwargs):
+def makefilename(*strings,**kwargs):
   """Make string filename safe by replacing inconvenient characters."""
-  fname = re.sub(r"(\d+)\.(\d+)",r"\1p\2",string)
+  fname = '_'.join(getfilename(s).strip('_') for s in strings)
+  fname = re.sub(r"(\d+)\.(\d+)",r"\1p\2",fname)
   if 'abs(' in fname:
     fname = re.sub(r"abs\(([^\)]*)\)",r"\1",fname).replace('eta_2','eta')
   if 'm_t' in fname:
@@ -251,10 +252,10 @@ def match(terms, labels, **kwargs):
   verbosity = LOG.getverbosity(kwargs)
   terms     = ensurelist(terms, nonzero=True) # search terms
   labels    = ensurelist(labels,nonzero=True) # labels to match to
-  found  = True
-  regex  = kwargs.get('regex', False ) # use regexpr patterns (instead of glob)
-  incl   = kwargs.get('incl',  True  ) # match only at least one term
-  start  = kwargs.get('start', False ) # match only beginning of string
+  found     = True
+  regex     = kwargs.get('regex', False ) # use regexpr patterns (instead of glob)
+  incl      = kwargs.get('incl',  True  ) # match at least one term; if incl=False ("exclusive"), match every term
+  start     = kwargs.get('start', False ) # match only beginning of string
   LOG.verb("match: compare labels=%s -> searchterms=%s (incl=%s,regex=%s)"%(labels,terms,incl,regex),verbosity,3)
   if not terms:
     return False
@@ -544,13 +545,19 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###  
 ###  #LOG.verbose('  %r\n>>>   -> %r\n>>>'%(cuts0,cuts),verbosity,level=2)
 ###  return cuts
-  
 
-def getselstr(selection,**kwargs):
+  
+def getfilename(string,**kwargs):
   """Make sure returned object is a string."""
-  if hasattr(selection,"selection"): #isinstance(selection,Selection):
-    return selection.selection
-  return selection
+  if hasattr(string,"filename"):
+    return string.filename
+  return string
+  
+def getselstr(string,**kwargs):
+  """Make sure returned object is a string."""
+  if hasattr(string,"selection"): #isinstance(selection,Selection):
+    return string.selection
+  return string
   
 
 #from TauFW.Plotter.plot.Selection import Selection

@@ -1,6 +1,6 @@
 # Description: Common configuration file for creating pico sample set plotting scripts
 import re
-from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, setera, getyear, Sel, Var
+from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, setera, getyear, Sel, Var
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):
@@ -111,11 +111,15 @@ def getsampleset(channel,era,**kwargs):
   sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'     ) # W + jets
   sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50" ) # Drell-Yan, M > 50 GeV
   #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M10to50" )
-  sampleset.join('DY',                  name='DY'  ) # Drell-Yan, M < 50 GeV + M > 50 GeV
+  sampleset.join('DY', name='DY'  ) # Drell-Yan, M < 50 GeV + M > 50 GeV
   if 'VV' in join:
     sampleset.join('VV','WZ','WW','ZZ', name='VV'  ) # Diboson
+  if 'TT' in join and era!='year':
+    sampleset.join('TT', name='TT' ) # ttbar
+  if 'ST' in join:
+    sampleset.join('ST', name='ST' ) # single top
   if 'Top' in join:
-    sampleset.join('TT','ST',           name='Top' ) # ttbar + single top
+    sampleset.join('TT','ST', name='Top' ) # ttbar + single top
   
   # SPLIT
   # Note: titles are set via STYLE.sample_titles
@@ -137,10 +141,16 @@ def getsampleset(channel,era,**kwargs):
       LOG.throw(IOError,"Did not recognize channel %r!"%(channel))
     if 'DY' in split:
       sampleset.split('DY',[('ZTT',ZTT,GMR),('ZL',GML),('ZJ',GMJ),])
+    if 'DM' in split: # split DY by decay modes
+      samples.split('DY', [('ZTT_DM0', ZTT+", h^{#pm}",                   GMR+" && decayMode_2==0"),
+                           ('ZTT_DM1', ZTT+", h^{#pm}h^{0}",              GMR+" && decayMode_2==1"),
+                           ('ZTT_DM10',ZTT+", h^{#pm}h^{#mp}h^{#pm}",     GMR+" && decayMode_2==10"),
+                           ('ZTT_DM11',ZTT+", h^{#pm}h^{#mp}h^{#pm}h^{0}",GMR+" && decayMode_2==11"),
+                           ('ZL',GML),('ZJ',GMJ),])
     if 'TT' in split:
-      samples.split('TT',[('TTT',GMR),('TTJ',GMF),])
+      sampleset.split('TT',[('TTT',GMR),('TTJ',GMF),])
   
   if table:
-    sampleset.printtable()
+    sampleset.printtable(merged=True,split=True)
   return sampleset
   

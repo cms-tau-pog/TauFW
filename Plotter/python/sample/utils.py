@@ -161,7 +161,7 @@ def unwrap_gethist_args(*args,**kwargs):
   if vars==None or sel==None:
     LOG.throw(IOError,'unwrap_gethist_args: Could not unwrap arguments %s, len(args)=%d, vars=%s, sel=%s.'%(
                                                                        args,len(args),vars,sel.selection))
-  LOG.verb("unwrap_gethist_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),level=3)
+  LOG.verb("unwrap_gethist_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),level=4)
   return vars, sel, single
   
 
@@ -241,7 +241,7 @@ def unwrap_gethist2D_args(*args,**kwargs):
   elif isinstance(sel,str):
     sel = Selection(str)
   LOG.verb("unwrap_gethist2D_args: args=%r"%(args,),verbosity,3)
-  LOG.verb("unwrap_gethist2D_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),verbosity,3)
+  LOG.verb("unwrap_gethist2D_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),verbosity,4)
   return vars, sel, single
   
 
@@ -257,11 +257,10 @@ def getsample(samples,*searchterms,**kwargs):
     newsamples = [ ]
     for sample in samples:
       if sample.splitsamples:
+        LOG.verb("getsample: Splitting sample %s..."%(sample.name),verbosity,3)
         newsamples.extend(sample.splitsamples)
       else:
         newsamples.append(sample)
-    print samples
-    print newsamples
     samples = newsamples
   for sample in samples:
     if sample.match(*searchterms,**kwargs) and filename in sample.filename:

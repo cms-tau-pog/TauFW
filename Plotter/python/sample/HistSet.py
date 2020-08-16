@@ -12,6 +12,7 @@ class HistSet(object):
     self.data   = {v: None for v in vars} if data else { } # data histograms
     self.exp    = {v: [ ] for v in vars}  if exp  else { } # background histograms (Drell-Yan, ttbar, W+jets, ...)
     self.signal = {v: [ ] for v in vars}  if sig  else { } # signal histograms (for new physics searches)
+    self.single = False
   
   def __len__(self):
     """Start iteration over samples."""
@@ -46,6 +47,33 @@ class HistSet(object):
         for val in [vars, data, exp]:
           yield val
   
+  def iterhists(self):
+    """Iterate over all histograms."""
+    if self.single:
+      hists = [self.data] if self.data else [ ]
+      hists.extend(self.exp+self.signal)
+      for hist in hists:
+        yield self.var, hist
+    else:
+      for var in self.vars:
+        hists = [self.data[var]] if self.data.get(var,None) else [ ]
+        hists.extend(self.exp.get(var,[ ])+self.signal.get(var,[ ]))
+        for hist in hists:
+          yield var, hist
+  
+  def __getitem__(self,key):
+    hists = [ ]
+    if self.single:
+      if key==self.var:
+        if self.data:
+          hists.append(self.data)
+        hists.extend(self.exp+self.signal)
+    else:
+      if self.data.get(key,None):
+        hists.append(self.data[key])
+      hists.extend(self.exp.get(key,[ ])+self.signal.get(key,[ ]))
+    return hists
+  
   def setsingle(self):
     """Make a single result: convert result dictionaries to TH1D of list of TH1Ds
     one variable, one data hist, one exp. list and one signal list."""
@@ -54,6 +82,7 @@ class HistSet(object):
     self.data   = self.data.get(self.var,None)
     self.exp    = self.exp.get(self.var,[ ])
     self.signal = self.signal.get(self.var,[ ])
+    self.single = True
   
   def printall(self,full=False):
     """Print for debugging purposes."""
