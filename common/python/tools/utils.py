@@ -59,6 +59,11 @@ def convertstr(string):
   return string
   
 
+def isglob(string):
+  """Return if string is likely a glob pattern."""
+  return '*' in string or '?' in string or ('[' in string and ']' in string)
+  
+
 def islist(arg):
   """Check if argument is a list or tuple."""
   return isinstance(arg,list) or isinstance(arg,tuple)
@@ -85,7 +90,12 @@ def unwraplistargs(args):
 
 def repkey(string,**kwargs):
   """Replace keys with '$'."""
-  for key, value in kwargs.iteritems():
+  for key, value in sorted(kwargs.items(),key=lambda x: -len(x[0])):
+    if '${'+key in string: # BASH variable expansions
+      matches = re.findall(r"\$\{%s:(\d*):(\d+)\}"%(key),string)
+      for a, b in matches:
+        substr = value[int(a or 0):int(b)]
+        string = re.sub(r"\$\{%s:%s:%s\}"%(key,a,b),substr,string)
     string = string.replace('$'+key,str(value))
   return string
   

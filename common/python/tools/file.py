@@ -107,6 +107,18 @@ def ensureTFile(filename,option='READ'):
   return file
   
 
+def ensureTDirectory(file,dirname,cd=True,verb=0):
+  """Make TDirectory in a file (or other TDirectory) if it does not yet exist."""
+  directory = file.GetDirectory(dirname)
+  if not directory:
+    directory = file.mkdir(dirname)
+    if verb>=1:
+      print ">>> created directory %s in %s"%(dirname,file.GetName())
+  if cd:
+    directory.cd()
+  return directory
+  
+
 def ensureinit(*paths,**kwargs):
   """Ensure an __init__.py exists, other wise, create one."""
   init   = os.path.join(os.path.join(*paths),'__init__.py')
