@@ -11,7 +11,7 @@ MCSAMPLES="
   TTToHadronic_TuneCP5_13TeV-powheg-pythia8
   ST_tW_*top_5f_inclusiveDecays_TuneC*
   ST_tW_*top_*NoFullyHadronicDecay*_TuneC*
-  ST_t-channel_*top_4f_InclusiveDecays_TuneC*
+  ST_t-channel_*top_*f_InclusiveDecays_TuneC*
   WZ_TuneC*
   WW_TuneC*
   ZZ_TuneC*

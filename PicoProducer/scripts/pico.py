@@ -261,7 +261,6 @@ def main_link(args):
     ensureinit(os.path.dirname(path),by="pico.py")
   if value!=oldval:
     print ">>> Converted '%s' to '%s'"%(oldval,value)
-  
   CONFIG[varkey][key] = value
   CONFIG.write()
   
@@ -282,9 +281,9 @@ def main_rm(args):
   if verbosity>=1:
     print '-'*80
   if key:
-    print ">>> Removing %s '%s' from the configuration..."%(variable,key)
+    print ">>> Removing %s '%s' from the configuration..."%(variable,color(key))
   else:
-    print ">>> Removing variable '%s' from the configuration..."%(variable)
+    print ">>> Removing variable '%s' from the configuration..."%(color(variable))
   if verbosity>=1:
     print ">>> %-14s = %s"%('variable',variable)
     print ">>> %-14s = %s"%('key',key)
@@ -294,8 +293,11 @@ def main_rm(args):
   if key: # redirect 'channel' and 'era' keys to main_link
     variable = variable+'s'
     if variable in CONFIG:
-      CONFIG[variable].pop(key)
-      CONFIG.write()
+      if key in CONFIG[variable]:
+        CONFIG[variable].pop(key,None)
+        CONFIG.write()
+      else:
+        print ">>> %s '%s' not in the configuration. Nothing to remove..."%(variable.capitalize(),key)
     else:
       print ">>> Variable '%s' not in the configuration. Nothing to remove..."%(variable)
   else:
@@ -377,6 +379,7 @@ def main_run(args):
         print ">>> %-12s = %s"%('filters',filters)
         print ">>> %-12s = %s"%('vetoes',vetoes)
         print ">>> %-12s = %r"%('dtypes',dtypes)
+        print ">>> %-12s = %r"%('userfiles',userfiles)
         print ">>> %-12s = %r"%('outdir',outdir)
       
       # GET SAMPLES
@@ -574,10 +577,11 @@ def preparejobs(args):
         nfilesperjob_ = sample.nfilesperjob if sample.nfilesperjob>0 else nfilesperjob
         if split_nfpj>1:
           nfilesperjob_ = min(1,nfilesperjob_/split_nfpj)
+        daspath    = sample.paths[0].strip('/')
         outdir     = repkey(outdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
-                                         DAS=sample.paths[0].strip('/'),GROUP=sample.group)
+                                         DAS=daspath,PATH=daspath,GROUP=sample.group)
         jobdir     = ensuredir(repkey(jobdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
-                                                   DAS=sample.paths[0].strip('/'),GROUP=sample.group))
+                                                   DAS=daspath,PATH=daspath,GROUP=sample.group))
         cfgdir     = ensuredir(jobdir,"config")
         logdir     = ensuredir(jobdir,"log")
         cfgname    = "%s/jobconfig%s.json"%(cfgdir,jobtag)

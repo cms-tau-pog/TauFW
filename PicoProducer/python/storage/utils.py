@@ -2,10 +2,11 @@
 import os
 import getpass, platform
 import importlib
+from fnmatch import fnmatch
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.log import Logger
 from TauFW.common.tools.file import ensurefile
-from TauFW.common.tools.utils import repkey
+from TauFW.common.tools.utils import repkey, isglob
 LOG  = Logger('Storage')
 host = platform.node()
 
@@ -78,11 +79,12 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
   samplelist = moddict[samppath].samples
   samples    = [ ]
   sampledict = { } # ensure for unique names
+  LOG.verb("getsamples: samplelist=%r"%(samplelist),verb,3)
   for sample in samplelist:
     if filters and not sample.match(filters,verb): continue
     if vetoes and sample.match(vetoes,verb): continue
     if dtypes and sample.dtype not in dtypes: continue
-    if channel and sample.channels and channel not in sample.channels: continue
+    if channel and sample.channels and not any(fnmatch(channel,c) for c in sample.channels): continue
     if sample.name in sampledict:
       LOG.throw(IOError,"Sample short names should be unique. Found two samples '%s'!\n\t%s\n\t%s"%(
                     sample.name,','.join(sampledict[sample.name].paths),','.join(sample.paths)))

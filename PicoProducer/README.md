@@ -83,7 +83,7 @@ The configurable variables include:
 
 Defaults are given in [`config/config.json`](config/config.json).
 Note the directories can contain variables with `$` like
-`$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$PATH`
+`$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$DAS`
 to create a custom hierarchy and format.
 
 Besides these variables, there are also dictionaries to link a channel short name to a skimming or analysis code,
@@ -153,7 +153,7 @@ Other optional keyword arguments are
 * `store`: Path where all nanoAOD files are stored (instead of being given by the DAS tool).
   Note that this path is used for both skimming and analysis jobs.
   This is useful if you have produced or skimmed your NanoAOD samples, and they are not available via DAS.
-  The path may contain variables like `$PATH` for the full DAS path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
+  The path may contain variables like `$DAS` for the full DAS dataset path, `$GROUP` for the group, `$SAMPLE` for the sample short name.
 * `url`: Redirector URL for `XRootD` protocol, e.g. `root://cms-xrd-global.cern.ch` for DAS.
 * `files`: Either a list of nanoAOD files, OR a string to a text file with a list of nanoAOD files.
   This can speed things up if DAS is slow or unreliable,

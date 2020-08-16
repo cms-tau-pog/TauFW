@@ -10,8 +10,9 @@ import os, re, json
 import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
-from TauFW.common.tools.utils import execute, CalledProcessError, repkey, ensurelist
+from TauFW.common.tools.utils import execute, CalledProcessError, repkey, ensurelist, isglob
 from TauFW.common.tools.file import ensurefile, ensureTFile
+from TauFW.PicoProducer.tools.config import _user
 from TauFW.PicoProducer.storage.utils import LOG, getstorage
 dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
 
@@ -107,13 +108,13 @@ class Sample(object):
     
     # STORAGE & URL DEFAULTS
     if self.storepath:
-      self.storepath = repkey(self.storepath,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+      self.storepath = repkey(self.storepath,USER=_user,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
     if not self.dasurl:
       self.dasurl = self.url if (self.url in dasurls) else dasurls[0]
     if not self.url:
       if self.storepath:
         from TauFW.PicoProducer.storage.StorageSystem import Local
-        self.storage = getstorage(repkey(self.storepath,PATH=self.paths[0]),ensure=False)
+        self.storage = getstorage(repkey(self.storepath,PATH=self.paths[0],DAS=self.paths[0]),ensure=False)
         if isinstance(self.storage,Local):
           self.url = "" #root://cms-xrd-global.cern.ch/
         else:
@@ -190,7 +191,7 @@ class Sample(object):
     sample   = self.name.strip('/')
     match_   = False
     for pattern in patterns:
-      if '*' in pattern or '?' in pattern or ('[' in pattern and ']' in pattern):
+      if isglob(pattern):
         if fnmatch(sample,pattern+'*'):
           match_ = True
           break
@@ -214,7 +215,7 @@ class Sample(object):
       for daspath in self.paths:
         if (self.storage and not das) or (not self.instance): # get files from storage system
           postfix = self.postfix+'.root'
-          sepath  = repkey(self.storepath,PATH=daspath).replace('//','/')
+          sepath  = repkey(self.storepath,PATH=daspath,DAs=daspath).replace('//','/')
           outlist = self.storage.getfiles(sepath,url=url,verb=verb-1)
           if limit>0:
             outlist = outlist[:limit]

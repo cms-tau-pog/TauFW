@@ -1,11 +1,16 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-storage  = None #"/eos/user/i/ineuteli/samples/nano/$ERA/$PATH"
+storage  = None #"/eos/user/i/$USER/samples/nano/$ERA/$DAS"
 url      = None #"root://cms-xrd-global.cern.ch/"
 filelist = None #"samples/files/2016/$SAMPLE.txt"
 samples  = [
   
   # DRELL-YAN
+  #M('DY','DYJetsToLL_M-10to50',
+  #  "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v2/NANOAODSIM",
+  #  "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7_ext1-v1/NANOAODSIM",
+  #  store=storage,url=url,file=filelist,opts='zpt=True',
+  #),
   M('DY','DYJetsToLL_M-50',
     "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM",
     store=storage,url=url,file=filelist,opts='zpt=True',
@@ -26,11 +31,6 @@ samples  = [
     "/DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM",
     store=storage,url=url,file=filelist,opts='zpt=True',
   ),
-  #M('DY','DYJetsToLL_M-10to50',
-  #  "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v2/NANOAODSIM",
-  #  "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7_ext1-v1/NANOAODSIM",
-  #  store=storage,url=url,file=filelist,opts='zpt=True',
-  #),
   
   # TTBAR
   M('TT','TTTo2L2Nu',
@@ -70,28 +70,25 @@ samples  = [
   
   # SINGLE TOP
   M('ST','ST_tW_antitop',
-    "/ST_tW_antitop_5f_NoFullyHadronicDecays_mtop1715_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM",
-    #"/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/NANOAODSIM",
+    "/ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,
   ),
   M('ST','ST_tW_top',
-    "/ST_tW_top_5f_NoFullyHadronicDecays_mtop1695_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM",
-    #"/ST_tW_top_5f_inclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_new_pmx_102X_mc2017_realistic_v7-v1/NANOAODSIM",
+    "/ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,
   ),
-  ###M('ST','ST_t-channel_antitop',
-  ###  "/ST_t-channel_antitop_4f_InclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/NANOAODSIM",
-  ###  store=storage,url=url,file=filelist,
-  ###),
-  ###M('ST','ST_t-channel_top',
-  ###  "/ST_t-channel_top_4f_InclusiveDecays_TuneCP5_PSweights_13TeV-powheg-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/NANOAODSIM",
-  ###  store=storage,url=url,file=filelist,
-  ###),
+  M('ST','ST_t-channel_antitop',
+    "/ST_t-channel_antitop_5f_InclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM",
+    store=storage,url=url,file=filelist,
+  ),
+  M('ST','ST_t-channel_top',
+    "/ST_t-channel_top_5f_InclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM",
+    store=storage,url=url,file=filelist,
+  ),
   
   # DIBOSON
   M('VV','WW',
     "/WW_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM",
-    #"/WW_TuneCP5_DoubleScattering_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,
   ),
   M('VV','WZ',
@@ -105,53 +102,53 @@ samples  = [
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2017B', "/SingleMuon/Run2017B-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017C', "/SingleMuon/Run2017C-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017D', "/SingleMuon/Run2017D-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017E', "/SingleMuon/Run2017E-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu'],
   ),
   D('Data','SingleMuon_Run2017F', "/SingleMuon/Run2017F-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu','emu'],
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu'],
   ),
   
   # SINGLE ELECTRON
   D('Data','SingleElectron_Run2017B', "/SingleElectron/Run2017B-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee'],
   ),
   D('Data','SingleElectron_Run2017C', "/SingleElectron/Run2017C-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee'],
   ),
   D('Data','SingleElectron_Run2017D', "/SingleElectron/Run2017D-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee'],
   ),
   D('Data','SingleElectron_Run2017E', "/SingleElectron/Run2017E-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee'],
   ),
   D('Data','SingleElectron_Run2017F', "/SingleElectron/Run2017F-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['etau','ee'],
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee'],
   ),
   
   # TAU
   D('Data','Tau_Run2017B', "/Tau/Run2017B-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau'],
   ),
   D('Data','Tau_Run2017C', "/Tau/Run2017C-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau'],
   ),
   D('Data','Tau_Run2017D', "/Tau/Run2017D-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau'],
   ),
   D('Data','Tau_Run2017E', "/Tau/Run2017E-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau'],
   ),
   D('Data','Tau_Run2017F', "/Tau/Run2017F-UL2017_02Dec2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['tautau'],
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau'],
   ),
   
 ]

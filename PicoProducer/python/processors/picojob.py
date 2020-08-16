@@ -5,7 +5,7 @@ import os, re
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from TauFW.PicoProducer.analysis.utils import getmodule, convertstr
+from TauFW.PicoProducer.analysis.utils import getmodule, getyear, convertstr
 from TauFW.PicoProducer.processors import moddir
 #from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
 from argparse import ArgumentParser
@@ -25,8 +25,8 @@ args = parser.parse_args()
 
 
 # SETTING
-era       = args.era
-year      = int(re.findall(r"20\d{2}",era)[0] if era else 2018)
+era       = args.era # e.g. '2017', 'UL2017', ...
+year      = getyear(era) # integer year, e.g. 2017
 modname   = args.module
 channel   = args.channel
 if channel:
@@ -71,7 +71,7 @@ if dtype==None:
     dtype = 'mc'
 
 # EXTRA OPTIONS
-kwargs    = { 'year': year, 'dtype': dtype, }
+kwargs    = { 'era': era, 'year': year, 'dtype': dtype, }
 for option in args.extraopts:
   assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)
   split       = option.split('=')
@@ -81,6 +81,7 @@ for option in args.extraopts:
 # PRINT
 print '-'*80
 print ">>> %-12s = %r"%('era',era)
+print ">>> %-12s = %r"%('year',year)
 print ">>> %-12s = %r"%('channel',channel)
 print ">>> %-12s = %r"%('modname',modname)
 print ">>> %-12s = %r"%('dtype',dtype)

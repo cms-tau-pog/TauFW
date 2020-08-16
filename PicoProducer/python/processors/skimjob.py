@@ -5,8 +5,10 @@ import os
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
+from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector as getjmecalib
 from TauFW.PicoProducer.processors import moddir
-from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
+from TauFW.PicoProducer.corrections.era_config import getjson, getperiod #, getjmecalib
+from TauFW.Plotter.sample.utils import getyear
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
@@ -17,9 +19,9 @@ parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="")
 parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
 parser.add_argument('-y','-e','--era',  dest='era',       type=str, default="")
 parser.add_argument('-E', '--opts',     dest='extraopts', type=str, default=[ ], nargs='+')
-parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true', default=False)
-parser.add_argument('-J', '--jec',      dest='doJEC',     action='store_true', default=False)
-parser.add_argument('-S', '--jec-sys',  dest='doJECSys',  action='store_true', default=False)
+parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true')
+parser.add_argument('-J', '--jec',      dest='doJEC',     action='store_true')
+parser.add_argument('-S', '--jec-sys',  dest='doJECSys',  action='store_true')
 args = parser.parse_args()
 
 
@@ -63,14 +65,21 @@ if dtype==None:
   else:
     dtype = 'mc'
 
+MET = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
 if dtype=='data':
-  if not era:
-    era = getera(infiles[0],era,dtype=dtype) # gets data run (e.g. '2016B') from filename
+  year   = getyear(era)
+  period = getperiod(infiles[0],era,dtype=dtype) # gets data run era (e.g. 'B' from '2016B') from filename
   assert all(era in f for f in infiles), "Not all files names are of the same era '%s': %s"%(era,infiles)
-  json  = getjson(era,dtype)
+  json  = getjson(year,dtype)
+  if doJEC:
+    calib = getjmecalib(False,era,runPeriod=period,redojec=doJEC,jetType='AK4PFchs',
+                        noGroom=True,metBranchName=MET,applySmearing=True)()
+    modules.append(calib)
 elif doJEC or doJECSys:
-  jmecalib = getjmecalib(era,era="",redoJEC=doJEC,doSys=doJECSys,dtype='mc')
-  modules.append(jmecalib)
+  uncs  = 'Total' if doJECSys else ''
+  calib = getjmecalib(True,era,redojec=doJEC,jesUncert=uncs,jetType='AK4PFchs',
+                      noGroom=True,metBranchName=MET,applySmearing=True)()
+  modules.append(calib)
 
 # PRINT
 print '-'*80
