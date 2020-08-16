@@ -52,19 +52,32 @@ class MergedSample(Sample):
       self.init(sample)
     self.samples.append(sample)
   
-  def row(self,pre="",indent=0,justname=25,justtitle=25):
+  def row(self,pre="",indent=0,justname=25,justtitle=25,merged=True,split=True,colpass=False):
     """Returns string that can be used as a row in a samples summary table."""
-    xsec   = "%.2f"%self.xsec if self.xsec>0 else ""
-    nevts  = "%.1f"%self.nevents if self.nevents>=0 else ""
-    sumw   = "%.2f"%self.sumweights if self.sumweights>=0 else ""
-    norm   = "%.3f"%self.norm
-    name   = self.name.ljust(justname-indent)
-    title  = self.title.ljust(justtitle)
-    string = ">>> %s%s %s %10s %12s %15s %9s  %s" %\
-             (pre,name,title,xsec,nevts,sumw,norm,self.extraweight)
-    for i, sample in enumerate(self.samples):
-      subpre  = ' '*indent+("├─ " if i<len(self.samples)-1 else "└─ ")
-      string += "\n" + sample.row(pre=subpre,indent=indent+3,justname=justname,justtitle=justtitle)
+    xsec     = "%.2f"%self.xsec if self.xsec>0 else ""
+    nevts    = "%.1f"%self.nevents if self.nevents>=0 else ""
+    sumw     = "%.2f"%self.sumweights if self.sumweights>=0 else ""
+    norm     = "%.3f"%self.norm
+    split_   = split and self.splitsamples
+    name     = self.name.ljust(justname-indent)
+    title    = self.title.ljust(justtitle)
+    if merged:
+      string = ">>> %s%s %s %10s %12s %15s %9s  %s" %\
+               (pre,name,title,xsec,nevts,sumw,norm,self.extraweight)
+      for i, sample in enumerate(self.samples):
+        islast   = i+1>=len(self.samples)
+        if "├─ " in pre or "└─ " in pre or indent==0:
+          pline = color("│  ") if colpass else "│  " # line passing merged samples
+          subpre = pre.replace("├─ ",pline)
+        else:
+          subpre = pre+' '*3
+        subpre  += "└─ " if (islast and not split_) else "├─ "
+        colpass  = split_ and islast
+        string  += "\n" + sample.row(pre=subpre,indent=indent+3,justname=justname,justtitle=justtitle,split=split,colpass=colpass)
+    else:
+      string = ">>> %s%s %s"%(pre,name,title)
+    if split_:
+      string += self.splitrows(indent=indent,justname=justname,justtitle=justtitle)
     return string
   
   def clone(self,*args,**kwargs):
@@ -110,7 +123,7 @@ class MergedSample(Sample):
     """Create and fill histgram for multiple samples. Overrides Sample.gethist."""
     variables, selection, issingle = unwrap_gethist_args(*args)
     verbosity        = LOG.getverbosity(kwargs)
-    name             = kwargs.get('name',           self.name+"_merged"  )
+    name             = kwargs.get('name',           self.name            )
     name            += kwargs.get('tag',            ""                   )
     title            = kwargs.get('title',          self.title           )
     parallel         = kwargs.get('parallel',       False                )

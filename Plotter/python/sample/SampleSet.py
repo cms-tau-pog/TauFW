@@ -78,16 +78,16 @@ class SampleSet(object):
     for sample in self.samples:
       sample.printobjs(title="")
   
-  def printtable(self,title=None):
+  def printtable(self,title=None,merged=True,split=True):
     """Print table of all samples."""
     import TauFW.Plotter.sample.utils as GLOB
     if not title:
       print ">>>\n>>> Samples with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(GLOB.lumi)
     justname  = 2+max(s.get_max_name_len() for s in self.samples)
     justtitle = 2+max(s.get_max_title_len() for s in self.samples)
-    Sample.printheader(title,justname=justname,justtitle=justtitle)
+    Sample.printheader(title,justname=justname,justtitle=justtitle,merged=merged)
     for sample in self.samples:
-      sample.printrow(justname=justname,justtitle=justtitle)
+      sample.printrow(justname=justname,justtitle=justtitle,merged=merged,split=split)
     print ">>> "
   
   def __iter__(self):
@@ -331,6 +331,8 @@ class SampleSet(object):
   def gethists(self, *args, **kwargs):
     """Create and fill histograms for all samples and return lists of histograms."""
     verbosity     = LOG.getverbosity(kwargs)
+    if verbosity>=1:
+      print ">>> gethists"
     variables, selection, issingle = unwrap_gethist_args(*args)
     datavars      = filter(lambda v: v.data,variables)      # filter out gen-level variables
     dodata        = kwargs.get('data',          True    ) # create data hists
@@ -348,6 +350,7 @@ class SampleSet(object):
     tag           = kwargs.get('tag',           ""      )
     method        = kwargs.get('method',        None    ) # data-driven method; 'QCD_OSSS', 'QCD_ABCD', 'JTF', 'FakeFactor', ...
     imethod       = kwargs.get('imethod',       -1      ) # position on list; -1 = last (bottom of stack)
+    filters       = kwargs.get('filter',        None    ) or [ ] # filter these samples
     vetoes        = kwargs.get('veto',          None    ) or [ ] # filter out these samples
     #makeJTF       = kwargs.get('JTF',           False   ) and data
     #nojtf         = kwargs.get('nojtf',         makeJTF ) and data
@@ -362,27 +365,24 @@ class SampleSet(object):
     task          = kwargs.get('task',          "Creating histograms" ) # task title for loading bar
     #saveto        = kwargs.get('saveto',        ""     ) # save to TFile
     #file          = createFile(saveto,text=cuts) if saveto else None
+    filters       = ensurelist(filters)
     vetoes        = ensurelist(vetoes)
     if method and not hasattr(self,method):
-      ensuremodule(method,'Plotter.methods')
+      ensuremodule(method,'Plotter.methods') # load SampleSet class method
     
     # FILTER
     samples = [ ]
-    if split:
-      for sample in self.samples:
-        if not dosignal and sample.issignal: continue
-        if not dodata   and sample.isdata:   continue
-        if vetoes and sample.match(*vetoes): continue
-        if sample.splitsamples:
-          samples += sample.splitsamples
-        else:
-          samples.append(sample)
-    else:
-      for sample in self.samples:
-        if not dosignal and sample.issignal: continue
-        if not dodata   and sample.isdata:   continue
-        if vetoes and sample.match(*vetoes): continue
-        samples.append(sample)
+    for sample in self.samples:
+      if not dosignal and sample.issignal: continue
+      if not dodata   and sample.isdata:   continue
+      if split and sample.splitsamples:
+        subsamples = sample.splitsamples
+      else:
+        subsamples = [sample] # sample itself
+      for subsample in subsamples:
+        if filters and not subsample.match(*filters): continue
+        if vetoes  and subsample.match(*vetoes): continue
+        samples.append(subsample)
     #if nojtf:
     #  samples = [s for s in samples if not ((not keepWJ and s.match('WJ',"W*J","W*j")) or "gen_match_2==6" in s.cuts or "genPartFlav_2==0" in s.cuts)]
     
@@ -630,6 +630,19 @@ class SampleSet(object):
       self.samples.remove(sample)
     self.samples.insert(oldindex,mergedsample)
   
+  def rename(self,*args,**kwargs):
+    """Rename sample, e.g. sampleset.rename('WJ','W')"""
+    LOG.insist(len(args)>=2,"SampleSet.rename: need more than two strings! Got %s"%(args,))
+    strings          = [arg for arg in args if isinstance(arg,str)]
+    searchterms      = strings[:-1]
+    name             = strings[-1]
+    kwargs['unique'] = True
+    sample           = self.get(*searchterms,**kwargs)
+    if sample:
+      sample.name    = name
+    else:
+      LOG.warning("SampleSet.rename: Could not find sample with searchterms '%s'"%("', '").join(searchterms))
+  
   def split(self,*args,**kwargs):
     """Split sample into different components with some cuts, e.g.
       sampleset.split('DY',[
@@ -644,7 +657,7 @@ class SampleSet(object):
     if sample:
       sample.split(splitlist,**kwargs)
     else:
-      LOG.warning('SampleSet.split - Could not find sample with searchterms "%s"'%('", "').join(searchterms))
+      LOG.warning("SampleSet.split: Could not find sample with searchterms '%s'"%("', '").join(searchterms))
   
   def shift(self,searchterms,file_app,title_app,**kwargs):
     """Shift samples in samples set by creating new samples with new filename/titlename."""

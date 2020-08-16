@@ -102,23 +102,42 @@ class Sample(object):
     return '<%s(%r,%r) at %s>'%(self.__class__.__name__,self.name,self.title,hex(id(self)))
   
   @staticmethod
-  def printheader(title=None,justname=25,justtitle=25):
+  def printheader(title=None,merged=True,justname=25,justtitle=25):
     if title!=None:
       print ">>> %s"%(title)
-    name  = "Sample name".ljust(justname)
-    title = "title".ljust(justtitle)
-    print ">>> \033[4m%s %s %10s %12s %15s %9s  %s\033[0m"%(
-               name,title,"xsec [pb]","nevents","sumweights","norm","weight"+' '*8)
+    name   = "Sample name".ljust(justname)
+    title  = "title".ljust(justtitle)
+    if merged:
+      print ">>> \033[4m%s %s %10s %12s %15s %9s  %s\033[0m"%(
+                 name,title,"xsec [pb]","nevents","sumweights","norm","weight"+' '*8)
+    else:
+      print ">>> \033[4m%s %s %s\033[0m"%(name,title+' '*5,"Extra cut"+' '*18)
+    
   
   def printrow(self,**kwargs):
     print self.row(**kwargs)
   
-  def row(self,pre="",indent=0,justname=25,justtitle=25):
+  def row(self,pre="",indent=0,justname=25,justtitle=25,merged=True,split=True,colpass=False):
     """Returns string that can be used as a row in a samples summary table"""
-    name  = self.name.ljust(justname-indent)
-    title = self.title.ljust(justtitle)
-    return ">>> %s%s %s %10.2f %12.1f %15.2f %9.3f  %s"%(
-            pre,name,title,self.xsec,self.nevents,self.sumweights,self.norm,self.extraweight)
+    name   = self.name.ljust(justname-indent)
+    title  = self.title.ljust(justtitle)
+    string = ">>> %s%s %s %10.2f %12.1f %15.2f %9.3f  %s"%(
+             pre,name,title,self.xsec,self.nevents,self.sumweights,self.norm,self.extraweight)
+    if split:
+      string += self.splitrows(indent=indent,justname=justname,justtitle=justtitle)
+    return string
+    
+  def splitrows(self,indent=0,justname=25,justtitle=25):
+    """Get split rows."""
+    string    = ""
+    if self.splitsamples:
+      justtitle = max(justtitle,max(len(s.title) for s in self.splitsamples)+1)
+      for i, sample in enumerate(self.splitsamples):
+        name    = sample.name.ljust(justname-indent-3)
+        title   = sample.title.ljust(justtitle+3)
+        subpre  = ' '*indent+"├─ " if i<len(self.splitsamples)-1 else "└─ "
+        string += "\n>>> "+color("%s%s %s %s"%(subpre,name,title,sample.cuts))
+    return string
   
   def printobjs(self,title=""):
     """Print all sample objects recursively."""
@@ -558,7 +577,7 @@ class Sample(object):
     for variable in variables:
       
       # VAREXP
-      hname  = makehistname(variable.filename,name)
+      hname  = makehistname(variable,name) # $VAR_$NAME
       varcut = ""
       if self.isdata and (blind or variable.blindcuts or variable.cut or variable.dataweight):
         blindcuts = ""
@@ -651,7 +670,7 @@ class Sample(object):
     for xvar, yvar in variables:
       
       # VAREXP
-      hname = makehistname("%s_vs_%s"%(xvar.filename,yvar.filename),name)
+      hname = makehistname("%s_vs_%s"%(xvar,yvar),name)
       if xvar.cut or yvar.cut or ((xvar.weight or yvar.weight) and not self.isdata):
         if self.isdata:
           varcut = joincuts(xvar.cut,yvar.cut)
