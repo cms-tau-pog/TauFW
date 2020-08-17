@@ -21,6 +21,7 @@ parser.add_argument('-M', '--module',   dest='module',    type=str, default=None
 parser.add_argument('-c', '--channel',  dest='channel',   type=str, default=None)
 parser.add_argument('-E', '--opts',     dest='extraopts', type=str, default=[ ], nargs='+')
 parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true', default=False)
+parser.add_argument('-v', '--verbose',  dest='verbosity', type=int, nargs='?', const=1, default=0, action='store' )
 args = parser.parse_args()
 
 
@@ -50,6 +51,7 @@ if tag:
 outfname  = os.path.join(outdir,"pico_%s%s.root"%(channel,tag))
 url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch
+verbosity = args.verbosity
 presel    = None #"Muon_pt[0] > 50"
 branchsel = os.path.join(moddir,"keep_and_drop_skim.txt")
 json      = None
@@ -71,7 +73,7 @@ if dtype==None:
     dtype = 'mc'
 
 # EXTRA OPTIONS
-kwargs    = { 'era': era, 'year': year, 'dtype': dtype, }
+kwargs    = { 'era': era, 'year': year, 'dtype': dtype, 'verb': verbosity }
 for option in args.extraopts:
   assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)
   split       = option.split('=')

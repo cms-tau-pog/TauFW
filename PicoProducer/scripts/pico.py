@@ -462,8 +462,8 @@ def main_run(args):
 def getmodule(channel,extraopts):
   """Help function to get the module and processor."""
   LOG.insist(channel in CONFIG.channels,"Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels))
-  module     = CONFIG.channels[channel]
-  procopts   = "" # extra options for processor
+  module      = CONFIG.channels[channel]
+  procopts    = "" # extra options for processor
   extrachopts = extraopts[:] # extra options for module (per channel)
   if 'skim' in channel.lower():
     parts     = module.split(' ') # "PROCESSOR [--FLAG[=VALUE] ...]"

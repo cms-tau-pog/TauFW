@@ -104,13 +104,13 @@ Extra options to the skimming script can be passed as well:
 pico.py channel skimjec 'skimjob.py --jec-sys'
 ```
 
-
 ### Analysis
 This framework allows to implement many analysis modules called "channels"
 (e.g. different final states like mutau or etau).
 All analysis code should be saved in [`python/analysis/`](python/analysis), or a subdirectory.
 A simple example of an analysis is given in [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py),
-and more detailed instructions are in [`python/analysis/README.md`](python/analysis).
+a more fuller example in [`ModuleMuTau.py`](python/analysis/ModuleMuTau.py) 
+with more detailed instructions are in [`python/analysis/README.md`](python/analysis).
 The `pico.py` script runs all analysis modules with the post-processor [`picojob.py`](python/processors/picojob.py).
 
 You can link any analysis module to a custom channel short name (e.g. `mutau`):
@@ -120,6 +120,11 @@ pico.py channel mutau ModuleMuTauSimple
 The channel short name can be whatever string you like (e.g. `mt`, `mymutau`, `MuTau`, ...).
 However, you should avoid characters that are not safe for filenames, including `:` and `/`,
 and it should not contain `skim` (reserved for skimming).
+To include extra options to the module of a channel, do e.g.
+```
+pico.py channel mutau_TESUp ModuleMuTau 'tessys=Up'
+pico.py channel mutau_TES1p03 ModuleMuTau 'tes=1.03'
+```
 
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
