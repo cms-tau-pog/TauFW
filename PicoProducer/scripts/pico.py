@@ -11,7 +11,7 @@ from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
 from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples
-from TauFW.PicoProducer.storage.utils import getstorage, getsamples
+from TauFW.PicoProducer.storage.utils import getstorage, getsamples, print_no_samples
 from argparse import ArgumentParser
 os.chdir(GLOB.basedir)
 CONFIG = GLOB.getconfig(verb=0)
@@ -242,17 +242,21 @@ def main_link(args):
       LOG.throw(IOError,"Given key '%s', but keys cannot contain any of these characters: %s"%(key,char))
   if varkey=='channels':
     if 'skim' in key.lower(): #or 'test' in key:
-      parts  = value.split(' ')
+      parts  = value.split(' ') # "PROCESSOR [--FLAG[=VALUE] ...]"
       script = os.path.basename(parts[0]) # separate script from options
       ensurefile("python/processors",script)
       value  = ' '.join([script]+parts[1:])
     else:
-      if 'python/analysis/' in value: # useful for tab completion
-        value = value.split('python/analysis/')[-1].replace('/','.')
-      value = value.rstrip('.py')
-      path  = os.path.join('python/analysis/','/'.join(value.split('.')[:-1]))
+      parts  = value.split(' ') # "MODULE [KEY=VALUE ...]"
+      module = parts[0]
+      LOG.insist(all('=' in o for o in parts[1:]),"All extra module options should be of format KEY=VALUE!")
+      if 'python/analysis/' in module: # useful for tab completion
+        module = module.split('python/analysis/')[-1].replace('/','.')
+      module = module.rstrip('.py')
+      path   = os.path.join('python/analysis/','/'.join(module.split('.')[:-1]))
       ensureinit(path,by="pico.py")
-      ensuremodule(value)
+      ensuremodule(module)
+      value  = ' '.join([module]+parts[1:])
   elif varkey=='eras':
     if 'samples/' in value: # useful for tab completion
       value = ''.join(value.split('samples/')[1:])
@@ -325,7 +329,7 @@ def main_run(args):
   filters   = args.samples
   vetoes    = args.vetoes
   force     = args.force
-  extraopts = args.extraopts
+  extraopts = args.extraopts # extra options for module (for all runs)
   maxevts   = args.maxevts
   dasfiles  = args.dasfiles
   userfiles = args.infiles
@@ -346,28 +350,9 @@ def main_run(args):
     for channel in channels:
       LOG.header("%s, %s"%(era,channel))
       
-      # CHANNEL -> MODULE
+      # MODULE & PROCESSOR
       skim = 'skim' in channel.lower()
-      LOG.insist(channel in CONFIG.channels,"Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels))
-      module = CONFIG.channels[channel]
-      if not skim: # channel!='test' and
-        ensuremodule(module)
-      outdir = ensuredir(outdir.lstrip('/'))
-      
-      # PROCESSOR
-      procopts_  = "" # extra options for processor
-      if skim:
-        parts     = module.split(' ')
-        processor = parts[0]
-        procopts_ = ' '.join(parts[1:])
-      ###elif channel=='test':
-      ###  processor = module
-      else:
-        processor = "picojob.py"
-      processor   = os.path.join("python/processors",processor)
-      if not os.path.isfile(processor):
-        LOG.throw(IOError,"Processor '%s' does not exist in '%s'..."%(processor,procpath))
-      #processor = os.path.abspath(procpath)
+      module, processor, procopts, extrachopts = getmodule(channel,extraopts)
       
       # VERBOSE
       if verbosity>=1:
@@ -376,6 +361,8 @@ def main_run(args):
         print ">>> %-12s = %r"%('channel',channel)
         print ">>> %-12s = %r"%('module',module)
         print ">>> %-12s = %r"%('processor',processor)
+        print ">>> %-12s = %r"%('procopts',procopts)
+        print ">>> %-12s = %r"%('extrachopts',extrachopts)
         print ">>> %-12s = %s"%('filters',filters)
         print ">>> %-12s = %s"%('vetoes',vetoes)
         print ">>> %-12s = %r"%('dtypes',dtypes)
@@ -389,7 +376,7 @@ def main_run(args):
         if nsamples>0:
           samples = samples[:nsamples]
         if not samples:
-          print ">>> Did not find any samples."
+          print_no_samples(dtypes,filters,vetoes)
       else:
         samples = [None]
       if verbosity>=2:
@@ -408,7 +395,7 @@ def main_run(args):
         # SETTINGS
         filetag    = tag
         dtype      = None
-        extraopts_ = extraopts[:]
+        extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample:
           filetag += '_%s_%s%s'%(era,sample.name,tag)
           if sample.extraopts:
@@ -440,8 +427,8 @@ def main_run(args):
         
         # RUN
         runcmd = processor
-        if procopts_:
-          runcmd += " %s"%(procopts_)
+        if procopts:
+          runcmd += " %s"%(procopts)
         if skim:
           runcmd += " -y %s -o %s"%(era,outdir)
         ###elif 'test' in channel:
@@ -467,6 +454,36 @@ def main_run(args):
         print
       
 
+      
+##################
+#   GET MODULE   #
+##################
+
+def getmodule(channel,extraopts):
+  """Help function to get the module and processor."""
+  LOG.insist(channel in CONFIG.channels,"Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels))
+  module     = CONFIG.channels[channel]
+  procopts   = "" # extra options for processor
+  extrachopts = extraopts[:] # extra options for module (per channel)
+  if 'skim' in channel.lower():
+    parts     = module.split(' ') # "PROCESSOR [--FLAG[=VALUE] ...]"
+    processor = parts[0]
+    procopts  = ' '.join(parts[1:])
+  ###elif channel=='test':
+  ###  processor = module
+  else:
+    parts     = module.split(' ') # "MODULE [KEY=VALUE ...]"
+    processor = "picojob.py"
+    module    = parts[0]
+    ensuremodule(module) # sanity check
+    extrachopts.extend(parts[1:])
+  procpath  = os.path.join("python/processors",processor)
+  if not os.path.isfile(procpath):
+    LOG.throw(IOError,"Processor '%s' does not exist in '%s'..."%(processor,procpath))
+  processor = os.path.abspath(procpath)
+  return module, processor, procopts, extrachopts
+  
+
 
 ####################
 #   PREPARE JOBS   #
@@ -488,7 +505,7 @@ def preparejobs(args):
   dasfiles     = args.dasfiles
   checkdas     = args.checkdas
   checkqueue   = args.checkqueue
-  extraopts    = args.extraopts
+  extraopts    = args.extraopts # extra options for module (for all runs)
   prefetch     = args.prefetch
   nfilesperjob = args.nfilesperjob
   split_nfpj   = args.split_nfpj
@@ -504,37 +521,19 @@ def preparejobs(args):
     for channel in channels:
       LOG.header("%s, %s"%(era,channel))
       
-      # CHANNEL -> MODULE
+      # MODULE & PROCESSOR
       skim = 'skim' in channel.lower()
-      LOG.insist(channel in CONFIG.channels,"Channel '%s' not found in the configuration file. Available: %s"%(channel,CONFIG.channels))
-      module = CONFIG.channels[channel]
-      if not skim: #channel!='test'
-        ensuremodule(module)
+      module, processor, procopts, extrachopts = getmodule(channel,extraopts)
       if verbosity>=1:
         print '-'*80
         print ">>> %-12s = %r"%('channel',channel)
+        print ">>> %-12s = %r"%('processor',processor)
         print ">>> %-12s = %r"%('module',module)
+        print ">>> %-12s = %r"%('procopts',procopts)
+        print ">>> %-12s = %r"%('extrachopts',extrachopts)
         print ">>> %-12s = %s"%('filters',filters)
         print ">>> %-12s = %s"%('vetoes',vetoes)
         print ">>> %-12s = %r"%('dtypes',dtypes)
-      
-      # PROCESSOR
-      procopts_ = ""
-      if skim:
-        parts     = module.split(' ')
-        processor = parts[0]
-        procopts_ = ' '.join(parts[1:])
-      ###elif channel=='test':
-      ###  processor = module
-      else:
-        processor = "picojob.py"
-      procpath  = os.path.join("python/processors",processor)
-      if not os.path.isfile(procpath):
-        LOG.throw(IOError,"Processor '%s' does not exist in '%s'..."%(processor,procpath))
-      processor = os.path.abspath(procpath)
-      if verbosity>=1:
-        print ">>> %-12s = %r"%('processor',processor)
-        print '-'*80
       
       # GET SAMPLES
       jobdirformat = CONFIG.jobdir # for job config & log files
@@ -571,7 +570,7 @@ def preparejobs(args):
         postfix    = "_%s%s"%(channel,tag)
         jobtag     = '%s_try%d'%(postfix,subtry)
         jobname    = sample.name+jobtag.rstrip('try1').rstrip('_')
-        extraopts_ = extraopts[:]
+        extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample.extraopts:
           extraopts_.extend(sample.extraopts)
         nfilesperjob_ = sample.nfilesperjob if sample.nfilesperjob>0 else nfilesperjob
@@ -626,8 +625,8 @@ def preparejobs(args):
           if checkqueue==0 and not jobs: # check jobs only once
             batch = getbatch(CONFIG,verb=verbosity)
             jobs  = batch.jobs(verb=verbosity-1)
-          infiles, chunkdict = checkchuncks(sample,outdir=outdir,channel=channel,tag=tag,jobs=jobs,
-                                         checkqueue=checkqueue,das=checkdas,verb=verbosity)
+          infiles, chunkdict = checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,
+                                            checkqueue=checkqueue,das=checkdas,verb=verbosity)
           nevents = sample.jobcfg['nevents'] # updated in checkchuncks
         else: # first-time submission
           infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
@@ -674,8 +673,8 @@ def preparejobs(args):
               if not skim:
                 filetag += "_%d"%(ichunk)
               jobcmd     = processor
-              if procopts_:
-                jobcmd  += " %s"%(procopts_)
+              if procopts:
+                jobcmd  += " %s"%(procopts)
               if skim:
                 jobcmd  += " -y %s -d '%s' --copydir %s -t %s"%(era,dtype,outdir,filetag)
               ###elif channel=='test':
@@ -713,10 +712,7 @@ def preparejobs(args):
         print
       
       if not found:
-        print ">>> Did not find any samples."
-        if verbosity>=1:
-          print ">>> %-8s = %s"%('filters',filters)
-          print ">>> %-8s = %s"%('vetoes',vetoes)
+        print_no_samples(dtypes,filters,vetoes)
     
 
 
@@ -1252,7 +1248,7 @@ def main_status(args):
         print
       
       if not found:
-        print ">>> Did not find any samples."
+        print_no_samples(dtypes,filters,vetoes)
         print
   
 

@@ -96,3 +96,18 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
     sampledict[sample.name] = sample
   return samples
   
+
+def print_no_samples(dtype=[],filter=[],veto=[]):
+  """Help function to print that no samples were found."""
+  string  = ">>> Did not find any samples"
+  if filter or veto or dtype:
+    strings = [ ]
+    if filter:
+      strings.append("filters '%s'"%("', '".join(filter)))
+    if veto:
+      strings.append("vetoes '%s'"%("', '".join(veto)))
+    if dtype and len(dtype)<3:
+      strings.append("data types '%s'"%("', '".join(dtype)))
+    string += " with "+', '.join(strings)
+  print string
+  

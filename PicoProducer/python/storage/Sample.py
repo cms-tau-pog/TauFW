@@ -215,7 +215,7 @@ class Sample(object):
       for daspath in self.paths:
         if (self.storage and not das) or (not self.instance): # get files from storage system
           postfix = self.postfix+'.root'
-          sepath  = repkey(self.storepath,PATH=daspath,DAs=daspath).replace('//','/')
+          sepath  = repkey(self.storepath,PATH=daspath,DAS=daspath).replace('//','/')
           outlist = self.storage.getfiles(sepath,url=url,verb=verb-1)
           if limit>0:
             outlist = outlist[:limit]
