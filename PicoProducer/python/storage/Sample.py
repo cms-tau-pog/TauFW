@@ -167,7 +167,7 @@ class Sample(object):
     subtry   = int(jobcfg['try'])
     nevents  = int(jobcfg['nevents'])
     sample   = Sample(jobcfg['group'],jobcfg['name'],jobcfg['paths'],dtype=dtype,channels=channels,
-                       subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,nevents=nevents,opts=opts)
+                      subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,nevents=nevents,opts=opts)
     return sample
   
   def split(self,tag="ext"):

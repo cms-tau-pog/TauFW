@@ -731,7 +731,7 @@ def checkchuncks(sample,**kwargs):
   checkdas     = kwargs.get('das',        True  ) # check number of events from DAS
   showlogs     = kwargs.get('showlogs',   False ) # print log files of failed jobs
   verbosity    = kwargs.get('verb',       0     )
-  oldjobcfg    = sample.jobcfg
+  oldjobcfg    = sample.jobcfg # job config from last job
   oldcfgname   = oldjobcfg['config']
   chunkdict    = oldjobcfg['chunkdict'] # filenames
   jobids       = oldjobcfg['jobids']
@@ -971,12 +971,11 @@ def checkchuncks(sample,**kwargs):
   
   ###########################################################################
   
+  # PRINT CHUNKS
   goodchunks.sort()
   pendchunks.sort()
   badchunks.sort()
   misschunks.sort()
-  
-  # PRINT
   def printchunks(jobden,label,text,col,show=False):
    if jobden:
      ratio = color("%4d/%d"%(len(jobden),noldchunks),col,bold=False)
@@ -994,16 +993,36 @@ def checkchuncks(sample,**kwargs):
   printchunks(pendchunks,'PEND',"Chunks with pending or running jobs",'white',True)
   printchunks(badchunks, 'FAIL', "Chunks with corrupted output in outdir",'red',True)
   printchunks(misschunks,'MISS',"Chunks with no output in outdir",'red',True)
+  
+  # PRINT LOG FILES for debugging
   if showlogs and (badchunks or misschunks):
     logglob  = os.path.join(logdir,"*.*.*") #.log
     lognames = sorted(glob.glob(logglob),key=alphanum_key,reverse=True)
+    chunkset = {j:None for j in jobids}
+    chunkset[jobids[-1]] = oldjobcfg['chunks'] # current job ID
     for chunk in sorted(badchunks+misschunks):
-      logexp  = re.compile(".*\.\d{3,}\.%d(?:\.log)?$"%(chunk+1)) #$JOBNAME.$JOBID.$TASKID.log
-      matches = [f for f in lognames if logexp.match(f)]
-      if matches:
-        print ">>>   %s"%(matches[0])
-        for logname in matches:
-          lognames.remove(logname)
+      for i, jobid in enumerate(reversed(jobids)):
+        chunks = chunkset[jobid]
+        if chunks==None:
+          oldtag  = "_try%d.json"%(oldjobcfg['try'])
+          newtag  = "_try%d.json"%(oldjobcfg['try']-i)
+          logname = oldcfgname.replace(oldtag,newtag)
+          if not os.path.isfile(logname):
+            LOG.warning("Did not find job config %r!"%(logname))
+            continue
+          with open(logname,'r') as file:
+            jobcfg = json.load(file)
+            chunks = jobcfg.get('chunks',[ ])
+            chunkset[jobid] = chunks
+        if chunks and chunk in chunks:
+          taskid  = chunks.index(chunk)+1
+          logexp  = "%d.%d.log"%(jobid,taskid)
+          #logexp  = re.compile(".*\.\d{3,}\.%d(?:\.log)?$"%(taskid)) #$JOBNAME.$JOBID.$TASKID.log
+          matches = [f for f in lognames if f.endswith(logexp)]
+          if matches:
+            print ">>>   %s"%(matches[0])
+            lognames.remove(matches[0])
+            break
       else:
         LOG.warning("Did not find log file for chunk %d"%(chunk))
   
