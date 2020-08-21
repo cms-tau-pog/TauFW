@@ -46,6 +46,7 @@ class ModuleTauTau(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleTauTau,self).beginJob()
+    print ">>> %-12s = %s"%('tauwp',     self.tauwp)
     print ">>> %-12s = %s"%('tauCutPt',  self.tauCutPt)
     print ">>> %-12s = %s"%('tauCutEta', self.tauCutEta)
     print ">>> %-12s = '%s'"%('triggers',self.trigger.path.replace("||","\n>>> %s||"%(' '*16)))
@@ -89,7 +90,7 @@ class ModuleTauTau(ModuleTauPair):
       if abs(tau.charge)!=1: continue
       if tau.idDeepTau2017v2p1VSe<1: continue   # VVVLoose
       if tau.idDeepTau2017v2p1VSmu<1: continue  # VLoose
-      #if tau.idDeepTau2017v2p1VSjet<2: continue # VVVLoose
+      if tau.idDeepTau2017v2p1VSjet<self.tauwp: continue
       if self.ismc:
         genmatch = tau.genPartFlav
         if genmatch==5: # real tau

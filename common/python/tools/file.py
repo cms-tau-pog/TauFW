@@ -103,7 +103,6 @@ def ensureTFile(filename,option='READ'):
   file = ROOT.TFile.Open(filename,option)
   if not file or file.IsZombie():
     LOG.throw(IOError,'Could not open file by name "%s"'%(filename))
-    exit(1)
   return file
   
 
@@ -131,30 +130,22 @@ def ensureinit(*paths,**kwargs):
       file.write("# Generated%s to allow import of the sample list modules\n"%(script))
   
 
-def gethist(file,histname,setdir=True,close=None):
+def gethist(file,histname,setdir=True,close=None,retfile=False):
   """Get histogram from a given file."""
-  if isinstance(file,str):
+  if isinstance(file,str): # open TFile
     file = ensureTFile(file)
-    if close==None: close = True
+    if close==None:
+      close = not retfile
   if not file or file.IsZombie():
-    raise OSError('Could not open file!')
-    exit(1)
+    LOG.throw(IOError,'Could not open file by name "%s"'%(filename))
   hist = file.Get(histname)
   if not hist:
-    raise OSError('Did not find histogram %r in file %s!'%(histname,file.GetName()))
-    exit(1)
+    LOG.throw(IOError,'Did not find histogram %r in file %s!'%(histname,file.GetName()))
   if (close or setdir) and isinstance(hist,ROOT.TH1):
     hist.SetDirectory(0)
-  if close:
+  if close: # close TFile
     file.Close()
+  if retfile:
+    return file, hist
   return hist
   
-
-#def ensureTFileAndTH1(filename,histname,verbose=True,setdir=True):
-#  """Open a TFile and get a histogram."""
-#  if verbose:
-#    print ">>>   %s"%(filename)
-#  file = ensuretfile(filename,'READ')
-#  hist = extractTH1(file,histname,setdir=setdir)
-#  return file, hist
-

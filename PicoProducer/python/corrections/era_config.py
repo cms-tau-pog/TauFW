@@ -11,28 +11,30 @@ def getjson(era,dtype='data'):
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2016Analysis
   json = None
+  year = getyear(era)
   if dtype=='data':
-    if era==2016:
+    if year==2016:
       json = 'Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
-    elif era==2017:
+    elif year==2017:
       json = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
     else:
       json = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
-  json = ensurefile(datadir,'json',json)
+  json = ensurefile(datadir,'json',str(year),json)
   return json
   
 
 def getperiod(filename,year=None,dtype='data'):
-  """Get run era/period (A-H) of data filename."""
+  """Get run era/period (A-H) of data filename containing Run20[0-4][0-9][A-Z].
+  If the optional parameter 'year' is given, double check match corresponds."""
   period = ""
   if dtype=='data':
     if isinstance(filename,list):
       filename = filename[0]
-    matches = re.findall(r"Run(201[678])([A-Z]+)",filename)
+    matches = re.findall(r"Run(20[0-4][0-9])([A-Z]+)",filename)
     if not matches:
       print "Warning! Could not find an era in %s"%filename
-    elif year and year!=matches[0][0]:
-      print "Warning! Given year does not match the data file %s"%filename
+    elif year and str(year)!=matches[0][0]:
+      print "Warning! Given year (%r) does not match the data file %s (%r)"%(year,filename,''.join(matches[0]))
     else:
       period = matches[0][1]
   return period

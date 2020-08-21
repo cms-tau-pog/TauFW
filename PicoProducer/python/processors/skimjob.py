@@ -6,7 +6,7 @@ import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector as getjmecalib
-from TauFW.PicoProducer.processors import moddir
+from TauFW.PicoProducer.processors import moddir, ensuredir
 from TauFW.PicoProducer.corrections.era_config import getjson, getperiod #, getjmecalib
 from TauFW.Plotter.sample.utils import getyear
 from argparse import ArgumentParser
@@ -27,8 +27,10 @@ args = parser.parse_args()
 
 # SETTING
 era       = args.era
+year      = getyear(era)
+period    = ""
 dtype     = args.dtype
-outdir    = args.outdir
+outdir    = ensuredir(args.outdir)
 copydir   = args.copydir
 maxevts   = args.maxevts if args.maxevts>0 else None
 nfiles    = -1 if maxevts>0 else -1
@@ -59,10 +61,9 @@ if dtype==None:
 
 MET = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
 if dtype=='data':
-  year   = getyear(era)
-  period = getperiod(infiles[0],era,dtype=dtype) # gets data run era (e.g. 'B' from '2016B') from filename
+  period = getperiod(infiles[0],year,dtype=dtype) # gets data run era (e.g. 'B' from '2016B') from filename
   assert all(era in f for f in infiles), "Not all files names are of the same era '%s': %s"%(era,infiles)
-  json  = getjson(year,dtype)
+  json  = getjson(era,dtype)
   if doJEC:
     calib = getjmecalib(False,era,runPeriod=period,redojec=doJEC,jetType='AK4PFchs',
                         noGroom=True,metBranchName=MET,applySmearing=True)()
@@ -76,6 +77,8 @@ elif doJEC or doJECSys:
 # PRINT
 print '-'*80
 print ">>> %-12s = %r"%('era',era)
+print ">>> %-12s = %r"%('year',year)
+print ">>> %-12s = %r"%('period',period)
 print ">>> %-12s = %r"%('dtype',dtype)
 print ">>> %-12s = %s"%('maxevts',maxevts)
 print ">>> %-12s = %r"%('outdir',outdir)

@@ -557,7 +557,6 @@ def preparejobs(args):
       # SAMPLE over SAMPLES
       found = False
       for sample in samples:
-        if sample.channels and channel not in sample.channels: continue
         found = True
         print ">>> %s"%(bold(sample.name))
         for path in sample.paths:
@@ -995,12 +994,13 @@ def checkchuncks(sample,**kwargs):
   printchunks(misschunks,'MISS',"Chunks with no output in outdir",'red',True)
   
   # PRINT LOG FILES for debugging
-  if showlogs and (badchunks or misschunks):
+  if showlogs!=0 and (badchunks or misschunks):
     logglob  = os.path.join(logdir,"*.*.*") #.log
     lognames = sorted(glob.glob(logglob),key=alphanum_key,reverse=True)
     chunkset = {j:None for j in jobids}
     chunkset[jobids[-1]] = oldjobcfg['chunks'] # current job ID
-    for chunk in sorted(badchunks+misschunks):
+    maxlogs  = showlogs if showlogs>0 else len(badchunks)+len(misschunks)
+    for chunk in sorted(badchunks+misschunks)[:maxlogs]:
       for i, jobid in enumerate(reversed(jobids)):
         chunks = chunkset[jobid]
         if chunks==None:
@@ -1133,9 +1133,9 @@ def main_submit(args):
   
 
 
-#####################
-#   STATUS & HADD   #
-#####################
+############################
+#   STATUS, HADD & CLEAN   #
+############################
 
 def main_status(args):
   """Check status of jobs (succesful/pending/failed/missing), or hadd job output."""
@@ -1152,8 +1152,8 @@ def main_status(args):
   filters        = args.samples
   vetoes         = args.vetoes
   force          = args.force
-  hadd           = args.subcommand=='hadd'
-  cleanup        = args.cleanup if hadd else False
+  subcmd         = args.subcommand
+  cleanup        = subcmd=='clean' or (subcmd=='hadd' and args.cleanup)
   dryrun         = args.dryrun
   verbosity      = args.verbosity
   cmdverb        = max(1,verbosity)
@@ -1161,7 +1161,7 @@ def main_status(args):
   jobdirformat   = CONFIG.jobdir
   storedirformat = CONFIG.picodir
   jobs           = [ ]
-  if not hadd:
+  if subcmd not in ['hadd','clean']:
     if not channels:
       channels = ['*']
     if not eras:
@@ -1186,8 +1186,8 @@ def main_status(args):
       samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       if verbosity>=2:
         print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
-      if hadd and 'skim' in channel.lower():
-        LOG.warning("Hadding into one file not available for skimming...")
+      if subcmd in ['hadd','clean'] and 'skim' in channel.lower():
+        LOG.warning("%sing into one file not available for skimming..."%(subcmd.capitalize()))
         print
         continue
       
@@ -1205,50 +1205,63 @@ def main_status(args):
           batch = getbatch(CONFIG,verb=verbosity)
           jobs  = batch.jobs(verb=verbosity-1)
         
-        # HADD
-        if hadd:
-          jobdir   = sample.jobcfg['jobdir']
-          outdir   = sample.jobcfg['outdir']
+        # HADD or CLEAN
+        if subcmd in ['hadd','clean']:
+          jobdir   = sample.jobcfg['jobdir'] # job directory
+          cfgdir   = sample.jobcfg['cfgdir'] # job configuration directory
+          logdir   = sample.jobcfg['logdir'] # job log directory
+          outdir   = sample.jobcfg['outdir'] # job output directory
           postfix  = sample.jobcfg['postfix']
           storedir = repkey(storedirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
                                            DAS=sample.paths[0].strip('/'),GROUP=sample.group)
           storage  = getstorage(storedir,ensure=True,verb=verbosity)
           outfile  = '%s_%s%s.root'%(sample.name,channel,tag)
           infiles  = os.path.join(outdir,'*%s_[0-9]*.root'%(postfix))
-          cfgfiles = os.path.join(sample.jobcfg['cfgdir'],'job*%s_try[0-9]*.*'%(postfix))
-          logfiles = os.path.join(sample.jobcfg['logdir'],'*%s_try[0-9]*.*.*.log'%(postfix))
+          cfgfiles = os.path.join(cfgdir,'job*%s_try[0-9]*.*'%(postfix))
+          logfiles = os.path.join(logdir,'*%s*.*.log'%(postfix))
           if verbosity>=1:
-            print ">>> Hadd'ing job output for '%s'"%(sample.name)
+            print ">>> %sing job output for '%s'"%(subcmd.capitalize(),sample.name)
             print ">>> %-12s = %r"%('jobdir',jobdir)
+            print ">>> %-12s = %r"%('cfgdir',cfgdir)
             print ">>> %-12s = %r"%('outdir',outdir)
             print ">>> %-12s = %r"%('storedir',storedir)
             print ">>> %-12s = %s"%('infiles',infiles)
-            print ">>> %-12s = %r"%('outfile',outfile)
+            if subcmd=='hadd':
+              print ">>> %-12s = %r"%('outfile',outfile)
           resubfiles, chunkdict = checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,
                                                checkqueue=checkqueue,das=checkdas,verb=verbosity)
           if len(resubfiles)>0 and not force:
-            LOG.warning("Cannot hadd job output because %d chunks need to be resubmitted..."%(len(resubfiles))+
-                        "Please use -f or --force to hadd anyway.\n")
+            LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(len(resubfiles))+
+                        "Please use -f or --force to %s anyway.\n"%(subcmd,subcmd))
             continue
-          #haddcmd = 'hadd -f %s %s'%(outfile,infiles)
-          #haddout = execute(haddcmd,dry=dryrun,verb=max(1,verbosity))
-          haddout = storage.hadd(infiles,outfile,dry=dryrun,verb=cmdverb)
-          #os.system(haddcmd)
+          
+          if subcmd=='hadd':
+            #haddcmd = 'hadd -f %s %s'%(outfile,infiles)
+            #haddout = execute(haddcmd,dry=dryrun,verb=max(1,verbosity))
+            haddout = storage.hadd(infiles,outfile,dry=dryrun,verb=cmdverb)
+            #os.system(haddcmd)
           
           # CLEAN UP
           # TODO: check if hadd was succesful with isvalid
           if cleanup:
-            rmfiles   = ""
-            rmfileset = [infiles,cfgfiles,logfiles]
-            for files in rmfileset:
-              if len(glob.glob(files))>0:
-                rmfiles += ' '+files
-            if verbosity>=2:
-              print ">>> %-12s = %s"%('rmfileset',rmfileset)
-              print ">>> %-12s = %s"%('rmfiles',rmfiles)
-            if rmfiles:
-              rmcmd = "rm %s"%(rmfiles)
+            allcfgs = os.path.join(cfgdir,"job*_try[0-9]*.*")
+            if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check other jobs
+              if verbosity>=2:
+                print ">>> %-12s = %s"%('cfgfiles',cfgfiles)
+              rmcmd = "rm -r %s"%(jobdir) # remove whole job directory
               rmout = execute(rmcmd,dry=dryrun,verb=cmdverb)
+            else: # only remove files related to this job (era/channel/sample)
+              rmfiles   = [ ]
+              rmfileset = [infiles,cfgfiles,logfiles]
+              for files in rmfileset:
+                if len(glob.glob(files))>0:
+                  rmfiles.append(files)
+              if verbosity>=2:
+                print ">>> %-12s = %s"%('cfgfiles',cfgfiles)
+                print ">>> %-12s = %s"%('rmfileset',rmfileset)
+              if rmfiles:
+                rmcmd = "rm %s"%(' '.join(rmfiles))
+                rmout = execute(rmcmd,dry=dryrun,verb=cmdverb)
         
         # ONLY CHECK STATUS
         else:
@@ -1282,7 +1295,7 @@ if __name__ == "__main__":
   description = "Central script to process nanoAOD for skimming or analysis."
   parser = ArgumentParser(prog='pico.py',description=description,epilog="Good luck!")
   parser_cmn = ArgumentParser(add_help=False)
-  parser_cmn.add_argument('-v', '--verbose',    dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
+  parser_cmn.add_argument('-v', '--verbose',    dest='verbosity', type=int, nargs='?', const=1, default=0,
                                                 help="set verbosity" )
   parser_sam = ArgumentParser(add_help=False,parents=[parser_cmn])
   parser_lnk = ArgumentParser(add_help=False,parents=[parser_cmn])
@@ -1290,15 +1303,15 @@ if __name__ == "__main__":
                                                 help='skimming or analysis channel to run')
   parser_sam.add_argument('-y','-e','--era',    dest='eras', choices=CONFIG.eras.keys(), default=[ ], nargs='+',
                                                 help='year or era to specify the sample list')
-  parser_sam.add_argument('-s', '--sample',     dest='samples', type=str, nargs='+', default=[ ], action='store',
+  parser_sam.add_argument('-s', '--sample',     dest='samples', type=str, nargs='+', default=[ ],
                           metavar='PATTERN',    help="filter these samples; glob patterns like '*' and '?' wildcards are allowed" )
-  parser_sam.add_argument('-x', '--veto',       dest='vetoes', nargs='+', default=[ ], action='store',
+  parser_sam.add_argument('-x', '--veto',       dest='vetoes', nargs='+', default=[ ],
                           metavar='PATTERN',    help="exclude/veto these samples; glob patterns are allowed" )
   parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=GLOB._dtypes, nargs='+',
                                                 help='filter these data type(s)')
-  parser_sam.add_argument('-D','--das',         dest='checkdas', default=False, action='store_true',
+  parser_sam.add_argument('-D','--das',         dest='checkdas', action='store_true',
                                                 help="check DAS for total number of events" )
-  parser_sam.add_argument('--dasfiles',         dest='dasfiles', default=False, action='store_true',
+  parser_sam.add_argument('--dasfiles',         dest='dasfiles', action='store_true',
                                                 help="get files from DAS (instead of local storage, if predefined)" )
   parser_sam.add_argument('-t','--tag',         dest='tag', default="",
                                                 help='tag for output file name')
@@ -1310,11 +1323,11 @@ if __name__ == "__main__":
                           metavar='KEY=VALUE',  help="extra options for the skim or analysis module, "
                                                      "passed as list of 'KEY=VALUE', separated by spaces")
   parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
-  parser_job.add_argument('-p','--prefetch',    dest='prefetch', default=False, action='store_true',
+  parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
-  parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0, action='store',
-                                                help='run a test with limited nummer of jobs, default=%(default)d' )
-  parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1, action='store',
+  parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
+                          metavar='NJOBS',      help='run a test with limited nummer of jobs, default=%(default)d' )
+  parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1,
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
   parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
@@ -1325,7 +1338,7 @@ if __name__ == "__main__":
                                                 help='ask user permission before submitting a sample')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=CONFIG.nfilesperjob,
                                                 help='number of files per job, default=%(default)d')
-  parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1, action='store',
+  parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1,
                           metavar='N',          help="divide default number of files per job, default=%(const)d" )
   
   # SUBCOMMANDS
@@ -1342,6 +1355,7 @@ if __name__ == "__main__":
   help_res = "resubmit failed processing jobs"
   help_sts = "status of processing jobs"
   help_hdd = "hadd processing job output"
+  help_cln = "remove job output"
   parser_ins = subparsers.add_parser('install',  parents=[parser_cmn], help=help_ins, description=help_ins)
   parser_lst = subparsers.add_parser('list',     parents=[parser_cmn], help=help_lst, description=help_lst)
   parser_get = subparsers.add_parser('get',      parents=[parser_sam], help=help_get, description=help_get)
@@ -1354,6 +1368,7 @@ if __name__ == "__main__":
   parser_res = subparsers.add_parser('resubmit', parents=[parser_job], help=help_res, description=help_res)
   parser_sts = subparsers.add_parser('status',   parents=[parser_chk], help=help_sts, description=help_sts)
   parser_hdd = subparsers.add_parser('hadd',     parents=[parser_chk], help=help_hdd, description=help_hdd)
+  parser_cln = subparsers.add_parser('clean',    parents=[parser_chk], help=help_cln, description=help_cln)
   #parser_get.add_argument('variable',           help='variable to change in the config file')
   parser_get.add_argument('variable',           help='variable to get information on')
   parser_set.add_argument('variable',           help='variable to change in the config file')
@@ -1367,13 +1382,13 @@ if __name__ == "__main__":
   parser_era.add_argument('value',              metavar='samples', help='samplelist linked to by given era')
   parser_ins.add_argument('type',               choices=['standalone','cmmsw'], #default=None,
                                                 help='type of installation: standalone or compiled in CMSSW')
-  parser_get.add_argument('-U','--URL',         dest='inclurl', default=False, action='store_true',
+  parser_get.add_argument('-U','--URL',         dest='inclurl', action='store_true',
                                                 help="include XRootD url in filename for 'get files'" )
-  parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1, action='store',
-                          metavar='NMAX',       help="limit number files in list for 'get files'" )
-  parser_get.add_argument('-l','--local',       dest='checklocal', default=False, action='store_true',
+  parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1,
+                          metavar='NFILES',     help="limit number files in list for 'get files'" )
+  parser_get.add_argument('-l','--local',       dest='checklocal', action='store_true',
                                                 help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'" )
-  parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="", action='store',
+  parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="",
                           metavar='FILE',       help="write file list, default=%(const)r" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                                                 help='maximum number of events (per file) to process')
@@ -1385,19 +1400,19 @@ if __name__ == "__main__":
                                                 help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
-  parser_sts.add_argument('-l','--log',         dest='showlogs', default=False, action='store_true',
-                                                help="show log files of failed jobs" )
-  #parser_hdd.add_argument('--keep',             dest='cleanup', default=True, action='store_false',
+  parser_sts.add_argument('-l','--log',         dest='showlogs', type=int, nargs='?', const=-1, default=0,
+                          metavar='NLOGS',      help="show log files of failed jobs: 0 (show none), -1 (show all), n (show max n)" )
+  #parser_hdd.add_argument('--keep',             dest='cleanup', action='store_false',
   #                                              help="do not remove job output after hadd'ing" )
-  parser_hdd.add_argument('-r','--clean',       dest='cleanup', default=False, action='store_true',
+  parser_hdd.add_argument('-r','--clean',       dest='cleanup', action='store_true',
                                                 help="remove job output after hadd'ing" )
   
-  # SUBCOMMAND ABBREVIATIONS
+  # SUBCOMMAND ABBREVIATIONS, e.g. 'pico.py s' or 'pico.py sub'
   args = sys.argv[1:]
   if args:
     subcmds = [ # fix order for abbreviations
       'channel','era',
-      'run','submit','resubmit','status','hadd',
+      'run','submit','resubmit','status','hadd','clean',
       'install','list','set','rm'
     ]
     for subcmd in subcmds:
@@ -1426,7 +1441,7 @@ if __name__ == "__main__":
     main_run(args)
   elif args.subcommand in ['submit','resubmit']:
     main_submit(args)
-  elif args.subcommand in ['status','hadd']:
+  elif args.subcommand in ['status','hadd','clean']:
     main_status(args)
   else:
     print ">>> subcommand '%s' not implemented!"%(args.subcommand)

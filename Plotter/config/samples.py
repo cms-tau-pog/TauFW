@@ -5,14 +5,14 @@ from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
+  year  = getyear(era) # get integer year
   split = kwargs.get('split', ['DY']       ) # split samples (e.g. DY) into genmatch components
   join  = kwargs.get('join',  ['VV','Top'] ) # join samples (e.g. VV, top)
   tag   = kwargs.get('tag',   ""           )
   table = kwargs.get('table', True         ) # print sample set table
-  year  = getyear(era) # get integer year
   
   # SM BACKGROUND MC SAMPLES
-  if year==2016:
+  if era==2016:
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ),

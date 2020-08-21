@@ -36,6 +36,7 @@ class ModuleTauPair(Module):
     self.ees        = kwargs.get('ees',     1.0            )
     self.ltf        = kwargs.get('ltf',     1.0            ) or 1.0
     self.jtf        = kwargs.get('jtf',     1.0            ) or 1.0
+    self.tauwp      = kwargs.get('tauwp',   0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose
     self.dotoppt    = kwargs.get('toppt',   'TT' in fname  )
     self.dozpt      = kwargs.get('zpt',     'DY' in fname  )
     self.dorecoil   = kwargs.get('recoil',  False          ) #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
@@ -59,20 +60,22 @@ class ModuleTauPair(Module):
     self.jecUncLabels     = [ ]
     self.metUncLabels     = [ ]
     if self.ismc:
-      self.puTool         = PileupWeightTool(year=self.year,sample=self.filename)
+      self.puTool         = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
       self.btagTool       = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool      = ZptCorrectionTool(year=self.year)
-    #  if self.dorecoil:
-    #    self.recoilTool   = RecoilCorrectionTool(year=self.year)
-    #  if self.year in [2016,2017]:
-    #    self.prefireTool  = PreFireTool(self.year)
+      #if self.dorecoil:
+      #  self.recoilTool   = RecoilCorrectionTool(year=self.year)
+      #if self.year in [2016,2017]:
+      #  self.prefireTool  = PreFireTool(self.year)
       if self.dojec:
         self.ptnom = lambda j: j.pt_nom # use 'pt_nom' as nominal jet pt
-    #  if self.dojecsys:
-    #    self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
-    #    self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
-    #    self.met_vars     = { u: getMET(self.year,u) for u in self.metUncLabels }
+      #if self.dojecsys:
+      #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
+      #  self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
+      #  self.met_vars     = { u: getMET(self.year,u) for u in self.metUncLabels }
+      if self.isUL and self.tes==None:
+        self.tes = 1.0 # placeholder
     
     self.deepcsv_wp       = BTagWPs('DeepCSV',year=self.year)
     

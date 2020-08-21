@@ -6,7 +6,7 @@ import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from TauFW.PicoProducer.analysis.utils import getmodule, getyear, convertstr
-from TauFW.PicoProducer.processors import moddir
+from TauFW.PicoProducer.processors import moddir, ensuredir
 #from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
 from argparse import ArgumentParser
 parser = ArgumentParser()
@@ -41,7 +41,7 @@ else:
     modname = "ModuleMuTauSimple"
   channel = modname
 dtype     = args.dtype
-outdir    = args.outdir
+outdir    = ensuredir(args.outdir)
 copydir   = args.copydir
 maxevts   = args.maxevts if args.maxevts>0 else None
 nfiles    = 1 if maxevts>0 else -1
@@ -71,9 +71,11 @@ if dtype==None:
     dtype = 'data'
   else:
     dtype = 'mc'
+if dtype=='data':
+  json = getjson(era,dtype)
 
 # EXTRA OPTIONS
-kwargs    = { 'era': era, 'year': year, 'dtype': dtype, 'verb': verbosity }
+kwargs = { 'era': era, 'year': year, 'dtype': dtype, 'verb': verbosity }
 for option in args.extraopts:
   assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)
   split       = option.split('=')

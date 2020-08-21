@@ -1,20 +1,21 @@
 # Author: Izaak Neutelings (November 2018)
 import os, re
 from TauFW.common.tools.file import ensureTFile
+from TauFW.common.tools.log import Logger
+LOG = Logger('ScaleFactorTool')
 
 
 class ScaleFactor:
   
-  def __init__(self, filename, histname, name="<noname>", ptvseta=True):
+  def __init__(self, filename, histname, name="<noname>", ptvseta=True, verb=0):
     #print '>>> ScaleFactor.init("%s","%s",name="%s",ptvseta=%r)'%(filename,histname,name,ptvseta)
     self.name     = name
     self.ptvseta  = ptvseta
     self.filename = filename
+    LOG.verb("ScaleFactor(%s): Opening %s:%r..."%(self.name,filename,histname),verb,1)
     self.file     = ensureTFile(filename)
     self.hist     = self.file.Get(histname)
-    if not self.hist:
-      print '>>> ScaleFactor(%s).__init__: histogram "%s" does not exist in "%s"'%(self.name,histname,filename)
-      exit(1)
+    LOG.insist(self.hist,"ScaleFactor(%s): histogram %r does not exist in %s"%(self.name,histname,filename))
     self.hist.SetDirectory(0)
     self.file.Close()
     
@@ -51,10 +52,10 @@ class ScaleFactor:
 
 class ScaleFactorHTT(ScaleFactor):
   
-  def __init__(self, filename, graphname='ZMass', name="<noname>"):
-    #print '>>> ScaleFactor.init("%s","%s",name="%s")'%(filename,graphname,name)
+  def __init__(self, filename, graphname='ZMass', name="<noname>", verb=0):
     self.name      = name
     self.filename  = filename
+    LOG.verb("ScaleFactor(%s): Opening %s:%r..."%(self.name,filename,graphname),verb,1)
     self.file      = ensureTFile(filename)
     self.hist_eta  = self.file.Get('etaBinsH')
     self.hist_eta.SetDirectory(0)

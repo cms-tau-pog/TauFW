@@ -37,7 +37,7 @@ class ModuleEMu(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      self.muSFs   = MuonSFs(year=self.year)
+      self.muSFs   = MuonSFs(era=self.era)
       self.eleSFs  = ElectronSFs(year=self.year)
     
     # CUTFLOW

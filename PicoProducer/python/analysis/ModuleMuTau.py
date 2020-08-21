@@ -35,7 +35,7 @@ class ModuleMuTau(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      self.muSFs   = MuonSFs(year=self.year)
+      self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity)
       self.tesTool = TauESTool(tauSFVersion[self.year])
       self.tauSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
       self.etfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe',  'VLoose')
@@ -54,6 +54,7 @@ class ModuleMuTau(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleMuTau,self).beginJob()
+    print ">>> %-12s = %s"%('tauwp',      self.tauwp)
     print ">>> %-12s = %s"%('muonCutPt',  self.muonCutPt)
     print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
     print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
@@ -114,7 +115,7 @@ class ModuleMuTau(ModuleTauPair):
       if abs(tau.charge)!=1: continue
       if tau.idDeepTau2017v2p1VSe<1: continue # VVVLoose
       if tau.idDeepTau2017v2p1VSmu<1: continue # VLoose
-      #if tau.idDeepTau2017v2p1VSjet<1: continue # VVVLoose
+      if tau.idDeepTau2017v2p1VSjet<self.tauwp: continue
       if self.ismc:
         genmatch = tau.genPartFlav
         if genmatch==5: # real tau

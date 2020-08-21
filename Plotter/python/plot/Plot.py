@@ -56,7 +56,7 @@ class Plot(object):
     hists      = None
     self.verbosity = LOG.getverbosity(kwargs)
     if len(args)==1 and islist(args[0]):
-      hists    = None
+      hists    = args[0]
     elif len(args)==2:
       variable = args[0]
       hists    = args[1]
@@ -161,10 +161,11 @@ class Plot(object):
     tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
-    lcolors      = kwargs.get('lcolors',      None            ) or self.lcolors
-    fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors
+    lcolors      = kwargs.get('colors',       None            )
+    lcolors      = kwargs.get('lcolors',      lcolors         ) or self.lcolors # line colors
+    fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors # fill colors
     lstyles      = kwargs.get('lstyle',       None            )
-    lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles
+    lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles # line styles
     lwidth       = kwargs.get('lwidth',       2               ) # line width
     mstyle       = kwargs.get('mstyle',       None            ) # marker style
     option       = kwargs.get('option',       'HIST'          ) # draw option for every histogram
@@ -313,7 +314,7 @@ class Plot(object):
     """Close canvas and delete the histograms."""
     if self.canvas:
       self.canvas.Close()
-    if not keep:
+    if not keep: # do not keep histograms
       for hist in self.hists:
         deletehist(hist)
     if self.errband:

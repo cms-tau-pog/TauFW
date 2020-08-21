@@ -10,7 +10,7 @@ datadir = os.path.join(datadir,"trigger")
 
 class TauTriggerSFs(object):
         
-    def __init__(self, trigger, wp='medium', id='DeepTau2017v2p1', year=2016):
+    def __init__(self, trigger, wp='Medium', id='DeepTau2017v2p1', year=2016):
         """Load tau trigger histograms from files."""
         print "Loading %s trigger SFs for  %s WP of %s ID for year %d..."%(trigger,wp,id,year)
         
