@@ -7,7 +7,7 @@ import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from TauFW.PicoProducer.analysis.utils import getmodule, getyear, convertstr
 from TauFW.PicoProducer.processors import moddir, ensuredir
-#from TauFW.PicoProducer.corrections.era_config import getjson, getera, getjmecalib
+from TauFW.PicoProducer.corrections.era_config import getjson
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')

@@ -1186,8 +1186,8 @@ def main_status(args):
       samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       if verbosity>=2:
         print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
-      if subcmd in ['hadd','clean'] and 'skim' in channel.lower():
-        LOG.warning("%sing into one file not available for skimming..."%(subcmd.capitalize()))
+      if subcmd=='hadd' and 'skim' in channel.lower():
+        LOG.warning("Hadding into one file not available for skimming...")
         print
         continue
       
