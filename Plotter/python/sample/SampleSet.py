@@ -74,15 +74,16 @@ class SampleSet(object):
     """Returns string representation of Sample object."""
     return ', '.join(repr(s.name) for s in [self.datasample]+self.mcsamples if s)
   
-  def printobjs(self,title=""):
+  def printobjs(self,title="",file=False):
     for sample in self.samples:
-      sample.printobjs(title="")
+      sample.printobjs(title="",file=file)
   
   def printtable(self,title=None,merged=True,split=True):
     """Print table of all samples."""
     import TauFW.Plotter.sample.utils as GLOB
     if not title:
-      print ">>>\n>>> Samples with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(GLOB.lumi)
+      name = self.name+" samples" if self.name else "Samples"
+      print ">>>\n>>> %s with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(name,GLOB.lumi)
     justname  = 2+max(s.get_max_name_len() for s in self.samples)
     justtitle = 2+max(s.get_max_title_len() for s in self.samples)
     Sample.printheader(title,justname=justname,justtitle=justtitle,merged=merged)
@@ -650,6 +651,8 @@ class SampleSet(object):
          ('ZJ', "Fake tau","genmatch_2!=5"),
       ])
     """
+    verbosity        = LOG.getverbosity(kwargs)
+    LOG.verbose("split: splitting %s"%(self.name),verbosity,1)
     searchterms      = [arg for arg in args if isinstance(arg,str)]
     splitlist        = [arg for arg in args if islist(arg)        ][0]
     kwargs['unique'] = True
@@ -659,51 +662,59 @@ class SampleSet(object):
     else:
       LOG.warning("SampleSet.split: Could not find sample with searchterms '%s'"%("', '").join(searchterms))
   
-  def shift(self,searchterms,file_app,title_app,**kwargs):
+  def shift(self,searchterms,filetag,nametag=None,titletag=None,**kwargs):
     """Shift samples in samples set by creating new samples with new filename/titlename."""
-    filter          = kwargs.get('filter',      False       ) # filter other samples
-    share           = kwargs.get('share',       False       ) # share other samples (as opposed to cloning them)
-    title_tag       = kwargs.get('title_tag',   False       )
-    title_veto      = kwargs.get('title_veto',  False       )
-    close           = kwargs.get('close',       False       )
-    kwargs.setdefault('name',      file_app.lstrip('_')     )
-    kwargs.setdefault('label',     file_app                 )
+    verbosity     = LOG.getverbosity(kwargs)
+    LOG.verb("Sample.shift(%r,%r,%r)"%(searchterms,filetag,titletag),verbosity,1)
+    filter        = kwargs.get('filter',      False       ) # filter non-matched samples out
+    share         = kwargs.get('share',       False       ) # reduce memory by sharing non-matched samples (as opposed to cloning)
+    split         = kwargs.get('split',       False       ) # also look in split samples
+    close         = kwargs.get('close',       False       )
+    kwargs.setdefault('name',      filetag.lstrip('_')      )
+    kwargs.setdefault('label',     filetag                  )
     kwargs.setdefault('channel',   self.channel             )
-    searchterms     = ensurelist(searchterms)
-    all             = searchterms==['*']
-    datasample      = None
-    expsamples      = [ ]
-    sigsamples      = [ ]
-    sharedsamples   = [ ]
-    for sample in self.expsamples:
-      if all or sample.match(*searchterms,incl=False):
-        newsample = sample.clone(samename=True,deep=True)
-        newsample.appendFileName(file_app,title_app=title_app,title_veto=title_veto)
-        if close: newsample.close()
-        expsamples.append(newsample)
-      elif not filter:
-        newsample = sample if share else sample.clone(samename=True,deep=True,close=True)
-        expsamples.append(newsample)
-        if share: sharedsamples.append(newsample)
-    for sample in self.sigsamples:
-      if all or sample.match(*searchterms,incl=False):
-        newsample = sample.clone(samename=True,deep=True)
-        newsample.appendFileName(file_app,title_app=title_app,title_veto=title_veto)
-        if close: newsample.close()
-        sigsamples.append(newsample)
-      elif not filter:
-        newsample = sample if share else sample.clone(samename=True,deep=True,close=True)
-        sigsamples.append(newsample)
-        if share: sharedsamples.append(newsample)
+    searchterms   = ensurelist(searchterms)
+    all           = searchterms==['*']
+    datasample    = None
+    expsamples    = [ ]
+    sigsamples    = [ ]
+    sharedsamples = [ ]
+    def appendfilename(sample_):
+      """Help function to append filename for a single sample."""
+      newsample = sample_.clone(samename=True,deep=True)
+      newsample.appendfilename(filetag,nametag,titletag,verb=verbosity)
+      if close:
+        newsample.close()
+      return newsample
+    for oldsamples, newsamples in [(self.expsamples,expsamples),(self.sigsamples,sigsamples)]:
+      for sample in oldsamples:
+        newsample = None
+        if all or sample.match(*searchterms,incl=True):
+          newsample = appendfilename(sample)
+        elif split and any(s for s in sample.splitsamples if s.match(*searchterms,incl=True)):
+          newsample = sample.clone(samename=True,deep=True)
+          for i, subsample in enumerate(newsample.splitsamples[:]):
+            if subsample.match(*searchterms,incl=True):
+              newsample.splitsamples[i] = appendfilename(subsample)
+            elif share:
+              newsubsample = newsample.splitsamples[i]
+              newsample.splitsamples[i] = sample.splitsamples[i]
+              newsubsample.close()
+        if newsample==None and not filter:
+          newsample = sample if share else sample.clone(samename=True,deep=True,close=True)
+          if share:
+            sharedsamples.append(newsample)
+        if newsample!=None:
+          newsamples.append(newsample)
     if not filter:
-        datasample = self.datasample
-        sharedsamples.append(datasample)
+      datasample = self.datasample
+      sharedsamples.append(datasample)
     kwargs['shared'] = sharedsamples
     newset = SampleSet(datasample,expsamples,sigsamples,**kwargs)
     newset.closed = close
     return newset
   
-  def shiftweight(self,searchterms,newweight,title_app,**kwargs):
+  def shiftweight(self,searchterms,newweight,titletag="",**kwargs):
     """Shift samples in samples set by creating new samples with new weight."""
     filter          = kwargs.get('filter',      False       ) # filter other samples
     share           = kwargs.get('share',       False       ) # share other samples (as opposed to cloning them)
@@ -718,9 +729,9 @@ class SampleSet(object):
         newsample = sample.clone(samename=True,deep=True)
         #LOG.verbose('SampleSet.shiftweight: "%s" - weight "%s", extra weight "%s"'%(newsample.name,newsample.weight,newsample.extraweight),1)
         if extra:
-          newsample.setExtraWeight(newweight)
+          newsample.setextraweight(newweight)
         else:
-          newsample.addWeight(newweight)
+          newsample.addweight(newweight)
         #LOG.verbose('SampleSet.shiftweight: "%s" - weight "%s", extra weight "%s"'%(newsample.name,newsample.weight,newsample.extraweight),1)
         expsamples.append(newsample)
       elif not filter:
@@ -730,9 +741,9 @@ class SampleSet(object):
       if sample.match(*searchterms,incl=False):
         newsample = sample.clone(samename=True,deep=True)
         if extra:
-          newsample.setExtraWeight(newweight)
+          newsample.setextraweight(newweight)
         else:
-          newsample.addWeight(newweight)
+          newsample.addweight(newweight)
         sigsamples.append(newsample)
       elif not filter:
         newsample = sample if share else sample.clone(samename=True,deep=True)

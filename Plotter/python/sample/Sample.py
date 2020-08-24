@@ -2,8 +2,9 @@
 # Author: Izaak Neutelings (July 2020)
 import os, re
 from TauFW.Plotter.sample.utils import *
+from TauFW.common.tools.math import round2digit, reldiff
 from TauFW.Plotter.plot.string import *
-from TauFW.Plotter.plot.utils import deletehist, printhist, round2digit
+from TauFW.Plotter.plot.utils import deletehist, printhist
 from TauFW.Plotter.sample.SampleStyle import *
 from TauFW.Plotter.plot.MultiDraw import MultiDraw
 from ROOT import TTree
@@ -139,16 +140,20 @@ class Sample(object):
         string += "\n>>> "+color("%s%s %s %s"%(subpre,name,title,sample.cuts))
     return string
   
-  def printobjs(self,title=""):
+  def printobjs(self,title="",file=False):
     """Print all sample objects recursively."""
-    print ">>> %s%r"%(title,self)
     if isinstance(self,MergedSample):
+      print ">>> %s%r"%(title,self)
       for sample in self.samples:
-        sample.printobjs(title+"  ")
+        sample.printobjs(title+"  ",file=file)
+    elif file:
+      print ">>> %s%r %s"%(title,self,self.filename)
+    else:
+      print ">>> %s%r"%(title,self)
     if self.splitsamples:
       print ">>> %s  Split samples:"%(title)
       for sample in self.splitsamples:
-        sample.printobjs(title+"    ")
+        sample.printobjs(title+"    ",file=file)
   
   def get_max_name_len(self,indent=0):
     """Help function for SampleSet.printtable to make automatic columns."""
@@ -226,16 +231,17 @@ class Sample(object):
   
   def clone(self,name=None,title=None,filename=None,**kwargs):
     """Shallow copy."""
+    verbosity    = LOG.getverbosity(kwargs)
+    samename     = kwargs.get('samename', False )
+    deep         = kwargs.get('deep',     False ) # deep copy
+    close        = kwargs.get('close',    False ) # keep new sample closed for memory space
+    splitsamples = [s.clone(samename=samename,deep=deep) for s in self.splitsamples] if deep else self.splitsamples[:]
     if name==None:
       name = self.name + ("" if samename else  "_clone" )
     if title==None:
       title = self.title
     if filename==None:
       filename = self.filename
-    samename                = kwargs.get('samename', False )
-    deep                    = kwargs.get('deep',     False ) # deep copy
-    close                   = kwargs.get('close',    False ) # keep new sample closed for memory space
-    splitsamples            = [s.clone(samename=samename,deep=deep) for s in self.splitsamples] if deep else self.splitsamples[:]
     kwargs['isdata']        = self.isdata
     kwargs['isembed']       = self.isembed
     kwargs['norm']          = self.norm # prevent automatic norm computation without xsec
@@ -252,57 +258,48 @@ class Sample(object):
     newsample               = type(self)(name,title,filename,**kwargs)
     newsample.__dict__.update(newdict) # overwrite defaults
     LOG.verb('Sample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
-             newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),1)
+             newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),verbosity,2)
     if close:
       newsample.close()
     return newsample
   
-  ###def appendFileName(self,file_app,**kwargs):
-  ###  """Append filename (in front of globalTag or .root)."""
-  ###  verbosity     = LOG.getverbosity(kwargs)
-  ###  title_app     = kwargs.get('title_app',  "" )
-  ###  title_tag     = kwargs.get('title_tag',  "" )
-  ###  title_veto    = kwargs.get('title_veto', "" )
-  ###  oldfilename   = self.filename
-  ###  if globalTag:
-  ###    newfilename = oldfilename if file_app in oldfilename else oldfilename.replace(globalTag,file_app+globalTag)
-  ###  else:
-  ###    newfilename = oldfilename if file_app in oldfilename else oldfilename.replace(".root",file_app+".root")
-  ###  LOG.verb('replacing %r with %r'%(oldfilename,self.filename),verbosity,3)
-  ###  self.filename = newfilename
-  ###  if file_app  not in self.name:
-  ###    self.name  += file_app
-  ###  if title_app not in self.title and not (title_veto and re.search(title_veto,self.title)):
-  ###    self.title += title_app
-  ###  if self.file:
-  ###    #reopenTree = True if self._tree else False
-  ###    self.file.Close()
-  ###    self.file = ensureTFile(self.filename)
-  ###    #if reopenTree: self.tree = self.file.Get(self.treename)
-  ###  if not isinstance(self,MergedSample):
-  ###    norm_old  = self.norm
-  ###    N_old     = self.sumweights
-  ###    N_unw_old = self.nevents
-  ###    if self.isdata:
-  ###      self.setnevents(self.binnevts,self.binsumw)
-  ###    if self.isembed:
-  ###      pass
-  ###    elif self.xsec>=0:
-  ###      self.setnevents(self.binnevts,self.binsumw)
-  ###      #self.normalize(lumi=self.lumi) # can affect scale computed by stitching
-  ###    if (N_old>0 and abs(N_old-self.sumweights)/float(N_old)>0.02) or (N_unw_old>0 and abs(N_unw_old-self.nevents)/float(N_unw_old)>0.02):
-  ###      LOG.warning('Sample.appendFileName: file %s has a different number of events (N=%s, N_unw=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
-  ###        (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,N_old,N_unw_old,norm_old))
-  ###    ###if norm_old and abs(norm_old-self.norm)/float(norm_old)>0.02:
-  ###    ###  LOG.warning('Sample.appendFileName: file %s has a different number of normalization (N=%s, N_unw=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
-  ###    ###    (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,N_old,N_unw_old,norm_old))
-  ###  elif ':' not in self.filename and not os.path.isfile(self.filename):
-  ###    LOG.warning('Sample.appendFileName: file %s does not exist!'%(self.filename))
-  ###  if isinstance(self,MergedSample):
-  ###    for sample in self.samples:
-  ###      sample.appendFileName(file_app,**kwargs)
-  ###  for sample in self.splitsamples:
-  ###      sample.appendFileName(file_app,**kwargs)
+  def appendfilename(self,filetag,nametag=None,titletag=None,**kwargs):
+    """Append filename (in front .root)."""
+    verbosity     = LOG.getverbosity(kwargs)
+    oldfilename   = self.filename
+    newfilename   = oldfilename if filetag in oldfilename else oldfilename.replace(".root",filetag+".root")
+    LOG.verb('Sample.appendfilename(%r,%r): %r -> %r'%(filetag,titletag,oldfilename,newfilename),verbosity,2)
+    self.filename = newfilename
+    if nametag==None:
+      nametag     = filetag
+    if titletag==None:
+      titletag    = nametag
+    self.name    += nametag
+    self.title   += titletag
+    if self.file:
+      self.file.Close()
+      self.file   = ensureTFile(self.filename)
+    if not isinstance(self,MergedSample):
+      norm_old    = self.norm
+      sumw_old    = self.sumweights
+      nevts_old   = self.nevents
+      if self.isdata:
+        self.setnevents(self.binnevts,self.binsumw)
+      if self.isembed:
+        pass
+      elif self.xsec>=0:
+        self.setnevents(self.binnevts,self.binsumw)
+        #self.normalize(lumi=self.lumi) # can affect scale computed by stitching
+      if reldiff(sumw_old,self.sumweights)>0.02 or reldiff(sumw_old,self.sumweights)>0.02:
+        LOG.warning('Sample.appendfilename: file %s has a different number of events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
+          (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,sumw_old,nevts_old,norm_old))
+    elif ':' not in self.filename and not os.path.isfile(self.filename):
+      LOG.warning('Sample.appendfilename: file %s does not exist!'%(self.filename))
+    if isinstance(self,MergedSample):
+      for sample in self.samples:
+        sample.appendfilename(filetag,nametag,titletag,**kwargs)
+    for sample in self.splitsamples:
+      sample.appendfilename(filetag,nametag,titletag,**kwargs)
   
   def setfilename(self,filename):
     """Set filename."""
@@ -314,11 +311,11 @@ class Sample(object):
     """Close and reopen file. Use it to free up and clean memory."""
     verbosity = LOG.getverbosity(kwargs)
     if self.file:
-      if verbosity>3:
-        LOG.verb('Sample.reload: closing and deleting %s with content:'%(self.file.GetName()),verbosity,2)
+      if verbosity>=4:
+        print "Sample.reload: closing and deleting %s with content:"%(self.file.GetName())
         self.file.ls()
       self.file.Close()
-      del self.file
+      del self._file
       self.file = None
     if isinstance(self,MergedSample):
       for sample in self.samples:
@@ -337,11 +334,11 @@ class Sample(object):
     """Close file. Use it to free up and clean memory."""
     verbosity = LOG.getverbosity(kwargs)
     if self.file:
-      if verbosity>1:
-        LOG.verb('Sample.close: closing and deleting %s with content:'%(self.file.GetName()),verbosity,3)
+      if verbosity>=4:
+        print "Sample.close: closing and deleting %s with content:"%(self.file.GetName())
         self.file.ls()
       self.file.Close()
-      del self.file
+      del self._file
       self.file = None
     for sample in self.splitsamples:
       sample.close(**kwargs)
@@ -518,10 +515,10 @@ class Sample(object):
       sample.split(('ZTT',"Real tau","genmatch_2==5"),
                    ('ZJ', "Fake tau","genmatch_2!=5"))
     """
-    verbosity      = LOG.getverbosity(kwargs)
-    color_dict     = kwargs.get('colors', { }) # dictionary with colors
-    splitlist      = unwraplistargs(splitlist)
-    splitsamples   = [ ]
+    verbosity    = LOG.getverbosity(kwargs)
+    color_dict   = kwargs.get('colors', { }) # dictionary with colors
+    splitlist    = unwraplistargs(splitlist)
+    splitsamples = [ ]
     for i, info in enumerate(splitlist): #split_dict.items()
       name  = "%s_split%d"%(self.name,i)
       if len(info)>=3:

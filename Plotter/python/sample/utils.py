@@ -108,7 +108,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
 def setera(era_,lumi_=None,**kwargs):
   """Set global era and integrated luminosity for Samples and CMSStyle."""
   global era, lumi, cme
-  era   = str(era_)
+  era   = str(era_).replace('UL',"")
   lumi  = kwargs.get('lumi',lumi_)
   if lumi==None:
     lumi = lumi_dict.get(era,None)
@@ -117,6 +117,8 @@ def setera(era_,lumi_=None,**kwargs):
   cme  = kwargs.get('cme', 13 )
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
+  if not lumi or lumi<0:
+    LOG.warning("Could not set luminosity for era %r... Returning %s"%(era,lumi))
   return lumi
   
 

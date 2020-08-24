@@ -10,7 +10,7 @@ def color(string,c='green',b=False,ul=False,**kwargs):
   bcol_key   = kwargs.get('bg',        None    )
   bcol_key   = kwargs.get('background',bcol_key)
   bold_code  = "\033[1m" if kwargs.get('bold',b) else ""
-  ul_code    = "\033[32m" if ul else ""
+  ul_code    = "\033[4m" if ul else ""
   tcol_code  = "\033[%dm"%tcol_dict[tcol_key] if tcol_key!=None else ""
   bcol_code  = "\033[%dm"%bcol_dict[bcol_key] if bcol_key!=None else ""
   stop_code  = "\033[0m"

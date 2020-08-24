@@ -48,15 +48,15 @@ sample_colors = {
   'ZTT_DM10':  kYellow-9,
   'ZTT_DM11':  kOrange-6,
   'ZTT_other': kOrange-10,
-  'DY10':      TColor.GetColor(240,175,60), #TColor.GetColor(222,90,106)
+  'DY10':      kOrange-4, #TColor.GetColor(240,175,60), #TColor.GetColor(222,90,106)
   'TT':        kBlue-8,
   'TTT':       kAzure-9,
   'TTL':       kBlue-8,
   'TTJ':       kGreen-6,
-  'ST':        TColor.GetColor(140,180,220),
+  'ST':        38, #TColor.GetColor(140,180,220),
   'STL':       kMagenta-3,
   'STJ':       kMagenta-8,
-  'VV':        TColor.GetColor(222,140,106),
+  'VV':        45, #TColor.GetColor(222,140,106),
   'WJ':        50,
   'QCD':       kMagenta-10,
   'Data':      kBlack,

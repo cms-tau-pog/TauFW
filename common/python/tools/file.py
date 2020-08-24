@@ -61,7 +61,8 @@ def ensurefile(*paths,**kwargs):
   
 
 def ensuremodule(modname,package):
-  """Ensure Sample method exists in python/methods."""
+  """Ensure Sample method exists in python/methods.
+  E.g. module = ensuremodule(modname,"PicoProducer.analysis")"""
   # TODO: absolute path
   modfile  = ensurefile(basedir,package.replace('.','/python/',1),"%s.py"%(modname.replace('.','/')))
   modpath  = "TauFW.%s.%s"%(package,modname) #modfile.replace('.py','').replace('/','.')

@@ -572,7 +572,7 @@ def preparejobs(args):
         extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample.extraopts:
           extraopts_.extend(sample.extraopts)
-        nfilesperjob_ = sample.nfilesperjob if sample.nfilesperjob>0 else nfilesperjob
+        nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob
         if split_nfpj>1:
           nfilesperjob_ = min(1,nfilesperjob_/split_nfpj)
         daspath    = sample.paths[0].strip('/')
@@ -1336,8 +1336,8 @@ if __name__ == "__main__":
                                                 help='queue of batch system')
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
                                                 help='ask user permission before submitting a sample')
-  parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=CONFIG.nfilesperjob,
-                                                help='number of files per job, default=%(default)d')
+  parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,
+                                                help='number of files per job, default=%d'%(CONFIG.nfilesperjob))
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1,
                           metavar='N',          help="divide default number of files per job, default=%(const)d" )
   

@@ -2,8 +2,8 @@
 # Author: Izaak Neutelings (June 2020)
 # Description: Class to automatically make CMS plot comparing histograms.
 import os, re
-from math import log10
 from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
+from TauFW.common.tools.math import log10, magnitude, columnize
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable
