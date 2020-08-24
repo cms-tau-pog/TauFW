@@ -29,6 +29,7 @@ You can link several skimming or analysis codes to _channels_.
   * [Submission](#Submission)
   * [Resubmission](#Resubmission)
   * [Finalize](#Finalize)
+* [Systematic variations](#Systematic-variations)<br>
 * [Plug-ins](#Plug-ins)<br>
   * [Batch system](#Batch-system)
   * [Storage system](#Storage-system)
@@ -274,6 +275,30 @@ pico.py hadd -y 2016 -c mutau
 The output file will be stored in `picodir`.
 This will not work for channels with `skim` in the name,
 as it is preferred to keep skimmed nanoAOD files split for batch submission.
+
+
+## Systematic variations
+
+Systematic variations can be run by passing extra keyword options via `-E`, e.g.:
+```
+pico.py run -y 2016 -c mutau -s DY TT -E 'tes=1.03' -t _TES1p03
+```
+The keyword argument, e.g. `tes` for tau energy scale,
+must already be defined in the analysis module linked to the channel, e.g. `ModuleMuTau`.
+And extra tag should be added with `-t` to avoid overwriting the nominal analysis output.
+As a shortcut, you can define a new channel with the same module, but a different setting:
+```
+pico.py channel mutau_TES1p03 'ModuleMuTau tes=1.03'
+pico.py run -y 2016 -c mutau_TES1p03 -s DY TT
+```
+After you defined your systematic channels,
+you can edit and use the `vary.sh` script to quickly run variations, e.g.
+```
+cp utils/vary.sh ./
+vary.sh run -c mutau -y UL2017 -T
+vary.sh submit -c mutau -y UL2017 -T
+```
+etc.
 
 
 ## Plug-ins
