@@ -56,10 +56,10 @@ class Plot(object):
     hists      = None
     self.verbosity = LOG.getverbosity(kwargs)
     if len(args)==1 and islist(args[0]):
-      hists    = args[0]
+      hists    = args[0] # list of histograms
     elif len(args)==2:
-      variable = args[0]
-      hists    = args[1]
+      variable = args[0] # string or Variable
+      hists    = args[1] # list of histograms
     else:
       LOG.throw(IOError,"Plot: Wrong input %s"%(args))
     if kwargs.get('clone',False):
@@ -86,9 +86,9 @@ class Plot(object):
       self.latex      = kwargs.get('latex',      False                ) # already done by Variable.__init__
       self.dividebins = kwargs.get('dividebins', variable.dividebins  ) # divide each histogram bins by it bin size
     else:
-      self.variable   = variable
+      self.variable   = variable or frame.GetXaxis().GetTitle()
       self.name       = kwargs.get('name',       None                 )
-      self.xtitle     = kwargs.get('xtitle', self.variable or frame.GetXaxis().GetTitle() )
+      self.xtitle     = kwargs.get('xtitle',     self.variable        )
       self.xmin       = kwargs.get('xmin', frame.GetXaxis().GetXmin() )
       self.xmax       = kwargs.get('xmax', frame.GetXaxis().GetXmax() )
       self.ymin       = kwargs.get('ymin',       None                 )
@@ -839,7 +839,7 @@ class Plot(object):
     latex.SetNDC(True)
     for i, line in enumerate(texts):
       if dolatex:
-        line = makelatex(line)
+        line = maketitle(line)
       yline = y-i*theight*1.2*tsize
       latex.DrawLatex(x,yline,line)
       LOG.verb("Plot.drawcornertext: i=%d, x=%.2f, y=%.2f, text=%r"%(i,x,yline,line),verbosity,2)

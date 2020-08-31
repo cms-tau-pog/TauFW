@@ -59,6 +59,11 @@ def convertstr(string):
   return string
   
 
+def quotestrs(strings):
+  """Make summation of quoted strings."""
+  return ", ".join(repr(s) for s in strings if s)
+  
+
 def isglob(string):
   """Return if string is likely a glob pattern."""
   return '*' in string or '?' in string or ('[' in string and ']' in string)
@@ -98,6 +103,13 @@ def repkey(string,**kwargs):
         string = re.sub(r"\$\{%s:%s:%s\}"%(key,a,b),substr,string)
     string = string.replace('$'+key,str(value))
   return string
+  
+
+def rreplace(string,old,new,count=-1):
+  """Replace occurrences substring from right to left."""
+  parts = string.rsplit(old,count)
+  return new.join(parts)
+
   
 
 def chunkify(iterable,chunksize):

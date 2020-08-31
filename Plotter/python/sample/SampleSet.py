@@ -335,7 +335,7 @@ class SampleSet(object):
     if verbosity>=1:
       print ">>> gethists"
     variables, selection, issingle = unwrap_gethist_args(*args)
-    datavars      = filter(lambda v: v.data,variables)      # filter out gen-level variables
+    datavars      = filter(lambda v: v.data,variables)    # filter out gen-level variables
     dodata        = kwargs.get('data',          True    ) # create data hists
     domc          = kwargs.get('mc',            True    ) # create expected (SM background) hists
     doexp         = kwargs.get('exp',           domc    ) # create expected (SM background) hists

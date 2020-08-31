@@ -23,7 +23,7 @@ def QCD_OSSS(self, variables, selection, **kwargs):
   samples        = self.samples
   name           = kwargs.get('name',            'QCD'          )
   title          = kwargs.get('title',           "QCD multijet" )
-  tag            = kwargs.get('tag',             ""             )+"_SS"
+  tag            = kwargs.get('tag',             ""             )
   #ratio_WJ_QCD   = kwargs.get('ratio_WJ_QCD_SS', False          )
   #doRatio_WJ_QCD = isinstance(ratio_WJ_QCD,      c_double       )
   weight         = kwargs.get('weight',          ""             )
@@ -99,7 +99,7 @@ def QCD_OSSS(self, variables, selection, **kwargs):
     exphist = exphists[0].Clone('MC_SS')
     for hist in exphists[1:]:
       exphist.Add(hist)
-    qcdhist = exphists[0].Clone(makehistname(variable.filename,name,tag))
+    qcdhist = exphists[0].Clone(makehistname(variable.filename,name,tag)) # $VAR_$PROCESS$TAG
     qcdhist.Reset()
     qcdhist.Add(datahist)
     qcdhist.Add(exphist,-1)

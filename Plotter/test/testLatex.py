@@ -62,6 +62,7 @@ def main():
   checklatex([
     'Z -> tautau',
     'Z -> tautau_h',
+    'Z -> tauhtauh',
     'Z -> tau_htau_h',
     'Z -> tautau_{h}',
     'Z -> tau_mutau_{h}',
@@ -84,6 +85,15 @@ def main():
     'mutau: baseline',
     'tau_{h}tau_{h}: baseline',
   ],tag='_text')
+  checklatex([
+    "DR", "dR", "DeltaR", "Drell-Yan",
+    "DR_mutau_h",
+    "DR_etau_h",
+    "DR_tautau",
+    "DR_tauhtauh",
+    "DR_tau_htau_h",
+    "DR_emu",
+  ],tag='_DR')
   
 
 if __name__ == "__main__":

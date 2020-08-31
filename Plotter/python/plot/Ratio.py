@@ -24,7 +24,7 @@ class Ratio(object):
     self.garbage   = [ ]
     errband        = kwargs.get('errband',     None        ) # error band (e.g. stat. and/or sys. unc.)
     option         = kwargs.get('option',      ""          )
-    denom          = kwargs.get('denom',       None        )
+    denom          = kwargs.get('denom',       None        ) # histogram as denominator (count from 1)
     errorX         = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
     histnums       = unwraplistargs(histnums)
     

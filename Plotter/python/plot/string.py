@@ -116,14 +116,10 @@ def makelatex(string,**kwargs):
       string = re.sub(r"(?<!\#)deltar_([^{}()|<>=\ ]+)",r"#DeltaR_{\1}",string,flags=re.IGNORECASE)
     elif "deltar" in strlow:
       string = re.sub(r"(?<!\#)deltar",r"#DeltaR",string,flags=re.IGNORECASE)
-    if "dR" in string:
-      string = re.sub(r"(?<!\w)dR_([^{}()|<>=\ ]+)",r"#DeltaR_{\1}",string)
-    if "tau" in strlow:
-      #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)
-      string = re.sub(r"(?<!Deep)(?<!Over)tau",r"#tau",string,flags=re.IGNORECASE)
-      #string = re.sub(r" #tau ",r" tau ",string,flags=re.IGNORECASE)
-      #string = re.sub(r"^#tau ",r"tau ",string,flags=re.IGNORECASE)
-      string = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",string,flags=re.IGNORECASE)
+    elif "dr_" in strlow:
+      string = re.sub(r"(?<!\w)dr_([^{}()|<>=\ ]+)",r"#DeltaR_{\1}",string,flags=re.IGNORECASE)
+    elif "dr" in strlow:
+      string = re.sub(r"(?<![a-z])dr(?![a-z])",r"#DeltaR",string,flags=re.IGNORECASE)
     if "chi" in strlow:
       string = re.sub(r"(?<!#)chi(?!ng)",r"#chi",string,flags=re.IGNORECASE)
       string = re.sub(r"chi_([^{}()^|<>=\ ]+)",r"chi_{\1}",string,flags=re.IGNORECASE)
@@ -146,6 +142,13 @@ def makelatex(string,**kwargs):
       string = string.replace("deta","#Deltaeta")
       string = re.sub(r"(?<!\#[Bbz])eta",r"#eta",string)
       string = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",string)
+    if "tau" in strlow:
+      #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)
+      string = re.sub(r"(?<!Deep)(?<!Over)tau",r"#tau",string,flags=re.IGNORECASE)
+      #string = re.sub(r" #tau ",r" tau ",string,flags=re.IGNORECASE)
+      #string = re.sub(r"^#tau ",r"tau ",string,flags=re.IGNORECASE)
+      string = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",string,flags=re.IGNORECASE)
+      string = re.sub(r"#tauh",r"#tau_{h}",string,flags=re.IGNORECASE)
     if "abs(" in string and ")" in string:
       string = re.sub(r"abs\(([^)]+)\)",r"|\1|",string)
       #string = string.replace("abs(","|").replace(")","") + "|" # TODO: split at next space
@@ -158,7 +161,7 @@ def makelatex(string,**kwargs):
     if "ttbar" in strlow:
       string = re.sub(r"ttbar","t#bar{t}",string,flags=re.IGNORECASE)
     if "npv" in strlow:
-      string = re.sub(r"npvs?","number of vertices",string)
+      string = re.sub(r"npvs?","Number of primary vertices",string)
     if '->' in string:
       string = string.replace('->','#rightarrow')
     if '=' in string:

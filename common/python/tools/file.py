@@ -98,12 +98,17 @@ def getline(fname,iline):
 
 def ensureTFile(filename,option='READ'):
   """Open TFile, checking if the file in the given path exists."""
-  if ':' not in filename and not os.path.isfile(filename):
-    LOG.throw(IOError,'File in path "%s" does not exist!'%(filename))
-    exit(1)
-  file = ROOT.TFile.Open(filename,option)
-  if not file or file.IsZombie():
-    LOG.throw(IOError,'Could not open file by name "%s"'%(filename))
+  if isinstance(filename,str):
+    if ':' not in filename and not os.path.isfile(filename):
+      LOG.throw(IOError,'File in path "%s" does not exist!'%(filename))
+      exit(1)
+    file = ROOT.TFile.Open(filename,option)
+    if not file or file.IsZombie():
+      LOG.throw(IOError,'Could not open file by name %r!'%(filename))
+  else:
+    file = filename
+    if not file or (hasattr(file,'IsZombie') and file.IsZombie()):
+      LOG.throw(IOError,'Could not open file %r!'%(file))
   return file
   
 

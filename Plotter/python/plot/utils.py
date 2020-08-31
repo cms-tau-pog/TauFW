@@ -3,7 +3,7 @@
 import os
 from math import sqrt
 from TauFW.common.tools.file import ensuredir, ensureTFile
-from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs
+from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs
 from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
@@ -44,6 +44,26 @@ def close(*hists,**kwargs):
       deletehist(hist,**kwargs)
   
 
+def gethist(hists,*searchterms,**kwargs):
+  """Help function to get all samples corresponding to some name and optional label."""
+  from TauFW.Plotter.plot.string import match
+  verbosity   = LOG.getverbosity(kwargs)
+  unique      = kwargs.get('unique', False )
+  warning     = kwargs.get('warn',   True  )
+  matches     = [ ]
+  for hist in hists:
+    if match(searchterms,hist.GetName(),**kwargs):
+      matches.append(hist)
+  if not matches and warning:
+    LOG.warning("gethist: Did not find a historgram with searchterms %s..."%(quotestrs(searchterms)))
+  elif unique:
+    if len(matches)>1:
+      LOG.warning("gethist: Found more than one match to %s. Using first match only: %s"%(
+                  quotestrs(searchterms),quotestrs(h.GetName() for h in matches)))
+    return matches[0]
+  return matches
+  
+
 def deletehist(*hists,**kwargs):
   """Completely remove histograms from memory."""
   verbosity = LOG.getverbosity(kwargs)
@@ -78,6 +98,38 @@ def printhist(hist,min_=0,max_=None,**kwargs):
   for ibin in range(minbin,maxbin+1):
     xval = hist.GetXaxis().GetBinCenter(ibin)
     TAB.printrow(ibin,xval,hist.GetBinContent(ibin),hist.GetBinError(ibin))
+  
+
+def grouphists(hists,searchterms,name=None,title=None,**kwargs):
+  """Group histograms in a list corresponding to some searchterm, return their sum.
+  E.g. grouphists(hists,['TT','ST'],'Top')
+       grouphists(hists,['WW','WZ','ZZ'],'Diboson')"""
+  verbosity   = LOG.getverbosity(kwargs)
+  searchterms = ensurelist(searchterms)
+  replace     = kwargs.get('replace',   False ) # replace grouped histograms with sum in list
+  close       = kwargs.get('close',     False ) # close grouped histograms
+  kwargs['verb'] = verbosity-1
+  matches     = gethist(hists,*searchterms,warn=False,**kwargs) if searchterms else hists
+  histsum     = None
+  if matches:
+    if title==None:
+      title   = matches[0].GetTitle() if name==None else name
+    if name==None:
+      name    = matches[0].GetName()
+    histsum   = matches[0].Clone(name)
+    histsum.SetTitle(title)
+    for hist in matches[1:]:
+      histsum.Add(hist)
+    LOG.verb("grouphists: Grouping %s into %r"%(quotestrs(h.GetName() for h in matches),name),verbosity,2)
+    if replace:
+      hists.insert(hists.index(matches[0]),histsum)
+      for hist in matches:
+        hists.remove(hist)
+        if close:
+          deletehist(hist)
+  else:
+    LOG.warning("gethist: Did not find a histogram with searchterms %s..."%(quotestrs(searchterms)))
+  return histsum
   
 
 def getTGraphYRange(graphs,ymin=+10e10,ymax=-10e10,margin=0.0):

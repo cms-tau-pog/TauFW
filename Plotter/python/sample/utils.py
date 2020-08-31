@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
 import re, glob
-from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, repkey, getyear
+from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs, repkey, getyear
 from TauFW.common.tools.file import ensuredir, ensureTFile, ensuremodule
 from TauFW.common.tools.log import Logger, color
 from TauFW.Plotter.plot.Variable import Variable, Var, ensurevar
@@ -250,9 +250,9 @@ def unwrap_gethist2D_args(*args,**kwargs):
 def getsample(samples,*searchterms,**kwargs):
   """Help function to get all samples corresponding to some name and optional label."""
   verbosity   = LOG.getverbosity(kwargs)
-  filename    = kwargs.get('filename', ""    )
+  filename    = kwargs.get('fname',    ""    )
   unique      = kwargs.get('unique',   False )
-  warning     = kwargs.get('warning',  True  )
+  warning     = kwargs.get('warn',     True  )
   split       = kwargs.get('split',    False )
   matches     = [ ]
   if split:
@@ -268,11 +268,11 @@ def getsample(samples,*searchterms,**kwargs):
     if sample.match(*searchterms,**kwargs) and filename in sample.filename:
       matches.append(sample)
   if not matches and warning:
-    LOG.warning("getsample: Could not find a sample with search terms %s..."%(', '.join(repr(s) for s in searchterms+(filename,) if s)))
+    LOG.warning("getsample: Could not find a sample with search terms %s..."%(quotestrs(searchterms+(filename,))))
   elif unique:
     if len(matches)>1:
       LOG.warning("getsample: Found more than one match to %s. Using first match only: %s"%(
-                  ", ".join(repr(s) for s in searchterms),", ".join([repr(s.name) for s in matches])))
+                  quotestrs(searchterms),quotestrs(matches)))
     return matches[0]
   return matches
   
@@ -289,7 +289,7 @@ def getsample_with_flag(samples,flag,*searchterms,**kwargs):
     LOG.warning("Could not find a sample with %r=True..."%flag)
   elif unique:
     if len(matches)>1:
-      LOG.warning("Found more than one signal sample. Using first match only: %s"%(", ".join([repr(s.name) for s in matches])))
+      LOG.warning("Found more than one signal sample. Using first match only: %s"%(quotestrs(s.name for s in matches)))
     return matches[0]
   return matches
   
