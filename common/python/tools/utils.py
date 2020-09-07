@@ -105,11 +105,16 @@ def repkey(string,**kwargs):
   return string
   
 
-def rreplace(string,old,new,count=-1):
+def rreplace(string,old,new='',count=-1):
   """Replace occurrences substring from right to left."""
   parts = string.rsplit(old,count)
   return new.join(parts)
+  
 
+def lreplace(string,old,new='',count=-1):
+  """Replace occurrences substring from left to right."""
+  parts = string.split(old,count)
+  return new.join(parts)
   
 
 def chunkify(iterable,chunksize):

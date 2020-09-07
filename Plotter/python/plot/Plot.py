@@ -552,12 +552,12 @@ class Plot(object):
       print ">>> Plot.setaxes: ytitlesize=%4.4g, ylabelsize=%4.4g, ytitleoffset=%4.4g, ytitle=%r"%(ytitlesize,ylabelsize,ytitleoffset,ytitle)
       print ">>> Plot.setaxes: scale=%4.4g, nxdivisions=%s, nydivisions=%s, ymargin=%.3f, logyrange=%.3f"%(scale,nxdivisions,nydivisions,ymargin,logyrange)
     if main:
-      if any(a!=None and a!=b for a, b in [(self.xmin,xmin),(self.xmax,xmax)]):
-        LOG.warning("Plot.setaxes: x axis range changed: [xmin,xmax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
-                    self.xmin,self.xmax,xmin,xmax))
-      if any(a!=None and a!=b for a, b in [(self.ymin,ymin),(self.ymax,ymax)]):
-        LOG.warning("Plot.setaxes: y axis range changed: [ymin,ymax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
-                    self.ymin,self.ymax,ymin,ymax))
+      #if any(a!=None and a!=b for a, b in [(self.xmin,xmin),(self.xmax,xmax)]):
+      #  LOG.warning("Plot.setaxes: x axis range changed: [xmin,xmax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
+      #              self.xmin,self.xmax,xmin,xmax))
+      #if any(a!=None and a!=b for a, b in [(self.ymin,ymin),(self.ymax,ymax)]):
+      #  LOG.warning("Plot.setaxes: y axis range changed: [ymin,ymax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
+      #              self.ymin,self.ymax,ymin,ymax))
       self.xmin, self.xmax = xmin, xmax
       self.ymin, self.ymax = ymin, ymax
     return xmin, xmax, ymin, ymax
@@ -677,10 +677,15 @@ class Plot(object):
     y1 = 0.92; y2 = y1 - height
     
     # POSITION
-    if not position: # set default
-      position = 'TRR' if ncols>1 else 'TR' #'R' if title else
+    if position==None:
+      position = ""
     position = position.replace('left','L').replace('center','C').replace('right','R').replace( #.lower()
                                 'top','T').replace('middle','M').replace('bottom','B')
+    if not any(c in position for c in 'TMBy'): # set default vertical
+      position += 'T'
+    if not any(c in position for c in 'LCRx'): # set default horizontal
+      position += 'RR' if ncols>1 else 'R' # if title else 'L'
+    
     if 'C'     in position:
       if   'R' in position: center = 0.57
       elif 'L' in position: center = 0.43

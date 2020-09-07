@@ -9,6 +9,7 @@ sys.path.append("../../Plotter/") # for config.samples
 from config.samples import *
 from TauFW.common.tools.log import color
 from TauFW.common.tools.file import ensureTDirectory, ensureTFile, gethist
+from TauFW.common.tools.utils import lreplace
 from TauFW.Plotter.plot.utils import deletehist, grouphists
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Plotter.plot.Plot import Plot
@@ -38,24 +39,29 @@ def createinputs(fname,sampleset,observables,bins,**kwargs):
   ensuredir(outdir)
   fname = os.path.join(outdir,fname)
   for obs in observables:
+    obsname = obs.filename
     ftag    = tag+obs.tag
-    fname_  = repkey(fname,OBS=obs,TAG=ftag)
+    fname_  = repkey(fname,OBS=obsname,TAG=tag)
     file    = TFile.Open(fname_,option)
+    if recreate:
+      print ">>> created file %s"%(fname_)
     for selection in bins:
       if not obs.plotfor(selection): continue
       obs.changecontext(selection)
-      ensureTDirectory(file,selection.filename,cd=True,verb=1)
+      ensureTDirectory(file,selection.filename,cd=True,verb=verbosity)
       if recreate:
-        TNamed("selection",selection.selection).Write() # write exact selection string to ROOT file
+        string = joincuts(selection.selection,obs.cut)
+        TNamed("selection",string).Write() # write exact selection string to ROOT file
         #TNamed("weight",sampleset.weight).Write()
+        LOG.verb("%s selection %r: %r"%(obsname,selection.name,string),verbosity,1)
     files[obs] = file
   
   # GET HISTS
-  if htag:
-    print ">>> systematic uncertainty = %s"%(color(htag.lstrip('_'),'grey'))
   for selection in bins:
-    bin   = selection.filename # bin name
+    bin = selection.filename # bin name
     print ">>>\n>>> "+color(" %s "%(bin),'magenta',bold=True,ul=True)
+    if htag:
+      print ">>> systematic uncertainty: %s"%(color(htag.lstrip('_'),'grey'))
     if recreate or verbosity>=1:
       print ">>> %r"%(selection.selection)
     hists = sampleset.gethists(observables,selection,method=method,split=True,
@@ -66,8 +72,10 @@ def createinputs(fname,sampleset,observables,bins,**kwargs):
     TAB   = LOG.table("%10.1f %10d  %-18s  %s")
     TAB.printheader('events','entries','variable','process'.ljust(ljust))
     for obs, hist in hists.iterhists():
-      name    = hist.GetName().lstrip(obs.filename).strip('_')+htag # histname = $VAR_$NAME (see Sample.gethist)
-      name    = repkey(name,BIN=bin) # HIST = $PROCESS_$SYSTEMATIC
+      name    = lreplace(hist.GetName(),obs.filename).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
+      if not name.endswith(htag):
+        name += htag # HIST = $PROCESS_$SYSTEMATIC
+      name    = repkey(name,BIN=bin)
       drawopt = 'E1' if 'data' in name else 'EHIST'
       lcolor  = kBlack if any(s in name for s in ['data','ST','VV']) else hist.GetFillColor()
       hist.SetOption(drawopt)
@@ -101,9 +109,10 @@ def plotinputs(fname,varprocs,observables,bins,**kwargs):
   ensuredir(outdir)
   print ">>>\n>>> "+color(" plotting... ",'magenta',bold=True,ul=True)
   for obs in observables:
-    ftag   = tag+obs.tag
-    fname_ = repkey(fname,OBS=obs,TAG=ftag)
-    file   = ensureTFile(fname_,'UPDATE')
+    obsname = obs.filename
+    ftag    = tag+obs.tag
+    fname_  = repkey(fname,OBS=obsname,TAG=ftag)
+    file    = ensureTFile(fname_,'UPDATE')
     for set, procs in varprocs.iteritems(): # loop over processes with variation
       if set=='Nom':
         systag = "" # no systematics tag for nominal
@@ -114,14 +123,14 @@ def plotinputs(fname,varprocs,observables,bins,**kwargs):
       for selection in bins:
         if not obs.plotfor(selection): continue
         obs.changecontext(selection)
-        bin   = selection.filename
-        text_ = repkey(text,BIN=selection.title) # extra text in plot corner
-        tdir  = ensureTDirectory(file,bin,cd=True) # directory with histograms
+        bin     = selection.filename
+        text_   = repkey(text,BIN=selection.title) # extra text in plot corner
+        tdir    = ensureTDirectory(file,bin,cd=True) # directory with histograms
         if set=='Nom':
           gStyle.Write('style',TH1.kOverwrite) # write current TStyle object to reproduce plots
         
         # STACKS
-        pname_ = repkey(pname,OBS=obs,BIN=bin,TAG=ftag+systag) # image file name
+        pname_ = repkey(pname,OBS=obsname,BIN=bin,TAG=ftag+systag) # image file name
         wname  = "stack"+systag # name in ROOT file
         stackinputs(tdir,obs,procs_,group=groups,
                     save=pname_,write=wname,text=text_)
@@ -129,7 +138,7 @@ def plotinputs(fname,varprocs,observables,bins,**kwargs):
         # VARIATIONS
         if 'Down' in set:
           systag_ = systag.replace('Down','') # e.g.'_TES' without 'Up' or 'Down' suffix
-          pname_  = repkey(pname,OBS=obs,BIN=bin,TAG=ftag+"_$PROC"+systag) # image file name
+          pname_  = repkey(pname,OBS=obsname,BIN=bin,TAG=ftag+"_$PROC"+systag) # image file name
           wname   = "plot_$PROC"+systag # name in ROOT file
           comparevars(tdir,obs,procs,systag_,
                       save=pname_,write=wname,text=text_)
@@ -163,19 +172,19 @@ def main(args):
       GMF = "genmatch_2<5"
       sampleset.split('DY',[('ZTT',GMR),('ZL',GML),('ZJ',GMJ),])
       sampleset.split('TT',[('TTT',GMR),('TTL',GML),('TTJ',GMJ)])
-      sampleset.split('ST',[('STT',GMR),('STJ',GMF),])
+      #sampleset.split('ST',[('STT',GMR),('STJ',GMF),]) # small background
       sampleset.rename('WJ','W')
       sampleset.datasample.name = 'data_obs'
       
       # SYSTEMATIC VARIATIONS
       varprocs = OrderedDict([ # processes to be varied
-        ('Nom',     ['ZTT','ZL','ZJ','W','VV','STT','STJ','TTT','TTL','TTJ','QCD','data_obs']),
+        ('Nom',     ['ZTT','ZL','ZJ','W','VV','ST','TTT','TTL','TTJ','QCD','data_obs']), #,'STT','STJ'
         ('TESUp',   ['ZTT','TTT']),
         ('TESDown', ['ZTT','TTT']),
         ('LTFUp',   ['ZL', 'TTL']),
         ('LTFDown', ['ZL', 'TTL']),
-        ('JTFUp',   ['ZJ', 'TTJ', 'W']),
-        ('JTFDown', ['ZJ', 'TTJ', 'W']),
+        ('JTFUp',   ['ZJ', 'TTJ', 'QCD', 'W']),
+        ('JTFDown', ['ZJ', 'TTJ', 'QCD', 'W']),
       ])
       samplesets = { # sets of samples per variation
         'Nom':     sampleset, # nominal
@@ -188,15 +197,42 @@ def main(args):
       }
       keys = samplesets.keys() if verbosity>=1 else ['Nom','TESUp','TESDown']
       for shift in keys:
+        if not shift in samplesets: continue
         samplesets[shift].printtable(merged=True,split=True)
         if verbosity>=2:
           samplesets[shift].printobjs(file=True)
       
       # OBSERVABLES (VARIABLES)
+      mvis = Var('m_vis', 30, 50, 200)
       observables = [
         Var('m_vis', 30, 50, 200),
-        Var('m_vis', 15, 50, 200, tag="_10"), # coarser binning
+        #Var('m_vis', 15, 50, 200, tag="_10"), # coarser binning
       ]
+      
+      # PT & DM BINS
+      # drawing observables can be run in parallel; 'cut' option as hack to save time drawing pt or DM bins
+      dmbins = [0,1,10,11]
+      ptbins = [20,25,30,35,40,50,70,2000] #500,1000]
+      print ">>> DM cuts:"
+      for dm in dmbins:
+        dmcut = "pt_2>40 && dm_2==%d"%(dm)
+        fname = "$VAR_dm%s"%(dm)
+        mvis_cut = mvis.clone(fname=fname,cut=dmcut) # create observable with extra cut for dm bin
+        print ">>>   %r (%r)"%(dmcut,fname)
+        observables.append(mvis_cut)
+      print ">>> pt cuts:"
+      for imax, ptmin in enumerate(ptbins,1):
+        if imax<len(ptbins):
+          ptmax = ptbins[imax]
+          ptcut = "pt_2>%s && pt_2<=%s"%(ptmin,ptmax)
+          fname = "$VAR_pt%sto%s"%(ptmin,ptmax)
+        else: # overflow
+          #ptcut = "pt_2>%s"%(ptmin)
+          #fname = "$VAR_ptgt%s"%(ptmin)
+          continue # skip overflow bin
+        mvis_cut = mvis.clone(fname=fname,cut=ptcut) # create observable with extra cut for pt bin
+        print ">>>   %r (%r)"%(ptcut,fname)
+        observables.append(mvis_cut)
       
       # BINS (SELECTIONS)
       tauwps    = ['VVLoose','VLoose','Loose','Medium','Tight','VTight','VVTight']
@@ -222,14 +258,14 @@ def main(args):
       createinputs(fname,samplesets['TESDown'],observables,bins,filter=varprocs['TESDown'])
       createinputs(fname,samplesets['LTFUp'],  observables,bins,filter=varprocs['LTFUp']  )
       createinputs(fname,samplesets['LTFDown'],observables,bins,filter=varprocs['LTFDown'])
-      createinputs(fname,samplesets['JTFUp'],  observables,bins,filter=varprocs['JTFUp']  )
-      createinputs(fname,samplesets['JTFDown'],observables,bins,filter=varprocs['JTFDown'])
+      createinputs(fname,samplesets['JTFUp'],  observables,bins,filter=varprocs['JTFUp'],  htag='_JTFUp'  )
+      createinputs(fname,samplesets['JTFDown'],observables,bins,filter=varprocs['JTFDown'],htag='_JTFDown')
       
       # PLOT
       if plot:
         pname  = "%s/%s_$OBS_%s-$BIN-%s$TAG%s.png"%(plotdir,analysis,chshort,era,tag)
         text   = "%s: $BIN"%(channel.replace("mu","#mu").replace("tau","#tau_{h}"))
-        groups = [(['^TT','ST'],'Top'),]
+        groups = [ ] #(['^TT','ST'],'Top'),]
         plotinputs(fname,varprocs,observables,bins,text=text,
                    pname=pname,tag=tag,group=groups)
     
@@ -240,7 +276,7 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017'], default=['2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017'], default=['UL2017'], action='store',
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau'], default=['mutau'], action='store',
                                          help="set channel" )

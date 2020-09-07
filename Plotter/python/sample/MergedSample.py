@@ -56,13 +56,13 @@ class MergedSample(Sample):
     """Returns string that can be used as a row in a samples summary table."""
     xsec     = "%.2f"%self.xsec if self.xsec>0 else ""
     nevts    = "%.1f"%self.nevents if self.nevents>=0 else ""
-    sumw     = "%.2f"%self.sumweights if self.sumweights>=0 else ""
-    norm     = "%.3f"%self.norm
+    sumw     = "%.1f"%self.sumweights if self.sumweights>=0 else ""
+    norm     = "%.4f"%self.norm
     split_   = split and self.splitsamples
     name     = self.name.ljust(justname-indent)
     title    = self.title.ljust(justtitle)
     if merged:
-      string = ">>> %s%s %s %10s %12s %15s %9s  %s" %\
+      string = ">>> %s%s %s %10s %12s %17s %9s  %s" %\
                (pre,name,title,xsec,nevts,sumw,norm,self.extraweight)
       for i, sample in enumerate(self.samples):
         islast   = i+1>=len(self.samples)

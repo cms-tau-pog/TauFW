@@ -12,29 +12,6 @@ from TauFW.Plotter.plot.MultiThread import MultiProcessor
 from TauFW.common.tools.LoadingBar import LoadingBar
 
 
-#def closeFakeFactor():
-#  from ROOT import closeFakeFactor as _closeFakeFactor
-#  _closeFakeFactor()
-#modulepath = os.path.dirname(__file__)
-#if GLOB.loadMacros:
-#  ###gROOT.Macro('PlotTools/weightJEta1.C+')
-#  if doFakeRate:
-#    gROOT.Macro(modulepath+'/fakeRate/fakeRate.C+O')
-#    from ROOT import readFakeRateFile
-#    readFakeRateFile("MVAoldDM2017v2",'T',GLOB.year)
-#  elif doFakeFactor:
-#    #gROOT.ProcessLine(".include /shome/ineuteli/analysis/CMSSW_10_3_3/src/")
-#    #gSystem.Load("/shome/ineuteli/analysis/CMSSW_10_3_3/lib/slc6_amd64_gcc700/libHTTutilitiesJet2TauFakes.so")
-#    gROOT.Macro(modulepath+'/fakeFactor/fakeFactor.C+O')
-#    from ROOT import loadFakeFactors, setFakeFactorFractions, getFakeFactorSysIndex
-#    import atexit
-#    atexit.register(closeFakeFactor)
-#  #gROOT.Macro('PlotTools/leptonTauFake/leptonTauFake.C+')
-#  #gROOT.Macro('PlotTools/lepEff/lepEff.C+')
-#  #gROOT.Macro('PlotTools/Zpt/zptweight.C+')
-#  #gROOT.Macro('PlotTools/pileup/pileup.C+')
-#  #gROOT.Macro("prefire/prefireAnalysis.C+")
-
 
 class SampleSet(object):
   """Collect samples into one set to draw histgrams from trees for data/MC comparisons,

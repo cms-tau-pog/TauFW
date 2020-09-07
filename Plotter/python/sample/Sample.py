@@ -109,7 +109,7 @@ class Sample(object):
     name   = "Sample name".ljust(justname)
     title  = "title".ljust(justtitle)
     if merged:
-      print ">>> \033[4m%s %s %10s %12s %15s %9s  %s\033[0m"%(
+      print ">>> \033[4m%s %s %10s %12s %17s %9s  %s\033[0m"%(
                  name,title,"xsec [pb]","nevents","sumweights","norm","weight"+' '*8)
     else:
       print ">>> \033[4m%s %s %s\033[0m"%(name,title+' '*5,"Extra cut"+' '*18)
@@ -122,7 +122,7 @@ class Sample(object):
     """Returns string that can be used as a row in a samples summary table"""
     name   = self.name.ljust(justname-indent)
     title  = self.title.ljust(justtitle)
-    string = ">>> %s%s %s %10.2f %12.1f %15.2f %9.3f  %s"%(
+    string = ">>> %s%s %s %10.2f %12.1f %17.1f %9.4f  %s"%(
              pre,name,title,self.xsec,self.nevents,self.sumweights,self.norm,self.extraweight)
     if split:
       string += self.splitrows(indent=indent,justname=justname,justtitle=justtitle)

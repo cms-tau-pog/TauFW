@@ -120,6 +120,8 @@ class Variable(object):
     if not args:
       args = self.nbins,self.min,self.max
     newdict = self.__dict__.copy()
+    if 'fname' in kwargs:
+      kwargs['filename'] = kwargs['fname']
     if 'filename' in kwargs:
       kwargs['filename'] = kwargs['filename'].replace('$FILE',self.filename)
     for key in kwargs:

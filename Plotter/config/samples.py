@@ -1,6 +1,6 @@
 # Description: Common configuration file for creating pico sample set plotting scripts
 import re
-from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, setera, getyear, Sel, Var
+from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, setera, getyear, Sel, Var
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):

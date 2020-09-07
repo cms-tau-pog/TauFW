@@ -3,10 +3,11 @@ import os, re, shutil
 import importlib, traceback
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from TauFW.common.tools.log import LOG
+from TauFW.common.tools.utils import ensurelist
 basedir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 
-def writetemplate(templatename,outfilename,sublist=[],rmlist=[],**kwargs):
+def writetemplate(templatename,outfilename,sublist=[],rmlist=[],applist=[],**kwargs):
   """Write file from template."""
   sublist = [(re.compile("\$%s(?!\w)"%p),str(v)) for p, v in sublist]
   with open(templatename,'r') as template:
@@ -21,6 +22,8 @@ def writetemplate(templatename,outfilename,sublist=[],rmlist=[],**kwargs):
             #line = line.replace(pattern,str(value))
             line = regexp.sub(value,line)
         file.write(line)
+      for line in ensurelist(applist):
+        file.write(line+'\n') # append
   
 
 def ensuredir(*dirnames,**kwargs):
@@ -96,7 +99,7 @@ def getline(fname,iline):
   return target
   
 
-def ensureTFile(filename,option='READ'):
+def ensureTFile(filename,option='READ',verb=0):
   """Open TFile, checking if the file in the given path exists."""
   if isinstance(filename,str):
     if ':' not in filename and not os.path.isfile(filename):
@@ -105,6 +108,7 @@ def ensureTFile(filename,option='READ'):
     file = ROOT.TFile.Open(filename,option)
     if not file or file.IsZombie():
       LOG.throw(IOError,'Could not open file by name %r!'%(filename))
+    LOG.verb("Opened file %s..."%(filename),verb,1)
   else:
     file = filename
     if not file or (hasattr(file,'IsZombie') and file.IsZombie()):
