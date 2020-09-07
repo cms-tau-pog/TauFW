@@ -624,9 +624,9 @@ def preparejobs(args):
           if checkqueue==0 and not jobs: # check jobs only once
             batch = getbatch(CONFIG,verb=verbosity)
             jobs  = batch.jobs(verb=verbosity-1)
-          infiles, chunkdict = checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,
-                                            checkqueue=checkqueue,das=checkdas,verb=verbosity)
-          nevents = sample.jobcfg['nevents'] # updated in checkchuncks
+          infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
+                                           checkqueue=checkqueue,das=checkdas,verb=verbosity)
+          nevents = sample.jobcfg['nevents'] # updated in checkchunks
         else: # first-time submission
           infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
           if checkdas:
@@ -719,7 +719,7 @@ def preparejobs(args):
 #   CHECK JOBS   #
 ##################
 
-def checkchuncks(sample,**kwargs):
+def checkchunks(sample,**kwargs):
   """Help function to check jobs status: success, pending, failed or missing.
   Return list of files to be resubmitted, and a dictionary between chunk index and input files."""
   outdir       = kwargs.get('outdir',     None  )
@@ -1228,8 +1228,8 @@ def main_status(args):
             print ">>> %-12s = %s"%('infiles',infiles)
             if subcmd=='hadd':
               print ">>> %-12s = %r"%('outfile',outfile)
-          resubfiles, chunkdict = checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,
-                                               checkqueue=checkqueue,das=checkdas,verb=verbosity)
+          resubfiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
+                                              checkqueue=checkqueue,das=checkdas,verb=verbosity)
           if len(resubfiles)>0 and not force:
             LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(len(resubfiles))+
                         "Please use -f or --force to %s anyway.\n"%(subcmd,subcmd))
@@ -1274,8 +1274,8 @@ def main_status(args):
             print ">>> %-12s = %r"%('jobdir',jobdir)
             print ">>> %-12s = %r"%('outdir',outdir)
             print ">>> %-12s = %r"%('logdir',logdir)
-          checkchuncks(sample,channel=channel,tag=tag,jobs=jobs,showlogs=showlogs,
-                       checkqueue=checkqueue,das=checkdas,verb=verbosity)
+          checkchunks(sample,channel=channel,tag=tag,jobs=jobs,showlogs=showlogs,
+                      checkqueue=checkqueue,das=checkdas,verb=verbosity)
         
         print
       

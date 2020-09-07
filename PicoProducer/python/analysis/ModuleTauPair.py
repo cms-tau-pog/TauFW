@@ -28,22 +28,22 @@ class ModuleTauPair(Module):
     self.ismc       = self.dtype=='mc'
     self.isdata     = self.dtype=='data' or self.dtype=='embed'
     self.isembed    = self.dtype=='embed'
-    self.channel    = kwargs.get('channel', 'none'         )
+    self.channel    = kwargs.get('channel', 'none'         ) # channel name
     self.year       = kwargs.get('year',    2017           ) # integer, e.g. 2017, 2018
     self.era        = kwargs.get('era',     '2017'         ) # string, e.g. '2017', 'UL2017'
-    self.tes        = kwargs.get('tes',     None           ) # if None, recommended values are applied
-    self.tessys     = kwargs.get('tessys',  None           ) # vary TES: 'Up', 'Down'
-    self.ees        = kwargs.get('ees',     1.0            )
-    self.ltf        = kwargs.get('ltf',     1.0            ) or 1.0
-    self.jtf        = kwargs.get('jtf',     1.0            ) or 1.0
+    self.ees        = kwargs.get('ees',     1.0            ) # electron energy scale
+    self.tes        = kwargs.get('tes',     None           ) # tau energy scale; if None, recommended values are applied
+    self.tessys     = kwargs.get('tessys',  None           ) # vary TES: 'Up' or 'Down'
+    self.ltf        = kwargs.get('ltf',     1.0            ) or 1.0 # lepton-tau-fake energy scale
+    self.jtf        = kwargs.get('jtf',     1.0            ) or 1.0 # jet-tau-fake energy scale
     self.tauwp      = kwargs.get('tauwp',   0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose
-    self.dotoppt    = kwargs.get('toppt',   'TT' in fname  )
-    self.dozpt      = kwargs.get('zpt',     'DY' in fname  )
-    self.dorecoil   = kwargs.get('recoil',  False          ) #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
+    self.dotoppt    = kwargs.get('toppt',   'TT' in fname  ) # top pT reweighting
+    self.dozpt      = kwargs.get('zpt',     'DY' in fname  ) # Z pT reweighting
+    self.dorecoil   = kwargs.get('recoil',  False          ) # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
     self.dotight    = kwargs.get('tight',   self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
     self.dojec      = kwargs.get('jec',     True           ) and self.ismc #and self.year==2016 #False
-    self.dojecsys   = kwargs.get('jecsys',  self.dojec     ) and not self.dotight and self.ismc #and self.dojec #and False
-    self.verbosity  = kwargs.get('verb',    0              )
+    self.dojecsys   = kwargs.get('jecsys',  self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
+    self.verbosity  = kwargs.get('verb',    0              ) # verbosity
     self.jetCutPt   = 30
     self.bjetCutEta = 2.7
     self.isUL       = 'UL' in self.era

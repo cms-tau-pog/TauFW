@@ -1,9 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-import os
 from TauFW.common.tools.utils import execute
 from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
-import getpass, platform
 
 
 class T2_PSI(StorageSystem):

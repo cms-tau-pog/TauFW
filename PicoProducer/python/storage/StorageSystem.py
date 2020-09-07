@@ -121,6 +121,7 @@ class StorageSystem(object):
     Use the 'filter' option to filter the list of file names with some pattern."""
     verb     = kwargs.get('verb',self.verbosity)
     fileurl  = kwargs.get('url', self.fileurl)
+    filter   = kwargs.get('filter',None) # filter with glob pattern, like '*' or '[0-9]' wildcards
     path     = self.expandpath(*paths)
     filelist = self.ls(path,**kwargs)
     if fileurl and path.startswith(self.parent):
@@ -129,20 +130,24 @@ class StorageSystem(object):
     else:
       fileurl = ""
     for i, file in enumerate(filelist):
+      if filter and not fnmatch(file,filter): continue
       filelist[i] = fileurl+os.path.join(path,file)
     return filelist
   
   def cp(self,source,target=None,**kwargs):
     """Copy files."""
+    dryrun = kwargs.get('dry', False)
     verb   = kwargs.get('verb',self.verbosity)
     source = self.expandpath(source,url=self.cpurl)
     target = self.expandpath(target,url=self.cpurl)
-    return self.execute("%s %s %s"%(self.cpcmd,source,target),verb=verb)
+    return self.execute("%s %s %s"%(self.cpcmd,source,target),dry=dryrun,verb=verb)
   
   def hadd(self,sources,target,**kwargs):
     """Hadd files. Create intermediate target file if needed."""
     target  = self.expandpath(target,here=True)
+    dryrun  = kwargs.get('dry',    False)
     verb    = kwargs.get('verb',   self.verbosity)
+    fileurl = kwargs.get('url',    self.fileurl)
     tmpdir  = kwargs.get('tmpdir', target.startswith(self.parent) and self.cpurl!='')
     htarget = target
     if tmpdir:
@@ -154,17 +159,24 @@ class StorageSystem(object):
       sources = [ sources ]
     source = ""
     for i, file in enumerate(sources,1):
-      source += self.expandpath(file,url=self.fileurl)+' '
+      fname = os.path.basename(file)
+      if '$PATH' in file and fileurl and isglob(fname): # expand glob pattern
+        parent = os.path.dirname(file)
+        files  = self.getfiles(parent,filter=fname,url=fileurl)
+        source += ' '.join(files)+' '
+      else:
+        source += self.expandpath(file,url=fileurl)+' '
     source = source.strip()
     if verb>=2:
       print ">>> %-10s = %r"%('sources',sources)
       print ">>> %-10s = %r"%('source',source)
       print ">>> %-10s = %r"%('target',target)
       print ">>> %-10s = %r"%('htarget',htarget)
-    out = self.execute("%s %s %s"%(self.haddcmd,htarget,source),verb=verb)
+    out = self.execute("%s %s %s"%(self.haddcmd,htarget,source),dry=dryrun,verb=verb)
     if tmpdir:
-      cpout = self.cp(htarget,target,verb=verb)
-      rmfile(htarget)
+      cpout = self.cp(htarget,target,dry=dryrun,verb=verb)
+      if not dryrun:
+        rmfile(htarget)
     return out
   
   def rm(self,*paths,**kwargs):

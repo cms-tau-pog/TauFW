@@ -282,6 +282,7 @@ as it is preferred to keep skimmed nanoAOD files split for batch submission.
 Systematic variations can be run by passing extra keyword options via `-E`, e.g.:
 ```
 pico.py run -y 2016 -c mutau -s DY TT -E 'tes=1.03' -t _TES1p03
+pico.py run -y 2016 -c mutau -s DY TT -E 'tes=0.97' -t _TES0p97
 ```
 The keyword argument, e.g. `tes` for tau energy scale,
 must already be defined in the analysis module linked to the channel, e.g. `ModuleMuTau`.
@@ -289,10 +290,12 @@ And extra tag should be added with `-t` to avoid overwriting the nominal analysi
 As a shortcut, you can define a new channel with the same module, but a different setting:
 ```
 pico.py channel mutau_TES1p03 'ModuleMuTau tes=1.03'
+pico.py channel mutau_TES0p97 'ModuleMuTau tes=0.97'
 pico.py run -y 2016 -c mutau_TES1p03 -s DY TT
+pico.py run -y 2016 -c mutau_TES0p97 -s DY TT
 ```
 After you defined your systematic channels,
-you can edit and use the `vary.sh` script to quickly run variations, e.g.
+you can edit and use the [`vary.sh`](utils/vary.sh) script to quickly run multiple variations, e.g.
 ```
 cp utils/vary.sh ./
 vary.sh run -c mutau -y UL2017 -T

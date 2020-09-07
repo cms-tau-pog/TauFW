@@ -53,7 +53,7 @@ infiles   = args.infiles or [
 ]
 if nfiles>0:
   infiles = infiles[:nfiles]
-if dtype==None:
+if dtype==None: # guess type
   if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma']):
     dtype = 'data'
   else:
@@ -66,7 +66,7 @@ if dtype=='data':
   json  = getjson(era,dtype)
   if doJEC:
     calib = getjmecalib(False,era,runPeriod=period,redojec=doJEC,jetType='AK4PFchs',
-                        noGroom=True,metBranchName=MET,applySmearing=True)()
+                        noGroom=True,metBranchName=MET,applySmearing=False)()
     modules.append(calib)
 elif doJEC or doJECSys:
   uncs  = 'Total' if doJECSys else ''

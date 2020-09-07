@@ -247,10 +247,10 @@ def compareMCProfiles(samples,channel,era,tag=""):
   avehist.Scale(1./avehist.Integral())
   pname  = "%s/pileup_MC_%s%s"%(outdir,era,tag)
   xtitle = "Number of true interactions"
-  plot   = Plot(hists)
-  plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="Data / MC",
+  plot   = Plot(hists,ratio=True)
+  plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="MC / Ave.",
             textsize=0.032,rmin=0.45,rmax=1.55,denom=2,colors=colors)
-  plot.drawlegend('TCR')
+  plot.drawlegend('TTR',tsize=0.04,latex=False)
   plot.saveas(pname+".png")
   plot.saveas(pname+".pdf")
   plot.close(keep=True)
@@ -287,7 +287,7 @@ def compareDataMCProfiles(datahist,mchist,era,minbias,tag="",rmin=0.75,rmax=1.25
   
   xtitle = "Number of interactions"
   pname  = "%s/pileup_Data-MC_%s_%s%s"%(outdir,era,str(minbias).replace('.','p'),tag)
-  plot   = Plot(hists)
+  plot   = Plot(hists,ratio=True)
   plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="Data / MC",
             textsize=0.045,rmin=rmin,rmax=rmax,denom=2,colors=colors)
   plot.drawlegend('TCR',width=width)

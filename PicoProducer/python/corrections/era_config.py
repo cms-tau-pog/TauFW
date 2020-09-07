@@ -81,7 +81,7 @@ def getjmecalib(era,period="",redoJEC=False,doSys=False,dtype='data'):
     #    return calibrators[eraset]()
     #raise "Could not find an appropiate calibrator for year %s and era %s..."%(year,period)
     return createJMECorrector(False,era,runPeriod=period,jesUncert=jmeUncs,redojec=redoJEC,jetType='AK4PFchs',
-                              noGroom=True,metBranchName=MET,applySmearing=True)()
+                              noGroom=True,metBranchName=MET,applySmearing=False)()
   else:
     jmeUncs = 'Total' if doSys else ''
     MET     = 'METFixEE2017' if (year==2017 and 'UL' not in era) else 'MET'
