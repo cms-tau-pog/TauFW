@@ -172,23 +172,25 @@ class ModuleMuMu(ModuleTauPair):
       maxtau = tau
       ptmax  = tau.pt
     if maxtau>-1:
-      self.out.pt_3[0]                     = tau.pt
-      self.out.eta_3[0]                    = tau.eta
-      self.out.m_3[0]                      = tau.mass
-      self.out.q_3[0]                      = tau.charge
-      self.out.dm_3[0]                     = tau.decayMode
-      self.out.iso_3[0]                    = tau.rawIso
-      self.out.idiso_2[0]                  = idIso(tau) # cut-based tau isolation (rawIso)
-      self.out.idAntiEle_3[0]              = tau.idAntiEle
-      self.out.idAntiMu_3[0]               = tau.idAntiMu
-      self.out.idMVAoldDM2017v2_3[0]       = tau.idMVAoldDM2017v2
-      self.out.idMVAnewDM2017v2_3[0]       = tau.idMVAnewDM2017v2
-      self.out.idDeepTau2017v2p1VSe_3[0]   = tau.idDeepTau2017v2p1VSe
-      self.out.idDeepTau2017v2p1VSmu_3[0]  = tau.idDeepTau2017v2p1VSmu
-      self.out.idDeepTau2017v2p1VSjet_3[0] = tau.idDeepTau2017v2p1VSjet
-      self.out.jpt_match_3[0], self.out.jpt_genmatch_3[0] = matchtaujet(event,muon2,self.ismc)
+      self.out.pt_3[0]                     = maxtau.pt
+      self.out.eta_3[0]                    = maxtau.eta
+      self.out.m_3[0]                      = maxtau.mass
+      self.out.q_3[0]                      = maxtau.charge
+      self.out.dm_3[0]                     = maxtau.decayMode
+      self.out.iso_3[0]                    = maxtau.rawIso
+      self.out.idiso_2[0]                  = idIso(maxtau) # cut-based tau isolation (rawIso)
+      self.out.idAntiEle_3[0]              = maxtau.idAntiEle
+      self.out.idAntiMu_3[0]               = maxtau.idAntiMu
+      self.out.idMVAoldDM2017v2_3[0]       = maxtau.idMVAoldDM2017v2
+      self.out.idMVAnewDM2017v2_3[0]       = maxtau.idMVAnewDM2017v2
+      self.out.idDeepTau2017v2p1VSe_3[0]   = maxtau.idDeepTau2017v2p1VSe
+      self.out.idDeepTau2017v2p1VSmu_3[0]  = maxtau.idDeepTau2017v2p1VSmu
+      self.out.idDeepTau2017v2p1VSjet_3[0] = maxtau.idDeepTau2017v2p1VSjet
       if self.ismc:
-        self.out.genmatch_3[0]             = genmatch(event,maxId) #ord(tau.genPartFlav)
+        self.out.jpt_match_3[0], self.out.jpt_genmatch_3[0] = matchtaujet(event,maxtau,self.ismc)
+        self.out.genmatch_3[0]             = maxtau.genPartFlav
+      else:
+        self.out.jpt_match_3[0] = matchtaujet(event,maxtau,self.ismc)[0]
     else:
       self.out.pt_3[0]                     = -1
       self.out.eta_3[0]                    = -9
@@ -204,8 +206,8 @@ class ModuleMuMu(ModuleTauPair):
       self.out.idDeepTau2017v2p1VSjet_3[0] = -1
       self.out.iso_3[0]                    = -1
       self.out.jpt_match_3[0]              = -1
-      self.out.jpt_genmatch_3[0]           = -1
       if self.ismc:
+        self.out.jpt_genmatch_3[0]         = -1
         self.out.genmatch_3[0]             = -1
     
     # GENERATOR
