@@ -341,7 +341,7 @@ def main_submit(args):
 ### Storage system
 Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py)
 in [`python/storage/`](python/storage).
-Have a look at [`StorageSystem`](python/storage/T3_PSI.py) as an example.
+Have a look at [`T3_PSI`](python/storage/T3_PSI.py) as an example of a subclass.
 Currently, the code automatically assigns a path to a storage system, so you also need to 
 edit `getstorage` in [`python/storage/utils.py`](python/storage/utils.py), e.g.
 ```
