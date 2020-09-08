@@ -114,4 +114,4 @@ if copydir and outdir!=copydir:
   rmfile(outfiles)
 
 # DONE
-print ">>> skimjob.py done after %.1f seconds"%(time.time()-time0)
+print ">>> skimjob_exercise.py done after %.1f seconds"%(time.time()-time0)
