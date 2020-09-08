@@ -8,7 +8,7 @@ from collections import OrderedDict
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.file import ensuredir, ensurefile
 from TauFW.common.tools.log import Logger, color, bold, header
-from TauFW.PicoProducer.storage.utils import getsedir, gettmpdir
+from TauFW.PicoProducer.storage.utils import getsedir, gettmpdirs
 
 
 # DEFAULTS
@@ -28,18 +28,20 @@ _channels     = OrderedDict([
 ])
 _dtypes       = ['mc','data','embed']
 _sedir        = getsedir()                       # guess storage element on current host
-_tmpdir       = gettmpdir()                      # temporary dir for creating intermediate hadd files
+_tmpskimdir, _tmphadddir = gettmpdirs()          # _tmphadddir: temporary dir for creating intermediate hadd files
+                                                 # _tmpskimdir: temporary dir for creating skimmed file before copying to outdir
 _jobdir       = "output/$ERA/$CHANNEL/$SAMPLE"   # for job config and log files
-_outdir       = _tmpdir+_jobdir                  # for job output
+_outdir       = _tmphadddir+_jobdir              # for job output
 _picodir      = _sedir+"analysis/$ERA/$GROUP"    # for storage of analysis ("pico") tuples after hadd
 _nanodir      = _sedir+"samples/nano/$ERA/$DAS"  # for storage of (skimmed) nanoAOD
 _filelistdir  = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
 _batchsystem  = 'HTCondor'
 _nfilesperjob = 1
 _cfgdefaults  = OrderedDict([
+  ('channels',_channels), ('eras',_eras),
   ('basedir',basedir),
   ('jobdir',_jobdir),     ('outdir',_outdir), ('nanodir',_nanodir), ('picodir',_picodir),
-  ('channels',_channels), ('eras',_eras),
+  ('tmpskimdir',_tmpskimdir),
   ('batch',_batchsystem), ('nfilesperjob',_nfilesperjob), ('filelistdir',_filelistdir),
 ])
 sys.path.append(basedir)

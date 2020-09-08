@@ -285,7 +285,10 @@ pico.py run -y 2016 -c mutau -s DY TT -E 'tes=1.03' -t _TES1p03
 pico.py run -y 2016 -c mutau -s DY TT -E 'tes=0.97' -t _TES0p97
 ```
 The keyword argument, e.g. `tes` for tau energy scale,
-must already be defined in the analysis module linked to the channel, e.g. `ModuleMuTau`.
+must already be defined in the analysis module linked to the channel, see e.g.
+[here](https://github.com/cms-tau-pog/TauFW/blob/91206107e6adb564ef4fb8b92e023a0c1744a7f8/PicoProducer/python/analysis/ModuleTauPair.py#L35)
+[here](https://github.com/cms-tau-pog/TauFW/blob/91206107e6adb564ef4fb8b92e023a0c1744a7f8/PicoProducer/python/analysis/ModuleMuTau.py#L121-L129)
+for `ModuleMuTau`.
 And extra tag should be added with `-t` to avoid overwriting the nominal analysis output.
 As a shortcut, you can define a new channel with the same module, but a different setting:
 ```

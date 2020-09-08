@@ -505,11 +505,12 @@ def preparejobs(args):
   dasfiles     = args.dasfiles
   checkdas     = args.checkdas
   checkqueue   = args.checkqueue
-  extraopts    = args.extraopts # extra options for module (for all runs)
+  extraopts    = args.extraopts  # extra options for module (for all runs)
   prefetch     = args.prefetch
   nfilesperjob = args.nfilesperjob
   split_nfpj   = args.split_nfpj
-  testrun      = args.testrun
+  testrun      = args.testrun    # only run a few test jobs
+  tmpdir       = args.tmpdir or CONFIG.get('tmpskimdir',None) # temporary dir for creating skimmed file before copying to outdir
   verbosity    = args.verbosity
   jobs         = [ ]
   
@@ -600,6 +601,7 @@ def preparejobs(args):
           print ">>> %-12s = %r"%('prefetch',prefetch)
           print ">>> %-12s = %r"%('cfgdir',cfgdir)
           print ">>> %-12s = %r"%('logdir',logdir)
+          print ">>> %-12s = %r"%('tmpdir',tmpdir)
           print ">>> %-12s = %r"%('cfgname',cfgname)
           print ">>> %-12s = %r"%('joblist',joblist)
           print ">>> %-12s = %s"%('try',subtry)
@@ -665,30 +667,32 @@ def preparejobs(args):
             ichunk = 0
             for fchunk in fchunks:
               while ichunk in chunkdict:
-                ichunk  += 1 # allows for different nfilesperjob on resubmission
+                ichunk   += 1 # allows for different nfilesperjob on resubmission
                 continue
-              jobfiles   = ' '.join(fchunk) # list of input files
-              filetag    = postfix
+              jobfiles    = ' '.join(fchunk) # list of input files
+              filetag     = postfix
               if not skim:
-                filetag += "_%d"%(ichunk)
-              jobcmd     = processor
+                filetag  += "_%d"%(ichunk)
+              jobcmd      = processor
               if procopts:
-                jobcmd  += " %s"%(procopts)
+                jobcmd   += " %s"%(procopts)
               if skim:
-                jobcmd  += " -y %s -d '%s' --copydir %s -t %s"%(era,dtype,outdir,filetag)
+                jobcmd   += " -y %s -d '%s' -t %s --copydir %s"%(era,dtype,filetag,outdir)
+                if tmpdir:
+                  jobcmd += " -o %s"%(tmpdir) # temporary file for job output before copying
               ###elif channel=='test':
               ###  jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
               else:
-                jobcmd  += " -y %s -d %r -c %s -M %s --copydir %s -t %s"%(era,dtype,channel,module,outdir,filetag)
+                jobcmd   += " -y %s -d %r -c %s -M %s --copydir %s -t %s"%(era,dtype,channel,module,outdir,filetag)
               if prefetch:
-                jobcmd  += " -p"
+                jobcmd   += " -p"
               if testrun:
-                jobcmd  += " -m %d"%(testrun) # process a limited amount of events
+                jobcmd   += " -m %d"%(testrun) # process a limited amount of events
               if extraopts_:
-                jobcmd  += " --opt '%s'"%("' '".join(extraopts_))
-              jobcmd    += " -i %s"%(jobfiles) # add last
+                jobcmd   += " --opt '%s'"%("' '".join(extraopts_))
+              jobcmd     += " -i %s"%(jobfiles) # add last
               if args.verbosity>=1:
-                print jobcmd
+                print ">>> chunk=%d, jobcmd=%r"%(ichunk,jobcmd)
               listfile.write(jobcmd+'\n')
               chunkdict[ichunk] = fchunk
               chunks.append(ichunk)
@@ -1056,11 +1060,11 @@ def main_submit(args):
   
   verbosity = args.verbosity
   resubmit  = args.subcommand=='resubmit'
-  force     = args.force #or True
-  dryrun    = args.dryrun #or True
-  testrun   = args.testrun #or True
-  queue     = args.queue
-  batchopts = args.batchopts
+  force     = args.force
+  dryrun    = args.dryrun    # prepare job and submit command, but do not submit
+  testrun   = args.testrun   # only run a few test jobs
+  queue     = args.queue     # queue option for the batch system
+  batchopts = args.batchopts # extra options for the batch system
   batch     = getbatch(CONFIG,verb=verbosity+1)
   
   for jobcfg in preparejobs(args):
@@ -1400,6 +1404,8 @@ if __name__ == "__main__":
                                                 help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
+  parser_run.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
+                                                help="for skimming only: temporary output directory befor copying to outdir")
   parser_sts.add_argument('-l','--log',         dest='showlogs', type=int, nargs='?', const=-1, default=0,
                           metavar='NLOGS',      help="show log files of failed jobs: 0 (show none), -1 (show all), n (show max n)" )
   #parser_hdd.add_argument('--keep',             dest='cleanup', action='store_false',

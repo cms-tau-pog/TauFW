@@ -24,17 +24,18 @@ def getsedir():
   return sedir
   
 
-def gettmpdir():
+def gettmpdirs():
   """Guess the temporary directory for a given user and host."""
   user  = getpass.getuser()
-  sedir = ""
+  tmphadddir = "/tmp/%s/"%(user) # temporary dir for creating intermediate hadd files
+  tmpskimdir = ""                # temporary dir for creating skimmed file before copying to outdir
   if 'lxplus' in host:
-    sedir = "/eos/user/%s/%s/"%(user[0],user)
+    tmphadddir = "/eos/user/%s/%s/"%(user[0],user)
   elif "t3" in host and "psi.ch" in host:
-    sedir = basedir.rstrip('/')+'/' #output/$ERA/$CHANNEL/$SAMPLE/ #"/scratch/%s/"%(user)
+    tmphadddir = basedir.rstrip('/')+'/' #output/$ERA/$CHANNEL/$SAMPLE/ #"/scratch/%s/"%(user)
   elif "etp" in host:
-    sedir = "/tmp/{}/".format(user)
-  return sedir
+    tmphadddir = "/tmp/{}/".format(user)
+  return tmpskimdir, tmphadddir
   
 
 def getstorage(path,verb=0,ensure=False):
