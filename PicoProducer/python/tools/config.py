@@ -187,6 +187,9 @@ class Config(object):
       self._dict = json.load(infile,object_pairs_hook=OrderedDict)
     return self._dict
   
+  def get(self,*args,**kwargs):
+    self._dict.get(*args,**kwargs)
+  
   def pop(self,*args,**kwargs):
     self._dict.pop(*args,**kwargs)
   
