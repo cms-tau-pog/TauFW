@@ -1344,6 +1344,8 @@ if __name__ == "__main__":
                                                 help='number of files per job, default=%d'%(CONFIG.nfilesperjob))
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1,
                           metavar='N',          help="divide default number of files per job, default=%(const)d" )
+  parser_job.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
+                                                help="for skimming only: temporary output directory befor copying to outdir")
   
   # SUBCOMMANDS
   subparsers = parser.add_subparsers(title="sub-commands",dest='subcommand',help="sub-command help")
@@ -1404,8 +1406,6 @@ if __name__ == "__main__":
                                                 help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
-  parser_run.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
-                                                help="for skimming only: temporary output directory befor copying to outdir")
   parser_sts.add_argument('-l','--log',         dest='showlogs', type=int, nargs='?', const=-1, default=0,
                           metavar='NLOGS',      help="show log files of failed jobs: 0 (show none), -1 (show all), n (show max n)" )
   #parser_hdd.add_argument('--keep',             dest='cleanup', action='store_false',
