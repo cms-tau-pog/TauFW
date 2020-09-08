@@ -300,7 +300,7 @@ class ModuleTauPair(Module):
     if self.dozpt:
       zboson = getzboson(event)
       self.out.m_moth[0]           = zboson.M()
-      self.out.m_moth[0]           = zboson.Pt()
+      self.out.pt_moth[0]          = zboson.Pt()
       self.out.zptweight[0]        = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
     
     elif self.dotoppt:
