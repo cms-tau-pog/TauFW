@@ -87,6 +87,9 @@ Note the directories can contain variables with `$` like
 `$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$DAS`
 to create a custom hierarchy and format.
 
+The output directories `nanodir` and `picodir` can be special storage systems.
+If they need special commands for accessing and writing, please see the [instructions below](#Storage-system).
+
 Besides these variables, there are also dictionaries to link a channel short name to a skimming or analysis code,
 or an era (year) to a list of samples.
 
@@ -338,6 +341,7 @@ def main_submit(args):
 ### Storage system
 Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py)
 in [`python/storage/`](python/storage).
+Have a look at [`StorageSystem`](python/storage/T3_PSI.py) as an example.
 Currently, the code automatically assigns a path to a storage system, so you also need to 
 edit `getstorage` in [`python/storage/utils.py`](python/storage/utils.py), e.g.
 ```
