@@ -75,7 +75,7 @@ elif doJEC or doJECSys:
   modules.append(calib)
 
 # PRESELECTION
-preselection = "HLT_IsoMu27 && Muon_pt > 28 && Tau_pt > 20"
+preselection = "HLT_IsoMu27 && Muon_pt > 28 && Tau_pt > 15 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5"
 
 # PRINT
 print '-'*80
