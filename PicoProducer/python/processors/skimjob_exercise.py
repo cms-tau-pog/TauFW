@@ -95,7 +95,7 @@ print ">>> %-12s = %s"%('prefetch',prefetch)
 print ">>> %-12s = %s"%('doJEC',doJEC)
 print ">>> %-12s = %s"%('doJECSys',doJECSys)
 print ">>> %-12s = %s"%('cwd',os.getcwd())
-print ">>> %-12s = %s"%('preselciton',preselection)
+print ">>> %-12s = %s"%('preselection',preselection)
 print '-'*80
 
 # RUN
