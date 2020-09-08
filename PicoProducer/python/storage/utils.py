@@ -60,7 +60,7 @@ def getstorage(path,verb=0,ensure=False):
     from TauFW.PicoProducer.storage.StorageSystem import Local
     storage = Local(path,ensure=ensure,verb=verb)
     if not os.path.exists(path):
-      LOG.warning("Could not find storage directory %r. Make sure it exists and is mounted. "%(path)
+      LOG.warning("Could not find storage directory %r. Make sure it exists and is mounted. "%(path)+\
                   "If it is a special system, you need to subclass StorageSystem, see "
                   "https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer#Storage-system")
   if verb>=2:
