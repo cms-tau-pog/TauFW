@@ -36,7 +36,7 @@ class ModuleTauPair(Module):
     self.tessys     = kwargs.get('tessys',  None           ) # vary TES: 'Up' or 'Down'
     self.ltf        = kwargs.get('ltf',     1.0            ) or 1.0 # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',     1.0            ) or 1.0 # jet-tau-fake energy scale
-    self.tauwp      = kwargs.get('tauwp',   0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose
+    self.tauwp      = kwargs.get('tauwp',   0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',   'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',     'DY' in fname  ) # Z pT reweighting
     self.dorecoil   = kwargs.get('recoil',  False          ) # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
