@@ -68,7 +68,7 @@ class Stack(Plot):
     ymax         = kwargs.get('ymax',         self.ymax       )
     rmin         = kwargs.get('rmin',         self.rmin       ) or 0.45 # ratio ymin
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
-    ratiorange   = kwargs.get('ratiorange',   None            ) # ratio range around 1.0
+    ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
     xtitleoffset = kwargs.get('xtitleoffset', 1.0             )
@@ -190,7 +190,7 @@ class Stack(Plot):
       self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,errorX=errorX,option=roption)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
-                   ratiorange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
+                   rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
       self.canvas.cd(1)
     
 

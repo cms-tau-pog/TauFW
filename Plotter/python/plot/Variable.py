@@ -49,6 +49,7 @@ class Variable(object):
     self.ymax         = kwargs.get('ymax',        None          )
     self.rmin         = kwargs.get('rmin',        None          )
     self.rmax         = kwargs.get('rmax',        None          )
+    self.ratiorange   = kwargs.get('rrange',      None          )
     self.logx         = kwargs.get('logx',        False         )
     self.logy         = kwargs.get('logy',        False         )
     self.ymargin      = kwargs.get('ymargin',     None          ) # margin between hist maximum and plot's top

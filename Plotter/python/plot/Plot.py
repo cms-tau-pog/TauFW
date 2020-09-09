@@ -76,6 +76,7 @@ class Plot(object):
       self.ymax       = kwargs.get('ymax',       variable.ymax        )
       self.rmin       = kwargs.get('rmin',       variable.rmin        )
       self.rmax       = kwargs.get('rmax',       variable.rmax        )
+      self.ratiorange = kwargs.get('rrange',     variable.ratiorange  )
       self.binlabels  = kwargs.get('binlabels',  variable.binlabels   )
       self.logx       = kwargs.get('logx',       variable.logx        )
       self.logy       = kwargs.get('logy',       variable.logy        )
@@ -95,6 +96,7 @@ class Plot(object):
       self.ymax       = kwargs.get('ymax',       None                 )
       self.rmin       = kwargs.get('rmin',       None                 )
       self.rmax       = kwargs.get('rmax',       None                 )
+      self.ratiorange = kwargs.get('rrange',     None                 )
       self.binlabels  = kwargs.get('binlabels',  None                 )
       self.logx       = kwargs.get('logx',       False                )
       self.logy       = kwargs.get('logy',       False                )
@@ -149,7 +151,7 @@ class Plot(object):
     ymax         = kwargs.get('ymax',         self.ymax       )
     rmin         = kwargs.get('rmin',         self.rmin       ) or 0.45 # ratio ymin
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
-    ratiorange   = kwargs.get('ratiorange',   None            ) # ratio range around 1.0
+    ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
     xtitleoffset = kwargs.get('xtitleoffset', 1.0             )
@@ -276,7 +278,7 @@ class Plot(object):
       self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
-                   ratiorange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
+                   rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
       self.canvas.cd(1)
     
   
@@ -398,7 +400,7 @@ class Plot(object):
     xmax          = kwargs.get('xmax',         xmax             )
     ymin          = kwargs.get('ymin',         None             )
     ymax          = kwargs.get('ymax',         None             )
-    ratiorange    = kwargs.get('ratiorange',   None             )
+    ratiorange    = kwargs.get('rrange',       None             )
     binlabels     = kwargs.get('binlabels',    None             )
     intbins       = kwargs.get('intbins',      True             ) # allow integer binning
     logx          = kwargs.get('logx',         False            )

@@ -140,7 +140,7 @@ def ensureinit(*paths,**kwargs):
       file.write("# Generated%s to allow import of the sample list modules\n"%(script))
   
 
-def gethist(file,histname,setdir=True,close=None,retfile=False):
+def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True):
   """Get histogram from a given file."""
   if isinstance(file,str): # open TFile
     file = ensureTFile(file)
@@ -150,7 +150,10 @@ def gethist(file,histname,setdir=True,close=None,retfile=False):
     LOG.throw(IOError,'Could not open file by name "%s"'%(filename))
   hist = file.Get(histname)
   if not hist:
-    LOG.throw(IOError,'Did not find histogram %r in file %s!'%(histname,file.GetName()))
+    if fatal:
+      LOG.throw(IOError,'Did not find histogram %r in file %s!'%(histname,file.GetName()))
+    else:
+      LOG.warning('Did not find histogram %r in file %s!'%(histname,file.GetName()))
   if (close or setdir) and isinstance(hist,ROOT.TH1):
     hist.SetDirectory(0)
   if close: # close TFile
