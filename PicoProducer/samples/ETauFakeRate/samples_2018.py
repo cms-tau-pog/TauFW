@@ -114,7 +114,7 @@ samples  = [
   D('Data','SingleMuon_Run2018C',"/SingleMuon/Run2018C-Nano25Oct2019-v1/NANOAOD",
    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu'],
   ),
-  D('Data','SingleMuon_Run2018D',"/SingleMuon/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD",
+  D('Data','SingleMuon_Run2018D',"/SingleMuon/Run2018D-Nano25Oct2019-v1/NANOAOD",
    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu'],
   ),
   
