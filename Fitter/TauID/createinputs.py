@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (August 2020)
 # Description: Create input histograms for datacards
-#   ./createInputs.py -c mutau -y UL2017
+#   ./createinputs.py -c mutau -y UL2017
 import sys
 from collections import OrderedDict
 sys.path.append("../../Plotter/") # for config.samples
