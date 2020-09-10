@@ -30,7 +30,7 @@ fi
 
 # MAIN FUNCTIONALITY
 #TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")
-peval "\$PWD=$PWD"
+echo "\$PWD=$PWD"
 peval "$TASKCMD"
 
 # FINISH
