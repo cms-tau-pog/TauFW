@@ -8,7 +8,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import Pos
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector as getjmecalib
 from TauFW.PicoProducer.processors import moddir, ensuredir
 from TauFW.PicoProducer.corrections.era_config import getjson, getperiod #, getjmecalib
-from TauFW.Plotter.common.tools.utils import getyear
+from TauFW.common.tools.utils import getyear
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
