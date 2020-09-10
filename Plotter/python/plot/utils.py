@@ -202,7 +202,7 @@ def getbinedges(hist):
       up   = round(hist.GetXaxis().GetBinUpEdge(i),9)
       bins.append((low,up))
   else:
-    for i in xrange(1,hist.GetN()):
+    for i in xrange(0,hist.GetN()):
       x, y = Double(), Double()
       hist.GetPoint(i,x,y)
       low  = round(x-hist.GetErrorXlow(i),9)
@@ -213,8 +213,9 @@ def getbinedges(hist):
   
 
 def havesamebins(hist1,hist2,**kwargs):
-  """Compare x axes of two histograms."""
+  """Compare bins of x axes between two TH1 or TGraph objects."""
   verbosity = LOG.getverbosity(kwargs)
+  errorX    = kwargs.get('errorX',gStyle.GetErrorX())
   if isinstance(hist1,TH1) and isinstance(hist2,TH1):
     if hist1.GetXaxis().IsVariableBinSize() or hist2.GetXaxis().IsVariableBinSize():
       xbins1 = hist1.GetXaxis().GetXbins()
@@ -233,6 +234,9 @@ def havesamebins(hist1,hist2,**kwargs):
   else: # one is TGraph or TGraphAsymmErrors ?
     bins1 = getbinedges(hist1)
     bins2 = getbinedges(hist2)
+    if bins1!=bins2 and errorX<=0: # only look at bin center
+      bins1 = [ (a+b)/2 for a,b in bins1]
+      bins2 = [ (a+b)/2 for a,b in bins2]
     if bins1!=bins2:
       print "bins1 =",bins1
       print "bins2 =",bins2
@@ -257,7 +261,7 @@ def gethistratio(histnum,histden,**kwargs):
   rhist = histnum.Clone(hname)
   nbins = rhist.GetNcells() # GetNcells = GetNbinsX for TH1
   LOG.verb("gethistratio: Making ratio of %s w.r.t. %s"%(histnum,histden),verbosity,2)
-  if havesamebins(histden,histnum): # works for TH1 and TH2
+  if havesamebins(histden,histnum,errorX=errorX): # sanity check binning is the same; works for TH1 and TH2
     #rhist.Divide(histden)
     TAB = LOG.table("%5d %9.3f %9.3f %9.3f %9.3f +- %7.3f",verb=verbosity,level=3)
     TAB.printheader("ibin","xval","yden","ynum","ratio","error")
@@ -331,7 +335,7 @@ def getgraphratio(graphnum,histden,**kwargs):
       ig   = -1
       if eval:
         ynum = graphnum.Eval(xval)
-      elif xval in xpoints:
+      elif xval in xpoints: # assume points coincide with histogram bin centers
         ig   = xpoints.index(xval)
         ynum = ypoints[ig]
       else:
@@ -380,7 +384,8 @@ def geterrorband(*hists,**kwargs):
   TAB = LOG.table("%5s %7s %6s %10s %11s   %-20s   %-20s   %-20s",
                   "%5d %7.6g %6.6g %10.2f %11.2f   +%8.2f  -%8.2f   +%8.2f  -%8.2f   +%8.2f  -%8.2f",verb=verbosity,level=3)
   TAB.printheader("ibin","xval","xerr","nevts","sqrt(nevts)","statistical unc.","systematical unc.","total unc.")
-  for ibin in range(0,nbins+2):
+  ip = 0
+  for ibin in range(1,nbins+1):
     xval        = hist0.GetXaxis().GetBinCenter(ibin)
     xerr        = 0 if ibin in [0,nbins+1] else hist0.GetXaxis().GetBinWidth(ibin)/2
     yval        = 0
@@ -394,9 +399,10 @@ def geterrorband(*hists,**kwargs):
       syslow2  += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
       sysupp2  += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
     ylow2, yupp2 = statlow2+syslow2, statupp2+sysupp2,
-    error.SetPoint(ibin,xval,yval)
-    error.SetPointError(ibin,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
+    error.SetPoint(ip,xval,yval)
+    error.SetPointError(ip,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
     TAB.printrow(ibin,xval,xerr,yval,sqrt(yval),sqrt(statupp2),sqrt(statlow2),sqrt(sysupp2),sqrt(syslow2),sqrt(yupp2),sqrt(ylow2))
+    ip += 1
   seterrorbandstyle(error,color=color)
   #error.SetLineColor(hist0.GetLineColor())
   error.SetLineWidth(hist0.GetLineWidth()) # use draw option 'E2 SAME'
