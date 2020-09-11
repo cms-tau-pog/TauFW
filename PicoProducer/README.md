@@ -392,14 +392,14 @@ pico.py run -c mutau -y 2018
 ## FAQ
 
 
-# Is skimming required ?
+### Is the skimming step required ?
 
 No. Skimming is meant to reduce the file size by removing unneeded branches and/or events.
 You can also use it to add JEC systematics or
 [other neat stuff](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/modules).
 
 
-# How do I make my own analysis module ?
+### How do I make my own analysis module ?
 
 Examples and instructions are provided in the [README in `python/analysis`](python/analysis).
 The simplest one is [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
@@ -408,7 +408,24 @@ Alternatively, you do analysis with nanoAOD as output, following
 [these examples](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/examples).
 
 
-# Why do my jobs fail ?
+### Why do I get a `no branch named MET_pt_nom` error message ?
+
+By default, the full tau pair analysis modules assume that the JEC variations are available.
+If you did not run JEC variations in the skimming step, please disable it via the `-E` option,
+```
+pico.py run -c mutau -y 2018 -E jec=False
+```
+or fix it once and for all via 
+```
+pico.py channel mutau 'MuTauModule jec=False'
+pico.py run -c mutau -y 2018
+```
+Alternatively, you could edit the module file locally, setting the
+[hardcoded default](https://github.com/cms-tau-pog/TauFW/blob/828faddc0862229e827207fc04a7903562930eb7/PicoProducer/python/analysis/ModuleTauPair.py#L44)
+to `False`.
+
+
+### Why do my jobs fail ?
 
 First make sure it runs locally with `pico.py run`.
 You can find out the reason by looking into the job log files. You can find them in `jobdir`, or via
@@ -428,7 +445,7 @@ export X509_USER_PROXY=~/.x509up_u`id -u`
 ```
 
 
-# My jobs take to long ?
+### My jobs take to long ?
 
 If the jobs were terminated because of time limitations,
 you can edit the default batch submission files in `python/batch/`,
@@ -438,5 +455,18 @@ e.g. for SLURM:
 pico.py submit -c mutau -y 2018 -B '--time=10:00:00'
 ```
 Also make sure that `nfilesperjob` in the configuration is small enough.
+Furthermore, file connections to DAS are often slow, so you can pass the "prefetch" option, `-p`,
+which first copies the input file locally, and removes it at the end of the job:
+```
+pico.py submit -c mutau -y 2018 -p
+```
+If you run repeatedly on nanoAOD files that are stored on the GRID,
+consider doing the skimming step to save them on a local storage system for faster connection and smalle file size.
 In the future, event-based splitting will be added to break up large input nanoAOD files into smaller pieces per job.
 
+
+### How do I plot my analysis output ?
+
+See the instructions in the [Plotter](../Plotter) package.
+To interface with your analysis tuples, use the [`Plotter.sample.Sample` class](../Plotter/python/sample/Sample.py).
+For a full example, hone into [these instructions](../Plotter#Plotting-script).
