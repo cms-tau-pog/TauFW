@@ -100,10 +100,20 @@ Besides these variables, there are also dictionaries to link a channel short nam
 or an era (year) to a list of samples.
 
 ### Skimming
+The "skimming step" is optional. The input and output are both nanoAOD.
+You can use it for several things:
+* Remove unneeded branches via [keep 'n drop files](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt).
+* Remove bad data events (using [data certification JSONs](data/json)).
+* Add new branches, e.g. corrections and systematic variations like JetMET.
+  See [these modules](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/modules),
+  or [these analysis examples](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/examples).
+* Pre-selecting events with a simple selection string, e.g. `cut="HLT_IsoMu27 && Muon_pt>20 && Tau_pt>20"`.
+* Saving (smaller) nanoAOD files on a local storage system for faster file access.
+
 Skimming of nanoAOD files is done by post-processor scripts saved in [`python/processors/`](python/processors).
 An example is given by [`skimjob.py`](python/processors/skimjob.py).
 
-You can link your skimming script to a custom channel short name
+You can link your own skimming script to a custom channel short name
 ```
 pico.py channel skim skimjob.py
 ```
@@ -394,14 +404,16 @@ pico.py run -c mutau -y 2018
 
 ### Is the skimming step required ?
 
-No. Skimming is meant to reduce the file size by removing unneeded branches and/or events.
-You can also use it to add JEC systematics or
+No. Skimming is meant to reduce the file size by removing unneeded branches and/or events,
+plus store the nanoAOD files locally for faster access.
+
+You can also use the skimming step to add JEC systematics or
 [other neat stuff](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/modules).
 
 
 ### How do I make my own analysis module ?
 
-Examples and instructions are provided in the [README in `python/analysis`](python/analysis).
+Examples and instructions are provided in the [README in `python/analysis`](python/analysis#Picoproducer-analysis-code).
 The simplest one is [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
 This creates a new flat tree as output.
 Alternatively, you do analysis with nanoAOD as output, following
@@ -437,15 +449,10 @@ Make sure that your VOMS proxy is valid,
 voms-proxy-init -voms cms -valid 200:0
 ```
 and that your batch system can access the ROOT input files and the TauFW working directory.
-
-Note: If you are on lxplus, you may need to define the location for your temporary VOMS proxy
-by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):
+Double check the configuration of the output directories with
 ```
-export X509_USER_PROXY=~/.x509up_u`id -u`
+pico.py list
 ```
-
-
-### My jobs take to long ?
 
 If the jobs were terminated because of time limitations,
 you can edit the default batch submission files in `python/batch/`,
@@ -454,7 +461,23 @@ e.g. for SLURM:
 ```
 pico.py submit -c mutau -y 2018 -B '--time=10:00:00'
 ```
-Also make sure that `nfilesperjob` in the configuration is small enough.
+
+If you are on lxplus, you may need to define the location for your temporary VOMS proxy
+by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):
+```
+export X509_USER_PROXY=~/.x509up_u`id -u`
+```
+
+If you use HTCondor, double check the actual maximum run time for any job via
+(`jobid`="clusterId", `taskid`="procId")
+```
+condor_q -long <jobid>.<taskid>
+```
+
+
+### Why do my jobs take so long ?
+
+Make sure that `nfilesperjob` in the configuration is small enough.
 Furthermore, file connections to DAS are often slow, so you can pass the "prefetch" option, `-p`,
 which first copies the input file locally, and removes it at the end of the job:
 ```
@@ -462,7 +485,8 @@ pico.py submit -c mutau -y 2018 -p
 ```
 If you run repeatedly on nanoAOD files that are stored on the GRID,
 consider doing the skimming step to save them on a local storage system for faster connection and smalle file size.
-In the future, event-based splitting will be added to break up large input nanoAOD files into smaller pieces per job.
+
+Note: In the future, event-based splitting will be added to break up large input nanoAOD files into smaller pieces per job.
 
 
 ### How do I plot my analysis output ?
