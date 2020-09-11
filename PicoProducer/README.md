@@ -414,7 +414,7 @@ pico.py run -c mutau -y 2018
 
 ### Is the skimming step required ?
 
-No. It is optional.
+No. It is optional, but recommended if you do not have the nanoAOD files stored locally.
 [Skimming](#Skimming) is meant to reduce the file size by removing unneeded branches and/or events,
 plus to store the nanoAOD files locally for faster access.
 
@@ -424,7 +424,7 @@ You can also use the skimming step to add JEC systematics or
 
 ### How do I make my own analysis module ?
 
-Examples and instructions are provided in the [README in `python/analysis`](python/analysis#Picoproducer-analysis-code).
+Examples and instructions are provided in the [`README` in `python/analysis`](python/analysis#Picoproducer-analysis-code).
 The simplest one is [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
 This creates a new flat tree as output.
 Alternatively, you do analysis with nanoAOD as output, following
