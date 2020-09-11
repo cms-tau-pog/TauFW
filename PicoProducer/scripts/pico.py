@@ -1091,15 +1091,19 @@ def main_submit(args):
         script = "python/batch/submit_HTCondor.sub"
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
-      if testrun and not queue:
+      if testrun and not queue and not time:
         queue = "espresso"
+        time  = "360" # 6 minutes
       qcmd    = "arg from %s"%(joblist)
-      jkwargs.update({'queue':queue, 'app': appcmds, 'qcmd': qcmd })
+      jkwargs.update({'queue':queue, 'time':time, 'app': appcmds, 'qcmd': qcmd })
       #jobid   = batch.submit(script,name=jobname,app=appcmds,qcmd=qcmd,opt=batchopts,queue=queue,dry=dryrun)
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
       logfile = os.path.join(logdir,"%x.%A.%a.log") # $JOBNAME.o$JOBID.$TASKID.log
-      jkwargs.update({'log': logfile, 'array': nchunks })
+      if testrun and not queue and not time:
+        queue = "short.q"
+        time  = "00:06:00" # 6 minutes
+      jkwargs.update({'queue':queue, 'time':time, 'log': logfile, 'array': nchunks })
       #jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,opt=batchopts,queue=queue,dry=dryrun)
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
@@ -1331,7 +1335,7 @@ if __name__ == "__main__":
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
   parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
-                          metavar='NJOBS',      help='run a test with limited nummer of jobs, default=%(default)d' )
+                          metavar='NJOBS',      help='run a test with limited nummer of jobs and events, default=%(const)d' )
   parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1,
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
