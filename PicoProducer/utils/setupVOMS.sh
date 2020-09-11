@@ -1,12 +1,20 @@
 #! /bin/bash
+# Author: Izaak Neutelings (2018)
+# Description: Script to check validity of VOMS proxy,
+#              if it's almost expired, create a new one
+# Usage:
+#   source utils/setupVOMS.sh
+#   source utils/setupVOMS.sh -m 10 -t 200
+# Tip: On lxplus, add this line to your .bashrc:
+#   export X509_USER_PROXY=~/.x509up_u`id -u`
 function peval { echo ">>> $@"; eval "$@"; }
 
-MINHOURS=10
-MAXHOURS=200
+MINHOURS=12  # default minimum time before renewing proxy: 10 hours
+MAXHOURS=200 # default time of proxy's validity: 200 hours
 OPTIND=1 # if sourced
 while getopts m:t: option; do case "${option}" in
-  m) MINHOURS=${OPTARG};;
-  t) MAXHOURS=${OPTARG};;
+  m) MINHOURS=${OPTARG};; # minimum time before renewing proxy
+  t) MAXHOURS=${OPTARG};; # time of proxy's validity
 esac; done
 
 echo ">>> voms-proxy-info --timeleft"
