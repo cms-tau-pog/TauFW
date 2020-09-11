@@ -103,12 +103,13 @@ or an era (year) to a list of samples.
 The "skimming step" is optional. The input and output are both nanoAOD.
 You can use it for several things:
 * Remove unneeded branches via [keep 'n drop files](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt).
-* Remove bad data events (using [data certification JSONs](data/json)).
+* Remove bad data events using [data certification JSONs](data/json).
 * Add new branches, e.g. corrections and systematic variations like JetMET.
   See [these modules](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/modules),
   or [these analysis examples](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/examples).
 * Pre-selecting events with a simple selection string, e.g. `cut="HLT_IsoMu27 && Muon_pt>20 && Tau_pt>20"`.
-* Saving (smaller) nanoAOD files on a local storage system for faster file access.
+* Saving (reduced) nanoAOD files on a local storage system for faster file access,
+  as GRID files connections can be slow.
 
 Skimming of nanoAOD files is done by post-processor scripts saved in [`python/processors/`](python/processors).
 An example is given by [`skimjob.py`](python/processors/skimjob.py).
@@ -117,7 +118,8 @@ You can link your own skimming script to a custom channel short name
 ```
 pico.py channel skim skimjob.py
 ```
-This can be whatever string you want, but it should be unique, contain `skim` to differentiate from analysis channels,
+The skimming "channel name" can be whatever string you want,
+but it should be unique, contain `skim` to differentiate from analysis channels,
 and you should avoid characters that are not safe for filenames, including `:` and `/`.
 Extra options to the skimming script can be passed as well:
 ```
@@ -399,7 +401,15 @@ pico.py channel mutau python/analysis/MuTauFakeRate/ModuleMuTau.py
 pico.py run -c mutau -y 2018
 ```
 
+
 ## FAQ
+
+* [Is the skimming step required ?](#is-the-skimming-step-required-)<br>
+* [How do I make my own analysis module ?](#how-do-i-make-my-own-analysis-module-)<br>
+* [ Why do I get a `no branch named MET_pt_nom` error message ?](#why-do-i-get-a-no-branch-named-met_pt_nom-error-message-)<br>
+* [Why do my jobs fail ?](#why-do-my-jobs-fail-)<br>
+* [Why do my jobs take so long ?](#why-do-my-jobs-take-so-long-)<br>
+* [How do I plot my analysis output ?](#how-do-i-plot-my-analysis-output-)<br>
 
 
 ### Is the skimming step required ?
@@ -494,3 +504,4 @@ Note: In the future, event-based splitting will be added to break up large input
 See the instructions in the [Plotter](../Plotter) package.
 To interface with your analysis tuples, use the [`Plotter.sample.Sample` class](../Plotter/python/sample/Sample.py).
 For a full example, hone into [these instructions](../Plotter#Plotting-script).
+
