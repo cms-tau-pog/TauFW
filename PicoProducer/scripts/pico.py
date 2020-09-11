@@ -1078,7 +1078,7 @@ def main_submit(args):
     jobname = jobcfg['jobname']
     nchunks = jobcfg['nchunks']
     jkwargs = { # key-word arguments for batch.submit
-      'name': jobname, 'queue':queue, 'time':time, 'opt': batchopts, 'dry': dryrun
+      'name': jobname, 'opt': batchopts, 'dry': dryrun
     }
     if nchunks<=0:
       print ">>>   Nothing to %ssubmit!"%('re' if resubmit else '')
@@ -1095,20 +1095,19 @@ def main_submit(args):
         queue = "espresso"
         time  = "360" # 6 minutes
       qcmd    = "arg from %s"%(joblist)
-      jkwargs.update({'queue':queue, 'time':time, 'app': appcmds, 'qcmd': qcmd })
-      #jobid   = batch.submit(script,name=jobname,app=appcmds,qcmd=qcmd,opt=batchopts,queue=queue,dry=dryrun)
+      jkwargs.update({ 'app': appcmds, 'qcmd': qcmd })
     elif batch.system=='SLURM':
       script  = "python/batch/submit_SLURM.sh %s"%(joblist)
       logfile = os.path.join(logdir,"%x.%A.%a.log") # $JOBNAME.o$JOBID.$TASKID.log
       if testrun and not queue and not time:
         queue = "short.q"
         time  = "00:06:00" # 6 minutes
-      jkwargs.update({'queue':queue, 'time':time, 'log': logfile, 'array': nchunks })
-      #jobid   = batch.submit(script,name=jobname,log=logfile,array=nchunks,opt=batchopts,queue=queue,dry=dryrun)
+      jkwargs.update({ 'log': logfile, 'array': nchunks })
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
     else:
       LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
+    jkwargs.update({ 'queue':queue, 'time':time })
     
     # SUBMIT
     if args.prompt: # ask before submitting

@@ -13,6 +13,6 @@ use_x509userproxy     = true
 getenv                = true
 environment           = JOBID=$(ClusterId);TASKID=$(ProcId)
 +JobFlavour           = workday
-#+MaxRuntime           = 120
++MaxRuntime           = 20000
 #+AccountingGroup      = "group_u_BE.ABP.SLAP"
 #queue arg from args.txt
