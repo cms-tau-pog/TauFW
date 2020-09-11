@@ -1063,7 +1063,8 @@ def main_submit(args):
   force     = args.force
   dryrun    = args.dryrun    # prepare job and submit command, but do not submit
   testrun   = args.testrun   # only run a few test jobs
-  queue     = args.queue     # queue option for the batch system
+  queue     = args.queue     # queue option for the batch system (job flavor for HTCondor)
+  time      = args.time      # maximum time for the batch system
   batchopts = args.batchopts # extra options for the batch system
   batch     = getbatch(CONFIG,verb=verbosity+1)
   
@@ -1077,7 +1078,7 @@ def main_submit(args):
     jobname = jobcfg['jobname']
     nchunks = jobcfg['nchunks']
     jkwargs = { # key-word arguments for batch.submit
-      'name': jobname, 'queue':queue, 'opt': batchopts, 'dry': dryrun
+      'name': jobname, 'queue':queue, 'time':time, 'opt': batchopts, 'dry': dryrun
     }
     if nchunks<=0:
       print ">>>   Nothing to %ssubmit!"%('re' if resubmit else '')
@@ -1336,8 +1337,10 @@ if __name__ == "__main__":
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
   parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
                                                 help='extra options for the batch system')
+  parser_job.add_argument('-M','--time',        dest='time', default=None,
+                                                help='maximum run time of job')
   parser_job.add_argument('-q','--queue',       dest='queue', default=None,
-                                                help='queue of batch system')
+                                                help='queue of batch system (job flavor on HTCondor)')
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
                                                 help='ask user permission before submitting a sample')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,

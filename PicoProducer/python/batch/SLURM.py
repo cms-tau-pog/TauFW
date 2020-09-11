@@ -19,7 +19,7 @@ class SLURM(BatchSystem):
     name      = kwargs.get('name',   None           )
     array     = kwargs.get('array',  None           )
     queue     = kwargs.get('queue',  None           ) # 'all.q','short.q','long.q'
-    time      = kwargs.get('time',   None           )
+    time      = kwargs.get('time',   None           ) # e.g. 420, 04:20:00, 04:20
     mem       = kwargs.get('mem',    None           )
     logdir    = kwargs.get('logdir', None           )
     logfile   = kwargs.get('log',    "%x.%A.%a"     ) # $JOBNAME.o$JOBID.$TASKID
@@ -43,6 +43,13 @@ class SLURM(BatchSystem):
         logfile = os.path.join(logdir,logfile)
       subcmd += " -o %s"%(logfile)
     if time:
+      if time.count(':')==0: # e.g. 420
+        secs  = int(time)
+        hours = secs // (60*60); secs %= (60*60)
+        mins  = secs // 60;      secs %= 60
+        time  = "%02d:%02d:%02d"%(hours,mins,secs)
+      elif time.count(':')==1: # e.g. 04:20
+        time += ":00"
       subcmd += " --time='%s'"%(time) # e.g. "04:20:00"
     if mem:
       subcmd += " --mem=%sM"%(mem) # e.g. 5000

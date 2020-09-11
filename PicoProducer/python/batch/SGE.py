@@ -20,6 +20,7 @@ class HTCondor(BatchSystem):
     appcmds   = kwargs.get('app',   [ ]            )
     options   = kwargs.get('opt',   None           )
     queue     = kwargs.get('queue', None           )
+    time      = kwargs.get('time',  None           ) # e.g. 420, 04:20:00, 04:20
     name      = kwargs.get('name',  None           )
     dry       = kwargs.get('dry',   False          )
     verbosity = kwargs.get('verb',  self.verbosity )

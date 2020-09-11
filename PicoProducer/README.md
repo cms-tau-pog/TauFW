@@ -467,11 +467,11 @@ pico.py list
 
 If the jobs were terminated because of time limitations,
 you can edit the default batch submission files in `python/batch/`,
-or pass extra options to the submission command (specific to your system) via `-B`,
-e.g. for SLURM:
+or pass time option to the submission command via `--time`, e.g for 10 hours:
 ```
-pico.py resubmit -c mutau -y 2018 -B '--time=10:00:00'
+pico.py resubmit -c mutau -y 2018 --time 10:00:00
 ```
+Other options specific to your batch system can be added via `-B`.
 
 If you are on lxplus, you may need to define the location for your temporary VOMS proxy
 by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):

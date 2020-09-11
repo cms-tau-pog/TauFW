@@ -22,6 +22,7 @@ class HTCondor(BatchSystem):
     options   = kwargs.get('opt',   None           )
     qcmd      = kwargs.get('qcmd',  None           )
     queue     = kwargs.get('queue', None           ) # 'espresso', 'microcentury', 'longlunch', 'workday', ...
+    time      = kwargs.get('time',  None           ) # e.g. 420, 04:20:00, 04:20
     name      = kwargs.get('name',  None           )
     dry       = kwargs.get('dry',   False          )
     verbosity = kwargs.get('verb',  self.verbosity )
@@ -36,6 +37,14 @@ class HTCondor(BatchSystem):
       subcmd += " "+options
     if queue:
       appcmds.append("+JobFlavour=%s"%(queue))
+    if time:
+      if time.count(':')==2: # e.g. 04:20:00
+        hours, mins, secs = time.split(':')
+        time = 3600*int(hours)+60*int(mins)+int(secs)
+      elif time.count(':')==1: # e.g. 04:20
+        hours, mins = time.split(':')
+        time = 3600*int(hours)+60*int(mins)
+      appcmds.append("+MaxRuntime=%s"%(time))
     for appcmd in appcmds:
       subcmd += " -append %s"%(appcmd)
     subcmd += " "+script
