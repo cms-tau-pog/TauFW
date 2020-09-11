@@ -34,6 +34,7 @@ You can link several skimming or analysis codes to _channels_.
   * [Batch system](#Batch-system)
   * [Storage system](#Storage-system)
   * [Analysis module](#Analysis-module)
+* [FAQ](#FAQ)
 
 
 ## Installation
@@ -55,6 +56,11 @@ voms-proxy-init -voms cms -valid 200:0
 or use the script
 ```
 source utils/setupVOMS.sh
+```
+Note: If you are on lxplus, you may need to define the location for your temporary VOMS proxy
+by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):
+```
+export X509_USER_PROXY=~/.x509up_u`id -u`
 ```
 
 
@@ -382,3 +388,55 @@ Test run as
 pico.py channel mutau python/analysis/MuTauFakeRate/ModuleMuTau.py
 pico.py run -c mutau -y 2018
 ```
+
+## FAQ
+
+
+# Is skimming required ?
+
+No. Skimming is meant to reduce the file size by removing unneeded branches and/or events.
+You can also use it to add JEC systematics or
+[other neat stuff](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/modules).
+
+
+# How do I make my own analysis module ?
+
+Examples and instructions are provided in the [README in `python/analysis`](python/analysis).
+The simplest one is [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.py).
+This creates a new flat tree as output.
+Alternatively, you do analysis with nanoAOD as output, following
+[these examples](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/examples).
+
+
+# Why do my jobs fail ?
+
+First make sure it runs locally with `pico.py run`.
+You can find out the reason by looking into the job log files. You can find them in `jobdir`, or via
+```
+pico.py status -c mutau -y 2018
+```
+Make sure that your VOMS proxy is valid,
+```
+voms-proxy-init -voms cms -valid 200:0
+```
+and that your batch system can access the ROOT input files and the TauFW working directory.
+
+Note: If you are on lxplus, you may need to define the location for your temporary VOMS proxy
+by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):
+```
+export X509_USER_PROXY=~/.x509up_u`id -u`
+```
+
+
+# My jobs take to long ?
+
+If the jobs were terminated because of time limitations,
+you can edit the default batch submission files in `python/batch/`,
+or pass extra options to the submission command (specific to your system) via `-B`,
+e.g. for SLURM:
+```
+pico.py submit -c mutau -y 2018 -B '--time=10:00:00'
+```
+Also make sure that `nfilesperjob` in the configuration is small enough.
+In the future, event-based splitting will be added to break up large input nanoAOD files into smaller pieces per job.
+
