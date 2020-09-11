@@ -5,8 +5,8 @@ There are two modes:
 1. **Skimming**: Skim nanoAOD by removing [unneeded branches](https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/processors/keep_and_drop_skim.txt),
                  bad data events (using [data certification JSONs](data/json)),
                  add things like JetMET corrections. Output still has a nanoAOD format.
-                 This step is optional, but allows you to run your analysis faster.
-2. **Analysis**: Analyze nanoAOD events by pre-selecting events and objects and constructing variables.
+                 This step is optional, but allows you to run your analysis faster as it is saved locally.
+2. **Analysis**: Analyze nanoAOD events by pre-selecting events and objects and constructing new variables.
                  The main analysis code is found in [`python/analysis/`](python/analysis).
                  The output is a custom tree format we will refer to as _pico_.
 
@@ -414,8 +414,9 @@ pico.py run -c mutau -y 2018
 
 ### Is the skimming step required ?
 
-No. Skimming is meant to reduce the file size by removing unneeded branches and/or events,
-plus store the nanoAOD files locally for faster access.
+No. It is optional.
+[Skimming](#Skimming) is meant to reduce the file size by removing unneeded branches and/or events,
+plus to store the nanoAOD files locally for faster access.
 
 You can also use the skimming step to add JEC systematics or
 [other neat stuff](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/modules).
@@ -469,7 +470,7 @@ you can edit the default batch submission files in `python/batch/`,
 or pass extra options to the submission command (specific to your system) via `-B`,
 e.g. for SLURM:
 ```
-pico.py submit -c mutau -y 2018 -B '--time=10:00:00'
+pico.py resubmit -c mutau -y 2018 -B '--time=10:00:00'
 ```
 
 If you are on lxplus, you may need to define the location for your temporary VOMS proxy
@@ -501,7 +502,7 @@ Note: In the future, event-based splitting will be added to break up large input
 
 ### How do I plot my analysis output ?
 
-See the instructions in the [Plotter](../Plotter) package.
+See the instructions in the [`Plotter` package](../Plotter).
 To interface with your analysis tuples, use the [`Plotter.sample.Sample` class](../Plotter/python/sample/Sample.py).
 For a full example, hone into [these instructions](../Plotter#Plotting-script).
 
