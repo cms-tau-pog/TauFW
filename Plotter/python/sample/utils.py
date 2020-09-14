@@ -88,7 +88,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
   fnames   = glob.glob(fpattern)
   #print fnames
   if len(fnames)==1:
-    datasample = Data(name,title,fnames)
+    datasample = Data(name,title,fnames[0])
   elif len(fnames)>1:
     namerexp = re.compile(name.replace('?','.').replace('*','.*'))
     name     = name.replace('?','').replace('*','')

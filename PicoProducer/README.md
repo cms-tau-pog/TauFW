@@ -404,9 +404,13 @@ pico.py run -c mutau -y 2018
 
 ## FAQ
 
+Here are some frequently asked questions and hints during troubleshooting.
+
 * [Is the skimming step required ?](#is-the-skimming-step-required-)<br>
 * [How do I make my own analysis module ?](#how-do-i-make-my-own-analysis-module-)<br>
-* [ Why do I get a `no branch named MET_pt_nom` error message ?](#why-do-i-get-a-no-branch-named-met_pt_nom-error-message-)<br>
+* [What should be the format of the analysis ntuples ?](#what-should-be-the-format-of-the-pico-analysis-ntuples-)<br>
+* [Why do I get a `no branch named ...` error message ?](#why-do-i-get-a-no-branch-named-error-message-)<br>
+* [Why do I get a `no branch named MET_pt_nom` error message ?](#why-do-i-get-a-no-branch-named-met_pt_nom-error-message-)<br>
 * [Why do my jobs fail ?](#why-do-my-jobs-fail-)<br>
 * [Why do my jobs take so long ?](#why-do-my-jobs-take-so-long-)<br>
 * [How do I plot my analysis output ?](#how-do-i-plot-my-analysis-output-)<br>
@@ -418,7 +422,7 @@ No. It is optional, but recommended if you do not have the nanoAOD files stored 
 [Skimming](#Skimming) is meant to reduce the file size by removing unneeded branches and/or events,
 plus to store the nanoAOD files locally for faster access.
 
-You can also use the skimming step to add JEC systematics or
+You can also use the skimming step to add JEC corrections and systematic variations, or
 [other neat stuff](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/modules).
 
 
@@ -429,6 +433,29 @@ The simplest one is [`ModuleMuTauSimple.py`](python/analysis/ModuleMuTauSimple.p
 This creates a new flat tree as output.
 Alternatively, you do analysis with nanoAOD as output, following
 [these examples](https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/examples).
+
+
+### What should be the format of the "pico" analysis ntuples ?
+
+Whatever you like. It can be a flat tree, it can be just histograms; it can even be nanoAOD again.
+It really depends how you like to do your analysis.
+
+
+### Why do I get a `no branch named ...` error message ?
+
+Because the branch is not available in your nanoAOD input file.
+Please check the code of your module in [`python/analysis`](python/analysis).
+
+Documentation of the available branches can also be found
+[here](https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html),
+although this page can be outdated for your version of nanoAOD.
+The same information is saved in the ROOT file itself; open the input nanaAOD with ROOT
+and look for the available branches with a `TBrowser` or the `Tree::Print` function, e.g.
+```
+Events->Print("Tau_*")
+```
+The exact definition of the default branches can be found in
+[`CMSSW/PhysicsTools/NanoAOD`](https://github.com/cms-sw/cmssw/tree/master/PhysicsTools/NanoAOD).
 
 
 ### Why do I get a `no branch named MET_pt_nom` error message ?
@@ -464,6 +491,10 @@ Double check the configuration of the output directories with
 ```
 pico.py list
 ```
+or during submission, set the verbosity high
+```
+pico.py submit -c mutau -y 2018 -v2
+```
 
 If the jobs were terminated because of time limitations,
 you can edit the default batch submission files in `python/batch/`,
@@ -473,7 +504,7 @@ pico.py resubmit -c mutau -y 2018 --time 10:00:00
 ```
 Other options specific to your batch system can be added via `-B`.
 
-If you are on lxplus, you may need to define the location for your temporary VOMS proxy
+If you are on CERN's `lxplus`, you may need to define the location for your temporary VOMS proxy
 by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):
 ```
 export X509_USER_PROXY=~/.x509up_u`id -u`
@@ -489,13 +520,15 @@ condor_q -long <jobid>.<taskid>
 ### Why do my jobs take so long ?
 
 Make sure that `nfilesperjob` in the configuration is small enough.
-Furthermore, file connections to DAS are often slow, so you can pass the "prefetch" option, `-p`,
-which first copies the input file locally, and removes it at the end of the job:
+Furthermore, file connections to GRID can often be slow.
+One immediate solution is to pass the "prefetch" option, `-p`,
+which first copies the input file to the local working directory,
+and removes it at the end of the job:
 ```
 pico.py submit -c mutau -y 2018 -p
 ```
-If you run repeatedly on nanoAOD files that are stored on the GRID,
-consider doing the skimming step to save them on a local storage system for faster connection and smalle file size.
+If you repeatedly run on the same nanoAOD files that are stored on the GRID,
+consider doing a skimming step to reduce their file size and save them on a local storage system for faster connection.
 
 Note: In the future, event-based splitting will be added to break up large input nanoAOD files into smaller pieces per job.
 
