@@ -1253,7 +1253,7 @@ def main_status(args):
           # TODO: check if hadd was succesful with isvalid
           if cleanup:
             allcfgs = os.path.join(cfgdir,"job*_try[0-9]*.*")
-            if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check other jobs
+            if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check for other jobs
               if verbosity>=2:
                 print ">>> %-12s = %s"%('cfgfiles',cfgfiles)
               rmcmd = "rm -r %s"%(jobdir) # remove whole job directory

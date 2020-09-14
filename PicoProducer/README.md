@@ -295,7 +295,15 @@ pico.py hadd -y 2016 -c mutau
 ```
 The output file will be stored in `picodir`.
 This will not work for channels with `skim` in the name,
-as it is preferred to keep skimmed nanoAOD files split for batch submission.
+as it is preferred to keep skimmed nanoAOD files split for further batch submission.
+
+
+### Clean
+Remove leftover log files and directories with the `clean` subcommand
+(or use `-r` with `hadd`):
+```
+pico.py clean -y 2016 -c mutau
+```
 
 
 ## Systematic variations
@@ -408,8 +416,8 @@ Here are some frequently asked questions and hints during troubleshooting.
 
 * [Is the skimming step required ?](#is-the-skimming-step-required-)<br>
 * [How do I make my own analysis module ?](#how-do-i-make-my-own-analysis-module-)<br>
-* [What should be the format of the analysis ntuples ?](#what-should-be-the-format-of-the-pico-analysis-ntuples-)<br>
-* [Why do I get a `no branch named ...` error message ?](#why-do-i-get-a-no-branch-named-error-message-)<br>
+* [What should be the format of my "pico" analysis ntuples ?](#what-should-be-the-format-of-the-pico-analysis-ntuples-)<br>
+* [Why do I get a `no branch named ...` error message ?](#why-do-i-get-a-no-branch-named--error-message-)<br>
 * [Why do I get a `no branch named MET_pt_nom` error message ?](#why-do-i-get-a-no-branch-named-met_pt_nom-error-message-)<br>
 * [Why do my jobs fail ?](#why-do-my-jobs-fail-)<br>
 * [Why do my jobs take so long ?](#why-do-my-jobs-take-so-long-)<br>
@@ -478,7 +486,8 @@ to `False`.
 ### Why do my jobs fail ?
 
 First make sure it runs locally with `pico.py run`.
-You can find out the reason by looking into the job log files. You can find them in `jobdir`, or via
+If it runs locally, but your jobs still fail,
+you can find out the reason by looking into the job log files. You can find them in `jobdir`, or via
 ```
 pico.py status -c mutau -y 2018
 ```
