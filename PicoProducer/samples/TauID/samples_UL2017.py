@@ -33,14 +33,14 @@ samples  = [
   ),
   
   # TTBAR
-  M('TT','TTTo2L2Nu',
-    "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM", # NO DeepTau2017v2p1
-    store=storage,url=url,file=filelist,opts='toppt=True',channels=["skim*",'mumu'],
-  ),
-  M('TT','TTToSemiLeptonic',
-    "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM", # NO DeepTau2017v2p1
-    store=storage,url=url,file=filelist,opts='toppt=True',channels=["skim*",'mumu'],
-  ),
+  #M('TT','TTTo2L2Nu',
+  #  "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM", # NO DeepTau2017v2p1
+  #  store=storage,url=url,file=filelist,opts='toppt=True',channels=["skim*",'mumu'],
+  #),
+  #M('TT','TTToSemiLeptonic',
+  #  "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM", # NO DeepTau2017v2p1
+  #  store=storage,url=url,file=filelist,opts='toppt=True',channels=["skim*",'mumu'],
+  #),
   M('TT','TTToHadronic',
     "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v4/NANOAODSIM",
     store=storage,url=url,file=filelist,opts='toppt=True',
@@ -87,18 +87,18 @@ samples  = [
   ),
   
   # DIBOSON
-  M('VV','WW',
-    "/WW_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
-    store=storage,url=url,file=filelist,channels=["skim*",'mumu'],
-  ),
-  M('VV','WZ',
-    "/WZ_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
-    store=storage,url=url,file=filelist,channels=["skim*",'mumu'],
-  ),
-  M('VV','ZZ',
-    "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
-    store=storage,url=url,file=filelist,channels=["skim*",'mumu'],
-  ),
+  #M('VV','WW',
+  #  "/WW_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
+  #  store=storage,url=url,file=filelist,channels=["skim*",'mumu'],
+  #),
+  #M('VV','WZ',
+  #  "/WZ_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
+  #  store=storage,url=url,file=filelist,channels=["skim*",'mumu'],
+  #),
+  #M('VV','ZZ',
+  #  "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
+  #  store=storage,url=url,file=filelist,channels=["skim*",'mumu'],
+  #),
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2017B',"/SingleMuon/Run2017B-UL2017_02Dec2019-v1/NANOAOD",

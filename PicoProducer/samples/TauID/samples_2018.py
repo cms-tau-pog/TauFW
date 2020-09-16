@@ -159,5 +159,9 @@ samples  = [
   #  "/SingleVectorLQ_InclusiveDecay_M-800_L-1p5_K-0_TuneCP2_13TeV-madgraph-pythia8/RunIIAutumn18NanoAODv7-Nano02Apr2020_102X_upgrade2018_realistic_v21-v1/NANOAODSIM",
   #  #store=storage,url=url,file=filelist,
   #),
+  #M('LQ','SingleVectorLQ_InclusiveDecay_M-2000_L-1p5_K-0',
+  #  "/SingleVectorLQ_InclusiveDecay_M-2000_L-1p5_K-0_TuneCP2_13TeV-madgraph-pythia8/RunIIAutumn18NanoAODv7-Nano02Apr2020_102X_upgrade2018_realistic_v21-v1/NANOAODSIM",
+  #  #store=storage,url=url,file=filelist,
+  #),
   
 ]
