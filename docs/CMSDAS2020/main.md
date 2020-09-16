@@ -30,3 +30,11 @@ To start with the exercise, please navigate through the linked sections found in
  2. [Initial analysis configuration](configuration.md)
  3. [Preselecting NanoAOD](preselection.md)
  4. [Creating flat n-tuples](flat_n-tuples.md)
+
+After having finished this analysis, you are asked to present it as an analysis group to an audience in a symposium.
+
+Following the good old rule *Do good things, and speak about it!*, it is important, that you invest time into the presentation to make it
+understandable for an outside (particle) physicist, covering all main aspects of the analysis at the same time. For this reason, some tips and tricks
+are summarized in an additional section:
+
+ + [Tips and Tricks for presentation](presentation.md)
