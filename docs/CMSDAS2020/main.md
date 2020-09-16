@@ -21,5 +21,12 @@ After this exercise you will learn, how to:
  + make a simple estimate of energy scale corrections and uncertainties for hadronic &tau; leptons,
  + create histograms in one inclusive category for statistical inference,
  + extend categorization by splitting the inclusive phase space with appropriate variables,
- + introduce normalization and shape uncertainties to the uncertainty model for the Z to &tau;&tau; cross-section measurement
- + calculate and plot the best-estimate for the cross-section 
+ + introduce normalization and shape uncertainties to the uncertainty model for the Z to &tau;&tau; cross-section measurement,
+ + and calculate and plot the best-estimate for the cross-section.
+
+To start with the exercise, please navigate through the linked sections found in the list below:
+
+ + [Setting up the analysis software](sw_setup.md)
+ + [Initial analysis configuration](configuration.md)
+ + [Preselecting NanoAOD](preselection.md)
+ + [Creating flat n-tuples](flat_n-tuples.md)
