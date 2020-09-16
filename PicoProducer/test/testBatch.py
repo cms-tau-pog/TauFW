@@ -11,7 +11,7 @@ from TauFW.PicoProducer.batch.utils import LOG, getbatch
 def createtasks(fname,ntasks=2,pause=10):
   with open(fname,'w') as file:
     for i in xrange(ntasks):
-      file.write('echo "This is task number %d with environment:"; sleep %d; env'%(i,pause))
+      file.write('echo "This is task number %d with environment:"; sleep %d; env\n'%(i,pause))
   return fname
   
 
