@@ -14,15 +14,16 @@ class HTCondor(BatchSystem):
     self.statusdict = { 'q': ['1'], 'r': ['2','3'], 'f': ['4','5','6'], 'c': ['5'] }
     self.jobidrexp  = re.compile("submitted to cluster (\d+).")
   
-  def submit(self,script,**kwargs):
+  def submit(self,script,taskfile=None,**kwargs):
     """Submit a script with some optional parameters."""
     #jobname   = kwargs.get('name',  'job'           )
     #queue     = kwargs.get('queue', 'microcentury'  )
     appcmds   = kwargs.get('app',   [ ]            )
     options   = kwargs.get('opt',   None           )
-    qcmd      = kwargs.get('qcmd',  None           )
+    qcmd      = kwargs.get('qcmd',  None           ) # queue command for submission file, e.g. "arg from list.txt"
     queue     = kwargs.get('queue', None           ) # 'espresso', 'microcentury', 'longlunch', 'workday', ...
     time      = kwargs.get('time',  None           ) # e.g. 420, 04:20:00, 04:20
+    short     = kwargs.get('short', False          ) # run short test job
     name      = kwargs.get('name',  None           )
     dry       = kwargs.get('dry',   False          )
     verbosity = kwargs.get('verb',  self.verbosity )
@@ -35,6 +36,9 @@ class HTCondor(BatchSystem):
       subcmd += " -batch-name %s"%(name)
     if options:
       subcmd += " "+options
+    if short:
+      if not queue: queue = "espresso"
+      if not time:  time  = "360" # 6 minutes
     if queue:
       appcmds.append("+JobFlavour=%s"%(queue))
     if time:
@@ -50,6 +54,8 @@ class HTCondor(BatchSystem):
     subcmd += " "+script
     if qcmd:
       subcmd += " -queue %s"%(qcmd)
+    if taskfile:
+      subcmd += " -queue arg from "+taskfile # list of tasks to be executed per job
     out = self.execute(subcmd,dry=dry,verb=verbosity)
     fail = False
     for line in out.split(os.linesep):

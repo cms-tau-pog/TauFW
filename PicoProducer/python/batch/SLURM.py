@@ -14,12 +14,13 @@ class SLURM(BatchSystem):
     self.jobidrexp  = re.compile("Submitted batch job (\d+)")
     self.user       = getpass.getuser()
   
-  def submit(self,script,**kwargs):
+  def submit(self,script,taskfile=None,**kwargs):
     """Submit a script with some optional parameters."""
     name      = kwargs.get('name',   None           )
     array     = kwargs.get('array',  None           )
-    queue     = kwargs.get('queue',  None           ) # 'all.q','short.q','long.q'
+    queue     = kwargs.get('queue',  None           ) # queue/partition: 'quick','wn','qgpu', 'gpu'
     time      = kwargs.get('time',   None           ) # e.g. 420, 04:20:00, 04:20
+    short     = kwargs.get('short',  False          ) # run short test job
     mem       = kwargs.get('mem',    None           )
     logdir    = kwargs.get('logdir', None           )
     logfile   = kwargs.get('log',    "%x.%A.%a"     ) # $JOBNAME.o$JOBID.$TASKID
@@ -36,6 +37,9 @@ class SLURM(BatchSystem):
         subcmd += " -a 1-%s"%(array)
       else:
         subcmd += " -a %s"%(array)
+    if short:
+      if not queue: queue = "quick" # shortest partition name might vary per system
+      if not time:  time  = "00:06:00" # 6 minutes
     if queue:
       subcmd += " --partition %s"%(queue)
     if logfile:
@@ -56,6 +60,8 @@ class SLURM(BatchSystem):
     if options:
       subcmd += " "+options
     subcmd += " "+script
+    if taskfile:
+      subcmd += " "+taskfile # list of tasks to be executed per job by submit_SLURM.sh
     out  = self.execute(subcmd,dry=dry,verb=verbosity)
     fail = False
     for line in out.split(os.linesep):

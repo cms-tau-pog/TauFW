@@ -16,6 +16,8 @@ def getbatch(arg,verb=0):
     system = arg
   elif hasattr(arg,'batch'):
     system = arg.batch
+  elif isinstance(arg,dict) and 'batch' in arg:
+    system = arg[batch]
   else:
     raise IOError("Did not recognize argument",arg)
   modfile = os.path.join(moddir,system+".py")

@@ -7,6 +7,8 @@ from abc import ABCMeta, abstractmethod
 
 
 class BatchSystem(object):
+  """Abstract superclass for batch systems.
+  Please subclass and override the abstract methods with your own routines."""
   __metaclass__ = ABCMeta
   
   def __init__(self,verb=1):
@@ -33,7 +35,7 @@ class BatchSystem(object):
   
   def parsejobs(self,rows,**kwargs):
     """Help function to parse rows of job output from queue command.
-    Columns should be ordered as user, jobid, taskid, status, args"""
+    Columns should be ordered as user, jobid, taskid, status, args."""
     # TODO: allow for job name ?
     verbosity = kwargs.get('verb',self.verbosity)
     jobs      = JobList([])
@@ -59,19 +61,19 @@ class BatchSystem(object):
     return jobs
   
   @abstractmethod
-  def submit(self,script,**kwargs):
+  def submit(self,script,taskfile=None,**kwargs):
     """Submit a script with some optional parameters."""
-    raise NotImplementedError("BatchSystem.submit is an abstract method.")
+    raise NotImplementedError("BatchSystem.submit is an abstract method. Please implement in a subclass.")
   
   @abstractmethod
   def status(self,**kwargs):
     """Check status of queued or running jobs."""
-    raise NotImplementedError("BatchSystem.status is an abstract method.")
+    raise NotImplementedError("BatchSystem.status is an abstract method. Please implement in a subclass.")
   
   @abstractmethod
   def jobs(self,jobids=[],**kwargs):
     """Get job status, return JobList object."""
-    raise NotImplementedError("BatchSystem.jobs is an abstract method.")
+    raise NotImplementedError("BatchSystem.jobs is an abstract method. Please implement in a subclass.")
   
 
 class JobList(object):

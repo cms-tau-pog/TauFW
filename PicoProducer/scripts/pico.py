@@ -1074,11 +1074,12 @@ def main_submit(args):
     jobdir  = jobcfg['jobdir']
     logdir  = jobcfg['logdir']
     outdir  = jobcfg['outdir']
-    joblist = jobcfg['joblist']
+    joblist = jobcfg['joblist'] # text file with list of tasks to be executed per job
     jobname = jobcfg['jobname']
     nchunks = jobcfg['nchunks']
     jkwargs = { # key-word arguments for batch.submit
-      'name': jobname, 'opt': batchopts, 'dry': dryrun
+      'name': jobname, 'opt': batchopts, 'dry': dryrun,
+      'short': (testrun>0), 'queue':queue, 'time':time
     }
     if nchunks<=0:
       print ">>>   Nothing to %ssubmit!"%('re' if resubmit else '')
@@ -1091,45 +1092,37 @@ def main_submit(args):
         script = "python/batch/submit_HTCondor.sub"
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
-      if testrun and not queue and not time:
-        queue = "espresso"
-        time  = "360" # 6 minutes
-      qcmd    = "arg from %s"%(joblist)
-      jkwargs.update({ 'app': appcmds, 'qcmd': qcmd })
+      jkwargs.update({ 'app': appcmds })
     elif batch.system=='SLURM':
-      script  = "python/batch/submit_SLURM.sh %s"%(joblist)
+      script  = "python/batch/submit_SLURM.sh"
       logfile = os.path.join(logdir,"%x.%A.%a.log") # $JOBNAME.o$JOBID.$TASKID.log
-      if testrun and not queue and not time:
-        queue = "short.q"
-        time  = "00:06:00" # 6 minutes
       jkwargs.update({ 'log': logfile, 'array': nchunks })
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
     else:
       LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
-    jkwargs.update({ 'queue':queue, 'time':time })
     
     # SUBMIT
-    if args.prompt: # ask before submitting
+    if args.prompt: # ask user confirmation before submitting
       while True:
         submit = raw_input(">>> Do you want to submit %d jobs to the batch system? [y/n] "%(nchunks))
-        if any(s in submit.lower() for s in ['q','exit']):
+        if any(s in submit.lower() for s in ['q','exit']): # quit this script
           print ">>> Quitting..."
           exit(0)
         elif any(s in submit.lower() for s in ['f','all']):
           print ">>> Force submission..."
           submit = 'y'
           args.prompt = False # stop asking for next samples
-        if 'y' in submit.lower():
-          jobid = batch.submit(script,**jkwargs)
+        if 'y' in submit.lower(): # submit this job
+          jobid = batch.submit(script,joblist,**jkwargs)
           break
-        elif 'n' in submit.lower():
+        elif 'n' in submit.lower(): # do not submit this job
           print ">>> Not submitting."
           break
         else:
           print ">>> '%s' is not a valid answer, please choose y/n."%submit
     else:
-      jobid = batch.submit(script,**jkwargs)
+      jobid = batch.submit(script,joblist,**jkwargs)
     
     # WRITE JOBCONFIG
     if jobid!=None:
@@ -1337,7 +1330,7 @@ if __name__ == "__main__":
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
   parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
-                          metavar='NJOBS',      help='run a test with limited nummer of jobs and events, default=%(const)d' )
+                          metavar='NJOBS',      help='run a test with limited nummer of jobs and events, default nevts=%(const)d' )
   parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1,
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])

@@ -14,12 +14,13 @@ class HTCondor(BatchSystem):
     # http://pages.cs.wisc.edu/~adesmet/status.html
     self.statusdict = { 1: 'q', 2: 'r', 3: 'f', 4: 'c', 5: 'f', 6: 'f' }
   
-  def submit(self,script,**kwargs):
+  def submit(self,script,taskfile=None,**kwargs):
     #jobname   = kwargs.get('name',  'job'           )
     #queue     = kwargs.get('queue', 'microcentury'  )
     appcmds   = kwargs.get('app',   [ ]            )
     options   = kwargs.get('opt',   None           )
-    queue     = kwargs.get('queue', None           )
+    queue     = kwargs.get('queue', None           ) # queue: 'all.q','short.q','long.q'
+    short     = kwargs.get('short', False          ) # run short test job
     time      = kwargs.get('time',  None           ) # e.g. 420, 04:20:00, 04:20
     name      = kwargs.get('name',  None           )
     dry       = kwargs.get('dry',   False          )
@@ -36,9 +37,14 @@ class HTCondor(BatchSystem):
       subcmd += " "+options
     for appcmd in appcmds:
       subcmd += " -append %s"%(appcmd)
-    subcmd += " "+script
+    if short:
+      if not queue: queue = "short.q" # shortest partition name might vary per system
+      if not time:  time  = "00:06:00" # 6 minutes
     if queue:
       subcmd += " -queue %s"%(queue)
+    subcmd += " "+script
+    if taskfile:
+      subcmd += " "+taskfile # list of tasks to be executed per job by submit_SGE.sh
     out = self.execute(subcmd,dry=dry,verb=verbosity)
     for line in out.split(os.linesep):
       if any(f in line for f in failflags):
