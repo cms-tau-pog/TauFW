@@ -11,3 +11,15 @@ The statistical inference is performed with [CombinedLimit](https://github.com/c
 [CombineHarvester](https://github.com/cms-analysis/CombineHarvester), and analysis-specific package [CMSDAS2020TauLong](https://github.com/ArturAkh/CMSDAS2020TauLong).
 
 After this exercise you will learn, how to:
+
+ + apply selection to preselected NanoAOD samples to produce flat n-tuples, maybe also create preselected NanoAOD yourself,
+ + estimate QCD multi-jet background to the Z to &tau;&tau; selection in a data-driven way,
+ + normalize your expected backgrounds and signals to match the events collected in data,
+ + create control plots of various quantities calculated in the flat n-tuples,
+ + apply corrections to the expected contributions to improve agreement between data and expectation,
+ + refine selection requirements to enrich Z to &tau;&tau;,
+ + make a simple estimate of energy scale corrections and uncertainties for hadronic &tau; leptons,
+ + create histograms in one inclusive category for statistical inference,
+ + extend categorization by splitting the inclusive phase space with appropriate variables,
+ + introduce normalization and shape uncertainties to the uncertainty model for the Z to &tau;&tau; cross-section measurement
+ + calculate and plot the best-estimate for the cross-section 
