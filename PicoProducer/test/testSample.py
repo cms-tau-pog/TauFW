@@ -5,7 +5,7 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 from TauFW.PicoProducer.storage.Sample import Sample, LOG
-from TauFW.PicoProducer.batch.utils import getsamples
+from TauFW.PicoProducer.storage.utils import getsamples
 
 
 def testSample():
