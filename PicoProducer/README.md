@@ -364,6 +364,10 @@ def main_submit(args):
       jkwargs.update({'log': logfile })
   ...
 ```
+Test your implementation with this test script:
+<pre>
+test/testBatch.py <i>&lt;batchsystem&gt;</i> -v1
+</pre>
 
 ### Storage system
 Similarly for a storage element, subclass [`StorageSystem`](python/storage/StorageSystem.py)

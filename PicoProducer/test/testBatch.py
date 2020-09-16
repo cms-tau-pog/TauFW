@@ -2,7 +2,7 @@
 # Author: Izaak Neutelings (September 2020)
 # Description: Test BatchSystem
 #   test/testBatch.py HTCondor -v2
-import os
+import os, platform
 from time import sleep
 from TauFW.common.tools.file import ensuredir
 from TauFW.PicoProducer.batch.utils import LOG, getbatch
@@ -59,7 +59,7 @@ def testBatch(path,verb=0):
   }
   if batch.system=='HTCondor':
     # use specific settings for KIT condor
-    if 'etp' in GLOB._host:
+    if 'etp' in platform.node():
       script = "python/batch/submit_HTCondor_KIT.sub"
     else:
       script = "python/batch/submit_HTCondor.sub"
