@@ -29,6 +29,7 @@ You can link several skimming or analysis codes to _channels_.
   * [Submission](#Submission)
   * [Resubmission](#Resubmission)
   * [Finalize](#Finalize)
+  * [Clean](#Clean)
 * [Systematic variations](#Systematic-variations)<br>
 * [Plug-ins](#Plug-ins)<br>
   * [Batch system](#Batch-system)
@@ -83,8 +84,8 @@ The configurable variables include:
 * `batch`: Batch system to use (e.g. `HTCondor`).
 * `jobdir`: Directory to output job configuration and log files (e.g. `output/$ERA/$CHANNEL/$SAMPLE`).
 * `outdir`: Directory to copy the output pico files from analysis jobs.
-* `nanodir`: Directory to store the output nanoAOD files from skimming jobs (e.g. on EOS, T2, T3, ...).
-* `picodir`: Directory to store the `hadd`'ed pico file from analysis job output (e.g. on EOS, T2, T3, ...).
+* `nanodir`: Directory to store the output nanoAOD files from skimming jobs.
+* `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
 * `nfilesperjob`: Default number of files per job. This can be overridden per sample (see below).
 * `filelistdir`: Directory to save list of nanoAOD files to run on (e.g. `samples/files/$ERA/$SAMPLE.txt`).
 
@@ -93,7 +94,7 @@ Note the directories can contain variables with `$` like
 `$ERA`, `$CHANNEL`, `$CHANNEL`, `$TAG`, `$SAMPLE`, `$GROUP` and `$DAS`
 to create a custom hierarchy and format.
 
-The output directories `nanodir` and `picodir` can be special storage systems.
+The output directories `nanodir` and `picodir` can be special storage systems (e.g. on EOS, T2, T3, ...).
 If they need special commands for accessing and writing, please see the [instructions below](#Storage-system).
 
 Besides these variables, there are also dictionaries to link a channel short name to a skimming or analysis code,
@@ -417,11 +418,11 @@ Here are some frequently asked questions and hints during troubleshooting.
 * [Is the skimming step required ?](#is-the-skimming-step-required-)<br>
 * [How do I make my own analysis module ?](#how-do-i-make-my-own-analysis-module-)<br>
 * [What should be the format of my "pico" analysis ntuples ?](#what-should-be-the-format-of-the-pico-analysis-ntuples-)<br>
+* [How do I plot my analysis output ?](#how-do-i-plot-my-analysis-output-)<br>
 * [Why do I get a `no branch named ...` error message ?](#why-do-i-get-a-no-branch-named--error-message-)<br>
 * [Why do I get a `no branch named MET_pt_nom` error message ?](#why-do-i-get-a-no-branch-named-met_pt_nom-error-message-)<br>
 * [Why do my jobs fail ?](#why-do-my-jobs-fail-)<br>
 * [Why do my jobs take so long ?](#why-do-my-jobs-take-so-long-)<br>
-* [How do I plot my analysis output ?](#how-do-i-plot-my-analysis-output-)<br>
 
 
 ### Is the skimming step required ?
@@ -447,6 +448,13 @@ Alternatively, you do analysis with nanoAOD as output, following
 
 Whatever you like. It can be a flat tree, it can be just histograms; it can even be nanoAOD again.
 It really depends how you like to do your analysis.
+
+
+### How do I plot my analysis output ?
+
+See the instructions in the [`Plotter` package](../Plotter).
+To interface with your analysis tuples, use the [`Plotter.sample.Sample` class](../Plotter/python/sample/Sample.py).
+For a full example, hone into [these instructions](../Plotter#Plotting-script).
 
 
 ### Why do I get a `no branch named ...` error message ?
@@ -486,10 +494,12 @@ to `False`.
 ### Why do my jobs fail ?
 
 First make sure it runs locally with `pico.py run`.
-If it runs locally, but your jobs still fail,
-you can find out the reason by looking into the job log files. You can find them in `jobdir`, or via
+If it runs locally and your jobs still fail,
+you can find out the reason by looking into the job log files.
+You can find them in `jobdir`, which by default is set to `output/$ERA/$CHANNEL/$SAMPLE`,
+or via
 ```
-pico.py status -c mutau -y 2018
+pico.py status -c mutau -y 2018 -l
 ```
 Make sure that your VOMS proxy is valid,
 ```
@@ -530,7 +540,7 @@ condor_q -long <jobid>.<taskid>
 
 Make sure that `nfilesperjob` in the configuration is small enough.
 Furthermore, file connections to GRID can often be slow.
-One immediate solution is to pass the "prefetch" option, `-p`,
+One immediate solution to this is to pass the "prefetch" option, `-p`,
 which first copies the input file to the local working directory,
 and removes it at the end of the job:
 ```
@@ -541,10 +551,4 @@ consider doing a skimming step to reduce their file size and save them on a loca
 
 Note: In the future, event-based splitting will be added to break up large input nanoAOD files into smaller pieces per job.
 
-
-### How do I plot my analysis output ?
-
-See the instructions in the [`Plotter` package](../Plotter).
-To interface with your analysis tuples, use the [`Plotter.sample.Sample` class](../Plotter/python/sample/Sample.py).
-For a full example, hone into [these instructions](../Plotter#Plotting-script).
 
