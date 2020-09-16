@@ -7,7 +7,7 @@ import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import TFile
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureinit, getline
-from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key
+from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key, lreplace
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
 from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples
@@ -1253,11 +1253,11 @@ def main_status(args):
           # TODO: check if hadd was succesful with isvalid
           if cleanup:
             allcfgs = os.path.join(cfgdir,"job*_try[0-9]*.*")
+            rmcmd   = None
             if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check for other jobs
               if verbosity>=2:
                 print ">>> %-12s = %s"%('cfgfiles',cfgfiles)
               rmcmd = "rm -r %s"%(jobdir) # remove whole job directory
-              rmout = execute(rmcmd,dry=dryrun,verb=cmdverb)
             else: # only remove files related to this job (era/channel/sample)
               rmfiles   = [ ]
               rmfileset = [infiles,cfgfiles,logfiles]
@@ -1269,7 +1269,10 @@ def main_status(args):
                 print ">>> %-12s = %s"%('rmfileset',rmfileset)
               if rmfiles:
                 rmcmd = "rm %s"%(' '.join(rmfiles))
-                rmout = execute(rmcmd,dry=dryrun,verb=cmdverb)
+            if rmcmd:
+              if verbosity>=1:
+                rmcmd = lreplace(rmcmd,'rm',"rm -v",1)
+              rmout = execute(rmcmd,dry=dryrun,verb=cmdverb)
         
         # ONLY CHECK STATUS
         else:
