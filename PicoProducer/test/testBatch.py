@@ -63,7 +63,7 @@ def testBatch(path,verb=0):
       script = "python/batch/submit_HTCondor_KIT.sub"
     else:
       script = "python/batch/submit_HTCondor.sub"
-    appcmds = ["initialdir=%s"%(jobdir),
+    appcmds = ["initialdir=%s"%(outdir),
                "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
     jkwargs.update({ 'app': appcmds })
   elif batch.system=='SLURM':
