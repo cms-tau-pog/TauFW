@@ -128,5 +128,5 @@ Another advantage of having your personal fork of the repository is the possibil
 After some of you have completed a subtask for the analysis and the corresponding changes to the software have been discussed, others can profit from these developments by merging them
 from the corresponding fork after adding it as an additional remote to their own fork.
 
-Long story short: Make use of streghts of github to improve the collaborative work among you during this exercise! Do not forget, that you are one analysis group working hand in hand to achieve
+Long story short: Make use of stregths of github to improve the collaborative work among you during this exercise! Do not forget, that you are one analysis group working hand in hand to achieve
 a nice measurement :)
