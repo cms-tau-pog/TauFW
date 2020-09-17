@@ -28,3 +28,18 @@ The last two commands setup a proxy for your grid certificate and are needed to 
 and to write to CERN grid dCache storage servers with corresponding tools.
 
 You can check the settings for your grid certificate, provided that it is imported into your browser, for example at [voms2.cern.ch](https://voms2.cern.ch:8443/voms/cms/user/home.action).
+
+In case of the statistical inference covered in sections [8](prep_stat_inference.md) and [9](measurement.md) the setup of the environment for a new login or a new terminal is as follows:
+
+```sh
+# Moving into TauFW working directory
+cd ~/TauLongCMSDAS2020/CMSSW_10_2_23/src
+
+# Setting the CMSSW environment
+cmsenv
+
+# Increase stack size to avoid crashes for too big workspaces in ROOT
+ulimit -s unlimited
+```
+
+## Configuration done once per desired change
