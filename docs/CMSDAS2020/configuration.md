@@ -66,3 +66,15 @@ This analysis is constructed in [ModuleMuTau](../../PicoProducer/python/analysis
 ```sh
 pico.py channel mutau CMSDAS2020.ModuleMuTau
 ```
+
+In case of the &mu;&tau;<sub>h</sub> final state, preselected NanoAOD samples were already produced for you as will be explained in section [3](preselection.md). To access these,
+change the configuration as follows:
+
+```sh
+pico.py set nanodir '/eos/cms/store/group/phys_tau/CMSDAS2020/nano_merged/$ERA/$DAS'
+```
+
+Alternatively, if you need to produce your own preselected NanoAOD, for example in case of a different final state, you can leave the folder as it is to be configured automatically.
+
+Finally, please check whether all directories configured (execute `pico.py list` to see them) are accessible properly written and you have the right permissions to access the files.
+More details, on which directories are used for which step, will be given in the corresponding analysis sections.
