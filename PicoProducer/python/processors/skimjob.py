@@ -37,6 +37,7 @@ nfiles    = -1 if maxevts>0 else -1
 tag       = args.tag
 tag       = ('' if not tag or tag.startswith('_') else '_') + tag
 postfix   = tag
+outfiles  = os.path.join(outdir,"*%s.root"%postfix)
 url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch
 doJEC     = args.doJEC #and dataType=='data'
@@ -81,9 +82,11 @@ print ">>> %-12s = %r"%('year',year)
 print ">>> %-12s = %r"%('period',period)
 print ">>> %-12s = %r"%('dtype',dtype)
 print ">>> %-12s = %s"%('maxevts',maxevts)
-print ">>> %-12s = %r"%('outdir',outdir)
-print ">>> %-12s = %r"%('copydir',copydir)
+print ">>> %-12s = %r"%('tag',tag)
 print ">>> %-12s = %r"%('postfix',postfix)
+print ">>> %-12s = %r"%('outdir',outdir)
+print ">>> %-12s = %r"%('outfiles',outfiles)
+print ">>> %-12s = %r"%('copydir',copydir)
 print ">>> %-12s = %s"%('infiles',infiles)
 print ">>> %-12s = %r"%('branchsel',branchsel)
 print ">>> %-12s = %r"%('json',json)
@@ -104,7 +107,6 @@ if copydir and outdir!=copydir:
   from TauFW.PicoProducer.storage.utils import getstorage
   from TauFW.common.tools.file import rmfile
   store = getstorage(copydir,verb=2)
-  outfiles = os.path.join(outdir,"*%s.root"%postfix)
   store.cp(outfiles)
   print ">>> Removing %s..."%(outfiles)
   rmfile(outfiles)
