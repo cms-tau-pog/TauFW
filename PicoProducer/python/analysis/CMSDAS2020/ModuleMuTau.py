@@ -5,7 +5,7 @@ import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 
-class ModuleMuTauSimple(Module):
+class ModuleMuTau(Module):
   
   def __init__(self,fname,**kwargs):
     self.outfile = TFile(fname,'RECREATE')
