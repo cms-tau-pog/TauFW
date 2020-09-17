@@ -73,6 +73,15 @@ Please note, that the two lists `samples_mutau_2018.py` and `samples_mutau_2018_
 diff ${CMSSW_BASE}/src/TauFW/PicoProducer/samples/CMSDAS2020/samples_mutau_2018*.py
 ```
 
+The preselected NanoAOD files contain a much smaller amount of events than the corresponding originals, and they have less quantities stored for each event. If running on these files,
+it is best to try out to process several files at once per run. To configure this for all samples, perform the following command:
+
+```sh
+pico.py set nfilesperjob 10
+```
+
+Alternatively, you can configure this per sample in [samples_mutau_2018_preselected.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018_preselected.py) with the corresponding keyword argument.
+
 Next step is to setup the proper analysis channel, that allows to create flat n-tuples.
 Following the configuration of samples above, you should configure the analysis to the &mu;&tau;<sub>h</sub> final state of the Z&rarr;&tau;&tau; decay.
 This analysis is constructed in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) and is included into the configuartion as follows:
