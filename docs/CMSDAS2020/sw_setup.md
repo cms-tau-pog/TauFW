@@ -23,6 +23,13 @@ Host cern7
 
 After adding this, you can connect to the CERN login nodes simply via `ssh cern7`
 
+## EOS user space
+
+If not already done, you can activate your EOS space following the corresponding [instructions](https://resources.web.cern.ch/resources/Manage/EOS/Default.aspx).
+
+This will give you access to 1 TB personal storage space, accessible e.g. via the path `/eos/user/<first-letter-of-cern-username>/<cern-username>`.
+There, you can store for example large files needed for the analysis.
+
 ## Checking out the analysis software
 
 At first, please create a separate working directory in your home folder at lxplus and move into it:
