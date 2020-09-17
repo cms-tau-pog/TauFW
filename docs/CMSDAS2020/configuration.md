@@ -43,3 +43,18 @@ ulimit -s unlimited
 ```
 
 ## Configuration done once per desired change
+
+By default the [TauFW](https://github.com/ArturAkh/TauFW.git) framework is configured for analyses of the Tau POG, such that you have to change it a bit for the exercise.
+At the same time, you get familiar with the configuration of the framework, such that you can introduce configuration changes, if these are required for your purpose.
+
+To list the current configuration, execute the following command in the TauFW working directory:
+
+```sh
+pico.py list
+```
+
+At first, the list of input NanoAOD samples needs to be changed from default to [samples_mutau_2018.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018.py):
+
+```sh
+pico.py era 2018 CMSDAS2020/samples_mutau_2018.py
+```
