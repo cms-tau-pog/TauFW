@@ -45,7 +45,7 @@ cd CMSSW_10_6_17_patch1/src
 cmsenv
 
 # Analysis SW
-git clone https://github.com/ArturAkh/TauFW
+git clone https://github.com/ArturAkh/TauFW.git
 
 # Tools to process NanoAOD
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
@@ -54,7 +54,7 @@ git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODT
 scram b -j 4
 ```
 
-Additionally, you will need to install the SW for statistical inference in a different CMSSW environment.
+Additionally, you will need to install the software for statistical inference in a different CMSSW environment.
 To do this, perform the following commands, safest in a separate, fresh terminal tab on lxplus:
 
 ```sh
@@ -81,4 +81,37 @@ git clone https://github.com/ArturAkh/CMSDAS2020TauLong.git CombineHarvester/CMS
 
 # Compiling everything
 scram b -j 4
+```
+
+## Introducing your own changes
+
+After this initial setup of the software, you are adviced to *fork* the repositories [TauFW](https://github.com/ArturAkh/TauFW) and
+[CombineHarvester/CMSDAS2020TauLong](https://github.com/ArturAkh/CMSDAS2020TauLong.git) to be able to introduce your own changes to the software and to save your progress
+on github.
+
+For forking, just open the two github links above, create a github account in case you do not have one yet, and click on the **Fork** button on the top right of the webpage of each repository.
+
+After the forking process is finished, you can add the forked repositories as additional remotes to the checked out software in your home directory:
+
+```sh
+# your fork for TauFW
+cd ~/TauLongCMSDAS2020/CMSSW_10_6_17_patch1/src/TauFW/
+git remote add myfork https://github.com/<github-username>/TauFW
+
+# print out all remotes of TauFW
+git remote -v
+
+# your fork for CombineHarvester/CMSDAS2020TauLong
+cd ~/TauLongCMSDAS2020/CMSSW_10_2_23/src/CombineHarvester/CMSDAS2020TauLong
+git remote add myfork https://github.com/<github-username>/CMSDAS2020TauLong.git
+
+# print out all remotes of CombineHarvester/CMSDAS2020TauLong
+git remote -v
+```
+
+In that way, you can safely do your own developments on the local master branch, and if you would like to push your changes to your fork,
+you will need to specify the appropriate fork different from `origin`:
+
+```sh
+git push myfork master
 ```
