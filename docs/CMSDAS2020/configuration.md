@@ -59,6 +59,20 @@ At first, the list of input NanoAOD samples needs to be changed from default to 
 pico.py era 2018 CMSDAS2020/samples_mutau_2018.py
 ```
 
+If this sample list is chosen, original NanoAOD samples will be processed for preselection explained in section [3](preselection.md) and further analysis starting from
+section [4](flat_n-tuples.md). In case of an analysis in the &mu;&tau;<sub>h</sub> final state, preselected NanoAOD samples were already produced for you, such that you could run your analysis
+on these samples. To do this, please change the sample list as follows:
+
+```sh
+pico.py era 2018 CMSDAS2020/samples_mutau_2018_preselected.py
+```
+
+Please note, that the two lists `samples_mutau_2018.py` and `samples_mutau_2018_preselected.py` only differ by their `storage` setting. Check that in the TauFW working directory via:
+
+```sh
+diff ${CMSSW_BASE}/src/TauFW/PicoProducer/samples/CMSDAS2020/samples_mutau_2018*.py
+```
+
 Next step is to setup the proper analysis channel, that allows to create flat n-tuples.
 Following the configuration of samples above, you should configure the analysis to the &mu;&tau;<sub>h</sub> final state of the Z&rarr;&tau;&tau; decay.
 This analysis is constructed in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) and is included into the configuartion as follows:
@@ -67,14 +81,7 @@ This analysis is constructed in [ModuleMuTau](../../PicoProducer/python/analysis
 pico.py channel mutau CMSDAS2020.ModuleMuTau
 ```
 
-In case of the &mu;&tau;<sub>h</sub> final state, preselected NanoAOD samples were already produced for you as will be explained in section [3](preselection.md). To access these,
-change the configuration as follows:
-
-```sh
-pico.py set nanodir '/eos/cms/store/group/phys_tau/CMSDAS2020/nano_merged/$ERA/$DAS'
-```
-
-Alternatively, if you need to produce your own preselected NanoAOD, for example in case of a different final state, you can leave the folder as it is to be configured automatically.
+For a different Z&rarr;&tau;&tau; final state, for example e&mu;, you will need to produce your own preselected NanoAOD, which will be stored in the directory configured as `nanodir`.
 
 Finally, please check whether all directories configured (execute `pico.py list` to see them) are accessible, are properly written and you have the right permissions to read the files.
 More details, on which directories are used for which step, will be given in the corresponding analysis sections.
