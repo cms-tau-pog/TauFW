@@ -110,7 +110,7 @@ git remote -v
 ```
 
 In that way, you can safely do your own developments on the local master branch, and if you would like to push your changes to your fork,
-you will need to specify the appropriate fork different from `origin`:
+you will need to specify the appropriate remote different from `origin`:
 
 ```sh
 git push myfork master
