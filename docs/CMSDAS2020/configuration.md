@@ -27,4 +27,4 @@ voms-proxy-init --valid 192:00:00 --voms cms --rfc
 The last two commands setup a proxy for your grid certificate and are needed to be able to access remotely stored datasets in the CERN grid,
 and to write to CERN grid dCache storage servers with corresponding tools.
 
-You can check the settings for your grid certificate, provided that it is imported into your browser, for example at [voms2.cern.ch](http://voms2.cern.ch:8443/voms/cms/user/home.action).
+You can check the settings for your grid certificate, provided that it is imported into your browser, for example at [voms2.cern.ch](https://voms2.cern.ch:8443/voms/cms/user/home.action).
