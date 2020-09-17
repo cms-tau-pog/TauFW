@@ -58,3 +58,11 @@ At first, the list of input NanoAOD samples needs to be changed from default to 
 ```sh
 pico.py era 2018 CMSDAS2020/samples_mutau_2018.py
 ```
+
+Next step is to setup the proper analysis channel, that allows to create flat n-tuples.
+Following the configuration of samples above, you should configure the analysis to the &mu;&tau;<sub>h</sub> final state of the Z&rarr;&tau;&tau;.
+This analysis is constructed in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) and is included into the configuartion as follows:
+
+```sh
+pico.py channel mutau CMSDAS2020/ModuleMuTau.py
+```
