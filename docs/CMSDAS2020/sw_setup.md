@@ -36,7 +36,7 @@ cd TauLongCMSDAS2020
 To install the analysis framework adapted for the exercise in this directory, please execute the following commands:
 
 ```sh
-# Move into your exercise working directory
+# Moving into your exercise working directory
 cd ~/TauLongCMSDAS2020
 
 # Checking out CMSSW
@@ -58,12 +58,12 @@ Additionally, you will need to install the SW for statistical inference in a dif
 To do this, perform the following commands, safest in a separate, fresh terminal tab on lxplus:
 
 ```sh
-# Move into your exercise working directory
+# Moving into your exercise working directory
 cd ~/TauLongCMSDAS2020
 
 # Checking out CMSSW for statistical inference (different from TauFW)
 cmsrel CMSSW_10_2_23
-cd CMSSW_10_2_23_patch1/src
+cd CMSSW_10_2_23/src
 cmsenv
 
 # Combine package
