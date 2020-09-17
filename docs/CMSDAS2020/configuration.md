@@ -32,7 +32,7 @@ You can check the settings for your grid certificate, provided that it is import
 In case of the statistical inference covered in sections [8](prep_stat_inference.md) and [9](measurement.md) the setup of the environment for a new login or a new terminal is as follows:
 
 ```sh
-# Moving into TauFW working directory
+# Moving into Combine & CombineHarvester working directory
 cd ~/TauLongCMSDAS2020/CMSSW_10_2_23/src
 
 # Setting the CMSSW environment
