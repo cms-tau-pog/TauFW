@@ -61,7 +61,7 @@ pico.py era 2018 CMSDAS2020/samples_mutau_2018.py
 
 If this sample list is chosen, original NanoAOD samples will be processed for preselection explained in section [3](preselection.md) and further analysis starting from
 section [4](flat_n-tuples.md). In case of an analysis in the &mu;&tau;<sub>h</sub> final state, preselected NanoAOD samples were already produced for you, such that you could run your analysis
-on these samples. To do this, please change the sample list as follows:
+on these samples. To do this, please change the sample list to [samples_mutau_2018_preselected.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018_preselected.py) as follows:
 
 ```sh
 pico.py era 2018 CMSDAS2020/samples_mutau_2018_preselected.py
