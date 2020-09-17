@@ -15,7 +15,7 @@ parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ],
 parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
 parser.add_argument('-C', '--copydir',  dest='copydir',   type=str, default=None)
 parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=-1)
-parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="")
+parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="skim")
 parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
 parser.add_argument('-y','-e','--era',  dest='era',       type=str, default="")
 parser.add_argument('-E', '--opts',     dest='extraopts', type=str, default=[ ], nargs='+')
