@@ -122,3 +122,5 @@ you will need to specify the appropriate remote different from `origin`:
 ```sh
 git push myfork master
 ```
+
+Another advantage of having your personal fork of the repository is the possibility to discuss changes introduced by everyone of you, just by comparing across forks on github.
