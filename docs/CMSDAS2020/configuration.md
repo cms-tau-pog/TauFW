@@ -76,5 +76,5 @@ pico.py set nanodir '/eos/cms/store/group/phys_tau/CMSDAS2020/nano_merged/$ERA/$
 
 Alternatively, if you need to produce your own preselected NanoAOD, for example in case of a different final state, you can leave the folder as it is to be configured automatically.
 
-Finally, please check whether all directories configured (execute `pico.py list` to see them) are accessible properly written and you have the right permissions to access the files.
+Finally, please check whether all directories configured (execute `pico.py list` to see them) are accessible, are properly written and you have the right permissions to read the files.
 More details, on which directories are used for which step, will be given in the corresponding analysis sections.
