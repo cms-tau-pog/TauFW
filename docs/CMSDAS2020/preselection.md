@@ -75,13 +75,43 @@ As you will see after executing the command above, there are four different run 
 ```sh
 dasgoclient -query="dataset dataset=/*/Run2018D*Nano25Oct2019*/NANOAOD"
 ```
+
 Which datasets would you choose for the other Z&rarr;&tau;&tau; final states of interest: e&tau;<sub>h</sub>, &tau;<sub>h</sub>&tau;<sub>h</sub>, and e&mu;?
 
 ## Choice of preselection and quantities of interest
 
 The samples to be processed are now chosen. The main purpose of the preselection you learn in this section is twofold:
 
-+ Select only those events, that might be interesting
-+ Choose only those quantities from NanoAOD, which are relevant
++ Select only those events, that might be interesting.
++ Choose only those quantities from NanoAOD, which are relevant.
 
-The preselection, also called *skimming*, is handled in the TauFW framework by the [skimjob.py](../../PicoProducer/python/processors/skimjob.py) processor.
+The preselection, also called *skimming*, is handled in the TauFW framework by the [skimjob.py](../../PicoProducer/python/processors/skimjob.py) processor, which can be used
+with the main script [pico.py](../../PicoProducer/scripts/pico.py):
+
+```sh
+pico.py run -c skim -y 2018 -m 1000 -p
+```
+
+By default, `pico.py` runs on the first file of the first sample from its list. The options specified in the command above mean the following:
+
++ `-c skim` or `--channel skim`: selects the processor for skimming, [skimjob.py](../../PicoProducer/python/processors/skimjob.py).
++ `-y 2018` or `--era 2018`: selects the era to be processed, and with it the sample list configured for that era.
++ `-m 1000` or `--maxevts 1000`: limits the execution of the command to process at most 1000 events.
++ `-p` or `--prefetch`: enables copying of the (remote) input file to a local temporary directory. If the input file is large enough, it is often much faster and safer just to copy it to the local worker node and run on the copied file. The alternative would be to stream the remote file (e.g. via XRootD), which can break up in the middle of a job, or be very slow. In case of NanoAOD files, which are actually small compared to other formats, that is a pretty convenient solution.
+
+So far, no preselection is specified. This can be done via the option `-P` (or `--preselect`).
+For the preselected samples configured in [samples_mutau_2018_preselected.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018_preselected.py) the command reads as follows (local test version of it):
+
+```sh
+pico.py run -c skim -y 2018 -m 1000 -p -P 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1'
+```
+Let us have a closer look at the various parts of the selection:
+
++ `HLT_IsoMu27 == 1`: Since data is collected with the help of a trigger system, an appropriate trigger decision needs to be specified to be consistent in the selection of data and simulation. For the
+&mu;&tau;<sub>h</sub> final state, it is good to select a high level trigger (HLT) path targeting one muon, since this HLT path is simple and not too restrictive.
++ `Muon_pt > 28`: Due to the selection of the HLT, we are interested in muons with offline transverse momentum (p<sub>T</sub>) slightly above the HLT p<sub>T</sub> threshold.
+In that way, the turn-on region of the HLT path is avoided, which is usually difficult to model.
++ `Tau_pt > 18`: An HLT path is not required for &tau;<sub>h</sub> candidates, therefore, you can choose the loosest threshold possible for these physics objects. If you have a look at the NanoAOD definition, you will figure out, that it exactly matches this definition. In the context of this exercise, you will be adviced to test different possibilities for a higher threshold
+on p<sub>T</sub>(&tau;<sub>h</sub>) in further steps of the analysis discussed later.
++ `Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5`: In an analysis, you are interested in well reconstructed muons. A good compromise between high purity and high efficiency is the medium working point (WP) of muon identification. Although it is usually best to select also well isolated muons, the threshold on the relative muon isolation using all particle flow (PF) candidates is kept high to be able to define sideband regions with looser isolation requirement.
++ `Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1`: To allow you playing around with &tau;<sub>h</sub> candidates, the loosest possible WPs are chosen for the DeepTau discriminators against muons, electrons, and jets.
