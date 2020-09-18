@@ -335,6 +335,7 @@ def main_run(args):
   userfiles = args.infiles
   nfiles    = args.nfiles
   nsamples  = args.nsamples
+  prefetch  = args.prefetch
   dryrun    = args.dryrun
   verbosity = args.verbosity
   
@@ -363,6 +364,7 @@ def main_run(args):
         print ">>> %-12s = %r"%('processor',processor)
         print ">>> %-12s = %r"%('procopts',procopts)
         print ">>> %-12s = %r"%('extrachopts',extrachopts)
+        print ">>> %-12s = %r"%('prefetch',prefetch)
         print ">>> %-12s = %s"%('filters',filters)
         print ">>> %-12s = %s"%('vetoes',vetoes)
         print ">>> %-12s = %r"%('dtypes',dtypes)
@@ -443,6 +445,8 @@ def main_run(args):
           runcmd += " -m %s"%(maxevts)
         if infiles:
           runcmd += " -i %s"%(' '.join(infiles))
+        if prefetch:
+          runcmd += " -p"
         if extraopts_:
           runcmd += " --opt '%s'"%("' '".join(extraopts_))
         #elif nfiles:
@@ -1088,8 +1092,6 @@ def main_submit(args):
       # use specific settings for KIT condor
       if 'etp' in GLOB._host:
         script = "python/batch/submit_HTCondor_KIT.sub"
-      elif 'naf' in GLOB._host:
-        script = "python/batch/submit_HTCondor_DESY.sub"
       else:
         script = "python/batch/submit_HTCondor.sub"
       appcmds = ["initialdir=%s"%(jobdir),
@@ -1410,6 +1412,8 @@ if __name__ == "__main__":
                                                 help="input files (nanoAOD)")
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
+  parser_run.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
+                                                help="copy remote file during run to increase processing speed and ensure stability" )
   parser_sts.add_argument('-l','--log',         dest='showlogs', type=int, nargs='?', const=-1, default=0,
                           metavar='NLOGS',      help="show log files of failed jobs: 0 (show none), -1 (show all), n (show max n)" )
   #parser_hdd.add_argument('--keep',             dest='cleanup', action='store_false',

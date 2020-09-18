@@ -52,7 +52,7 @@ def createinputs(fname,sampleset,observables,bins,**kwargs):
       ensureTDirectory(file,selection.filename,cd=True,verb=verbosity)
       if recreate:
         string = joincuts(selection.selection,obs.cut)
-        TNamed("selection",string).Write() # write exact selection string to ROOT file
+        TNamed("selection",string).Write() # write exact selection string to ROOT file for the record / debugging
         #TNamed("weight",sampleset.weight).Write()
         LOG.verb("%s selection %r: %r"%(obsname,selection.name,string),verbosity,1)
     files[obs] = file
