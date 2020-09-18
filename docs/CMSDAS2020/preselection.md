@@ -31,7 +31,7 @@ In this case, you need a valid VOMS proxy, so check its validiy with the command
 
 The tool to check for available data samples and simulated samples is the `dasgoclient`, which can be used in command line. Alternatively, you can do the same sample searches
 on the [Data Aggregation Service](https://cmsweb.cern.ch/das/) webpage, provided that your VOMS certificate is included in your browser.
-But let us stay with nuch faster command line tool ;).
+But let us stay with much faster command line tool ;).
 
 The query for the simulated Drell-Yan sample from [samples_mutau_2018.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018.py) looks as follows:
 
