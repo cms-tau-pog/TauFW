@@ -1088,6 +1088,8 @@ def main_submit(args):
       # use specific settings for KIT condor
       if 'etp' in GLOB._host:
         script = "python/batch/submit_HTCondor_KIT.sub"
+      elif 'naf' in GLOB._host:
+        script = "python/batch/submit_HTCondor_DESY.sub"
       else:
         script = "python/batch/submit_HTCondor.sub"
       appcmds = ["initialdir=%s"%(jobdir),

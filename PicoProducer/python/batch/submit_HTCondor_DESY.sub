@@ -1,0 +1,18 @@
+# Submit as
+#   condor_submit submit_HTCondor_DESY.sub 'mylogfile=log/myjob.$(ClusterId).$(ProcId).log' -queue arg from args.txt
+universe              = vanilla
+executable            = python/batch/submit_HTCondor.sh
+arguments             = $(arg)
+initialdir            = output
+mylogfile             = log/job.$(ClusterId).$(ProcId).log
+log                   = $(mylogfile).log
+output                = $(mylogfile).out
+error                 = $(mylogfile).err
+Requirements          = OpSysAndVer == "CentOS7"
+should_transfer_files = no
+use_x509userproxy     = true
+getenv                = true
+environment           = JOBID=$(ClusterId);TASKID=$(ProcId)
++RequestRuntime       = 30000
++RequestMemory 	      = 3000
+#queue arg from args.txt
