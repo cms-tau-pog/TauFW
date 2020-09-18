@@ -12,7 +12,7 @@ for the &mu;&tau;<sub>h</sub> final state, as already done and stored under the 
 
 Feel free to adapt this workflow to preselect NanoAOD samples for other final states, for example e&mu;.
 
-## Processes contributing to considered final state
+## Processes contributing to a Z&rarr;&tau;&tau; final state
 
 The first thing you need to figure out for the final state you are interested in, are the possible processes contributing to it.
 In the context of the Z&rarr;&tau;&tau; cross-section measurement, the following processes are considered, independent of the actual final state:
