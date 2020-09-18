@@ -369,6 +369,7 @@ def main_run(args):
         print ">>> %-12s = %r"%('procopts',procopts)
         print ">>> %-12s = %r"%('extrachopts',extrachopts)
         print ">>> %-12s = %r"%('prefetch',prefetch)
+        print ">>> %-12s = %r"%('preselect',preselect)
         print ">>> %-12s = %s"%('filters',filters)
         print ">>> %-12s = %s"%('vetoes',vetoes)
         print ">>> %-12s = %r"%('dtypes',dtypes)
@@ -438,7 +439,7 @@ def main_run(args):
         if skim:
           runcmd += " -y %s -o %s"%(era,outdir)
           if preselect:
-            runcmd += ' -P "%s"'%(preselect)
+            runcmd += ' --preselect "%s"'%(preselect)
         ###elif 'test' in channel:
         ###  runcmd += " -o %s"%(outdir)
         else: # analysis
@@ -517,6 +518,7 @@ def preparejobs(args):
   checkqueue   = args.checkqueue
   extraopts    = args.extraopts  # extra options for module (for all runs)
   prefetch     = args.prefetch
+  preselect    = args.preselect
   nfilesperjob = args.nfilesperjob
   split_nfpj   = args.split_nfpj
   testrun      = args.testrun    # only run a few test jobs
@@ -609,6 +611,7 @@ def preparejobs(args):
           print ">>> %-12s = %r"%('outdir',outdir)
           print ">>> %-12s = %r"%('extraopts',extraopts_)
           print ">>> %-12s = %r"%('prefetch',prefetch)
+          print ">>> %-12s = %r"%('preselect',preselect)
           print ">>> %-12s = %r"%('cfgdir',cfgdir)
           print ">>> %-12s = %r"%('logdir',logdir)
           print ">>> %-12s = %r"%('tmpdir',tmpdir)
@@ -696,6 +699,8 @@ def preparejobs(args):
                 jobcmd   += " -y %s -d %r -c %s -M %s --copydir %s -t %s"%(era,dtype,channel,module,outdir,filetag)
               if prefetch:
                 jobcmd   += " -p"
+              if preselect and skim:
+                jobcmd   += ' --preselect "%s"'%(preselect)
               if testrun:
                 jobcmd   += " -m %d"%(testrun) # process a limited amount of events
               if extraopts_:
@@ -1352,6 +1357,8 @@ if __name__ == "__main__":
                                                 help='queue of batch system (job flavor on HTCondor)')
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
                                                 help='ask user permission before submitting a sample')
+  parser_job.add_argument('--preselect',        dest='preselect', type=str, default=None,
+                                                help='preselection to be shipped to skimjob.py during run command')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,
                                                 help='number of files per job, default=%d'%(CONFIG.nfilesperjob))
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1,
@@ -1410,7 +1417,7 @@ if __name__ == "__main__":
                           metavar='FILE',       help="write file list, default=%(const)r" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                                                 help='maximum number of events (per file) to process')
-  parser_run.add_argument('-P','--preselect',   dest='preselect', type=str, default=None,
+  parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
                                                 help='preselection to be shipped to skimjob.py during run command')
   parser_run.add_argument('-n','--nfiles',      dest='nfiles', type=int, default=1,
                                                 help="maximum number of input files to process (per sample), default=%(default)d")
