@@ -145,5 +145,7 @@ Note, that you have to replace `<original>.root` and `<preselected>.root` with a
 ## Batch submission of preselection
 
 After having tested your preselection locally - **test always your commands and code locally at first** - you can prepare and then start the submission to a batch system, since
-such a system offers you plenty of resources for your calculations. *Batch systems are a physicist&apos;s best friend*, someone told once :).
+such a system offers you plenty of resources for your calculations.
+
+*Batch systems are a physicist&apos;s best friend*, someone told once :).
 
