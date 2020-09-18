@@ -89,21 +89,21 @@ The preselection, also called *skimming*, is handled in the TauFW framework by t
 with the main script [pico.py](../../PicoProducer/scripts/pico.py):
 
 ```sh
-pico.py run -c skim -y 2018 -m 1000 -p
+pico.py run -c skim -y 2018 -m 10000 -p
 ```
 
 By default, `pico.py` runs on the first file of the first sample from its list. The options specified in the command above mean the following:
 
 + `-c skim` or `--channel skim`: selects the processor for skimming, [skimjob.py](../../PicoProducer/python/processors/skimjob.py).
 + `-y 2018` or `--era 2018`: selects the era to be processed, and with it the sample list configured for that era.
-+ `-m 1000` or `--maxevts 1000`: limits the execution of the command to process at most 1000 events.
++ `-m 10000` or `--maxevts 10000`: limits the execution of the command to process at most 1000 events.
 + `-p` or `--prefetch`: enables copying of the (remote) input file to a local temporary directory. If the input file is large enough, it is often much faster and safer just to copy it to the local worker node and run on the copied file. The alternative would be to stream the remote file (e.g. via XRootD), which can break up in the middle of a job, or be very slow. In case of NanoAOD files, which are actually small compared to other formats, that is a pretty convenient solution.
 
 So far, no preselection is specified. This can be done via the option `-P` (or `--preselect`).
 For the preselected samples configured in [samples_mutau_2018_preselected.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018_preselected.py) the command reads as follows (local test version of it):
 
 ```sh
-pico.py run -c skim -y 2018 -m 1000 -p -P 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1'
+pico.py run -c skim -y 2018 -m 10000 -p -P 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1'
 ```
 Let us have a closer look at the various parts of the selection:
 
@@ -115,3 +115,30 @@ In that way, the turn-on region of the HLT path is avoided, which is usually dif
 on p<sub>T</sub>(&tau;<sub>h</sub>) in further steps of the analysis discussed later.
 + `Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5`: In an analysis, you are interested in well reconstructed muons. A good compromise between high purity and high efficiency is the medium working point (WP) of muon identification. Although it is usually best to select also well isolated muons, the threshold on the relative muon isolation using all particle flow (PF) candidates is kept high to be able to define sideband regions with looser isolation requirement.
 + `Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1`: To allow you playing around with &tau;<sub>h</sub> candidates, the loosest possible WPs are chosen for the DeepTau discriminators against muons, electrons, and jets.
+
+After executing the command above for the Drell-Yan dataset (taken by default), you will notice, that only 0.1% pass the preselection defined for &mu;&tau;<sub>h</sub>.
+
+Therfore, if you plan to preselect for a different final state, think first about a preselection which is loose enough to allow for definitions of sideband regions, but restrictive enough
+to reject enough events to reduce the size of the dataset.
+
+Now let us check, which quantities are chosen from original NanoAOD into the preselected NanaAOD. For this purpose, the [skimjob.py](../../PicoProducer/python/processors/skimjob.py) processor
+loads the [keep_and_drop_skim.txt](../../PicoProducer/python/processors/keep_and_drop_skim.txt) file, in which the keys `keep` and `drop` are used, as well as wildcards to select
+required quantities. For more details, have a look at [branchselection.py](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/branchselection.py) of
+[nanoAOD-tools](https://github.com/cms-nanoAOD/nanoAOD-tools).
+
+To have an example for the original NanoAOD, you can copy one of the files from Drell-Yan dataset (use `dasgoclient` to get a file path) from remote to your local work directory with `xrdcopy`:
+
+`xrdcopy root://cms-xrd-global.cern.ch/<file-path-from-dasgoclient> .`
+
+For an example of a preselected file, just run the preselection command above, if you wish, with an additional requirement of `-s DY` or `--sample DY` to be sure to run on Drell-Yan dataset.
+
+Now you can have a look at the content of the `Events` TTree, which stores event information of the NanoAOD file. Most convenient way to do this is just by executing two `ROOT` commands and `vimdiff`:
+
+```sh
+root -l <original>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort -V > original_content.txt
+root -l <preselected>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort -V > preselected_content.txt
+vimdiff original_content.txt preselected_content.txt
+```
+Note, that you have to replace <original>.root and <preselected>.root with appropriate local file paths. And again, `vimdiff` is just so much cooler than `diff` ;).
+
+## Batch submission of preselection
