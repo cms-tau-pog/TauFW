@@ -36,23 +36,23 @@ But let us stay with nuch faster command line tool ;).
 The query for the simulated Drell-Yan sample from [samples_mutau_2018.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018.py) looks as follows:
 
 ```sh
-dasgoclient --query="dataset dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM"
+dasgoclient -query="dataset dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM"
 ```
 
 If you like to see, whether there are other Drell-Yan samples available, you can use wildcard notation with &ast;:
 
 ```sh
-dasgoclient --query="dataset dataset=/DY*JetsToLL_M-50_TuneCP5*/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20*/NANOAODSIM"
+dasgoclient -query="dataset dataset=/DY*JetsToLL_M-50_TuneCP5*/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20*/NANOAODSIM"
 ```
 
 You can also search for the files of the first dataset, or on which sites it is located:
 
 ```sh
-dasgoclient --query="file dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM"
-dasgoclient --query="site dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM"
+dasgoclient -query="file dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM"
+dasgoclient -query="site dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM"
 ```
 
 You can even get more information on the sample, like the number of events, if requiring to have detailed info in .json format:
 ```sh
-dasgoclient --query="dataset dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM" -json
+dasgoclient -query="dataset dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM" -json
 ```
