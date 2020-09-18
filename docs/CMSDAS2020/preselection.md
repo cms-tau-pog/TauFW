@@ -100,11 +100,11 @@ By default, `pico.py` runs on the first file of the first sample from its list. 
 + `-m 10000` or `--maxevts 10000`: limits the execution of the command to process at most 1000 events.
 + `-p` or `--prefetch`: enables copying of the (remote) input file to a local temporary directory. If the input file is large enough, it is often much faster and safer just to copy it to the local worker node and run on the copied file. The alternative would be to stream the remote file (e.g. via XRootD), which can break up in the middle of a job, or be very slow. In case of NanoAOD files, which are actually small compared to other formats, that is a pretty convenient solution.
 
-So far, no preselection is specified. This can be done via the option `-P` (or `--preselect`).
+So far, no preselection is specified. This can be done via the option `--preselect`.
 For the preselected samples configured in [samples_mutau_2018_preselected.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018_preselected.py) the command reads as follows (local test version of it):
 
 ```sh
-pico.py run -c skim -y 2018 -m 10000 -p -P 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1'
+pico.py run -c skim -y 2018 -m 10000 -p --preselect 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1'
 ```
 Let us have a closer look at the various parts of the selection:
 
@@ -148,4 +148,10 @@ After having tested your preselection locally - **test always your commands and 
 such a system offers you plenty of resources for your calculations.
 
 *Batch systems are a physicist&apos;s best friend*, someone told once :).
+
+The batch system at CERN that can be accessed from `lxplus` and which has also access to your local work directory on `lxplus` by itself,
+is based on [HTCondor](https://research.cs.wisc.edu/htcondor/manual/). Details, on how jobs at CERN `lxplus` batch system can be submitted, can be found at CERN&apos;s
+[Batch Docs](https://batchdocs.web.cern.ch/local/submit.html).
+
+
 
