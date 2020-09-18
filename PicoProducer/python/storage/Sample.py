@@ -109,13 +109,12 @@ class Sample(object):
     # STORAGE & URL DEFAULTS
     if self.storepath:
       self.storepath = repkey(self.storepath,USER=_user,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+      self.storage = getstorage(repkey(self.storepath,PATH=self.paths[0],DAS=self.paths[0]),ensure=False)
     if not self.dasurl:
       self.dasurl = self.url if (self.url in dasurls) else dasurls[0]
     if not self.url:
       if self.storepath:
-        from TauFW.PicoProducer.storage.StorageSystem import Local
-        self.storage = getstorage(repkey(self.storepath,PATH=self.paths[0],DAS=self.paths[0]),ensure=False)
-        if isinstance(self.storage,Local):
+        if self.storage.__class__.__name__=='Local':
           self.url = "" #root://cms-xrd-global.cern.ch/
         else:
           self.url = self.storage.fileurl
