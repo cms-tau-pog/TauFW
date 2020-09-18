@@ -70,7 +70,7 @@ For the &mu;&tau;<sub>h</sub> final state, the `SingleMuon` datasets were chosen
 dasgoclient -query="dataset dataset=/SingleMuon/Run2018*Nano25Oct2019*/NANOAOD"
 ```
 
-As you will see after executing the command above, there are four different run periods available for 2018 data: A, B, C and D. To check all possible datasets collected in 2018 - let us stick to run period D for convenience, but feel free to chek also the other three periods - you can execute the following:
+As you will see after executing the command above, there are four different run periods available for 2018 data: A, B, C and D. To check all possible datasets collected in 2018 - let us stick to run period D for convenience, but feel free to check also the other three periods - you can execute the following:
 
 ```sh
 dasgoclient -query="dataset dataset=/*/Run2018D*Nano25Oct2019*/NANOAOD"
