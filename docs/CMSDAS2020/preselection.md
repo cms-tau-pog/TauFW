@@ -21,7 +21,7 @@ In the context of the Z&rarr;&tau;&tau; cross-section measurement, the following
 + Especially in the &mu;&tau;<sub>h</sub> and e&tau;<sub>h</sub> final states, &tau;<sub>h</sub> is often a misidentified jet from the production of a W boson, accompanied by jets.
 + Furthermore, the production of a tt&#773; pair is considered, being dominant in particular in the e&mu; final state.
 + QCD multi-jet background is apparent in all final states, however it is usually estimated from data, such that you do not need to look for simulated samples for that process.
-+ Minor contributions are expected fro the production of two bosons (WW, WZ, WZ), and from the single t production.
++ Minor contributions are expected from the production of two bosons (WW, WZ, WZ), and from the single t production.
 
 ## Simulated samples of the expected contributions
 
@@ -53,6 +53,27 @@ dasgoclient -query="site dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pyth
 ```
 
 You can even get more information on the sample, like the number of events, if requiring to have detailed info in .json format:
+
 ```sh
 dasgoclient -query="dataset dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM" -json
 ```
+
+Feel free to play around with the tool to get familiar with it.
+
+## Collected data appropriate for a Z&rarr;&tau;&tau; final state
+
+In case of data samples, you would need to search for the one appropriate to the specific final state you would like to consider, since the data is collected by a trigger system.
+
+For the &mu;&tau;<sub>h</sub> final state, the `SingleMuon` datasets were chosen (compare with [samples_mutau_2018.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018.py)):
+
+```sh
+dasgoclient -query="dataset dataset=/SingleMuon/Run2018*Nano25Oct2019*/NANOAOD"
+```
+
+As you will see after executing the command above, there are four different run periods available for 2018 data: A, B, C and D. To check all possible datasets collected in 2018
+-- let us stick to run period D for convenience, but feel free to chek also the other three periods -- you can execute the following:
+
+```sh
+dasgoclient -query="dataset dataset=/*/Run2018D*Nano25Oct2019*/NANOAOD"
+```
+Which datasets would you choose for the other Z&rarr;&tau;&tau; final states of interest: e;&tau;<sub>h</sub>, &tau;<sub>h</sub>&tau;<sub>h</sub>, and e&mu;?
