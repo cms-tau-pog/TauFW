@@ -70,8 +70,11 @@ pico.py era 2018 CMSDAS2020/samples_mutau_2018_preselected.py
 Please note, that the two lists `samples_mutau_2018.py` and `samples_mutau_2018_preselected.py` only differ by their `storage` setting. Check that in the TauFW working directory via:
 
 ```sh
-diff ${CMSSW_BASE}/src/TauFW/PicoProducer/samples/CMSDAS2020/samples_mutau_2018*.py
+vimdiff ${CMSSW_BASE}/src/TauFW/PicoProducer/samples/CMSDAS2020/samples_mutau_2018*.py
 ```
+
+You could also use just `diff`, but `vimdiff` is so much cooler. For more details, please refer to [vim cheat sheet](https://vim.rtorr.com/)
+and to [vimdiff cheat sheet](https://gist.github.com/brbsix/0d64ff0e798535a73778).
 
 The preselected NanoAOD files contain a much smaller amount of events than the corresponding originals, and they have less quantities stored for each event. If running on these files,
 it is best to try out to process several files at once per run. To configure this for all samples, perform the following command:
