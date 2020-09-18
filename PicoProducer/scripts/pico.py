@@ -341,6 +341,7 @@ def main_run(args):
   prefetch  = args.prefetch
   dryrun    = args.dryrun
   verbosity = args.verbosity
+  preselect = args.preselect
   
   # LOOP over ERAS
   if not eras:
@@ -436,6 +437,8 @@ def main_run(args):
           runcmd += " %s"%(procopts)
         if skim:
           runcmd += " -y %s -o %s"%(era,outdir)
+          if preselect:
+            runcmd += ' -P "%s"'%(preselect)
         ###elif 'test' in channel:
         ###  runcmd += " -o %s"%(outdir)
         else: # analysis
@@ -1407,6 +1410,8 @@ if __name__ == "__main__":
                           metavar='FILE',       help="write file list, default=%(const)r" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                                                 help='maximum number of events (per file) to process')
+  parser_run.add_argument('-P','--preselect',   dest='preselect', type=str, default=None,
+                                                help='preselection to be shipped to skimjob.py during run command')
   parser_run.add_argument('-n','--nfiles',      dest='nfiles', type=int, default=1,
                                                 help="maximum number of input files to process (per sample), default=%(default)d")
   parser_run.add_argument('-S', '--nsamples',   dest='nsamples', type=int, default=1,
