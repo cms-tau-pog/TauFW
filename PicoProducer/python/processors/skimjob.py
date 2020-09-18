@@ -11,24 +11,24 @@ from TauFW.PicoProducer.corrections.era_config import getjson, getperiod #, getj
 from TauFW.common.tools.utils import getyear
 from argparse import ArgumentParser
 parser = ArgumentParser()
-parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
-parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
-parser.add_argument('-C', '--copydir',  dest='copydir',   type=str, default=None)
-parser.add_argument('-c', '--cut',      dest='cut',       type=str, default=None)
-parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=-1)
-parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="skim")
-parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
-parser.add_argument('-y','-e','--era',  dest='era',       type=str, default="")
-parser.add_argument('-E', '--opts',     dest='extraopts', type=str, default=[ ], nargs='+')
-parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true')
-parser.add_argument('-J', '--jec',      dest='doJEC',     action='store_true')
-parser.add_argument('-S', '--jec-sys',  dest='doJECSys',  action='store_true')
+parser.add_argument('-i', '--infiles',   dest='infiles',   type=str, default=[ ], nargs='+')
+parser.add_argument('-o', '--outdir',    dest='outdir',    type=str, default='.')
+parser.add_argument('-C', '--copydir',   dest='copydir',   type=str, default=None)
+parser.add_argument('-P', '--preselect', dest='preselect', type=str, default=None)
+parser.add_argument('-m', '--maxevts',   dest='maxevts',   type=int, default=-1)
+parser.add_argument('-t', '--tag',       dest='tag',       type=str, default="skim")
+parser.add_argument('-d', '--dtype',     dest='dtype',     choices=['data','mc','embed'], default=None)
+parser.add_argument('-y','-e','--era',   dest='era',       type=str, default="")
+parser.add_argument('-E', '--opts',      dest='extraopts', type=str, default=[ ], nargs='+')
+parser.add_argument('-p', '--prefetch',  dest='prefetch',  action='store_true')
+parser.add_argument('-J', '--jec',       dest='doJEC',     action='store_true')
+parser.add_argument('-S', '--jec-sys',   dest='doJECSys',  action='store_true')
 args = parser.parse_args()
 
 
 # SETTING
 era       = args.era
-preselection_cut = args.cut # e.g. for MuTau: "HLT_IsoMu27 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1"
+preselection_cut = args.preselect # e.g. for MuTau: "HLT_IsoMu27 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1"
 year      = getyear(era)
 period    = ""
 dtype     = args.dtype
