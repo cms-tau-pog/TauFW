@@ -139,6 +139,6 @@ root -l <original>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort 
 root -l <preselected>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort -V > preselected_content.txt
 vimdiff original_content.txt preselected_content.txt
 ```
-Note, that you have to replace <original>.root and <preselected>.root with appropriate local file paths. And again, `vimdiff` is just so much cooler than `diff` ;).
+Note, that you have to replace `<original>.root` and `<preselected>.root` with appropriate local file paths. And again, `vimdiff` is just so much cooler than `diff` ;).
 
 ## Batch submission of preselection
