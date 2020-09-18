@@ -153,7 +153,7 @@ The batch system at CERN that can be accessed from `lxplus` and which has also a
 is based on [HTCondor](https://research.cs.wisc.edu/htcondor/manual/). Details, on how jobs at CERN `lxplus` batch system can be submitted, can be found at CERN&apos;s
 [Batch Docs](https://batchdocs.web.cern.ch/local/submit.html).
 
-To submit the skim command with preselection from above to the batch system, replace `run` with `submit` and modify the remaining options as you need, for example in the following way:
+To submit the skim command with preselection from above to the batch system, replace `run` with `submit` and modify the remaining options as you need, for example by using the `espresso` queue:
 
 ```sh
 pico.py submit -c skim -y 2018 -p --preselect 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1' --queue espresso
