@@ -163,10 +163,10 @@ You are adviced to test the command above at first with `--dry` to ensure, that 
 `--dry` but for one sample, e.g. `-s DY`. With this test submit you can check, whether the `espresso` queue with 20 minutes is sufficient to run the preselection on the amount of files configured by
 default (check it with `pico.py list` before submission).
 
-To check the status of the jobs, replace preform according to the `submit` command above:
+To check the status of the jobs, perform the `status` command adapted from the `submit` command above:
 
 ```sh
-pico.py submit -c skim -y 2018
+pico.py status -c skim -y 2018
 ```
 
 In case jobs are failed, you can resubmit these with changed options by replacing `submit` with `resubmit`.
