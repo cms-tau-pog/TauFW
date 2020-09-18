@@ -27,7 +27,8 @@ In the context of the Z&rarr;&tau;&tau; cross-section measurement, the following
 
 After it is clear, which contributions are expected, you need to find corresponding simulated samples.
 
-In this case, you need a valid VOMS proxy, so check its validiy with the commands from section [2](configuration.md#configuration-after-new-login-or-in-a-new-terminal).
+In this case and for the remaining part of this section, you need a valid VOMS proxy, so check its validiy with the commands from section
+[2](configuration.md#configuration-after-new-login-or-in-a-new-terminal).
 
 The tool to check for available data samples and simulated samples is the `dasgoclient`, which can be used in command line. Alternatively, you can do the same sample searches
 on the [Data Aggregation Service](https://cmsweb.cern.ch/das/) webpage, provided that your VOMS certificate is included in your browser.
