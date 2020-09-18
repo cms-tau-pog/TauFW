@@ -76,4 +76,4 @@ As you will see after executing the command above, there are four different run 
 ```sh
 dasgoclient -query="dataset dataset=/*/Run2018D*Nano25Oct2019*/NANOAOD"
 ```
-Which datasets would you choose for the other Z&rarr;&tau;&tau; final states of interest: e;&tau;<sub>h</sub>, &tau;<sub>h</sub>&tau;<sub>h</sub>, and e&mu;?
+Which datasets would you choose for the other Z&rarr;&tau;&tau; final states of interest: e&tau;<sub>h</sub>, &tau;<sub>h</sub>&tau;<sub>h</sub>, and e&mu;?
