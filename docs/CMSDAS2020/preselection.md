@@ -153,5 +153,31 @@ The batch system at CERN that can be accessed from `lxplus` and which has also a
 is based on [HTCondor](https://research.cs.wisc.edu/htcondor/manual/). Details, on how jobs at CERN `lxplus` batch system can be submitted, can be found at CERN&apos;s
 [Batch Docs](https://batchdocs.web.cern.ch/local/submit.html).
 
+To submit the skim command with preselection from above to the batch system, replace `run` with `submit` and modify the remaining options as you need, for example in the following way:
 
+```sh
+pico.py submit -c skim -y 2018 -p --preselect 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1' --queue espresso
+```
 
+You are adviced to test the command above at first with `--dry` to ensure, that all job directories are created properly. Then you can remove these directories and try to perform a test submit without
+`--dry` but for one sample, e.g. `-s DY`. With this test submit you can check, whether the `espresso` queue with 20 minutes is sufficient to run the preselection on the amount of files configured by
+default (check it with `pico.py list` before submission).
+
+To check the status of the jobs, replace preform according to the `submit` command above:
+
+```sh
+pico.py submit -c skim -y 2018
+```
+
+In case jobs are failed, you can resubmit these with changed options by replacing `submit` with `resubmit`.
+It is important to keep the other options you do not want to change, such as `--preselect` also for the `resubmit` command.
+To get more familiar with job submission, check the corresponding `--help` of `pico.py`.
+
+For successfully finished jobs, have a look, how the corresponding logging files look like. There you can also check, where the output files from the preselection are copied.
+The directories with logging files and the final output directory should match your configuration, which you can check with `pico.py list`.
+
+After all jobs for the test submit are finished you can submit the remaining samples by specifying the other sample names as a list passed to the `-s` option.
+
+Then, after occasional baby-sitting and resubmission of jobs, you should have all of them processed at some point. Congragulations! :)
+
+Let us use these preselected NanoAOD samples for further processing to create flat n-tuples, as will be explained in the [next section](flat_n-tuples.md).
