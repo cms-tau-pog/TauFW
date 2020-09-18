@@ -439,7 +439,7 @@ def main_run(args):
         if skim:
           runcmd += " -y %s -o %s"%(era,outdir)
           if preselect:
-            runcmd += ' --preselect "%s"'%(preselect)
+            runcmd += " --preselect '%s'"%(preselect)
         ###elif 'test' in channel:
         ###  runcmd += " -o %s"%(outdir)
         else: # analysis
@@ -700,7 +700,7 @@ def preparejobs(args):
               if prefetch:
                 jobcmd   += " -p"
               if preselect and skim:
-                jobcmd   += ' --preselect "%s"'%(preselect)
+                jobcmd   += " --preselect '%s'"%(preselect)
               if testrun:
                 jobcmd   += " -m %d"%(testrun) # process a limited amount of events
               if extraopts_:
