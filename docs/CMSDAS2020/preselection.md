@@ -118,8 +118,8 @@ on p<sub>T</sub>(&tau;<sub>h</sub>) in further steps of the analysis discussed l
 
 After executing the command above for the Drell-Yan dataset (taken by default), you will notice, that only 0.1% pass the preselection defined for &mu;&tau;<sub>h</sub>.
 
-Therfore, if you plan to preselect for a different final state, think first about a preselection which is loose enough to allow for definitions of sideband regions, but restrictive enough
-to reject enough events to reduce the size of the dataset.
+Therfore, if you plan to preselect for a different final state, think first about a preselection which is loose enough to allow for definitions of sideband regions and for optimization studies,
+but restrictive enough to reject enough events to reduce the size of the dataset.
 
 Now let us check, which quantities are chosen from original NanoAOD into the preselected NanaAOD. For this purpose, the [skimjob.py](../../PicoProducer/python/processors/skimjob.py) processor
 loads the [keep_and_drop_skim.txt](../../PicoProducer/python/processors/keep_and_drop_skim.txt) file, in which the keys `keep` and `drop` are used, as well as wildcards to select
