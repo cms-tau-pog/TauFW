@@ -48,6 +48,9 @@ def getstorage(path,verb=0,ensure=False):
   elif path.startswith('/pnfs/psi.ch/'):
     from TauFW.PicoProducer.storage.T3_PSI import T3_PSI
     storage = T3_PSI(path,ensure=ensure,verb=verb)
+  elif path.startswith('/pnfs/desy.de/'):
+    from TauFW.PicoProducer.storage.T2_DESY import T2_DESY
+    storage = T2_DESY(path,ensure=ensure,verb=verb)
   elif path.startswith("/store/user") and "etp" in host:
     from TauFW.PicoProducer.storage.GridKA_NRG import GridKA_NRG
     storage = GridKA_NRG(path,ensure=ensure,verb=verb)
