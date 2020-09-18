@@ -76,3 +76,12 @@ As you will see after executing the command above, there are four different run 
 dasgoclient -query="dataset dataset=/*/Run2018D*Nano25Oct2019*/NANOAOD"
 ```
 Which datasets would you choose for the other Z&rarr;&tau;&tau; final states of interest: e&tau;<sub>h</sub>, &tau;<sub>h</sub>&tau;<sub>h</sub>, and e&mu;?
+
+## Choice of preselection and quantities of interest
+
+The samples to be processed are now chosen. The main purpose of the preselection you learn in this section is twofold:
+
++ Select only those events, that might be interesting
++ Choose only those quantities from NanoAOD, which are relevant
+
+The preselection, also called *skimming*, is handled in the TauFW framework by the [skimjob.py](../../PicoProducer/python/processors/skimjob.py) processor.
