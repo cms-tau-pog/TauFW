@@ -13,6 +13,18 @@ including an increase of the number of processed files by default.
 
 ## Purpose of flat n-tuples
 
+In contrast to NanoAOD samples, flat n-tuples are not meant to be of general purpose, and should not contain vectors of quantities.
+This means, the only quantities stored in the TTree of a flat n-tuple are usually
+floats, integers, booleans, and characters, and they should comprise only those being of particular need for the analysis, for example to:
+
++ check and improve agreement between data and expectation,
++ refine signal selection to enrich the signal,
++ define sideband regions for data-driven background estimation,
++ define analysis categories,
++ and compute high-level quantities with high discriminating power.
+
+Among these highly discriminating quantities, you could find mass related variables of the &tau;&tau; system, or MVA based discriminators for (multi-)classification of signals and backgrounds.
+
 ## Structure of an analysis module
 
 The analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) is based on the [nanoAOD-tools](https://github.com/cms-nanoAOD/nanoAOD-tools) software.
