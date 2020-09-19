@@ -36,4 +36,6 @@ The module is required to have the following methods:
 + `__init__(self,fname,**kwargs)`: Basic initialization of the module before starting the event loop. Here, the output file can be defined for example.
 + `beginJob(self)`: Instructions to be done at the beginning of the event loop, like the setup of a cutflow histogram and an output tree.
 + `endJob(self)`: Instructions after the configured event loop is finished, like storing everything in the output file and closing it.
-+ `analyze(self, event)`: This is the main function of the analysis module.
++ `analyze(self, event)`: This is the main function of the analysis module, where the selection of physics objects and events is performed.
+
+## Initial analysis selection

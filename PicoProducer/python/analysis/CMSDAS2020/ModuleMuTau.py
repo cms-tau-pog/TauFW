@@ -169,14 +169,16 @@ class ModuleMuTau(Module):
     self.q_1[0]         = muon.charge
     self.id_1[0]        = muon.mediumId
     self.iso_1[0]       = muon.pfRelIso04_all # keep in mind: the SMALLER the value, the more the muon is isolated
-    self.genmatch_1[0]  = muon.genPartFlav
+    self.genmatch_1[0]  = muon.genPartFlav # in case of muons: 1 == prompt muon, 15 == muon from tau decay
     self.decayMode_1[0] = self.default_int # not needed for a muon
     self.pt_2[0]        = tau.pt
     self.eta_2[0]       = tau.eta
     self.q_2[0]         = tau.charge
     self.id_2[0]        = tau.idDeepTau2017v2p1VSjet
     self.iso_2[0]       = tau.rawDeepTau2017v2p1VSjet # keep in mind: the HIGHER the value of the discriminator, the more the tau is isolated
-    self.genmatch_2[0]  = tau.genPartFlav
+    self.genmatch_2[0]  = tau.genPartFlav # in case of taus: 0 == unmatched (corresponds then to jet),
+                                          #                  1 == prompt electron, 2 == prompt muon, 3 == electron from tau decay,
+                                          #                  4 == muon from tau decay, 5 == hadronic tau decay
     self.decayMode_2[0] = tau.decayMode
     self.m_vis[0]       = (muon.p4()+tau.p4()).M()
     self.tree.Fill()
