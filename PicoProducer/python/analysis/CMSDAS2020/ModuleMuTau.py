@@ -9,6 +9,8 @@ class ModuleMuTau(Module):
   
   def __init__(self,fname,**kwargs):
     self.outfile = TFile(fname,'RECREATE')
+    self.default_float = -999.0
+    self.default_int = -999
   
   def beginJob(self):
     """Prepare output analysis tree and cutflow histogram."""
@@ -109,7 +111,9 @@ class ModuleMuTau(Module):
     self.cutflow.Fill(self.cut_tau)
 
     # SELECT ELECTRONS FOR VETO
-    # TODO: extend the selection of veto electrons: pt > 15.0, with loose WP of the mva based ID (Fall17 training) including isolation.
+    # TODO: extend the selection of veto electrons: pt > 15.0,
+    # with loose WP of the mva based ID (Fall17 training without isolation),
+    # and a custom isolation cut on PF based isolation using all PF candidates.
     electrons = []
     for electron in Collection(event,'Electron'):
       veto_electron = False # TODO introduce a veto electron selection here
@@ -127,15 +131,31 @@ class ModuleMuTau(Module):
     tau  = max(taus,key=lambda p: p.pt)
     if muon.DeltaR(tau)<0.4: return False
     self.cutflow.Fill(self.cut_pair)
+
+    # SELECT Jets
+    # TODO: Jets are not used directly in our analysis, but it can be good to have a look at least the number of jets (and b-tagged jets) of your selection.
+    # Therefore, collect at first jets with pt > 20, |eta| < 4.7, passing loose WP of Pileup ID, and tight WP for jetID.
+    # The collected jets are furthermore not allowed to overlap with the signal muon and signal tau in deltaR, so selected them to have deltaR >= 0.5 w.r.t. the signal muon and signal tau.
+    # Then, select for this collection "usual" jets, which have pt > 30 in addition, count their number, and store pt & eta of the leading and subleading jet.
+    # For b-tagged jets, require additionally DeepFlavour b+bb+lepb tag with medium WP and |eta| < 2.5, count their number, and store pt & eta of the leading and subleading b-tagged jet.
+
+    # CHOOSE MET definition
+    # TODO: compare the PuppiMET and (PF-based) MET in terms of mean, resolution and data/expectation agreement and choose one of them for further processing
     
     # SAVE VARIABLES
+    # TODO: extend the variable list with more quantities (also high level ones). Compute at least:
+    # - visible pt of the Z boson candidate
+    # - best-estimate for pt of Z boson candidate (now including contribution form neutrinos)
+    # - transverse mass of the system composed from the muon and MET vectors. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9. Caution: use ROOT DeltaPhi for difference in phi!!!
+    # - Dzeta. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9.
+    # - Separation in DeltaR between muon and tau
     self.pt_1[0]        = muon.pt
     self.eta_1[0]       = muon.eta
     self.q_1[0]         = muon.charge
     self.id_1[0]        = muon.mediumId
     self.iso_1[0]       = muon.pfRelIso04_all # keep in mind: the SMALLER the value, the more the muon is isolated
     self.genmatch_1[0]  = muon.genPartFlav
-    self.decayMode_1[0] = -1.0 # not needed for a muon
+    self.decayMode_1[0] = self.default_int # not needed for a muon
     self.pt_2[0]        = tau.pt
     self.eta_2[0]       = tau.eta
     self.q_2[0]         = tau.charge
