@@ -10,4 +10,4 @@ If your TauFW configuration still corresponds to the preselection setup (check w
 For &mu;&tau;<sub>h</sub>, you can follow the instructions from section [2](configuration.md#configuration-done-once-per-desired-change) to change the settings,
 including an increase the number of processed files by default.
 
-##Structure of an analysis module
+## Structure of an analysis module
