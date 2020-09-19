@@ -8,6 +8,8 @@ using the measurement of the Z&rarr;&tau;&tau; cross-section as an example. The 
 [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9), was based on 2.3 fb<sup>-1</sup> of data collected in 2015 at
 a center of mass energy &radic;s&#x305; = 13 TeV.
 
+In the context of this exercise, you will do a simplified version of that measurement, but feel free to have a look at the paper for inspiration :).
+
 This exercise is based on the [TauFW](https://github.com/cms-tau-pog/TauFW) analysis framework and builds upon 2018 NanoAOD datasets.
 The statistical inference is performed with [CombinedLimit](https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit),
 [CombineHarvester](https://github.com/cms-analysis/CombineHarvester), and analysis-specific package [CMSDAS2020TauLong](https://github.com/ArturAkh/CMSDAS2020TauLong).
