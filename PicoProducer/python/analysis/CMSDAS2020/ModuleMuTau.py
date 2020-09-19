@@ -38,26 +38,30 @@ class ModuleMuTau(Module):
     self.id_1        = np.zeros(1,dtype='?')
     self.iso_1       = np.zeros(1,dtype='f')
     self.genmatch_1  = np.zeros(1,dtype='f')
+    self.decayMode_1 = np.zeros(1,dtype='i')
     self.pt_2        = np.zeros(1,dtype='f')
     self.eta_2       = np.zeros(1,dtype='f')
     self.q_2         = np.zeros(1,dtype='i')
     self.id_2        = np.zeros(1,dtype='i')
     self.iso_2       = np.zeros(1,dtype='f')
     self.genmatch_2  = np.zeros(1,dtype='f')
+    self.decayMode_2 = np.zeros(1,dtype='i')
     self.m_vis       = np.zeros(1,dtype='f')
-    self.tree.Branch('pt_1',         self.pt_1,        'pt_1/F'      )
-    self.tree.Branch('eta_1',        self.eta_1,       'eta_1/F'     )
-    self.tree.Branch('q_1',          self.q_1,         'q_1/I'       )
-    self.tree.Branch('id_1',         self.id_1,        'id_1/O'      )
-    self.tree.Branch('iso_1',        self.iso_1,       'iso_1/F'     )
-    self.tree.Branch('genmatch_1',   self.genmatch_1,  'genmatch_1/F')
-    self.tree.Branch('pt_2',         self.pt_2,  'pt_2/F'            )
-    self.tree.Branch('eta_2',        self.eta_2, 'eta_2/F'           )
-    self.tree.Branch('q_2',          self.q_2,   'q_2/I'             )
-    self.tree.Branch('id_2',         self.id_2,  'id_2/I'            )
-    self.tree.Branch('iso_2',        self.iso_2, 'iso_2/F'           )
-    self.tree.Branch('genmatch_2',   self.genmatch_2,  'genmatch_2/F')
-    self.tree.Branch('m_vis',        self.m_vis, 'm_vis/F'           )
+    self.tree.Branch('pt_1',         self.pt_1,        'pt_1/F'       )
+    self.tree.Branch('eta_1',        self.eta_1,       'eta_1/F'      )
+    self.tree.Branch('q_1',          self.q_1,         'q_1/I'        )
+    self.tree.Branch('id_1',         self.id_1,        'id_1/O'       )
+    self.tree.Branch('iso_1',        self.iso_1,       'iso_1/F'      )
+    self.tree.Branch('genmatch_1',   self.genmatch_1,  'genmatch_1/F' )
+    self.tree.Branch('decayMode_1',  self.decayMode_1, 'decayMode_1/I')
+    self.tree.Branch('pt_2',         self.pt_2,  'pt_2/F'             )
+    self.tree.Branch('eta_2',        self.eta_2, 'eta_2/F'            )
+    self.tree.Branch('q_2',          self.q_2,   'q_2/I'              )
+    self.tree.Branch('id_2',         self.id_2,  'id_2/I'             )
+    self.tree.Branch('iso_2',        self.iso_2, 'iso_2/F'            )
+    self.tree.Branch('genmatch_2',   self.genmatch_2,  'genmatch_2/F' )
+    self.tree.Branch('decayMode_2',  self.decayMode_2, 'decayMode_2/I')
+    self.tree.Branch('m_vis',        self.m_vis, 'm_vis/F'            )
   
   def endJob(self):
     """Wrap up after running on all events and files"""
@@ -95,6 +99,7 @@ class ModuleMuTau(Module):
     self.cutflow.Fill(self.cut_muon_veto)
     
     # SELECT TAU
+    # TODO: Which decay modes of a tau should be considerd for an analysis? Extend tau selection accordingly
     taus = [ ]
     for tau in Collection(event,'Tau'):
       good_tau = tau.pt > 18.0 and tau.idDeepTau2017v2p1VSe >= 1 and tau.idDeepTau2017v2p1VSmu >= 1 and tau.idDeepTau2017v2p1VSjet >= 1
@@ -114,6 +119,10 @@ class ModuleMuTau(Module):
     self.cutflow.Fill(self.cut_electron_veto)
     
     # PAIR
+    # TODO (optional): the mutau pair is constructed from a muon with highest pt and a tau with highest pt.
+    # However, there is also the possibility to select the mutau pair according to the isolation.
+    # If you like, you could try to implement mutau pair building algorithm, following the instructions on
+    # https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2017#Pair_Selection_Algorithm, but using the latest isolation quantities/discriminators
     muon = max(muons,key=lambda p: p.pt)
     tau  = max(taus,key=lambda p: p.pt)
     if muon.DeltaR(tau)<0.4: return False
@@ -124,14 +133,16 @@ class ModuleMuTau(Module):
     self.eta_1[0]       = muon.eta
     self.q_1[0]         = muon.charge
     self.id_1[0]        = muon.mediumId
-    self.iso_1[0]       = muon.pfRelIso04_all
+    self.iso_1[0]       = muon.pfRelIso04_all # keep in mind: the SMALLER the value, the more the muon is isolated
     self.genmatch_1[0]  = muon.genPartFlav
+    self.decayMode_1[0] = -1.0 # not needed for a muon
     self.pt_2[0]        = tau.pt
     self.eta_2[0]       = tau.eta
     self.q_2[0]         = tau.charge
     self.id_2[0]        = tau.idDeepTau2017v2p1VSjet
-    self.iso_2[0]       = tau.rawIso
+    self.iso_2[0]       = tau.rawDeepTau2017v2p1VSjet # keep in mind: the HIGHER the value of the discriminator, the more the tau is isolated
     self.genmatch_2[0]  = tau.genPartFlav
+    self.decayMode_2[0] = tau.decayMode
     self.m_vis[0]       = (muon.p4()+tau.p4()).M()
     self.tree.Fill()
     
