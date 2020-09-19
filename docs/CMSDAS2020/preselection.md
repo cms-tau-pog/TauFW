@@ -117,7 +117,8 @@ on p<sub>T</sub>(&tau;<sub>h</sub>) in further steps of the analysis discussed l
 + `Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5`: In an analysis, you are interested in well reconstructed muons. A good compromise between high purity and high efficiency is the medium working point (WP) of muon identification. Although it is usually best to select also well isolated muons, the threshold on the relative muon isolation using all particle flow (PF) candidates is kept high to be able to define sideband regions with looser isolation requirement.
 + `Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1`: To allow you playing around with &tau;<sub>h</sub> candidates, the loosest possible WPs are chosen for the DeepTau discriminators against muons, electrons, and jets.
 
-After executing the command above for the Drell-Yan dataset (taken by default), you will notice, that only 0.1% pass the preselection defined for &mu;&tau;<sub>h</sub>.
+After executing the command above for the Drell-Yan dataset (taken by default), you will notice, that only 0.1% of events pass the preselection defined for &mu;&tau;<sub>h</sub>.
+If none of the physics objects have satisfied the criteria from above in an event, this event is discarded.
 
 Therefore, if you plan to preselect for a different final state, think first about a preselection which is loose enough to allow for definitions of sideband regions and for optimization studies,
 but restrictive enough to reject enough events to reduce the size of the dataset.
