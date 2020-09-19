@@ -164,6 +164,8 @@ class ModuleMuTau(Module):
     # Have a look at both versions of MET. Caution: use ROOT DeltaPhi for difference in phi and check that deltaPhi is between -pi and pi:
     # - Dzeta. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9. Have a look at both versions of MET.
     # - Separation in DeltaR between muon and tau
+    # - global event quantities like the proper definition of pileup density rho, number of reconstructed vertices,
+    # - in case of MC: number of true (!!!) pileup interactions
     self.pt_1[0]        = muon.pt
     self.eta_1[0]       = muon.eta
     self.q_1[0]         = muon.charge
