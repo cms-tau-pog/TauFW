@@ -22,6 +22,7 @@ class ModuleMuTau(Module):
     self.outfile = TFile(fname,'RECREATE')
     self.default_float = -999.0
     self.default_int = -999
+    self.dtype      = kwargs.get('dtype', 'data')
     self.ismc       = self.dtype=='mc'
     self.isdata     = self.dtype=='data'
   
