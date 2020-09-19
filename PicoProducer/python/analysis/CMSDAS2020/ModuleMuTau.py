@@ -14,17 +14,21 @@ class ModuleMuTau(Module):
     """Prepare output analysis tree and cutflow histogram."""
     
     # CUTFLOW HISTOGRAM
-    self.cutflow  = TH1D('cutflow','cutflow',25,0,25)
-    self.cut_none = 0
-    self.cut_trig = 1
-    self.cut_muon = 2
-    self.cut_tau  = 3
-    self.cut_pair = 4
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_none, "no cut"  )
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_trig, "trigger" )
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_muon, "muon"    )
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_tau,  "tau"     )
-    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_pair, "pair"    )
+    self.cutflow           = TH1D('cutflow','cutflow',25,0,25)
+    self.cut_none          = 0
+    self.cut_trig          = 1
+    self.cut_muon          = 2
+    self.cut_muon_veto     = 3
+    self.cut_tau           = 4
+    self.cut_electron_veto = 5
+    self.cut_pair          = 6
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_none,           "no cut"        )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_trig,           "trigger"       )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_muon,           "muon"          )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_muon_veto,      "muon     veto" )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_tau,            "tau"           )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_electron_veto,  "electron veto" )
+    self.cutflow.GetXaxis().SetBinLabel(1+self.cut_pair,           "pair"          )
     
     # TREE
     self.tree        = TTree('tree','tree')
@@ -72,12 +76,23 @@ class ModuleMuTau(Module):
     
     # SELECT MUON
     muons = [ ]
+    # TODO: extend with a veto of additional muons. Veto muons should have the same quality selection as signal muons (or even looser),
+    # but with a lower pt cut, e.g. muon.pt > 15.0
+    veto_muons = [ ]
+
     for muon in Collection(event,'Muon'):
-      good_muon = muon.pt > 28.0 and muon.mediumId and muon.pfRelIso04_all < 0.5 and abs(muon.eta) < 2.5
-      if good_muon:
+      good_muon = muon.mediumId and muon.pfRelIso04_all < 0.5 and abs(muon.eta) < 2.5
+      signal_muon = good_muon and muon.pt > 28.0
+      veto_muon   = False # TODO introduce a veto muon selection here
+      if signal_muon:
         muons.append(muon)
+      if veto_muon: # CAUTION: that's NOT an elif here!
+        veto_muons.append(muon)
+     
     if len(muons) == 0: return False
     self.cutflow.Fill(self.cut_muon)
+    # TODO: What should be the requirement to veto events with additional muons?
+    self.cutflow.Fill(self.cut_muon_veto)
     
     # SELECT TAU
     taus = [ ]
@@ -87,6 +102,16 @@ class ModuleMuTau(Module):
         taus.append(tau)
     if len(taus)<1: return False
     self.cutflow.Fill(self.cut_tau)
+
+    # SELECT ELECTRONS FOR VETO
+    # TODO: extend the selection of veto electrons: pt > 15.0, with loose WP of the mva based ID (Fall17 training) including isolation.
+    electrons = []
+    for electron in Collection(event,'Electron'):
+      veto_electron = False # TODO introduce a veto electron selection here
+      if veto_electron:
+        electrons.append(electron)
+    if len(electrons) > 1: return False
+    self.cutflow.Fill(self.cut_electron_veto)
     
     # PAIR
     muon = max(muons,key=lambda p: p.pt)
