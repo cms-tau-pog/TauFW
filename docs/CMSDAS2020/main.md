@@ -6,7 +6,7 @@ lepton decays (&tau;<sub>h</sub> candidates) are reconstructed and discriminated
 The main target of this Tau long exercise is to make you familiar with the general procedure and aspects of an analysis from front to end,
 using the measurement of the Z&rarr;&tau;&tau; cross-section as an example. The publication describing such an analysis,
 [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9), was based on 2.3 fb<sup>-1</sup> of data collected in 2015 at
-a center of mass energy &radic;<span style="text-decoration: overline">s</span> = 13 TeV.
+a center of mass energy &radic;<span style="text-decoration:overline">s</span> = 13 TeV.
 
 This exercise is based on the [TauFW](https://github.com/cms-tau-pog/TauFW) analysis framework and builds upon 2018 NanoAOD datasets.
 The statistical inference is performed with [CombinedLimit](https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit),
