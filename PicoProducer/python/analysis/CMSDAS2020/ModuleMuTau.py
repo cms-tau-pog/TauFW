@@ -1,9 +1,20 @@
 # Author: Izaak Neutelings (May 2020)
 # Description: Simple module to pre-select mutau events
 from ROOT import TFile, TTree, TH1D
+from ROOT import Math
 import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
+
+
+# Inspired by 'Object' class from NanoAODTools.
+# Convenient to do so to be able to add MET as 4-momentum to other physics objects using p4()
+class Met(Object):
+  def __init__(self,event,prefix,index=None):
+    self.eta = 0.0
+    self.mass = 0.0
+    Object.__init__(self,event,prefix,index)
+
 
 class ModuleMuTau(Module):
   
@@ -140,14 +151,18 @@ class ModuleMuTau(Module):
     # For b-tagged jets, require additionally DeepFlavour b+bb+lepb tag with medium WP and |eta| < 2.5, count their number, and store pt & eta of the leading and subleading b-tagged jet.
 
     # CHOOSE MET definition
-    # TODO: compare the PuppiMET and (PF-based) MET in terms of mean, resolution and data/expectation agreement and choose one of them for further processing
+    # TODO: compare the PuppiMET and (PF-based) MET in terms of mean, resolution and data/expectation agreement of their own distributions and of related quantities
+    # and choose one of them for the refinement of Z to tautau selection.
+    puppimet = Met(event, 'PuppiMET')
+    met = Met(event, 'MET')
     
     # SAVE VARIABLES
     # TODO: extend the variable list with more quantities (also high level ones). Compute at least:
     # - visible pt of the Z boson candidate
     # - best-estimate for pt of Z boson candidate (now including contribution form neutrinos)
-    # - transverse mass of the system composed from the muon and MET vectors. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9. Caution: use ROOT DeltaPhi for difference in phi!!!
-    # - Dzeta. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9.
+    # - transverse mass of the system composed from the muon and MET vectors. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9.
+    # Have a look at both versions of MET. Caution: use ROOT DeltaPhi for difference in phi and check that deltaPhi is between -pi and pi:
+    # - Dzeta. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9. Have a look at both versions of MET.
     # - Separation in DeltaR between muon and tau
     self.pt_1[0]        = muon.pt
     self.eta_1[0]       = muon.eta
