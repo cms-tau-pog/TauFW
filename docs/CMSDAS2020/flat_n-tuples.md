@@ -38,4 +38,9 @@ The module is required to have the following methods:
 + `endJob(self)`: Instructions after the configured event loop is finished, like storing everything in the output file and closing it.
 + `analyze(self, event)`: This is the main function of the analysis module, where the selection of physics objects and events is performed.
 
+After this small overview over analysis module, let us now try to better understand the current selection implemented in the module, and what is
+required from you to extend this selection in the context of the exercise.
+
 ## Initial analysis selection
+
+
