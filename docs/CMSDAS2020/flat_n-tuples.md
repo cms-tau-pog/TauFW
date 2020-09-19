@@ -23,7 +23,10 @@ floats, integers, booleans, and characters, and they should comprise only those 
 + define analysis categories,
 + and compute high-level quantities with high discriminating power.
 
-Among these highly discriminating quantities, you could find mass related variables of the &tau;&tau; system, or MVA based discriminators for (multi-)classification of signals and backgrounds.
+Among these highly discriminating quantities, you could find for example mass related variables of the &tau;&tau; system,
+or MVA based discriminators for (multi-)classification of signals and backgrounds.
+
+After having clarified the purpose of flat n-tuples in the context of this exercise, let us have a closer look at the corresponding TauFW module.
 
 ## Structure of an analysis module
 
