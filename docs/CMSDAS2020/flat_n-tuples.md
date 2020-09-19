@@ -3,7 +3,7 @@
 After the NanoAOD samples are preselected as described in the [previous section](preselection.md), you can create flat n-tuples based on these samples
 with faster turn-around cycles, than using original NanoAOD as input.
 
-This section is meant as an introduction to the way analysis modules in TauFW can be setup to create flat n-tuples, based on the example for the &mu;&tau;<sub>h</sub>,
+This section is meant as an introduction to the way analysis modules in TauFW can be setup to create flat n-tuples, based on the example for &mu;&tau;<sub>h</sub>,
 [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py). You can use this example as a starting point for the further analysis in &mu;&tau;<sub>h</sub>, but also
 for other final states with corresponding adaptions.
 
@@ -43,4 +43,16 @@ required from you to extend this selection in the context of the exercise.
 
 ## Initial analysis selection
 
+The first step of the selection is to apply global event filters, like the requirement of a fired trigger.
 
+After that, collections of different physics objects are created. In case of the &mu;&tau;<sub>h</sub> final state, the main collections are created for muons and &tau;<sub>h</sub> candidates.
+These two collections are used to create a &tau;&tau; pair candidate.
+
+However, additional physics objects could and should be considered to refine the selection of the analysis.
+
+The collection of electrons can used together with the collection of muons to ensure, that the &mu;&tau;<sub>h</sub> final state does not overlap with other final states of the analysis, and to suppress
+contributions from Z&rarr;&mu;&mu; or Z&rarr;ee events.
+
+It is also good to have a look at jets and b-tagged jets to figure out, whether they can be used to enrich Z&rarr;&tau;&tau;, while suppressing backgrounds at the same time.
+
+Finally, another important physics object is the missing transverse energy, E<sub>T</sub><sup>miss</sup>.
