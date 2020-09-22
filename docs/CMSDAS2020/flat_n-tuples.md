@@ -7,7 +7,7 @@ This section is meant as an introduction to the way analysis modules in TauFW ca
 [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py). You can use this example as a starting point for the further analysis in &mu;&tau;<sub>h</sub>, but also
 for other final states with corresponding adaptions.
 
-If your TauFW configuration still corresponds to the preselection setup (check with `pico.py list`), then please change it to be able to run on top preselected NanoAOD samples.
+If your TauFW configuration still corresponds to the preselection setup (check with `pico.py list`), then please change it to be able to run on top of preselected NanoAOD samples.
 For &mu;&tau;<sub>h</sub>, you can follow the instructions from section [2](configuration.md#configuration-done-once-per-desired-change) to change the settings,
 including an increase of the number of processed files by default.
 
