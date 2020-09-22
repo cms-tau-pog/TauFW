@@ -116,7 +116,7 @@ way and written out as `iso_1` and `iso_2`, respectively.
 
 ### Task 3: jet selection and variables
 
-Jets are not directly used as signal objects, however, they can be quite useful to enrich Z&tau;&tau; or to define signal categories and control regions regions for backgrounds.
+Jets are not directly used as signal objects, however, they can be quite useful to enrich Z&rarr;&tau;&tau; or to define signal categories and control regions regions for backgrounds.
 
 For this reason, you are asked to selected good jets and store quantities related to them. The selection can be performed in three main steps:
 
