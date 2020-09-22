@@ -90,7 +90,9 @@ all considered final states.
 
 An example for possible veto selections:
 
-+ muons: the same as signal muons, but with a looser p<sub>T</sub> threshold, p<sub>T</sub> > 15.0. Define the requirement to reject events with additional muons. How would it look like
-in the code explicitly?
-+ electrons: p<sub>T</sub> > 15.0, loose WP of MVA-based ID (Fall17 training without using isolation), custom isolation cut on PF based isolation using all PF candidates. Align also this selection
-with signal and veto selections in other final states appropriately, if necessary. Define the requirement to reject events with additional electrons. How would it look like in the code explicitly?
++ muons: the same as signal muons, but with a looser p<sub>T</sub> threshold, p<sub>T</sub> > 15.0 GeV.
+  + Align also this selectionw ith signal and veto selections in other final states appropriately, if necessary.
+  + Define the requirement to reject events with additional muons. How would it look like in the code explicitly?
++ electrons: p<sub>T</sub> > 15.0 GeV, loose WP of MVA-based ID (Fall17 training without using isolation), custom isolation cut on PF based isolation using all PF candidates.
+  + Align also this selection with signal and veto selections in other final states appropriately, if necessary.
+  + Define the requirement to reject events with additional electrons. How would it look like in the code?
