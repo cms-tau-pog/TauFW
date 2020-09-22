@@ -123,7 +123,7 @@ For this reason, you are asked to selected good jets and store quantities relate
 + Basic selection of jets with:
   + p<sub>T</sub> > 20.0 GeV, |&eta;| < 4.7,
   + passing loose WP of the pileup jet ID, tight WP of standard jet ID,
-  + not overlapping with the muon or &tau;<sub>h</sub> candidate of the signal pair, having &Delta;R(&mu; or &tau;<sub>h</sub>, jet) > 0.5 
+  + not overlapping with the muon or &tau;<sub>h</sub> candidate of the signal pair, having &Delta;R(&mu; or &tau;<sub>h</sub>, jet) &ge; 0.5 
 + p<sub>T</sub> > 30.0 GeV jets:
   + Starting from basic jets, keep only those with p<sub>T</sub> > 30.0 GeV to suppress pileup jets further.
   + Store as output quantities the number of the resulting jets, as well as p<sub>T</sub> and &eta; of the jets leading and subleading in p<sub>T</sub>
