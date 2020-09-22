@@ -61,10 +61,26 @@ high-level quantities to distinguish Z&rarr;&tau;&tau; from W + jets and from tt
 The selection given in the [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) repository is essentially the one you have seen for [preselection](preselection.md)
 of the &mu;&tau;<sub>h</sub> final state. The only more restrictive requirement is the separation in &Delta;R between the muon and the &tau;<sub>h</sub> candidate.
 
-Therefore, several TODO&apos;s are defined for you to extend the inital selection to create flat n-tuples.
+Therefore, several TODO&apos;s are defined for you to extend the inital selection to create flat n-tuples, partly also to be covered in section [6](refine_ztautau.md):
 
 In the course of the exercise, you will come back often to this module to refine the selection further and further. That is also the reason, why it is good to have fast turn-arounds with this step.
 
 But let us first define the tasks to be done for this section :).
 
 ## Tasks to extend the analysis selection
+
+To avoid ambiguities, the tasks for this section are marked with `TODO section 3:` in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py).
+
+To make these tasks easier for yourself, you should get familiar with quantities stored in the NanoAOD files, by looking at preselected or original samples on one hand:
+
+```sh
+# Hopefully already known commands for you from previous section ;)
+
+root -l <original>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort -V > original_content.txt
+root -l <preselected>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort -V > preselected_content.txt
+```
+
+and having a look at the [NanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html) of these samples on the other hand to understand how
+to interpret the quantities.
+
+### Task 1
