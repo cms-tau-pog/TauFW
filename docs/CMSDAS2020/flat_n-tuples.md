@@ -69,13 +69,12 @@ But let us first define the tasks to be done for this section :).
 
 ## Tasks to extend the analysis selection
 
-To avoid ambiguities, the tasks for this section are marked with `TODO section 3:` in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py).
+To avoid ambiguities, the tasks for this section are marked with `TODO section 3` in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py).
 
 To make these tasks easier for yourself, you should get familiar with quantities stored in the NanoAOD files, by looking at preselected or original samples on one hand:
 
 ```sh
 # Hopefully already known commands for you from previous section ;)
-
 root -l <original>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort -V > original_content.txt
 root -l <preselected>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | sort -V > preselected_content.txt
 ```
