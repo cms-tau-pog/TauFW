@@ -95,4 +95,4 @@ An example for possible veto selections:
   + Define the requirement to reject events with additional muons. How would it look like in the code explicitly?
 + electrons: p<sub>T</sub> > 15.0 GeV, loose WP of MVA-based ID (Fall17 training without using isolation), custom isolation cut on PF based isolation using all PF candidates.
   + Align also this selection with signal and veto selections for electrons in other final states appropriately, if necessary.
-  + Define the requirement to reject events with additional electrons. How would it look like in the code?
+  + How is the requirement to reject events with additional electrons defined in the code?
