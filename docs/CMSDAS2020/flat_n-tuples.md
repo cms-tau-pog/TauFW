@@ -113,3 +113,15 @@ Some tips to understand the algorithm better:
 &tau;<sub>h</sub> candidate.
 + In [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py), the isolation measures for the muon and the &tau;<sub>h</sub> candidate are already chosen in the right
 way and written out as `iso_1` and `iso_2`, respectively.
+
+### Task 3: jet selection and variables
+
+Jets are not directly used as signal objects, however, they can be quite useful to enrich Z&tau;&tau; or to define signal categories and control regions regions for backgrounds.
+
+For this reason, you are asked to selected good jets and store quantities related to them. The selection can be performed in three main steps:
+
++ Basic selection of jets with:
+  + p<sub>T</sub> > 20.0 GeV, |&eta;| < 4.7,
+  + passing loose WP of the pileup jet ID, tight WP of standard jet ID,
+  + not overlapping with the muon or tau;<sub>h</sub> candidate of the signal pair, having &Delta;R(&mu;/e, jet) > 0.5 
++ 
