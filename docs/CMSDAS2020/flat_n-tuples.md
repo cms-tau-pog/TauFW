@@ -61,13 +61,13 @@ high-level quantities to distinguish Z&rarr;&tau;&tau; from W + jets and from tt
 The selection given in the [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) repository is essentially the one you have seen for [preselection](preselection.md)
 of the &mu;&tau;<sub>h</sub> final state. The only more restrictive requirement is the separation in &Delta;R between the muon and the &tau;<sub>h</sub> candidate.
 
-Therefore, several TODO&apos;s are defined for you to extend the inital selection to create flat n-tuples, partly also to be covered in section [6](refine_ztautau.md):
+Therefore, several TODO&apos;s are defined for you to extend the inital selection to create flat n-tuples, partly also to be covered in section [6](refine_ztautau.md).
 
 In the course of the exercise, you will come back often to this module to refine the selection further and further. That is also the reason, why it is good to have fast turn-arounds with this step.
 
-But let us first define the tasks to be done for this section :).
+But let us first define the tasks to be done for this section, which have the aim to make you familiar with nanoAOD content and to allow you to extend the content of the flat n-tuple outputs :).
 
-## Tasks to extend the analysis selection
+## Tasks of this section
 
 To avoid ambiguities, the tasks for this section are marked with `TODO section 3` in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py).
 
@@ -82,4 +82,15 @@ root -l <preselected>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | so
 and having a look at the [NanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html) of these samples on the other hand to understand how
 to interpret the quantities.
 
-### Task 1
+### Task 1: electrons and muons for event veto
+
+Define collections of muons and electrons used to veto events with additional muons and electrons. The selection for the leptons should be equal or looser than the
+the signal selection. Therefore, if other final states than &mu;&tau;<sub>h</sub> are anticipated to be done by some of you, discuss and agree on similar signal and veto selections across
+all considered final states.
+
+An example for possible veto selections:
+
++ muons: the same as signal muons, but with a looser p<sub>T</sub> threshold, p<sub>T</sub> > 15.0. Define the requirement to reject events with additional muons. How would it look like
+in the code explicitly?
++ electrons: p<sub>T</sub> > 15.0, loose WP of MVA-based ID (Fall17 training without using isolation), custom isolation cut on PF based isolation using all PF candidates. Align also this selection
+with signal and veto selections in other final states appropriately, if necessary. Define the requirement to reject events with additional electrons. How would it look like in the code explicitly?
