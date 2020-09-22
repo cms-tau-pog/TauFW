@@ -123,11 +123,12 @@ For this reason, you are asked to selected good jets and store quantities relate
 + Basic selection of jets with:
   + p<sub>T</sub> > 20.0 GeV, |&eta;| < 4.7,
   + passing loose WP of the pileup jet ID, tight WP of standard jet ID,
-  + not overlapping with the muon or &tau;<sub>h</sub> candidate of the signal pair, having &Delta;R(&mu;/e, jet) > 0.5 
+  + not overlapping with the muon or &tau;<sub>h</sub> candidate of the signal pair, having &Delta;R(&mu; or &tau;<sub>h</sub>, jet) > 0.5 
 + p<sub>T</sub> > 30.0 GeV jets:
   + Starting from basic jets, keep only those with p<sub>T</sub> > 30.0 GeV to suppress pileup jets further.
   + Store as output quantities the number of the resulting jets, as well as p<sub>T</sub> and &eta; of the jets leading and subleading in p<sub>T</sub>
 + b-tagged jets:
   + Starting from basic jets, keep only those with |&eta;| < 2.5 and require [medium WP](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X#Supported_Algorithms_and_Operati)
-of the DeepFlavour b+bb+lepb discriminator.
+of the DeepFlavour b+bb+lepb discriminator. Since the b-tagged jets are within the tracker acceptance, they may have lower p<sub>T</sub> because the existence of charged tracks allows for
+a better discrimination of jets from pileup.
   + Store as output quantities the number of b-tagged jets, as well as p<sub>T</sub> and &eta; of the b-tagged jets leading and subleading in p<sub>T</sub>
