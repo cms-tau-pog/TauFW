@@ -135,7 +135,7 @@ class ModuleMuTau(Module):
       veto_electron = False # TODO section 3: introduce a veto electron selection here
       if veto_electron:
         electrons.append(electron)
-    if len(electrons) > 1: return False
+    if len(electrons) > 0: return False
     self.cutflow.Fill(self.cut_electron_veto)
     
     # PAIR
