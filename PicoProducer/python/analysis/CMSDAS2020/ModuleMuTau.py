@@ -63,6 +63,7 @@ class ModuleMuTau(Module):
     self.genmatch_2  = np.zeros(1,dtype='f')
     self.decayMode_2 = np.zeros(1,dtype='i')
     self.m_vis       = np.zeros(1,dtype='f')
+    self.genWeight   = np.zeros(1,dtype='f')
     self.tree.Branch('pt_1',         self.pt_1,        'pt_1/F'       )
     self.tree.Branch('eta_1',        self.eta_1,       'eta_1/F'      )
     self.tree.Branch('q_1',          self.q_1,         'q_1/I'        )
@@ -78,6 +79,7 @@ class ModuleMuTau(Module):
     self.tree.Branch('genmatch_2',   self.genmatch_2,  'genmatch_2/F' )
     self.tree.Branch('decayMode_2',  self.decayMode_2, 'decayMode_2/I')
     self.tree.Branch('m_vis',        self.m_vis, 'm_vis/F'            )
+    self.tree.Branch('genWeight',    self.genWeight,   'genWeight/F'  )
   
   def endJob(self):
     """Wrap up after running on all events and files"""
@@ -96,26 +98,26 @@ class ModuleMuTau(Module):
     
     # SELECT MUON
     muons = [ ]
-    # TODO: extend with a veto of additional muons. Veto muons should have the same quality selection as signal muons (or even looser),
+    # TODO section 3: extend with a veto of additional muons. Veto muons should have the same quality selection as signal muons (or even looser),
     # but with a lower pt cut, e.g. muon.pt > 15.0
     veto_muons = [ ]
 
     for muon in Collection(event,'Muon'):
       good_muon = muon.mediumId and muon.pfRelIso04_all < 0.5 and abs(muon.eta) < 2.5
       signal_muon = good_muon and muon.pt > 28.0
-      veto_muon   = False # TODO introduce a veto muon selection here
+      veto_muon   = False # TODO section 3: introduce a veto muon selection here
       if signal_muon:
         muons.append(muon)
-      if veto_muon: # CAUTION: that's NOT an elif here!
+      if veto_muon: # CAUTION: that's NOT an elif here and intended in that way!
         veto_muons.append(muon)
      
     if len(muons) == 0: return False
     self.cutflow.Fill(self.cut_muon)
-    # TODO: What should be the requirement to veto events with additional muons?
+    # TODO section 3: What should be the requirement to veto events with additional muons?
     self.cutflow.Fill(self.cut_muon_veto)
     
     # SELECT TAU
-    # TODO: Which decay modes of a tau should be considerd for an analysis? Extend tau selection accordingly
+    # TODO section 6: Which decay modes of a tau should be considered for an analysis? Extend tau selection accordingly
     taus = [ ]
     for tau in Collection(event,'Tau'):
       good_tau = tau.pt > 18.0 and tau.idDeepTau2017v2p1VSe >= 1 and tau.idDeepTau2017v2p1VSmu >= 1 and tau.idDeepTau2017v2p1VSjet >= 1
@@ -125,19 +127,19 @@ class ModuleMuTau(Module):
     self.cutflow.Fill(self.cut_tau)
 
     # SELECT ELECTRONS FOR VETO
-    # TODO: extend the selection of veto electrons: pt > 15.0,
+    # TODO section 3: extend the selection of veto electrons: pt > 15.0,
     # with loose WP of the mva based ID (Fall17 training without isolation),
     # and a custom isolation cut on PF based isolation using all PF candidates.
     electrons = []
     for electron in Collection(event,'Electron'):
-      veto_electron = False # TODO introduce a veto electron selection here
+      veto_electron = False # TODO section 3: introduce a veto electron selection here
       if veto_electron:
         electrons.append(electron)
     if len(electrons) > 1: return False
     self.cutflow.Fill(self.cut_electron_veto)
     
     # PAIR
-    # TODO (optional): the mutau pair is constructed from a muon with highest pt and a tau with highest pt.
+    # TODO section 3 (optional): the mutau pair is constructed from a muon with highest pt and a tau with highest pt.
     # However, there is also the possibility to select the mutau pair according to the isolation.
     # If you like, you could try to implement mutau pair building algorithm, following the instructions on
     # https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2017#Pair_Selection_Algorithm, but using the latest isolation quantities/discriminators
@@ -147,20 +149,20 @@ class ModuleMuTau(Module):
     self.cutflow.Fill(self.cut_pair)
 
     # SELECT Jets
-    # TODO: Jets are not used directly in our analysis, but it can be good to have a look at least the number of jets (and b-tagged jets) of your selection.
+    # TODO section 3: Jets are not used directly in our analysis, but it can be good to have a look at least the number of jets (and b-tagged jets) of your selection.
     # Therefore, collect at first jets with pt > 20, |eta| < 4.7, passing loose WP of Pileup ID, and tight WP for jetID.
     # The collected jets are furthermore not allowed to overlap with the signal muon and signal tau in deltaR, so selected them to have deltaR >= 0.5 w.r.t. the signal muon and signal tau.
     # Then, select for this collection "usual" jets, which have pt > 30 in addition, count their number, and store pt & eta of the leading and subleading jet.
     # For b-tagged jets, require additionally DeepFlavour b+bb+lepb tag with medium WP and |eta| < 2.5, count their number, and store pt & eta of the leading and subleading b-tagged jet.
 
     # CHOOSE MET definition
-    # TODO: compare the PuppiMET and (PF-based) MET in terms of mean, resolution and data/expectation agreement of their own distributions and of related quantities
+    # TODO section 3: compare the PuppiMET and (PF-based) MET in terms of mean, resolution and data/expectation agreement of their own distributions and of related quantities
     # and choose one of them for the refinement of Z to tautau selection.
     puppimet = Met(event, 'PuppiMET')
     met = Met(event, 'MET')
     
     # SAVE VARIABLES
-    # TODO: extend the variable list with more quantities (also high level ones). Compute at least:
+    # TODO section 3: extend the variable list with more quantities (also high level ones). Compute at least:
     # - visible pt of the Z boson candidate
     # - best-estimate for pt of Z boson candidate (now including contribution form neutrinos)
     # - transverse mass of the system composed from the muon and MET vectors. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9.
@@ -184,10 +186,11 @@ class ModuleMuTau(Module):
     self.m_vis[0]       = (muon.p4()+tau.p4()).M()
 
     if self.ismc:
-      self.genmatch_1[0]  = muon.genPartFlav # in case of muons: 1 == prompt muon, 15 == muon from tau decay
+      self.genmatch_1[0]  = muon.genPartFlav # in case of muons: 1 == prompt muon, 15 == muon from tau decay, also other values available for muons from jets
       self.genmatch_2[0]  = tau.genPartFlav # in case of taus: 0 == unmatched (corresponds then to jet),
                                             #                  1 == prompt electron, 2 == prompt muon, 3 == electron from tau decay,
                                             #                  4 == muon from tau decay, 5 == hadronic tau decay
+      self.genWeight[0] = event.genWeight
     self.tree.Fill()
     
     return True
