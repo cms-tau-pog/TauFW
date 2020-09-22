@@ -96,3 +96,20 @@ An example for possible veto selections:
 + electrons: p<sub>T</sub> > 15.0 GeV, loose WP of MVA-based ID (Fall17 training without using isolation), custom isolation cut on PF based isolation using all PF candidates.
   + Align also this selection with signal and veto selections for electrons in other final states appropriately, if necessary.
   + How is the requirement to reject events with additional electrons defined in the code?
+
+### Task 2 (optional): improve the selection of the &mu;&tau;<sub>h</sub> pair
+
+This is an optional task, not necessarily needed to achieve proper results. However, those of you interested in the details of the more sophisticated
+[&tau;&tau; pair selection algorithm](https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2017#Pair_Selection_Algorithm) may tackle this task and share
+the result with others, once concluded.
+
+The main idea of this &tau;&tau; pair selection algorithm is to select the most *isolated* pair, not the one composed from physics objects with highest p<sub>T</sub>.
+
+Some tips to understand the algorithm better:
+
++ The isolation values are considered to be the same, if they match up to a certain digit after comma, therefore you would need round the numbers appropriately before comparing them.
++ Isolation of muons and electrons is given relative to p<sub>T</sub> as energy sums. Therefore, the *smaller* the value, the more isolated is the physics object.
++ In contrast to that, the measure for isolation of a &tau;<sub>h</sub> candidate is its DNN based discriminator against jets. Here, the *higher* the value, the more isolated is the
+&tau;<sub>h</sub> candidate.
++ In [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py), the isolation measures for the muon and the &tau;<sub>h</sub> candidate are already chosen in the right
+way and written out as `iso_1` and `iso_2`, respectively.
