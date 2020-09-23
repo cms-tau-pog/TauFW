@@ -332,6 +332,18 @@ grep "picojob.py done after" ${CMSSW_BASE}/src/TauFW/PicoProducer/output/2018/mu
 
 In that way, you can find out the runtime of the jobs, which produced the flat ntuples for the &mu;&tau;<sub>h</sub> final state. Feel free to adapt the trick to your needs ;).
 
+If you would like to remove a specific job, you can perform:
+
+```sh
+condor_q <jobid>
+```
+
+You can even remove **all** your submitted job:
+
+```sh
+condor_rm <cern-username>
+```
+
 Finally, to have a look, why jobs are put on `hold` by the batch system, perform:
 
 `condor_hold <cern-username>`
@@ -371,8 +383,10 @@ mkdir -p <local/storage/path/for/the/ntuples>
 xrdcopy -p -r root://eoscms.cern.ch//store/group/phys_tau/CMSDAS2020/nano <local/storage/path/for/the/ntuples>/
 ```
 
-If you have your own preselected NanoAOD samples at your EOS user space, the only solution to copy these files form outside CERN is to use your ssh connect.
-This is the slowest possibility. If installed, `rsync` is very useful to copy files, since it is checks with appropriate options, whether a file is already copied over successfully, or not:
+If you have your own preselected NanoAOD samples at your EOS user space, the only solution to copy these files from outside CERN is to use an `ssh` connection.
+This is the slowest possibility, but does not require a Grid environment, if the source and target locations are accessible at the corresponding machines.
+
+If installed, `rsync` is very useful to copy files, since it checks with appropriate options, whether a file is already copied over successfully, or not:
 
 ```sh
 mkdir -p <local/storage/path/for/the/ntuples>
@@ -427,10 +441,9 @@ from multiprocessing import Pool
 import os
 
 ncpus = 5 # modify as you need it
-p = Pool(ncpus)
 
 def execute_cmd(cmd):
-    os.system(cmd)
+    return os.system(cmd)
 
 samplenames = [
     'DY',
@@ -440,9 +453,19 @@ samplenames = [
     'SingleMuon_Run2018A','SingleMuon_Run2018B','SingleMuon_Run2018C','SingleMuon_Run2018D'
 ]
 
-commands = ['pico.py run -c mutau -y 2018 -s ${SAMPLE} -n 1'.replace('SAMPLE',s) for s in samplenames]
+commands = ['pico.py run -c mutau -y 2018 -s {SAMPLE} -n -1'.format(SAMPLE=s) for s in samplenames]
 
+for c in commands:
+    print c
+
+p = Pool(ncpus)
 p.map(execute_cmd,commands)
 ```
 
 Write the code snippet to a python script and execute it with `python <script>.py`. This result in the same procedure as the shell command above, but now resticted to 5 jobs running in parallel.
+
+In this form, the python script can be used also on `lxplus` login nodes with 10 CPUs with an expected runtime of about 15 minutes.
+
+In general, the better the connection to storage (e.g. SSDs) and the more CPUs you have, the faster the processing with such scripts.
+
+Now you should have all tools you need to find your own way to have fast turn-around for the production of flat n-tuples. Enjoy, and play around with all the possibilities!
