@@ -259,7 +259,43 @@ The plot in the TPad of TBrowser will be updated accordingly.
 
 ## Producing flat n-tuples using `lxplus` HTCondor batch system
 
+Sidenote: please also have a look at details on [job submission at `lxplus`](https://batchdocs.web.cern.ch/local/submit.html)
+
 As soon as you are happy with your developments and sure, that there are any bugs after checking your outputs, you are ready to start a large-scale production.
 
 Before doing this, please check, whether the TauFW configuration is fine, using `pico.py list`, in particular the setting for `nfilesperjob`, which will be used during submission to
-the batch system. Additionally check, whether your VOMS proxy is valid and renew it, if necessary (see section [2](configuration.md) for that).
+the batch system, and the samples list to be used. Choosing `nfilesperjob` to be 15 should be fine to stay within 5 minutes, when using the samples already preselected for &mu;&tau;.
+
+Additionally check, whether your VOMS proxy is valid and renew it, if necessary (see section [2](configuration.md) for that).
+
+Now you can use the submit commands familiar from section [3](preselection.md), adapted for the creation of flat n-tuples:
+
+```sh
+# Initial submission
+pico.py submit -c mutau -y 2018 --queue "espresso" --time 300
+
+# Status check, use repeatedly
+pico.py status -c mutau -y 2018
+
+# Resubmission with longer requested processing time
+pico.py resubmit -c mutau -y 2018 --queue "espresso" --time 600
+
+# After the jobs are all successfully finished, the job outputs can be put together to one file per sample
+pico.py hadd -c mutau -y 2018
+```
+
+Since the input NanoAOD samples are already preselected, the `espresso` JobFlavour should be fine for the production of flat n-tuples.
+
+Provided, that you get enough slots, production of n-tuples can be ready within 5 minutes. But submitting to a batch system is
+also a bit of gambling, in particular for batch systems with a lot of users, like the one for `lxplus`.
+
+If you have not submitted anything in the last days, you should have a low user priority value (the *lower*, the better). You can check it via:
+
+```sh
+condor_userprio | less
+
+# within less tool (replace <cern-username> appropriately with yours)
+/<cern-username>
+```
+
+In the output of this command, you will be able, how you are ranked, and who exactly is taking away all the slots :).
