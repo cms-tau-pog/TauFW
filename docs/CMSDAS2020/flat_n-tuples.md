@@ -59,7 +59,8 @@ Finally, another important physics object is the missing transverse energy, call
 high-level quantities to distinguish Z&rarr;&tau;&tau; from W + jets and from tt&#773;.
 
 The selection given in the [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) repository is essentially the one you have seen for [preselection](preselection.md)
-of the &mu;&tau;<sub>h</sub> final state. The only more restrictive requirement is the separation in &Delta;R between the muon and the &tau;<sub>h</sub> candidate.
+of the &mu;&tau;<sub>h</sub> final state. The only more restrictive requirement is the separation
+in &Delta;R = &radic;<span style="text-decoration:overline">&Delta;&phi;<sup>2</sup> + &Delta;&eta;<sup>2</sup></span> between the muon and the &tau;<sub>h</sub> candidate.
 
 Therefore, several TODO&apos;s are defined for you to extend the inital selection to create flat n-tuples, partly also to be covered in section [6](refine_ztautau.md).
 
@@ -81,6 +82,8 @@ root -l <preselected>.root -e "Events->GetListOfLeaves()->Print(); exit(0)" | so
 
 and having a look at the [NanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html) of these samples on the other hand to understand how
 to interpret the quantities.
+
+To define new variables, let you inspire by already existing output variables, such as `m_vis`, `decayMode_2` or `id_2`.
 
 ### Task 1: electrons and muons for event veto
 
@@ -140,3 +143,6 @@ Also the MET is a useful variable to construct high-level variables to enrich Z&
 In the current NanoAOD format, there are various definitions of MET available. The most used ones - as you can see discussed in the corresponding
 [MET paper](https://doi.org/10.1088/1748-0221/14/07/P07004) - are the PF-based MET (stored simply as `MET` in NanoAOD) and the PUPPI MET (stored as `PuppiMET` in NanoAOD). Both
 are corrected for pileup contributions, the latter with the [**P**ile**u**p **p**er **P**article **I**dentification](https://doi.org/10.1007/JHEP10(2014)059) method.
+
+To be able to compare these two definitions in terms of mean, resolution and data/expectation agreement, please store p<sub>T</sub>, &phi;, and &Sigma;E<sub>T</sub> for both
+versions of the MET in different variables.
