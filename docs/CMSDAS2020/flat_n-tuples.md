@@ -324,7 +324,7 @@ To have a closer look at one particular job - `<jobid>` format is `$(ClusterId).
 condor_q <jobid> -l | less
 ```
 
-A useful trick is also to grep through the `*.log` files of finished jobs:
+A useful trick is also to `grep` through the `*.log` files of finished jobs:
 
 ```sh
 grep "picojob.py done after" ${CMSSW_BASE}/src/TauFW/PicoProducer/output/2018/mutau/*/*/*.log
