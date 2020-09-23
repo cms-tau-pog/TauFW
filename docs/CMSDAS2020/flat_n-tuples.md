@@ -66,7 +66,7 @@ Therefore, several TODO&apos;s are defined for you to extend the inital selectio
 
 In the course of the exercise, you will come back often to this module to refine the selection further and further. That is also the reason, why it is good to have fast turn-arounds with this step.
 
-But let us first define the tasks to be done for this section, which have the aim to make you familiar with nanoAOD content and to allow you to extend the content of the flat n-tuple outputs :).
+But let us first define the tasks to be done for this section, which have the aim to make you familiar with NanoAOD content and to allow you to extend the content of the flat n-tuple outputs :).
 
 ## Tasks of this section
 
@@ -164,4 +164,95 @@ is considered for the e&mu; final state there, but could be used also for other 
 as already used in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py). Please note, that in this case, the interval of &Delta;&phi; is required to be [-&pi;,+&pi;].
 + Pileup density &rho;, computed from all PF Candidates.
 + Number of reconstructed primary vertices.
-+ for MC only: number of **true** pileup interactions. Please use the `if self.ismc:` case to fill this variable to distinguish from data, where this quantity is not available in nanoAOD.
++ for MC only: number of **true** pileup interactions. Please use the `if self.ismc:` case to fill this variable to distinguish from data, where this quantity is not available in NanoAOD.
+
+## Producing local n-tuple output and testing the code
+
+In the process of your adaptions to the analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py), you are adviced to test your implementation frequently
+after each small step you have done. This, you do best locally, using a limited number of events. Furthermore, it is always a good idea to do it for one simulated sample and one data sample separately,
+in case you are working on simulation-specific implementations, for example.
+
+A possible local test command using preselected NanoAOD samples could look like:
+
+```sh
+pico.py run -c mutau -y 2018 -s DY
+```
+
+Since the already preselected samples for &mu;&tau;<sub>h</sub> are quite small, you do not need to specify the number of events to be processed with `-m`. Furthermore,
+for local tests with `pico.py run`, only one input file is user per default. The input file is chosen from the list of files for the Drell-Yan sample, which is chosen via `-s DY`.
+
+A test for a data sample would then look similar:
+
+```sh
+pico.py run -c mutau -y 2018 -s SingleMuon
+```
+
+Having these commands at hand, test always extensions of the module, and have a look at the local outputs produced as `${CMSSW_BASE}/src/TauFW/PicoProducer/output/pico_*.root` by checking
+the quantities stored in these files, and their values. Are these as you have expected?
+
+There are several possibilities to check your local outputs, discussed in the following.
+
+First step could be to check, whether the desired quantity is booked at all as a TLeaf in the TTree `tree`. By now, you should know the appropriate command, since it appeared already twice
+in the course of this exercise :) Just scroll up a bit ;).
+
+Next you can check in a very convenient way the values for some of the processed events in the ROOT shell:
+
+```sh
+root -l <path-to-pico-output>.root
+# in the ROOT shell
+root [0]
+...
+root [1] tree->Scan("m_vis:pt_1:decayMode_2")
+
+```
+
+Furthermore, you can test different cuts:
+
+root -l <path-to-pico-output>.root
+# in the ROOT shell
+root [0]
+...
+root [1] tree->GetEntries("m_vis > 90.0")
+...
+root [2] tree->GetEntries("pt_1 < 20.0")
+
+```
+
+The best way to check your outputs is of course having a look at the various distributions of the stored quantities. Provided, that you have ROOT installed on the work system at your home institution,
+you can copy the output file(s) there and have a look at the file using a graphical interface of ROOT.
+
+First, get the absolute path of the output:
+
+```sh
+readlink -f <path-to-pico-output>.root
+```
+
+Then, on the work system at your home institution, copy the file from CERN `lxplus` to you. The following command should work on unix-based operating systems:
+
+```sh
+scp <cern-username>@lxplus.cern.ch:<absolute-path-to-pico-output>.root .
+```
+
+Then you can open the file at your home institution and start the TBrowser with a graphical interface:
+
+```sh
+root -l  <path-to-pico-output>.root
+# in the ROOT shell
+root [0]
+...
+root [1] TBrowser b
+```
+
+Then, you can relatively fast click through the structure of the opened file to get familiar with it.
+
+You can for example plot the `cutflow` histogram to check, whether the tracked cuts are affecting the event selection. Besides that, you can get the distributions of the quantities stored in `tree`
+by (double-)clicking on the corresponding leaves.
+
+Furthermore, if you like to see the values of a quantity in a specified range, then, with the TBrowser still open, use the ROOT shell:
+
+```sh
+# in the ROOT shell, with TBrowser open
+root [2] tree->Draw("m_vis","m_vis >=70 && m_vis < 110")
+```
+
+Then the plot in canvas of TBrowser will be updated accordingly.
