@@ -255,4 +255,11 @@ Furthermore, if you like to see the values of a quantity in a specified range, t
 root [2] tree->Draw("m_vis","m_vis >=70 && m_vis < 110")
 ```
 
-The plot in canvas of TBrowser will be updated accordingly.
+The plot in the TPad of TBrowser will be updated accordingly.
+
+## Producing flat n-tuples using `lxplus` HTCondor batch system
+
+As soon as you are happy with your developments and sure, that there are any bugs after checking your outputs, you are ready to start a large-scale production.
+
+Before doing this, please check, whether the TauFW configuration is fine, using `pico.py list`, in particular the setting for `nfilesperjob`, which will be used during submission to
+the batch system. Additionally check, whether your VOMS proxy is valid and renew it, if necessary (see section [2](configuration.md) for that).
