@@ -348,4 +348,101 @@ accomplished with minimal effort.
 One main requirement for the instructions in the following: you should know an appropriate machine - in other words, similar to `lxplus` - at your home institution with a bunch of CPU cores.
 And you should be able to login there and perform calculations.
 
-Trust me, you do **not** want to send 12 or more jobs to a machine with only 5 CPUs. The system administrators will be very angry about it...
+Trust me, you do **not** want to send 16 or more jobs to a machine with only 5 CPUs. The system administrators will be very angry about it...
+
+At first, copy the already preselected files from CERN Tau POG EOS to your local storage.
+
+The following two commands require a Grid environment and a valid VOMS proxy on the machine at your home institution. To setup a CentOS7 Grid environment, if unavailable, perform:
+
+```sh
+source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh
+```
+Then, a `gfal-copy` command:
+
+```sh
+mkdir -p <local/storage/path/for/the/ntuples>
+gfal-copy -r gsiftp://eoscmsftp.cern.ch//eos/cms/store/group/phys_tau/CMSDAS2020/nano <local/storage/path/for/the/ntuples>/nano
+```
+
+Alternatively, you can use `xrdcopy`, which may be a bit faster:
+
+```sh
+mkdir -p <local/storage/path/for/the/ntuples>
+xrdcopy -p -r root://eoscms.cern.ch//store/group/phys_tau/CMSDAS2020/nano <local/storage/path/for/the/ntuples>/
+```
+
+If you have your own preselected NanoAOD samples at your EOS user space, the only solution to copy these files form outside CERN is to use your ssh connect.
+This is the slowest possibility. If installed, `rsync` is very useful to copy files, since it is checks with appropriate options, whether a file is already copied over successfully, or not:
+
+```sh
+mkdir -p <local/storage/path/for/the/ntuples>
+rsync -av --progress <cern-username>@lxplus.cern.ch:/eos/user/<first-letter-of-cern-username>/<cern-username>/nano <local/storage/path/for/the/ntuples>/
+```
+
+If `rsync` is not installed, you can always fallback to `scp`, although it does not have the same nice features:
+
+```sh
+mkdir -p <local/storage/path/for/the/ntuples>
+scp -r <cern-username>@lxplus.cern.ch:/eos/user/<first-letter-of-cern-username>/<cern-username>/nano <local/storage/path/for/the/ntuples>/
+```
+
+After having copied the files over, you can start with parallel processing on one machine.
+
+Provided that your machine has over 20 CPUs, it is fine to run all 16 samples in parallel. You can check the number of CPUs on the machine via:
+
+```sh
+nproc --all
+```
+
+In case of more than 20 CPUs, you can simply use a parallelization with a shell command. Before doing that, check **first** the load of the machine, for example via `htop` (if installed), or `top`:
+
+```sh
+# if the tool is available:
+htop -u <username>
+
+# if not, use
+top -u <username>
+```
+
+The rule of thumb is, that the load average, devided by the number of CPUs should be significantly smaller than 1. In that case, the machine is free for the use of multiple CPUs :).
+
+After setting up and configuring the TauFW software at your home machine, use the following command for parallel processing, based on a list of name patterns unambigious between each sample:
+
+```
+for sample in DY TTTo2L2Nu TTToSemi TTToHad ST_tW_antitop ST_tW_top ST_t-channel_antitop ST_t-channel_top WW WZ ZZ SingleMuon_Run2018A SingleMuon_Run2018B SingleMuon_Run2018C SingleMuon_Run2018D;
+do
+pico.py run -c mutau -y 2018 -s ${sample} -n 1 &
+done; wait
+```
+
+Depending on whether the allowed load per user is limited or not, the ntuple production can be ready within 5 to 12 minutes.
+
+Please use the above command with care! It does not have a limitation on spawned processes by itself, such that you could create 100 processes, if you have 100 samples in the list. And that is definetily
+not good for a machine with only 20 CPUs...
+
+If you need more control on the number of used CPUs in your parallel processing, a good way is to use the `multiprocessing` library in `python`:
+
+```python
+from multiprocessing import Pool
+import os
+
+ncpus = 5 # modify as you need it
+p = Pool(ncpus)
+
+def execute_cmd(cmd):
+    os.system(cmd)
+
+samplenames = [
+    'DY',
+    'TTTo2L2Nu','TTToSemi','TTToHad',
+    'ST_tW_antitop','ST_tW_top','ST_t-channel_antitop','ST_t-channel_top',
+    'WW','WZ','ZZ',
+    'SingleMuon_Run2018A','SingleMuon_Run2018B','SingleMuon_Run2018C','SingleMuon_Run2018D'
+]
+
+commands = ['pico.py run -c mutau -y 2018 -s ${SAMPLE} -n 1'.replace('SAMPLE',s) for s in samplenames]
+
+p.map(execute_cmd,commands)
+```
+
+Write the code snippet to a python script and execute it with `python <script>.py`. This result in the same procedure as the shell command above, but now resticted to 5 jobs running in parallel.
