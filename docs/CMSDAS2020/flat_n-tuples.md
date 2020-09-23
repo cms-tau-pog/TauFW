@@ -154,9 +154,9 @@ Please implement at least the following list of variables:
 
 + visible p<sub>T</sub> of the Z boson candidate. Tip: have a look at the `m_vis` computation.
 + best-estimate for the full p<sub>T</sub> of the Z boson candidate, including neutrinos. What should added to the p<sub>T</sub> vector of the &mu;&tau;<sub>h</sub> pair?
-+ transverse mass for the system of the muon and MET, m<T>(&mu; MET). A definition is given for example in [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9), equation (3). Please try to use the [ROOT Definition]() of &Delta;&phi; and check, whether it ensures, that the value is within the [-&pi;+&pi;] interval.
++ transverse mass for the system of the muon and MET, m<T>(&mu; MET). A definition is given for example in [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9), equation (3). Please check, whether the value for &Delta;&phi; is in [-&pi;+&pi;] interval. If not, does this have an influence on the result from applying Sine or Cosine functions on it?
 + D<sub>&zeta;</sub> variable, also defined in [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9), formula (4) and Figure 1. The difference is that it
 is considered for the e&mu; final state there, but could be used also for other &tau;&tau; final states.
 + Separation in &Delta;R between the muon and the &tau;<sub>h</sub> candidate. Here you can use the functions defined for the
 [`Object`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py#L49-L89) class defined in NanoAOD,
-as already used in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py)
+as already used in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py). Please note, that in this case, the interval of &Delta;&phi; is required to be [-&pi;+&pi;].
