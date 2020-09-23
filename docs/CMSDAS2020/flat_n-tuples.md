@@ -338,3 +338,14 @@ Finally, to have a look, why jobs are put on `hold` by the batch system, perform
 
 Usually a more or less understandable reason is given.
 
+## Alternative: parallel processing with a script
+
+After all the tips and tricks mentioned above you should be well prepared for an efficient submission to an HTCondor batch system.
+
+But well, a batch system can have a bad day - or you can have bad luck, depends on the way you view at it :) - such that it is useful to know a few alternatives, which can be
+accomplished with minimal effort.
+
+One main requirement for the instructions in the following: you should know an appropriate machine - in other words, similar to `lxplus` - at your home institution with a bunch of CPU cores.
+And you should be able to login there and perform calculations.
+
+Trust me, you do **not** want to send 12 or more jobs to a machine with only 5 CPUs. The system administrators will be very angry about it...
