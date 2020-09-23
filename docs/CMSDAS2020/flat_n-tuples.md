@@ -227,7 +227,7 @@ First, get the absolute path of the output:
 readlink -f <path-to-pico-output>.root
 ```
 
-Then, on the work system at your home institution, copy the file from CERN `lxplus` to you. The following command should work on unix-based operating systems:
+On the work system at your home institution, copy the file from CERN `lxplus` to yourself. The following command should work on unix-based operating systems:
 
 ```sh
 scp <cern-username>@lxplus.cern.ch:<absolute-path-to-pico-output>.root .
@@ -243,7 +243,7 @@ root [0]
 root [1] TBrowser b
 ```
 
-Then, you can relatively fast click through the structure of the opened file to get familiar with it.
+In the TBrowser, you can relatively fast click through the structure of the opened file to get familiar with it.
 
 You can for example plot the `cutflow` histogram to check, whether the tracked cuts are affecting the event selection. Besides that, you can get the distributions of the quantities stored in `tree`
 by (double-)clicking on the corresponding leaves.
@@ -255,4 +255,4 @@ Furthermore, if you like to see the values of a quantity in a specified range, t
 root [2] tree->Draw("m_vis","m_vis >=70 && m_vis < 110")
 ```
 
-Then the plot in canvas of TBrowser will be updated accordingly.
+The plot in canvas of TBrowser will be updated accordingly.
