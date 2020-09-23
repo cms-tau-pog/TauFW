@@ -168,7 +168,7 @@ as already used in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/M
 
 ## Producing local n-tuple output and testing the code
 
-In the process of your adaptions to the analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py), you are adviced to test your implementation frequently
+In the process of your adaptions to the analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py), you are advised to test your implementation frequently
 after each small step you have done. This, you do best locally, using a limited number of events. Furthermore, it is always a good idea to do it for one simulated sample and one data sample separately,
 in case you are working on simulation-specific implementations, for example.
 
@@ -299,3 +299,42 @@ condor_userprio | less
 ```
 
 In the output of this command, you will be able, how you are ranked, and who exactly is taking away all the slots :).
+
+Small sidenote: to exit `less`, just press `q`.
+
+Because of that, it is good to have a small number of jobs in total, which however stay within the runtime slot you request. Since the `pico.py` commands related to
+batch system are wrapper around HTCondor commands, it is also good to know a bit, what is running under the hood. In the following, a few advices to optimize your batch system tasks.
+
+The core shell script passed to HTCondor for execution is [submit_HTCondor.sh](../../PicoProducer/python/batch/submit_HTCondor.sh). You can see it also in the condor configuration file,
+which is in case of CERN `lxplus` [submit_HTCondor.sub](../../PicoProducer/python/batch/submit_HTCondor.sub).
+
+Try to get more familiar with that configuration by having a closer look at it. Please also
+pay attention, what exactly is done when performing the initial submission. It is not more than passing [submit_HTCondor.sub](../../PicoProducer/python/batch/submit_HTCondor.sub) to the `condor_submit`
+command with a bunch of specified options :).
+
+If you would like to see, what is exactly running, you can also check the status without the `pico.py status` wrapper:
+
+```sh
+condor_q <cern-username>
+```
+
+To have a closer look at one particlar job - `<jobid>` format is `$(ClusterId).$(ProcId)` - you can use:
+
+```sh
+condor_q <jobid> -l | less
+```
+
+A useful trick is also to grep through the `*.log` files of finished jobs:
+
+```sh
+grep "picojob.py done after" ${CMSSW_BASE}/src/TauFW/PicoProducer/output/2018/mutau/*/*/*.log
+```
+
+In that way, you can find out the runtime of the jobs, which produced the flat ntuples for the &mu;&tau;<sub>h</sub> final state. Feel free to adapt the trick to your needs ;).
+
+Finally, to have a look, why jobs are put on `hold` by the batch system, perform:
+
+`condor_hold <cern-username>`
+
+Usually a more or less understandable reason is given.
+

@@ -92,7 +92,7 @@ scram b -j 4
 
 ## Introducing your own changes
 
-After this initial setup of the software, you are adviced to *fork* the repositories [TauFW](https://github.com/ArturAkh/TauFW) and
+After this initial setup of the software, you are advised to *fork* the repositories [TauFW](https://github.com/ArturAkh/TauFW) and
 [CombineHarvester/CMSDAS2020TauLong](https://github.com/ArturAkh/CMSDAS2020TauLong.git) to be able to introduce your own changes to the software and to save your progress
 on github.
 

@@ -112,7 +112,7 @@ Let us have a closer look at the various parts of the selection:
 &mu;&tau;<sub>h</sub> final state, it is good to select a high level trigger (HLT) path targeting one muon, since this HLT path is simple and not too restrictive.
 + `Muon_pt > 28`: Due to the selection of the HLT, we are interested in muons with offline transverse momentum (p<sub>T</sub>) slightly above the HLT p<sub>T</sub> threshold.
 In that way, the turn-on region of the HLT path is avoided, which is usually difficult to model.
-+ `Tau_pt > 18`: An HLT path is not required for &tau;<sub>h</sub> candidates, therefore, you can choose the loosest threshold possible for these physics objects. If you have a look at the NanoAOD definition, you will figure out, that it exactly matches this definition. In the context of this exercise, you will be adviced to test different possibilities for a higher threshold
++ `Tau_pt > 18`: An HLT path is not required for &tau;<sub>h</sub> candidates, therefore, you can choose the loosest threshold possible for these physics objects. If you have a look at the NanoAOD definition, you will figure out, that it exactly matches this definition. In the context of this exercise, you will be advised to test different possibilities for a higher threshold
 on p<sub>T</sub>(&tau;<sub>h</sub>) in further steps of the analysis discussed later.
 + `Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5`: In an analysis, you are interested in well reconstructed muons. A good compromise between high purity and high efficiency is the medium working point (WP) of muon identification. Although it is usually best to select also well isolated muons, the threshold on the relative muon isolation using all particle flow (PF) candidates is kept high to be able to define sideband regions with looser isolation requirement.
 + `Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1`: To allow you playing around with &tau;<sub>h</sub> candidates, the loosest possible WPs are chosen for the DeepTau discriminators against muons, electrons, and jets.
@@ -160,7 +160,7 @@ To submit the skim command with preselection from above to the batch system, rep
 pico.py submit -c skim -y 2018 -p --preselect 'HLT_IsoMu27 == 1 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1' --queue espresso
 ```
 
-You are adviced to test the command above at first with `--dry` to ensure, that all job directories are created properly. Then you can remove these directories and try to perform a test submit without
+You are advised to test the command above at first with `--dry` to ensure, that all job directories are created properly. Then you can remove these directories and try to perform a test submit without
 `--dry` but for one sample, e.g. `-s DY`. With this test submit you can check, whether the `espresso` queue with 20 minutes is sufficient to run the preselection on the amount of files configured by
 default (check it with `pico.py list` before submission).
 
