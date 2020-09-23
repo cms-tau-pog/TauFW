@@ -318,7 +318,7 @@ If you would like to see, what is exactly running, you can also check the status
 condor_q <cern-username>
 ```
 
-To have a closer look at one particlar job - `<jobid>` format is `$(ClusterId).$(ProcId)` - you can use:
+To have a closer look at one particular job - `<jobid>` format is `$(ClusterId).$(ProcId)` - you can use:
 
 ```sh
 condor_q <jobid> -l | less
