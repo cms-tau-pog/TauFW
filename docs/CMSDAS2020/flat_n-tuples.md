@@ -208,6 +208,7 @@ root [1] tree->Scan("m_vis:pt_1:decayMode_2")
 
 Furthermore, you can test different cuts:
 
+```sh
 root -l <path-to-pico-output>.root
 # in the ROOT shell
 root [0]
@@ -215,7 +216,6 @@ root [0]
 root [1] tree->GetEntries("m_vis > 90.0")
 ...
 root [2] tree->GetEntries("pt_1 < 20.0")
-
 ```
 
 The best way to check your outputs is of course having a look at the various distributions of the stored quantities. Provided, that you have ROOT installed on the work system at your home institution,
