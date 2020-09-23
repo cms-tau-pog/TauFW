@@ -145,7 +145,8 @@ In the current NanoAOD format, there are various definitions of MET available. T
 are corrected for pileup contributions, the latter with the [**P**ile**u**p **p**er **P**article **I**dentification](https://doi.org/10.1007/JHEP10(2014)059) method.
 
 To be able to compare these two definitions in terms of mean, resolution and data/expectation agreement, please store p<sub>T</sub>, &phi;, and &Sigma;E<sub>T</sub> for both
-versions of the MET in different variables.
+versions of the MET in different variables. As soon as you start to implement variables using MET in their computation, please also keep in mind to create two versions of the
+computed variable.
 
 ### Task 5: Additional (high-level) variables
 
