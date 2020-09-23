@@ -60,7 +60,7 @@ high-level quantities to distinguish Z&rarr;&tau;&tau; from W + jets and from tt
 
 The selection given in the [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) repository is essentially the one you have seen for [preselection](preselection.md)
 of the &mu;&tau;<sub>h</sub> final state. The only more restrictive requirement is the separation
-in &Delta;R = &radic;<span style="text-decoration:overline">&Delta;&phi;<sup>2</sup> + &Delta;&eta;<sup>2</sup></span> between the muon and the &tau;<sub>h</sub> candidate.
+in &Delta;R = (&Delta;&phi;<sup>2</sup> + &Delta;&eta;<sup>2</sup>)<sup>0.5</sup> between the muon and the &tau;<sub>h</sub> candidate.
 
 Therefore, several TODO&apos;s are defined for you to extend the inital selection to create flat n-tuples, partly also to be covered in section [6](refine_ztautau.md).
 
