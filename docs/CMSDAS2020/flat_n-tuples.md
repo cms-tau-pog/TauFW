@@ -132,3 +132,11 @@ For this reason, you are asked to selected good jets and store quantities relate
 of the DeepFlavour b+bb+lepb discriminator. Since the b-tagged jets are within the tracker acceptance, they may have lower p<sub>T</sub> because the existence of charged tracks allows for
 a better discrimination of jets from pileup.
   + Store as output quantities the number of b-tagged jets, as well as p<sub>T</sub> and &eta; of the b-tagged jets leading and subleading in p<sub>T</sub>
+
+### Task 4: MET choice and variables
+
+Also the MET is a useful variable to construct high-level variables to enrich Z&rarr;&tau;&tau; or to define signal categories and control regions.
+
+In the current NanoAOD format, there are various definitions of MET available. The most used ones - as you can see discussed in the corresponding
+[MET paper](https://doi.org/10.1088/1748-0221/14/07/P07004) - are the PF-based MET (stored simply as `MET` in NanoAOD) and the PUPPI MET (stored as `PuppiMET` in NanoAOD). Both
+are corrected for pileup contributions, the latter with the [**P**ile**u**p **p**er **P**article **I**dentification](https://doi.org/10.1007/JHEP10(2014)059) method.
