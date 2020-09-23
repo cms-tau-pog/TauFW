@@ -161,3 +161,6 @@ is considered for the e&mu; final state there, but could be used also for other 
 + Separation in &Delta;R between the muon and the &tau;<sub>h</sub> candidate. Here you can use the functions defined for the
 [`Object`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py#L49-L89) class defined in NanoAOD,
 as already used in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py). Please note, that in this case, the interval of &Delta;&phi; is required to be [-&pi;,+&pi;].
++ Pileup density %rho;, computed from all PF Candidates.
++ Number of reconstructed primary vertices.
++ for MC only: number of **true** pileup interactions. Please use the `if self.ismc:` case to fill this variable to distinguish from data, where this quantity is not available in nanoAOD.
