@@ -468,4 +468,4 @@ In this form, the python script can be used also on `lxplus` login nodes with 10
 
 In general, the better the connection to storage (e.g. SSDs) and the more CPUs you have, the faster the processing with such scripts.
 
-Now you should have all tools you need to find your own way to have fast turn-around for the production of flat n-tuples. Enjoy, and play around with all the possibilities!
+Now you should have all tools you need to find your own way to have fast turn-arounds for the production of flat n-tuples. Enjoy, and play around with all the possibilities!
