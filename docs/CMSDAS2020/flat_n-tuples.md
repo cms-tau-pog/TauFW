@@ -424,7 +424,7 @@ The rule of thumb is, that the load average, devided by the number of CPUs shoul
 After setting up and configuring the TauFW software at your home machine, use the following command for parallel processing, based on a list of name patterns unambigious between each sample:
 
 ```
-for sample in DY TTTo2L2Nu TTToSemi TTToHad ST_tW_antitop ST_tW_top ST_t-channel_antitop ST_t-channel_top WW WZ ZZ SingleMuon_Run2018A SingleMuon_Run2018B SingleMuon_Run2018C SingleMuon_Run2018D;
+for sample in DY WJ TTTo2L2Nu TTToSemi TTToHad ST_tW_antitop ST_tW_top ST_t-channel_antitop ST_t-channel_top WW WZ ZZ SingleMuon_Run2018A SingleMuon_Run2018B SingleMuon_Run2018C SingleMuon_Run2018D;
 do
 pico.py run -c mutau -y 2018 -s ${sample} -n 1 &
 done; wait
@@ -447,7 +447,7 @@ def execute_cmd(cmd):
     return os.system(cmd)
 
 samplenames = [
-    'DY',
+    'DY','WJ',
     'TTTo2L2Nu','TTToSemi','TTToHad',
     'ST_tW_antitop','ST_tW_top','ST_t-channel_antitop','ST_t-channel_top',
     'WW','WZ','ZZ',
