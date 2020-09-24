@@ -42,7 +42,7 @@ In that way, you do not need to keep always the full path in mind, each time you
 set-voms; voms-proxy-info
 ```
 
-Side remark: you need to replace `<first-letter-of-cern-username>/<cern-username>/` where it apprears appropriatly, of course :).
+Side remark: you need to replace `<first-letter-of-cern-username>/<cern-username>/` where it apprears appropriately, of course :).
 
 You can check the settings for your grid certificate, provided that it is imported into your browser, for example at [voms2.cern.ch](https://voms2.cern.ch:8443/voms/cms/user/home.action).
 
