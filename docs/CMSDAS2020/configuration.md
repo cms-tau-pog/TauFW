@@ -28,7 +28,7 @@ voms-proxy-init --valid 192:00:00 --voms cms --rfc
 ```
 
 The last three commands setup a proxy for your grid certificate and are needed to be able to access remotely stored datasets in the CERN grid,
-and to write to CERN grid dCache storage servers with corresponding tools. A fixed `X509_USER_PROXY` environment variable is required to be avoid
+and to write to CERN grid dCache storage servers with corresponding tools. A fixed `X509_USER_PROXY` environment variable is required to avoid
 `/tmp` directories used by default, which may be not accessible at batch system nodes.
 
 You can add the `export` of the `X509_USER_PROXY` environment variable as an `alias` to you `~/.bashrc` by adding the following lines to it:
