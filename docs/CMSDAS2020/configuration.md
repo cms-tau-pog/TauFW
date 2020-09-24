@@ -17,6 +17,9 @@ cd ~/TauLongCMSDAS2020/CMSSW_10_6_17_patch1/src
 # Setting the CMSSW environment
 cmsenv
 
+# Fix the VOMS proxy path explicitly to avoid /tmp directories.
+export X509_USER_PROXY=/afs/cern.ch/user/<first-letter-of-cern-username>/<cern-username>/public/x509_voms
+
 # Check your VOMS proxy
 voms-proxy-info
 
@@ -24,8 +27,22 @@ voms-proxy-info
 voms-proxy-init --valid 192:00:00 --voms cms --rfc
 ```
 
-The last two commands setup a proxy for your grid certificate and are needed to be able to access remotely stored datasets in the CERN grid,
-and to write to CERN grid dCache storage servers with corresponding tools.
+The last three commands setup a proxy for your grid certificate and are needed to be able to access remotely stored datasets in the CERN grid,
+and to write to CERN grid dCache storage servers with corresponding tools. A fixed `X509_USER_PROXY` environment variable is required to be avoid
+`/tmp` directories used by default, which may be not accessible at batch system nodes.
+
+You can add the `export` of the `X509_USER_PROXY` environment variable as an `alias` to you `~/.bashrc` by adding the following lines to it:
+
+```sh
+alias set-voms='export X509_USER_PROXY=/afs/cern.ch/user/<first-letter-of-cern-username>/<cern-username>/public/x509_voms'
+```
+In that way, you do not need to keep always the full path in mind, each time you would like to fix the variable, but just do this to check the proxy:
+
+```sh
+set-voms; voms-proxy-info
+```
+
+Side remark: you need to replace `<first-letter-of-cern-username>/<cern-username>/` where it apprears appropriatly, of course :).
 
 You can check the settings for your grid certificate, provided that it is imported into your browser, for example at [voms2.cern.ch](https://voms2.cern.ch:8443/voms/cms/user/home.action).
 
