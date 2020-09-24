@@ -59,6 +59,8 @@ class ModuleMuTau(Module):
     self.eta_2       = np.zeros(1,dtype='f')
     self.q_2         = np.zeros(1,dtype='i')
     self.id_2        = np.zeros(1,dtype='i')
+    self.anti_e_2    = np.zeros(1,dtype='i')
+    self.anti_mu_2   = np.zeros(1,dtype='i')
     self.iso_2       = np.zeros(1,dtype='f')
     self.genmatch_2  = np.zeros(1,dtype='f')
     self.decayMode_2 = np.zeros(1,dtype='i')
@@ -75,6 +77,8 @@ class ModuleMuTau(Module):
     self.tree.Branch('eta_2',        self.eta_2, 'eta_2/F'            )
     self.tree.Branch('q_2',          self.q_2,   'q_2/I'              )
     self.tree.Branch('id_2',         self.id_2,  'id_2/I'             )
+    self.tree.Branch('anti_e_2',     self.anti_e_2,   'anti_e_2/I'    )
+    self.tree.Branch('anti_mu_2',    self.anti_mu_2,  'anti_mu_2/I'   )
     self.tree.Branch('iso_2',        self.iso_2, 'iso_2/F'            )
     self.tree.Branch('genmatch_2',   self.genmatch_2,  'genmatch_2/F' )
     self.tree.Branch('decayMode_2',  self.decayMode_2, 'decayMode_2/I')
@@ -181,6 +185,8 @@ class ModuleMuTau(Module):
     self.eta_2[0]       = tau.eta
     self.q_2[0]         = tau.charge
     self.id_2[0]        = tau.idDeepTau2017v2p1VSjet
+    self.anti_e_2[0]    = tau.idDeepTau2017v2p1VSe
+    self.anti_mu_2[0]   = tau.idDeepTau2017v2p1VSmu
     self.iso_2[0]       = tau.rawDeepTau2017v2p1VSjet # keep in mind: the HIGHER the value of the discriminator, the more the tau is isolated
     self.decayMode_2[0] = tau.decayMode
     self.m_vis[0]       = (muon.p4()+tau.p4()).M()
