@@ -70,7 +70,7 @@ But let us first define the tasks to be done for this section, which have the ai
 
 ## Tasks of this section
 
-To avoid ambiguities, the tasks for this section are marked with `TODO section 3` in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py).
+To avoid ambiguities, the tasks for this section are marked with `TODO section 4` in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py).
 
 To make these tasks easier for yourself, you should get familiar with quantities stored in the NanoAOD files, by looking at preselected or original samples on one hand:
 

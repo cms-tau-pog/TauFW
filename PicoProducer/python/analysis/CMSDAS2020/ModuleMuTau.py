@@ -102,14 +102,14 @@ class ModuleMuTau(Module):
     
     # SELECT MUON
     muons = [ ]
-    # TODO section 3: extend with a veto of additional muons. Veto muons should have the same quality selection as signal muons (or even looser),
+    # TODO section 4: extend with a veto of additional muons. Veto muons should have the same quality selection as signal muons (or even looser),
     # but with a lower pt cut, e.g. muon.pt > 15.0
     veto_muons = [ ]
 
     for muon in Collection(event,'Muon'):
       good_muon = muon.mediumId and muon.pfRelIso04_all < 0.5 and abs(muon.eta) < 2.5
       signal_muon = good_muon and muon.pt > 28.0
-      veto_muon   = False # TODO section 3: introduce a veto muon selection here
+      veto_muon   = False # TODO section 4: introduce a veto muon selection here
       if signal_muon:
         muons.append(muon)
       if veto_muon: # CAUTION: that's NOT an elif here and intended in that way!
@@ -117,7 +117,7 @@ class ModuleMuTau(Module):
      
     if len(muons) == 0: return False
     self.cutflow.Fill(self.cut_muon)
-    # TODO section 3: What should be the requirement to veto events with additional muons?
+    # TODO section 4: What should be the requirement to veto events with additional muons?
     self.cutflow.Fill(self.cut_muon_veto)
     
     # SELECT TAU
@@ -131,19 +131,19 @@ class ModuleMuTau(Module):
     self.cutflow.Fill(self.cut_tau)
 
     # SELECT ELECTRONS FOR VETO
-    # TODO section 3: extend the selection of veto electrons: pt > 15.0,
+    # TODO section 4: extend the selection of veto electrons: pt > 15.0,
     # with loose WP of the mva based ID (Fall17 training without isolation),
     # and a custom isolation cut on PF based isolation using all PF candidates.
     electrons = []
     for electron in Collection(event,'Electron'):
-      veto_electron = False # TODO section 3: introduce a veto electron selection here
+      veto_electron = False # TODO section 4: introduce a veto electron selection here
       if veto_electron:
         electrons.append(electron)
     if len(electrons) > 0: return False
     self.cutflow.Fill(self.cut_electron_veto)
     
     # PAIR
-    # TODO section 3 (optional): the mutau pair is constructed from a muon with highest pt and a tau with highest pt.
+    # TODO section 4 (optional): the mutau pair is constructed from a muon with highest pt and a tau with highest pt.
     # However, there is also the possibility to select the mutau pair according to the isolation.
     # If you like, you could try to implement mutau pair building algorithm, following the instructions on
     # https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2017#Pair_Selection_Algorithm, but using the latest isolation quantities/discriminators
@@ -153,20 +153,20 @@ class ModuleMuTau(Module):
     self.cutflow.Fill(self.cut_pair)
 
     # SELECT Jets
-    # TODO section 3: Jets are not used directly in our analysis, but it can be good to have a look at least the number of jets (and b-tagged jets) of your selection.
+    # TODO section 4: Jets are not used directly in our analysis, but it can be good to have a look at least the number of jets (and b-tagged jets) of your selection.
     # Therefore, collect at first jets with pt > 20, |eta| < 4.7, passing loose WP of Pileup ID, and tight WP for jetID.
     # The collected jets are furthermore not allowed to overlap with the signal muon and signal tau in deltaR, so selected them to have deltaR >= 0.5 w.r.t. the signal muon and signal tau.
     # Then, select for this collection "usual" jets, which have pt > 30 in addition, count their number, and store pt & eta of the leading and subleading jet.
     # For b-tagged jets, require additionally DeepFlavour b+bb+lepb tag with medium WP and |eta| < 2.5, count their number, and store pt & eta of the leading and subleading b-tagged jet.
 
     # CHOOSE MET definition
-    # TODO section 3: compare the PuppiMET and (PF-based) MET in terms of mean, resolution and data/expectation agreement of their own distributions and of related quantities
+    # TODO section 4: compare the PuppiMET and (PF-based) MET in terms of mean, resolution and data/expectation agreement of their own distributions and of related quantities
     # and choose one of them for the refinement of Z to tautau selection.
     puppimet = Met(event, 'PuppiMET')
     met = Met(event, 'MET')
     
     # SAVE VARIABLES
-    # TODO section 3: extend the variable list with more quantities (also high level ones). Compute at least:
+    # TODO section 4: extend the variable list with more quantities (also high level ones). Compute at least:
     # - visible pt of the Z boson candidate
     # - best-estimate for pt of Z boson candidate (now including contribution form neutrinos)
     # - transverse mass of the system composed from the muon and MET vectors. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9.
