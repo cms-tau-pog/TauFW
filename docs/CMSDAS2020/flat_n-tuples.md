@@ -462,7 +462,8 @@ p = Pool(ncpus)
 p.map(execute_cmd,commands)
 ```
 
-Write the code snippet to a python script and execute it with `python <script>.py`. This result in the same procedure as the shell command above, but now resticted to 5 jobs running in parallel.
+Write the code snippet to a python script and execute it with `python <script>.py`. The resulting outputs will be produced in the same manner as with the shell command above,
+but now resticted to 5 jobs running in parallel.
 
 In this form, the python script can be used also on `lxplus` login nodes with 10 CPUs with an expected runtime of about 15 minutes.
 
