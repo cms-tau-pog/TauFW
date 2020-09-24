@@ -88,7 +88,7 @@ To define new variables, let you inspire by already existing output variables, s
 ### Task 1: electrons and muons for event veto
 
 Define collections of muons and electrons used to veto events with additional muons and electrons. The selection for the leptons should be equal or looser than the
-the signal selection. Therefore, if other final states than &mu;&tau;<sub>h</sub> are anticipated to be done by some of you, discuss and agree on similar signal and veto selections across
+signal selection. Therefore, if other final states than &mu;&tau;<sub>h</sub> are anticipated to be done by some of you, discuss and agree on similar signal and veto selections across
 all considered final states.
 
 An example for possible veto selections:
@@ -110,7 +110,7 @@ The main idea of this &tau;&tau; pair selection algorithm is to select the most 
 
 Some tips to understand the algorithm better:
 
-+ The isolation values are considered to be the same, if they match up to a certain digit after comma, therefore you would need round the numbers appropriately before comparing them.
++ The isolation values are considered to be the same, if they match up to a certain digit after comma, therefore you would need to round the numbers appropriately before comparing them.
 + Isolation of muons and electrons is given relative to p<sub>T</sub> as energy sums. Therefore, the *smaller* the value, the more isolated is the physics object.
 + In contrast to that, the measure for isolation of a &tau;<sub>h</sub> candidate is its DNN based discriminator against jets. Here, the *higher* the value, the more isolated is the
 &tau;<sub>h</sub> candidate.
@@ -133,7 +133,7 @@ For this reason, you are asked to selected good jets and store quantities relate
 + b-tagged jets:
   + Starting from basic jets, keep only those with |&eta;| < 2.5 and require [medium WP](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X#Supported_Algorithms_and_Operati)
 of the DeepFlavour b+bb+lepb discriminator. Since the b-tagged jets are within the tracker acceptance, they may have lower p<sub>T</sub> because the existence of charged tracks allows for
-a better discrimination of jets from pileup.
+a better discrimination against jets from pileup.
   + Store as output quantities the number of b-tagged jets, as well as p<sub>T</sub> and &eta; of the b-tagged jets leading and subleading in p<sub>T</sub>
 
 ### Task 4: MET choice and variables
@@ -155,12 +155,12 @@ Please implement at least the following list of variables:
 
 + visible p<sub>T</sub> of the Z boson candidate. Tip: have a look at the `m_vis` computation.
 + best-estimate for the full p<sub>T</sub> of the Z boson candidate, including neutrinos. What should added to the p<sub>T</sub> vector of the &mu;&tau;<sub>h</sub> pair?
-+ transverse mass for the system of the muon and MET, m<T>(&mu; MET). A definition is given for example in [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9),
++ transverse mass for the system of the muon and MET, m<sub>T</sub>(&mu; MET). A definition is given for example in [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9),
 equation (3). Please check, whether the value for &Delta;&phi; is in the [-&pi;,+&pi;] interval. If not, does this have an influence on the result from applying Sine or Cosine functions on it?
 + D<sub>&zeta;</sub> variable, also defined in [doi:10.1140/epjc/s10052-018-6146-9](https://doi.org/10.1140/epjc/s10052-018-6146-9), formula (4) and Figure 1. The difference is that it
 is considered for the e&mu; final state there, but could be used also for other &tau;&tau; final states.
 + Separation in &Delta;R between the muon and the &tau;<sub>h</sub> candidate. Here you can use the functions defined for the
-[`Object`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py#L49-L89) class defined in NanoAOD,
+[`Object`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py#L49-L89) class in [nanoAOD-tools](https://github.com/cms-nanoAOD/nanoAOD-tools),
 as already used in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py). Please note, that in this case, the interval of &Delta;&phi; is required to be [-&pi;,+&pi;].
 + Pileup density &rho;, computed from all PF Candidates.
 + Number of reconstructed primary vertices.
@@ -169,7 +169,7 @@ as already used in [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/M
 ## Producing local n-tuple output and testing the code
 
 In the process of your adaptions to the analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py), you are advised to test your implementation frequently
-after each small step you have done. This, you do best locally, using a limited number of events. Furthermore, it is always a good idea to do it for one simulated sample and one data sample separately,
+after each small step you have done. This you do best locally, using a limited number of events. Furthermore, it is always a good idea to do it for one simulated sample and one data sample separately,
 in case you are working on simulation-specific implementations, for example.
 
 A possible local test command using preselected NanoAOD samples could look like:
@@ -179,7 +179,7 @@ pico.py run -c mutau -y 2018 -s DY
 ```
 
 Since the already preselected samples for &mu;&tau;<sub>h</sub> are quite small, you do not need to specify the number of events to be processed with `-m`. Furthermore,
-for local tests with `pico.py run`, only one input file is user per default. The input file is chosen from the list of files for the Drell-Yan sample, which is chosen via `-s DY`.
+for local tests with `pico.py run`, only one input file is user per default. The input file is selected hosen from the list of files for the Drell-Yan sample, which is chosen via `-s DY`.
 
 A test for a data sample would then look similar:
 
@@ -187,7 +187,7 @@ A test for a data sample would then look similar:
 pico.py run -c mutau -y 2018 -s SingleMuon
 ```
 
-Having these commands at hand, test always extensions of the module, and have a look at the local outputs produced as `${CMSSW_BASE}/src/TauFW/PicoProducer/output/pico_*.root` by checking
+Having these commands at hand, test always your extensions of the module, and have a look at the local outputs produced as `${CMSSW_BASE}/src/TauFW/PicoProducer/output/pico_*.root` by checking
 the quantities stored in these files, and their values. Are these as you have expected?
 
 There are several possibilities to check your local outputs, discussed in the following.
@@ -261,7 +261,7 @@ The plot in the TPad of TBrowser will be updated accordingly.
 
 Sidenote: please also have a look at details on [job submission at `lxplus`](https://batchdocs.web.cern.ch/local/submit.html)
 
-As soon as you are happy with your developments and sure, that there are any bugs after checking your outputs, you are ready to start a large-scale production.
+As soon as you are happy with your developments and sure, that there are no bugs left after checking your outputs, you are ready to start a large-scale production.
 
 Before doing this, please check, whether the TauFW configuration is fine, using `pico.py list`, in particular the setting for `nfilesperjob`, which will be used during submission to
 the batch system, and the samples list to be used. Choosing `nfilesperjob` to be 15 should be fine to stay within 5 minutes, when using the samples already preselected for &mu;&tau;.
@@ -298,18 +298,19 @@ condor_userprio | less
 /<cern-username>
 ```
 
-In the output of this command, you will be able, how you are ranked, and who exactly is taking away all the slots :).
+In the output of this command, you will be able to see, how you are ranked, and who exactly is taking away all the slots :).
 
 Small sidenote: to exit `less`, just press `q`.
 
 Because of that, it is good to have a small number of jobs in total, which however stay within the runtime slot you request. Since the `pico.py` commands related to
-batch system are wrapper around HTCondor commands, it is also good to know a bit, what is running under the hood. In the following, a few advices to optimize your batch system tasks.
+batch system are wrappers around HTCondor commands, it is also good to know a bit, what is running under the hood. In the following, a few advices to optimize your batch system tasks.
 
 The core shell script passed to HTCondor for execution is [submit_HTCondor.sh](../../PicoProducer/python/batch/submit_HTCondor.sh). You can see it also in the condor configuration file,
 which is in case of CERN `lxplus` [submit_HTCondor.sub](../../PicoProducer/python/batch/submit_HTCondor.sub).
 
 Try to get more familiar with that configuration by having a closer look at it. Please also
-pay attention, what exactly is done when performing the initial submission. It is not more than passing [submit_HTCondor.sub](../../PicoProducer/python/batch/submit_HTCondor.sub) to the `condor_submit`
+pay attention, what exactly is done when performing the initial submission command for `pico.py`.
+It is not more than passing [submit_HTCondor.sub](../../PicoProducer/python/batch/submit_HTCondor.sub) to the `condor_submit`
 command with a bunch of specified options :).
 
 If you would like to see, what is exactly running, you can also check the status without the `pico.py status` wrapper:
@@ -335,10 +336,10 @@ In that way, you can find out the runtime of the jobs, which produced the flat n
 If you would like to remove a specific job, you can perform:
 
 ```sh
-condor_q <jobid>
+condor_rm <jobid>
 ```
 
-You can even remove **all** your submitted job:
+You can even remove **all** your submitted jobs:
 
 ```sh
 condor_rm <cern-username>
@@ -465,7 +466,7 @@ p.map(execute_cmd,commands)
 Write the code snippet to a python script and execute it with `python <script>.py`. The resulting outputs will be produced in the same manner as with the shell command above,
 but now resticted to 5 jobs running in parallel.
 
-In this form, the python script can be used also on `lxplus` login nodes with 10 CPUs with an expected runtime of about 15 minutes.
+In this form and with `ncpus = 5`, the python script can be used also on `lxplus` login nodes, which usually have 10 CPUs, with an expected runtime of about 15 minutes.
 
 In general, the better the connection to storage (e.g. SSDs) and the more CPUs you have, the faster the processing with such scripts.
 
