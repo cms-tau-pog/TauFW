@@ -40,6 +40,19 @@ mkdir -p TauLongCMSDAS2020
 cd TauLongCMSDAS2020
 ```
 
+In this folder, you a fast access connection, but only 10 GB local space. If you think, that you need more space for the software
+and the outputs produced by it (could actually be the case in case of [preselection](preselection.md)), you can move to a `work` folder on `lxplus` and setup the software there:
+
+```sh
+cd /afs/cern.ch/work/<first-letter-of-cern-username>/<cern-username>/
+
+# and then, the folder creation, etc.
+...
+```
+
+Before doing this, make sure, that you have such a folder. You can check it at [CERN Resources Portal](https://resources.web.cern.ch/resources/Manage/AFS/Settings.aspx). You can increase
+your `work` folder quota up to 100 TB. The connection to that folder from the `lxplus` folder might be slower, but you have a bunch of space there on the other hand :).
+
 To install the analysis framework adapted for the exercise in this directory, please execute the following commands:
 
 ```sh
