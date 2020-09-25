@@ -19,8 +19,8 @@ Let us first have a look at its general structure:
 + `getsampleset(...)` method: In this function, the diffent contributions are declared, normalized to the collected data and corrected.
 + `plot(...)` method: Here, the plots and histogram output files are created. During this process, also the various selection conditions and variables are
 specified for the plots and histograms. Furthemore, the QCD estimation runs in that method.
-# `main(args)` method: main function used to execute the previous two after having specified the conditions for them appropriately.
-# `if __name__ == "__main__":` section: This actually the part, which is executed, when you run the script. Usually, it is used to parse arguments and pass them to the `main` function.
++ `main(args)` method: main function used to execute the previous two after having specified the conditions for them appropriately.
++ `if __name__ == "__main__":` section: This actually the part, which is executed, when you run the script. Usually, it is used to parse arguments and pass them to the `main` function.
 
 
 To run the plot and histogram production script, please use the following commands, depending on the way you have produced your flat n-tuples:
