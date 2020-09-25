@@ -36,4 +36,16 @@ cd ${CMSSW_BASE/src}/TauFW/Plotter/
 ./plots_and_histograms_CMSDAS2020.py -c mutau -y 2018 --picopattern "${CMSSW_BASE}/src/TauFW/PicoProducer/output/pico_\$CHANNEL_\$ERA_\$SAMPLE.root"
 ```
 
-If everything works out properly, you should obtain plots in the `${CMSSW_BASE/src}/TauFW/Plotter/plots/2018/` folder and a histogram in the `${CMSSW_BASE/src}/TauFW/Plotter/hists/2018/` folder.
+If everything works out properly, you should obtain plots in the `${CMSSW_BASE}/src/TauFW/Plotter/plots/2018/` folder and a histogram in the `${CMSSW_BASE}/src/TauFW/Plotter/hists/2018/` folder.
+
+To have a look a one specific plot in `.pdf` format, you can use `evince` (via X11 forwarding, directly on CERN `lxplus`):
+
+```sh
+evince ${CMSSW_BASE}/src/TauFW/Plotter/plots/2018/m_vis_mutau-inclusive-2018.pdf
+```
+
+Alternatively, you can also use `eog` to have a look at multiple plots in `.png` format:
+
+```sh
+eog ${CMSSW_BASE}/src/TauFW/Plotter/plots/2018/*.png
+```
