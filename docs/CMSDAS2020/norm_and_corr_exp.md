@@ -99,4 +99,11 @@ you will see the total normalization factor:
 
 Since the cross-sections are given in [pb] and the integrated luminosity in [fb<sup>-1</sup>], an additional factor of 1000 is needed.
 
+Now what about the generator weights? Since we anyhow normalize to an inclusive cross-section with a higher precision than the one computed with the generator used for simulation,
+the cross-section contained in the generator weight should be devided out:
 
+```python
+weight = "genWeight/abs(genWeight)"
+```
+
+To arrive at the proper probability distribution for one event, it is important to apply this normalized generator weight on an event-by-ebent basis.
