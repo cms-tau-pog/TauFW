@@ -111,6 +111,7 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",histdir="",era=""
   ]
   
   # VARIABLES
+  # TODO section 5: extend with other variables, which are available in the flat n-tuples
   variables = [
      Var('m_vis',  40,  0, 200),
   ]
