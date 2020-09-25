@@ -53,3 +53,7 @@ eog ${CMSSW_BASE}/src/TauFW/Plotter/plots/2018/*.png
 ## Definition of contributions from simulation and data
 
 Now let us have a closer look at what is done in the `getsampleset(...)` method.
+
+The first thing that needs to be done is a proper scaling of simulated contributions to the amount of data collected.
+
+The formula for the expected number of events in a dataset for a specific process *P* is N<sub>data</sub> = L<sub>int</sub> &middot; &sigma;<sub>*P*</sub>  &middot; &epsilon;.
