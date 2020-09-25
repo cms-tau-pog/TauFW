@@ -68,5 +68,9 @@ Omitting these corrections for the moment, to arrive at the right number of even
 know the probability distribution of a sample to obtain a single event.
 
 Now, how to arrive at this probability distribution (e.g. in the visible mass of the &mu;&tau;<sub>h</sub> pair)? Simply by dividing by the number of events in a simulated dataset.
-There one peculiarity: what is meant, is the *effective* number of events, and it different from the actually simulated number of events, if negative generator weights are present
-in the dataset.
+There is one important peculiarity: what is meant, is the *effective* number of events N<sub>eff</sub>, and it different from the actually simulated number of events, N<sub>sim</sub>,
+if negative generator weights are present in the dataset.
+
+In samples simulated with such generators, usually simulations at least at NLO QCD precision, negative events are used to account for interference effects. This is done by assigning to each event
+a weight with the same absolute value - often just 1.0 or the generator cross-section - but a different sign. That means, N<sub>eff</sub> = N<sub>+</sub> - N<sub>-</sub> = N<sub>sim</sub> - 2 &middot;
+N<sub>-</sub>.
