@@ -52,4 +52,4 @@ eog ${CMSSW_BASE}/src/TauFW/Plotter/plots/2018/*.png
 
 ## Definition of contributions from simulation and data
 
-Now let us have a closer look at what is done in tje `getsampleset(...)` method.
+Now let us have a closer look at what is done in the `getsampleset(...)` method.
