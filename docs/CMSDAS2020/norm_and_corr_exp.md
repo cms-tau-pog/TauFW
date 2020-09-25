@@ -75,3 +75,28 @@ In samples simulated with such generators, usually simulations at least at NLO Q
 a weight with the same absolute value - often just 1.0 or the generator cross-section - but a different sign. That means:
 
 N<sub>eff</sub> = N(+) - N(-) = N<sub>sim</sub> - 2 &middot; N(-) = N<sub>sim</sub> &middot; ( 1 - 2 &middot; f ), with f being the fraction of negative events.
+
+This explains the setup of different samples in [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py), e.g. for the Drell-Yan production:
+
+```python
+    # GROUP NAME                     TITLE                 XSEC [pb]      effective NEVENTS = simulated NEVENTS * ( 1  - 2 * negative fraction)
+    # ...
+    ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",       6077.22,       {"nevts" : 100194597 * (1.0 - 2 * negative_fractions["DYJetsToLL_M-50"])}),
+
+```
+
+If you execute the plotting script with an increased verbosity:
+
+```sh
+./plots_and_histograms_CMSDAS2020.py -c mutau -y 2018 --verbose 2
+```
+
+you will see the total normalization factor:
+
+```sh
+>>> Sample.normalize: Normalize 'DYJetsToLL_M-50' sample to lumi*xsec*1000/sumw = 59.7*6077.2*1000/1.0011e+08 = 3.624!
+```
+
+Since the cross-sections are given in [pb] and the integrated luminosity in [fb<sup>-1</sup>], an additional factor of 1000 is needed.
+
+
