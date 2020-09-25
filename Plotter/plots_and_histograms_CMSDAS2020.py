@@ -122,7 +122,9 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",histdir="",era=""
   exts     = ['png','pdf']
   for selection in selections:
     outhists.mkdir(selection.filename)
-    stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',parallel=parallel)
+    stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1.1,parallel=parallel) # the 'scale' keyword argument - chosen as 1.1 for mutau - 
+                                                                                                   # is an extrapolation factor for the QCD shape from the same-sign
+                                                                                                   # to the opposite-sign region
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel,selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
     for stack, variable in stacks.iteritems():
