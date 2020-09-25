@@ -58,7 +58,7 @@ The first thing that needs to be done is a proper scaling of simulated contribut
 
 The formula for the expected number of events in a dataset for a specific process *P* is N<sub>data</sub> = L<sub>int</sub> &middot; &sigma;<sub>*P*</sub>  &middot; &epsilon; with
 
-+ integrated luminosity L<sub>int</sub> = 59.7 fb<sup>-1</sub> for 2018 data,
++ integrated luminosity L<sub>int</sub> = 59.7 fb<sup>-1</sup> for 2018 data,
 + the cross-section of the process *P* &sigma;<sub>*P*</sub>,
 + and the acceptance and selection efficiency &epsilon;.
 
