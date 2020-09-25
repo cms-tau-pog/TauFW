@@ -56,4 +56,13 @@ Now let us have a closer look at what is done in the `getsampleset(...)` method.
 
 The first thing that needs to be done is a proper scaling of simulated contributions to the amount of data collected.
 
-The formula for the expected number of events in a dataset for a specific process *P* is N<sub>data</sub> = L<sub>int</sub> &middot; &sigma;<sub>*P*</sub>  &middot; &epsilon;.
+The formula for the expected number of events in a dataset for a specific process *P* is N<sub>data</sub> = L<sub>int</sub> &middot; &sigma;<sub>*P*</sub>  &middot; &epsilon; with
+
++ integrated luminosity L<sub>int</sub> = 59.7 fb<sup>-1</sub> for 2018 data,
++ the cross-section of the process *P* &sigma;<sub>*P*</sub>,
++ and the acceptance and selection efficiency &epsilon;.
+
+In case of consistent selection in data and simulation, the efficiency &epsilon; should be similar up to residual differences mitigated by corresponding event-by-event scale-factors.
+
+Omitting these corrections for the moment, to arrive at the right number of events, the multiplicative factor L<sub>int</sub> &middot; &sigma;<sub>*P*</sub> is needed, provided that you
+know the probability distribution of a sample to obtain a single event.
