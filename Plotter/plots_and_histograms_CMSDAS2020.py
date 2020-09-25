@@ -104,7 +104,7 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",histdir="",era=""
   # SELECTIONS
   inclusive = "(q_1*q_2<0)"
   inclusive = inclusive.replace(" ","")
-  inclusive_cr_qcd = inclusive.replace("q_1*q_2<0","q_1*q_2>0")
+  inclusive_cr_qcd = inclusive.replace("q_1*q_2<0","q_1*q_2>0") # inverting the opposite-sign requirement of the mutau pair into a same-sign requirment
   selections = [
     Sel('inclusive',inclusive),
     Sel('inclusive_cr_qcd',inclusive_cr_qcd),
