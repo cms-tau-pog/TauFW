@@ -66,3 +66,7 @@ In case of consistent selection in data and simulation, the efficiency &epsilon;
 
 Omitting these corrections for the moment, to arrive at the right number of events, the multiplicative factor L<sub>int</sub> &middot; &sigma;<sub>*P*</sub> is needed, provided that you
 know the probability distribution of a sample to obtain a single event.
+
+Now, how to arrive at this probability distribution (e.g. in the visible mass of the &mu;&tau;<sub>h</sub> pair)? Simply by dividing by the number of events in a simulated dataset.
+There one peculiarity: what is meant, is the *effective* number of events, and it different from the actually simulated number of events, if negative generator weights are present
+in the dataset.
