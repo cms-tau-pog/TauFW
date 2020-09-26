@@ -189,3 +189,10 @@ sampleset.split('DY', [('ZTT',GMR),('ZL',GMO)])
 
 This splitting is based on generator information, whether the reconstructed &tau;<sub>h</sub> candidate is matched to a real &tau;<sub>h</sub> or not.
 
+As a small, optional task, please have a look at the distribution of quantities `genmatch_1` and `genmatch_2` for the various sameples you have processed to flat n-tuples.
+Please have a look at the definition of these variables in the [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) and the
+[NanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html).
+
+For the Drell-Yan process, `ZL` is defined as every contribution, where the reconstructed &tau;<sub>h</sub> candidate does not correspond to a real &tau;<sub>h</sub>. The naming `ZL`
+indicates, that the Z&rarr;&mu;&mu; process is meant in case of the &mu;&tau;<sub>h</sub> final state, assuming that this is the major contribution to `ZL`. Is this justified?
+What is the major contribution to other processes with `genmatch_2!=5`?
