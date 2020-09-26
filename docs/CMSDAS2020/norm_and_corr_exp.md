@@ -125,8 +125,8 @@ To find out which numbers of simulated events are needed, you can use the `dasgo
 this information also at [McM](https://cms-pdmv.cern.ch/mcm/). Go to that page, click on the "Request" button and put the DAS name of the dataset into the "Output Dataset" field.
 In the "Select View", you can activate the information, which you would like to see. For the number of simulated events, please activate "Total events".
 
-The best way to determine the negative fraction of events is to compute it yourself from the original, **not preselected** NanoAOD samples. To do this, you would need to include the TTree `Events`
-from all input files of a sample into a TChain, and have a look at the number of events with negative generator weights, compared to the total number of events.
+The best way to determine the negative fraction of events is to compute it yourself from the original, **not preselected** NanoAOD samples. To do this, you would need to loop through the files
+and access the TTree `Events` for each file. For each `Events` tree, have a look at the number of events with negative generator weights, and the total number of simulated events.
 
 At first, find out with dasgoclient, which files a sample has, e.g.:
 
@@ -141,18 +141,21 @@ Then, you can use the following python code snippet to compute the fraction of n
 import ROOT as r
 r.gROOT.SetBatch()
 xrdserver = "root://cms-xrd-global.cern.ch/"
-
+    
 filepaths = [xrdserver + p.strip() for p in open("DYJetsToLL_M-50_files.txt","r").readlines()]
+n_events = 0.0
+n_negative_events = 0.0
 
-chain = r.TChain("Events")
-print "Creating TChain"
 for p in filepaths:
-    print "\tAdding",p
-    chain.Add(p)
+    f = r.TFile.Open(p)
+    print "Processing:",p
+    tree = f.Get("Events")
+    n_events += float(tree.GetEntries())
+    n_negative_events += float(tree.GetEntries("genWeight < 0"))
 
-nevents = float(chain.GetEntries())
-print "Number of simulated events:",nevents
-print "Fraction of negative events:",chain.GetEntries("genWeight < 0")/nevents
+
+print "Number of simulated events:",n_events
+print "Fraction of negative events:",n_negative_events/n_events
 ```
 
 Feel free to make it more automatic to cover all datasets considered in the filelists of the analysis.
@@ -174,4 +177,14 @@ In the script [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histo
 sampleset.join('WW', 'WZ', 'ZZ', name='VV'  ) # Diboson
 ```
 
-On the other hand, we need
+On the other hand, we need to distinguish between contributions to the &mu;&tau;<sub>h</sub> final state with a real &tau;<sub>h</sub> candidate from contributions, where the &tau;<sub>h</sub>
+is a misidentified muon, electron, or jet. To accomplish this, a splitting of a process can be performed:
+
+```python
+GMR = "genmatch_2==5"
+GMO = "genmatch_2!=5"
+sampleset.split('DY', [('ZTT',GMR),('ZL',GMO)])
+```
+
+This splitting is based on generator information, whether the reconstructed &tau;<sub>h</sub> candidate is matched to a real &tau;<sub>h</sub> or not.
+
