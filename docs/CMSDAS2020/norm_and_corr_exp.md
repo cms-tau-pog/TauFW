@@ -152,6 +152,7 @@ for p in filepaths:
     tree = f.Get("Events")
     n_events += float(tree.GetEntries())
     n_negative_events += float(tree.GetEntries("genWeight < 0"))
+    f.Close()
 
 
 print "Number of simulated events:",n_events
