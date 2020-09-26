@@ -121,6 +121,36 @@ In some cases, the cross-section is not known for a particular phase-space simul
 [GenXSecAnalyzer](https://twiki.cern.ch/twiki/bin/viewauth/CMS/HowToGenXSecAnalyzer) in this case. Sometimes, the cross-sections are also given in [XSDB](https://cms-gen-dev.cern.ch/xsdb/),
 however, you need to be sure to select the right `DAS` name for the sample you search for. Sometimes, the info is not available because the datbase is not updated accordingly.
 
-To find out which numbers of simulated events are needed, you can use the `dasgoclient` as discussion in section [3](preselection.md). Alternatively you can find
+To find out which numbers of simulated events are needed, you can use the `dasgoclient` as discussed in section [3](preselection.md). Alternatively you can find
 this information also at [McM](https://cms-pdmv.cern.ch/mcm/). Go to that page, click on the "Request" button and put the DAS name of the dataset into the "Output Dataset" field.
 In the "Select View", you can activate the information, which you would like to see. For the number of simulated events, please activate "Total events".
+
+The best way to determine the negative fraction of events is to compute it yourself from the original, **not preselected** NanoAOD samples. To do this, you would need to include the TTree `Events`
+from all input files of a sample into a TChain, and have a look at the number of events with negative generator weights, compared to the total number of events.
+
+At first, find out with dasgoclient, which files a sample has, e.g.:
+
+```sh
+dasgoclient -query="file dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM" > DYJetsToLL_M-50_files.txt
+```
+
+Then, you can use the following python code snippet to compute the fraction of negative events for this dataset:
+
+```
+import ROOT as r
+xrdserver = "root://cms-xrd-global.cern.ch/"
+
+filepaths = [xrdserver + p for p in open("DYJetsToLL_M-50_files.txt","r").readlines()]
+
+chain = r.TChain("Events")
+for p in filepaths:
+    chain.Add(p)
+
+print "Fraction of negative events:",chain.GetEntries("genWeight < 0")/chain.GetEntries()
+```
+
+Feel free to make it more automatic to cover all datasets considered in the filelists of the analysis.
+But be warned, that this will be rather a slow method, so perhaps use multiprocessing per dataset
+and leave it running over night.
+
+Alternatively, you can have at the values stored on [XSDB](https://cms-gen-dev.cern.ch/xsdb/) by searching for the appropriate "process_name" and activating "process_name", "DAS", and "fraction_negative_weight" to check, that it is the right sample and its fraction of negativ events. Since this database is not updated regurarly, it might well be, that this information is outdated and not available for the recent "DAS" names.
