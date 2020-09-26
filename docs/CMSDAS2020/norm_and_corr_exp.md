@@ -120,3 +120,7 @@ In case of cross-sections, several Twiki pages can be consulted:
 In some cases, the cross-section is not known for a particular phase-space simulated by the generator. The most precise possibility is to use the
 [GenXSecAnalyzer](https://twiki.cern.ch/twiki/bin/viewauth/CMS/HowToGenXSecAnalyzer) in this case. Sometimes, the cross-sections are also given in [XSDB](https://cms-gen-dev.cern.ch/xsdb/),
 however, you need to be sure to select the right `DAS` name for the sample you search for. Sometimes, the info is not available because the datbase is not updated accordingly.
+
+To find out which numbers of simulated events are needed, you can use the `dasgoclient` as discussion in section [3](preselection.md). Alternatively you can find
+this information also at [McM](https://cms-pdmv.cern.ch/mcm/). Go to that page, click on the "Request" button and put the DAS name of the dataset into the "Output Dataset" field.
+In the "Select View", you can activate the information, which you would like to see. For the number of simulated events, please activate "Total events".
