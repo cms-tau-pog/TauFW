@@ -154,3 +154,5 @@ But be warned, that this will be rather a slow method, so perhaps use multiproce
 and leave it running over night.
 
 Alternatively, you can have at the values stored on [XSDB](https://cms-gen-dev.cern.ch/xsdb/) by searching for the appropriate "process_name" and activating "process_name", "DAS", and "fraction_negative_weight" to check, that it is the right sample and its fraction of negativ events. Since this database is not updated regurarly, it might well be, that this information is outdated and not available for the recent "DAS" names.
+
+Side remark: all the needed numbers for cross-sections, numbers of simulated events, and the fractions of negative events are already integrated into the plotting. The instructions above are for your information and later reference.
