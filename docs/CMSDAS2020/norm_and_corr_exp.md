@@ -196,3 +196,9 @@ Please have a look at the definition of these variables in the [ModuleMuTau](../
 For the Drell-Yan process, `ZL` is defined as every contribution, where the reconstructed &tau;<sub>h</sub> candidate does not correspond to a real &tau;<sub>h</sub>. The naming `ZL`
 indicates, that the Z&rarr;&mu;&mu; process is meant in case of the &mu;&tau;<sub>h</sub> final state, assuming that this is the major contribution to `ZL`. Is this justified?
 What is the major contribution to other processes with `genmatch_2!=5`?
+
+## Event-by-event corrections to simulated contributions
+
+## Selection and variables
+
+## Data-driven estimation of QCD multijet background
