@@ -150,7 +150,7 @@ for p in filepaths:
     print "\tAdding",p
     chain.Add(p)
 
-nevents = chain.GetEntries()
+nevents = float(chain.GetEntries())
 print "Number of simulated events:",nevents
 print "Fraction of negative events:",chain.GetEntries("genWeight < 0")/nevents
 ```
