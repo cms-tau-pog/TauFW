@@ -136,17 +136,23 @@ dasgoclient -query="file dataset=/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pyth
 
 Then, you can use the following python code snippet to compute the fraction of negative events for this dataset:
 
-```
+```python
+#! /usr/bin/env python
 import ROOT as r
+r.gROOT.SetBatch()
 xrdserver = "root://cms-xrd-global.cern.ch/"
 
-filepaths = [xrdserver + p for p in open("DYJetsToLL_M-50_files.txt","r").readlines()]
+filepaths = [xrdserver + p.strip() for p in open("DYJetsToLL_M-50_files.txt","r").readlines()]
 
 chain = r.TChain("Events")
+print "Creating TChain"
 for p in filepaths:
+    print "\tAdding",p
     chain.Add(p)
 
-print "Fraction of negative events:",chain.GetEntries("genWeight < 0")/chain.GetEntries()
+nevents = chain.GetEntries()
+print "Number of simulated events:",nevents
+print "Fraction of negative events:",chain.GetEntries("genWeight < 0")/nevents
 ```
 
 Feel free to make it more automatic to cover all datasets considered in the filelists of the analysis.
@@ -157,3 +163,15 @@ Alternatively, you can have at the values stored on [XSDB](https://cms-gen-dev.c
 
 Side remark: all the needed numbers for cross-sections, numbers of simulated events, and the fractions of negative events are already integrated into the
 [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py). The instructions above are for your information and later reference.
+
+## Joining and splitting distributions
+
+After having defined each contribution, it is often good to summarize multiple contributions into one. For example, since we are not interested in the individual
+contributions involving two of the bosons W or Z, but in an inclusive contribution of these processes in the first place.
+In the script [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py), this is achieved with the following line:
+
+```python
+sampleset.join('WW', 'WZ', 'ZZ', name='VV'  ) # Diboson
+```
+
+On the other hand, we need
