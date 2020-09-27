@@ -182,3 +182,8 @@ After all jobs for the test submit are finished you can submit the remaining sam
 Then, after occasional baby-sitting and resubmission of jobs, you should have all of them processed at some point. Congragulations! :)
 
 Let us use these preselected NanoAOD samples for further processing to create flat n-tuples, as will be explained in the [next section](flat_n-tuples.md).
+
+### Group task - extension with the e&mu; final state
+
+For those of you, how are interested in setting up a completely new final state, the e&mu; final state is a good candidate to be used in the Z&rarr;&tau;&tau; cross-section measurement,
+combining it with the &mu;&tauM<sub>h</sub> final state. You would need to perform similar steps as for &mu;&tauM<sub>h</sub>, but adapted to a selection of a pair of a muon and an electron.
