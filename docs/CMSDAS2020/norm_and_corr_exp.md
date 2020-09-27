@@ -273,8 +273,8 @@ Given that the analysis selection in the n-tuple is kept loose, a stricter selec
 [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py),
 adding additional cut strings to the `selections` list, which contain the muon isolation `iso_1`.
 
-A stricter signal region requirement could be for example `iso_1 < 0.2`, while side-band region with a relaxed muon isolation condition could constructed accordingly
-via `iso_1 >= 0.2 && iso_1 < 0.5`. You need to ensure, that the signal region and the side-band region are orthogonal to each other.
+A stricter signal region requirement could be for example `iso_1 < 0.15`, while side-band region with a relaxed muon isolation condition could constructed accordingly
+via `iso_1 >= 0.15 && iso_1 < 0.5`. You need to ensure, that the signal region and the side-band region are orthogonal to each other.
 
 The side-band region with relaxed muon isolation requirement can then be separated into an opposite-sign and a same-sign region, and since it is assumed
 that both of the regions are signal-depleted, the number of QCD events in both regions can be estimated in the same manner: subtracting all non-QCD contributions
