@@ -248,7 +248,7 @@ For the example of the m<sub>vis</sub> distribution, this would look like:
 
 QCD<sup>ss</sup>[m<sub>vis</sub>] = data<sup>ss</sup>[m<sub>vis</sub>] - expected non-QCD<sup>ss</sup>[m<sub>vis</sub>]
 
-Having ths QCD distribution in the same-sign region, a rather simple extrapolation to the signal region is done by scaling the shape from the same-sign region
+Having the QCD distribution in the same-sign region, a rather simple extrapolation to the signal region is done by scaling the shape from the same-sign region
 by a certain scale factor:
 
 QCD<sup>os</sup>[m<sub>vis</sub>] = extrapolation factor &middot;  QCD<sup>ss</sup>[m<sub>vis</sub>]
