@@ -210,8 +210,32 @@ What is the major contribution to other processes with `genmatch_2!=5`?
 
 ## Data-driven estimation of QCD multijet background
 
-Until now, we have discussed, how to define contributions for simulated samples and collected data
+Until now, we have discussed, how to define contributions for simulated samples and collected data. However, often also data-driven techniques are used to estimate background contributions
+from side-band regions.
 
-## Event-by-event corrections to simulated contributions
+In the context of this exercise, you will get familiar with a simple way to estimate the QCD multijet background from data.
+
+The main idea, also in general for other methods, is to go into a side-band region - also called as control region -  where the considered background should be a major contribution, and more
+important, where you are sure not to see any signal you would like to measure.
+
+For QCD multijet background, it is possible to construct this by requiring the &mu;&tau;<sub>h</sub> pair have constituents of the same charge. In contrast to that, our signal - in the context
+of our measurement this would be Z&rarr;&tau;&tau; - should consist of pair of a muon and a &tau;<sub>h</sub> candidate with opposite charges.
+
+Therefore the most inclusive signal region is defined by an opposite charge requirement:
+
+```python
+inclusive = "(q_1*q_2<0)"
+inclusive = inclusive.replace(" ","")
+```
+
+The corresponding control region is constructed by inverting this requirement:
+
+```python
+inclusive_cr_qcd = inclusive.replace("q_1*q_2<0","q_1*q_2>0") # inverting the opposite-sign requirement of the mutau pair into a same-sign requirment
+```
+
+This is also done in the corresponding implementation of the background estimation method [QCD_OSSS.py](../../Plotter/python/methods/QCD_OSSS.py).
 
 ## Selection and variables
+
+## Event-by-event corrections to simulated contributions
