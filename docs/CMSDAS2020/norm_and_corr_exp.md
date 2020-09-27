@@ -309,4 +309,39 @@ above and documenting the procedure with plots and graphics:
 
 ## Selection and variables
 
+As indicated already in the discussion about the QCD estimation, selection requirements can also be introduced in the plotting script
+[plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py).
+
+In the process of trying out different cuts, it is more convenient to produce a set of loosely selected n-tuples containing all variables
+to be used in the selection, and then trying out different cuts by adding corresponding selection requirement to the list of `selections`:
+
+```python
+  # SELECTIONS
+  inclusive = "(q_1*q_2<0)"
+  inclusive = inclusive.replace(" ","")
+  inclusive_cr_qcd = inclusive.replace("q_1*q_2<0","q_1*q_2>0") # inverting the opposite-sign requirement of the mutau pair into a same-sign requirment
+  selections = [
+    Sel('inclusive',inclusive),
+    Sel('inclusive_cr_qcd',inclusive_cr_qcd),
+  ]
+```
+
+And after having converged on a selection suitable for the Z&rarr&tau;&tau; cross-section measurement, you may introduce it to the analysis module
+[ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py),
+keeping in mind not to reject events needed for example for QCD estimation - so **do not** use the charge requirement `(q_1*q_2<0)` in the analysis module.
+This would reduce the number of events stored in the flat n-tuples, reducing the run-time of the histogram production.
+
+Besides the extension of the selections to be tested, the list of variables can be filled with quantities avaibale in the n-tuples to be able to
+make corresponding histograms and control plots:
+
+```python
+  # VARIABLES
+  variables = [
+     Var('m_vis',  40,  0, 200),
+  ]
+```
+
+Try to choose for each variable an appropriate binning. To make the plots nicer,
+extend the dictionary containing the labels of each stored variable, if necessary. The dictionary is implemented in [string.py](../../Plotter/python/plot/string.py).
+
 ## Event-by-event corrections to simulated contributions
