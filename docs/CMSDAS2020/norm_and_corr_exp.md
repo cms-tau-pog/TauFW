@@ -256,7 +256,7 @@ QCD<sup>os</sup>[m<sub>vis</sub>] = extrapolation factor &middot;  QCD<sup>ss</s
 In this way, it is assumed, that the shapes among the two regions - same-sign control region vs. opposite-sign signal region -
 are the same, which might turn out to be not true in general. Luckily, for our application in &mu;&tau;<sub>h</sub>, this is a good approximation :)
 
-As you might have noticed, the chosen extrapolation factor is chosen to be `scale=1.1`. Where does this number come from? Again: this needs to be done
+As you might have noticed, the extrapolation factor is chosen to be `scale=1.1`. Where does this number come from? Again: this needs to be done
 in a corresponding control region, having both same-sign and opposite sign events.
 
 A usual choice for that region is created by a relaxed muon isolation requirement. This is also the reason, why we have kept the muon isolation loose
