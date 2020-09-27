@@ -256,6 +256,48 @@ QCD<sup>os</sup>[m<sub>vis</sub>] = extrapolation factor &middot;  QCD<sup>ss</s
 In this way, it is assumed, that the shapes among the two regions - same-sign control region vs. opposite-sign signal region -
 are the same, which might turn out to be not true in general. Luckily, for our application in &mu;&tau;<sub>h</sub>, this is a good approximation :)
 
+As you might have noticed, the chosen extrapolation factor is chosen to be `scale=1.1`. Where does this number come from? Again: this needs to be done
+in a corresponding control region, having both same-sign and opposite sign events.
+
+A usual choice for that region is created by a relaxed muon isolation requirement. This is also the reason, why we have kept the muon isolation loose
+in the analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py):
+
+```python
+    #...
+    for muon in Collection(event,'Muon'):
+      good_muon = muon.mediumId and muon.pfRelIso04_all < 0.5 and abs(muon.eta) < 2.5
+    #...
+```
+
+Given that the analysis selection in the n-tuple is kept loose, a stricter selection can be applied at the level of the plotting script
+[plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py),
+adding additional cut strings to the `selections` list, which contain the muon isolation `iso_1`.
+
+A stricter signal region requirement could be for example `iso_1 < 0.2`, while side-band region with a relaxed muon isolation condition could constructed accordingly
+via `iso_1 >= 0.2 && iso_1 < 0.5`. You need to ensure, that the signal region and the side-band region are orthogonal to each other.
+
+The side-band region with relaxed muon isolation requirement can then be separated into an opposite-sign and a same-sign region, and since it is assumed
+that both of the regions are signal-depleted, the number of QCD events in both regions can be estimated in the same manner: subtracting all non-QCD contributions
+from data and defining the remaining events to come from QCD.
+
+Since we are interested in the first place in a global scale factor, on can (ab)use variables like `q_1` to count events passing the selection of the two regions:
+
+```python
+variables = [
+   Var('m_vis',  40,  0, 200),
+   Var('q_1', 1, -2.0, 2.0), # using the q_1 variable to count events passing a selection
+]
+```
+
+The measured extrapolation would then be the ratio between the number of QCD events in the opposite-sign side-band region with relaxed muon isolation and the number
+of QCD events in the same-sign side-band region with relaxed muon isolation.
+
+Side note: the estimation method [QCD_OSSS.py](../../Plotter/python/methods/QCD_OSSS.py) can also be used to plot contributions in the same-sign region. The method
+recognizes, if the same-sign region is passed as the formal opposite-sign signal region, and the QCD shape is estimated automatically without an extrapolation factor,
+setting `scale = 1.0`. By construction, the data/expectation ratio for the same-sign region is exactly at 1.
+
+### Group task - data-driven QCD estimation
+
 ## Selection and variables
 
 ## Event-by-event corrections to simulated contributions
