@@ -198,7 +198,8 @@ GMO = "genmatch_2!=5"
 sampleset.split('DY', [('ZTT',GMR),('ZL',GMO)])
 ```
 
-This splitting is based on generator information, whether the reconstructed &tau;<sub>h</sub> candidate is matched to a real &tau;<sub>h</sub> or not.
+This splitting is based on generator information, whether the reconstructed &tau;<sub>h</sub> candidate is matched to a real &tau;<sub>h</sub> or not. However, after fixing
+your refined signal selection, please have a look, whether all of the splitted contributions are well populated.
 
 As a small, optional task, please have a look at the distribution of quantities `genmatch_1` and `genmatch_2` for the various sameples you have processed to flat n-tuples.
 Please have a look at the definition of these variables in the [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) and the
