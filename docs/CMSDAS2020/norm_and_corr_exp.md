@@ -298,6 +298,14 @@ setting `scale = 1.0`. By construction, the data/expectation ratio for the same-
 
 ### Group task - data-driven QCD estimation
 
+For those of you, who would like to have a look closer at the data-driven QCD estimation, the task would be to understand the procedure of estimating QCD with the method
+above and documenting the procedure with plots and graphics:
+
++ Describe the method, using a sketch of the different regions needed for the estimation
++ Show the constructed shape estimate of QCD in the same-sign region (with a control plot)
++ Describe the estimation of the extrapolation factor in the side-band region with relaxed muon isolation
++ Quote your estimated number for it and assign an uncertainty, based on the statistical uncertainty of this ratio
+
 ## Selection and variables
 
 ## Event-by-event corrections to simulated contributions
