@@ -326,7 +326,7 @@ to be used in the selection, and then trying out different cuts by adding corres
   ]
 ```
 
-And after having converged on a selection suitable for the Z&rarr&tau;&tau; cross-section measurement, you may introduce it to the analysis module
+And after having converged on a selection suitable for the Z&rarr;&tau;&tau; cross-section measurement, you may introduce it to the analysis module
 [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py),
 keeping in mind not to reject events needed for example for QCD estimation - so **do not** use the charge requirement `(q_1*q_2<0)` in the analysis module.
 
