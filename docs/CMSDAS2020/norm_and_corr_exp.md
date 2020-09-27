@@ -243,10 +243,18 @@ stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1.1,para
                                                                                                # is an extrapolation factor for the QCD shape from the same-sign
                                                                                                # to the opposite-sign region
 ```
-In the same-sign control region, all expected simulated contributions are subtracted from data, and the remaining shape is assumed to be QCD. Having
-this QCD distribution in the same-sign region, a rather simple extrapolation to the signal region is done by scaling the shape from the same-sign region
-by a certain scale factor. In this way, it is assumed, that the shapes among the two regions - same-sign control region vs. opposite-sign signal region -
-are the same.
+In the same-sign control region, all expected simulated contributions are subtracted from data, and the remaining shape is assumed to be QCD.
+For the example of the m<sub>vis</sub> distribution, this would look like:
+
+QCD<sup>ss</sup>[m<sub>vis</sub>] = data<sup>ss</sup>[m<sub>vis</sub>] - expected non-QCD<sup>ss</sup>[m<sub>vis</sub>]
+
+Having ths QCD distribution in the same-sign region, a rather simple extrapolation to the signal region is done by scaling the shape from the same-sign region
+by a certain scale factor:
+
+QCD<sup>os</sup>[m<sub>vis</sub>] = extrapolation factor &middot;  QCD<sup>ss</sup>[m<sub>vis</sub>]
+
+In this way, it is assumed, that the shapes among the two regions - same-sign control region vs. opposite-sign signal region -
+are the same, which might turn out to be not true in general. Luckily, for our application in &mu;&tau;<sub>h</sub>, this is a good approximation :)
 
 ## Selection and variables
 
