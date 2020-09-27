@@ -234,7 +234,19 @@ The corresponding control region is constructed by inverting this requirement:
 inclusive_cr_qcd = inclusive.replace("q_1*q_2<0","q_1*q_2>0") # inverting the opposite-sign requirement of the mutau pair into a same-sign requirment
 ```
 
-This is also done in the corresponding implementation of the background estimation method [QCD_OSSS.py](../../Plotter/python/methods/QCD_OSSS.py).
+This is also done in the corresponding implementation of the background estimation method [QCD_OSSS.py](../../Plotter/python/methods/QCD_OSSS.py),
+which is used in the plotting script [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py)
+after the definition of considered data samples and simulated samples, the selection, and the variables:
+
+```python
+stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1.1,parallel=parallel) # the 'scale' keyword argument - chosen as 1.1 for mutau - 
+                                                                                               # is an extrapolation factor for the QCD shape from the same-sign
+                                                                                               # to the opposite-sign region
+```
+In the same-sign control region, all expected simulated contributions are subtracted from data, and the remaining shape is assumed to be QCD. Having
+this QCD distribution in the same-sign region, a rather simple extrapolation to the signal region is done by scaling the shape from the same-sign region
+by a certain scale factor. In this way, it is assumed, that the shapes among the two regions - same-sign control region vs. opposite-sign signal region -
+are the same.
 
 ## Selection and variables
 
