@@ -168,6 +168,17 @@ Alternatively, you can have at the values stored on [XSDB](https://cms-gen-dev.c
 Side remark: all the needed numbers for cross-sections, numbers of simulated events, and the fractions of negative events are already integrated into the
 [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py). The instructions above are for your information and later reference.
 
+In case of data, there are no adaptions to be made. The only thing to be done is the selection of the appropriate sample for the considered final state.
+For &mu;&tau;<sub></sub>, the setup look as follows:
+
+```python
+# OBSERVED DATA SAMPLES
+if 'mutau'  in channel: dataset = "SingleMuon_Run%d?"%year
+else:
+  LOG.throw(IOError,"Did not recognize channel %r!"%(channel))
+datasample = ('Data',dataset) # Data for chosen channel
+```
+
 ## Joining and splitting distributions
 
 After having defined each contribution, it is often good to summarize multiple contributions into one. For example, since we are not interested in the individual
@@ -197,8 +208,10 @@ For the Drell-Yan process, `ZL` is defined as every contribution, where the reco
 indicates, that the Z&rarr;&mu;&mu; process is meant in case of the &mu;&tau;<sub>h</sub> final state, assuming that this is the major contribution to `ZL`. Is this justified?
 What is the major contribution to other processes with `genmatch_2!=5`?
 
+## Data-driven estimation of QCD multijet background
+
+Until now, we have discussed, how to define contributions for simulated samples and collected data
+
 ## Event-by-event corrections to simulated contributions
 
 ## Selection and variables
-
-## Data-driven estimation of QCD multijet background
