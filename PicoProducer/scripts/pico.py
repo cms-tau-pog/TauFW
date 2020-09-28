@@ -577,9 +577,9 @@ def preparejobs(args):
         extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample.extraopts:
           extraopts_.extend(sample.extraopts)
-        nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob
-        if split_nfpj>1:
-          nfilesperjob_ = min(1,nfilesperjob_/split_nfpj)
+        nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob # priority: USER > SAMPLE > CONFIG
+        if split_nfpj>1: # divide nfilesperjob by split_nfpj
+          nfilesperjob_ = int(max(1,nfilesperjob_/float(split_nfpj)))
         daspath    = sample.paths[0].strip('/')
         outdir     = repkey(outdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
                                          DAS=daspath,PATH=daspath,GROUP=sample.group)
