@@ -95,5 +95,18 @@ categories = {
 ```
 
 The categories are summarized as a python dictionary with the considered final states as key. Currently, only &mu;&tau;<sub>h</sub> is implemented, but you can easily extend
-to e&mu;. To each final state - in CombineHarvester syntax considered as `CHANNEL` - a list of category tuples is assigned, which contain the `BIN` number of the
+to e&mu;.
+
+To each final state - in CombineHarvester syntax considered as `CHANNEL` - a list of category tuples is assigned, which contain the `BIN` number of the
 as the first element, and the category name as the second. In CombineHarvester syntax, categories are considered as `BIN`.
+
+After that, the data - called `Observation` in CombineHarvester - and  and the expected processes are added formally to the CombineHarvester instance:
+
+```python
+for channel in categories:
+    cb.AddObservations(['*'], ['ztt'], ['2018'], [channel],              categories[channel]) # adding observed data
+    cb.AddProcesses(   ['*'], ['ztt'], ['2018'], [channel], backgrounds, categories[channel], False) # adding backgrounds
+    cb.AddProcesses(   ['*'], ['ztt'], ['2018'], [channel], signals,     categories[channel], True) # adding signals
+    
+cb.ForEachObs(lambda x : x.set_process('SingleMuon_Run2018')) # some hack to change the naming to the one in the input files; usual name: data_obs
+```
