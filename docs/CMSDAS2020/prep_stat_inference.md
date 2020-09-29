@@ -18,12 +18,30 @@ the selection defined as `signal_region` enriching Z&rarr;&tau;&tau;, and includ
 not forget to modify the QCD extrapolation factor [`scale`](https://github.com/ArturAkh/TauFW/blob/master/Plotter/plots_and_histograms_CMSDAS2020.py#L126) according
 to your measurement of that factor.
 
-For the systematic variations of the &tau;<sub>h</sub> energy scale, you can also create histograms for the processes affected
+For the systematic variations of the &tau;<sub>h</sub> energy scale in the &mu;&tau;<sub>h</sub> final state, you can also create histograms for the processes affected
 by it, for example `TopT`, `EWKT`, `ZTT`, but with the [`tag`](../../Plotter/plots_and_histograms_CMSDAS2020.py#L149) 
 modified to `_tauh_esDown` for the downvard variation of the energy scale, and `_tauh_esUp` for the upward variation.
+Then, modify the naming of the histograms as follows in the corresponding lines:
+
+```python
+    # ...
+    for stack, variable in stacks.iteritems():
+      outhists.cd(selection.filename)
+      for h in stack.hists:
+        h.Write(h.GetName().replace("QCD_","QCD") + tag,R.TH1.kOverwrite) # adding tag to the name for es variations in addition
+    # ...
+```
 
 In that way, your output file should contain histograms like `signal_region/m_vis_ZTT_tauh_esDown`, which are then accessed by
 CombineHarvester to create systematic variations.
+
+Assuming, that you have different channel names for the nominal n-tuples, and the corresponding scale variations, the histogram output
+files should also have different names. You can put them together with `hadd` to have everything in one file:
+
+```sh
+cd $CMSSW_BASE/src/TauFW/Plotter/
+hadd mutau.root hists/2018/mutau*.root
+```
 
 Feel free also to use your own setup of [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) and
 [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py), with a possible additional selection
