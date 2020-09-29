@@ -50,3 +50,27 @@ In the command above, we have made te following adaptions:
 + Parameter `tauh_id` is not fixed anymore.
 + Range and the nominal value of `tauh_id` are specified.
 + Naming of the output files is changed.
+
+Has the value for the signal strength parameter `r` changed? What about `tauh_id`? Do you think this is reasonable? Keep in mind, that both parameters modify the yield of the `ZTT` contribution
+in a very similar way. Therefore think about what happens with one parameter, if the other is increased.
+
+To quantify these thoughts into a numerical value, we can have a look at the correlation between `r` and `tauh_id`. To do this, we use the `-M FitDiagnostics` method, which saves the fit result, keeping
+the estimated values of all parameters, as well as the correlations between them. The command reads as follows:
+
+```sh
+combineTool.py -M FitDiagnostics -d ztt_analysis/2018/mutau/workspace.root --there --robustFit 1 --robustHesse 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --setParameterRanges r=0.7,1.3:tauh_id=0.7,1.3 -n .r_vs_tauID_correlation -v1  --setParameters r=1.0,tauh_id=1.0
+```
+
+The following changes were included into the command:
+
++ `--algo singles`, `--floatOtherPOIs 1`, and `--redefineSignalPOIs r,tauh_id` were removed.
++ `--robustFit 1` extended with `--robustHesse 1` to enable a robust computation of the Hesse matrix used for the computation of the correlation matrix.
+
+The resulting fit result is then stored in the `ztt_analysis/2018/mutau/fitDiagnostics.r_vs_tauID_correlation.root` output file. To print the correlation between `r` and `tauh_id`, you can use the
+`print correlation.py` script:
+
+```sh
+print_correlation.py ztt_analysis/2018/mutau/fitDiagnostics.r_vs_tauID_correlation.root r tauh_id
+```
+
+Is the resulting correlation as you would have it expected? If you like to see, how the correlation was accessed, feel free to have a look at the script `print_correlation.py`.
