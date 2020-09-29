@@ -117,7 +117,7 @@ do the scan performed by `--robustFit 1` option by hand, specifying the points t
 Performing the scan:
 
 ```sh
-combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there --algo grid --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --floatOtherPOIs 1 --setParameterRanges r=0.65,1.1 -n .r_scan -v1  --setParameters r=1.0  --points 41 --split-points 1 --alignEdges 1 --parallel 5
+combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there --algo grid --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --floatOtherPOIs 1 --setParameterRanges r=0.65,1.1 -n .r_scan -v1  --setParameters r=1.0  --points 41 --split-points 8 --alignEdges 1 --parallel 5
 ```
 
 Changes with respect to the `--robustFit 1` command to obtain the fit result:
@@ -139,4 +139,22 @@ And plot the scan with:
 
 ```sh
 plot1DScan.py ztt_analysis/2018/mutau/higgsCombine.r_scan.MultiDimFit.mH120.root -o r_scan --translate $CMSSW_BASE/src/CombineHarvester/CMSDAS2020TauLong/data/translate.json --POI r --logo-sub "CMSvDAS 2020 Tau"
+```
+
+To visualize the correlations, it is often very useful to perform such scans also in a 2-dimensional grid. Let us try it for the parameters `r` and `tauh_id`.
+
+```sh
+combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there --algo grid --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --floatOtherPOIs 1 --setParameterRanges r=0.5,1.6:tauh_id=0.5,1.6 -n .r_vs_tauh_id_scan -v1  --setParameters r=1.0,tauh_id=1.0  --points 1600 --split-points 320 --parallel 5 --redefineSignalPOIs r,tauh_id
+```
+
+After that, we put the outputs together:
+
+```sh
+hadd -f ztt_analysis/2018/mutau/higgsCombine.r_vs_tauh_id_scan.MultiDimFit.mH120.root ztt_analysis/2018/mutau/higgsCombine.r_vs_tauh_id_scan.POINTS.*.root
+```
+
+And then, plot the 68% and 95% confidence level regions:
+
+```sh
+plotMultiDimFit.py ztt_analysis/2018/mutau/higgsCombine.r_vs_tauh_id_scan.MultiDimFit.mH120.root --cms-sub "CMSvDAS 2020 Tau" --x-title "#mu_{Z#rightarrow#tau#tau}" --y-title "^{}#tau_{h} ID scale factor" --pois r tauh_id
 ```
