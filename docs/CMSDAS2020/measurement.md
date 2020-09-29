@@ -86,8 +86,8 @@ To understand, what needs to be changed, let us recap, how actually the signal s
 So &mu;<sub>Z&rarr;&tau;&tau;</sub> is the ratio of two products: the measured cross-section times branching fraction, devided by the cross-section times branching fraction expected from the
 Standard Model (SM).
 
-This means: if measuring &mu;<sub>Z&rarr;&tau;&tau;</sub>, *uncertainties* on the SM expectation - &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;) - needs to be taken into account.
-But if we multiply the signal strength by the SM expectation, this product cancels out, such that the corresonding uncertainties can be neglected.
+This means: if measuring &mu;<sub>Z&rarr;&tau;&tau;</sub>, uncertainties on the SM expectation - &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;) - needs to be taken into account.
+But if we multiply the signal strength by the SM expectation to perform the cross-section measurement, this product cancels out, such that the corresonding uncertainties can be neglected.
 
 The procedure for the cross-section measurement is then the following:
 
