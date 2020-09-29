@@ -66,6 +66,9 @@ The first two steps will be discussed in detail within this section, while the l
 Before proceeding with the first step of preparations for statistical inference, please make sure, that your software setup is switched to the statistical inference environment,
 as explained in section [2](configuration.md#configuration-after-new-login-or-in-a-new-terminal).
 
+Furthermore, please put the histogram files merged with `hadd` to contain the systematics variations - they should have their channel names, `mutau.root` and `emu.root` -
+into the appropriate folder [shapes](https://github.com/ArturAkh/CMSDAS2020TauLong/blob/master/shapes).
+
 Now, let us have a closer look at the script [construct_datacards.py](https://github.com/ArturAkh/CMSDAS2020TauLong/blob/master/scripts/construct_datacards.py).
 
 After having setup the required imports and the main CombineHarvester instance, expected contributions are defined with their names:
