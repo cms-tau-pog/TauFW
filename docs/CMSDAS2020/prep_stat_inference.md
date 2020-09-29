@@ -61,7 +61,7 @@ to obtain the results. The usual procedure within this framework consists of thr
 
 The first two steps will be discussed in detail within this section, while the last step will be covered by section [9](measurement.md).
 
-## Constructing datacards
+## Constructing datacards and RooWorkspace
 
 Before proceeding with the first step of preparations for statistical inference, please make sure, that your software setup is switched to the statistical inference environment,
 as explained in section [2](configuration.md#configuration-after-new-login-or-in-a-new-terminal).
@@ -137,3 +137,48 @@ identification efficiency, which we have not measured beforehand. This rate para
 probability - therefore the name "unconstrained". In this case `ch.SystMap()(1.0)` is used to set the nominal value of the nuisance parameter.
 
 Rate parameters can be used - as also done in our case - to measure quantities simultaneously with the parameter of interest, the signal strength &mu;<sub>Z&rarr;&tau;&tau;</sub>.
+
+Next, the shapes are extracted for the processes and their systematic shape variations:
+
+```python
+# Define access of the input histograms; please note how systematics shape variations should be stored:
+#       $BIN/m_vis_$PROCESS_$SYSTEMATIC with $SYSTEMATIC containing the name like 'tau_es' and a postfix 'Up' or 'Down'
+for channel in categories:
+    filepath = os.path.join(os.environ['CMSSW_BASE'],'src/CombineHarvester/CMSDAS2020TauLong/shapes', channel+'.root')
+    cb.cp().channel([channel]).backgrounds().ExtractShapes(filepath, '$BIN/m_vis_$PROCESS', '$BIN/m_vis_$PROCESS_$SYSTEMATIC')
+    cb.cp().channel([channel]).signals().ExtractShapes(filepath, '$BIN/m_vis_$PROCESS', '$BIN/m_vis_$PROCESS_$SYSTEMATIC')
+```
+
+Here, the patterns for the processes and systematic variations should be chosen carefully to match the syntax in the input histograms exactly.
+
+Finally, before writing everything out into appropriate datacard folders, the statistical uncertainties on the total background are introduced, based on the Barlow-Beeston (lite) approach:
+
+```python
+cb.SetAutoMCStats(cb, 0.0) # Introducing statistical uncertainties on the total background for each histogram bin (Barlow-Beeston lite approach)
+```
+
+The created datacards are put all into one `cmb` folder for the combined measurement, and into `mutau` and `emu` folders for measurements in individual final states.
+The target directory, where these folders are placed, is `ztt_analysis/2018/`, created in the directory, where the script `construct_datacards.py` is executed, for
+example:
+
+```sh
+cd $CMSSW_BASE/src/CombineHarvester/CMSDAS2020TauLong/
+construct_datacards.py
+```
+
+After creating the datacard folder infracstructure, these need to be translated into workspaces, using the following command:
+
+```sh
+combineTool.py -M T2W -i ztt_analysis/2018/*/ --parallel 3 -o workspace.root
+```
+
+This will create in each of the datacard folders `mutau`, `emu`, and `cmb` a workspace, which can be used for the measurements to be handled in the next section.
+With the `-M T2W` method, it is possible to introduce more complicated signal models via `-P` and `--PO` options. However for our purposes, the standard signal model
+with one signal assigned to the signal strength `r` in CombineHarvester.
+
+If looking at the datacards themselves, for example at `/ztt_analysis/2018/cmb/ztt_mutau_signal_region_2018.txt`, one can see the different contributions, and
+uncertainties introduced in [construct_datacards.py](https://github.com/ArturAkh/CMSDAS2020TauLong/blob/master/scripts/construct_datacards.py), as well as how the
+histogram inputs are assigned to the processes. Furthermore, you can see, that signals have a process ID smaller or equal to 0, whereas the backgrounds obtain a
+process ID greater than 0.
+
+After these preparations you should be ready to perform the various commands for calculations involved into the measurement. Let us move on to section [9](measurement.md)!
