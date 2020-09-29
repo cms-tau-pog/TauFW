@@ -48,7 +48,7 @@ Feel free also to use your own setup of [ModuleMuTau](../../PicoProducer/python/
 [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py), with a possible additional selection
 
 ```python
-signal_region = "q_1*q_2<0 && pt_1 > 29 && pt_2 > 20 && iso_1 < 0.15 && (decayMode_2 < 5 || decayMode_2 > 7) && id_2 >= 31 && anti_mu_2 == 15"
+signal_region = "q_1*q_2<0 && pt_1 > 29 && pt_2 > 20 && iso_1 < 0.15 && (decayMode_2 < 5 || decayMode_2 > 7) && id_2 >= 16 && anti_mu_2 >= 8"
 ```
 In that way, you can get familiar with the statistical inference procedure, using your own histograms, without having to wait for the final set of n-tuples.
 
