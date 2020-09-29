@@ -59,4 +59,4 @@ to obtain the results. The usual procedure within this framework consists of thr
 + Translation of the datacards into a RooWorkspace, using the `combineTool.py -M T2W` method.
 + Performing calculations to obtain results with a suite of different CombineHarvester commands.
 
-The first two steps will be discussed in detail within this section, while the last step will be covered by section [9](measurement.md)
+The first two steps will be discussed in detail within this section, while the last step will be covered by section [9](measurement.md).
