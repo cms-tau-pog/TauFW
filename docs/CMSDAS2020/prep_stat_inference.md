@@ -60,3 +60,25 @@ to obtain the results. The usual procedure within this framework consists of thr
 + Performing calculations to obtain results with a suite of different CombineHarvester commands.
 
 The first two steps will be discussed in detail within this section, while the last step will be covered by section [9](measurement.md).
+
+## Constructing datacards
+
+Before proceeding with the first step of preparations for statistical inference, please make sure, that your software setup is switched to the statistical inference environment,
+as explained in section [2](configuration.md#configuration-after-new-login-or-in-a-new-terminal).
+
+Now, let us have a closer look at the script [construct_datacards.py](https://github.com/ArturAkh/CMSDAS2020TauLong/blob/master/scripts/construct_datacards.py).
+
+After having setup the required imports and the main CombineHarvester instance, expected contributions are defined with their names:
+
+```python
+# Definition of process names to be used in the analysis
+mc_backgrounds = ['TopT', 'TopJ', 'EWKT', 'EWKJ', 'ZL']
+data_driven_backgrounds = ['QCD']
+backgrounds = mc_backgrounds + data_driven_backgrounds
+
+signals = ['ZTT']
+
+mc = mc_backgrounds + signals
+```
+
+The processes are grouped according to their type, being either background or signal, and data-driven or simulated
