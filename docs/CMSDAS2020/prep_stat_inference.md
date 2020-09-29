@@ -20,15 +20,16 @@ to your measurement of that factor.
 
 For the systematic variations of the &tau;<sub>h</sub> energy scale in the &mu;&tau;<sub>h</sub> final state, you can also create histograms for the processes affected
 by it, for example `TopT`, `EWKT`, `ZTT`, but with the [`tag`](../../Plotter/plots_and_histograms_CMSDAS2020.py#L149) 
-modified to `_tauh_esDown` for the downvard variation of the energy scale, and `_tauh_esUp` for the upward variation.
+modified to the way you have saved the downvard and upward variations of the energy scale n-tuples using the tag.
 Then, modify the naming of the histograms as follows in the corresponding lines:
 
 ```python
     # ...
+    variation_name = "tauh_esDown" # change to tauh_esUp for the other variation
     for stack, variable in stacks.iteritems():
       outhists.cd(selection.filename)
       for h in stack.hists:
-        h.Write(h.GetName().replace("QCD_","QCD") + tag,R.TH1.kOverwrite) # adding tag to the name for es variations in addition
+        h.Write(h.GetName().replace("QCD_","QCD") + variation_name,R.TH1.kOverwrite) # adding to the name for es variations in addition
     # ...
 ```
 
