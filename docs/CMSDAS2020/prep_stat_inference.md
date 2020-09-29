@@ -128,12 +128,12 @@ cb.cp().channel(['mutau']).process(['ZTT', 'TopT', 'EWKT']).AddSyst(cb, 'tauh_id
 The first type is a normalization uncertainty, which is modelled with a log-normally distributed (`lnN`) nuisance parameter. The value put into `ch.SystMap()(<value>)` corresponds
 to the uncertainty estimate, so the one &sigma; standard deviation measured for this particular systematic uncertainty source.
 
-The second type is a (binned) shape uncertainty. In this case `ch.SystMap()(1.0)`, that the shapes corresponding to the downward and upward variations are assigned to 
+The second type is a (binned) shape uncertainty. In this case `ch.SystMap()(1.0)` means, that the shapes corresponding to the downward and upward variations are assigned to 
 a variation of one &sigma; standard deviation of the corresponding nuisance parameter. This Gaussian distributed nuisance paramter is used to inter- and extrapolate bin-wise between the 
 variations and the nominal histogram in a correlated way accross all histogram bins.
 
 The last type we consider is an unconstrained rate parameter. Such parameters can be used to define additional quantities, which are not known a priori, such as the &tau;<sub>h</sub>
 identification efficiency, which we have not measured beforehand. This rate parameter is not drawn from a certain distribution, but has a flat prior, such that each of its values is equally
-probably - therefore the name "unconstrained".
+probably - therefore the name "unconstrained". In this case `ch.SystMap()(1.0)` is used to set the nominal value of the nuisance parameter.
 
 Rate parameters can be used - as also done in our case - to measure quantities simultaneously with the parameter of interest, the signal strength &mu;<sub>Z&rarr;&tau;&tau;</sub>.
