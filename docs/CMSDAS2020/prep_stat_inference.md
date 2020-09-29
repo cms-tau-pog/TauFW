@@ -176,9 +176,9 @@ After creating the datacard folder infracstructure, these need to be translated 
 combineTool.py -M T2W -i ztt_analysis/2018/*/ --parallel 3 -o workspace.root
 ```
 
-This will create in each of the datacard folders `mutau`, `emu`, and `cmb` a workspace, which can be used for the measurements to be handled in the next section.
+This will create in each of the datacard folders `mutau`, `emu`, and `cmb` a workspace, which can be used for the measurements to be covered in the next section.
 With the `-M T2W` method, it is possible to introduce more complicated signal models via `-P` and `--PO` options. However for our purposes, the standard signal model
-with one signal assigned to the signal strength `r` in CombineHarvester.
+with all signals assigned to a single signal strength parameter `r` in CombineHarvester is sufficient.
 
 If looking at the datacards themselves, for example at `/ztt_analysis/2018/cmb/ztt_mutau_signal_region_2018.txt`, one can see the different contributions, and
 uncertainties introduced in [construct_datacards.py](https://github.com/ArturAkh/CMSDAS2020TauLong/blob/master/scripts/construct_datacards.py), as well as how the
