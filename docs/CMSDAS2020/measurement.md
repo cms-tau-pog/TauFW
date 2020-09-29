@@ -156,5 +156,5 @@ hadd -f ztt_analysis/2018/mutau/higgsCombine.r_vs_tauh_id_scan.MultiDimFit.mH120
 And then, plot the 68% and 95% confidence level regions:
 
 ```sh
-plotMultiDimFit.py ztt_analysis/2018/mutau/higgsCombine.r_vs_tauh_id_scan.MultiDimFit.mH120.root --cms-sub "CMSvDAS 2020 Tau" --x-title "#mu_{Z#rightarrow#tau#tau}" --y-title "^{}#tau_{h} ID scale factor" --pois r tauh_id
+plotMultiDimFit.py ztt_analysis/2018/mutau/higgsCombine.r_vs_tauh_id_scan.MultiDimFit.mH120.root --cms-sub "CMSvDAS 2020 Tau" --x-title "#mu_{Z#rightarrow#tau#tau}" --y-title "^{}#tau_{h} ID scale factor" --pois r tauh_id --title-left "^{}#mu^{}#tau_{h} final state"
 ```
