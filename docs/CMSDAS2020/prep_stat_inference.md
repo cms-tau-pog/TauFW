@@ -15,7 +15,7 @@ and the variations of &tau;<sub>h</sub> energy scale corresponding to the uncert
 Based on these n-tuples, you can produce plots and - more important for the statistical inference - histograms
 of our main discriminator, the visible mass of the &mu;&tau;<sub>h</sub> (or e&mu;) pair. Please use for that
 the selection defined as `signal_region` enriching Z&rarr;&tau;&tau;, and include the weights needed to apply corrections. Also do
-not forget to modify the QCD extraolation factor [`scale`](https://github.com/ArturAkh/TauFW/blob/master/Plotter/plots_and_histograms_CMSDAS2020.py#L126) according
+not forget to modify the QCD extrapolation factor [`scale`](https://github.com/ArturAkh/TauFW/blob/master/Plotter/plots_and_histograms_CMSDAS2020.py#L126) according
 to your measurement of that factor.
 
 For the systematic variations of the &tau;<sub>h</sub> energy scale, you can also create histograms for the processes affected
