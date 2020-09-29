@@ -74,3 +74,37 @@ print_correlation.py ztt_analysis/2018/mutau/fitDiagnostics.r_vs_tauID_correlati
 ```
 
 Is the resulting correlation as you would have it expected? If you like to see, how the correlation was accessed, feel free to have a look at the script `print_correlation.py`.
+
+A very interesting check would be to perform the commands above, including the e&mu; final state into the statistical inference,
+running on the combined workspace in `ztt_analysis/2018/cmb/workspace.root`. How do the uncertainties, central values, and the correlations of `r` and `tau_id` change?
+
+The last missing piece in terms of results is the derivation of the cross-section for Z&rarr;&tau;&tau;. This can be done by performing the fitting commands with a slightly modified setup.
+To understand, what needs to be changed, let us recap, how actually the signal strength is defined:
+
+&mu;<sub>Z&rarr;&tau;&tau;</sub> = ( &sigma;(Z) &middot; BR(Z&rarr;&tau;&tau;) ) / ( &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;) ).
+
+So &mu;<sub>Z&rarr;&tau;&tau;</sub> is the ratio of two products: the measured cross-section times branching fraction, devided by the cross-section times branching fraction expected from the
+Standard Model (SM).
+
+This means: if measuring &mu;<sub>Z&rarr;&tau;&tau;</sub>, *uncertainties* on the SM expectation - &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;) - needs to be taken into account.
+But if we multiply the signal strength by the SM expectation, this product cancels out, such that the corresonding uncertainties can be neglected.
+
+The procedure for the cross-section measurement is then the following:
+
++ Measure the signal strength with **fixed** uncertainty on &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;), called `xsec_ztt`.
++ Multiply the resulting signal strength value (and its uncertainties) by the SM expectation.
+
+In case of the &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;) value, the one should be taken, for which the corresponding fiducial phase space matches the best the selection of
+reconstructed quantities. But to keep it simple in our case, we take just the value of the Drell-Yan sample cross-section, devided by 3:
+
+Our &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;) = 6077.22/3.0 [pb] = 2025.74 [pb]
+
+The command for the signal strength computation reads as follows after extending the last command using `-M MultiDimFit` with `--freezeParameters xsec_ztt`:
+
+```sh
+combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there --algo singles --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --floatOtherPOIs 1 --setParameterRanges r=0.7,1.3:tauh_id=0.7,1.3 -n .r_with_tauID_floating_for_xsec -v1  --setParameters r=1.0,tauh_id=1.0 --redefineSignalPOIs r,tauh_id --freezeParameters xsec_ztt
+```
+
+With this CombineHarvester command, we have obtained all results of interest. Enjoy! :)
+
+In the following, we will discuss a few alternatives to visualize the results better, and to make some additional diagnostics.
