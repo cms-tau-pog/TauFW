@@ -34,3 +34,19 @@ chosen ofen, the latter being less stricter, but could lead to more stable resul
 + `--setParameters r=1.0`: Setting the parameter `r` to a nominal value, from which the fit will start.
 + `-n .r_with_tauID_fixed`: Add a postfix to the name of the output files.
 + `-v1`: increase the verbosity level to 1.
+
+At this point: congragulations to your first fit of the signal strength for the Z&rarr;&tau;&tau; contribution, &mu;<sub>Z&rarr;&tau;&tau;</sub>! Does the numerical value of the parameter `r`
+correspond to what you would expect from what you have seen in the control plots?
+
+In the next step, let us drop the fixing of the &tau;<sub>h</sub> identification efficiency parameter, `tauh_id`, and let the maximum likelihood fit find best estimate of `tauh_id` on its own:
+
+```sh
+combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there --algo singles --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --floatOtherPOIs 1 --setParameterRanges r=0.7,1.3:tauh_id=0.7,1.3 -n .r_with_tauID_floating -v1  --setParameters r=1.0,tauh_id=1.0 --redefineSignalPOIs r,tauh_id
+```
+
+In the command above, we have made te following adaptions:
+
++ Parameter `tauh_id` is elevated to a parameter of interest by specifying `--redefineSignalPOIs r,tauh_id` (`r` is then still kept as parameter of interest).
++ Parameter `tauh_id` is not fixed anymore.
++ Range and the nominal value of `tauh_id` are specified.
++ Naming of the output files is changed.
