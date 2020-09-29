@@ -14,11 +14,11 @@ and the variations of &tau;<sub>h</sub> energy scale corresponding to the uncert
 
 Based on these n-tuples, you can produce plots and - more important for the statistical inference - histograms
 of our main discriminator, the visible mass of the &mu;&tau;<sub>h</sub> (or e&mu;) pair. Please use for that
-the selection defined as `signal_region` enriching Z&rarr;&tau;&tau;.
+the selection defined as `signal_region` enriching Z&rarr;&tau;&tau;, and include the weights needed to apply corrections.
 
 For the systematic variations of the &tau;<sub>h</sub> energy scale, you can also create histograms for the processes affected
 by it, for example `TopT`, `EWKT`, `ZTT`, but with the [`tag`](../../Plotter/plots_and_histograms_CMSDAS2020.py#L149) 
 modified to `_tauh_esDown` for the downvard variation of the energy scale, and `_tauh_esUp` for the upward variation.
 
 In that way, your output file should contain histograms like `signal_region/m_vis_ZTT_tauh_esDown`, which are then accessed by
-to create systematic variations.
+CombineHarvester to create systematic variations.
