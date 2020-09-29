@@ -81,4 +81,19 @@ signals = ['ZTT']
 mc = mc_backgrounds + signals
 ```
 
-The processes are grouped according to their type, being either background or signal, and data-driven or simulated
+The processes are grouped according to their type, being either background or signal, and data-driven or simulated.
+
+In the next step, categories are defined with a proper syntax for CombineHarvester:
+
+```python
+# Introduction of categories to be analysed
+categories = {
+    # this defines the CHANNEL name used in the context of CombineHarvester
+    'mutau' : [( 1, 'signal_region' )], # way to assign a category, called BIN in CombineHarvester with a string name and a BIN index
+    #TODO section 8: extend with emu channel here in the same manner
+}
+```
+
+The categories are summarized as a python dictionary with the considered final states as key. Currently, only &mu;&tau;<sub>h</sub> is implemented, but you can easily extend
+to e&mu;. To each final state - in CombineHarvester syntax considered as `CHANNEL` - a list of category tuples is assigned, which contain the `BIN` number of the
+as the first element, and the category name as the second. In CombineHarvester syntax, categories are considered as `BIN`.
