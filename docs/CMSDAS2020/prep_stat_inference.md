@@ -1,7 +1,7 @@
 # 8. Preparations for statistical inference
 
 After having performed the different group tasks of the analysis, it is time to put everything together.
-Please create a final flat n-tuples with modified module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py)
+Please create a final set of flat n-tuples with modified module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py)
 containing the following improvements from each group:
 
 + Variables implemented, which are needed for a refined selection of Z&rarr;&tau;&tau; applied in the plotting script
