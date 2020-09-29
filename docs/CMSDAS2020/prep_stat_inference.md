@@ -97,7 +97,7 @@ categories = {
 The categories are summarized as a python dictionary with the considered final states as key. Currently, only &mu;&tau;<sub>h</sub> is implemented, but you can easily extend
 to e&mu;.
 
-To each final state - in CombineHarvester syntax considered as `CHANNEL` - a list of category tuples is assigned, which contain the `BIN` number of the
+To each final state - in CombineHarvester syntax considered as `CHANNEL` - a list of category tuples is assigned, which contain the `BINID` number of the category
 as the first element, and the category name as the second. In CombineHarvester syntax, categories are considered as `BIN`.
 
 After that, the data - called `Observation` in CombineHarvester - and  and the expected processes are added formally to the CombineHarvester instance:
@@ -110,3 +110,30 @@ for channel in categories:
     
 cb.ForEachObs(lambda x : x.set_process('SingleMuon_Run2018')) # some hack to change the naming to the one in the input files; usual name: data_obs
 ```
+
+The next part of the code introduces and defines the uncertainties of the statistical model, which are introduced with nuisance parameters drawn from
+appropriate distributions. In the context of this exercise, we consider three types of uncertainties and parameters:
+
+```python
+# Normalization uncertainty
+cb.cp().process(mc).AddSyst(cb,'lumi_2018', 'lnN', ch.SystMap()(1.025)) # 2.5 % uncertainty on luminosity for 2018 from the measurement
+
+# Shape uncertainty
+cb.cp().channel(['mutau']).process(['ZTT', 'TopT', 'EWKT']).AddSyst(cb, 'tauh_es', 'shape', ch.SystMap()(1.0))
+
+# Unconstrained nuisance parameter
+cb.cp().channel(['mutau']).process(['ZTT', 'TopT', 'EWKT']).AddSyst(cb, 'tauh_id', 'rateParam', ch.SystMap()(1.0))
+```
+
+The first type is a normalization uncertainty, which is modelled with a log-normally distributed (`lnN`) nuisance parameter. The value put into `ch.SystMap()(<value>)` corresponds
+to the uncertainty estimate, so the one &sigma; standard deviation measured for this particular systematic uncertainty source.
+
+The second type is a (binned) shape uncertainty. In this case `ch.SystMap()(1.0)`, that the shapes corresponding to the downward and upward variations are assigned to 
+a variation of one &sigma; standard deviation of the corresponding nuisance parameter. This Gaussian distributed nuisance paramter is used to inter- and extrapolate bin-wise between the 
+variations and the nominal histogram in a correlated way accross all histogram bins.
+
+The last type we consider is an unconstrained rate parameter. Such parameters can be used to define additional quantities, which are not known a priori, such as the &tau;<sub>h</sub>
+identification efficiency, which we have not measured beforehand. This rate parameter is not drawn from a certain distribution, but has a flat prior, such that each of its values is equally
+probably - therefore the name "unconstrained".
+
+Rate parameters can be used - as also done in our case - to measure quantities simultaneously with the parameter of interest, the signal strength &mu;<sub>Z&rarr;&tau;&tau;</sub>.
