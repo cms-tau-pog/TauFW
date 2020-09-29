@@ -141,7 +141,7 @@ And plot the scan with:
 plot1DScan.py ztt_analysis/2018/mutau/higgsCombine.r_scan.MultiDimFit.mH120.root -o r_scan --translate $CMSSW_BASE/src/CombineHarvester/CMSDAS2020TauLong/data/translate.json --POI r --logo-sub "CMSvDAS 2020 Tau"
 ```
 
-To visualize the correlations, it is often very useful to perform such scans also in a 2-dimensional grid. Let us try it for the parameters `r` and `tauh_id`.
+To visualize the correlations, it is often very useful to perform such likelihood scans also in a 2-dimensional grid. Let us try it for the parameters `r` and `tauh_id`.
 
 ```sh
 combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there --algo grid --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --floatOtherPOIs 1 --setParameterRanges r=0.5,1.6:tauh_id=0.5,1.6 -n .r_vs_tauh_id_scan -v1  --setParameters r=1.0,tauh_id=1.0  --points 1600 --split-points 320 --parallel 5 --redefineSignalPOIs r,tauh_id
@@ -158,3 +158,40 @@ And then, plot the 68% and 95% confidence level regions:
 ```sh
 plotMultiDimFit.py ztt_analysis/2018/mutau/higgsCombine.r_vs_tauh_id_scan.MultiDimFit.mH120.root --cms-sub "CMSvDAS 2020 Tau" --x-title "#mu_{Z#rightarrow#tau#tau}" --y-title "^{}#tau_{h} ID scale factor" --pois r tauh_id --title-left "^{}#mu^{}#tau_{h} final state"
 ```
+
+The last useful tool from CombineHarvester for visualization and diagnostics presented here in the context of the Z&rarr;&tau;&tau; cross-section measurement is the investigation of impacts of different
+nuisance parameters on the signal strength `r`. A corresponding method `-M Impacts` is used to perform this investigation.
+
+At first, an initial fit is performed, very similar to the `-M FitDiagnostics` command:
+
+```sh
+combineTool.py -M Impacts --doInitialFit -d ztt_analysis/2018/mutau/workspace.root --there --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --setParameterRanges r=0.5,1.5:tauh_id=0.5,1.5 -v1  --setParameters r=1.0,tauh_id=1.0 -m 125
+```
+
+Then, each of the nuisance parameters is elevated to a parameter of interest, while `r` is left floating, like a nuisance parameter. The profiled likelihood is then evaluated at values of the considered
+nuisance parameter corresponding to +1&sigma; and -1&sigma; variations, which are constrained from the initial fit. The resulting variation of the of `r` is considered as an impact. Corresponding
+command reads as follows:
+
+```sh
+combineTool.py -M Impacts --doFits -d ztt_analysis/2018/mutau/workspace.root --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --setParameterRanges r=0.5,1.5:tauh_id=0.5,1.5 -v1  --setParameters r=1.0,tauh_id=1.0 -m 125 --parallel 5
+```
+
+After these calculations are finished, the results are collected into a .json file:
+
+```sh
+combineTool.py -M Impacts -d ztt_analysis/2018/mutau/workspace.root -m 125 -o impacts.json
+```
+
+Finally, an impact plot is obtained by the following command:
+
+```sh
+plotImpacts.py -i impacts.json -o impacts
+```
+
+After having produced the plot, let us try to interpret it:
+
++ The leftmost column the names of
+nuisance parameters, ordered by their impact on the parameter `r`.
++ The middle column summarizes the pulls and constraints on the nuisance parameters. The pulls are illustrated by black dots and represent the variation of the central value of the parameter relative
+to the nominal value of the uncertainty, before the fit was performed. The constraints are visualized by error bars added to the dots and represent the change of the uncertainties after the fit with respect to their values before the fit.
++ The rightmost column shows the impacts of the nuisance parameters on the parameter of interest `r`: +1&sigma; and -1&sigma; variations using the uncertainty values after the fit was performed.
