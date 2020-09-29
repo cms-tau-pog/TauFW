@@ -91,7 +91,7 @@ But if we multiply the signal strength by the SM expectation to perform the cros
 
 The procedure for the cross-section measurement is then the following:
 
-+ Measure the signal strength with **fixed** uncertainty on &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;), called `xsec_ztt`.
++ Measure the signal strength with **fixed** nuisance parameter for &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;), called `xsec_ztt`.
 + Multiply the resulting signal strength value (and its uncertainties) by the SM expectation.
 
 In case of the &sigma;<sub>SM</sub>(Z) &middot; BR<sub>SM</sub>(Z&rarr;&tau;&tau;) value, the one should be taken, for which the corresponding fiducial phase space matches the best the selection of
