@@ -32,7 +32,7 @@ chosen ofen, the latter being less stricter, but could lead to more stable resul
 + `--setParameterRanges r=0.7,1.3`: Setting the ranges allowed in the fit for parameter `r` to specified values. This option can also be used for all other parameters. 
 + `--freezeParameters tauh_id `: Explicitly stating to keep parameter `tauh_id` fixed at a specified value. This option can also be used for all other parameters.
 + `--setParameters r=1.0`: Setting the parameter `r` to a nominal value, from which the fit will start.
-+ `-n .r_with_tauID_fixed`: Add a postfix to the name of the output files.
++ `-n .r_with_tauID_fixed`: Add a suffix to the name of the output files.
 + `-v1`: increase the verbosity level to 1.
 
 At this point: congragulations to your first fit of the signal strength for the Z&rarr;&tau;&tau; contribution, &mu;<sub>Z&rarr;&tau;&tau;</sub>! Does the numerical value of the parameter `r`
@@ -108,3 +108,35 @@ combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there 
 With this CombineHarvester command, we have obtained all results of interest. Enjoy! :)
 
 In the following, we will discuss a few alternatives to visualize the results better, and to make some additional diagnostics.
+
+## Further commands for visualizing the results and diagnostics
+
+In some cases, it might be useful to plot the likelihood scan performed for the fit of the signal strength parameter, or the &tau;<sub>h</sub> identification efficiency. To obtain this, we will
+do the scan performed by `--robustFit 1` option by hand, specifying the points to scan. This can be done by using the already familier `-M MultiDimFit` method:
+
+Performing the scan:
+
+```sh
+combineTool.py -M MultiDimFit -d ztt_analysis/2018/mutau/workspace.root --there --algo grid --robustFit 1 --X-rtd MINIMIZER_analytic --X-rtd FITTER_DYN_STEP --cminDefaultMinimizerStrategy 0 --cminDefaultMinimizerTolerance 0.1 --floatOtherPOIs 1 --setParameterRanges r=0.65,1.1 -n .r_scan -v1  --setParameters r=1.0  --points 41 --split-points 1 --alignEdges 1 --parallel 5
+```
+
+Changes with respect to the `--robustFit 1` command to obtain the fit result:
+
++ `--algo grid`: Instead of performing the fit for the parameter of interest `r`, the likelihood is evaluated at fixed value of `r` in a predefined grid of values.
++ `--setParameterRanges r=0.65,1.1`, `--points 41` and `--alignEdges 1`: Settings, which define grid values are used for `r`. The option `--alignEdges 1` is used to make
+sure, that the range edges are included in the scan. Please define the range with a bit higher values, than the uncertainty estimates around the best-estimate value you know
+from the fit command.
++ `-n .r_scan`: Changed name suffix to distinguish from other files.
++ `--parallel 5`: The fits for each of the grid points are configured to run in parallel on 5 CPUs.
+
+After the calculations for each grid value are finished, you can `hadd` the output files to one file:
+
+```sh
+hadd -f ztt_analysis/2018/mutau/higgsCombine.r_scan.MultiDimFit.mH120.root ztt_analysis/2018/mutau/higgsCombine.r_scan.POINTS.*.root
+```
+
+And plot the scan with:
+
+```sh
+plot1DScan.py ztt_analysis/2018/mutau/higgsCombine.r_scan.MultiDimFit.mH120.root -o r_scan --translate $CMSSW_BASE/src/CombineHarvester/CMSDAS2020TauLong/data/translate.json --POI r --logo-sub "CMSvDAS 2020 Tau"
+```
