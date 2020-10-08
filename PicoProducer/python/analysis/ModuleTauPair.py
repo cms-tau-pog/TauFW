@@ -18,6 +18,7 @@ tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco' }
 
 
 class ModuleTauPair(Module):
+  """Base class the channels of an analysis with two tau leptons: for mutau, etau, tautau, emu, mumu, ee."""
   
   def __init__(self, fname, **kwargs):
     print header(self.__class__.__name__)
@@ -34,7 +35,8 @@ class ModuleTauPair(Module):
     self.ees        = kwargs.get('ees',     1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',     None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',  None           ) # vary TES: 'Up' or 'Down'
-    self.ltf        = kwargs.get('ltf',     1.0            ) or 1.0 # lepton-tau-fake energy scale
+    self.fes        = kwargs.get('fes',     None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
+    self.ltf        = kwargs.get('ltf',     None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',     1.0            ) or 1.0 # jet-tau-fake energy scale
     self.tauwp      = kwargs.get('tauwp',   0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',   'TT' in fname  ) # top pT reweighting
@@ -92,7 +94,8 @@ class ModuleTauPair(Module):
     print ">>> %-12s = %s"%('isembed',   self.isembed)
     if self.channel.count('tau')>0:
       print ">>> %-12s = %s"%('tes',     self.tes)
-      print ">>> %-12s = %s"%('tessys',  self.tessys)
+      print ">>> %-12s = %r"%('tessys',  self.tessys)
+      print ">>> %-12s = %r"%('fes',     self.fes)
       print ">>> %-12s = %s"%('ltf',     self.ltf)
       print ">>> %-12s = %s"%('jtf',     self.jtf)
     #if self.channel.count('ele')>0:
@@ -320,21 +323,19 @@ class ModuleTauPair(Module):
   
   def fillMETAndDiLeptonBranches(self, event, tau1, tau2, met, met_vars):
     """Help function to compute variable related to the MET and visible tau candidates,
-    (passed as TLorentzVectors) and fill the corresponding branches."""
+     and fill the corresponding branches."""
     
-    # PROPAGATE LTF/JTF shift to MET (assume shift is already applied to object)
-    if self.ismc and 'tau' in self.channel:
-      # TODO: TES as well
-      if self.ltf!=1.0:
-        dp = tau2*(1.-1./self.ltf)
-        if self.channel=='tautau':
-          dp += tau1*(1.-1./self.ltf)
+    # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
+    if self.ismc and 't' in self.channel:
+      if hasattr(tau1,'es') and tau1.es!=1:
+        dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
         correctmet(met,dp)
-      elif self.jtf!=1.0:
-        dp = tau2*(1.-1./self.jtf)
-        if self.channel=='tautau':
-          dp += tau1*(1.-1./self.jtf)
-        correctmet(met,dp)
+      if hasattr(tau2,'es') and tau2.es!=1:
+        dp = tau2.tlv*(1.-1./tau2.es)
+        #print ">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(tau2.es,tau2.pt,dp.Pt(),tau2.genPartFlav)
+        correctmet(met,tau2.tlv*(1.-1./tau2.es))
+    tau1 = tau1.tlv # continue with TLorentzVector
+    tau2 = tau2.tlv # continue with TLorentzVector
     
     # MET
     self.out.met[0]       = met.Pt()

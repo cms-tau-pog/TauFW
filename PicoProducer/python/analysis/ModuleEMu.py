@@ -258,7 +258,7 @@ class ModuleEMu(ModuleTauPair):
     
     
     # MET & DILEPTON VARIABLES
-    self.fillMETAndDiLeptonBranches(event,electron.tlv,muon.tlv,met,met_vars)
+    self.fillMETAndDiLeptonBranches(event,electron,muon,met,met_vars)
     
     
     self.out.fill()

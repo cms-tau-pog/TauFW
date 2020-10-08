@@ -35,8 +35,9 @@ class ModuleMuTau(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity)
-      self.tesTool = TauESTool(tauSFVersion[self.year])
+      self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
+      self.tesTool = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
+      #self.fesTool = TauFESTool(tauSFVersion[self.year]) # e -> tau fake negligible
       self.tauSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
       self.etfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe',  'VLoose')
       self.mtfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSmu', 'Tight')
@@ -117,22 +118,30 @@ class ModuleMuTau(ModuleTauPair):
       if tau.idDeepTau2017v2p1VSmu<1: continue # VLoose
       if tau.idDeepTau2017v2p1VSjet<self.tauwp: continue
       if self.ismc:
+        tau.es   = 1 # store energy scale for propagating to MET
         genmatch = tau.genPartFlav
         if genmatch==5: # real tau
-          tes = 1
-          if self.tes!=None:
-            tes *= self.tes
-          else:
-            tes *= self.tesTool.getTES(tau.pt,tau.decayMode,unc=self.tessys)
+          if self.tes!=None: # user-defined energy scale (for TES studies)
+            tes = self.tes
+          else: # (apply by default)
+            tes = self.tesTool.getTES(tau.pt,tau.decayMode,unc=self.tessys)
           if tes!=1:
             tau.pt   *= tes
             tau.mass *= tes
-        elif self.ltf!=1.0 and 0<genmatch<5: # lepton -> tau fake
+            tau.es    = tes
+        elif self.ltf and 0<genmatch<5: # lepton -> tau fake
           tau.pt   *= self.ltf
           tau.mass *= self.ltf
+          tau.es    = self.ltf
+        #elif genmatch in [1,3]: # electron -> tau fake (apply by default, override with 'ltf=1.0')
+        #  fes = self.fesTool.getFES(tau.eta,tau.decayMode,unc=self.fes)
+        #  tau.pt   *= fes
+        #  tau.mass *= fes
+        #  tau.es    = fes
         elif self.jtf!=1.0 and genmatch==0: # jet -> tau fake
           tau.pt   *= self.jtf
           tau.mass *= self.jtf
+          tau.es    = self.jtf
       if tau.pt<self.tauCutPt: continue
       taus.append(tau)
     if len(taus)==0:
@@ -274,7 +283,7 @@ class ModuleMuTau(ModuleTauPair):
     
     
     # MET & DILEPTON VARIABLES
-    self.fillMETAndDiLeptonBranches(event,muon.tlv,tau.tlv,met,met_vars)
+    self.fillMETAndDiLeptonBranches(event,muon,tau,met,met_vars)
     
     
     self.out.fill()

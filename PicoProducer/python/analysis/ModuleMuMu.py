@@ -233,7 +233,7 @@ class ModuleMuMu(ModuleTauPair):
     
     
     # MET & DILEPTON VARIABLES
-    self.fillMETAndDiLeptonBranches(event,muon1.tlv,muon2.tlv,met,met_vars)
+    self.fillMETAndDiLeptonBranches(event,muon1,muon2,met,met_vars)
     
     
     self.out.fill()
