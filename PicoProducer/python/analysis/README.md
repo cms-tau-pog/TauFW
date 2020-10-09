@@ -145,13 +145,22 @@ class ModuleMuTauSimple(Module):
     self.outfile.Write()
     self.outfile.Close()
 ```
-More information on data types:
-* In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
-* In `numpy`: https://numpy.org/devdocs/user/basics.types.html
-
 <p align="center">
   <img src="../../../docs/file_pico_mutau_simple.png" alt="Pico file of ModuleMuTauSimple" width="700"/>
 </p>
+
+More information on data types for defining the right numpy arrays and branches:
+* In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
+* In `numpy`: https://numpy.org/devdocs/user/basics.types.html
+
+| ROOT      | Branch   | numpy                       | Data type                |
+|-----------|----------|-----------------------------|--------------------------|
+| Bool_t    | `'O'`    | `'?'`, `'bool'`, `bool`     |   8-bit boolean          |
+| UChar_t   | `'b'`    | `'b'`, `'byte'`, `'int8'`   |   8-bit unsigned integer |
+| Int_t     | `'I'`    | `'i'`, `'int32'`            |  32-bit (signed) integer |
+| Long64_t  | `'L'`    | `'l'`, `'int62'`, `long`    |  64-bit (signed) integer |
+| Float_t   | `'F'`    | `'f'`, `'float32'`          |  32-bit float            |
+| Double_t  | `'D'`    | `'d'`, `'float64'`, `float` |  64-bit float            |
 
 To make your life easier, you can use separate "tree producer" classes.
 For example, [`TreeProducer`](TreeProducer.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
