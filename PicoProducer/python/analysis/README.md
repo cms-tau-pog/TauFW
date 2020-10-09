@@ -153,14 +153,14 @@ More information on data types for defining the right numpy arrays and branches:
 * In `ROOT`: https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes
 * In `numpy`: https://numpy.org/devdocs/user/basics.types.html
 
-| ROOT      | Branch   | numpy                       | Data type                |
-|-----------|----------|-----------------------------|--------------------------|
-| Bool_t    | `'O'`    | `'?'`, `'bool'`, `bool`     |   8-bit boolean          |
-| UChar_t   | `'b'`    | `'b'`, `'byte'`, `'int8'`   |   8-bit unsigned integer |
-| Int_t     | `'I'`    | `'i'`, `'int32'`            |  32-bit (signed) integer |
-| Long64_t  | `'L'`    | `'l'`, `'int62'`, `long`    |  64-bit (signed) integer |
-| Float_t   | `'F'`    | `'f'`, `'float32'`          |  32-bit float            |
-| Double_t  | `'D'`    | `'d'`, `'float64'`, `float` |  64-bit float            |
+| ROOT      | [Branch](https://root.cern.ch/doc/master/classTTree.html#addcolumnoffundamentaltypes) | [`numpy`](https://numpy.org/devdocs/user/basics.types.html) | [`array`](https://docs.python.org/3/library/array.html) | Data type |
+|-----------|----------|-----------------------------|----------|--------------------------|
+| Bool_t    | `'O'`    | `'?'`, `'bool'`, `bool`     |          |   8-bit boolean          |
+| UChar_t   | `'b'`    | `'b'`, `'byte'`, `'int8'`   | `'B'`    |   8-bit unsigned integer |
+| Int_t     | `'I'`    | `'i'`, `'int32'`            | `'l'`    |  32-bit (signed) integer |
+| Long64_t  | `'L'`    | `'l'`, `'int62'`, `long`    | `'q'`    |  64-bit (signed) integer |
+| Float_t   | `'F'`    | `'f'`, `'float32'`          | `'f'`    |  32-bit float            |
+| Double_t  | `'D'`    | `'d'`, `'float64'`, `float` | `'d'`    |  64-bit float            |
 
 To make your life easier, you can use separate "tree producer" classes.
 For example, [`TreeProducer`](TreeProducer.py) can be subclassed as in [`TreeProducerMuTau.py`](TreeProducerMuTau.py).
