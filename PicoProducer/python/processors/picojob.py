@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-# Description: Skim
+# Description: Skim nanoAOD file and store locally: pre-select events, filter branches, add jet/MET corrections, ...
+from __future__ import print_function
 import os, re
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -83,23 +84,23 @@ for option in args.extraopts:
   kwargs[key] = convertstr(val) # convert to bool, float or int if possible
 
 # PRINT
-print '-'*80
-print ">>> %-12s = %r"%('era',era)
-print ">>> %-12s = %r"%('year',year)
-print ">>> %-12s = %r"%('channel',channel)
-print ">>> %-12s = %r"%('modname',modname)
-print ">>> %-12s = %r"%('dtype',dtype)
-print ">>> %-12s = %r"%('kwargs',kwargs)
-print ">>> %-12s = %s"%('maxevts',maxevts)
-print ">>> %-12s = %r"%('outdir',outdir)
-print ">>> %-12s = %r"%('copydir',copydir)
-print ">>> %-12s = %s"%('infiles',infiles)
-print ">>> %-12s = %r"%('outfname',outfname)
-print ">>> %-12s = %r"%('branchsel',branchsel)
-print ">>> %-12s = %r"%('json',json)
-print ">>> %-12s = %s"%('prefetch',prefetch)
-print ">>> %-12s = %s"%('cwd',os.getcwd())
-print '-'*80
+print('-'*80)
+print(">>> %-12s = %r"%('era',era))
+print(">>> %-12s = %r"%('year',year))
+print(">>> %-12s = %r"%('channel',channel))
+print(">>> %-12s = %r"%('modname',modname))
+print(">>> %-12s = %r"%('dtype',dtype))
+print(">>> %-12s = %r"%('kwargs',kwargs))
+print(">>> %-12s = %s"%('maxevts',maxevts))
+print(">>> %-12s = %r"%('outdir',outdir))
+print(">>> %-12s = %r"%('copydir',copydir))
+print(">>> %-12s = %s"%('infiles',infiles))
+print(">>> %-12s = %r"%('outfname',outfname))
+print(">>> %-12s = %r"%('branchsel',branchsel))
+print(">>> %-12s = %r"%('json',json))
+print(">>> %-12s = %s"%('prefetch',prefetch))
+print(">>> %-12s = %s"%('cwd',os.getcwd()))
+print('-'*80)
 
 # GET MODULE
 module = getmodule(modname)(outfname,**kwargs)
@@ -112,14 +113,14 @@ p.run()
 
 # COPY
 if copydir and outdir!=copydir:
-  print ">>> %-12s = %s"%('cwd',os.getcwd())
-  print ">>> %-12s = %s"%('ls',os.listdir(outdir))
+  print(">>> %-12s = %s"%('cwd',os.getcwd()))
+  print(">>> %-12s = %s"%('ls',os.listdir(outdir)))
   from TauFW.PicoProducer.storage.utils import getstorage
   from TauFW.common.tools.file import rmfile
   store = getstorage(copydir,verb=2)
   store.cp(outfname)
-  print ">>> Removing %r..."%(outfname)
+  print(">>> Removing %r..."%(outfname))
   rmfile(outfname)
 
 # DONE
-print ">>> picojob.py done after %.1f seconds"%(time.time()-time0)
+print(">>> picojob.py done after %.1f seconds"%(time.time()-time0))
