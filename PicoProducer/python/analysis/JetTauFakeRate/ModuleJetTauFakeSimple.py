@@ -15,18 +15,22 @@ class ModuleJetTauFakeSimple(Module):
     
     # FILE
     self.outfile = TFile(self.fname,'RECREATE')
-    self.njet     = TH1D('njet','Number of jets (p_{T}>20, |#eta|<2.4)',15,0,15)
-    self.njtf     = TH1D('njtf','Number of j #rightarrow #tau_{h} fakes',10,0,10)
-    self.flav_all = TH1D('flav_all','jet flav;Jet parton flavor;Number of jets',25,0,25)
-    self.flav_jtf = TH1D('flav_jtf',"jet flav of j #to #tau_{h} fake (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet parton flavor;Number of j #rightarrow #tau_{h}",25,0,25)
-    self.flav_eff = TH1D('flav_eff',"j #rightarrow #tau_{h} fake rate (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet parton flavor; Medium VSjet j #rightarrow #tau_{h} fake rate",25,0,25)
-    self.jet      = TTree('jet','jet') # save per jet
-    self.jtf      = TTree('jtf','jtf') # save per j -> tauh fake
+    self.njet      = TH1D('njet','Number of jets (p_{T}>20, |#eta|<2.4)',15,0,15)
+    self.njtf      = TH1D('njtf','Number of j #rightarrow #tau_{h} fakes',10,0,10)
+    self.pflav_all = TH1D('pflav_all','Jet parton flav;Jet parton flavor;Number of jets',25,0,25)
+    self.pflav_jtf = TH1D('pflav_jtf',"Jet parton flav of j #to #tau_{h} fake (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet parton flavor;Number of j #rightarrow #tau_{h}",25,0,25)
+    self.pflav_eff = TH1D('pflav_eff',"j #rightarrow #tau_{h} fake rate (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet parton flavor; Medium VSjet j #rightarrow #tau_{h} fake rate",25,0,25)
+    self.hflav_all = TH1D('hflav_all','Jet hadron flav;Jet hadron flavor;Number of jets',8,0,8)
+    self.hflav_jtf = TH1D('hflav_jtf',"Jet hadron flav of j #to #tau_{h} fake (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet hadron flavor;Number of j #rightarrow #tau_{h}",8,0,8)
+    self.hflav_eff = TH1D('hflav_eff',"j #rightarrow #tau_{h} fake rate (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet hadron flavor; Medium VSjet j #rightarrow #tau_{h} fake rate",8,0,8)
+    self.jet       = TTree('jet','jet') # save per jet
+    self.jtf       = TTree('jtf','jtf') # save per j -> tauh fake
     
     # JET BRANCHES
     self.jet_pt    = np.zeros(1,dtype='f')
     self.jet_eta   = np.zeros(1,dtype='f')
-    self.jet_flav  = np.zeros(1,dtype='i')
+    self.jet_pflav = np.zeros(1,dtype='i')
+    self.jet_hflav = np.zeros(1,dtype='i')
     self.jet_VSjet = np.zeros(1,dtype='i')
     self.jet_VSmu  = np.zeros(1,dtype='i')
     self.jet_VSe   = np.zeros(1,dtype='f')
@@ -35,7 +39,8 @@ class ModuleJetTauFakeSimple(Module):
     self.jet_dR    = np.zeros(1,dtype='f')
     self.jet.Branch('pt',    self.jet_pt,    'pt/F'   ).SetTitle("jet pt")
     self.jet.Branch('eta',   self.jet_eta,   'eta/F'  ).SetTitle("jet eta")
-    self.jet.Branch('flav',  self.jet_flav,  'flav/I' ).SetTitle("jet parton flavor")
+    self.jet.Branch('pflav', self.jet_pflav, 'pflav/I').SetTitle("jet parton flavor")
+    self.jet.Branch('hflav', self.jet_hflav, 'hflav/I').SetTitle("jet hadron flavor")
     self.jet.Branch('VSjet', self.jet_VSjet, 'VSjet/I').SetTitle("tau DeepTauVSjet")
     self.jet.Branch('VSmu',  self.jet_VSmu,  'VSmu/I' ).SetTitle("tau DeepTauVSmu")
     self.jet.Branch('VSe',   self.jet_VSe,   'VSe/I'  ).SetTitle("tau DeepTauVSe")
@@ -51,7 +56,8 @@ class ModuleJetTauFakeSimple(Module):
     self.jtf_VSe   = np.zeros(1,dtype='f')
     self.jtf_jpt   = np.zeros(1,dtype='f')
     self.jtf_jeta  = np.zeros(1,dtype='f')
-    self.jtf_jflav = np.zeros(1,dtype='i')
+    self.jtf_pflav = np.zeros(1,dtype='i')
+    self.jtf_hflav = np.zeros(1,dtype='i')
     self.jtf_dR    = np.zeros(1,dtype='f')
     self.jtf.Branch('pt',    self.jtf_pt,    'pt/F'   ).SetTitle("tau pt")
     self.jtf.Branch('eta',   self.jtf_eta,   'eta/F'  ).SetTitle("tau eta")
@@ -60,13 +66,16 @@ class ModuleJetTauFakeSimple(Module):
     self.jtf.Branch('VSe',   self.jtf_VSe,   'VSe/I'  ).SetTitle("tau DeepTauVSe")
     self.jtf.Branch('jpt',   self.jtf_jpt,   'jpt/F'  ).SetTitle("jet pt")
     self.jtf.Branch('jeta',  self.jtf_jeta,  'jeta/F' ).SetTitle("jet eta")
-    self.jtf.Branch('jflav', self.jtf_jflav, 'jflav/I').SetTitle("jet parton flavor")
+    self.jtf.Branch('pflav', self.jtf_pflav, 'pflav/I').SetTitle("jet parton flavor")
+    self.jtf.Branch('hflav', self.jtf_hflav, 'hflav/I').SetTitle("jet hadron flavor")
     self.jtf.Branch('dR',    self.jtf_dR,    'dR/F'   ).SetTitle("DeltaR(jet,tau)")
   
   def endJob(self):
     """Wrap up after running on all events and files"""
-    self.flav_eff.Add(self.flav_jtf)
-    self.flav_eff.Divide(self.flav_all)
+    self.pflav_eff.Add(self.pflav_jtf)
+    self.pflav_eff.Divide(self.pflav_all)
+    self.hflav_eff.Add(self.hflav_jtf)
+    self.hflav_eff.Divide(self.hflav_all)
     self.outfile.Write()
     self.outfile.Close()
   
@@ -82,11 +91,12 @@ class ModuleJetTauFakeSimple(Module):
     for jet in jets:
       if jet.pt<20: continue
       if abs(jet.eta)>2.4: continue
-      self.jet_pt[0]   = jet.pt
-      self.jet_eta[0]  = jet.eta
-      self.jet_flav[0] = jet.partonFlavour
-      njets += 1
-      self.flav_all.Fill(jet.partonFlavour)
+      self.jet_pt[0]    = jet.pt
+      self.jet_eta[0]   = jet.eta
+      self.jet_pflav[0] = jet.partonFlavour
+      self.jet_hflav[0] = jet.hadronFlavour
+      self.pflav_all.Fill(jet.partonFlavour)
+      self.hflav_all.Fill(jet.hadronFlavour)
       for tau in taus:
         if tau.pt<20: continue
         if abs(tau.eta)>2.4: continue
@@ -99,7 +109,8 @@ class ModuleJetTauFakeSimple(Module):
         self.jet_VSe[0]   = tau.idDeepTau2017v2p1VSe
         self.jet_dR[0]    = tau.DeltaR(jet)
         if tau.idDeepTau2017v2p1VSe>0 and tau.idDeepTau2017v2p1VSmu>0 and tau.idDeepTau2017v2p1VSjet>=16: # require Medium WP
-          self.flav_jtf.Fill(jet.partonFlavour)
+          self.pflav_jtf.Fill(jet.partonFlavour)
+          self.hflav_jtf.Fill(jet.hadronFlavour)
         break
       else: # if not jet-tau match found
         self.jet_tpt[0]   = -9
@@ -109,6 +120,7 @@ class ModuleJetTauFakeSimple(Module):
         self.jet_VSe[0]   = -1
         self.jet_dR[0]    = -1
       self.jet.Fill() # save per j -> tauh
+      njets += 1
     self.njet.Fill(njets) # per event
     
     # JET -> TAU FAKES
@@ -130,12 +142,14 @@ class ModuleJetTauFakeSimple(Module):
         jet = jets[tau.jetIdx]
         self.jtf_jpt[0]   = jet.pt  
         self.jtf_jeta[0]  = jet.eta 
-        self.jtf_jflav[0] = jet.partonFlavour
+        self.jtf_pflav[0] = jet.partonFlavour
+        self.jtf_hflav[0] = jet.hadronFlavour
         self.jtf_dR[0]    = jet.DeltaR(tau)
       else:
         self.jtf_jpt[0]   = -9
         self.jtf_jeta[0]  = -9 
-        self.jtf_jflav[0] = -1
+        self.jtf_pflav[0] = -9
+        self.jtf_hflav[0] = -1
         self.jtf_dR[0]    = -1
       self.jtf.Fill() # save per j -> tauh
       njtfs += 1
