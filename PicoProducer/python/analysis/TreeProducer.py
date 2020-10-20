@@ -60,6 +60,7 @@ class TreeProducer(object):
       getattr(self,name)[0] = default
     if title:
       branch.SetTitle(title)
+    return branch
   
   def fill(self):
     """Fill tree."""
