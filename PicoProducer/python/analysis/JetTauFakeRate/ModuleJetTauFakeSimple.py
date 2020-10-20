@@ -15,11 +15,11 @@ class ModuleJetTauFakeSimple(Module):
     
     # FILE
     self.outfile = TFile(self.fname,'RECREATE')
-    self.njet     = TH1D('njet','Number of jets',15,0,15)
+    self.njet     = TH1D('njet','Number of jets (p_{T}>20, |#eta|<2.4)',15,0,15)
     self.njtf     = TH1D('njtf','Number of j #rightarrow #tau_{h} fakes',10,0,10)
     self.flav_all = TH1D('flav_all','jet flav;Jet parton flavor;Number of jets',25,0,25)
-    self.flav_jtf = TH1D('flav_jtf',"jet flav of j #to #tau_{h} fake (Medium VSjet);Jet parton flavor;Number of j #rightarrow #tau_{h}",25,0,25)
-    self.flav_eff = TH1D('flav_eff',"j #rightarrow #tau_{h} fake rate (Medium VSjet);Jet parton flavor; Medium VSjet j #rightarrow #tau_{h} fake rate",25,0,25)
+    self.flav_jtf = TH1D('flav_jtf',"jet flav of j #to #tau_{h} fake (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet parton flavor;Number of j #rightarrow #tau_{h}",25,0,25)
+    self.flav_eff = TH1D('flav_eff',"j #rightarrow #tau_{h} fake rate (Medium VSjet, VVVLoose VSe, VLoose VSmu);Jet parton flavor; Medium VSjet j #rightarrow #tau_{h} fake rate",25,0,25)
     self.jet      = TTree('jet','jet') # save per jet
     self.jtf      = TTree('jtf','jtf') # save per j -> tauh fake
     
@@ -74,12 +74,14 @@ class ModuleJetTauFakeSimple(Module):
     """Process event, return True (pass, go to next module) or False (fail, go to next event)."""
     
     # COLLECTIONS
-    taus  = Collection(event,'Tau')
-    jets  = Collection(event,'Jet')
+    taus = Collection(event,'Tau')
+    jets = Collection(event,'Jet')
     
     # JETS
     njets = 0
     for jet in jets:
+      if jet.pt<20: continue
+      if abs(jet.eta)>2.4: continue
       self.jet_pt[0]   = jet.pt
       self.jet_eta[0]  = jet.eta
       self.jet_flav[0] = jet.partonFlavour
@@ -96,7 +98,7 @@ class ModuleJetTauFakeSimple(Module):
         self.jet_VSmu[0]  = tau.idDeepTau2017v2p1VSmu
         self.jet_VSe[0]   = tau.idDeepTau2017v2p1VSe
         self.jet_dR[0]    = tau.DeltaR(jet)
-        if tau.idDeepTau2017v2p1VSjet>=16: # require Medium WP
+        if tau.idDeepTau2017v2p1VSe>0 and tau.idDeepTau2017v2p1VSmu>0 and tau.idDeepTau2017v2p1VSjet>=16: # require Medium WP
           self.flav_jtf.Fill(jet.partonFlavour)
         break
       else: # if not jet-tau match found
@@ -116,6 +118,8 @@ class ModuleJetTauFakeSimple(Module):
       if tau.pt<20: continue
       if abs(tau.eta)>2.4: continue
       #if abs(tau.dz)>0.2: continue
+      #if tau.idDeepTau2017v2p1VSe<1: continue # require loosest WP
+      #if tau.idDeepTau2017v2p1VSmu<1: continue # require loosest WP
       if tau.idDeepTau2017v2p1VSjet<1: continue # require loosest WP
       self.jtf_pt[0]    = tau.pt
       self.jtf_eta[0]   = tau.eta
