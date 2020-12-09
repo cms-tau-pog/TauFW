@@ -41,6 +41,13 @@ For more info, see
 * https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/3128.html
 
 
+## [`compareNano.py`](compareNano.py)
+Quickly compare two or more variables in the tree of one or more ROOT files (added in a `TChain`).
+For example for nanoAOD files, simply use
+```
+ ./utils/compareNano.py nano*.root -V "Jet_pt_nom,Jet_pt_jerUp,Jet_pt_jerDown>>20,0,200" -v3
+```
+
 ## [`comparePico.py`](comparePico.py)
 Quickly compare two or more pico files by creating plots of some variables.
 Edit the file to change or add more variables:
