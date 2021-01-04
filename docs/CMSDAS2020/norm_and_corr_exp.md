@@ -353,4 +353,5 @@ corrections to be applied to simulated events in the context of the Z&rarr;&tau;
 The corrections considered in this subsection belong to the type, that can be introduced with event weights. A different type of corrections will
 be discussed in section [7](es_tau.md), covering the &tau;<sub>h</sub> energy scale correction as an example.
 
-One of the general corrections used for simulated samples is the pileup reweighting. 
+One of the general corrections used for simulated samples is the pileup reweighting. The reason to introduce this correction is the fact, that the distribution of the
+number of additional interactions taking place in collision events is different between data and simulation.
