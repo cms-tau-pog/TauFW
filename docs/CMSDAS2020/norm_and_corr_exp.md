@@ -354,4 +354,10 @@ The corrections considered in this subsection belong to the type, that can be in
 be discussed in section [7](es_tau.md), covering the &tau;<sub>h</sub> energy scale correction as an example.
 
 One of the general corrections used for simulated samples is the pileup reweighting. The reason to introduce this correction is the fact, that the distribution of the
-number of additional interactions taking place in collision events is different between data and simulation.
+number of additional interactions taking place in collision events is different between data and simulation. The measured mean number of interactions per bunch crossing
+for the 2018 data-taking period is shown on public results pages of the luminosity group of CMS:
+
+![](https://cmslumi.web.cern.ch/publicplots/pileup_pp_2018_69200.png)
+
+This histogram corresponds to the true number of interactions per bunch crossing in simulation, averaged over a luminosity section. This value is used as an input parameter to
+obtain the Poisson distributed number of interactions on an event-by-event basis. Details on the measurement of the number of interactions and its determination for simulated events is given on the [Pileup Twiki page](https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData).
