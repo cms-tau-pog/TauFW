@@ -115,7 +115,7 @@ In case of cross-sections, several Twiki pages can be consulted:
 + SM processes like Drell-Yan, Diboson, W + Jets, etc.: [StandardModelCrossSectionsat13TeV](https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV)
 + TTbar production: [TtbarNNLO](https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO#Top_quark_pair_cross_sections_at)
 + Single top production: [SingleTopSigma](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SingleTopSigma)
-+ Higgs Boson production: [LHCHXSWG](https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHXSWG#Higgs_cross_sections_and_decay_b)
++ Higgs boson production: [LHCHXSWG](https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHXSWG#Higgs_cross_sections_and_decay_b)
 
 In some cases, the cross-section is not known for a particular phase-space simulated by the generator. The most precise possibility is to use the
 [GenXSecAnalyzer](https://twiki.cern.ch/twiki/bin/viewauth/CMS/HowToGenXSecAnalyzer) in this case. Sometimes, the cross-sections are also given in [XSDB](https://cms-gen-dev.cern.ch/xsdb/),
@@ -375,3 +375,14 @@ This means, that you would need to introduce a new weight quantity `pileupWeight
 [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) by dividing the two histograms after having normalized them to unity, and extracting
 the appropriate weight using the `Pileup_nTrueInt` quantity from the simulated NanoAOD input sample. In the next step, extend the weight applied to all simulated
 samples in [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py) accordingly.
+
+You can demonstrate the effect of the reweighting by having a look at two quantities affected by this correction:
+
+* Number of reconstructed primary vertices (`PV_npvs`)
+* Pileup density &rho;, computed from all PF Candidates (`fixedGridRhoFastjetAll`)
+
+Furthermore, make a plot of the two pileup distributions in data and simulation, and the resulting correction weights histogram.
+
+### Muon efficiency corrections
+
+### Z boson p<sub>T</sub> correction
