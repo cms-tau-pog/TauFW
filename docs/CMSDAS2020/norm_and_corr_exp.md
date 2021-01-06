@@ -353,6 +353,8 @@ corrections to be applied to simulated events in the context of the Z&rarr;&tau;
 The corrections considered in this subsection belong to the type, that can be introduced with event weights. A different type of corrections will
 be discussed in section [7](es_tau.md), covering the &tau;<sub>h</sub> energy scale correction as an example.
 
+### Pileup reweighting
+
 One of the general corrections used for simulated samples is the pileup reweighting. The reason to introduce this correction is the fact, that the distribution of the
 number of additional interactions taking place in collision events is different between data and simulation. The measured mean number of interactions per bunch crossing
 for the 2018 data-taking period is shown on public results pages of the luminosity group of CMS:
@@ -368,3 +370,8 @@ The corresponding histograms are already included in the software framework:
 
 * Data from 2018 data-taking period: [Data_PileUp_2018_69p2.root](../../PicoProducer/data/pileup/Data_PileUp_2018_69p2.root)
 * Simulation from the Autumn18 Monte-Carlo campaign: [MC_PileUp_2018_Autumn18.root](../../PicoProducer/data/pileup/MC_PileUp_2018_Autumn18.root)
+
+This means, that you would need to introduce a new weight quantity `pileupWeight` to the analysis module
+[ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) by dividing the two histograms after having normalized them to unity, and extracting
+the appropriate weight using the `Pileup_nTrueInt` quantity from the simulated NanoAOD input sample. In the next step, extend the weight applied to all simulated
+samples in [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py) accordingly.
