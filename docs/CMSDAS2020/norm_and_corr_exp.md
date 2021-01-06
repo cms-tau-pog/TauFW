@@ -360,4 +360,11 @@ for the 2018 data-taking period is shown on public results pages of the luminosi
 ![](https://cmslumi.web.cern.ch/publicplots/pileup_pp_2018_69200.png)
 
 This histogram corresponds to the true number of interactions per bunch crossing in simulation, averaged over a luminosity section. This value is used as an input parameter to
-obtain the Poisson distributed number of interactions on an event-by-event basis. Details on the measurement of the number of interactions and its determination for simulated events is given on the [Pileup Twiki page](https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData).
+obtain the Poisson distributed number of interactions on an event-by-event basis.
+Details on the measurement of the number of interactions and its determination for simulated events is given on the
+[Pileup Twiki page](https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData).
+
+The corresponding histograms are already included in the software framework:
+
+* Data from 2018 data-taking period: [Data_PileUp_2018_69p2.root](../../PicoProducer/data/pileup/Data_PileUp_2018_69p2.root)
+* Simulation from the Autumn18 Monte-Carlo campaign: [MC_PileUp_2018_Autumn18.root](../../PicoProducer/data/pileup/MC_PileUp_2018_Autumn18.root)
