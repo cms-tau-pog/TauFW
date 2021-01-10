@@ -398,4 +398,14 @@ The **tighter** the selection the purer is the selected set of muons, having a s
 but also a much smaller misidentification rate. For some applications, a higher efficiency is more important than a pure set of muons, such that a **looser** working point
 is chosen.
 
+For muons, muon isolation (Iso) is handled separately from identification to allow for flexibility of an analysis to choose the Iso working points independently of ID working
+points. The isolation is computed by summing up the energy around the muon in a predefined (&eta;, &phi;) cone. At CMS, we usually use the
+[PF-based isolation](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Particle_Flow_isolation), summing up transverse energy and momenta of particle flow
+candidates around the muon.
+
+To correct the isolation sum for contamination from pileup (PU), an estimate of the corresponding energy contribution is subtracted from the full energy sum. For muons, the
+&Delta;&beta; correction is used, leading to the following formula for the muon isolation sum:
+
+Iso(&mu;) = &Sigma;p<sub>T</sub>(CH from PV) + max(0, &Sigma;p<sub>T</sub>(NH) + &Sigma;p<sub>T</sub>(&gamma;) - &Delta;&beta; &middot; &Sigma;p<sub>T</sub>(CH from PU))
+
 ### Z boson p<sub>T</sub> correction
