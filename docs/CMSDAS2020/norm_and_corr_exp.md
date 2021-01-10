@@ -430,6 +430,7 @@ Also for the selection of isolated muons, several working points are defined acc
 Both the muon identification and muon isolation efficiencies are measured with the
 [Tag and Probe (TnP) method](https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffsRun2Legacy), selecting Z&rarr;&mu;&mu; with a strict selection of one
 of the muons (tag muon) and checking, whether the second muon (probe muon) passes the considered selection requirements. The efficiencies are measured
-recursively, such that the isolation efficiency depends on a chosen identification working point.
+recursively, such that the isolation efficiency depends on a chosen identification working point. Usually, these efficiencies are measured as functions
+of the p<sub>T</sub> and &eta; of the muon. 
 
 ### Z boson p<sub>T</sub> correction
