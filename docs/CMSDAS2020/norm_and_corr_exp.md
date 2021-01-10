@@ -406,6 +406,25 @@ candidates around the muon.
 To correct the isolation sum for contamination from pileup (PU), an estimate of the corresponding energy contribution is subtracted from the full energy sum. For muons, the
 &Delta;&beta; correction is used, leading to the following formula for the muon isolation sum:
 
-Iso(&mu;) = &Sigma;p<sub>T</sub>(CH from PV) + max(0, &Sigma;p<sub>T</sub>(NH) + &Sigma;p<sub>T</sub>(&gamma;) - &Delta;&beta; &middot; &Sigma;p<sub>T</sub>(CH from PU))
+Iso(&mu;) = &Sigma;p<sub>T</sub>(P<sup>&plusmn;</sup> from PV) + max(0, &Sigma;p<sub>T</sub>(h<sup>0</sup>) + &Sigma;p<sub>T</sub>(&gamma;) - &Delta;&beta; &middot;
+&Sigma;p<sub>T</sub>(P<sup>&plusmn;</sup> from PU))
+
+The following assumptions and syntax is used for the formula above:
+
+* Cone around the muon is chosen to be &Delta;R = 0.4.
+* Multiplicative factor &Delta;&beta; = 0.5.
+* P<sup>&plusmn;</sup> from PV: charged particles from the primary vertex (other than the considered muon)
+* P<sup>&plusmn;</sup> from PU: charged particles from pileup
+* h<sup>0</sup>: neutral hadrons
+* &gamma;: photons
+
+The main idea of the &Delta;&beta; correction is to estimate the energy contribution of neutral particles from
+pileup by exploiting the ratio between charged and neutral particles from pileup, which is estimated to be the factor &Delta;&beta;.
+
+To define a working point for a selelection of isolated muons, usually the **relative** isolation sum of a muon is considered:
+
+rel. Iso(&mu;) = Iso(&mu;)/p<sub>T</sub>(&mu;)
+
+Also for the selection of isolated muons, several working points are defined according to the efficiency to select true muons.
 
 ### Z boson p<sub>T</sub> correction
