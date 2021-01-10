@@ -345,7 +345,7 @@ make corresponding histograms and control plots:
 Try to choose for each variable an appropriate binning. To make the plots nicer,
 extend the dictionary containing the labels of each stored variable, if necessary. The dictionary is implemented in [string.py](../../Plotter/python/plot/string.py).
 
-## Event-by-event corrections to simulated contributions
+## Group task - event-by-event corrections to simulated contributions
 
 Usually, the out-of-the-box agreement between selected data and expected contributions is not good. In the following, we will discuss some of the required
 corrections to be applied to simulated events in the context of the Z&rarr;&tau;&tau; to improve the agreement.
