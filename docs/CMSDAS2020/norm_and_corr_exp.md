@@ -388,4 +388,14 @@ Furthermore, make a plot of the two pileup distributions in data and simulation,
 In contrast to pileup reweighting, which is a pure modelling systematic effect related to Monte-Carlo simulation, muon efficiency corrections belong to systematic effects of
 experimental type. In the context of the exercise, we will examine the muon identification and muon isolation efficiencies.
 
+Under muon identification (ID) we understand a selection of muons with quality requirements (see
+[Muon ID Twiki](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Muon_Identification)), which are compiled in working points, the most common being
+[Loose](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Loose_Muon), [Medium](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Medium_Muon), and
+[Tight](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Tight_Muon). These working points are defined according to the efficiency to identify true muons and
+the misidentification rate of objects reconstructed falsely as muons.
+
+The **tighter** the selection the purer is the selected set of muons, having a smaller efficiency,
+but also a much smaller misidentification rate. For some applications, a higher efficiency is more important than a pure set of muons, such that a **looser** working point
+is chosen.
+
 ### Z boson p<sub>T</sub> correction
