@@ -385,4 +385,7 @@ Furthermore, make a plot of the two pileup distributions in data and simulation,
 
 ### Muon efficiency corrections
 
+In contrast to pileup reweighting, which is a pure modelling systematic effect related to Monte-Carlo simulation, muon efficiency corrections belong to systematic effects of
+experimental type. In the context of the exercise, we will examine the muon identification and muon isolation efficiencies.
+
 ### Z boson p<sub>T</sub> correction
