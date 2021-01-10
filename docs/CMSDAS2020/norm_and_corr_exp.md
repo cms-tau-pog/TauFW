@@ -421,7 +421,7 @@ The following assumptions and syntax is used for the formula above:
 The main idea of the &Delta;&beta; correction is to estimate the energy contribution of neutral particles from
 pileup by exploiting the ratio between charged and neutral particles from pileup, which is estimated to be the factor &Delta;&beta;.
 
-To define a working point for a selelection of isolated muons, usually the **relative** isolation sum of a muon is considered:
+To define a working point for a selection of isolated muons, usually the **relative** isolation sum of a muon is considered:
 
 rel. Iso(&mu;) = Iso(&mu;)/p<sub>T</sub>(&mu;)
 
