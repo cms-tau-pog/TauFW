@@ -433,4 +433,8 @@ of the muons (tag muon) and checking, whether the second muon (probe muon) passe
 recursively, such that the isolation efficiency depends on a chosen identification working point. Usually, these efficiencies are measured as functions
 of the p<sub>T</sub> and &eta; of the muon. 
 
+Scale factors used for correction are then derived as the ratio of the efficiencies in data and simulation. Such a scale factor is expected to be close to one,
+but may differ from unity due to differences of detector response between data events and simulated events or modelling used in simulation,
+leading to different distributions of quantities used for reconstruction, identification of muons and the particles around it.
+
 ### Z boson p<sub>T</sub> correction
