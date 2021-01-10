@@ -453,3 +453,41 @@ samples in [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histogra
 As you might already have guessed, the change of the correction can be demonstrated best with control plots of p<sub>T</sub> and &eta; of the muon.
 
 ### Z boson p<sub>T</sub> correction
+
+The last type of correction which we will examine is a modelling correction, which is in contrast to the pileup reweighting process specific, such that it has
+to be applied only to Drell-Yan events - the Z boson p<sub>T</sub> correction. The reason for this correction is the fact, that the used simulated samples correspond
+to leading order (LO) precision in QCD for Drell-Yan events, for which the Z boson p<sub>T</sub> is not well described if compared to the corresponding data distribution.
+
+The correction scale factors are measured for a pure Z&rarr;&mu;&mu selection, were the true Z boson p<sub>T</sub> is expected to corrrespond to the p<sub>T</sub>
+of the &mu;&mu; pair. These weights are computed such that they change the distribution of reconstructed p<sub>T</sub>(Z) in simulation to the one in data, preserving
+the overal normalization of the considered simulated events.
+
+The weights, which are already provided in [Zpt_weights_2018.root](../../PicoProducer/data/zpt/Zpt_weights_2018.root) are then applied to generator truth information
+on the Z boson p<sub>T</sub>. In that way, the correction can be applied to Z&rarr;&tau;&tau; events, where the Z boson p<sub>T</sub> can not be reconstructed precisely
+due to neutrinos involved in &tau; decays.
+
+To obtain the information on particles at the level of the Monte-Carlo generator, you would need to loop through the list of generator particles
+[`GenPart`](https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html#GenPart) and select the Z boson according to its
+[`pdgId`](https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf). There will be several instantiations of the Z boson with a different status,
+which is a detail of the [Pythia 8.2](http://home.thep.lu.se/~torbjorn/pythia82html/Welcome.html) event generator.
+You should choose `GenPart_status == 62` which corresponds to the generator truth Z boson after proper treatment of beam remnant particles,
+contributing to the underlying event of a collision.
+
+The weight from the histogram in [Zpt_weights_2018.root](../../PicoProducer/data/zpt/Zpt_weights_2018.root), extracted by using generator Z boson p<sub>T</sub>, should
+only be computed for and applied to the simulated events of the Drell-Yan process, which can be managed by an option keyword argument `zpt` introduced in
+[samples_mutau_2018_preselected.py](../../PicoProducer/samples/CMSDAS2020/samples_mutau_2018_preselected.py#L8-L12). You can access this keyword argument
+in a similar way as the sample type `dtype` in [ModuleMuTau.py](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L25).
+
+After having introduced a sample specific weight `zptWeight` to your Drell-Yan n-tuple, you can add it with the `extraweight` key into the dictionary of the Drell-Yan
+process in [plots_and_histograms_CMSDAS2020.py](https://github.com/ArturAkh/TauFW/blob/master/Plotter/plots_and_histograms_CMSDAS2020.py#L37-L38), as already done for `nevts`.
+An example, how this can be done, is given in [samples.py](https://github.com/ArturAkh/TauFW/blob/master/Plotter/config/samples.py#L19-L24).
+
+To demonstrate the change introduced by this correction, you can have a look at the control plots of the visible Z boson p<sub>T</sub>, computed from the p<sub>T</sub>
+of the &mu;&tau;<sub>h</sub> pair, and the best reconstructed estimate for the Z boson p<sub>T</sub>, corresponding to the vector sum of &mu;&tau;<sub>h</sub>
+pair p<sub>T</sub> and the MET vector.
+
+### Group task - implement the event-by-event corrections
+
+Those of you, who would like to take care of the corrections discussed in the previous subsections, please implement the required procedures, and document the
+impact of each correction step by step in form of control plots. For the presentation, please explain the purpose of each correction, if needed, by making use of
+sketches and plots of provided correction factors.
