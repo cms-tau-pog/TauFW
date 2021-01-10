@@ -376,7 +376,7 @@ This means, that you would need to introduce a new weight quantity `pileupWeight
 the appropriate weight using the `Pileup_nTrueInt` quantity from the simulated NanoAOD input sample. In the next step, extend the weight applied to all simulated
 samples in [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py) accordingly.
 
-You can demonstrate the effect of the reweighting by having a look at two quantities affected by this correction:
+You can demonstrate the effect of the reweighting by having a look at the control plots of the two quantities affected by this correction:
 
 * Number of reconstructed primary vertices (`PV_npvs`)
 * Pileup density &rho;, computed from all PF Candidates (`fixedGridRhoFastjetAll`)
@@ -436,5 +436,20 @@ of the p<sub>T</sub> and &eta; of the muon.
 Scale factors used for correction are then derived as the ratio of the efficiencies in data and simulation. Such a scale factor is expected to be close to one,
 but may differ from unity due to differences of detector response between data events and simulated events or modelling used in simulation,
 leading to different distributions of quantities used for reconstruction, identification of muons and the particles around it.
+
+The corresponding histograms are already provided in the software framework:
+
+* Identification scale factors: [RunABCD_SF_ID.root](../../PicoProducer/data/lepton/MuonPOG/Run2018/RunABCD_SF_ID.root)
+* Isolation scale factors: [RunABCD_SF_Iso.root](../../PicoProducer/data/lepton/MuonPOG/Run2018/RunABCD_SF_Iso.root)
+
+Please note, that only a limited set of combinations is provided for the working points of ID and Iso in these files, such that you would have to stick to these
+selection choices to apply the corrections consistently.
+
+Please introduce two weights `idWeight` and `isoWeight` to the analysis module
+[ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) by extracting the weights from the histograms using the p<sub>T</sub> and &eta; of the muon
+from the &mu;&tau;<sub>h</sub> pair. As for the pileup weight before, please extend the total weight applied to all simulated
+samples in [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py) accordingly after having added the two weights to your n-tuples.
+
+As you might already have guessed, the change of the correction can be demonstrated best with control plots of p<sub>T</sub> and &eta; of the muon.
 
 ### Z boson p<sub>T</sub> correction
