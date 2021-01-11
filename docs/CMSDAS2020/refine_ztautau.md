@@ -11,3 +11,6 @@ our Z&rarr;&tau;&tau; signal, and to define selection criteria, which reject mos
 
 On of the first tasks to be done in the context of defining a good Z&rarr;&tau;&tau; selection, is to understand which backgrounds contribute to it, and which specific
 features do they have in the kinematic phase space of the total collision event.
+
+Let us repeat, what we have already discussed in section [3](preselection.md#processes-contributing-to-a-z%CF%84%CF%84-final-state) about expected contributions and discuss
+in more detail, what makes the backgrounds unique and distinguishable from the Z&rarr;&tau;&tau; signal.
