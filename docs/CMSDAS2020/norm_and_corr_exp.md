@@ -12,7 +12,8 @@ Expect to play around most of your time with the tools introduced in this sectio
 The main script for the tasks considered and discussed within this section is [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py)
 
 It is constructed to produce nice plots of distributions of various quantities, like the visible mass of the &tau;&tau; system, m<sub>vis</sub>, and to create histograms
-for further processing with CombineHarvester.
+for further processing with CombineHarvester. The distribution plots, often referred to as **control plots**, are used to examine the agreement between data and expected
+contributions and help to improve this agreement and to refine selection requirements, as will be discussed in more detail in section [6](refine_ztautau.md).
 
 Let us first have a look at its general structure:
 
