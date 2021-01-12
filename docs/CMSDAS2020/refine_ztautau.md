@@ -33,7 +33,7 @@ and the working point of the [discriminator against jets](../../PicoProducer/pyt
 be choses stricter. To get a feeling about the right choice of the working point, have a look at the distribution of the
 [discriminator score](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L190) in a control plot.
 
-Electrons and muons, corresponding to exactly on reconstructed charged object, usually mimic the &tau;<sub>h</sub> decay modes with one charged hadron. Dedicated
+Electrons and muons, corresponding to exactly one reconstructed charged object, usually mimic the &tau;<sub>h</sub> decay modes with one charged hadron. Dedicated
 [discriminators against leptons](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L127) were designed to reduce the contamination by leptons
 misidentified as &tau;<sub>h</sub> candidates. To check this effect, have a look at the distribution of the decay mode of the selected
 &tau;<sub>h</sub> candidate in a control plot.
