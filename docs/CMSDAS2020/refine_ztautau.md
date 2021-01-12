@@ -16,7 +16,7 @@ Let us repeat, what we have already discussed in section [3](preselection.md#pro
 in more detail, what makes the backgrounds unique and distinguishable from the Z&rarr;&tau;&tau; signal.
 
 A &mu;&tau;<sub>h</sub> pair can result from different physical processes, either with a pair correctly reconstructed,
-or from particules or signatures, which are misidentified as such a pair.
+or from particles or signatures, which are misidentified as such a pair.
 
 A muon signature is very unlikely to result from particles other than muons, being charged hadrons
 in most cases, which punch through all detector layers up to the first muon chamber. Therefore, it is rather accurate to assume, that the muon in the selected
