@@ -168,7 +168,7 @@ class ModuleMuTau(Module):
     # SAVE VARIABLES
     # TODO section 4: extend the variable list with more quantities (also high level ones). Compute at least:
     # - visible pt of the Z boson candidate
-    # - best-estimate for pt of Z boson candidate (now including contribution form neutrinos)
+    # - best-estimate for pt of Z boson candidate (now including contribution from neutrinos)
     # - transverse mass of the system composed from the muon and MET vectors. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9.
     #   Caution: use ROOT DeltaPhi for difference in phi and check that deltaPhi is between -pi and pi.Have a look at transverse mass with both versions of MET
     # - Dzeta. Definition can be found in doi:10.1140/epjc/s10052-018-6146-9. Have a look at the variable with both versions of MET
