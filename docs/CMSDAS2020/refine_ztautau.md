@@ -30,7 +30,7 @@ correspond to a real hadronic decay of a &tau; lepton, or to a jet, electron, or
 Jets can produce a &tau;<sub>h</sub> signature for all decay modes of the &tau;<sub>h</sub> candidate, in particular those with 2 charged hadrons, where a third
 charged hadron was missed by the reconstruction. Such &tau;<sub>h</sub> decay modes are strongly contaminated by misidentified signatures. To reduce the contamination
 by jets misidentified as &tau;<sub>h</sub> candidates, proper
-[decay modes](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L124), stored as `decayMode_2`, should be selected,
+[decay modes](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L124) should be selected,
 and the working point of the [discriminator against jets](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L127), stored as `id_2`, should
 be chosen stricter. To get a feeling about the right choice of the working point, have a look at the distribution of the
 [discriminator score](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L190), stored as `iso_2`, in a control plot.
@@ -38,5 +38,5 @@ be chosen stricter. To get a feeling about the right choice of the working point
 Electrons and muons, corresponding to exactly one reconstructed charged object, usually mimic the &tau;<sub>h</sub> decay modes with one charged hadron. Dedicated
 [discriminators against leptons](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L127), stored as `anti_e_2` and `anti_mu_2`,
 were designed to reduce the contamination by leptons
-misidentified as &tau;<sub>h</sub> candidates. To check this effect, have a look at the distribution of the decay mode of the selected
+misidentified as &tau;<sub>h</sub> candidates. To check this effect, have a look at the distribution of the decay mode, stored as `decayMode_2`, of the selected
 &tau;<sub>h</sub> candidate in a control plot.
