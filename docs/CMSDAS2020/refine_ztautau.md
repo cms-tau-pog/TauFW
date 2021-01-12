@@ -9,8 +9,31 @@ our Z&rarr;&tau;&tau; signal, and to define selection criteria, which reject mos
 
 ## Backgrounds contributing to the analysis
 
-On of the first tasks to be done in the context of defining a good Z&rarr;&tau;&tau; selection, is to understand which backgrounds contribute to it, and which specific
+One of the first tasks to be done in the context of defining a good Z&rarr;&tau;&tau; selection, is to understand which backgrounds contribute to it, and which specific
 features do they have in the kinematic phase space of the total collision event.
 
 Let us repeat, what we have already discussed in section [3](preselection.md#processes-contributing-to-a-z%CF%84%CF%84-final-state) about expected contributions and discuss
 in more detail, what makes the backgrounds unique and distinguishable from the Z&rarr;&tau;&tau; signal.
+
+A &mu;&tau;<sub>h</sub> pair can result from different physical processes, either with a pair correctly reconstructed,
+or from particules or signatures, which are misidentified as such a pair.
+
+A muon signature is very unlikely to result from particles other than muons, being charged hadrons
+in most cases, which punch through all detector layers up to the first muon chamber. Therefore, it is rather accurate to assume, that the muon in the selected
+&mu;&tau;<sub>h</sub> pair is a true muon, which is rather isolated, or created within a jet.
+
+In contrast to that, &tau;<sub>h</sub> candidates are difficult objects reconstructed from jet constituents. Therefore, a reconstructed &tau;<sub>h</sub> candidate can
+correspond to a real hadronic decay of a &tau; lepton, or to a jet, electron, or muon misidentified as a &tau;<sub>h</sub> candidate.
+
+Jets can produce a &tau;<sub>h</sub> signature for all decay modes of the &tau;<sub>h</sub> candidate, in particular those with 2 charged hadrons, where a third
+charged hadron was missed by the reconstruction. Such &tau;<sub>h</sub> decay modes are strongly contaminated by misidentified signatures. To reduce the contamination
+by jets misidentified as &tau;<sub>h</sub> candidates, proper
+[decay modes](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L124) should be selected,
+and the working point of the [discriminator against jets](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L127) should
+be choses stricter. To get a feeling about the right choice of the working point, have a look at the distribution of the
+[discriminator score](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L190) in a control plot.
+
+Electrons and muons, corresponding to exactly on reconstructed charged object, usually mimic the &tau;<sub>h</sub> decay modes with one charged hadron. Dedicated
+[discriminators against leptons](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L127) were designed to reduce the contamination by leptons
+misidentified as &tau;<sub>h</sub> candidates. To check this effect, have a look at the distribution of the decay mode of the selected
+&tau;<sub>h</sub> candidate in a control plot.
