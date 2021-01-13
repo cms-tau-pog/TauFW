@@ -15,6 +15,8 @@ features do they have in the kinematic phase space of the total collision event.
 Let us repeat, what we have already discussed in section [3](preselection.md#processes-contributing-to-a-z%CF%84%CF%84-final-state) about expected contributions and discuss
 in more detail, what makes the backgrounds unique and distinguishable from the Z&rarr;&tau;&tau; signal.
 
+### General aspects
+
 A &mu;&tau;<sub>h</sub> pair can result from different physical processes, either with a pair correctly reconstructed,
 or from particles or signatures, which are misidentified as such a pair.
 
@@ -40,3 +42,17 @@ Electrons and muons, corresponding to exactly one reconstructed charged object, 
 were designed to reduce the contamination by leptons
 misidentified as &tau;<sub>h</sub> candidates. To check this effect, have a look at the distribution of the decay mode, stored as `decayMode_2`, of the selected
 &tau;<sub>h</sub> candidate in a control plot.
+
+After having understood, how a reconstructed &mu;&tau;<sub>h</sub> pair can be composed in general, let us now focus on individual contributions to this final state.
+
+### tt&#773; pair production
+
+### W + jets production
+
+### Drell-Yan production
+
+### QCD multijet background
+
+### Di-boson production
+
+### Single top production
