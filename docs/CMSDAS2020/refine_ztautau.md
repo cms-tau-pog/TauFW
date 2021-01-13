@@ -75,7 +75,22 @@ final state particles, which correspond to the &mu;&tau;<sub>h</sub> or the e&mu
 
 Have a look at control plots of these variables, but also at others to define selection criteria to reduce tt&#773; background.
 
-### W + jets
+### W + jets with a charged lepton in final state
+
+Another background, in particular important for the &mu;&tau;<sub>h</sub> final state, is the production of a W boson, accompanied by jets from emission of gluons or quarks.
+For a leptonic decay of the W boson, the most probable constellation of a &mu;&tau;<sub>h</sub> pair is a muon coming directly from a W boson decay, and a jet with
+a signature misidentified as a &tau;<sub>h</sub> candidate.
+
+This means, that not the &mu;&tau;<sub>h</sub> pair corresponds to a resonance, but the invariant system of the muon and its neutrino. This can be exploited
+to distinguish the W + jets background from Z&rarr;&tau;&tau;, if we get the best possible estimate for the mass of this invariant system. Since we do not
+know only the MET as an estimate for the neutrino momentum, the best mass estimate is the **transverse** mass of the invariant system
+of the muon and the MET vector.
+
+A similar effect can also be achieved by making use of the D<sub>&zeta;</sub> variable, so have a look at it to separate W + jets from Z&rarr;&tau;&tau;.
+
+Another obvious quantity to reduce the W + jets contribution is the &tau;<sub>h</sub> discriminator against jets.
+
+Also here, you are advised to have a look at the control plots of these quantities to define appropriate selection criteria.
 
 ### Drell-Yan with charged leptons in final state
 
