@@ -82,8 +82,8 @@ For a leptonic decay of the W boson, the most probable constellation of a &mu;&t
 a signature misidentified as a &tau;<sub>h</sub> candidate.
 
 This means, that not the &mu;&tau;<sub>h</sub> pair corresponds to a resonance, but the invariant system of the muon and its neutrino. This can be exploited
-to distinguish the W + jets background from Z&rarr;&tau;&tau;, if we get the best possible estimate for the mass of this invariant system. Since we do not
-know only the MET as an estimate for the neutrino momentum, the best mass estimate is the **transverse** mass of the invariant system
+to distinguish the W + jets background from Z&rarr;&tau;&tau;, if we get the best possible estimate for the mass of this invariant system. Since we only know
+the MET as an estimate for the neutrino momentum, the best mass estimate is the **transverse** mass of the invariant system
 of the muon and the MET vector.
 
 A similar effect can also be achieved by making use of the D<sub>&zeta;</sub> variable, so have a look at it to separate W + jets from Z&rarr;&tau;&tau;.
