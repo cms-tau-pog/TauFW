@@ -45,14 +45,14 @@ misidentified as &tau;<sub>h</sub> candidates. To check this effect, have a look
 
 After having understood, how a reconstructed &mu;&tau;<sub>h</sub> pair can be composed in general, let us now focus on individual contributions to this final state.
 
-### tt&#773; pair production
+### tt&#773; pair
 
-### W + jets production
+### W + jets
 
-### Drell-Yan production
+### Drell-Yan
 
 ### QCD multijet background
 
-### Di-boson production
+### Di-boson
 
-### Single top production
+### Single top
