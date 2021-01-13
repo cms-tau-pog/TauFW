@@ -86,6 +86,10 @@ to distinguish the W + jets background from Z&rarr;&tau;&tau;, if we get the bes
 the MET as an estimate for the neutrino momentum, the best mass estimate is the **transverse** mass of the invariant system
 of the muon and the MET vector.
 
+If considering the transverse mass, you would expect a peak at about 80 GeV for the W + jets in its distribution, whereas for the Z&rarr;&tau;&tau;, the involved neutrinos
+do not build a resonance with the muon alone, such that you would expect a peak at 0 GeV. For this variable, a good resolution is essential, such that it would be good
+to compare the transverse mass computed with PF MET with the one computed with PUPPI MET.
+
 A similar effect can also be achieved by making use of the D<sub>&zeta;</sub> variable, so have a look at it to separate W + jets from Z&rarr;&tau;&tau;.
 
 Another obvious quantity to reduce the W + jets contribution is the &tau;<sub>h</sub> discriminator against jets.
