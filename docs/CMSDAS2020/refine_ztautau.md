@@ -47,6 +47,13 @@ After having understood, how a reconstructed &mu;&tau;<sub>h</sub> pair can be c
 
 ### tt&#773; pair
 
+Let us first consider the decay chain of the [top quark pair](https://pdg.lbl.gov/2020/reviews/rpp2020-rev-top-quark.pdf).
+At first, the tt&#773; pair decays with a probability of 1 to a pair of bottom quarks and a pair of W bosons:
+
+tt&#773;&rarr;bW<sup>&plus;</sup>b&#773;W<sup>&minus;</sup>
+
+The subsequent decay of the W bosons defines, how the tt&#773; pair production process would contribute to the &mu;&tau;<sub>h</sub> final state.
+
 ### W + jets
 
 ### Drell-Yan
