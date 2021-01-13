@@ -65,12 +65,22 @@ from higher orders in QCD
 
 In summary, the tt&#773; process can contribute to all types of &mu;&tau;<sub>h</sub> pairs discussed in the paragraph with general aspects.
 
+An obvious quantity derived from reconstructed objects, which can be used to distinguish tt&#773; background from Z&rarr;&tau;&tau; signal is the number of b-tagged
+jets in the events. In case of tt&#773; the value is expected to be centered around 2, whereas it should be mostly at 0 for Z&rarr;&tau;&tau;.
+
+Another more sophisticated quantity, in particular very suitable to reduce tt&#773; background in the e&mu; but also in the &mu;&tau;<sub>h</sub> final state,
+is the D<sub>&zeta;</sub> variable,
+which can be considered as a measure whether the invariant system of neutrinos is moving roughly into the same or opposite direction as the invariant system of visible
+final state particles, which correspond to the &mu;&tau;<sub>h</sub> or the e&mu; pair.
+
+Have a look at control plots of these variables, but also at others to define selection criteria to reduce tt&#773; background.
+
 ### W + jets
 
-### Drell-Yan
-
-### QCD multijet background
+### Drell-Yan with charged leptons in final state
 
 ### Di-boson
 
 ### Single top
+
+### QCD multijet background
