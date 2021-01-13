@@ -52,7 +52,18 @@ At first, the tt&#773; pair decays with a probability of 1 to a pair of bottom q
 
 tt&#773;&rarr;bW<sup>&plus;</sup>b&#773;W<sup>&minus;</sup>
 
-The subsequent decay of the W bosons defines, how the tt&#773; pair production process would contribute to the &mu;&tau;<sub>h</sub> final state.
+The subsequent decay of the W bosons defines, how the tt&#773; pair production process would contribute to the &mu;&tau;<sub>h</sub> final state:
+
+* A genuine &mu;&tau;<sub>h</sub> pair is created, if each of the W bosons decay into a &tau; lepton and a &tau; neutrino, and the two &tau; leptons according to the considered
+final state.
+* Since the two W bosons decay independently from each other, the muon could also come directly from the W boson decay, while the W boson is still decaying as in the case above.
+* Furthermore, the &tau;<sub>h</sub> candidate may also result from misidentified signatures from muons, electrons and jets, the latter resulting from a hadronic W boson
+decay.
+* Additional jets can also contribute with a muon or a &tau;<sub>h</sub> candidate, coming from quark or gluon emissions from parton showers or contributions
+from higher orders in QCD
+* Other possibilities with smaller probability also exist, which we will not discuss in detail.
+
+In summary, the tt&#773; process can contribute to all types of &mu;&tau;<sub>h</sub> pairs discussed in the paragraph with general aspects.
 
 ### W + jets
 
