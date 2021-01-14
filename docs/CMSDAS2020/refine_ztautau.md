@@ -114,8 +114,17 @@ should peak at 90 GeV. In contrast to that, the peak of Z&rarr;&tau;&tau; is shi
 
 The usage of the &tau;<sub>h</sub> discriminator against muons should also help to reduce the amount of Z&rarr;&mu;&mu; background.
 
-### Diboson
+### Diboson and single top
 
-### Single top
+These two minor contributions, with the production of two bosons (WW, WZ, or ZZ) or a production of a single top quark can contribute to each type of the
+&mu;&tau;<sub>h</sub> pair, and are mostly relevant for the e&mu; final state.
+Although minor, these backgrounds appear mostly over the full range of considered variables, such that
+it might turn out to be not straight-forward to think of a proper selection to reduce this background effectively.
 
 ### QCD multijet background
+
+The remaining background estimated in a data-driven way as explained in section [4](norm_and_corr_exp.md#data-driven-estimation-of-qcd-multijet-background), covers all
+processes related to production of jets through QCD interactions. The muon from this contribution would be most probably not very isolated, whereas the &tau;<sub>h</sub>
+candidate will be a misidentified jet signature. Therefore, have a look at control plots of isolation related variables to get a feeling about a proper selection to reduce
+QCD multijet background.
+
