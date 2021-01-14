@@ -98,7 +98,23 @@ Also here, you are advised to have a look at the control plots of these quantiti
 
 ### Drell-Yan with charged leptons in final state
 
-### Di-boson
+The Drell-Yan production of the Z boson, which decays into a pair of charged leptons, has the following possibilities to create a &mu;&tau;<sub>h</sub> pair:
+
+* The Z boson can decay in two &tau; leptons, which decay independently from each other according to the considered final state, creating in such a way a genuine
+ &mu;&tau;<sub>h</sub> pair. This would correspond to our Z&rarr;&tau;&tau; signal in the &mu;&tau;<sub>h</sub> final state.
+* The Z boson decay into a pair of muons, such that one of them must be misidentified as a &tau;<sub>h</sub> candidate to enter the &mu;&tau;<sub>h</sub> final state.
+* Additional jets from gluon or quark emissions, which may accompany the Z boson, can create signatures, which are misidentified as &tau; candidates.
+* Other minor contributions due to misidentified objects, which we will not discuss in detail.
+
+In summary, only the Z&rarr;&mu;&mu; background plays a more important role and needs to be distinguished from Z&rarr;&tau;&tau;.
+
+One possibility is to have a look
+at the visible mass of the &mu;&tau;<sub>h</sub> pair. In case of Z&rarr;&mu;&mu; process, the &tau;<sub>h</sub> candidate is a misidentified muon, and the contribution
+should peak at 90 GeV. In contrast to that, the peak of Z&rarr;&tau;&tau; is shifted to lower values, since neutrinos are involved in the Z boson decay.
+
+The usage of the &tau;<sub>h</sub> discriminator against muons should also help to reduce the amount of Z&rarr;&mu;&mu; background.
+
+### Diboson
 
 ### Single top
 
