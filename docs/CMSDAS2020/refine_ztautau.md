@@ -130,3 +130,17 @@ QCD multijet background.
 
 
 ## Group task - define a good selection for Z&rarr;&tau;&tau;
+
+The main task for those of you, who would like to define a proper selection for the &mu;&tau;<sub>h</sub> pair to increase the purity of the Z&rarr;&tau;&tau; signal,
+will be to go carefully through the content listed above and have a look at a lot of control plots of various variables - the more the better. Please consider the following
+tips and instructions to perform the task more effectively:
+
+* Although you are free to implement your changes to selection either in [ModuleMuTau.py](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) or in
+[plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py), you are advised to use a rather loose selection as starting point for the ntuple
+production, and experiment with selection criteria on the plotting level.
+* After having defined all selection criteria you would like to impose, you can implement it for the ntuple production, such that other participants can make use of it.
+* Please consult the group working on [MC corrections](norm_and_corr_exp.md#group-task---implement-the-event-by-event-corrections), whether your selection criteria
+are consistent with the corrections to be applied, in particular in the context of muon efficiencies.
+* For the presentation, explain the purpose of each selection step you have defined to enrich Z&rarr;&tau;&tau; signal and indicate the imposed threshold in the plot of
+the used variable with lines and arrows.
+* Demonstrate the effect of each selection step on the distribution of the visible mass of the &mu;&tau;<sub>h</sub> pair, m<sub>vis</sub>.
