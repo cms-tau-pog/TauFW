@@ -128,3 +128,5 @@ processes related to production of jets through QCD interactions. The muon from 
 candidate will be a misidentified jet signature. Therefore, have a look at control plots of isolation related variables to get a feeling about a proper selection to reduce
 QCD multijet background.
 
+
+## Group task - define a good selection for Z&rarr;&tau;&tau;
