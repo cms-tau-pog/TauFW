@@ -9,3 +9,15 @@ Usually there are two effects on energy, for which corrections are considered in
 * A change in energy resolution, best visibly on the example of a resonance mass peak, which is made broader or narrower.
 
 We will consider the first effect in the context of the exercise.
+
+However, both of these effects can in principle be applied as event-by-event scale factors of the 4-momentum of the &tau;<sub>h</sub> candidate in question:
+
+p<sub>&mu;</sub><sup>corrected</sup>(&tau;<sub>h</sub>) = SF &middot; p<sub>&mu;</sub>(&tau;<sub>h</sub>)
+
+## Quantities affected by energy scale corrections
+
+Let us first look, which quantities apart from the 4-momentum p<sub>&mu;</sub>(&tau;<sub>h</sub>) are affected by an energy scale correction.
+
+Obviously, each quantity, which is using the 4-momentum of the &tau;<sub>h</sub> candidate, p<sub>&mu;</sub>(&tau;<sub>h</sub>), as input, should be recomputed. The simplest
+technical way to update these quantities is to overwrite the 4-momentum of the existing &tau;<sub>h</sub> candidate, such that the corrected values go into the computation of
+related quantities. Otherwise, you would need to do the correction for each quantity by hand.
