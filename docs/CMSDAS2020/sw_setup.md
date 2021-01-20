@@ -60,8 +60,8 @@ To install the analysis framework adapted for the exercise in the created `TauLo
 cd ~/TauLongCMSDAS2020
 
 # Checking out CMSSW
-cmsrel CMSSW_10_6_17_patch1
-cd CMSSW_10_6_17_patch1/src
+cmsrel CMSSW_10_6_20_patch1
+cd CMSSW_10_6_20_patch1/src
 cmsenv
 
 # Analysis SW
@@ -82,8 +82,8 @@ To do this, perform the following commands, safest in a separate, fresh terminal
 cd ~/TauLongCMSDAS2020
 
 # Checking out CMSSW for statistical inference (different from TauFW)
-cmsrel CMSSW_10_2_23
-cd CMSSW_10_2_23/src
+cmsrel CMSSW_10_2_25
+cd CMSSW_10_2_25/src
 cmsenv
 
 # Combine package
@@ -115,14 +115,14 @@ After the forking process is finished, you can add the forked repositories as ad
 
 ```sh
 # your fork for TauFW
-cd ~/TauLongCMSDAS2020/CMSSW_10_6_17_patch1/src/TauFW/
+cd ~/TauLongCMSDAS2020/CMSSW_10_6_20_patch1/src/TauFW/
 git remote add myfork https://github.com/<github-username>/TauFW
 
 # print out all remotes of TauFW
 git remote -v
 
 # your fork for CombineHarvester/CMSDAS2020TauLong
-cd ~/TauLongCMSDAS2020/CMSSW_10_2_23/src/CombineHarvester/CMSDAS2020TauLong
+cd ~/TauLongCMSDAS2020/CMSSW_10_2_25/src/CombineHarvester/CMSDAS2020TauLong
 git remote add myfork https://github.com/<github-username>/CMSDAS2020TauLong.git
 
 # print out all remotes of CombineHarvester/CMSDAS2020TauLong

@@ -12,7 +12,7 @@ and [8](prep_stat_inference.md), you need to do the following each time you perf
 
 ```sh
 # Moving into TauFW working directory
-cd ~/TauLongCMSDAS2020/CMSSW_10_6_17_patch1/src
+cd ~/TauLongCMSDAS2020/CMSSW_10_6_20_patch1/src
 
 # Setting the CMSSW environment
 cmsenv
@@ -50,7 +50,7 @@ In case of the statistical inference covered in sections [8](prep_stat_inference
 
 ```sh
 # Moving into Combine & CombineHarvester working directory
-cd ~/TauLongCMSDAS2020/CMSSW_10_2_23/src
+cd ~/TauLongCMSDAS2020/CMSSW_10_2_25/src
 
 # Setting the CMSSW environment
 cmsenv
