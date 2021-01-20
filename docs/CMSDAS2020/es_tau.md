@@ -128,7 +128,7 @@ also systematic effects are considered, would be more appropriate compared to ou
 
 ## Application of &tau;<sub>h</sub> energy scale corrections and uncertainties
 
-After you have determined the &tau;<sub>h</sub> scale correction and uncertainty variations, you can run the corresponding n-tuple production.
+After you have determined the &tau;<sub>h</sub> energy scale correction and uncertainty variations, you can run the corresponding n-tuple production.
 Assuming some example values for the shifts, the commands for the analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py)
 would look as follows, if looking at the small script given in section [4](flat_n-tuples.md#alternative-parallel-processing-with-a-script):
  
