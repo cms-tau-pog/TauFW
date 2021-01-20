@@ -138,13 +138,11 @@ tescorr = 1.01
 tesup = 1.04
 tesdown = 0.98
 
-...
-
+#...
 nominal_commands = ['pico.py run -c mutau -y 2018 -s {SAMPLE} --opts "tes={TES}" -n -1'.format(SAMPLE=s,TES=tescorr) for s in samplenames_nominal]
 tesup_commands   = ['pico.py run -c mutau -y 2018 -s {SAMPLE} --opts "tes={TES}" --tag _tauh_esUp -n -1'.format(SAMPLE=s,TES=tesup) for s in samplenames_tes]
 tesdown_commands = ['pico.py run -c mutau -y 2018 -s {SAMPLE} --opts "tes={TES}" --tag _tauh_esDown -n -1'.format(SAMPLE=s,TES=tesdown) for s in samplenames_tes]
-
-...
+#...
 ```
 
 Thereby, `samplenames_nominal` is the full list of samples, whereas the list `samplenames_tes` correspond only to simulated samples.
