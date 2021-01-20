@@ -24,7 +24,7 @@ A muon signature is very unlikely to result from particles other than muons, bei
 in most cases, which punch through all detector layers up to the first muon chamber. Therefore, it is rather accurate to assume, that the muon in the selected
 &mu;&tau;<sub>h</sub> pair is a true muon, which is rather isolated, or created within a jet. To get a feeling, how isolated the muon should be to restrict the
 selection to the Z&rarr;&tau;&tau; signal, you can have a look at the control plot of distribution of the muon
-[isolation sum](https://github.com/ArturAkh/TauFW/blob/master/PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L182), `iso_1`.
+[isolation sum](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L182), `iso_1`.
 
 In contrast to that, &tau;<sub>h</sub> candidates are difficult objects reconstructed from jet constituents. Therefore, a reconstructed &tau;<sub>h</sub> candidate can
 correspond to a real hadronic decay of a &tau; lepton, or to a jet, electron, or muon misidentified as a &tau;<sub>h</sub> candidate.

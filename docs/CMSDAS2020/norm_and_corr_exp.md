@@ -480,8 +480,8 @@ only be computed for and applied to the simulated events of the Drell-Yan proces
 in a similar way as the sample type `dtype` in [ModuleMuTau.py](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L25).
 
 After having introduced a sample specific weight `zptWeight` to your Drell-Yan n-tuple, you can add it with the `extraweight` key into the dictionary of the Drell-Yan
-process in [plots_and_histograms_CMSDAS2020.py](https://github.com/ArturAkh/TauFW/blob/master/Plotter/plots_and_histograms_CMSDAS2020.py#L37-L38), as already done for `nevts`.
-An example, how this can be done, is given in [samples.py](https://github.com/ArturAkh/TauFW/blob/master/Plotter/config/samples.py#L19-L24).
+process in [plots_and_histograms_CMSDAS2020.py](../../Plotter/plots_and_histograms_CMSDAS2020.py#L37-L38), as already done for `nevts`.
+An example, how this can be done, is given in [samples.py](../../Plotter/config/samples.py#L19-L24).
 
 To demonstrate the change introduced by this correction, you can have a look at the control plots of the visible Z boson p<sub>T</sub>, computed from the p<sub>T</sub>
 of the &mu;&tau;<sub>h</sub> pair, and the best reconstructed estimate for the Z boson p<sub>T</sub>, corresponding to the vector sum of &mu;&tau;<sub>h</sub>
