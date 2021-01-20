@@ -36,3 +36,15 @@ Another point, that should be taken into account are selection steps, which migh
 if it is shifted, then also p<sub>T</sub>(&tau;<sub>h</sub>) will change, such that a requirement on that quantity would have a different effect. Therefore, it is important
 to apply energy corrections before any selection requirement on related quantities.
 
+The last point to be taken into account is the consistency of the global event description. To ensure this,
+you would need to propagate the change in the p<sub>T</sub>(&tau;<sub>h</sub>) vector also to the MET vector. Consequently, all quantities related to the MET vector should
+also be recomputed with the changes. Please think in particular about the following quantities explicitly:
+
+* How should the MET vector be recomputed?
+* What is the impact on the transverse mass of the system of muon and MET vector?
+* Is the best estimate for the transverse momentum of the &tau;&tau; pair (so including neutrinos), p<sub>T</sub>(&tau;&tau;), affected?
+
+Also in this case, a change of the MET vector itself before any computation of related quantities would be the most elegant solution.
+
+## Which &tau;<sub>h</sub> candidates should be corrected?
+
