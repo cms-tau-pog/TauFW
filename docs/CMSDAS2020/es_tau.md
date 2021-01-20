@@ -108,3 +108,20 @@ After having created the histograms for each scale variation, we should quantify
 a proper maximum likelihood fit, we will use a &chi;<sup>2</sup> test-statistic computed from bin contents of the data and expectation histograms.
 
 To do this, please create a script, which can access the nominal histograms from data and expected backgrounds, and the varied Z&rarr;&tau;&tau; signals.
+For each scale variation, you would need to compute the total expected histogram (exp) from backgrounds and the varied signal. The uncertainties of the histograms should
+added quadratically to each other if summing the histograms. This is achieved for `TH1` histograms, if the option `TH1::Sumw2()` is activated for each histogram.
+
+Then you compute &chi;<sup>2</sup> as follows:
+
+ &chi;<sup>2</sup> = &Sigma;<sub>i</sub> (data<sub>i</sub> - exp<sub>i</sub>)<sup>2</sup> / &sigma;<sup>2</sup><sub>i</sub>
+ 
+ Thereby, the sum &Sigma;<sub>i</sub> runs over the histogram bins, data<sub>i</sub> and exp<sub>i</sub> are the bin contents of data and total expected background
+ respectively, and &sigma;<sub>i</sub> is the uncertainty of the total expected background in a histogram bin.
+ 
+ Finally, you can plot the &chi;<sup>2</sup> values as a function of scale variations and try to determine the minimum of the obtained curve. If well-behaving,
+ the curve should correspond roughly to a parabola. The minimum min(&chi;<sup>2</sup>) of the curve corresponds then to the required energy scale correction.
+ If you then compute the difference of &Delta;&chi;<sup>2</sup> = &chi;<sup>2</sup> - min(&chi;<sup>2</sup>), you can determine also the uncertainties by
+ taking the scale variations, for which &Delta;&chi;<sup>2</sup> crosses a value of 1.
+ 
+ Based on the obtained uncertainties, do you think these values are justified? In case your uncertainty values are very small, it might be, that a full analysis, where
+ also systematic effects are considered, would be more appropriate compared to our simplified aproach with only statistical uncertainties.
