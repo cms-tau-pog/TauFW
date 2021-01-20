@@ -45,6 +45,7 @@ class ModuleTauPair(Module):
     self.dotight    = kwargs.get('tight',   self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
     self.dojec      = kwargs.get('jec',     True           ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',  self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
+    self.useT1      = kwargs.get('useT1',   False          ) # MET T1
     self.verbosity  = kwargs.get('verb',    0              ) # verbosity
     self.jetCutPt   = 30
     self.bjetCutEta = 2.7
@@ -54,7 +55,7 @@ class ModuleTauPair(Module):
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
-    self.met        = getmet(self.era,"nom" if self.dojec else "",verb=self.verbosity)
+    self.met        = getmet(self.era,"nom" if self.dojec else "",useT1=self.useT1,verb=self.verbosity)
     self.filter     = getmetfilters(self.era,self.isdata,verb=self.verbosity)
     
     # CORRECTIONS
@@ -75,7 +76,7 @@ class ModuleTauPair(Module):
       #if self.dojecsys:
       #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
       #  self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
-      #  self.met_vars     = { u: getMET(self.year,u) for u in self.metUncLabels }
+      #  self.met_vars     = { u: getMET(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
       if self.isUL and self.tes==None:
         self.tes = 1.0 # placeholder
     

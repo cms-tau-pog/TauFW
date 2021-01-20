@@ -71,7 +71,7 @@ def hasbit(value,bit):
   return (value & (1 << bit))>0
   
 
-def dumpgenpart(part,genparts=None,event=None):
+def dumpgenpart(part,genparts=None,event=None,flags=[]):
   """Print information on gen particle. If collection is given, also print mother's PDG ID."""
   info = ">>>  i=%2s, PID=%3s, status=%2s, mother=%2s"%(part._index,part.pdgId,part.status,part.genPartIdxMother)
   if part.genPartIdxMother>=0:
@@ -81,6 +81,8 @@ def dumpgenpart(part,genparts=None,event=None):
     elif event:
       moth  = event.GenPart_pdgId[part.genPartIdxMother]
       info += " (%s)"%(moth)
+  for bit in flags:
+    info += ", bit%s=%d"%(bit,hasbit(part.statusFlags,bit))
   print info
   
 
@@ -101,9 +103,13 @@ def deltaPhi(phi1, phi2):
   return res
   
 
-def getmet(era,var="",verb=0):
+def getmet(era,var="",useT1=False,verb=0):
   """Return year-dependent MET recipe."""
   branch  = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
+  if useT1 and 'unclustEn' not in var:
+    branch += "_T1"
+    if var=='nom':
+      var = ""
   pt      = '%s_pt'%(branch)
   phi     = '%s_phi'%(branch)
   if var:
