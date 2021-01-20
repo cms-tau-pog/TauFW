@@ -84,13 +84,27 @@ import numpy as np
 from multiprocessing import Pool
 
 ncpus = 5 # change appropriately to the limitations of the machine you are working on
-scales = np.arange(0.96,  1.04, 0.01) # modify the range and steps, if needed
+scales = np.arange(0.96, 1.04, 0.01) # modify the range and steps, if needed
 
 def create_tes_tuples(scale)
     scale =  round(i,3)
     scaletag = '_' + str(scale).replace('.','p')
-    os.system('pico.py run -y 2016 -s DY -c mutau --opts 'tes={SCALE}' -t {TAG}'.format(SCALE=scale,TAG=scaletag))
+    os.system('pico.py run -y 2016 -s DY -c mutau --opts "tes={SCALE}" -t {TAG}'.format(SCALE=scale,TAG=scaletag))
     
 p = Pool(ncpus)
 p.map(create_tes_tuples, scales)
 ```
+
+In a similar way (in the `Plotter` directory), you can create plots and histograms with the scale variations by replacing the used command with:
+
+```python
+'./plots_and_histograms_CMSDAS2020.py -c mutau -y 2018 -t {TAG}'.format(TAG=scaletag)
+```
+
+This should create separate output files with adapted process names, which you can then `hadd` to one file. It will contain the processes related to Drell-Yan production
+with a modified name. Please cross-check, that only the Z&rarr;&tau;&tau; process corresponding to histogram names with `ZTT` is significantly changed by the energy shift.
+
+After having created the histograms for each scale variation, we should quantify the agreement between the expected processes and data. Instead of performing
+a proper maximum likelihood fit, we will use a &chi;<sup>2</sup> test-statistic computed from bin contents of the data and expectation histograms.
+
+To do this, please create a script, which can access the nominal histograms from data and expected backgrounds, and the varied Z&rarr;&tau;&tau; signals.
