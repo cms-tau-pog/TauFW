@@ -56,3 +56,9 @@ reconstructed &tau;<sub>h</sub> candidates by matching, `Tau_genPartFlav`
 To sum up, you would need to apply the correction to &tau;<sub>h</sub> candidates from **simulated** events, which correspond to a **true hadronic decay** of a &tau; lepton.
 
 ## Determination of the correct &tau;<sub>h</sub> energy scale
+
+As described in [doi:10.1088/1748-0221/13/10/P10005](http://dx.doi.org/10.1088/1748-0221/13/10/P10005), a complete analysis would be needed to measure the 
+&tau;<sub>h</sub> energy scale correction properly. In the context of this exercise, we will perform a simpler approach.
+
+The first step would be to obtain a pure set of events with genuine &tau;<sub>h</sub> candidates. Since we will use Z&rarr;&tau;&tau; events for this measurement,
+you can profit from findings of the group working on improvements of the Z&rarr;&tau;&tau; selection, described in section [6](refine_ztautau.md).
