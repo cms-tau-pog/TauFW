@@ -118,7 +118,7 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",histdir="",era=""
   
   # PLOT and HIST
   outdir   = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
-  histdir  = ensuredir(repkey(histdir,CHANNEL=channel,ERA=era))
+  histdir  = ensuredir(repkey(histdir,CHANNEL=channel,ERA=era,TAG=tag))
   outhists = R.TFile.Open(histdir,'recreate')
   exts     = ['png','pdf']
   for selection in selections:
@@ -131,7 +131,7 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",histdir="",era=""
     for stack, variable in stacks.iteritems():
       outhists.cd(selection.filename)
       for h in stack.hists:
-        h.Write(h.GetName().replace("QCD_","QCD"),R.TH1.kOverwrite)
+        h.Write(h.GetName().replace("QCD_","QCD") + tag,R.TH1.kOverwrite)
       stack.draw()
       stack.drawlegend(x1=0.6,x2=0.95,y1=0.35,y2=0.95)
       stack.drawtext(text)
@@ -145,8 +145,8 @@ def main(args):
   era     = args.era
   parallel = args.parallel
   outdir   = "plots/$ERA"
-  histdir  = "hists/$ERA/$CHANNEL.root"
-  tag      = ""
+  histdir  = "hists/$ERA/$CHANNEL$TAG.root"
+  tag      = args.tag
   fpattern = args.picopattern
 
   setera(era) # set era for plot style and lumi-xsec normalization
@@ -164,6 +164,8 @@ if __name__ == "__main__":
                                          help="Set era. Default: %(default)s" )
   parser.add_argument('-c', '--channel', dest='channel', type=str, default="mutau",
                                          help="Set channel. Default: %(default)s" )
+  parser.add_argument('-t', '--tag',     dest='tag', type=str, default="",
+                                         help="Set tag. Default: %(default)s" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="Run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',

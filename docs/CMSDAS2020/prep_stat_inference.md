@@ -15,21 +15,21 @@ and the variations of &tau;<sub>h</sub> energy scale corresponding to the uncert
 Based on these n-tuples, you can produce plots and - more important for the statistical inference - histograms
 of our main discriminator, the visible mass of the &mu;&tau;<sub>h</sub> (or e&mu;) pair. Please use for that
 the selection defined as `signal_region` enriching Z&rarr;&tau;&tau;, and include the weights needed to apply corrections. Also do
-not forget to modify the QCD extrapolation factor [`scale`](https://github.com/ArturAkh/TauFW/blob/master/Plotter/plots_and_histograms_CMSDAS2020.py#L126) according
+not forget to modify the QCD extrapolation factor [`scale`](../../Plotter/plots_and_histograms_CMSDAS2020.py#L126) according
 to your measurement of that factor.
 
 For the systematic variations of the &tau;<sub>h</sub> energy scale in the &mu;&tau;<sub>h</sub> final state, you can also create histograms for the processes affected
 by it, for example `TopT`, `EWKT`, `ZTT`, but with the [`tag`](../../Plotter/plots_and_histograms_CMSDAS2020.py#L149) 
-modified to the way you have saved the downvard and upward variations of the energy scale n-tuples using the tag.
-Then, modify the naming of the histograms as follows in the corresponding lines:
+modified to the way you have saved the downvard and upward variations of the energy scale n-tuples (for example, `_tauh_esDown` and `_tauh_esDown`).
+The naming of the histograms is then accounted for in the following lines:
 
 ```python
+    # assuming, that '_tauh_esDown' and '_tauh_esUp' are stored in 'tag' key for the &tau;<sub>h</sub> energy scale
     # ...
-    variation_name = "tauh_esDown" # change to tauh_esUp for the other variation
     for stack, variable in stacks.iteritems():
       outhists.cd(selection.filename)
       for h in stack.hists:
-        h.Write(h.GetName().replace("QCD_","QCD") + variation_name,R.TH1.kOverwrite) # adding to the name for es variations in addition
+        h.Write(h.GetName().replace("QCD_","QCD") + tag,R.TH1.kOverwrite) # adding to the name for es variations in addition
     # ...
 ```
 
