@@ -55,7 +55,7 @@ reconstructed &tau;<sub>h</sub> candidates by matching, `Tau_genPartFlav`
 
 To sum up, you would need to apply the correction to &tau;<sub>h</sub> candidates from **simulated** events, which correspond to a **true hadronic decay** of a &tau; lepton.
 
-## Determination of the correct &tau;<sub>h</sub> energy scale
+## Group task - determination of the &tau;<sub>h</sub> energy scale
 
 As described in [doi:10.1088/1748-0221/13/10/P10005](http://dx.doi.org/10.1088/1748-0221/13/10/P10005), a complete analysis would be needed to measure the 
 &tau;<sub>h</sub> energy scale correction properly. In the context of this exercise, we will perform a simpler approach.
@@ -89,7 +89,7 @@ scales = np.arange(0.96, 1.04, 0.01) # modify the range and steps, if needed
 def create_tes_tuples(scale)
     scale =  round(i,3)
     scaletag = '_' + str(scale).replace('.','p')
-    os.system('pico.py run -y 2016 -s DY -c mutau --opts "tes={SCALE}" -t {TAG}'.format(SCALE=scale,TAG=scaletag))
+    os.system('pico.py run -y 2016 -s DY -c mutau --opts "tes={SCALE}" -t {TAG} -n -1'.format(SCALE=scale,TAG=scaletag))
     
 p = Pool(ncpus)
 p.map(create_tes_tuples, scales)
@@ -113,15 +113,38 @@ added quadratically to each other if summing the histograms. This is achieved fo
 
 Then you compute &chi;<sup>2</sup> as follows:
 
- &chi;<sup>2</sup> = &Sigma;<sub>i</sub> (data<sub>i</sub> - exp<sub>i</sub>)<sup>2</sup> / &sigma;<sup>2</sup><sub>i</sub>
+&chi;<sup>2</sup> = &Sigma;<sub>i</sub> (data<sub>i</sub> - exp<sub>i</sub>)<sup>2</sup> / &sigma;<sup>2</sup><sub>i</sub>
  
- Thereby, the sum &Sigma;<sub>i</sub> runs over the histogram bins, data<sub>i</sub> and exp<sub>i</sub> are the bin contents of data and total expected background
- respectively, and &sigma;<sub>i</sub> is the uncertainty of the total expected background in a histogram bin.
+Thereby, the sum &Sigma;<sub>i</sub> runs over the histogram bins, data<sub>i</sub> and exp<sub>i</sub> are the bin contents of data and total expected background
+respectively, and &sigma;<sub>i</sub> is the uncertainty of the total expected background in a histogram bin.
+
+Finally, you can plot the &chi;<sup>2</sup> values as a function of scale variations and try to determine the minimum of the obtained curve. If well-behaving,
+the curve should correspond roughly to a parabola. The minimum min(&chi;<sup>2</sup>) of the curve corresponds then to the required energy scale correction.
+If you then compute the difference of &Delta;&chi;<sup>2</sup> = &chi;<sup>2</sup> - min(&chi;<sup>2</sup>), you can determine also the uncertainties by
+taking the scale variations, for which &Delta;&chi;<sup>2</sup> crosses a value of 1.
+
+Based on the obtained uncertainties, do you think these values are justified? In case your uncertainty values are very small, it might be, that a full analysis, where
+also systematic effects are considered, would be more appropriate compared to our simplified aproach with only statistical uncertainties.
+
+## Application of &tau;<sub>h</sub> energy scale corrections and uncertainties
+
+After you have determined the &tau;<sub>h</sub> scale correction and uncertainty variations, you can run the corresponding n-tuple production.
+Assuming some example values for the shifts, the commands for the analysis module [ModuleMuTau](../../PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py)
+would look as follows, if looking at the small script given in section [4](flat_n-tuples.md#alternative-parallel-processing-with-a-script):
  
- Finally, you can plot the &chi;<sup>2</sup> values as a function of scale variations and try to determine the minimum of the obtained curve. If well-behaving,
- the curve should correspond roughly to a parabola. The minimum min(&chi;<sup>2</sup>) of the curve corresponds then to the required energy scale correction.
- If you then compute the difference of &Delta;&chi;<sup>2</sup> = &chi;<sup>2</sup> - min(&chi;<sup>2</sup>), you can determine also the uncertainties by
- taking the scale variations, for which &Delta;&chi;<sup>2</sup> crosses a value of 1.
- 
- Based on the obtained uncertainties, do you think these values are justified? In case your uncertainty values are very small, it might be, that a full analysis, where
- also systematic effects are considered, would be more appropriate compared to our simplified aproach with only statistical uncertainties.
+```python
+# example values for shifts
+tescorr = 1.01
+tesup = 1.04
+tesdown = 0.98
+
+...
+
+nominal_commands = ['pico.py run -c mutau -y 2018 -s {SAMPLE} --opts "tes={TES}" -n -1'.format(SAMPLE=s,TES=tescorr) for s in samplenames_nominal]
+tesup_commands   = ['pico.py run -c mutau -y 2018 -s {SAMPLE} --opts "tes={TES}" --tag _tauh_esUp -n -1'.format(SAMPLE=s,TES=tesup) for s in samplenames_tes]
+tesdown_commands = ['pico.py run -c mutau -y 2018 -s {SAMPLE} --opts "tes={TES}" --tag _tauh_esDown -n -1'.format(SAMPLE=s,TES=tesdown) for s in samplenames_tes]
+
+...
+```
+
+Thereby, `samplenames_nominal` is the full list of samples, whereas the list `samplenames_tes` correspond only to simulated samples.
