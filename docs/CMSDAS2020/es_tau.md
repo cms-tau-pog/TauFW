@@ -61,4 +61,36 @@ As described in [doi:10.1088/1748-0221/13/10/P10005](http://dx.doi.org/10.1088/1
 &tau;<sub>h</sub> energy scale correction properly. In the context of this exercise, we will perform a simpler approach.
 
 The first step would be to obtain a pure set of events with genuine &tau;<sub>h</sub> candidates. Since we will use Z&rarr;&tau;&tau; events for this measurement,
-you can profit from findings of the group working on improvements of the Z&rarr;&tau;&tau; selection, described in section [6](refine_ztautau.md).
+you can profit from findings of the group working on improvements of the Z&rarr;&tau;&tau; selection, described in section [6](refine_ztautau.md). In that way, you can restrict
+yourself to processing only the Drell-Yan process, which will Z&rarr;&tau;&tau; events.
+
+Next, you should introduce a rescaling of the 4-momentum of the &tau;<sub>h</sub> candidate before any selection related to it, in the analysis module
+[ModuleMuTau](https://github.com/ArturAkh/TauFW/blob/master/PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py#L126). Please note, that in the preselection
+discussed in section [3](preselection.md), we have used a threshold of 18 GeV on p<sub>T</sub>(&tau;<sub>h</sub>), so slightly lower, that the recommended threshold of
+20 GeV. This is done to taking into account, that &tau;<sub>h</sub> candidate with uncorrected p<sub>T</sub>(&tau;<sub>h</sub>) slightly below 20 GeV may get above this
+thershold after a corresponding energy shift.
+
+You are advised make the rescaling configurable by appropriate keyword argument to set the correction to a desired value. This can be done in an analogous way as in
+the module [ModuleTauPair.py](https://github.com/ArturAkh/TauFW/blob/master/PicoProducer/python/analysis/ModuleTauPair.py#L35). Please do not forget to use the rescaling
+and all subsequent recomputations only for simulated samples and only for genuine &tau;<sub>h</sub> candidates!
+
+If you introduce such an option, for example called `tes`, you can use it to run the analysis module
+[ModuleMuTau](https://github.com/ArturAkh/TauFW/blob/master/PicoProducer/python/analysis/CMSDAS2020/ModuleMuTau.py) with different settings of the &tau;<sub>h</sub>
+energy scale. Using a small `python` script, you can even run the variations one after another in one go, also using `multiprocessing`:
+
+```python
+import os
+import numpy as np
+from multiprocessing import Pool
+
+ncpus = 5 # change appropriately to the limitations of the machine you are working on
+scales = np.arange(0.96,  1.04, 0.01) # modify the range and steps, if needed
+
+def create_tes_tuples(scale)
+    scale =  round(i,3)
+    scaletag = '_' + str(scale).replace('.','p')
+    os.system('pico.py run -y 2016 -s DY -c mutau --opts 'tes={SCALE}' -t {TAG}'.format(SCALE=scale,TAG=scaletag))
+    
+p = Pool(ncpus)
+p.map(create_tes_tuples, scales)
+```
