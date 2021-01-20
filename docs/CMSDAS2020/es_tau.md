@@ -48,3 +48,11 @@ Also in this case, a change of the MET vector itself before any computation of r
 
 ## Which &tau;<sub>h</sub> candidates should be corrected?
 
+It is important to know, which &tau;<sub>h</sub> candidates we actually plan to correct. In general, we should ensure that these are genuine &tau;<sub>h</sub> candidates,
+and not the ones from misidentified signatures. Since this is a correction to simulated events, we can make use of Monte-Carlo generator information associated to the
+reconstructed &tau;<sub>h</sub> candidates by matching, `Tau_genPartFlav`
+(see [NanoAOD documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html)).
+
+To sum up, you would need to apply the correction to &tau;<sub>h</sub> candidates from **simulated** events, which correspond to a **true hadronic decay** of a &tau; lepton.
+
+## Determination of the correct &tau;<sub>h</sub> energy scale
