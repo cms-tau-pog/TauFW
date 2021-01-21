@@ -30,6 +30,7 @@ class MergedSample(Sample):
     self.isexp        = sample.isexp
     self.issignal     = sample.issignal
     self.lumi         = sample.lumi
+    self.cutflow      = sample.cutflow
     self.fillcolor    = kwargs.get('color',    self.fillcolor) or sample.fillcolor
     self.linecolor    = kwargs.get('linecolor',self.linecolor) or sample.linecolor
   
@@ -118,6 +119,25 @@ class MergedSample(Sample):
     LOG.verb('MergedSample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
              newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),level=2)
     return newsample
+  
+  def getcutflow(self,cutflow=None):
+    """Get cutflow histogram from file."""
+    if not cutflow:
+      cutflow = self.cutflow()
+    cfhist = None
+    for sample in self.samples:
+      hist  = sample.getcutflow()
+      if not hist: continue
+      scale = sample.norm*sample.scale*sample.upscale
+      if cfhist:
+        cfhist.Add(hist,scale)
+      else:
+        cfhist = hist.Clone('cutflow_total')
+        cfhist.Scale(scale)
+      deletehist(hist)
+    if not cfhist:
+      LOG.warning("MergedSample.getcutflow: Could not find cutflow histogram %r for %s!"%(cutflow,sample))
+    return cfhist
   
   def gethist(self, *args, **kwargs):
     """Create and fill histgram for multiple samples. Overrides Sample.gethist."""

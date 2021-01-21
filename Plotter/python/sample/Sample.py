@@ -7,7 +7,7 @@ from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist
 from TauFW.Plotter.sample.SampleStyle import *
 from TauFW.Plotter.plot.MultiDraw import MultiDraw
-from ROOT import TTree
+from ROOT import TTree, TFile
 
 
 class Sample(object):
@@ -58,9 +58,10 @@ class Sample(object):
     self.treename     = kwargs.get('tree',         None         ) or 'tree'
     self.nevents      = kwargs.get('nevts',        nevts        ) # "raw" number of events
     self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed for check for missing events
-    self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum weights
+    self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum (generator) weights
     self.binnevts     = kwargs.get('binnevts',     None         ) or 1  # cutflow bin with total number of (unweighted) events
     self.binsumw      = kwargs.get('binsumw',      None         ) or 17 # cutflow bin with total sum of weight
+    self.cutflow      = kwargs.get('cutflow',      'cutflow'    ) # name of the cutflow histogram to get nevents
     self.lumi         = kwargs.get('lumi',         GLOB.lumi    ) # integrated luminosity
     self.norm         = kwargs.get('norm',         None         ) # lumi*xsec/binsumw normalization
     self.scale        = kwargs.get('scale',        1.0          ) # scales factor (e.g. for W+Jets renormalization)
@@ -75,17 +76,17 @@ class Sample(object):
     self.isembed      = kwargs.get('embed',        False        ) # flag for embedded sample
     self.isexp        = kwargs.get('exp',          self.isembed ) or not (self.isdata or self.issignal) # background MC (expected SM process)
     self.blinddict    = kwargs.get('blind',        { }          ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
-    self.fillcolor    = kwargs.get('color',        None         ) or kBlack if self.isdata else self.setcolor() # fill color
+    self.fillcolor    = kwargs.get('color',        None         ) or (kBlack if self.isdata else self.setcolor()) # fill color
     self.linecolor    = kwargs.get('lcolor',       kBlack       ) # line color
     self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search terms
     if not isinstance(self,MergedSample):
       file = ensureTFile(self.filename) # check file
       file.Close()
       if self.isdata:
-        self.setnevents(self.binnevts,self.binsumw)
+        self.setnevents(self.binnevts,self.binsumw,cutflow=self.cutflow)
       elif not self.isembed: #self.xsec>=0:
         if self.nevents<0:
-          self.setnevents(self.binnevts,self.binsumw) # set nevents and sumweights from cutflow histogram
+          self.setnevents(self.binnevts,self.binsumw,cutflow=self.cutflow) # set nevents and sumweights from cutflow histogram
         if self.sumweights<0:
           self.sumweights = self.nevents # set sumweights to nevents (assume genweight==1)
         if self.norm==None:
@@ -284,11 +285,11 @@ class Sample(object):
       sumw_old    = self.sumweights
       nevts_old   = self.nevents
       if self.isdata:
-        self.setnevents(self.binnevts,self.binsumw)
+        self.setnevents(self.binnevts,self.binsumw,cutflow=self.cutflow)
       if self.isembed:
         pass
       elif self.xsec>=0:
-        self.setnevents(self.binnevts,self.binsumw)
+        self.setnevents(self.binnevts,self.binsumw,cutflow=self.cutflow)
         #self.normalize(lumi=self.lumi) # can affect scale computed by stitching
       if reldiff(sumw_old,self.sumweights)>0.02 or reldiff(sumw_old,self.sumweights)>0.02:
         LOG.warning('Sample.appendfilename: file %s has a different number of events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
@@ -360,20 +361,34 @@ class Sample(object):
      return self
    return None
   
-  def setnevents(self,binnevts=None,binsumw=None,cutflow='cutflow'):
-    """Automatocally set number of events from the cutflow histogram."""
+  def getcutflow(self,cutflow=None):
+    """Get cutflow histogram from file."""
+    if not cutflow:
+      cutflow = self.cutflow
+    file = self.getfile()
+    hist = file.Get(cutflow)
+    if hist:
+      hist.SetDirectory(0)
+    else:
+      LOG.warning("Sample.getcutflow: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
+    file.Close()
+    return hist
+  
+  def setnevents(self,binnevts=None,binsumw=None,cutflow=None):
+    """Automatically set number of events from the cutflow histogram."""
+    if not cutflow:
+      cutflow = self.cutflow
     file   = self.getfile()
     cfhist = file.Get(cutflow)
     if binnevts==None: binnevts = self.binnevts
     if binsumw==None:  binsumw  = self.binsumw
     if not cfhist:
-      errstr = 'Could not find cutflow histogram %r in %s!'%(cutflow,self.filename)
       if self.nevents>0:
         if self.sumweights<=0:
           self.sumweights = self.nevents
-        LOG.warning("Could not find cutflow histogram %r in %s! nevents=%.1f, sumweights=%.1f"%(cutflow,self.filename,self.nevents,self.sumweights))
+        LOG.warning("Sample.setnevents: Could not find cutflow histogram %r in %s! nevents=%.1f, sumweights=%.1f"%(cutflow,self.filename,self.nevents,self.sumweights))
       else:
-        LOG.throw(IOError,"Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
+        LOG.throw(IOError,"Sample.setnevents: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     self.nevents    = cfhist.GetBinContent(binnevts)
     self.sumweights = cfhist.GetBinContent(binsumw)
     if self.nevents<=0:
@@ -383,7 +398,6 @@ class Sample(object):
       LOG.warning("Sample.setnevents: Bin %d of %r to retrieve sumweights is %s<=0!"
                   "In initialization, please specify the keyword 'binsumw' to select the right bin, or directly set the number of events with 'sumw'."%(binsumw,self.sumweights,cutflow))
       self.sumweights = self.nevents
-    file.Close()
     if 0<self.nevents<self.nexpevts*0.97: # check for missing events
       LOG.warning('Sample.setnevents: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
     return self.nevents
@@ -535,11 +549,42 @@ class Sample(object):
     self.splitsamples = splitsamples # save list of split samples
     return splitsamples
   
+  def getentries(self, selection, **kwargs):
+    """Get number of events for a given selection string."""
+    verbosity  = LOG.getverbosity(kwargs)
+    norm       = kwargs.get('norm', True ) # normalize to cross section
+    norm       = self.norm if norm else 1.
+    scale      = kwargs.get('scale', 1.0 ) * self.scale * norm
+    if not isinstance(selection,Selection):
+      selection = Selection(selection)
+    if self.isdata:
+      weight = joinweights(self.weight,self.extraweight,kwargs.get('weight',""))
+    else:
+      weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
+    cuts     = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
+    cuts = joincuts(cuts,weight=weight)
+    
+    # GET NUMBER OF EVENTS
+    file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
+    nevents    = tree.GetEntries(cuts)*scale
+    file.Close()
+    
+    # PRINT
+    if verbosity>=3:
+      print ">>>\n>>> Sample.getentries: %s, %s"%(color(self.name,color="grey"),self.fnameshort)
+      print ">>>   entries: %d"%(nevents)
+      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
+      print ">>>   %r"%(cuts)
+    
+    return nevents
+  
   def gethist(self, *args, **kwargs):
     """Create and fill a histogram from a tree."""
     variables, selection, issingle = unwrap_gethist_args(*args)
     verbosity  = LOG.getverbosity(kwargs)
-    scale      = kwargs.get('scale',    1.0            ) * self.scale * self.norm
+    norm       = kwargs.get('norm',     True           ) # normalize to cross section
+    norm       = self.norm if norm else 1
+    scale      = kwargs.get('scale',    1.0            ) * self.scale * norm
     name       = kwargs.get('name',     self.name      ) # hist name
     name      += kwargs.get('tag',      ""             ) # tag for hist name
     title      = kwargs.get('title',    self.title     ) # hist title
