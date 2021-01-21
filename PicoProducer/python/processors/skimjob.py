@@ -49,8 +49,8 @@ modules   = [ ]
 infiles   = args.infiles or [
   #"data/DYJetsToLL_M-50_NanoAODv6.root",
   #"/afs/cern.ch/user/i/ineuteli/analysis/CMSSW_10_3_3/src/TauFW/PicoProducer/data/DYJetsToLL_M-50_NanoAODv6.root",
-  url+'root://cms-xrd-global.cern.ch//store/user/jbechtel/taupog/nanoAOD-v2/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_ext1-v1/32/myNanoProdMc2017_NANO_31.root',
-  url+'root://cms-xrd-global.cern.ch//store/user/jbechtel/taupog/nanoAOD-v2/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_ext1-v1/33/myNanoProdMc2017_NANO_32.root',
+  url+'/store/user/jbechtel/taupog/nanoAOD-v2/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_ext1-v1/32/myNanoProdMc2017_NANO_31.root',
+  url+'/store/user/jbechtel/taupog/nanoAOD-v2/DYJetsToLLM50_RunIIFall17MiniAODv2_PU2017RECOSIMstep_13TeV_MINIAOD_madgraph-pythia8_ext1-v1/33/myNanoProdMc2017_NANO_32.root',
 ]
 if nfiles>0:
   infiles = infiles[:nfiles]
@@ -66,12 +66,12 @@ if dtype=='data':
   assert all(era in f for f in infiles), "Not all files names are of the same era '%s': %s"%(era,infiles)
   json  = getjson(era,dtype)
   if doJEC:
-    calib = getjmecalib(False,era,runPeriod=period,redojec=doJEC,jetType='AK4PFchs',
+    calib = getjmecalib(False,era,runPeriod=period,jetType='AK4PFchs', #,redojec=doJEC
                         noGroom=True,metBranchName=MET,applySmearing=False)()
     modules.append(calib)
 elif doJEC or doJECSys:
   uncs  = 'Total' if doJECSys else ''
-  calib = getjmecalib(True,era,redojec=doJEC,jesUncert=uncs,jetType='AK4PFchs',
+  calib = getjmecalib(True,era,jesUncert=uncs,jetType='AK4PFchs', #,redojec=doJEC
                       noGroom=True,metBranchName=MET,applySmearing=True)()
   modules.append(calib)
 
