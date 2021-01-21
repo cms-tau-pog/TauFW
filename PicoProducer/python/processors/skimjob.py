@@ -28,7 +28,6 @@ args = parser.parse_args()
 
 # SETTING
 era       = args.era
-preselection_cut = args.preselect # e.g. for MuTau: "HLT_IsoMu27 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1"
 year      = getyear(era)
 period    = ""
 dtype     = args.dtype
@@ -44,7 +43,7 @@ url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch
 doJEC     = args.doJEC #and dataType=='data'
 doJECSys  = args.doJECSys
-presel    = None #"Muon_pt[0] > 50"
+presel    = args.preselect # e.g. for MuTau: "HLT_IsoMu27 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1"
 branchsel = os.path.join(moddir,"keep_and_drop_skim.txt")
 json      = None
 modules   = [ ]
@@ -97,11 +96,11 @@ print ">>> %-12s = %s"%('prefetch',prefetch)
 print ">>> %-12s = %s"%('doJEC',doJEC)
 print ">>> %-12s = %s"%('doJECSys',doJECSys)
 print ">>> %-12s = %s"%('cwd',os.getcwd())
-print ">>> %-12s = %s"%('preselection',preselection_cut)
+print ">>> %-12s = %s"%('preselection',presel)
 print '-'*80
 
 # RUN
-p = PostProcessor(outdir,infiles,cut=preselection_cut,branchsel=None,outputbranchsel=branchsel,noOut=False,
+p = PostProcessor(outdir,infiles,cut=presel,branchsel=None,outputbranchsel=branchsel,noOut=False,
                   modules=modules,jsonInput=json,postfix=postfix,maxEntries=maxevts,prefetch=prefetch)
 p.run()
 
