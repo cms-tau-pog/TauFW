@@ -7,7 +7,7 @@ from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist
 from TauFW.Plotter.sample.SampleStyle import *
 from TauFW.Plotter.plot.MultiDraw import MultiDraw
-from ROOT import TTree
+from ROOT import TTree, TFile
 
 
 class Sample(object):

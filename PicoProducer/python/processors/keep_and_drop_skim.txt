@@ -5,6 +5,7 @@ keep HLT_Iso*Mu*
 #keepmatch HLT_(Iso)?Mu\d+
 keep HLT_Ele*
 keep HLT_Double*Tau*
+keep HLT_Mu*_Ele*
 drop *_cleanmask
 drop *IsoTrack*
 drop *FatJet*
