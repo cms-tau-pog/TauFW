@@ -21,10 +21,11 @@ DATASETS="SingleMuon SingleElectron EGamma Tau"
 MCYEARS="Summer19UL16 Summer19UL17 Summer19UL18" # Ultra Legacy
 
 DATAYEARS="2016 2017 2018" # reminiAOD
-MCCAMP="NanoAOD"
+MCCAMP="NanoAOD" #v2"
 #MCCAMP="NanoAODv6"
 #DATACAMP="25Oct2019" # reminiAOD
 DATACAMP="UL201*02Dec2019" # Ultra Legacy
+#DATACAMP="UL201*NanoAODv2" # Ultra Legacy
 YEAR=0
 NFILES=2
 
