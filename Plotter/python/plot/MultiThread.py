@@ -43,6 +43,8 @@ class MultiProcessor:
       
     def start(self, target, args=(), kwargs={}, group=None, name=None, verbose=False, parallel=True, kwret=None):
       """Start and save process. Create a pipe to return output."""
+      if not isinstance(args,tuple):
+        args = (args,)
       if parallel:
         endout, endin = Pipe(False)
         if kwret:

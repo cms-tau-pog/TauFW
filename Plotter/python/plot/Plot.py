@@ -312,8 +312,9 @@ class Plot(object):
       self.close()
     
   
-  def close(self,keep=False):
+  def close(self,keep=False,**kwargs):
     """Close canvas and delete the histograms."""
+    verbosity = LOG.getverbosity(self,kwargs)
     if self.canvas:
       self.canvas.Close()
     if not keep: # do not keep histograms
@@ -325,6 +326,7 @@ class Plot(object):
       deletehist(hist)
     if isinstance(self.ratio,Ratio):
       self.ratio.close()
+    LOG.verb("closed\n>>>",verbosity,2)
     
   
   def setcanvas(self,**kwargs):

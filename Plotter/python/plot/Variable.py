@@ -145,6 +145,7 @@ class Variable(object):
   
   def setbins(self,*args):
     """Set binning: (N,min,max), or bins if it is set"""
+    LOG.verb('Variable.setbins: setting binning to %s'%(args,),level=2)
     numbers         = [a for a in args if isnumber(a) ]
     bins            = [a for a in args if islist(a)   ]
     if len(numbers)==3:
