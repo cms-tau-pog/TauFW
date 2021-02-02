@@ -482,8 +482,8 @@ class SampleSet(object):
     
     if issingle:
       result.setsingle()
-      return result
-    return result
+      return result # HistSet with single result.data histogram, result.exp list of histograms
+    return result # HistSet with result.data dictionary of histograms, result.exp dictionary of list of histograms
   
   def gethists2D(self, *args, **kwargs):
     """Create and fill histograms for all samples and return lists of histograms."""

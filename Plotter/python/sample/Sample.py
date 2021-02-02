@@ -554,7 +554,7 @@ class Sample(object):
     verbosity  = LOG.getverbosity(kwargs)
     norm       = kwargs.get('norm', True ) # normalize to cross section
     norm       = self.norm if norm else 1.
-    scale      = kwargs.get('scale', 1.0 ) * self.scale * norm
+    scale      = kwargs.get('scale', 1.0 ) * self.scale * norm # pass False or 0 for no scaling of MC events
     if not isinstance(selection,Selection):
       selection = Selection(selection)
     if self.isdata:
@@ -566,7 +566,9 @@ class Sample(object):
     
     # GET NUMBER OF EVENTS
     file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
-    nevents    = tree.GetEntries(cuts)*scale
+    nevents    = tree.GetEntries(cuts)
+    if scale:
+     nevents  *= scale
     file.Close()
     
     # PRINT

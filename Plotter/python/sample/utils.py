@@ -453,6 +453,7 @@ def getxsec_nlo(*searchterms,**kwargs):
   # WJ cross sections 61526.7 [ 50380.0, 9644.5, 3144.5, 954.8, 485.6 ]
   xsec_nlo = 0
   for searchterm in searchterms:
+    key = ""
     if 'DY' in searchterm:
       if any('10to50' in s for s in searchterms):
         key ='DYJetsToLL_M-10to50'

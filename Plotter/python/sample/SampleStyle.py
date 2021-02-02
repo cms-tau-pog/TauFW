@@ -12,6 +12,7 @@ sample_titles = {
   'DY':         "Drell-Yan", # Z + jets
   'DY_M50':     "Drell-Yan, M > 50 GeV",
   'DY_M10to50': "Drell-Yan, 10 GeV < M < 50 GeV ",
+  'ZMM':        "Z -> mumu",
   'ZTT':        "Z -> tau_{l}tau_{h}",
   'ZTT_DM0':    "Z -> tau_{l}tau_{h}, h^{#pm}",
   'ZTT_DM1':    "Z -> tau_{l}tau_{h}, h^{#pm}#pi^{0}",
@@ -49,6 +50,7 @@ sample_colors = {
   'DY':        kAzure+5, #kOrange-4,
   'ZL':        kAzure+5, #TColor.GetColor(100,182,232), #kAzure+5,
   'ZJ':        kGreen-6,
+  'ZMM':       kAzure+5,
   'ZTT':       kOrange-4,
   'ZTT_DM0':   kOrange+5,
   'ZTT_DM1':   kOrange-4, #kOrange,
@@ -86,6 +88,7 @@ def set_sample_colors(coldict):
     #('Z*tau*h*h*h*h*0',  coldict['ZTT_DM11']),
     #('Z*tau*other',      coldict['DY10']),
     ('ZTT',              coldict['ZTT']),
+    ('ZMM',              coldict['ZMM']),
     ('ZL',               coldict['ZL']),
     ('ZJ',               coldict['ZJ']),
     ('Z*tau',            coldict['DY']),

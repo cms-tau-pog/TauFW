@@ -139,6 +139,38 @@ class MergedSample(Sample):
       LOG.warning("MergedSample.getcutflow: Could not find cutflow histogram %r for %s!"%(cutflow,sample))
     return cfhist
   
+  def getentries(self, selection, **kwargs):
+    """Get number of events for a given selection string."""
+    verbosity          = LOG.getverbosity(kwargs)
+    norm               = kwargs.get('norm', True ) # normalize to cross section
+    norm               = self.norm if norm else 1.
+    parallel           = kwargs.get('parallel',       False                )
+    kwargs['cuts']     = joincuts(kwargs.get('cuts'), self.cuts            )
+    kwargs['weight']   = joinweights(kwargs.get('weight', ""), self.weight ) # pass weight down
+    kwargs['scale']    = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
+    kwargs['parallel'] = False
+    
+    # GET NUMBER OF EVENTS
+    nevents = 0
+    if parallel and len(self.samples)>1:
+      processor = MultiProcessor()
+      for sample in self.samples:
+        processor.start(sample.getentries,(selection,),kwargs)        
+      for process in processor:
+        nevents += process.join()
+    else:
+      for sample in self.samples:
+        nevents += sample.getentries(selection,**kwargs)
+    
+    # PRINT
+    if verbosity>=3:
+      print ">>>\n>>> MergedSample.getentries: %s"%(color(self.name,color="grey"))
+      print ">>>   entries: %d"%(nevents)
+      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
+      print ">>>   %r"%(cuts)
+    
+    return nevents
+  
   def gethist(self, *args, **kwargs):
     """Create and fill histgram for multiple samples. Overrides Sample.gethist."""
     variables, selection, issingle = unwrap_gethist_args(*args)
