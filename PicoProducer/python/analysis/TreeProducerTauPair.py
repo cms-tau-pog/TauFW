@@ -101,6 +101,7 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('dR_ll',               'f')
     self.addBranch('dphi_ll',             'f')
     self.addBranch('deta_ll',             'f')
+    self.tree.SetAlias("m_ll","m_vis")
     
     self.addBranch('pzetamiss',           'f')
     self.addBranch('pzetavis',            'f')

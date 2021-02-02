@@ -107,6 +107,7 @@ class ModuleTauPair(Module):
     print ">>> %-12s = %s"%('dojec',     self.dojec)
     print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
     print ">>> %-12s = %s"%('dotight',   self.dotight)
+    print ">>> %-12s = %s"%('useT1',     self.useT1)
     print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
     print ">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta)
     

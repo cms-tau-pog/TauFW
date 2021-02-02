@@ -15,8 +15,8 @@ class ModuleMuMu(ModuleTauPair):
   def __init__(self, fname, **kwargs):
     kwargs['channel'] = 'mumu'
     super(ModuleMuMu,self).__init__(fname,**kwargs)
-    self.out = TreeProducerMuMu(fname,self)
-    self.zwindow = kwargs.get('ZWindow', True )
+    self.out     = TreeProducerMuMu(fname,self)
+    self.zwindow = kwargs.get('zwindow', False ) # stay between 70 and 110 GeV
     
     # TRIGGERS
     if self.year==2016:
@@ -56,6 +56,7 @@ class ModuleMuMu(ModuleTauPair):
     print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
     print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
     print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
+    print ">>> %-12s = %s"%('zwindow',    self.zwindow)
     pass
     
   
@@ -123,7 +124,7 @@ class ModuleMuMu(ModuleTauPair):
     
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel)
-    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = extramuon_veto or extraelec_veto or dilepton_veto
+    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = extramuon_veto, extraelec_veto, dilepton_veto
     self.out.lepton_vetoes[0]       = extramuon_veto or extraelec_veto or dilepton_veto
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto
     
