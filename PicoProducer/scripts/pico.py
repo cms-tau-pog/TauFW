@@ -1191,10 +1191,12 @@ def main_status(args):
       LOG.header("%s, %s"%(era,channel))
       
       # GET SAMPLES
-      jobcfgs = repkey(os.path.join(jobdirformat,"config/jobconfig_$CHANNEL$TAG_try[0-9]*.json"),
+      jobdir_ = repkey(jobdirformat,ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag)
+      jobcfgs = repkey(os.path.join(jobdir_,"config/jobconfig_$CHANNEL$TAG_try[0-9]*.json"),
                        ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag)
       if verbosity>=1:
         print ">>> %-12s = %s"%('cwd',os.getcwd())
+        print ">>> %-12s = %s"%('jobdir',jobdir_)
         print ">>> %-12s = %s"%('jobcfgs',jobcfgs)
         print ">>> %-12s = %s"%('filters',filters)
         print ">>> %-12s = %s"%('vetoes',vetoes)
@@ -1298,7 +1300,9 @@ def main_status(args):
         
         print
       
-      if not found:
+      if not jobcfgs:
+        print ">>> Did not find any output in jobdir %s"%(jobdir_)
+      elif not found:
         print_no_samples(dtypes,filters,vetoes)
         print
   
