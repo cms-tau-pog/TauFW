@@ -24,6 +24,9 @@ samples  = [
   M('DY','DY4JetsToLL_M-50',
     "/DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,opts='zpt=True'),
+  M('DY','DYJetsToMuTauh_M-50',
+    "/DYJetsToTauTauToMuTauh_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
+    store=storage,url=url,file=filelist,opts='zpt=True'),
   
   # TTBAR
   M('TT','TTTo2L2Nu',

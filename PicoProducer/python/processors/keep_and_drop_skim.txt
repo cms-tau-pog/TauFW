@@ -4,7 +4,7 @@ drop HLT_*
 keep HLT_Iso*Mu*
 #keepmatch HLT_(Iso)?Mu\d+
 keep HLT_Ele*
-keep HLT_Double*Tau*
+keep HLT_*Tau*
 keep HLT_Mu*_Ele*
 drop *_cleanmask
 drop *IsoTrack*
@@ -14,6 +14,5 @@ drop *SoftActivity*
 #drop *Photon*
 #drop *LHEPart*
 drop *Dressed*
-#drop *TrigObj*
 drop *HTXS*
 drop *SV*
