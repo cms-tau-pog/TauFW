@@ -551,10 +551,13 @@ def preparejobs(args):
       # GET SAMPLES
       jobdirformat = CONFIG.jobdir # for job config & log files
       outdirformat = CONFIG.nanodir if skim else CONFIG.outdir # for job output
+      jobdir_      = ""
+      jobcfgs      = ""
       if resubmit:
         # TODO: allow user to resubmit given config file
-        jobcfgs  = repkey(os.path.join(jobdirformat,"config/jobconfig_$SAMPLE$TAG_try[0-9]*.json"),
-                          ERA=era,SAMPLE='*',CHANNEL=channel,TAG=tag)
+        jobdir_ = repkey(jobdirformat,ERA=era,SAMPLE='*',CHANNEL=channel,TAG=tag)
+        jobcfgs = repkey(os.path.join(jobdir_,"config/jobconfig_$SAMPLE$TAG_try[0-9]*.json"),
+                         ERA=era,SAMPLE='*',CHANNEL=channel,TAG=tag)
         if verbosity>=2:
           print ">>> %-12s = %s"%('cwd',os.getcwd())
           print ">>> %-12s = %s"%('jobcfgs',jobcfgs)
@@ -730,7 +733,7 @@ def preparejobs(args):
         print
       
       if not found:
-        print_no_samples(dtypes,filters,vetoes)
+        print_no_samples(dtypes,filters,vetoes,jobdir_,jobcfgs)
     
 
 
@@ -1301,13 +1304,7 @@ def main_status(args):
         print
       
       if not found:
-        if not os.path.exists(jobdir_):
-          print ">>> Job output directory %s does not exist!"%(jobdir_)
-        elif not glob.glob(jobcfgs):
-          print ">>> Did not find any job config files %s!"%(jobcfgs)
-        else:
-          print_no_samples(dtypes,filters,vetoes)
-          print
+        print_no_samples(dtypes,filters,vetoes,jobdir_,jobcfgs)
   
 
 

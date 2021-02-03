@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
-import os
+import os, glob
 import getpass, platform
 import importlib
 from fnmatch import fnmatch
@@ -105,17 +105,23 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
   return samples
   
 
-def print_no_samples(dtype=[],filter=[],veto=[]):
+def print_no_samples(dtype=[],filter=[],veto=[],jobdir="",jobcfgs=""):
   """Help function to print that no samples were found."""
-  string  = ">>> Did not find any samples"
-  if filter or veto or (dtype and len(dtype)<3):
-    strings = [ ]
-    if filter:
-      strings.append("filters '%s'"%("', '".join(filter)))
-    if veto:
-      strings.append("vetoes '%s'"%("', '".join(veto)))
-    if dtype and len(dtype)<3:
-      strings.append("data types '%s'"%("', '".join(dtype)))
-    string += " with "+', '.join(strings)
-  print string
+  if jobdir and not glob.glob(jobdir): #os.path.exists(jobdir):
+    print ">>> Job output directory %s does not exist!"%(jobdir)
+  elif jobcfgs and not glob.glob(jobcfgs):
+    print ">>> Did not find any job config files %s!"%(jobcfgs)
+  else:
+    string  = ">>> Did not find any samples"
+    if filter or veto or (dtype and len(dtype)<3):
+      strings = [ ]
+      if filter:
+        strings.append("filters '%s'"%("', '".join(filter)))
+      if veto:
+        strings.append("vetoes '%s'"%("', '".join(veto)))
+      if dtype and len(dtype)<3:
+        strings.append("data types '%s'"%("', '".join(dtype)))
+      string += " with "+', '.join(strings)
+    print string
+  print
   
