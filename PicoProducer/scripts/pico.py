@@ -1302,7 +1302,7 @@ def main_status(args):
       
       if not found:
         if not os.path.exists(jobdir_):
-          print ">>> Output directory %s does not exist!"%(jobdir_)
+          print ">>> Job output directory %s does not exist!"%(jobdir_)
         elif not glob.glob(jobcfgs):
           print ">>> Did not find any job config files %s!"%(jobcfgs)
         else:
