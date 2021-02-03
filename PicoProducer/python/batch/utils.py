@@ -39,7 +39,10 @@ def getcfgsamples(jobcfgnames,filter=[ ],veto=[ ],dtype=[ ],verb=0):
   
   samples = [ ]
   if verb>=2:
-    print ">>> getcfgsamples: Found job config:"
+    if jobcfgs:
+      print ">>> getcfgsamples: Found job config:"
+    else:
+      print ">>> getcfgsamples: Found NO job configs %s"%(jobcfgnames)
   for cfgname in sorted(jobcfgs):
     if verb>=2:
       print ">>>   %s"%(cfgname)
