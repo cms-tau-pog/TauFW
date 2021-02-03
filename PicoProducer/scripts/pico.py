@@ -1300,11 +1300,14 @@ def main_status(args):
         
         print
       
-      if not jobcfgs:
-        print ">>> Did not find any output in jobdir %s"%(jobdir_)
-      elif not found:
-        print_no_samples(dtypes,filters,vetoes)
-        print
+      if not found:
+        if not os.path.exists(jobdir_):
+          print ">>> Output directory %s does not exist!"%(jobdir_)
+        elif not glob.glob(jobcfgs):
+          print ">>> Did not find any job config files %s!"%(jobcfgs)
+        else:
+          print_no_samples(dtypes,filters,vetoes)
+          print
   
 
 
