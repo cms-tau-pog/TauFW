@@ -386,9 +386,9 @@ def geterrorband(*hists,**kwargs):
   TAB.printheader("ibin","xval","xerr","nevts","sqrt(nevts)","statistical unc.","systematical unc.","total unc.")
   ip = 0
   for ibin in range(1,nbins+1):
-    xval        = hist0.GetXaxis().GetBinCenter(ibin)
-    xerr        = 0 if ibin in [0,nbins+1] else hist0.GetXaxis().GetBinWidth(ibin)/2
-    yval        = 0
+    xval = hist0.GetXaxis().GetBinCenter(ibin)
+    xerr = 0 if ibin in [0,nbins+1] else hist0.GetXaxis().GetBinWidth(ibin)/2
+    yval = 0
     statlow2, statupp2 = 0, 0
     syslow2,  sysupp2  = 0, 0
     for hist in hists: # STATISTICS
@@ -401,7 +401,7 @@ def geterrorband(*hists,**kwargs):
     ylow2, yupp2 = statlow2+syslow2, statupp2+sysupp2,
     error.SetPoint(ip,xval,yval)
     error.SetPointError(ip,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
-    TAB.printrow(ibin,xval,xerr,yval,sqrt(yval),sqrt(statupp2),sqrt(statlow2),sqrt(sysupp2),sqrt(syslow2),sqrt(yupp2),sqrt(ylow2))
+    TAB.printrow(ibin,xval,xerr,yval,sqrt(abs(yval)),sqrt(statupp2),sqrt(statlow2),sqrt(sysupp2),sqrt(syslow2),sqrt(yupp2),sqrt(ylow2))
     ip += 1
   seterrorbandstyle(error,color=color)
   #error.SetLineColor(hist0.GetLineColor())
