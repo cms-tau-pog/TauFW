@@ -400,13 +400,14 @@ def main_run(args):
               print ">>> %s"%(bold(path))
         
         # SETTINGS
-        filetag    = tag
         dtype      = None
         extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample:
-          filetag += '_%s_%s%s'%(era,sample.name,tag)
+          filetag  = "_%s_%s_%s%s"%(channel,era,sample.name,tag)
           if sample.extraopts:
             extraopts_.extend(sample.extraopts)
+        else:
+          filetag  = "_%s_%s%s"%(channel,era,tag)
         if verbosity>=1:
           print ">>> %-12s = %s"%('sample',sample)
           print ">>> %-12s = %r"%('filetag',filetag) # postfix

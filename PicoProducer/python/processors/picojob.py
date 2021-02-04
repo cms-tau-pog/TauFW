@@ -49,7 +49,7 @@ nfiles    = 1 if maxevts>0 else -1
 tag       = args.tag
 if tag:
   tag     = ('' if tag.startswith('_') else '_') + tag
-outfname  = os.path.join(outdir,"pico_%s%s.root"%(channel,tag))
+outfname  = os.path.join(outdir,"pico%s.root"%(tag)) #channel,
 url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch
 verbosity = args.verbosity
