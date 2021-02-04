@@ -1253,8 +1253,8 @@ def main_status(args):
           resubfiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
                                               checkqueue=checkqueue,das=checkdas,verb=verbosity)
           if len(resubfiles)>0 and not force:
-            LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(len(resubfiles))+
-                        "Please use -f or --force to %s anyway.\n"%(subcmd,subcmd))
+            LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
+                        " Please use -f or --force to %s anyway.\n"%(subcmd))
             continue
           
           if subcmd=='hadd':
