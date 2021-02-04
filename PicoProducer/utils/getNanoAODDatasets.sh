@@ -4,6 +4,7 @@
 MCSAMPLES="
   DY*JetsToLL_M-10to50_TuneC*_13TeV-madgraphMLM-pythia8
   DY*JetsToLL_M-50_TuneC*_13TeV-madgraphMLM-pythia8
+  DY*JetsToTauTau*
   W*JetsToLNu_TuneC*madgraph*
   TT_TuneCUETP8M2T4_13TeV-powheg-pythia8
   TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8
@@ -18,10 +19,12 @@ MCSAMPLES="
 "
 DATASETS="SingleMuon SingleElectron EGamma Tau"
 #MCYEARS="Summer16 Fall17 Autumn18" # reminiAOD
-MCYEARS="Summer19UL16 Summer19UL17 Summer19UL18" # Ultra Legacy
+#MCYEARS="Summer19UL16 Summer19UL17 Summer19UL18" # Ultra Legacy
+MCYEARS="Summer20UL16 Summer20UL17 Summer20UL18" # Ultra Legacy
 
 DATAYEARS="2016 2017 2018" # reminiAOD
 MCCAMP="NanoAOD" #v2"
+#MCCAMP="NanoAODAPVv2"
 #MCCAMP="NanoAODv6"
 #DATACAMP="25Oct2019" # reminiAOD
 DATACAMP="UL201*02Dec2019" # Ultra Legacy
