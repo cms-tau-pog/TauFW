@@ -10,10 +10,15 @@ from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 from TauFW.PicoProducer.storage.Sample import Sample, LOG
 from TauFW.PicoProducer.storage.utils import getsamples
-from ROOT import TFile
+#from TauFW.PicoProducer.batch.utils import chunkify_by_evts
+from ROOT import TFile, TH1F
 
 
 def chunkify_by_evts(fnames,nmax,evenly=True):
+  """Test implementation of event-based splitting of large files to limit number of events
+  to process during jobs with a given maximum. Small files are still grouped as long as their
+  total events is less than the maximum.
+  For full implementation, see TauFW.PicoProducer.batch.utils"""
   result  = [ ]
   nlarge  = { }
   nsmall  = { }
@@ -88,10 +93,40 @@ def testEventBased(verb=0):
     chunks = chunkify_by_evts(files,nmax=100000)
     for chunk in chunks:
       print chunk
+
+
+def compare_output():
+  """Quick comparison between job output."""
+  print ">>> Compare job output..."
+  nbins  = 100000
+  fname1 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau.root"      # file-based split
+  fname2 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau_test.root" # event-based split
+  file1  = ensureTFile(fname1)
+  file2  = ensureTFile(fname2)
+  tree1  = file1.Get('tree')
+  tree2  = file2.Get('tree')
+  hist1  = TH1F('h1','h1',nbins,0,1000000)
+  hist2  = TH1F('h2','h2',nbins,0,1000000)
+  tree1.Draw("evt >> h1","","gOff")
+  tree2.Draw("evt >> h2","","gOff")
+  print ">>>   tree1: %9d, hist1: %9d"%(tree1.GetEntries(),hist1.GetEntries())
+  print ">>>   tree2: %9d, hist2: %9d"%(tree2.GetEntries(),hist2.GetEntries())
+  hist1.Add(hist2,-1)
+  nfound = 0
+  for i in range(0,nbins+2):
+    if nfound==20:
+      print ">>>    BREAK! Already found 20 different bins"
+      break
+    if hist1.GetBinContent(i)!=0.0:
+      print ">>>    difference in bin %4d!"
+      nfound += 1
+  file1.Close()
+  file2.Close()
   
 
 def main(args):
   testEventBased(args)
+  #compare_output()
   
 
 if __name__ == "__main__":
