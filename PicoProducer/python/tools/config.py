@@ -12,37 +12,40 @@ from TauFW.PicoProducer.storage.utils import getsedir, gettmpdirs
 
 
 # DEFAULTS
-LOG           = Logger('GLOB')
-CONFIG        = None
-_user         = getpass.getuser()
-_host         = platform.node()
-#basedir      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-_eras         = OrderedDict([
+LOG            = Logger('GLOB')
+CONFIG         = None
+_user          = getpass.getuser()
+_host          = platform.node()
+#basedir       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+_eras          = OrderedDict([
   ('2016','samples_2016.py'),
-  ('2017','samples_2017.py')
+  ('2017','samples_2017.py'),
+  ('2018','samples_2018.py')
 ])
-_channels     = OrderedDict([
+_channels      = OrderedDict([
   ('skim','skimjob.py'),
   ('test','test.py'),
   ('mutau','ModuleMuTauSimple')
 ])
-_dtypes       = ['mc','data','embed']
-_sedir        = getsedir()                       # guess storage element on current host
-_tmpskimdir, _tmphadddir = gettmpdirs()          # _tmphadddir: temporary dir for creating intermediate hadd files
-                                                 # _tmpskimdir: temporary dir for creating skimmed file before copying to outdir
-_jobdir       = "output/$ERA/$CHANNEL/$SAMPLE"   # for job config and log files
-_outdir       = _tmphadddir+_jobdir              # for job output
-_picodir      = _sedir+"analysis/$ERA/$GROUP"    # for storage of analysis ("pico") tuples after hadd
-_nanodir      = _sedir+"samples/nano/$ERA/$DAS"  # for storage of (skimmed) nanoAOD
-_filelistdir  = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
-_batchsystem  = 'HTCondor'
-_nfilesperjob = 1
-_cfgdefaults  = OrderedDict([
+_dtypes        = ['mc','data','embed']
+_sedir         = getsedir()                       # guess storage element on current host
+_tmpskimdir, _tmphadddir = gettmpdirs()           # _tmphadddir: temporary dir for creating intermediate hadd files
+                                                  # _tmpskimdir: temporary dir for creating skimmed file before copying to outdir
+_jobdir        = "output/$ERA/$CHANNEL/$SAMPLE"   # for job config and log files
+_outdir        = _tmphadddir+_jobdir              # for job output
+_picodir       = _sedir+"analysis/$ERA/$GROUP"    # for storage of analysis ("pico") tuples after hadd
+_nanodir       = _sedir+"samples/nano/$ERA/$DAS"  # for storage of (skimmed) nanoAOD
+_filelistdir   = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
+_batchsystem   = 'HTCondor'                       # batch system (HTCondor, SLURM, ...)
+_nfilesperjob  = 1                                # group files per job
+_maxevtsperjob = -1                               # maximum number of events per job (split large files)
+_cfgdefaults   = OrderedDict([                    # ordered dictionary with defaults
   ('channels',_channels), ('eras',_eras),
   ('basedir',basedir),
   ('jobdir',_jobdir),     ('outdir',_outdir), ('nanodir',_nanodir), ('picodir',_picodir),
   ('tmpskimdir',_tmpskimdir),
-  ('batch',_batchsystem), ('nfilesperjob',_nfilesperjob), ('filelistdir',_filelistdir),
+  ('batch',_batchsystem), ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
+  ('filelistdir',_filelistdir),
 ])
 sys.path.append(basedir)
 

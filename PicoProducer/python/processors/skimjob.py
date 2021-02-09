@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 # Description: Skim
+from __future__ import print_function
 import os
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -15,7 +16,8 @@ parser.add_argument('-i', '--infiles',   dest='infiles',   type=str, default=[ ]
 parser.add_argument('-o', '--outdir',    dest='outdir',    type=str, default='.')
 parser.add_argument('-C', '--copydir',   dest='copydir',   type=str, default=None)
 parser.add_argument('--preselect',       dest='preselect', type=str, default=None)
-parser.add_argument('-m', '--maxevts',   dest='maxevts',   type=int, default=-1)
+parser.add_argument('-s', '--firstevt',  dest='firstevt',  type=int, default=0)
+parser.add_argument('-m', '--maxevts',   dest='maxevts',   type=int, default=None)
 parser.add_argument('-t', '--tag',       dest='tag',       type=str, default="skim")
 parser.add_argument('-d', '--dtype',     dest='dtype',     choices=['data','mc','embed'], default=None)
 parser.add_argument('-y', '-e','--era',  dest='era',       type=str, default="")
@@ -27,26 +29,28 @@ args = parser.parse_args()
 
 
 # SETTING
-era       = args.era
-year      = getyear(era)
-period    = ""
-dtype     = args.dtype
-outdir    = ensuredir(args.outdir)
-copydir   = args.copydir
-maxevts   = args.maxevts if args.maxevts>0 else None
-nfiles    = -1 if maxevts>0 else -1
-tag       = args.tag
+era       = args.era                # era of data run (e.g. 'UL2016')
+year      = getyear(era)            # year of data run (e.g. '2016')
+period    = ""                      # period of data run (A-H)
+dtype     = args.dtype              # data type ('data', 'mc', 'embed')
+outdir    = ensuredir(args.outdir)  # directory to create output
+copydir   = args.copydir            # directory to copy output to at end
+firstevt  = args.firstevt           # index of first event to run
+maxevts   = args.maxevts            # maximum number of events to run
+nfiles    = -1 if maxevts>0 else -1 # maximum number of files to run
+tag       = args.tag                # postfix tag of job output file
 tag       = ('' if not tag or tag.startswith('_') else '_') + tag
 postfix   = tag
 outfiles  = os.path.join(outdir,"*%s.root"%postfix)
 url       = "root://cms-xrd-global.cern.ch/"
-prefetch  = args.prefetch
-doJEC     = args.doJEC #and dataType=='data'
-doJECSys  = args.doJECSys
-presel    = args.preselect # e.g. for MuTau: "HLT_IsoMu27 && Muon_pt > 28 && Tau_pt > 18 && Muon_mediumId == 1 && Muon_pfRelIso04_all < 0.5 && Tau_idDeepTau2017v2p1VSmu >= 1 && Tau_idDeepTau2017v2p1VSe >= 1 && Tau_idDeepTau2017v2p1VSjet >= 1"
-branchsel = os.path.join(moddir,"keep_and_drop_skim.txt")
-json      = None
-modules   = [ ]
+prefetch  = args.prefetch          # copy input file(s) to ouput directory first
+doJEC     = args.doJEC             # apply JECs #and dataType=='data'
+doJECSys  = args.doJECSys          # compute JEC variations
+presel    = args.preselect         # simple pre-selection string, e.g. for mutau: "HLT_IsoMu27 && Muon_pt>28 && Tau_pt>18"
+branchsel = os.path.join(moddir,"keep_and_drop_skim.txt") # file with branch selection
+json      = None                   # JSON file of certified events
+modules   = [ ]                    # list of modules to run
+
 infiles   = args.infiles or [
   #"data/DYJetsToLL_M-50_NanoAODv6.root",
   #"/afs/cern.ch/user/i/ineuteli/analysis/CMSSW_10_3_3/src/TauFW/PicoProducer/data/DYJetsToLL_M-50_NanoAODv6.root",
@@ -75,33 +79,36 @@ elif doJEC or doJECSys:
   calib = getjmecalib(True,era,jesUncert=uncs,jetType='AK4PFchs', #,redojec=doJEC
                       noGroom=True,metBranchName=MET,applySmearing=True)()
   modules.append(calib)
+#modules = []
 
 # PRINT
-print '-'*80
-print ">>> %-12s = %r"%('era',era)
-print ">>> %-12s = %r"%('year',year)
-print ">>> %-12s = %r"%('period',period)
-print ">>> %-12s = %r"%('dtype',dtype)
-print ">>> %-12s = %s"%('maxevts',maxevts)
-print ">>> %-12s = %r"%('tag',tag)
-print ">>> %-12s = %r"%('postfix',postfix)
-print ">>> %-12s = %r"%('outdir',outdir)
-print ">>> %-12s = %r"%('outfiles',outfiles)
-print ">>> %-12s = %r"%('copydir',copydir)
-print ">>> %-12s = %s"%('infiles',infiles)
-print ">>> %-12s = %r"%('branchsel',branchsel)
-print ">>> %-12s = %r"%('json',json)
-print ">>> %-12s = %s"%('modules',modules)
-print ">>> %-12s = %s"%('prefetch',prefetch)
-print ">>> %-12s = %s"%('doJEC',doJEC)
-print ">>> %-12s = %s"%('doJECSys',doJECSys)
-print ">>> %-12s = %s"%('cwd',os.getcwd())
-print ">>> %-12s = %s"%('preselection',presel)
-print '-'*80
+print('-'*80)
+print(">>> %-12s = %r"%('era',era))
+print(">>> %-12s = %r"%('year',year))
+print(">>> %-12s = %r"%('period',period))
+print(">>> %-12s = %r"%('dtype',dtype))
+print(">>> %-12s = %s"%('firstevt',firstevt))
+print(">>> %-12s = %s"%('maxevts',maxevts))
+print(">>> %-12s = %r"%('tag',tag))
+print(">>> %-12s = %r"%('postfix',postfix))
+print(">>> %-12s = %r"%('outdir',outdir))
+print(">>> %-12s = %r"%('outfiles',outfiles))
+print(">>> %-12s = %r"%('copydir',copydir))
+print(">>> %-12s = %s"%('infiles',infiles))
+print(">>> %-12s = %r"%('branchsel',branchsel))
+print(">>> %-12s = %r"%('json',json))
+print(">>> %-12s = %s"%('modules',modules))
+print(">>> %-12s = %s"%('prefetch',prefetch))
+print(">>> %-12s = %s"%('doJEC',doJEC))
+print(">>> %-12s = %s"%('doJECSys',doJECSys))
+print(">>> %-12s = %s"%('cwd',os.getcwd()))
+print(">>> %-12s = %s"%('preselection',presel))
+print('-'*80)
 
 # RUN
-p = PostProcessor(outdir,infiles,cut=presel,branchsel=None,outputbranchsel=branchsel,noOut=False,
-                  modules=modules,jsonInput=json,postfix=postfix,maxEntries=maxevts,prefetch=prefetch)
+p = PostProcessor(outdir,infiles,cut=presel,branchsel=None,outputbranchsel=branchsel,
+                  firstEntry=firstevt,maxEntries=maxevts,jsonInput=json,
+                  modules=modules,postfix=postfix,noOut=False,prefetch=prefetch)
 p.run()
 
 # COPY
@@ -110,8 +117,8 @@ if copydir and outdir!=copydir:
   from TauFW.common.tools.file import rmfile
   store = getstorage(copydir,verb=2)
   store.cp(outfiles)
-  print ">>> Removing %s..."%(outfiles)
+  print(">>> Removing %s..."%(outfiles))
   rmfile(outfiles)
 
 # DONE
-print ">>> skimjob.py done after %.1f seconds"%(time.time()-time0)
+print(">>> skimjob.py done after %.1f seconds"%(time.time()-time0))

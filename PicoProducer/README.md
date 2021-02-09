@@ -193,6 +193,9 @@ Other optional keyword arguments are
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
   This overrides the default `nfilesperjob` in the configuration.
+* `maxevtsperjob`: Maximum number of events per job. This will split large files in several jobs, to reduce the number of large jobs.
+  Small files will still be combined as long as the sum of their events is below this maximum.
+  This overrides the default `maxevtsperjob` in the configuration and any `nfilesperjob` settings.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 * `opts`: Extra key-worded options (`key=value`) to be passed to the analysis modules.
   Can be a comma-separated string (`'opt1=val1,opt2=val2'`) or a list of strings (`['opt1=val1','opt2=val2']`).
@@ -259,6 +262,12 @@ A JSON file is created to keep track of the job input and output.
 Again, you can specify a sample by passing a glob patterns to `-s`, or exclude patterns with `-x`.
 To give the output files a specific tag, use `-t`.
 
+If there are many small files, they can be combined with `--filesperjob`,
+or if there are a lot of large files, `--maxevts` can be used to limit the number of events processed per job.
+These parameters can also be set globally in the configuration, or for each sample individually in the sample list.
+WARNING! `--maxevts` has not been fully tested yet, and it does not work for skimming yet,
+see [issue #269 in nanoAOD-tools](https://github.com/cms-nanoAOD/nanoAOD-tools/issues/269).
+
 For all options with submission, do
 ```
 pico.py submit --help
@@ -286,7 +295,8 @@ pico.py resubmit -y 2016 -c mutau
 ```
 This will resubmit files that are missing or corrupted (unless they are associated with a running job).
 In case the jobs take too long, you can specify a smaller number of files per job with `--filesperjob` on the fly,
-or use `--split` to split the default number.
+or use `--split` to split the previous number.
+Otherwise you can limit the number of events with `--maxevts` if it was not set in the first submission.
 
 
 ### Finalize
@@ -542,17 +552,16 @@ condor_q -long <jobid>.<taskid>
 
 ### Why do my jobs take so long ?
 
-Make sure that `nfilesperjob` in the configuration is small enough.
-Furthermore, file connections to GRID can often be slow.
-One immediate solution to this is to pass the "prefetch" option, `-p`,
+Make sure that `nfilesperjob` in the configuration is small enough,
+or split large files by limiting the number of events per job with `--maxevts`.
+
+Furthermore, open file connections to GRID can often be slow.
+One immediate solution to this is to pass the "prefetch" option, `--prefetch`,
 which first copies the input file to the local working directory,
 and removes it at the end of the job:
 ```
-pico.py submit -c mutau -y 2018 -p
+pico.py submit -c mutau -y 2018 --prefetch
 ```
 If you repeatedly run on the same nanoAOD files that are stored on the GRID,
 consider doing a skimming step to reduce their file size and save them on a local storage system for faster connection.
-
-Note: In the future, event-based splitting will be added to break up large input nanoAOD files into smaller pieces per job.
-
 

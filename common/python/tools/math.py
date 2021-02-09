@@ -57,21 +57,43 @@ def columnize(oldlist,ncol=2):
   return collist
   
 
-def partition(list,nparts):
-  """Partion list into n chunks, as evenly sized as possible."""
-  nleft    = len(list)
+def partition(mylist,nparts):
+  """Partion list into given number of chunks, as evenly sized as possible."""
+  nleft    = len(mylist)
   divider  = float(nparts)
   parts    = [ ]
   findex   = 0
   for i in range(0,nparts): # partition recursively
     nnew   = int(ceil(nleft/divider))
     lindex = findex + nnew
-    parts.append(list[findex:lindex])
+    parts.append(mylist[findex:lindex])
     nleft   -= nnew
     divider -= 1
     findex   = lindex
     #print nnew
   return parts
+  
+
+def partition_by_max(mylist,nmax):
+  """Partition list by grouping elements
+  with sum below or equal to given maximum."""
+  mylist.sort(reverse=True)
+  inputs = mylist[:]
+  result = [ ]
+  while len(inputs)>0:
+    first = inputs[0]
+    tot   = first
+    result.append([first])
+    inputs.remove(first)
+    for x in inputs[:]:
+      if tot+x<=nmax:
+        result[-1].append(x)
+        inputs.remove(x)
+        if tot+x==nmax: break
+        tot += x
+      else:
+        continue
+  return result
   
 
 def reldiff(x,y):

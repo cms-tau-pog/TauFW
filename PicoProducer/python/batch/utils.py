@@ -1,13 +1,77 @@
 # Author: Izaak Neutelings (May 2020)
-import os, glob
+import os, re, glob
 import importlib
+from TauFW.common.tools.file import ensureTFile
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.PicoProducer.batch import moddir
 from TauFW.common.tools.log import Logger
-from TauFW.common.tools.file import ensurefile
+from TauFW.common.tools.file import ensurefile, ensureTFile
 from TauFW.common.tools.utils import repkey
+from TauFW.common.tools.math import partition_by_max, ceil, floor
 from TauFW.PicoProducer.storage.Sample import Sample
 LOG = Logger('Storage')
+evtsplitexp = re.compile(r"(.*.root):(\d+):(\d+)$") # input file split by events
+
+
+def chunkify_by_evts(fnames,maxevts,evenly=True,verb=0):
+  """Split list of files into chunks with total events per chunks less than given maximum,
+  and update input fnames to bookkeep first event and maximum events.
+  E.g. ['nano_1.root','nano_2.root','nano_3.root','nano_4.root']
+        -> [ ['nano_1.root:0:1000'], ['nano_1.root:1000:1000'], # 'fname:firstevt:maxevts'
+             ['nano_2.root','nano_3.root','nano_4.root'] ]
+  """ 
+  result  = [ ] # list of chunks
+  nlarge  = { }
+  nsmall  = { }
+  if verb>=4:
+    print ">>> chunkify_by_evts: events per file:"
+  for fname in fnames[:]:
+    if evtsplitexp.match(fname): # already split
+      result.append([fname]) 
+    else: # get number of events
+      file  = ensureTFile(fname,'READ')
+      nevts = file.Get('Events').GetEntries()
+      file.Close()
+      if verb>=4:
+        print "%10d %s"%(nevts,fname)
+      if nevts<maxevts: # split this large file into several chunks
+        nsmall.setdefault(nevts,[ ]).append(fname)
+      else: # don't split this small, group with others in chunks, if possible
+        nlarge.setdefault(nevts,[ ]).append(fname)
+        fnames.remove(fname)
+  if verb>=1:
+    print ">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%(
+      len(nsmall),maxevts,len(nlarge),maxevts)
+  for nevts in nlarge:
+    for fname in nlarge[nevts]: # split large files into several chunks
+      maxevts_ = maxevts
+      if evenly:
+        nchunks  = ceil(float(nevts)/maxevts)
+        maxevts_ = int(ceil(nevts/nchunks))
+        if verb>=3:
+          print ">>>   nevts/maxevts = %d/%d = %.2f => make %d chunks with max. %d events"%(
+            nevts,maxevts,nevts/float(maxevts),nchunks,maxevts_)
+      ifirst = 0
+      while ifirst<nevts:
+        infname = "%s:%d:%d"%(fname,ifirst,maxevts_)
+        fnames.append(infname) # update for book keeping
+        result.append([infname])
+        ifirst += maxevts_
+  mylist = [ ]
+  for nevts in nsmall:
+    mylist.extend([nevts]*len(nsmall[nevts]))
+  for part in partition_by_max(mylist,maxevts): # group small files into one chunk
+    result.append([ ])
+    for nevts in part:
+      fname = nsmall[nevts][0]
+      nsmall[nevts].remove(fname)
+      result[-1].append(fname) #+":%d"%nevts)
+  if verb>=4:
+    print ">>> chunkify_by_evts: chunks = ["
+    for chunk in result:
+      print ">>>   %s"%(chunk)
+    print ">>> ]"
+  return result
 
 
 def getbatch(arg,verb=0):

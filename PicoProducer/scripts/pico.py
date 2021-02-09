@@ -10,7 +10,7 @@ from TauFW.common.tools.file import ensuredir, ensurefile, ensureinit, getline
 from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key, lreplace
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
-from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples
+from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples, chunkify_by_evts, evtsplitexp
 from TauFW.PicoProducer.storage.utils import getstorage, getsamples, print_no_samples
 from argparse import ArgumentParser
 os.chdir(GLOB.basedir)
@@ -517,12 +517,13 @@ def preparejobs(args):
   dasfiles     = args.dasfiles
   checkdas     = args.checkdas
   checkqueue   = args.checkqueue
-  extraopts    = args.extraopts  # extra options for module (for all runs)
-  prefetch     = args.prefetch
-  preselect    = args.preselect
-  nfilesperjob = args.nfilesperjob
-  split_nfpj   = args.split_nfpj
-  testrun      = args.testrun    # only run a few test jobs
+  extraopts    = args.extraopts    # extra options for module (for all runs)
+  prefetch     = args.prefetch     # copy input file first to local output directory
+  preselect    = args.preselect    # preselection string for post-processing
+  nfilesperjob = args.nfilesperjob # split jobs based on number of files
+  maxevts      = args.maxevts      # split jobs based on events
+  split_nfpj   = args.split_nfpj   # split failed chunks into even smaller chunks
+  testrun      = args.testrun      # only run a few test jobs
   tmpdir       = args.tmpdir or CONFIG.get('tmpskimdir',None) # temporary dir for creating skimmed file before copying to outdir
   verbosity    = args.verbosity
   jobs         = [ ]
@@ -590,6 +591,7 @@ def preparejobs(args):
         if sample.extraopts:
           extraopts_.extend(sample.extraopts)
         nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob # priority: USER > SAMPLE > CONFIG
+        maxevts_   = maxevts if maxevts>0 else sample.maxevts if sample.maxevts>0 else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
           nfilesperjob_ = int(max(1,nfilesperjob_/float(split_nfpj)))
         daspath    = sample.paths[0].strip('/')
@@ -652,11 +654,13 @@ def preparejobs(args):
             nevents = sample.getnevents()
           chunkdict = { }
         if testrun:
-          infiles = infiles[:2] # only run two files per sample
+          infiles = infiles[:4] # only run two files per sample
         if verbosity==1:
+          print ">>> %-12s = %s"%('maxevts',maxevts_)
           print ">>> %-12s = %s"%('nfilesperjob',nfilesperjob_)
           print ">>> %-12s = %s"%('nfiles',len(infiles))
         elif verbosity>=2:
+          print ">>> %-12s = %s"%('maxevts',maxevts_)
           print ">>> %-12s = %s"%('nfilesperjob',nfilesperjob_)
           print ">>> %-12s = %s"%('nfiles',len(infiles))
           print ">>> %-12s = [ "%('infiles')
@@ -665,10 +669,15 @@ def preparejobs(args):
           print ">>> ]"
           print ">>> %-12s = %s"%('nevents',nevents)
         
-        # CHUNKS
+        # CHUNKS - partition/split list 
         infiles.sort() # to have consistent order with resubmission
         chunks    = [ ] # chunk indices
-        fchunks   = chunkify(infiles,nfilesperjob_) # file chunks
+        if maxevts_>0:
+          fchunks = chunkify_by_evts(infiles,maxevts_,verb=verbosity) # list of file chunks split by events
+          if testrun:
+            fchunks = fchunks[:4]
+        else:
+          fchunks = chunkify(infiles,nfilesperjob_) # list of file chunks split by number of files
         nfiles    = len(infiles)
         nchunks   = len(fchunks)
         if verbosity>=1:
@@ -686,10 +695,21 @@ def preparejobs(args):
               while ichunk in chunkdict:
                 ichunk   += 1 # allows for different nfilesperjob on resubmission
                 continue
-              jobfiles    = ' '.join(fchunk) # list of input files
+              evtmatch    = evtsplitexp.match(fchunk[0]) # $fname:$firstevt:$maxevts
+              if evtmatch:
+                LOG.insist(len(fchunk)==1,"Chunks of event-split files can only have one input file: %s"%(fchunk))
+                jobfiles  = evtmatch.group(1) # input file
+                firstevt  = int(evtmatch.group(2))
+                maxevts__ = int(evtmatch.group(3))
+              else:
+                jobfiles  = ' '.join(fchunk) # list of input files
+                firstevt  = -1
+                maxevts__ = maxevts
               filetag     = postfix
               if not skim:
                 filetag  += "_%d"%(ichunk)
+              elif firstevt>=0:
+                filetag  += "_%d"%(firstevt/maxevts__)
               jobcmd      = processor
               if procopts:
                 jobcmd   += " %s"%(procopts)
@@ -705,8 +725,12 @@ def preparejobs(args):
                 jobcmd   += " -p"
               if preselect and skim:
                 jobcmd   += " --preselect '%s'"%(preselect)
+              if firstevt>=0:
+                jobcmd   += " --firstevt %d"%(firstevt) # start at this entry (for event-based splitting)
               if testrun:
-                jobcmd   += " -m %d"%(testrun) # process a limited amount of events
+                jobcmd   += " -m %d"%(testrun) # process a limited amount of events for test jobs
+              elif maxevts__>0:
+                jobcmd   += " -m %d"%(maxevts__) # process a limited amount of events for event-based splitting
               if extraopts_:
                 jobcmd   += " --opt '%s'"%("' '".join(extraopts_))
               jobcmd     += " -i %s"%(jobfiles) # add last
@@ -724,7 +748,7 @@ def preparejobs(args):
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
           ('try',subtry),         ('jobids',jobids),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),
-          ('cfgname',cfgname),    ('joblist',joblist),
+          ('cfgname',cfgname),    ('joblist',joblist),    ('maxevts_',maxevts_),
           ('nfiles',nfiles),      ('files',infiles),      ('nfilesperjob',nfilesperjob_), #('nchunks',nchunks),
           ('nchunks',nchunks),    ('chunks',chunks),      ('chunkdict',chunkdict),
         ])
@@ -763,11 +787,12 @@ def checkchunks(sample,**kwargs):
   nfilesperjob = oldjobcfg['nfilesperjob']
   if outdir==None:
     outdir     = oldjobcfg['outdir']
-  storage      = getstorage(outdir,ensure=True)
+  storage      = getstorage(outdir,ensure=True) # StorageElement instance of output directory
   if channel==None:
     channel    = oldjobcfg['channel']
   if tag==None:
     tag        = oldjobcfg['tag']
+  evtsplit     = any(any(evtsplitexp.match(f) for f in chunkdict[i]) for i in chunkdict)
   noldchunks   = len(chunkdict) # = number of jobs
   goodchunks   = [ ] # good job output
   pendchunks   = [ ] # pending or running jobs
@@ -797,12 +822,16 @@ def checkchunks(sample,**kwargs):
   ###########################################################################
   # CHECK SKIMMED OUTPUT: nanoAOD format, one or more output files per job
   if 'skim' in channel.lower(): # and nfilesperjob>1:
-    flagexp  = re.compile(r"-i (.+\.root)") #r"-i ((?:(?<! -).)+\.root[, ])"
-    fpattern = "*%s.root"%(postfix)
-    chunkexp = re.compile(r".+%s\.root"%(postfix))
+    flagexp   = re.compile(r"-i (.+\.root)") #r"-i ((?:(?<! -).)+\.root[, ])"
+    flagexp2  = re.compile(r"--firstevt (\d+) -m (\d+)")
+    chunkexp  = re.compile(r"(.+)%s(?:_(\d+))?\.root"%(postfix))
+    fpatterns = ["*%s.root"%(postfix)]
+    if evtsplit:
+      fpatterns.append("*%s_[0-9]*.root"%(postfix))
     if verbosity>=2:
       print ">>> %-12s = %r"%('flagexp',flagexp.pattern)
-      print ">>> %-12s = %r"%('fpattern',fpattern)
+      print ">>> %-12s = %r"%('flagexp2',flagexp2.pattern)
+      print ">>> %-12s = %r"%('fpatterns',fpatterns)
       print ">>> %-12s = %r"%('chunkexp',chunkexp.pattern)
       print ">>> %-12s = %s"%('checkqueue',checkqueue)
       print ">>> %-12s = %s"%('pendjobs',pendjobs)
@@ -814,25 +843,33 @@ def checkchunks(sample,**kwargs):
       if verbosity>=3:
         print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
       if job.getstatus() in ['q','r']:
-        if CONFIG.batch=='HTCondor':
-          jobarg  = str(job.args)
-          matches = flagexp.findall(jobarg)
+        if 'HTCondor' in CONFIG.batch:
+          jobarg   = str(job.args)
+          matches  = flagexp.findall(jobarg)
+          matches2 = flagexp2.findall(jobarg)
         else:
-          jobarg  = getline(joblist,job.taskid-1)
-          matches = flagexp.findall(jobarg)
+          jobarg   = getline(joblist,job.taskid-1)
+          matches  = flagexp.findall(jobarg)
+          matches2 = flagexp2.findall(jobarg)
         if verbosity>=3:
-          print ">>> matches = ",matches
+          print ">>>   jobarg   =",jobarg.replace('\n','')
+          print ">>>   matches  =",matches
+          print ">>>   matches2 =",matches2
         if not matches:
           continue
         infiles = [ ]
         for file in matches[0].split():
           if not file.endswith('.root'):
             break
+          if matches2:
+            file += ":%s"%(matches2[0][0]) #,matches2[0][1])
+            print file
           infiles.append(file)
-        LOG.insist(infiles,"Did not find any root files in %r, matches=%r"%(jobarg,matches))
+        LOG.insist(infiles,"Did not find any ROOT files in job arguments %r, matches=%r"%(jobarg,matches))
         ichunk = -1
+        print chunkdict
         for i in chunkdict:
-          if all(f in chunkdict[i] for f in infiles):
+          if all(any(f in c for c in chunkdict[i]) for f in infiles):
             ichunk = i
             break
         LOG.insist(ichunk>=0,
@@ -846,50 +883,52 @@ def checkchunks(sample,**kwargs):
     # CHECK OUTPUT FILES
     badfiles  = [ ]
     goodfiles = [ ]
-    fnames    = storage.getfiles(filter=fpattern,verb=verbosity-1)
+    outfiles  = storage.getfiles(filter=fpatterns,verb=verbosity-1) # get output files
     if verbosity>=2:
       print ">>> %-12s = %s"%('pendchunks',pendchunks)
-      print ">>> %-12s = %s"%('fnames',fnames)
-    for fname in fnames:
+      print ">>> %-12s = %s"%('outfiles',outfiles)
+    for fname in outfiles:
       if verbosity>=2:
         print ">>>   Checking job output '%s'..."%(fname)
-      infile = os.path.basename(fname.replace(postfix+".root",".root")) # reconstruct input file
-      nevents = isvalid(fname) # check for corruption
-      ichunk = -1
-      fmatch = None
+      basename = os.path.basename(fname)
+      infile   = chunkexp.sub(r"\1.root",basename) # reconstruct input file without path or postfix
+      outmatch = chunkexp.match(basename)
+      ipart    = int(outmatch.group(2) or -1) if outmatch else -1 # if input file split by events
+      nevents  = isvalid(fname) # check for corruption
+      ichunk   = -1
       for i in chunkdict:
-        if fmatch:
+        if ichunk>-1: # found corresponding input file
           break
-        for chunkfile in chunkdict[i]:
-          if infile in chunkfile: # find chunk input file belongs to
-            ichunk = i
-            fmatch = chunkfile
-            break
-      if ichunk<0:
-        if verbosity>=2:
-          print ">>>   => No match..."
+        for chunkfile in chunkdict[i]: # find chunk output file belongs to
+          if infile not in chunkfile: continue
+          inmatch = evtsplitexp.match(chunkfile)
+          if inmatch and int(inmatch.group(2))/int(inmatch.group(3))!=ipart: continue
+          ichunk  = i
+          if ichunk in pendchunks:
+            if verbosity>=2:
+              print ">>>   => Pending..."
+            continue
+          if nevents<0:
+            if verbosity>=2:
+              print ">>>   => Bad nevents=%s..."%(nevents)
+            badfiles.append(chunkfile)
+          else:
+            if verbosity>=2:
+              print ">>>   => Good, nevents=%s"%(nevents)
+            nprocevents += nevents
+            goodfiles.append(chunkfile)
+      if verbosity>=2:
+        if ichunk<0:
+          print ">>>   => No match with input file..."
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
-      if ichunk in pendchunks:
-        if verbosity>=2:
-          print ">>>   => Pending..."
-        continue
-      if nevents<0:
-        if verbosity>=2:
-          print ">>>   => Bad nevents=%s..."%(nevents)
-        badfiles.append(fmatch)
-      else:
-        if verbosity>=2:
-          print ">>>   => Good, nevents=%s"%(nevents)
-        nprocevents += nevents
-        goodfiles.append(fmatch)
     
     # GET FILES for RESUBMISSION + sanity checks
     for ichunk in chunkdict.keys():
-      if ichunk in pendchunks:
+      if ichunk in pendchunks: # output still pending
         continue
       chunkfiles = chunkdict[ichunk]
-      if all(f in goodfiles for f in chunkfiles): # all files succesful
+      if all(f in goodfiles for f in chunkfiles): # all files in this chunk were succesful
         goodchunks.append(ichunk)
         continue
       bad = False # count each chunk only once: bad, else missing
@@ -899,7 +938,7 @@ def checkchunks(sample,**kwargs):
         if fname in badfiles:
           bad = True
           resubfiles.append(fname)
-        elif fname not in goodfiles:
+        elif fname not in goodfiles: # output file missing
           resubfiles.append(fname)
       if bad:
         badchunks.append(ichunk)
@@ -910,9 +949,9 @@ def checkchunks(sample,**kwargs):
   ###########################################################################
   # CHECK ANALYSIS OUTPUT: custom tree format, one output file per job, numbered post-fix
   else:
-    flagexp  = re.compile(r"-t \w*_(\d+)")
-    fpattern = "*%s_[0-9]*.root"%(postfix)
-    chunkexp = re.compile(r".+%s_(\d+)\.root"%(postfix))
+    flagexp    = re.compile(r"-t \w*_(\d+)")
+    fpattern   = "*%s_[0-9]*.root"%(postfix) # _$postfix_$chunk
+    chunkexp   = re.compile(r".+%s_(\d+)\.root"%(postfix))
     if verbosity>=2:
       print ">>> %-12s = %r"%('flagexp',flagexp.pattern)
       print ">>> %-12s = %r"%('fpattern',fpattern)
@@ -926,7 +965,7 @@ def checkchunks(sample,**kwargs):
       if verbosity>=3:
         print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
       if job.getstatus() in ['q','r']:
-        if CONFIG.batch=='HTCondor':
+        if 'HTCondor' in CONFIG.batch:
           jobarg  = str(job.args)
           matches = flagexp.findall(jobarg)
         else:
@@ -943,11 +982,11 @@ def checkchunks(sample,**kwargs):
         pendchunks.append(ichunk)
     
     # CHECK OUTPUT FILES
-    fnames = storage.getfiles(filter=fpattern,verb=verbosity-1)
+    outfiles = storage.getfiles(filter=fpattern,verb=verbosity-1) # get output files
     if verbosity>=2:
       print ">>> %-12s = %s"%('pendchunks',pendchunks)
-      print ">>> %-12s = %s"%('fnames',fnames)
-    for fname in fnames:
+      print ">>> %-12s = %s"%('outfiles',outfiles)
+    for fname in outfiles:
       if verbosity>=2:
         print ">>>   Checking job output '%s'..."%(fname)
       match = chunkexp.search(fname)
@@ -965,7 +1004,7 @@ def checkchunks(sample,**kwargs):
         if verbosity>=2:
           print ">>>   => Bad, nevents=%s"%(nevents)
         badchunks.append(ichunk)
-        # TODO: remove file from outdir?
+        # TODO: remove file from outdir to avoid conflicting output ?
       else:
         if verbosity>=2:
           print ">>>   => Good, nevents=%s"%(nevents)
@@ -1350,7 +1389,7 @@ if __name__ == "__main__":
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
   parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
-                          metavar='NJOBS',      help='run a test with limited nummer of jobs and events, default nevts=%(const)d' )
+                          metavar='NEVTS',      help='run a test with limited nummer of jobs and events, default nevts=%(const)d' )
   parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1,
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
@@ -1366,8 +1405,10 @@ if __name__ == "__main__":
                                                 help='preselection to be shipped to skimjob.py during run command')
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,
                                                 help='number of files per job, default=%d'%(CONFIG.nfilesperjob))
+  parser_job.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=-1,
+                          metavar='NEVTS',      help='maximum number of events per job to process (split large files), default=%d"'%(CONFIG.maxevtsperjob))
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1,
-                          metavar='N',          help="divide default number of files per job, default=%(const)d" )
+                          metavar='NFILES',     help="divide default number of files per job, default=%(const)d" )
   parser_job.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
                                                 help="for skimming only: temporary output directory befor copying to outdir")
   
@@ -1421,7 +1462,7 @@ if __name__ == "__main__":
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="",
                           metavar='FILE',       help="write file list, default=%(const)r" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
-                                                help='maximum number of events (per file) to process')
+                          metavar='NEVTS',      help='maximum number of events (per file) to process')
   parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
                                                 help='preselection to be shipped to skimjob.py during run command')
   parser_run.add_argument('-n','--nfiles',      dest='nfiles', type=int, default=1,

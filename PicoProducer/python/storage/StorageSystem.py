@@ -3,7 +3,7 @@
 #              ls, cp, rm, mkdir, etc. to allow for easy implementation of storage system plug-ins.
 import os
 from fnmatch import fnmatch # for glob pattern
-from TauFW.common.tools.utils import execute
+from TauFW.common.tools.utils import execute, ensurelist
 from TauFW.common.tools.file import ensuredir, rmfile
 from TauFW.PicoProducer.storage.utils import LOG
 import getpass, platform
@@ -103,15 +103,15 @@ class StorageSystem(object):
     """List contents of given directory."""
     verb    = kwargs.get('verb',self.verbosity)
     dryrun  = kwargs.get('dry', False)
-    filter  = kwargs.get('filter',None) # filter with glob pattern, like '*' or '[0-9]' wildcards
+    filters = ensurelist(kwargs.get('filter',[ ]))  # inclusive filters with glob pattern, like '*' or '[0-9]' wildcards
     path    = self.expandpath(*paths)
     retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),fatal=False,dry=dryrun,verb=verb).split('\n')
     if retlist and 'No such file or directory' in retlist[0]:
       LOG.warning(retlist[0])
       retlist = [ ]
-    elif filter:
+    elif filters:
       for file in retlist[:]:
-        if not fnmatch(file,filter):
+        if not any(fnmatch(file,f) for f in filters):
           retlist.remove(file)
     return retlist
   
@@ -121,7 +121,7 @@ class StorageSystem(object):
     Use the 'filter' option to filter the list of file names with some pattern."""
     verb     = kwargs.get('verb',self.verbosity)
     fileurl  = kwargs.get('url', self.fileurl)
-    filter   = kwargs.get('filter',None) # filter with glob pattern, like '*' or '[0-9]' wildcards
+    filters  = ensurelist(kwargs.get('filter',[ ])) # inclusive filters with glob pattern, like '*' or '[0-9]' wildcards
     path     = self.expandpath(*paths)
     filelist = self.ls(path,**kwargs)
     if fileurl and path.startswith(self.parent):
@@ -130,7 +130,7 @@ class StorageSystem(object):
     else:
       fileurl = ""
     for i, file in enumerate(filelist):
-      if filter and not fnmatch(file,filter): continue
+      if filters and not any(fnmatch(file,f) for f in filters): continue
       filelist[i] = fileurl+os.path.join(path,file)
     return filelist
   

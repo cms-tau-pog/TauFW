@@ -14,7 +14,8 @@ parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
 parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
 parser.add_argument('-C', '--copydir',  dest='copydir',   type=str, default=None)
-parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=-1)
+parser.add_argument('-s', '--firstevt', dest='firstevt',  type=int, default=0)
+parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=None)
 parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="")
 parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
 parser.add_argument('-y','-e','--era',  dest='era',       type=str, default='2018')
@@ -27,10 +28,10 @@ args = parser.parse_args()
 
 
 # SETTING
-era       = args.era # e.g. '2017', 'UL2017', ...
-year      = getyear(era) # integer year, e.g. 2017
-modname   = args.module
-channel   = args.channel
+era       = args.era      # e.g. '2017', 'UL2017', ...
+year      = getyear(era)  # integer year, e.g. 2017
+modname   = args.module   # main module to run
+channel   = args.channel  # channel
 if channel:
   import TauFW.PicoProducer.tools.config as GLOB
   CONFIG  = GLOB.getconfig(verb=0)
@@ -41,22 +42,23 @@ else:
   if not modname:
     modname = "ModuleMuTauSimple"
   channel = modname
-dtype     = args.dtype
-outdir    = ensuredir(args.outdir)
-copydir   = args.copydir
-maxevts   = args.maxevts if args.maxevts>0 else None
-nfiles    = 1 if maxevts>0 else -1
-tag       = args.tag
+dtype     = args.dtype             # data type ('data', 'mc', 'embed')
+outdir    = ensuredir(args.outdir) # directory to create output
+copydir   = args.copydir           # directory to copy output to at end
+firstevt  = args.firstevt          # index of first event to run
+maxevts   = args.maxevts           # maximum number of events to run
+nfiles    = 1 if maxevts>0 else -1 # maximum number of files to run
+tag       = args.tag               # postfix tag of job output file
 if tag:
   tag     = ('' if tag.startswith('_') else '_') + tag
 outfname  = os.path.join(outdir,"pico%s.root"%(tag)) #channel,
 url       = "root://cms-xrd-global.cern.ch/"
-prefetch  = args.prefetch
-verbosity = args.verbosity
-presel    = None #"Muon_pt[0] > 50"
-branchsel = os.path.join(moddir,"keep_and_drop_skim.txt")
-json      = None
-modules   = [ ]
+prefetch  = args.prefetch          # copy input file(s) to ouput directory first
+verbosity = args.verbosity         # verbosity level
+presel    = None                   # simple pre-selection string, e.g. "Muon_pt[0] > 50"
+branchsel = os.path.join(moddir,"keep_and_drop_skim.txt") # file with branch selection
+json      = None                   # JSON file of certified events
+modules   = [ ]                    # list of modules to run
 
 # GET FILES
 infiles   = args.infiles or [
@@ -91,6 +93,7 @@ print(">>> %-12s = %r"%('channel',channel))
 print(">>> %-12s = %r"%('modname',modname))
 print(">>> %-12s = %r"%('dtype',dtype))
 print(">>> %-12s = %r"%('kwargs',kwargs))
+print(">>> %-12s = %s"%('firstevt',firstevt))
 print(">>> %-12s = %s"%('maxevts',maxevts))
 print(">>> %-12s = %r"%('outdir',outdir))
 print(">>> %-12s = %r"%('copydir',copydir))
@@ -107,8 +110,8 @@ module = getmodule(modname)(outfname,**kwargs)
 modules.append(module)
 
 # RUN
-p = PostProcessor(outdir,infiles,cut=None,branchsel=None,noOut=True,
-                  modules=modules,jsonInput=json,maxEntries=maxevts,prefetch=prefetch)
+p = PostProcessor(outdir,infiles,cut=None,branchsel=None,firstEntry=firstevt,maxEntries=maxevts,
+                  jsonInput=json,modules=modules,noOut=True,prefetch=prefetch)
 p.run()
 
 # COPY

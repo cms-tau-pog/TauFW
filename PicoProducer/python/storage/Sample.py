@@ -81,22 +81,24 @@ class Sample(object):
     self.channels     = kwargs.get('channels',     self.channels )
     self.storage      = None
     self.storepath    = kwargs.get('store',        None ) # if stored elsewhere than DAS
-    self.url          = kwargs.get('url',          None )
-    self.dasurl       = kwargs.get('dasurl',       None ) or "root://cms-xrd-global.cern.ch/"
+    self.url          = kwargs.get('url',          None ) # URL if stored elsewhere
+    self.dasurl       = kwargs.get('dasurl',       None ) or "root://cms-xrd-global.cern.ch/" # URL for DAS
     self.blacklist    = kwargs.get('blacklist',    [ ]  ) # black list file
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global') # if None, does not exist in DAS
     self.nfilesperjob = kwargs.get('nfilesperjob', -1   ) # number of nanoAOD files per job
+    self.maxevts      = kwargs.get('maxevts',      -1   ) # maximum number of events processed per job
     self.extraopts    = kwargs.get('opts',         [ ]  ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
     self.subtry       = kwargs.get('subtry',       0    ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',       { }  ) # to help keep track of resubmission
     self.nevents      = kwargs.get('nevts',        0    ) # number of nanoAOD events that can be processed
-    self.nevents      = kwargs.get('nevents',      self.nevents )
+    self.nevents      = kwargs.get('nevents',      self.nevents ) # cache of number of events
     self.files        = kwargs.get('files',        [ ]  ) # list of ROOT files, OR text file with list of files
+    self.filenevts    = { } # cache of number of events for each file
     self.postfix      = kwargs.get('postfix',      None ) or "" # post-fix (before '.root') for stored ROOT files
     self.era          = kwargs.get('era',          ""   ) # for expansion of $ERA variable
     self.dosplit      = kwargs.get('split', len(self.paths)>=2 ) # allow splitting (if multiple DAS datasets)
     self.verbosity    = kwargs.get('verbosity',     0   ) # verbosity level for debugging
-    self.refreshable  = not self.files                   # allow refresh on file list in getfiles()
+    self.refreshable  = not self.files                    # allow refresh on file list in getfiles()
     
     # ENSURE LIST
     if self.channels!=None and not isinstance(self.channels,list):
@@ -237,22 +239,24 @@ class Sample(object):
       files = [f.replace(url_,"") for f in files]
     return files
   
-  def getnevents(self,das=True,refresh=False,treename='Events',verb=0):
+  def _getnevents(self,das=True,refresh=False,treename='Events',limit=-1,verb=0):
     """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
-    nevents = self.nevents
+    nevents   = self.nevents
+    filenevts = self.filenevts
     if nevents<=0 or refresh:
       if self.storage and not das: # get number of events from storage system
-        files = self.getfiles(url=True,refresh=refresh,verb=verb)
+        files = self.getfiles(url=True,refresh=refresh,limit=limit,verb=verb)
         for fname in files:
-          file     = ensureTFile(fname)
-          tree     = file.Get(treename)
+          file = ensureTFile(fname)
+          tree = file.Get(treename)
           if not tree:
-            LOG.warning("getnevents: No %r tree in events in %r!"%('Events',fname))
+            LOG.warning("_getnevents: No %r tree in events in %r!"%(treename,fname))
             continue
-          nevts    = tree.GetEntries()
+          nevts = tree.GetEntries()
           file.Close()
+          filenevts[fname] = nevts # cache
           nevents += nevts
-          LOG.verb("getnevents: Found %d events in %r."%(nevts,fname),verb,3)
+          LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
       else: # get number of events from DAS
         for daspath in self.paths:
           cmdout = dasgoclient("summary dataset=%s instance=%s"%(daspath,self.instance),verb=verb-1)
@@ -262,7 +266,18 @@ class Sample(object):
             ndasevts = 0
             LOG.warning("Could not get number of events from DAS for %r."%(self.name))
           nevents += ndasevts
-      self.nevents = nevents
+      if limit<0:
+        self.nevents = nevents
+    return nevents, filenevts
+  
+  def getfilenevts(self,*args,**kwargs):
+    """Get number of nanoAOD events per file."""
+    nevents, filenevts = self._getnevents(*args,**kwargs)
+    return filenevts
+  
+  def getnevents(self,*args,**kwargs):
+    """Get number of nanoAOD events."""
+    nevents, filenevts = self._getnevents(*args,**kwargs)
     return nevents
   
 
