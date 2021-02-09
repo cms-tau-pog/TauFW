@@ -87,6 +87,7 @@ The configurable variables include:
 * `nanodir`: Directory to store the output nanoAOD files from skimming jobs.
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
 * `nfilesperjob`: Default number of files per job. This can be overridden per sample (see below).
+* `maxevtsperjob`: Default limit on events processed per job. This is overrides `nfilesperjob` and can be set per sample (see below).
 * `filelistdir`: Directory to save list of nanoAOD files to run on (e.g. `samples/files/$ERA/$SAMPLE.txt`).
 
 Defaults are given in [`config/config.json`](config/config.json).
@@ -193,7 +194,7 @@ Other optional keyword arguments are
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
   This overrides the default `nfilesperjob` in the configuration.
-* `maxevtsperjob`: Maximum number of events per job. This will split large files in several jobs, to reduce the number of large jobs.
+* `maxevts`: Maximum number of events per job. This will split large files in several jobs, to reduce the number of large jobs.
   Small files will still be combined as long as the sum of their events is below this maximum.
   This overrides the default `maxevtsperjob` in the configuration and any `nfilesperjob` settings.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.

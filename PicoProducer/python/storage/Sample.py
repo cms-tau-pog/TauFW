@@ -77,28 +77,29 @@ class Sample(object):
     self.name         = name
     self.paths        = paths # DAS dataset path
     self.dtype        = dtype
-    self.channels     = kwargs.get('channel',      None )
-    self.channels     = kwargs.get('channels',     self.channels )
+    self.channels     = kwargs.get('channel',       None   )
+    self.channels     = kwargs.get('channels', self.channels )
     self.storage      = None
-    self.storepath    = kwargs.get('store',        None ) # if stored elsewhere than DAS
-    self.url          = kwargs.get('url',          None ) # URL if stored elsewhere
-    self.dasurl       = kwargs.get('dasurl',       None ) or "root://cms-xrd-global.cern.ch/" # URL for DAS
-    self.blacklist    = kwargs.get('blacklist',    [ ]  ) # black list file
+    self.storepath    = kwargs.get('store',         None   ) # if stored elsewhere than DAS
+    self.url          = kwargs.get('url',           None   ) # URL if stored elsewhere
+    self.dasurl       = kwargs.get('dasurl',        None   ) or "root://cms-xrd-global.cern.ch/" # URL for DAS
+    self.blacklist    = kwargs.get('blacklist',     [ ]    ) # black list file
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global') # if None, does not exist in DAS
-    self.nfilesperjob = kwargs.get('nfilesperjob', -1   ) # number of nanoAOD files per job
-    self.maxevts      = kwargs.get('maxevts',      -1   ) # maximum number of events processed per job
-    self.extraopts    = kwargs.get('opts',         [ ]  ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
-    self.subtry       = kwargs.get('subtry',       0    ) # to help keep track of resubmission
-    self.jobcfg       = kwargs.get('jobcfg',       { }  ) # to help keep track of resubmission
-    self.nevents      = kwargs.get('nevts',        0    ) # number of nanoAOD events that can be processed
-    self.nevents      = kwargs.get('nevents',      self.nevents ) # cache of number of events
-    self.files        = kwargs.get('files',        [ ]  ) # list of ROOT files, OR text file with list of files
+    self.nfilesperjob = kwargs.get('nfilesperjob',  -1     ) # number of nanoAOD files per job
+    self.maxevts      = kwargs.get('maxevtsperjob', -1     ) # maximum number of events processed per job
+    self.maxevts      = kwargs.get('maxevts', self.maxevts ) # maximum number of events processed per job
+    self.extraopts    = kwargs.get('opts',          [ ]    ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
+    self.subtry       = kwargs.get('subtry',        0      ) # to help keep track of resubmission
+    self.jobcfg       = kwargs.get('jobcfg',        { }    ) # to help keep track of resubmission
+    self.nevents      = kwargs.get('nevts',         0      ) # number of nanoAOD events that can be processed
+    self.nevents      = kwargs.get('nevents', self.nevents ) # cache of number of events
+    self.files        = kwargs.get('files',         [ ]    ) # list of ROOT files, OR text file with list of files
     self.filenevts    = { } # cache of number of events for each file
-    self.postfix      = kwargs.get('postfix',      None ) or "" # post-fix (before '.root') for stored ROOT files
-    self.era          = kwargs.get('era',          ""   ) # for expansion of $ERA variable
+    self.postfix      = kwargs.get('postfix',       None   ) or "" # post-fix (before '.root') for stored ROOT files
+    self.era          = kwargs.get('era',           ""     ) # for expansion of $ERA variable
     self.dosplit      = kwargs.get('split', len(self.paths)>=2 ) # allow splitting (if multiple DAS datasets)
-    self.verbosity    = kwargs.get('verbosity',     0   ) # verbosity level for debugging
-    self.refreshable  = not self.files                    # allow refresh on file list in getfiles()
+    self.verbosity    = kwargs.get('verbosity',     0      ) # verbosity level for debugging
+    self.refreshable  = not self.files                       # allow refresh on file list in getfiles()
     
     # ENSURE LIST
     if self.channels!=None and not isinstance(self.channels,list):
