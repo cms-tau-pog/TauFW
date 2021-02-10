@@ -524,6 +524,7 @@ def preparejobs(args):
   maxevts      = args.maxevts      # split jobs based on events
   split_nfpj   = args.split_nfpj   # split failed chunks into even smaller chunks
   testrun      = args.testrun      # only run a few test jobs
+  queue        = args.queue        # queue option for the batch system (job flavor for HTCondor)
   tmpdir       = args.tmpdir or CONFIG.get('tmpskimdir',None) # temporary dir for creating skimmed file before copying to outdir
   verbosity    = args.verbosity
   jobs         = [ ]
@@ -582,7 +583,8 @@ def preparejobs(args):
         
         # DIRECTORIES
         subtry     = sample.subtry+1 if resubmit else 1
-        jobids     = sample.jobcfg.get('jobids',[ ])
+        jobids     = sample.jobcfg.get('jobids',[ ]  )
+        queue_     = sample.jobcfg.get('queue', None ) or queue
         dtype      = sample.dtype
         postfix    = "_%s%s"%(channel,tag)
         jobtag     = "%s_try%d"%(postfix,subtry)
@@ -594,6 +596,9 @@ def preparejobs(args):
         maxevts_   = maxevts if maxevts>0 else sample.maxevts if sample.maxevts>0 else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
           nfilesperjob_ = int(max(1,nfilesperjob_/float(split_nfpj)))
+        elif resubmit and nfilesperjob<=0 and maxevts<=0: # reuse previous settings if not set by user
+          nfilesperjob_ = sample.jobcfg.get('nfilesperjob',nfilesperjob_)
+          maxevts_      = sample.jobcfg.get('maxevts',maxevts_)
         daspath    = sample.paths[0].strip('/')
         outdir     = repkey(outdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
                                          DAS=daspath,PATH=daspath,GROUP=sample.group)
@@ -625,6 +630,7 @@ def preparejobs(args):
           print ">>> %-12s = %r"%('joblist',joblist)
           print ">>> %-12s = %s"%('try',subtry)
           print ">>> %-12s = %r"%('jobids',jobids)
+          print ">>> %-12s = %r"%('queue',queue_)
         
         # CHECKS
         if os.path.isfile(cfgname):
@@ -648,9 +654,6 @@ def preparejobs(args):
           infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
                                            checkqueue=checkqueue,das=checkdas,verb=verbosity)
           nevents = sample.jobcfg['nevents'] # updated in checkchunks
-          if nfilesperjob<=0 and maxevts<=0 and split_nfpj<=1: # reuse previous settings if not set by user
-            nfilesperjob_ = sample.jobcfg['nfilesperjob']
-            maxevts_      = sample.jobcfg['maxevts']
         else: # first-time submission
           infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
           if checkdas:
@@ -749,7 +752,7 @@ def preparejobs(args):
           ('group',sample.group), ('paths',sample.paths), ('name',sample.name), ('nevents',nevents),
           ('dtype',dtype),        ('channel',channel),    ('module',module),    ('extraopts',extraopts_),
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
-          ('try',subtry),         ('jobids',jobids),
+          ('try',subtry),         ('queue',queue_),        ('jobids',jobids),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),
           ('cfgname',cfgname),    ('joblist',joblist),    ('maxevts',maxevts_),
           ('nfiles',nfiles),      ('files',infiles),      ('nfilesperjob',nfilesperjob_), #('nchunks',nchunks),
@@ -896,7 +899,7 @@ def checkchunks(sample,**kwargs):
       basename = os.path.basename(fname)
       infile   = chunkexp.sub(r"\1.root",basename) # reconstruct input file without path or postfix
       outmatch = chunkexp.match(basename)
-      ipart    = int(outmatch.group(2) or -1) if outmatch else -1 # if input file split by events
+      ipart    = int(outmatch.group(2) or -1) if outmatch else -1 # >0 if input file split by events
       nevents  = isvalid(fname) # check for corruption
       ichunk   = -1
       for i in chunkdict:
@@ -1138,6 +1141,7 @@ def main_submit(args):
     joblist = jobcfg['joblist'] # text file with list of tasks to be executed per job
     jobname = jobcfg['jobname']
     nchunks = jobcfg['nchunks']
+    queue   = jobcfg['queue']
     jkwargs = { # key-word arguments for batch.submit
       'name': jobname, 'opt': batchopts, 'dry': dryrun,
       'short': (testrun>0), 'queue':queue, 'time':time
