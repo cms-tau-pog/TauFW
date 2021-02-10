@@ -596,9 +596,10 @@ def preparejobs(args):
         maxevts_   = maxevts if maxevts>0 else sample.maxevts if sample.maxevts>0 else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
           nfilesperjob_ = int(max(1,nfilesperjob_/float(split_nfpj)))
-        elif resubmit and nfilesperjob<=0 and maxevts<=0: # reuse previous settings if not set by user
-          nfilesperjob_ = sample.jobcfg.get('nfilesperjob',nfilesperjob_)
-          maxevts_      = sample.jobcfg.get('maxevts',maxevts_)
+        elif resubmit and maxevts<=0: # reuse previous maxevts settings if maxevts not set by user
+          maxevts_ = sample.jobcfg.get('maxevts',maxevts_)
+          if nfilesperjob<=0: # reuse previous nfilesperjob settings if nfilesperjob not set by user
+            nfilesperjob_ = sample.jobcfg.get('nfilesperjob',nfilesperjob_)
         daspath    = sample.paths[0].strip('/')
         outdir     = repkey(outdirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
                                          DAS=daspath,PATH=daspath,GROUP=sample.group)
