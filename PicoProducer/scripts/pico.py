@@ -585,8 +585,8 @@ def preparejobs(args):
         jobids     = sample.jobcfg.get('jobids',[ ])
         dtype      = sample.dtype
         postfix    = "_%s%s"%(channel,tag)
-        jobtag     = '%s_try%d'%(postfix,subtry)
-        jobname    = sample.name+jobtag.rstrip('try1').rstrip('_')
+        jobtag     = "%s_try%d"%(postfix,subtry)
+        jobname    = "%s%s_%s%s"%(sample.name,postfix,era,"_try%d"%subtry if subtry>0 else "")
         extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample.extraopts:
           extraopts_.extend(sample.extraopts)
@@ -648,6 +648,9 @@ def preparejobs(args):
           infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
                                            checkqueue=checkqueue,das=checkdas,verb=verbosity)
           nevents = sample.jobcfg['nevents'] # updated in checkchunks
+          if nfilesperjob<=0 and maxevts<=0 and split_nfpj<=1: # reuse previous settings if not set by user
+            nfilesperjob_ = sample.jobcfg['nfilesperjob']
+            maxevts_      = sample.jobcfg['maxevts']
         else: # first-time submission
           infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
           if checkdas:
@@ -748,7 +751,7 @@ def preparejobs(args):
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
           ('try',subtry),         ('jobids',jobids),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),
-          ('cfgname',cfgname),    ('joblist',joblist),    ('maxevts_',maxevts_),
+          ('cfgname',cfgname),    ('joblist',joblist),    ('maxevts',maxevts_),
           ('nfiles',nfiles),      ('files',infiles),      ('nfilesperjob',nfilesperjob_), #('nchunks',nchunks),
           ('nchunks',nchunks),    ('chunks',chunks),      ('chunkdict',chunkdict),
         ])
