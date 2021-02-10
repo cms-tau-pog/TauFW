@@ -51,9 +51,9 @@ samples  = [
   M('WJ','W2JetsToLNu',
     "/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
     store=storage,url=url,file=filelist),
-  #M('WJ','W3JetsToLNu',
-  #  "", # MISSING
-  #  store=storage,url=url,file=filelist),
+  M('WJ','W3JetsToLNu',
+    "/W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAOD-106X_upgrade2018_realistic_v11_L1v1-v1/NANOAODSIM", # OLD
+    store=storage,url=url,file=filelist),
   M('WJ','W4JetsToLNu',
     "/W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
     store=storage,url=url,file=filelist),
@@ -96,23 +96,23 @@ samples  = [
    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
   
   # SINGLE ELECTRON
-  D('Data','EGamma_Run2017A',"/EGamma/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','EGamma_Run2018A',"/EGamma/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  D('Data','EGamma_Run2017B',"/EGamma/Run2018B-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','EGamma_Run2018B',"/EGamma/Run2018B-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  #D('Data','EGamma_Run2017C',"", # MISSING
+  #D('Data','EGamma_Run2018C',"", # MISSING
   #  store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  D('Data','EGamma_Run2017D',"/EGamma/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','EGamma_Run2018D',"/EGamma/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
   
   # TAU
-  D('Data','Tau_Run2017A',"/Tau/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018A',"/Tau/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
-  D('Data','Tau_Run2017B',"/Tau/Run2018B-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018B',"/Tau/Run2018B-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
-  D('Data','Tau_Run2017C',"/Tau/Run2018C-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018C',"/Tau/Run2018C-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
-  D('Data','Tau_Run2017D',"/Tau/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018D',"/Tau/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
   
 ]

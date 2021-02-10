@@ -69,7 +69,7 @@ def chunkify_by_evts(fnames,nmax,evenly=True):
   return result
 
 
-def testEventBased(verb=0):
+def testEventBased(args,verb=0):
   storage  = None #"/eos/user/i/ineuteli/samples/nano/$ERA/$PATH"
   url      = None #"root://cms-xrd-global.cern.ch/"
   filelist = None #"samples/files/2016/$SAMPLE.txt"
@@ -95,12 +95,16 @@ def testEventBased(verb=0):
       print chunk
 
 
-def compare_output():
+def compare_output(args,verb=0):
   """Quick comparison between job output."""
   print ">>> Compare job output..."
   nbins  = 100000
   fname1 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau.root"      # file-based split
   fname2 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau_test.root" # event-based split
+  if len(args.infiles)>=2:
+    fname1, fname2 = args.infiles[:2]
+  print ">>>  ",fname1
+  print ">>>  ",fname2
   file1  = ensureTFile(fname1)
   file2  = ensureTFile(fname2)
   tree1  = file1.Get('tree')
@@ -125,8 +129,8 @@ def compare_output():
   
 
 def main(args):
-  testEventBased(args)
-  #compare_output()
+  #testEventBased(args)
+  compare_output(args)
   
 
 if __name__ == "__main__":
@@ -135,6 +139,8 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Test event-based splitting of files."""
   parser = ArgumentParser(prog="testBatch",description=description,epilog="Good luck!")
+  parser.add_argument('infiles',            type=str, nargs='*', default=[], action='store',
+                                            help="files to compare" )
   parser.add_argument('-v', '--verbose',    dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                             help="set verbosity" )
   parser.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,

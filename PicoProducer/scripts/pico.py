@@ -672,7 +672,7 @@ def preparejobs(args):
         # CHUNKS - partition/split list 
         infiles.sort() # to have consistent order with resubmission
         chunks    = [ ] # chunk indices
-        if maxevts_>0:
+        if maxevts_>1:
           fchunks = chunkify_by_evts(infiles,maxevts_,verb=verbosity) # list of file chunks split by events
           if testrun:
             fchunks = fchunks[:4]

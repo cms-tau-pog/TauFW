@@ -214,7 +214,7 @@ class MergedSample(Sample):
           sumhist.SetTitle(title)
           sumhist.SetDirectory(0)
           sumhist.SetLineColor(self.linecolor)
-          sumhist.SetFillColor(self.fillcolor)
+          sumhist.SetFillColor(kWhite if self.isdata or self.issignal else self.fillcolor)
           sumhist.SetMarkerColor(self.fillcolor)
           sumhists.append(sumhist)
         else:
