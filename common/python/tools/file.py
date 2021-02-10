@@ -102,7 +102,7 @@ def getline(fname,iline):
 def ensureTFile(filename,option='READ',verb=0):
   """Open TFile, checking if the file in the given path exists."""
   if isinstance(filename,str):
-    if ':' not in filename and not os.path.isfile(filename):
+    if option=='READ' and ':' not in filename and not os.path.isfile(filename):
       LOG.throw(IOError,'File in path "%s" does not exist!'%(filename))
       exit(1)
     file = ROOT.TFile.Open(filename,option)

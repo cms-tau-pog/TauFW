@@ -59,7 +59,7 @@ class Plot(object):
       hists    = args[0] # list of histograms
     elif len(args)==2:
       variable = args[0] # string or Variable
-      hists    = args[1] # list of histograms
+      hists    = ensurelist(args[1]) # list of histograms
     else:
       LOG.throw(IOError,"Plot: Wrong input %s"%(args))
     if kwargs.get('clone',False):
@@ -183,8 +183,8 @@ class Plot(object):
     self.lcolors = lcolors
     self.fcolors = fcolors
     self.lstyles = lstyles
-    if not xmin:  xmin = self.xmin
-    if not xmax:  xmax = self.xmax
+    if not xmin and xmin!=0: xmin = self.xmin
+    if not xmax and xmax!=0: xmax = self.xmax
     hists        = self.hists
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else False
     denom        = max(0,min(len(hists),kwargs.get('denom', denom ))) # denominator histogram in ratio plot
@@ -200,10 +200,12 @@ class Plot(object):
     if dividebins:
       for i, oldhist in enumerate(self.hists):
         newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False)
-        if oldhist!=newhist:
+        if oldhist!=newhist: # new hist is actually a TGraph
           LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
           self.hists[i] = newhist
           self.garbage.append(oldhist)
+          if oldhist==self.frame:
+            self.frame = None
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
@@ -237,16 +239,6 @@ class Plot(object):
     self.canvas = self.setcanvas(square=square,ratio=ratio,
                                  lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
     
-    # DRAW
-    self.canvas.cd(1)
-    #self.frame.Draw('AXIS') # 'AXIS' breaks grid
-    for i, (hist, option1) in enumerate(zip(hists,options)):
-      if triple and i%3==2:
-        option1 = 'E1'
-      option1 += " SAME"
-      hist.Draw(option1)
-      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option1),verbosity,2)
-    
     # STYLE
     lhists, mhists = [ ], [ ]
     for hist, opt in zip(hists,options):
@@ -254,6 +246,25 @@ class Plot(object):
       else:          mhists.append(hist)
     self.setlinestyle(lhists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
     self.setmarkerstyle(*mhists,colors=lcolors)
+    
+    # DRAW
+    self.canvas.cd(1)
+    if not self.frame:
+      oldhist = self.hists[0]
+      if isinstance(oldhist,TGraph):
+        oldhist = oldhist.GetHistogram()
+      self.frame = self.canvas.DrawFrame(oldhist.GetXaxis().GetXmin(),oldhist.GetMinimum(),
+                                         oldhist.GetXaxis().GetXmax(),oldhist.GetMaximum())
+      self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+    elif self.frame!= self.hists[0]:
+      self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+    for i, (hist, option1) in enumerate(zip(hists,options)):
+      if triple and i%3==2:
+        option1 = 'E1'
+      if i>0:
+        option1 += " SAME"
+      hist.Draw(option1)
+      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option1),verbosity+2,2)
     
     # CMS STYLE
     if CMSStyle.lumiText:
@@ -425,7 +436,7 @@ class Plot(object):
     ylabelsize    = kwargs.get('ylabelsize',   _lsize           )*scale
     ytitleoffset  = kwargs.get('ytitleoffset', 1.0              )*1.26/scale
     xtitleoffset  = kwargs.get('xtitleoffset', 1.0              )*1.00
-    xlabeloffset  = kwargs.get('xlabeloffset', 0.007            )
+    xlabeloffset  = kwargs.get('xlabeloffset', -0.008*scale if logx else 0.007 )
     if main:
       xtitlesize  = 0.0
       xlabelsize  = 0.0
@@ -442,6 +453,8 @@ class Plot(object):
       xlabeloffset *= 0.88*scale
     if logy:
       ylabelsize   *= 1.08
+    if logx:
+      xlabelsize   *= 1.08
     if binlabels:
       nxdivisions = 15
     
