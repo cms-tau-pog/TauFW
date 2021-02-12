@@ -228,6 +228,7 @@ class ModuleTauPair(Module):
     jets.sort( key=lambda j: self.ptnom(j),reverse=True)
     bjets.sort(key=lambda j: self.ptnom(j),reverse=True)
     self.out.njets[0]         = len(jets)
+    self.out.njets50[0]       = len([j for j in jets if self.ptnom(j)>50])
     self.out.nfjets[0]        = nfjets
     self.out.ncjets[0]        = ncjets
     self.out.nbtag[0]         = nbtag
@@ -355,9 +356,9 @@ class ModuleTauPair(Module):
     # PZETA
     leg1                  = TVector3(tau1.Px(),tau1.Py(),0.)
     leg2                  = TVector3(tau2.Px(),tau2.Py(),0.)
-    zetaAxis              = TVector3(leg1.Unit()+leg2.Unit()).Unit()
-    pzetavis              = leg1*zetaAxis + leg2*zetaAxis
-    pzetamiss             = met.Vect()*zetaAxis
+    zetaAxis              = TVector3(leg1.Unit()+leg2.Unit()).Unit() # bisector of visible tau candidates
+    pzetavis              = leg1*zetaAxis + leg2*zetaAxis # bisector of visible ditau momentum onto zeta axis
+    pzetamiss             = met.Vect()*zetaAxis # projection of MET onto zeta axis
     self.out.pzetamiss[0] = pzetamiss
     self.out.pzetavis[0]  = pzetavis
     self.out.dzeta[0]     = pzetamiss - 0.85*pzetavis

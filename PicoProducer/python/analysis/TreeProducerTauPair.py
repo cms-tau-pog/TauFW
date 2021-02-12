@@ -27,7 +27,7 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('npv',                 'i', title="number of offline primary vertices")
     self.addBranch('npv_good',            'i')
     self.addBranch('rho',                 'f', title="fixedGridRhoFastjetAll")
-    self.addBranch('metfilter',           '?')
+    self.addBranch('metfilter',           '?', title="recommended metfilters")
     
     if module.ismc:
       # https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/NPUTablesProducer.cc
@@ -64,23 +64,24 @@ class TreeProducerTauPair(TreeProducer):
     ############
     
     self.addBranch('njets',               'i', title="number of jets (pT > 30 GeV, |eta| < 4.7)")
+    self.addBranch('njets50',             'i', title="number of jets (pT > 50 GeV, |eta| < 4.7)")
     self.addBranch('ncjets',              'i', title="number of central jets (|eta| < 2.4)")
     self.addBranch('nfjets',              'i', title="number of forward jets (2.4 < |eta| < 4.7)")
     self.addBranch('nbtag',               'i', title="number of b tagged jets (pT > 30 GeV, |eta| < 2.7)")
     
-    self.addBranch('jpt_1',               'f')
-    self.addBranch('jeta_1',              'f')
-    self.addBranch('jphi_1',              'f')
-    self.addBranch('jdeepb_1',            'f')
-    self.addBranch('jpt_2',               'f')
-    self.addBranch('jeta_2',              'f')
-    self.addBranch('jphi_2',              'f')
-    self.addBranch('jdeepb_2',            'f')
+    self.addBranch('jpt_1',               'f', title="pT of leading jet")
+    self.addBranch('jeta_1',              'f', title="eta of leading jet")
+    self.addBranch('jphi_1',              'f', title="phi of leading jet")
+    self.addBranch('jdeepb_1',            'f', title="DeepCVS score of leading jet")
+    self.addBranch('jpt_2',               'f', title="pT of subleading jet")
+    self.addBranch('jeta_2',              'f', title="eta of subleading jet")
+    self.addBranch('jphi_2',              'f', title="phi of subleading jet")
+    self.addBranch('jdeepb_2',            'f', title="DeepCVS score of subleading jet")
     
-    self.addBranch('bpt_1',               'f')
-    self.addBranch('beta_1',              'f')
-    self.addBranch('bpt_2',               'f')
-    self.addBranch('beta_2',              'f')
+    self.addBranch('bpt_1',               'f', title="pT of leading b jet")
+    self.addBranch('beta_1',              'f', title="eta of leading jet")
+    self.addBranch('bpt_2',               'f', title="pT of leading jet")
+    self.addBranch('beta_2',              'f', title="eta of leading jet")
     
     self.addBranch('met',                 'f')
     self.addBranch('metphi',              'f')
@@ -94,18 +95,18 @@ class TreeProducerTauPair(TreeProducer):
     #   OTHER   #
     #############
     
-    self.addBranch('mt_1',                'f')
-    self.addBranch('mt_2',                'f')
-    self.addBranch('m_vis',               'f')
-    self.addBranch('pt_ll',               'f')
-    self.addBranch('dR_ll',               'f')
-    self.addBranch('dphi_ll',             'f')
-    self.addBranch('deta_ll',             'f')
+    self.addBranch('mt_1',                'f', title="PF transverse mass with first lepton")
+    self.addBranch('mt_2',                'f', title="PF transverse mass with second lepton")
+    self.addBranch('m_vis',               'f', title="invariant mass of visibile ditau system")
+    self.addBranch('pt_ll',               'f', title="pT of visibile ditau system")
+    self.addBranch('dR_ll',               'f', title="DeltaR of visibile ditau system")
+    self.addBranch('dphi_ll',             'f', title="DeltaPhi of visibile ditau system")
+    self.addBranch('deta_ll',             'f', title="DeltaEta of visibile ditau system")
     self.tree.SetAlias("m_ll","m_vis")
     
-    self.addBranch('pzetamiss',           'f')
-    self.addBranch('pzetavis',            'f')
-    self.addBranch('dzeta',               'f')
+    self.addBranch('pzetavis',            'f', title="projection of visible ditau momentums onto bisector (zeta)")
+    self.addBranch('pzetamiss',           'f', title="projection of MET onto zeta axis")
+    self.addBranch('dzeta',               'f', title="pzetamiss-0.85*pzetavis")
     self.addBranch('chi',                 'f', title="exp|y_2-y_1|")
     
     self.addBranch('dilepton_veto',       '?')
