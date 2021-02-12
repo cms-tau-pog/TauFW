@@ -177,11 +177,9 @@ class Plot(object):
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       True            ) # horizontal error bars
     dividebins   = kwargs.get('dividebins',   self.dividebins )
-    lines        = kwargs.get('line',         [ ]             )
     lcolors      = ensurelist(lcolors)
     fcolors      = ensurelist(fcolors)
     lstyles      = ensurelist(lstyles)
-    lines        = ensurelist(lines)
     self.ratio   = ratio
     self.lcolors = lcolors
     self.fcolors = fcolors
@@ -257,11 +255,8 @@ class Plot(object):
       self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
     
     # DRAW LINE
-    for x1, y1, x2, y2 in lines:
-      line = TGraph(2) #TLine(xmin,1,xmax,1)
-      line.SetPoint(0,x1,y1)
-      line.SetPoint(1,x2,y2)
-      self.lines.append(line)
+    for line in self.lines:
+      line.Draw("LSAME")
     
     # DRAW HISTS
     for i, (hist, option1) in enumerate(zip(hists,options)):
@@ -880,6 +875,20 @@ class Plot(object):
     self.texts.append(latex)
     
     return latex
+    
+  
+  def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,**kwargs):
+    pad  = kwargs.get('pad', 1 ) # 1: main, 2: ratio
+    line = TGraph(2) #TLine(xmin,1,xmax,1)
+    line.SetPoint(0,x1,y1)
+    line.SetPoint(1,x2,y2)
+    line.SetLineColor(color)
+    line.SetLineStyle(style)
+    if self.canvas:
+      self.canvas.cd(pad)
+      line.Draw("LSAME")
+    self.lines.append(line)
+    return line
     
   
   def setlinestyle(self,hists,**kwargs):
