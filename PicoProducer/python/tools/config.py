@@ -37,6 +37,7 @@ _picodir       = _sedir+"analysis/$ERA/$GROUP"    # for storage of analysis ("pi
 _nanodir       = _sedir+"samples/nano/$ERA/$DAS"  # for storage of (skimmed) nanoAOD
 _filelistdir   = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
 _batchsystem   = 'HTCondor'                       # batch system (HTCondor, SLURM, ...)
+_queue         = ""                               # batch queue / job flavor
 _nfilesperjob  = 1                                # group files per job
 _maxevtsperjob = -1                               # maximum number of events per job (split large files)
 _cfgdefaults   = OrderedDict([                    # ordered dictionary with defaults
@@ -44,7 +45,8 @@ _cfgdefaults   = OrderedDict([                    # ordered dictionary with defa
   ('basedir',basedir),
   ('jobdir',_jobdir),     ('outdir',_outdir), ('nanodir',_nanodir), ('picodir',_picodir),
   ('tmpskimdir',_tmpskimdir),
-  ('batch',_batchsystem), ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
+  ('batch',_batchsystem), ('queue',_queue),
+  ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
   ('filelistdir',_filelistdir),
 ])
 sys.path.append(basedir)

@@ -584,11 +584,11 @@ def preparejobs(args):
         # DIRECTORIES
         subtry     = sample.subtry+1 if resubmit else 1
         jobids     = sample.jobcfg.get('jobids',[ ]  )
-        queue_     = sample.jobcfg.get('queue', None ) or queue
+        queue_     = queue or sample.jobcfg.get('queue', None )
         dtype      = sample.dtype
         postfix    = "_%s%s"%(channel,tag)
         jobtag     = "%s_try%d"%(postfix,subtry)
-        jobname    = "%s%s_%s%s"%(sample.name,postfix,era,"_try%d"%subtry if subtry>0 else "")
+        jobname    = "%s%s_%s%s"%(sample.name,postfix,era,"_try%d"%subtry if subtry>1 else "")
         extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample.extraopts:
           extraopts_.extend(sample.extraopts)
@@ -753,7 +753,7 @@ def preparejobs(args):
           ('group',sample.group), ('paths',sample.paths), ('name',sample.name), ('nevents',nevents),
           ('dtype',dtype),        ('channel',channel),    ('module',module),    ('extraopts',extraopts_),
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
-          ('try',subtry),         ('queue',queue_),        ('jobids',jobids),
+          ('try',subtry),         ('queue',queue_),       ('jobids',jobids),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),
           ('cfgname',cfgname),    ('joblist',joblist),    ('maxevts',maxevts_),
           ('nfiles',nfiles),      ('files',infiles),      ('nfilesperjob',nfilesperjob_), #('nchunks',nchunks),
@@ -1405,7 +1405,7 @@ if __name__ == "__main__":
                                                 help='extra options for the batch system')
   parser_job.add_argument('-M','--time',        dest='time', default=None,
                                                 help='maximum run time of job')
-  parser_job.add_argument('-q','--queue',       dest='queue', default=None,
+  parser_job.add_argument('-q','--queue',       dest='queue', default=str(CONFIG.queue),
                                                 help='queue of batch system (job flavor on HTCondor)')
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
                                                 help='ask user permission before submitting a sample')
