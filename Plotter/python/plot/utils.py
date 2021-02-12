@@ -8,7 +8,7 @@ from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gDirectory, gROOT, gStyle, TH1, THStack, TGraphErrors, TGraphAsymmErrors, Double,\
+from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, THStack, TGraph, TGraphErrors, TGraphAsymmErrors, Double,\
                  kSolid, kDashed, kDotted, kBlack, kWhite
 #moddir = os.path.dirname(__file__)
 gROOT.SetBatch(True)
@@ -29,6 +29,19 @@ def normalize(*hists,**kwargs):
     else:
       LOG.warning("norm: Could not normalize; integral = 0!")
   
+
+def getframe(pad,hist,xmin=None,xmax=None):
+  """Help function to get frame."""
+  garbage = [ ]
+  if isinstance(hist,TGraph):
+    hist = frame.GetHistogram()
+    garbage.append(hist)
+  xmin_ = hist.GetXaxis().GetXmin() if not xmin and xmin!=0 else xmin
+  xmax_ = hist.GetXaxis().GetXmax() if not xmax and xmax!=0 else xmax
+  frame = pad.DrawFrame(xmin_,hist.GetMinimum(),xmax_,hist.GetMaximum())
+  close(garbage)
+  return frame
+
 
 def close(*hists,**kwargs):
   """Close histograms."""
@@ -192,7 +205,7 @@ def seterrorbandstyle(hist,**kwargs):
   hist.SetFillStyle(style)
   
 
-def getbinedges(hist):
+def getbinedges(hist,**kwargs):
   """Get lower and upper edges of bins"""
   verbosity = LOG.getverbosity(kwargs)
   bins      = [ ]
@@ -231,7 +244,7 @@ def havesamebins(hist1,hist2,**kwargs):
       return hist1.GetXaxis().GetXmin()==hist2.GetXaxis().GetXmin() and\
              hist1.GetXaxis().GetXmax()==hist2.GetXaxis().GetXmax() and\
              hist1.GetXaxis().GetNbins()==hist2.GetXaxis().GetNbins()
-  else: # one is TGraph or TGraphAsymmErrors ?
+  else: # one is TGraph ?
     bins1 = getbinedges(hist1)
     bins2 = getbinedges(hist2)
     if bins1!=bins2 and errorX<=0: # only look at bin center
