@@ -355,11 +355,11 @@ class Sample(object):
   #  return None
   
   def __mul__(self, scale):
-   """Multiply selection with some weight (that can be string or Selection object)."""
-   if isnumber(scale):
-     self.setscale(scale)
-     return self
-   return None
+    """Multiply selection with some weight (that can be string or Selection object)."""
+    if isnumber(scale):
+      self.setscale(scale)
+      return self
+    return None
   
   def getcutflow(self,cutflow=None):
     """Get cutflow histogram from file."""
