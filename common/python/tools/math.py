@@ -7,9 +7,11 @@ def frange(start,end,step):
   """Return a list of numbers between start and end, for a given stepsize."""
   flist = [start]
   next = start+step
+  i = 1
   while next<end:
+    i += 1
     flist.append(next)
-    next += step
+    next = start+i*step # safer against rounding errors than next += step
   return flist
   
 
