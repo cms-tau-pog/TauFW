@@ -878,12 +878,15 @@ class Plot(object):
     
   
   def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,**kwargs):
+    """Draw line on canvas. If it already exists, draw now on top,
+    else draw later in Plot.draw on bottom."""
     pad  = kwargs.get('pad', 1 ) # 1: main, 2: ratio
     line = TGraph(2) #TLine(xmin,1,xmax,1)
     line.SetPoint(0,x1,y1)
     line.SetPoint(1,x2,y2)
     line.SetLineColor(color)
     line.SetLineStyle(style)
+    line.pad = pad
     if self.canvas:
       self.canvas.cd(pad)
       line.Draw("LSAME")
