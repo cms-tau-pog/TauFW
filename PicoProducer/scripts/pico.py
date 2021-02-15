@@ -653,7 +653,7 @@ def preparejobs(args):
             batch = getbatch(CONFIG,verb=verbosity)
             jobs  = batch.jobs(verb=verbosity-1)
           infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
-                                           checkqueue=checkqueue,das=checkdas,verb=verbosity)
+                                           checkqueue=checkqueue,das=checkdas,verb=verbosity)[:2]
           nevents = sample.jobcfg['nevents'] # updated in checkchunks
         else: # first-time submission
           infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
@@ -999,7 +999,7 @@ def checkchunks(sample,**kwargs):
       match = chunkexp.search(fname)
       if match:
         ichunk = int(match.group(1))
-        LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for file %s!"%(ichunk,fname)+
+        LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for file %s! "%(ichunk,fname)+
                                        "Possible overcounting or conflicting job output file format!")
         if ichunk in pendchunks:
           continue
@@ -1095,7 +1095,7 @@ def checkchunks(sample,**kwargs):
       else:
         LOG.warning("Did not find log file for chunk %d"%(chunk))
   
-  return resubfiles, chunkdict
+  return resubfiles, chunkdict, len(pendchunks)
   
 def isvalid(fname):
   """Check if a given file is valid, or corrupt."""
@@ -1297,9 +1297,9 @@ def main_status(args):
             print ">>> %-12s = %s"%('infiles',infiles)
             if subcmd=='hadd':
               print ">>> %-12s = %r"%('outfile',outfile)
-          resubfiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
-                                              checkqueue=checkqueue,das=checkdas,verb=verbosity)
-          if len(resubfiles)>0 and not force:
+          resubfiles, chunkdict, npend = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
+                                                     checkqueue=checkqueue,das=checkdas,verb=verbosity)
+          if (len(resubfiles)>0 or npend>0) and not force:
             LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
                         " Please use -f or --force to %s anyway.\n"%(subcmd))
             continue
