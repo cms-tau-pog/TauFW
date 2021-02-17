@@ -73,7 +73,7 @@ def createinputs(fname,sampleset,observables,bins,**kwargs):
     TAB   = LOG.table("%10.1f %10d  %-18s  %s")
     TAB.printheader('events','entries','variable','process'.ljust(ljust))
     for obs, hist in hists.iterhists():
-      name    = lreplace(hist.GetName(),obs.filename).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
+      name    = lreplace(hist.GetName(),obs.filename.replace('.','p')).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
       if not name.endswith(htag):
         name += htag # HIST = $PROCESS_$SYSTEMATIC
       name    = repkey(name,BIN=bin)
