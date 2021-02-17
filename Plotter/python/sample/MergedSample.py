@@ -210,7 +210,7 @@ class MergedSample(Sample):
       sumhist  = None
       for subhist in subhists:
         if sumhist==None:
-          sumhist = subhist.Clone("%s_%s"%(variable.filename,name))
+          sumhist = subhist.Clone(makehistname(variable.filename,name))
           sumhist.SetTitle(title)
           sumhist.SetDirectory(0)
           sumhist.SetLineColor(self.linecolor)
