@@ -562,7 +562,7 @@ class Plot(object):
     frame.GetYaxis().SetLabelSize(ylabelsize)
     frame.GetYaxis().SetNdivisions(nydivisions)
     frame.GetYaxis().SetTitle(ytitle)
-    #gPad.RedrawAxis()
+    gPad.RedrawAxis()
     gPad.Update()
     
     if verbosity>=1:
