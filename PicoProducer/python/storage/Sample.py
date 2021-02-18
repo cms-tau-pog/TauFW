@@ -10,35 +10,13 @@ import os, re, json
 import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
-from TauFW.common.tools.utils import execute, CalledProcessError, repkey, ensurelist, isglob
-from TauFW.common.tools.file import ensurefile, ensureTFile
+from TauFW.common.tools.utils import repkey, ensurelist, isglob
+from TauFW.common.tools.file import ensuredir, ensurefile, ensureTFile
 from TauFW.PicoProducer.tools.config import _user
-from TauFW.PicoProducer.storage.utils import LOG, getstorage
+from TauFW.PicoProducer.storage.utils import LOG, getstorage, dasgoclient, getnevents
 dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
+fevtsexp = re.compile(r"(.+\.root)(?::(\d+))?$") # input file stored in lis in text file
 
-
-def dasgoclient(query,**kwargs):
-  """Help function to call dasgoclient."""
-  try:
-    verbosity = kwargs.get('verb',  0  )
-    limit     = kwargs.get('limit', 0  )
-    option    = kwargs.get('opts',  "" )
-    dascmd    = 'dasgoclient --query="%s"'%(query)
-    if limit>0:
-      dascmd += " --limit=%d"%(limit)
-    if option:
-      dascmd += " "+option.strip()
-    LOG.verb(repr(dascmd),verbosity)
-    cmdout    = execute(dascmd,verb=verbosity-1)
-  except CalledProcessError as e:
-    print
-    LOG.error("Failed to call 'dasgoclient' command. Please make sure:\n"
-              "  1) 'dasgoclient' command exists.\n"
-              "  2) You have a valid VOMS proxy. Use 'voms-proxy-init -voms cms -valid 200:0' or 'source utils/setupVOMS.sh'.\n"
-              "  3) The DAS dataset in '%s' exists!\n"%(dascmd))
-    raise e
-  return cmdout
-  
 
 class Sample(object):
   
@@ -126,23 +104,7 @@ class Sample(object):
     
     # GET FILE LIST FROM TEXT FILE
     if isinstance(self.files,str):
-      filename = repkey(self.files,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
-      if self.verbosity>=1:
-        print ">>> Loading sample files from '%r'"%(filename)
-      if self.verbosity>=2:
-        print ">>> %-14s = %s"%('filelist',self.files)
-        print ">>> %-14s = %s"%('filename',filename)
-      filelist = [ ]
-      with open(filename,'r') as file:
-        for line in file:
-          line = line.strip().split()
-          if not line: continue
-          infile = line[0].strip()
-          if infile[0]=='#': continue
-          if infile.endswith('.root'):
-            filelist.append(infile)
-      self.files = filelist
-      self.files.sort()
+      self.loadfiles(self.files)
   
   def __str__(self):
     return self.name
@@ -240,21 +202,16 @@ class Sample(object):
       files = [f.replace(url_,"") for f in files]
     return files
   
-  def _getnevents(self,das=True,refresh=False,treename='Events',limit=-1,verb=0):
+  def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,verb=0):
     """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
     nevents   = self.nevents
     filenevts = self.filenevts
+    treename  = tree
     if nevents<=0 or refresh:
-      if self.storage and not das: # get number of events from storage system
-        files = self.getfiles(url=True,refresh=refresh,limit=limit,verb=verb)
+      if checkfiles or (self.storage and not das): # get number of events from storage system
+        files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         for fname in files:
-          file = ensureTFile(fname)
-          tree = file.Get(treename)
-          if not tree:
-            LOG.warning("_getnevents: No %r tree in events in %r!"%(treename,fname))
-            continue
-          nevts = tree.GetEntries()
-          file.Close()
+          nevts = getnevents(fname,treename)
           filenevts[fname] = nevts # cache
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
@@ -273,13 +230,63 @@ class Sample(object):
   
   def getfilenevts(self,*args,**kwargs):
     """Get number of nanoAOD events per file."""
-    nevents, filenevts = self._getnevents(*args,**kwargs)
-    return filenevts
+    return self._getnevents(*args,**kwargs)[1]
   
   def getnevents(self,*args,**kwargs):
     """Get number of nanoAOD events."""
-    nevents, filenevts = self._getnevents(*args,**kwargs)
-    return nevents
+    return self._getnevents(*args,**kwargs)[0]
+  
+  def writefiles(self,listname,**kwargs):
+    """Write filenames to text file for fast look up in future."""
+    writeevts = kwargs.pop('nevts',False) # also write nevents to file
+    listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    print ">>> Write list to %r..."%(listname)
+    ensuredir(os.path.dirname(listname))
+    filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
+    treename  = kwargs.pop('tree','Events')
+    files     = self.getfiles(**kwargs)
+    with open(listname,'w+') as lfile:
+      for infile in files:
+        if writeevts:
+          nevts  = filenevts.get(infile,-1)
+          if nevts<0:
+            LOG.warning("Did not find nevents of %s. Trying again..."%(infile))
+            nevts = getnevents(infile,treename)
+          infile = "%s:%d"%(infile,nevts) # write $FILENAM(:NEVTS)
+        lfile.write(infile+'\n')
+  
+  def loadfiles(self,listname,**kwargs):
+    """Load filenames from text file for fast look up in future."""
+    listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    filenevts = self.filenevts
+    nevents   = 0
+    if self.verbosity+2>=1:
+      print ">>> Loading sample files from '%r'"%(listname)
+    ensurefile(listname,fatal=True)
+    filelist = [ ]
+    with open(listname,'r') as file:
+      for line in file:
+        line = line.strip().split()
+        if not line: continue
+        line = line[0].strip() # remove spaces, one per line
+        if line[0]=='#': continue # do not consider out-commented
+        #if v.endswith('.root'):
+        match = fevtsexp.match(line) # match $FILENAM(:NEVTS)
+        if not match: continue
+        infile = match.group(1)
+        if match.group(2): # found nevents in filename
+          nevts  = int(match.group(2))
+          filenevts[infile] = nevts # store/cache in dictionary
+          nevents += nevts
+        filelist.append(infile)
+    if self.nevents<=0:
+      self.nevents = nevents
+    elif self.nevents!=nevents:
+      LOG.warning("loadfiles: stored nevents=%d does not match the sum total of file events, %d!"%(self.nevents,nevents))
+      self.nevents == nevents
+    self.files = filelist
+    self.files.sort()
+    return self.files
   
 
 class Data(Sample):

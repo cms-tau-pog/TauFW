@@ -4,7 +4,7 @@
 #   utils/getDASParents.py /DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17*/NANOAODSIM
 from TauFW.common.tools.utils import unwraplistargs
 from TauFW.common.tools.log import color
-from TauFW.PicoProducer.storage.Sample import dasgoclient, LOG
+from TauFW.PicoProducer.storage.utils import dasgoclient, LOG
 
 
 def expanddas(*datasets,**kwargs):

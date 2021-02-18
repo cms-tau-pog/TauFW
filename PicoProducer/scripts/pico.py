@@ -85,6 +85,7 @@ def main_get(args):
   writedir   = args.write      # write sample file list to text file
   tag        = args.tag
   verbosity  = args.verbosity
+  getnevts   = variable in ['nevents','nevts']
   cfgname    = CONFIG._path
   if verbosity>=1:
     print '-'*80
@@ -141,7 +142,7 @@ def main_get(args):
           print ">>> %s"%(bold(sample.name))
           for path in sample.paths:
             print ">>> %s"%(bold(path))
-            if variable in ['nevents','nevts'] or checkdas or checklocal:
+            if getnevts or checkdas or checklocal:
               nevents = sample.getnevents(das=(not checklocal),verb=verbosity+1)
               storage = sample.storage.__class__.__name__ if checklocal else "DAS"
               print ">>>   %-7s = %s (%s)"%('nevents',nevents,storage)
@@ -154,14 +155,11 @@ def main_get(args):
               for file in infiles:
                 print ">>>     %r"%file
               print ">>>   ]"
-            if writedir:
-              flistname = repkey(writedir,ERA=era,GROUP=sample.group,SAMPLE=sample.name,TAG=tag)
-              print ">>> Write list to %r..."%(flistname)
-              ensuredir(os.path.dirname(flistname))
-              with open(flistname,'w+') as flist:
-                for infile in infiles:
-                  flist.write(infile+'\n')
             print ">>> "
+          if writedir: # write files to text files
+            flistname = repkey(writedir,ERA=era,GROUP=sample.group,SAMPLE=sample.name,TAG=tag)
+            print ">>> Write list to %r..."%(flistname)
+            sample.writefiles(flistname,nevts=getnevts)
   
   # CONFIGURATION
   else:
@@ -169,6 +167,61 @@ def main_get(args):
       print ">>> Configuration of %r: %s"%(variable,color(CONFIG[variable]))
     else:
       print ">>> Did not find %r in the configuration"%(variable)
+  
+
+
+#############
+#   WRITE   #
+#############
+
+def main_write(args):
+  """Get information of given variable in configuration or samples."""
+  if args.verbosity>=1:
+    print ">>> main_write", args
+  listname   = args.listname   # write sample file list to text file
+  eras       = args.eras
+  channels   = args.channels or [""]
+  dtypes     = args.dtypes
+  filters    = args.samples
+  vetoes     = args.vetoes
+  checkdas   = args.checkdas or args.dasfiles # check file list in DAS
+  getnevts   = args.getnevts # check nevents in local files
+  verbosity  = args.verbosity
+  cfgname    = CONFIG._path
+  if verbosity>=1:
+    print '-'*80
+    print ">>> %-14s = %s"%('listname',listname)
+    print ">>> %-14s = %s"%('getnevts',getnevts)
+    print ">>> %-14s = %s"%('eras',eras)
+    print ">>> %-14s = %s"%('channels',channels)
+    print ">>> %-14s = %s"%('cfgname',cfgname)
+    print ">>> %-14s = %s"%('config',CONFIG)
+    print '-'*80
+  
+  # LOOP over ERAS & CHANNELS
+  if not eras:
+    LOG.warning("Please specify an era to get a sample for.")
+  for era in eras:
+    for channel in channels:
+      info = ">>> Getting file list for era %r"%(era)
+      if channel:
+        info += ", channel %r"%(channel)
+      print info
+      print ">>> "
+      
+      # VERBOSE
+      if verbosity>=1:
+        print ">>> %-12s = %r"%('channel',channel)
+      LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
+      samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
+      
+      # LOOP over SAMPLES
+      for sample in samples:
+        print ">>> %s"%(bold(sample.name))
+        #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
+        flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
+        sample.writefiles(flistname,nevts=getnevts,das=checkdas)
+        print ">>> "
   
 
 
@@ -1427,6 +1480,7 @@ if __name__ == "__main__":
   help_get = "get information from configuration or samples"
   help_set = "set given variable in the configuration file"
   help_rmv = "remove given variable from the configuration file"
+  help_wrt = "write files to text file"
   help_chl = "link a channel to a module in the configuration file"
   help_era = "link an era to a sample list in the configuration file"
   help_run = "run nanoAOD processor locally"
@@ -1440,6 +1494,7 @@ if __name__ == "__main__":
   parser_get = subparsers.add_parser('get',      parents=[parser_sam], help=help_get, description=help_get)
   parser_set = subparsers.add_parser('set',      parents=[parser_cmn], help=help_set, description=help_set)
   parser_rmv = subparsers.add_parser('rm',       parents=[parser_cmn], help=help_rmv, description=help_rmv)
+  parser_wrt = subparsers.add_parser('write',    parents=[parser_sam], help=help_wrt, description=help_wrt)
   parser_chl = subparsers.add_parser('channel',  parents=[parser_lnk], help=help_chl, description=help_chl)
   parser_era = subparsers.add_parser('era',      parents=[parser_lnk], help=help_era, description=help_era)
   parser_run = subparsers.add_parser('run',      parents=[parser_sam], help=help_run, description=help_run)
@@ -1453,6 +1508,7 @@ if __name__ == "__main__":
   parser_set.add_argument('variable',           help='variable to change in the config file')
   parser_set.add_argument('key',                help='channel or era key name', nargs='?', default=None)
   parser_set.add_argument('value',              help='value for given value')
+  parser_wrt.add_argument('listname',           help='file name of text file for file list, default=%(const)r', nargs='?', default=str(CONFIG.filelistdir))
   parser_rmv.add_argument('variable',           help='variable to remove from the config file')
   parser_rmv.add_argument('key',                help='channel or era key name to remove', nargs='?', default=None)
   parser_chl.add_argument('key',                metavar='channel', help='channel key name')
@@ -1469,6 +1525,8 @@ if __name__ == "__main__":
                                                 help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'" )
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="",
                           metavar='FILE',       help="write file list, default=%(const)r" )
+  parser_wrt.add_argument('-n','--nevts',       dest='getnevts', action='store_true',
+                                                help="get nevents per file" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                           metavar='NEVTS',      help='maximum number of events (per file) to process')
   parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
@@ -1496,7 +1554,7 @@ if __name__ == "__main__":
     subcmds = [ # fix order for abbreviations
       'channel','era',
       'run','submit','resubmit','status','hadd','clean',
-      'install','list','set','rm'
+      'install','list','set','rm','write',
     ]
     for subcmd in subcmds:
       if args[0] in subcmd[:len(args[0])]: # match abbreviation
@@ -1516,6 +1574,8 @@ if __name__ == "__main__":
     main_get(args)
   elif args.subcommand=='set':
     main_set(args)
+  elif args.subcommand=='write':
+    main_write(args)
   elif args.subcommand in ['channel','era']:
     main_link(args)
   elif args.subcommand=='rm':

@@ -5,11 +5,34 @@ import importlib
 from fnmatch import fnmatch
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.log import Logger
-from TauFW.common.tools.file import ensurefile
-from TauFW.common.tools.utils import repkey, isglob
+from TauFW.common.tools.file import ensurefile, ensureTFile
+from TauFW.common.tools.utils import execute, CalledProcessError, repkey, isglob
 LOG  = Logger('Storage')
 host = platform.node()
 
+
+def dasgoclient(query,**kwargs):
+  """Help function to call dasgoclient and retrieve data set information."""
+  try:
+    verbosity = kwargs.get('verb',  0  )
+    limit     = kwargs.get('limit', 0  )
+    option    = kwargs.get('opts',  "" )
+    dascmd    = 'dasgoclient --query="%s"'%(query)
+    if limit>0:
+      dascmd += " --limit=%d"%(limit)
+    if option:
+      dascmd += " "+option.strip()
+    LOG.verb(repr(dascmd),verbosity)
+    cmdout    = execute(dascmd,verb=verbosity-1)
+  except CalledProcessError as e:
+    print
+    LOG.error("Failed to call 'dasgoclient' command. Please make sure:\n"
+              "  1) 'dasgoclient' command exists.\n"
+              "  2) You have a valid VOMS proxy. Use 'voms-proxy-init -voms cms -valid 200:0' or 'source utils/setupVOMS.sh'.\n"
+              "  3) The DAS dataset in '%s' exists!\n"%(dascmd))
+    raise e
+  return cmdout
+  
 
 def getsedir():
   """Guess the storage element path for a given user and host."""
@@ -104,6 +127,16 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
     sampledict[sample.name] = sample
   return samples
   
+
+def getnevents(fname,treename='Events'):
+  file = ensureTFile(fname)
+  tree = file.Get(treename)
+  if not tree:
+    LOG.warning("getnevents: No %r tree in events in %r!"%(treename,fname))
+    return 0
+  nevts = tree.GetEntries()
+  file.Close()
+  return nevts
 
 def print_no_samples(dtype=[],filter=[],veto=[],jobdir="",jobcfgs=""):
   """Help function to print that no samples were found."""
