@@ -74,11 +74,15 @@ class TreeProducerMuTau(TreeProducerTauPair):
       self.addBranch('genvistauphi_2',           'f', -9)
       self.addBranch('gendm_2',                  'i', -1)
       self.addBranch('idisoweight_1',            'f', 1., title="muon ID/iso efficiency SF")
-      self.addBranch('idweight_2',               'f', 1., title="tau ID efficiency SF")
+      self.addBranch('idweight_2',               'f', 1., title="tau ID efficiency SF, Tight")
+      self.addBranch('idweight_dm_2',            'f', 1., title="tau ID efficiency SF, Tight, DM-dependent")
+      self.addBranch('idweight_medium_2',        'f', 1., title="tau ID efficiency SF, Medium")
       self.addBranch('ltfweight_2',              'f', 1., title="lepton -> tau fake rate SF")
       if not module.dotight:
         self.addBranch('idweightUp_2',           'f', 1.)
         self.addBranch('idweightDown_2',         'f', 1.)
+        self.addBranch('idweightUp_dm_2',        'f', 1.)
+        self.addBranch('idweightDown_dm_2',      'f', 1.)
         self.addBranch('ltfweightUp_2',          'f', 1.)
         self.addBranch('ltfweightDown_2',        'f', 1.)
     

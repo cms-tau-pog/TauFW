@@ -103,6 +103,7 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('dphi_ll',             'f', title="DeltaPhi of visibile ditau system")
     self.addBranch('deta_ll',             'f', title="DeltaEta of visibile ditau system")
     self.tree.SetAlias("m_ll","m_vis")
+    self.tree.SetAlias("mvis","m_vis")
     
     self.addBranch('pzetavis',            'f', title="projection of visible ditau momentums onto bisector (zeta)")
     self.addBranch('pzetamiss',           'f', title="projection of MET onto zeta axis")

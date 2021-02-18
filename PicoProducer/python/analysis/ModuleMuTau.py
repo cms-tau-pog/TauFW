@@ -7,7 +7,7 @@ from TauFW.PicoProducer.analysis.ModuleTauPair import *
 from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, matchgenvistau, matchtaujet
 from TauFW.PicoProducer.corrections.MuonSFs import *
 #from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
-from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
+from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool, campaigns
 
 
 class ModuleMuTau(ModuleTauPair):
@@ -35,12 +35,14 @@ class ModuleMuTau(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
-      self.tesTool = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
-      #self.fesTool = TauFESTool(tauSFVersion[self.year]) # e -> tau fake negligible
-      self.tauSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
-      self.etfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe',  'VLoose')
-      self.mtfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSmu', 'Tight')
+      self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
+      self.tesTool    = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
+      #self.fesTool    = TauFESTool(tauSFVersion[self.year]) # e -> tau fake negligible
+      self.tauSFsT     = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
+      self.tauSFsM    = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Medium')
+      self.tauSFsT_dm = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight', dm=True)
+      self.etfSFs     = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe',  'VLoose')
+      self.mtfSFs     = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSmu', 'Tight')
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
@@ -123,7 +125,7 @@ class ModuleMuTau(ModuleTauPair):
         if genmatch==5: # real tau
           if self.tes!=None: # user-defined energy scale (for TES studies)
             tes = self.tes
-          else: # (apply by default)
+          else: # recommended energy scale (apply by default)
             tes = self.tesTool.getTES(tau.pt,tau.decayMode,unc=self.tessys)
           if tes!=1:
             tau.pt   *= tes
@@ -161,15 +163,28 @@ class ModuleMuTau(ModuleTauPair):
     muon, tau = max(ltaus).pair
     muon.tlv  = muon.p4()
     tau.tlv   = tau.p4()
+    genmatch  = tau.genPartFlav
     self.out.cutflow.fill('pair')
     
     
-    # VETOS
+    # VETOES
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon],[tau],self.channel)
     self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[muon],[ ],self.channel)
     self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] or self.out.dilepton_veto[0]
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto
     
+    # TIGHTEN PRE-SELECTION
+    if self.dotight: # do not save all events to reduce disk space
+      fail = (self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]) or\
+             (tau.idMVAoldDM2017v2<1 and tau.idDeepTau2017v2p1VSjet<1) or\
+             (tau.idAntiMu<2  and tau.idDeepTau2017v2p1VSmu<2) or\
+             (tau.idAntiEle<2 and tau.idDeepTau2017v2p1VSe<1)
+      if (self.tes not in [1,None] or self.tessys!=None) and (fail or tau.genPartFlav!=5):
+        return False
+      if (self.ltf!=1 or self.fes!=None) and tau.genPartFlav<1 and tau.genPartFlav>4:
+        return False
+      ###if self.jtf!=1 and tau.genPartFlav!=0:
+      ###  return False
     
     # EVENT
     self.fillEventBranches(event)
@@ -252,19 +267,28 @@ class ModuleMuTau(ModuleTauPair):
       
       # DEFAULTS
       self.out.idweight_2[0]          = 1.
+      self.out.idweight_dm_2[0]       = 1.
+      self.out.idweight_medium_2[0]   = 1.
+      
       self.out.ltfweight_2[0]         = 1.
       if not self.dotight:
         self.out.idweightUp_2[0]      = 1.
         self.out.idweightDown_2[0]    = 1.
+        self.out.idweightUp_dm_2[0]   = 1.
+        self.out.idweightDown_dm_2[0] = 1.
         self.out.ltfweightUp_2[0]     = 1.
         self.out.ltfweightDown_2[0]   = 1.
       
       # TAU WEIGHTS
       if tau.genPartFlav==5: # real tau
-        self.out.idweight_2[0]        = self.tauSFs.getSFvsPT(tau.pt)
+        self.out.idweight_2[0]        = self.tauSFsT.getSFvsPT(tau.pt)
+        self.out.idweight_medium_2[0] = self.tauSFsM.getSFvsPT(tau.pt)
+        self.out.idweight_dm_2[0]     = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode)
         if not self.dotight:
-          self.out.idweightUp_2[0]    = self.tauSFs.getSFvsPT(tau.pt,unc='Up')
-          self.out.idweightDown_2[0]  = self.tauSFs.getSFvsPT(tau.pt,unc='Down')
+          self.out.idweightUp_2[0]    = self.tauSFsT.getSFvsPT(tau.pt,unc='Up')
+          self.out.idweightDown_2[0]  = self.tauSFsT.getSFvsPT(tau.pt,unc='Down')
+          self.out.idweightUp_dm_2[0]   = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.dm,unc='Up')
+          self.out.idweightDown_dm_2[0] = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.dm,unc='Down')
       elif tau.genPartFlav in [1,3]: # muon -> tau fake
         self.out.ltfweight_2[0]       = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
         if not self.dotight:
