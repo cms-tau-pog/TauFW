@@ -88,6 +88,7 @@ The configurable variables include:
 * `picodir`: Directory to store the `hadd`'ed pico file from analysis job output.
 * `nfilesperjob`: Default number of files per job. This can be overridden per sample (see below).
 * `maxevtsperjob`: Default limit on events processed per job. This is overrides `nfilesperjob` and can be set per sample (see below).
+* `queue`: batch system queue ("job flavor" for HTCondor, "partition" for SLURM). For default setting look in the [`.sub` files](https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer/python/batch).
 * `filelistdir`: Directory to save list of nanoAOD files to run on (e.g. `samples/files/$ERA/$SAMPLE.txt`).
 
 Defaults are given in [`config/config.json`](config/config.json).
@@ -194,9 +195,11 @@ Other optional keyword arguments are
 * `nfilesperjob`: Number filed per job. If the samples is split in many small files,
   you can choose a larger `nfilesperjob` to reduce the number of short jobs.
   This overrides the default `nfilesperjob` in the configuration.
-* `maxevts`: Maximum number of events per job. This will split large files in several jobs, to reduce the number of large jobs.
-  Small files will still be combined as long as the sum of their events is below this maximum.
+* `maxevts`: Maximum number of events per job. This will split large files in several jobs, to reduce the number of large jobs,
+  and allow for short resubmission in case of failure.
+  Small files will still be combined on one job as long as the sum of their events is below this maximum.
   This overrides the default `maxevtsperjob` in the configuration and any `nfilesperjob` settings.
+  A good choice is between `20000` and `400000` depends on the queuing of the batch system, and how many samples you want to run.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 * `opts`: Extra key-worded options (`key=value`) to be passed to the analysis modules.
   Can be a comma-separated string (`'opt1=val1,opt2=val2'`) or a list of strings (`['opt1=val1','opt2=val2']`).
@@ -207,11 +210,18 @@ While skimming is an optional step, typically you first want to skim nanoAOD fro
 and store them locally for faster and more reliable access.
 To run on skimmed nanoAOD files, you need to change `store` for each skimmed sample to point to the storage location.
 
-To get a file list for a sample in the sample list, you can use the `get files` subcommand.
+To get a file list for a particular sample in the sample list, you can use the `get files` subcommand.
 If you include `--write`, the list will be written to a text file as defined by `filelistdir` in the [configuration](#Configuration):
 ```
 pico.py get files -y 2016 -s DYJets --write
 ```
+If you like to split jobs based on events (`maxevtsperjob`) instead of files, do
+```
+pico.py write -y 2016 -s DYJets --nevts
+```
+which will save the number of events per file as well.
+In this way the submission script does not have to open each file
+and get the number of nanoAOD events on the fly, which can take long.
 
 
 ## Local run
@@ -297,7 +307,7 @@ pico.py resubmit -y 2016 -c mutau
 This will resubmit files that are missing or corrupted (unless they are associated with a running job).
 In case the jobs take too long, you can specify a smaller number of files per job with `--filesperjob` on the fly,
 or use `--split` to split the previous number.
-Otherwise you can limit the number of events with `--maxevts` if it was not set in the first submission.
+Otherwise you can limit the number of events per job with `--maxevts` if it was not already set in the first submission.
 
 
 ### Finalize

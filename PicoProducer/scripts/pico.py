@@ -4,14 +4,13 @@ import os, sys, re, glob, json
 from datetime import datetime
 from collections import OrderedDict
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TFile
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureinit, getline
 from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key, lreplace
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
 from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples, chunkify_by_evts, evtsplitexp
-from TauFW.PicoProducer.storage.utils import getstorage, getsamples, print_no_samples
+from TauFW.PicoProducer.storage.utils import getstorage, getsamples, isvalid, print_no_samples
 from argparse import ArgumentParser
 os.chdir(GLOB.basedir)
 CONFIG = GLOB.getconfig(verb=0)
@@ -760,11 +759,11 @@ def preparejobs(args):
                 LOG.insist(len(fchunk)==1,"Chunks of event-split files can only have one input file: %s"%(fchunk))
                 jobfiles  = evtmatch.group(1) # input file
                 firstevt  = int(evtmatch.group(2))
-                maxevts__ = int(evtmatch.group(3))
+                maxevts__ = int(evtmatch.group(3)) # limit number of events
               else:
                 jobfiles  = ' '.join(fchunk) # list of input files
                 firstevt  = -1
-                maxevts__ = maxevts
+                maxevts__ = -1 # do not limit number of events
               filetag     = postfix
               if not skim:
                 filetag  += "_%d"%(ichunk)
@@ -787,7 +786,7 @@ def preparejobs(args):
                 jobcmd   += " --preselect '%s'"%(preselect)
               if firstevt>=0:
                 jobcmd   += " --firstevt %d"%(firstevt) # start at this entry (for event-based splitting)
-              if testrun:
+              if testrun: # limit nevents for testrun, override maxevts
                 jobcmd   += " -m %d"%(testrun) # process a limited amount of events for test jobs
               elif maxevts__>0:
                 jobcmd   += " -m %d"%(maxevts__) # process a limited amount of events for event-based splitting
@@ -1150,21 +1149,6 @@ def checkchunks(sample,**kwargs):
   
   return resubfiles, chunkdict, len(pendchunks)
   
-def isvalid(fname):
-  """Check if a given file is valid, or corrupt."""
-  nevts = -1
-  file  = TFile.Open(fname,'READ')
-  if file and not file.IsZombie():
-    if file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains('cutflow'):
-      nevts = file.Get('cutflow').GetBinContent(1)
-      if nevts<=0:
-        LOG.warning("Cutflow of file %r has nevts=%s<=0..."%(fname,nevts))
-    if file.GetListOfKeys().Contains('Events'):
-      nevts = file.Get('Events').GetEntries()
-      if nevts<=0:
-        LOG.warning("'Events' tree of file %r has nevts=%s<=0..."%(fname,nevts))
-  return nevts
-  
 
 
 ##################
@@ -1508,7 +1492,7 @@ if __name__ == "__main__":
   parser_set.add_argument('variable',           help='variable to change in the config file')
   parser_set.add_argument('key',                help='channel or era key name', nargs='?', default=None)
   parser_set.add_argument('value',              help='value for given value')
-  parser_wrt.add_argument('listname',           help='file name of text file for file list, default=%(const)r', nargs='?', default=str(CONFIG.filelistdir))
+  parser_wrt.add_argument('listname',           help='file name of text file for file list, default=%(default)r', nargs='?', default=str(CONFIG.filelistdir))
   parser_rmv.add_argument('variable',           help='variable to remove from the config file')
   parser_rmv.add_argument('key',                help='channel or era key name to remove', nargs='?', default=None)
   parser_chl.add_argument('key',                metavar='channel', help='channel key name')
