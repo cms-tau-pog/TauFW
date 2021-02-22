@@ -42,7 +42,8 @@ class ModuleTauPair(Module):
     self.dotoppt    = kwargs.get('toppt',   'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',     'DY' in fname  ) # Z pT reweighting
     self.dorecoil   = kwargs.get('recoil',  False          ) # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
-    self.dotight    = kwargs.get('tight',   self.tes not in [1,None] or self.tessys!=None or self.ltf!=1 or self.jtf!=1) # save memory
+    self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None]
+    self.dotight    = kwargs.get('tight',   self.dotight   ) # save memory
     self.dojec      = kwargs.get('jec',     True           ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',  self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',   False          ) # MET T1

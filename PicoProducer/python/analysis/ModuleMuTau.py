@@ -38,7 +38,7 @@ class ModuleMuTau(ModuleTauPair):
       self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
       self.tesTool    = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
       #self.fesTool    = TauFESTool(tauSFVersion[self.year]) # e -> tau fake negligible
-      self.tauSFsT     = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
+      self.tauSFsT    = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
       self.tauSFsM    = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Medium')
       self.tauSFsT_dm = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight', dm=True)
       self.etfSFs     = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe',  'VLoose')
@@ -163,7 +163,7 @@ class ModuleMuTau(ModuleTauPair):
     muon, tau = max(ltaus).pair
     muon.tlv  = muon.p4()
     tau.tlv   = tau.p4()
-    genmatch  = tau.genPartFlav
+    genmatch  = -1 if self.isdata else tau.genPartFlav
     self.out.cutflow.fill('pair')
     
     
@@ -287,8 +287,8 @@ class ModuleMuTau(ModuleTauPair):
         if not self.dotight:
           self.out.idweightUp_2[0]    = self.tauSFsT.getSFvsPT(tau.pt,unc='Up')
           self.out.idweightDown_2[0]  = self.tauSFsT.getSFvsPT(tau.pt,unc='Down')
-          self.out.idweightUp_dm_2[0]   = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.dm,unc='Up')
-          self.out.idweightDown_dm_2[0] = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.dm,unc='Down')
+          self.out.idweightUp_dm_2[0]   = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode,unc='Up')
+          self.out.idweightDown_dm_2[0] = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode,unc='Down')
       elif tau.genPartFlav in [1,3]: # muon -> tau fake
         self.out.ltfweight_2[0]       = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
         if not self.dotight:
