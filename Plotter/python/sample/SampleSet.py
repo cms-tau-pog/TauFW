@@ -440,16 +440,6 @@ class SampleSet(object):
         idx = imethod if imethod>=0 else len(result.exp[var])+1+imethod
         result.exp[var].insert(idx,hist)
     
-    ## ADD QCD
-    #if makeJTF:
-    #  hists = self.jetTauFake(*argsD,tag=tag,weight=weight,replaceweight=replaceweight,verbosity=verbosity,saveToFile=file,parallel=parallel,shift=JTFshift,sysvars=sysvars,addsys=addsys)
-    #  for var, hist in zip(variablesD,hists):
-    #    result.exp[var].insert(0,hist)
-    #elif makeQCD:
-    #  hists = self.QCD(*argsD,tag=tag,weight=weight,replaceweight=replaceweight,verbosity=verbosity,shift=QCDshift,ratio_WJ_QCD_SS=ratio_WJ_QCD,saveToFile=file,parallel=parallel)
-    #  for var, hist in zip(variablesD,hists):
-    #    result.exp[var].insert(0,hist)
-    
     ## SAVE histograms
     #if file:
     #  file.cd()
@@ -469,7 +459,7 @@ class SampleSet(object):
       TAB.printheader("entries","integral","hist name")
       totint = 0
       totent = 0
-      if dodata:
+      if dodata and result.data[var]:
         TAB.printrow(result.data[var].Integral(),result.data[var].GetEntries(),result.data[var].GetName())
       for hist in result.exp[var]:
         totint += hist.Integral()

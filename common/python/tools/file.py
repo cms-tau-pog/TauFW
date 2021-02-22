@@ -122,7 +122,7 @@ def ensureTDirectory(file,dirname,cd=True,verb=0):
   if not directory:
     directory = file.mkdir(dirname)
     if verb>=1:
-      print ">>> created directory %s in %s"%(dirname,file.GetName())
+      print ">>> created directory %s in %s"%(dirname,file.GetPath())
   if cd:
     directory.cd()
   return directory
@@ -140,7 +140,7 @@ def ensureinit(*paths,**kwargs):
       file.write("# Generated%s to allow import of the sample list modules\n"%(script))
   
 
-def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True):
+def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True,warn=True):
   """Get histogram from a given file."""
   if isinstance(file,str): # open TFile
     file = ensureTFile(file)
@@ -151,9 +151,9 @@ def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True):
   hist = file.Get(histname)
   if not hist:
     if fatal:
-      LOG.throw(IOError,'Did not find histogram %r in file %s!'%(histname,file.GetName()))
-    else:
-      LOG.warning('Did not find histogram %r in file %s!'%(histname,file.GetName()))
+      LOG.throw(IOError,'Did not find histogram %r in file %s!'%(histname,file.GetPath()))
+    elif warn:
+      LOG.warning('Did not find histogram %r in file %s!'%(histname,file.GetPath()))
   if (close or setdir) and isinstance(hist,ROOT.TH1):
     hist.SetDirectory(0)
   if close: # close TFile

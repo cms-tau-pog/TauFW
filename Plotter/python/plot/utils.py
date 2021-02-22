@@ -33,8 +33,10 @@ def normalize(*hists,**kwargs):
 def getframe(pad,hist,xmin=None,xmax=None):
   """Help function to get frame."""
   garbage = [ ]
-  if isinstance(hist,TGraph):
-    hist = frame.GetHistogram()
+  if isinstance(hist,THStack):
+    hist = hist.GetStack().Last()
+  elif isinstance(hist,TGraph):
+    hist = hist.GetHistogram()
     garbage.append(hist)
   xmin_ = hist.GetXaxis().GetXmin() if not xmin and xmin!=0 else xmin
   xmax_ = hist.GetXaxis().GetXmax() if not xmax and xmax!=0 else xmax
@@ -117,19 +119,19 @@ def grouphists(hists,searchterms,name=None,title=None,**kwargs):
   """Group histograms in a list corresponding to some searchterm, return their sum.
   E.g. grouphists(hists,['TT','ST'],'Top')
        grouphists(hists,['WW','WZ','ZZ'],'Diboson')"""
-  verbosity   = LOG.getverbosity(kwargs)
-  searchterms = ensurelist(searchterms)
-  replace     = kwargs.get('replace',   False ) # replace grouped histograms with sum in list
-  close       = kwargs.get('close',     False ) # close grouped histograms
+  verbosity      = LOG.getverbosity(kwargs)
+  searchterms    = ensurelist(searchterms)
+  replace        = kwargs.get('replace', False ) # replace grouped histograms with sum in list
+  close          = kwargs.get('close',   False ) # close grouped histograms
   kwargs['verb'] = verbosity-1
-  matches     = gethist(hists,*searchterms,warn=False,**kwargs) if searchterms else hists
-  histsum     = None
+  matches        = gethist(hists,*searchterms,warn=False,**kwargs) if searchterms else hists
+  histsum   = None
   if matches:
-    if title==None:
-      title   = matches[0].GetTitle() if name==None else name
     if name==None:
-      name    = matches[0].GetName()
-    histsum   = matches[0].Clone(name)
+      name  = matches[0].GetName()
+    if title==None:
+      title = matches[0].GetTitle() if name==None else name
+    histsum = matches[0].Clone(name)
     histsum.SetTitle(title)
     for hist in matches[1:]:
       histsum.Add(hist)
@@ -141,7 +143,7 @@ def grouphists(hists,searchterms,name=None,title=None,**kwargs):
         if close:
           deletehist(hist)
   else:
-    LOG.warning("gethist: Did not find a histogram with searchterms %s..."%(quotestrs(searchterms)))
+    LOG.warning("grouphists: Did not find a histogram with searchterms %s..."%(quotestrs(searchterms)))
   return histsum
   
 

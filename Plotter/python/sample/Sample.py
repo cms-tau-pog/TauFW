@@ -509,20 +509,21 @@ class Sample(object):
     for sample in self.splitsamples:
         sample.setextraweight(weight)
   
-  def replaceweight(self, oldweight, newweight):
+  def replaceweight(self, oldweight, newweight, **kwargs):
     """Replace weight."""
+    verbosity = LOG.getverbosity(kwargs)
     if isinstance(self,MergedSample):
       for sample in self.samples:
-        sample.replaceweight(oldweight,newweight)
+        sample.replaceweight(oldweight,newweight,**kwargs)
     else:
       if oldweight in self.weight:
-        LOG.verb('Sample.replaceweight: before %r'%(self.weight))
+        LOG.verb('Sample.replaceweight: before %r'%(self.weight),verbosity,2)
         self.weight = self.weight.replace(oldweight,newweight)
-        LOG.verb('                      after  %r'%(self.weight))
+        LOG.verb('                      after  %r'%(self.weight),verbosity,2)
       if oldweight in self.extraweight:
-        LOG.verb('Sample.replaceweight: before %r'%(self.extraweight))
+        LOG.verb('Sample.replaceweight: before %r'%(self.extraweight),verbosity,2)
         self.extraweight = self.extraweight.replace(oldweight,newweight)
-        LOG.verb('                      after  %r'%(self.extraweight))
+        LOG.verb('                      after  %r'%(self.extraweight),verbosity,2)
   
   def split(self,*splitlist,**kwargs):
     """Split sample into different components with some cuts, e.g.
@@ -593,7 +594,7 @@ class Sample(object):
     blind      = kwargs.get('blind',    self.isdata    ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
     fcolor     = kwargs.get('color',    self.fillcolor ) # fill color
     lcolor     = kwargs.get('lcolor',   self.linecolor ) # line color
-    #replaceweight = kwargs.get('replaceweight', None )
+    replaceweight = kwargs.get('replaceweight', None ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
     undoshifts = self.isdata and (any('Up' in v.name or 'Down' in v.name for v in variables)
                                   or 'Up' in selection or 'Down' in selection)
     drawopt = 'E0' if self.isdata else 'HIST'
@@ -605,14 +606,14 @@ class Sample(object):
     else:
       weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
     cuts     = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
-    #if replaceweight:
-    #  if len(replaceweight)==2 and not isList(replaceweight[0]):
-    #    replaceweight = [replaceweight]
-    #  for pattern, substitution in replaceweight:
-    #    LOG.verb('Sample.gethist: replacing weight: before %r'%weight,verbosity,3)
-    #    weight = re.sub(pattern,substitution,weight)
-    #    weight = weight.replace("**","*").strip('*')
-    #    LOG.verb('Sample.gethist: replacing weight: after  %r'%weight,verbosity,3)
+    if replaceweight:
+      if len(replaceweight)==2 and not islist(replaceweight[0]):
+        replaceweight = [replaceweight]
+      for pattern, newweight in replaceweight:
+        LOG.verb('Sample.gethist: replacing weight: before %r'%weight,verbosity,3)
+        weight = re.sub(pattern,newweight,weight)
+        weight = weight.replace("**","*").strip('*')
+        LOG.verb('Sample.gethist: replacing weight: after  %r'%weight,verbosity,3)
     cuts = joincuts(cuts,weight=weight)
     
     # PREPARE HISTOGRAMS

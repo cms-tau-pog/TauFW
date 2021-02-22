@@ -144,7 +144,7 @@ sample = Sample("TT,"t#bar{t}","TT_mutau.root",831.76,nevts=76915549,lumi=59.7)
 Instead of passing the integrated luminosity with `lumi` (in units of inverse fb) to `Sample`, you can set it globally
 in [`python/sample/utils.py`](python/sample/utils.py) by passing the era like this:
 ```
-from TauFW.Plotter.sample.utils as setera
+from TauFW.Plotter.sample.utils import setera
 setera(2018)
 ```
 This will also immediately set the era for plots via `CMSStyle`. To set the era manually,
@@ -199,7 +199,7 @@ The color and title style is predefined by dictionaries in [`python/sample/Sampl
 These dictionaries are used to automatically set the color for `Sample` object if none is passed.
 You can change the default sample colors and title to your preference as
 ```
-from TauFW.Plotter.sample.SampleStyle as STYLE
+import TauFW.Plotter.sample.SampleStyle as STYLE
 STYLE.sample_colors['ZTT'] = kOrange-4
 STYLE.sample_titles['ZTT'] = "Z -> #tau#tau
 ```

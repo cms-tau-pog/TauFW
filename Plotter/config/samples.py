@@ -126,9 +126,9 @@ def getsampleset(channel,era,**kwargs):
   datasample = ('Data',dataset) # GROUP, NAME
   
   # SAMPLE SET
-  weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2"
+  weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
   if era=='UL2017':
-    weight = weight.replace("*idweight_2","")
+    weight = weight.replace("*idweight_2*ltfweight_2","")
   fname  = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
@@ -167,14 +167,14 @@ def getsampleset(channel,era,**kwargs):
       GMF = "(genmatch_1<5 || genmatch_2<5)"
     else:
       LOG.throw(IOError,"Did not recognize channel %r!"%(channel))
-    if 'DY' in split:
-      sampleset.split('DY',[('ZTT',ZTT,GMR),('ZL',GML),('ZJ',GMJ),])
     if 'DM' in split: # split DY by decay modes
-      samples.split('DY', [('ZTT_DM0', ZTT+", h^{#pm}",                   GMR+" && decayMode_2==0"),
-                           ('ZTT_DM1', ZTT+", h^{#pm}h^{0}",              GMR+" && decayMode_2==1"),
-                           ('ZTT_DM10',ZTT+", h^{#pm}h^{#mp}h^{#pm}",     GMR+" && decayMode_2==10"),
-                           ('ZTT_DM11',ZTT+", h^{#pm}h^{#mp}h^{#pm}h^{0}",GMR+" && decayMode_2==11"),
+      samples.split('DY', [('ZTTDM0', ZTT+", h^{#pm}",                   GMR+" && dm_2==0"),
+                           ('ZTTDM1', ZTT+", h^{#pm}h^{0}",              GMR+" && dm_2==1"),
+                           ('ZTTDM10',ZTT+", h^{#pm}h^{#mp}h^{#pm}",     GMR+" && dm_2==10"),
+                           ('ZTTDM11',ZTT+", h^{#pm}h^{#mp}h^{#pm}h^{0}",GMR+" && dm_2==11"),
                            ('ZL',GML),('ZJ',GMJ),])
+    elif 'DY' in split:
+      sampleset.split('DY',[('ZTT',ZTT,GMR),('ZL',GML),('ZJ',GMJ),])
     if 'TT' in split:
       sampleset.split('TT',[('TTT',GMR),('TTJ',GMF),])
   

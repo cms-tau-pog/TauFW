@@ -6,7 +6,7 @@ from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
 from TauFW.common.tools.math import log10, magnitude, columnize
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
-from TauFW.Plotter.plot.Variable import Variable
+from TauFW.Plotter.plot.Variable import Variable, Var
 from TauFW.Plotter.plot.Ratio import Ratio
 import ROOT
 from ROOT import gDirectory, gROOT, gPad, gStyle, TFile, TCanvas,\
@@ -141,7 +141,6 @@ class Plot(object):
     sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
     errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     norm         = kwargs.get('norm',         self.norm       ) # normalize all histograms
-    title        = kwargs.get('title',        self.title      ) # title for legend
     xtitle       = kwargs.get('xtitle',       xtitle          ) # x axis title
     ytitle       = kwargs.get('ytitle',       self.ytitle     ) # y axis title (if None, automatically set by Plot.setaxis)
     rtitle       = kwargs.get('rtitle',       "Ratio"         ) # y axis title of ratio panel
@@ -437,7 +436,7 @@ class Plot(object):
     ytitlesize    = kwargs.get('ytitlesize',   _tsize           )*scale
     xlabelsize    = kwargs.get('xlabelsize',   _lsize           )*scale
     ylabelsize    = kwargs.get('ylabelsize',   _lsize           )*scale
-    ytitleoffset  = kwargs.get('ytitleoffset', 1.0              )*1.26/scale
+    ytitleoffset  = kwargs.get('ytitleoffset', 1.0              )*1.27/scale
     xtitleoffset  = kwargs.get('xtitleoffset', 1.0              )*1.00
     xlabeloffset  = kwargs.get('xlabeloffset', -0.008*scale if logx else 0.007 )
     if main:
@@ -517,10 +516,15 @@ class Plot(object):
       elif hmax<1.:
         ytitle = "A.U."
       else:
-        binwidth  = frame.GetXaxis().GetBinWidth(0)
+        for hist in hists:
+          if isinstance(hist,TH1) and hist.GetName()!='hframe':
+            hist0 = hist; break # default frame might have wrong binning
+        else:
+          hist0 = frame
+        binwidth  = hist0.GetXaxis().GetBinWidth(0)
         binwidstr = ("%.3f"%binwidth).rstrip('0').rstrip('.')
-        units     = re.findall(r' \[(.+)\]',xtitle) #+ re.findall(r' (.+)',xtitle)
-        if frame.GetXaxis().IsVariableBinSize():
+        units     = re.findall(r' [\[(](.+)[)\]]',xtitle) #+ re.findall(r' (.+)',xtitle)
+        if hist0.GetXaxis().IsVariableBinSize():
           if units:
             ytitle = "Events / "+units[-1]
           else:
@@ -639,7 +643,8 @@ class Plot(object):
     twidth      = kwargs.get('twidth',      None           ) or 1 # scalefactor for legend width
     theight     = kwargs.get('theight',     None           ) or 1 # scalefactor for legend height
     texts       = kwargs.get('text',        [ ]            ) # extra text below legend
-    ncols       = kwargs.get('ncols',       self.ncols     ) or 1 # number of legend columns
+    ncols       = kwargs.get('ncol',        self.ncols     )
+    ncols       = kwargs.get('ncols',       ncols          ) or 1 # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
     bold        = kwargs.get('bold',        True           ) # bold legend header
     panel       = kwargs.get('panel',       1              ) # panel (top=1, bottom=2)

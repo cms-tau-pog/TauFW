@@ -263,12 +263,13 @@ def match(terms, labels, **kwargs):
   if not terms:
     return False
   for i, searchterm in enumerate(terms):
+    if not searchterm: continue
     if not regex: # convert glob to regexp
       #fnmatch.translate( '*.foo' )
       #searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm)   # replace + with \+
       #searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
-      searchterm = re.escape(searchterm).replace(r'\?', '.').replace(r'\*', '.*?')
-    if start:
+      searchterm = re.escape(searchterm).replace(r'\?','.').replace(r'\*','.*?').replace(r'\^','^')
+    if start and not searchterm.startswith('^'):
       searchterm = '^'+searchterm
     terms[i] = searchterm
   if incl: # inclusive: match only one search term

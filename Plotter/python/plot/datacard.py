@@ -2,6 +2,7 @@
 # Author: Izaak Neutelings (August 2020)
 # Description: Help function to create and plot input histogram for datacards
 import os
+from collections import OrderedDict
 from TauFW.common.tools.utils import ensurelist, repkey, lreplace #, rreplace
 from TauFW.common.tools.file import ensuredir, ensureTDirectory, ensureTFile, gethist
 from TauFW.common.tools.log import color
@@ -12,7 +13,28 @@ from TauFW.Plotter.plot.string import joincuts
 from ROOT import gStyle, TFile, TH1, TNamed, kBlack
 
 
-def createinputs(fname,sampleset,observables,bins,**kwargs):
+
+class Systematic(object):
+  """Container class for systematics."""
+  
+  def __init__(self, systag, procs, replaceweight=('','',''), **kwargs):
+    self.procs = procs # list of processes
+    self.tag   = repkey(systag,**kwargs)
+    self.dn    = self.tag +'Down'
+    self.up    = self.tag +'Up'
+    self.wgtup = (replaceweight[0],replaceweight[1]) # (oldweight,newweightUp)
+    self.wgtdn = (replaceweight[0],replaceweight[2]) # (oldweight,newweightDown)
+    
+
+def preparesysts(*args,**kwargs):
+  """Help function to prepare tags for systematic variation."""
+  systs = OrderedDict()
+  for sysargs in args:
+    systs[sysargs[0]] = Systematic(*sysargs[1:],**kwargs)
+  return systs
+  
+
+def createinputs(fname,sampleset,observables,bins,htag="",**kwargs):
   """Create histogram inputs in ROOT file for datacards.
        fname:       filename pattern of ROOT file
        sampleset:   SampleSet object
@@ -21,8 +43,8 @@ def createinputs(fname,sampleset,observables,bins,**kwargs):
   """
   #LOG.header("createinputs")
   outdir        = kwargs.get('outdir',        ""     )
+  era           = kwargs.get('era',           ""     ) # era to replace in htag
   tag           = kwargs.get('tag',           ""     ) # file tag
-  htag          = kwargs.get('htag',          ""     ) # hist tag for systematic
   filters       = kwargs.get('filter',        None   ) # only create histograms for these processes
   vetoes        = kwargs.get('veto',          None   ) # veto these processes
   parallel      = kwargs.get('parallel',      True   ) # MultiDraw histograms in parallel
@@ -61,12 +83,12 @@ def createinputs(fname,sampleset,observables,bins,**kwargs):
   for selection in bins:
     bin = selection.filename # bin name
     print ">>>\n>>> "+color(" %s "%(bin),'magenta',bold=True,ul=True)
-    if htag:
+    if htag: # hist tag for systematic
       print ">>> systematic uncertainty: %s"%(color(htag.lstrip('_'),'grey'))
     if recreate or verbosity>=1:
       print ">>> %r"%(selection.selection)
     hists = sampleset.gethists(observables,selection,method=method,split=True,
-                               parallel=parallel,filter=filters,veto=vetoes)
+                               parallel=parallel,filter=filters,veto=vetoes,replaceweight=replaceweight)
     
     # SAVE HIST
     ljust = 4+max(11,len(htag)) # extra space
@@ -117,6 +139,18 @@ def plotinputs(fname,varprocs,observables,bins,**kwargs):
   verbosity = kwargs.get('verb',   0       )
   ensuredir(outdir)
   print ">>>\n>>> "+color(" plotting... ",'magenta',bold=True,ul=True)
+  if 'Nom' not in varprocs:
+    LOG.warning("plotinputs: Cannot make plots because did not find nominal process templates 'Nom'.")
+    return
+  if isinstance(varprocs['Nom'],Systematic): # convert Systematic objects back to simple string
+    systs    = varprocs # OrderedDict of Systematic objects
+    varprocs = OrderedDict()
+    for syskey, syst in systs.iteritems():
+      if syskey.lower()=='nom':
+        varprocs['Nom'] = syst.procs
+      else:
+        varprocs[syst.up.lstrip('_')] = syst.procs
+        varprocs[syst.dn.lstrip('_')] = syst.procs
   for obs in observables:
     obsname = obs.filename
     ftag    = tag+obs.tag
@@ -147,14 +181,13 @@ def plotinputs(fname,varprocs,observables,bins,**kwargs):
         # VARIATIONS
         if 'Down' in set:
           systag_ = systag.replace('Down','') # e.g.'_TES' without 'Up' or 'Down' suffix
-          pname_  = repkey(pname,OBS=obsname,BIN=bin,TAG=ftag+"_$PROC"+systag) # image file name
-          wname   = "plot_$PROC"+systag # name in ROOT file
+          pname_  = repkey(pname,OBS=obsname,BIN=bin,TAG=ftag+"_$PROC"+systag_) # image file name
+          wname   = "plot_$PROC"+systag_ # name in ROOT file
           comparevars(tdir,obs,procs,systag_,
                       save=pname_,write=wname,text=text_)
     
     file.Close()
   
-
 
 def stackinputs(file,variable,processes,**kwargs):
   """Stack histograms from ROOT file.
@@ -179,8 +212,10 @@ def stackinputs(file,variable,processes,**kwargs):
     gStyle.Write('style',TH1.kOverwrite) # write current TStyle object to reproduce plots
   for process in processes:
     hname = process
-    hist  = gethist(tdir,process)
-    if not hist: return
+    hist  = gethist(tdir,process,fatal=False,warn=False)
+    if not hist:
+      LOG.warning("stackinputs: Could not find %r in %s. Skipping stacked plot..."%(process,tdir.GetPath()))
+      return
     hist.SetDirectory(0)
     hist.SetLineColor(kBlack)
     hist.SetFillStyle(1001) # assume fill color is already correct
@@ -229,11 +264,11 @@ def comparevars(file,variable,processes,systag,**kwargs):
     skip  = False
     for var in [uptag,"",downtag]:
       hname = process+var
-      hist  = gethist(tdir,hname)
+      hist  = gethist(tdir,hname,fatal=False,warn=False)
       if not hist: skip = True; break
       hists.append(hist)
     if skip:
-      LOG.warning("Skipping %r variation for %r..."%(systag,process))
+      LOG.warning("comparevars: Could not find %r in %s. Skipping shape comparison..."%(hname,tdir.GetPath()))
       continue
     plot = Plot(variable,hists)
     plot.draw(ratio=2,lstyle=1)
@@ -247,4 +282,4 @@ def comparevars(file,variable,processes,systag,**kwargs):
       wname_ = repkey(wname,PROC=process,TAG=tag)
       plot.canvas.Write(wname_,TH1.kOverwrite)
     plot.close()
-  
+
