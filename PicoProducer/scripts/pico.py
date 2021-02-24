@@ -563,18 +563,18 @@ def preparejobs(args):
   eras         = args.eras
   channels     = args.channels
   tag          = args.tag
-  dtypes       = args.dtypes
-  filters      = args.samples
-  vetoes       = args.vetoes
-  dasfiles     = args.dasfiles
-  checkdas     = args.checkdas
-  checkqueue   = args.checkqueue
+  dtypes       = args.dtypes       # filter (only include) these sample types ('data','mc','embed')
+  filters      = args.samples      # filter (only include) these samples (glob patterns)
+  vetoes       = args.vetoes       # exclude these sample (glob patterns)
+  dasfiles     = args.dasfiles     # explicitly process nanoAOD files stored on DAS (as opposed to local storage)
+  checkdas     = args.checkdas     # look up number of events in DAS and compare to processed events in job output
+  checkqueue   = args.checkqueue   # check job status to speed up if batch is slow: 0 (no check), 1 (check once), -1 (check every job)
   extraopts    = args.extraopts    # extra options for module (for all runs)
   prefetch     = args.prefetch     # copy input file first to local output directory
   preselect    = args.preselect    # preselection string for post-processing
   nfilesperjob = args.nfilesperjob # split jobs based on number of files
   maxevts      = args.maxevts      # split jobs based on events
-  split_nfpj   = args.split_nfpj   # split failed chunks into even smaller chunks
+  split_nfpj   = args.split_nfpj   # split failed (file-based) chunks into even smaller chunks
   testrun      = args.testrun      # only run a few test jobs
   queue        = args.queue        # queue option for the batch system (job flavor for HTCondor)
   tmpdir       = args.tmpdir or CONFIG.get('tmpskimdir',None) # temporary dir for creating skimmed file before copying to outdir
@@ -701,7 +701,7 @@ def preparejobs(args):
         # GET FILES
         nevents = 0
         if resubmit: # resubmission
-          if checkqueue==0 and not jobs: # check jobs only once
+          if checkqueue==0 and not jobs: # check jobs only once to speed up performance
             batch = getbatch(CONFIG,verb=verbosity)
             jobs  = batch.jobs(verb=verbosity-1)
           infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
@@ -786,7 +786,7 @@ def preparejobs(args):
                 jobcmd   += " --preselect '%s'"%(preselect)
               if firstevt>=0:
                 jobcmd   += " --firstevt %d"%(firstevt) # start at this entry (for event-based splitting)
-              if testrun: # limit nevents for testrun, override maxevts
+              if testrun: # override maxevts
                 jobcmd   += " -m %d"%(testrun) # process a limited amount of events for test jobs
               elif maxevts__>0:
                 jobcmd   += " -m %d"%(maxevts__) # process a limited amount of events for event-based splitting
