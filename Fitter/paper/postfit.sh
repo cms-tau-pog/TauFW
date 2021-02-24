@@ -37,7 +37,7 @@ ensureDir "output/$ERA"
 # HARVEST
 if [ $HARVESTER -gt 0 ]; then
   header "Harvest datacards"
-  peval "python harvestcards_simple.py -o $OBS -c $CHANNELS -y $ERA" || exit 1
+  peval "python writecards.py -o $OBS -c $CHANNELS -y $ERA" || exit 1
 fi
 cd "output/$ERA"
 
