@@ -133,6 +133,7 @@ def getsampleset(channel,era,**kwargs):
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)
+  print weight
   
   # JOIN
   # Note: titles are set via STYLE.sample_titles

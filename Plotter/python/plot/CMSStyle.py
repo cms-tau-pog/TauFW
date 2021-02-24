@@ -9,7 +9,6 @@ from ROOT import TStyle, TPad, TLatex, TASImage, kBlack, kWhite, TGaxis
 
 cmsText        = "CMS"
 cmsTextFont    = 61
-writeExtraText = True
 extraText      = "Preliminary"
 lumiText       = ""
 extraTextFont  = 52
@@ -49,7 +48,7 @@ def setCMSEra(*eras,**kwargs):
   global cmsText, extraText, lumiText
   cmsText   = "CMS"
   extra     = kwargs.get('extra',None)
-  if extra:
+  if extra!=None:
     extraText = extra
   strings   = [ ]
   for era in eras:
@@ -185,7 +184,7 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     latex.SetTextAlign(11)
     latex.SetTextSize(cmsTextSize*t)
     latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText)
-    if writeExtraText:
+    if extraText:
       latex.SetTextFont(extraTextFont)
       latex.SetTextSize(extraTextSize*t)
       latex.SetTextAlign(align)
@@ -209,7 +208,7 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     latex.SetTextSize(cmsTextSize*t)
     latex.SetTextAlign(align)
     latex.DrawLatex(posX,posY,cmsText)
-    if writeExtraText:
+    if extraText:
       latex.SetTextFont(extraTextFont)
       latex.SetTextAlign(align)
       latex.SetTextSize(extraTextSize*t)

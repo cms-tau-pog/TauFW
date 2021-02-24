@@ -43,7 +43,7 @@ def getframe(pad,hist,xmin=None,xmax=None):
   frame = pad.DrawFrame(xmin_,hist.GetMinimum(),xmax_,hist.GetMaximum())
   close(garbage)
   return frame
-
+  
 
 def close(*hists,**kwargs):
   """Close histograms."""
@@ -115,7 +115,7 @@ def printhist(hist,min_=0,max_=None,**kwargs):
     TAB.printrow(ibin,xval,hist.GetBinContent(ibin),hist.GetBinError(ibin))
   
 
-def grouphists(hists,searchterms,name=None,title=None,**kwargs):
+def grouphists(hists,searchterms,name=None,title=None,color=None,**kwargs):
   """Group histograms in a list corresponding to some searchterm, return their sum.
   E.g. grouphists(hists,['TT','ST'],'Top')
        grouphists(hists,['WW','WZ','ZZ'],'Diboson')"""
@@ -125,6 +125,9 @@ def grouphists(hists,searchterms,name=None,title=None,**kwargs):
   close          = kwargs.get('close',   False ) # close grouped histograms
   kwargs['verb'] = verbosity-1
   matches        = gethist(hists,*searchterms,warn=False,**kwargs) if searchterms else hists
+  if not isinstance(color,int):
+    import TauFW.Plotter.sample.SampleStyle as STYLE
+    color = STYLE.sample_colors.get(name,color)
   histsum   = None
   if matches:
     if name==None:
@@ -133,6 +136,8 @@ def grouphists(hists,searchterms,name=None,title=None,**kwargs):
       title = matches[0].GetTitle() if name==None else name
     histsum = matches[0].Clone(name)
     histsum.SetTitle(title)
+    if color:
+      histsum.SetFillColor(color)
     for hist in matches[1:]:
       histsum.Add(hist)
     LOG.verb("grouphists: Grouping %s into %r"%(quotestrs(h.GetName() for h in matches),name),verbosity,2)
