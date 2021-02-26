@@ -71,23 +71,40 @@ def addlineage(dataset,family,roots,depth=0,verb=0):
   elif dataset not in roots:
     roots.append(dataset) # assume common ancestor & stop recursion
   
+def getnevents(daspath,verb=0):
+  cmdout = dasgoclient("summary dataset=%s"%(daspath),verb=verb)
+  if "nevents" in cmdout:
+    nevts = int(cmdout.split('"nevents":')[1].split(',')[0])
+  else:
+    nevts = 0
+    LOG.warning("Could not get number of events from DAS for %r."%(self.name))
+  return nevts
 
-def printfamily(leaf,family,depth=0,mark=[ ],verb=0):
+
+def printfamily(leaf,family,depth=0,mark=[ ],evts=None,verb=0):
   """Recursively print family starting from common ancestor 'root'."""
   indent = ("  "*depth)
   line   = color(leaf) if leaf in mark else leaf
+  if isinstance(evts,dict):
+    if leaf in evts:
+      nevts = evts[leaf]
+    else:
+      nevts = getnevents(leaf)
+      evts[leaf] = nevts # cache to save time
+    line += ", %d"%(nevts)
   print indent+line
   kids = family.get(leaf,None)
   if kids==None:
     print "Warning! %r not in family!"%(leaf)
   else:
     for kid in kids:
-      printfamily(kid,family,depth=depth+1,mark=mark,verb=verb)
+      printfamily(kid,family,depth=depth+1,mark=mark,evts=evts,verb=verb)
   
 
 def main(args):
   simple    = False #args.simple
   verbosity = args.verbosity
+  checkevts = args.checkevts
   datasets  = expanddas(args.datasets,verb=verbosity)
   if simple:
     for dataset in datasets:
@@ -98,10 +115,11 @@ def main(args):
   else:
     family = { }
     roots  = [ ]
+    evts   = { } if checkevts else None
     for dataset in datasets:
       addlineage(dataset,family,roots,verb=verbosity)
     for root in roots:
-      printfamily(root,family,mark=datasets,verb=verbosity)
+      printfamily(root,family,mark=datasets,evts=evts,verb=verbosity)
     #for dataset in datasets:
     #  lineage = getparent(dataset,verb=verbosity)
     #  lineage.append(dataset)
@@ -129,6 +147,8 @@ if __name__ == '__main__':
                       metavar="DATASET", help="dataset from DAS to trace & print" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
+  parser.add_argument('-n', '--nevts',   dest='checkevts', action='store_true',
+                                         help="check number of events per sample" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
