@@ -13,7 +13,8 @@ from fnmatch import fnmatch
 from TauFW.common.tools.utils import repkey, ensurelist, isglob
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureTFile
 from TauFW.PicoProducer.tools.config import _user
-from TauFW.PicoProducer.storage.utils import LOG, getstorage, dasgoclient, getnevents
+from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents
+from TauFW.PicoProducer.storage.das import dasgoclient, getdasnevents, getdasfiles
 dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
 fevtsexp = re.compile(r"(.+\.root)(?::(\d+))?$") # input file stored in lis in text file
 
@@ -185,8 +186,7 @@ class Sample(object):
             outlist = outlist[:limit]
         else: # get files from DAS
           postfix = '.root'
-          cmdout  = dasgoclient("file dataset=%s instance=%s"%(daspath,self.instance),limit=limit,verb=verb-1)
-          outlist = cmdout.split(os.linesep)
+          outlist = getdasfiles(daspath,instance=self.instance,limit=limit,verb=verb-1)
         for line in outlist: # filter root files
           line = line.strip()
           if line.endswith(postfix) and not any(f.endswith(line) for f in self.blacklist):
@@ -217,13 +217,7 @@ class Sample(object):
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
       else: # get number of events from DAS
         for daspath in self.paths:
-          cmdout = dasgoclient("summary dataset=%s instance=%s"%(daspath,self.instance),verb=verb-1)
-          if "nevents" in cmdout:
-            ndasevts = int(cmdout.split('"nevents":')[1].split(',')[0])
-          else:
-            ndasevts = 0
-            LOG.warning("Could not get number of events from DAS for %r."%(self.name))
-          nevents += ndasevts
+          nevents += getdasnevents(daspath,instance=self.instance,verb=verb-1)
       if limit<0:
         self.nevents = nevents
     return nevents, filenevts

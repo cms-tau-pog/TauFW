@@ -5,7 +5,7 @@
 #   utils/checkEvents.py output/2016/mutau/DYJetsToLL/*root -H cutflow -b 1
 from TauFW.common.tools.utils import unwraplistargs
 from TauFW.common.tools.log import color
-from TauFW.PicoProducer.storage.utils import  LOG, dasgoclient, getnevents, isvalid
+from TauFW.PicoProducer.storage.utils import LOG, getnevents, isvalid
 
 
 def main(args):
