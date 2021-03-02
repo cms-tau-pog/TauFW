@@ -31,11 +31,9 @@ samples  = [
   
   # TTBAR
   M('TT','TTTo2L2Nu',
-    #"/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM", # NO DeepTau2017v2p1
     "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,opts='toppt=True'),
   M('TT','TTToSemiLeptonic',
-    #"/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v1/NANOAODSIM", # NO DeepTau2017v2p1
     "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,opts='toppt=True'),
   M('TT','TTToHadronic',
@@ -44,7 +42,7 @@ samples  = [
   
   # W+JETS
   M('WJ','WJetsToLNu',
-    "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # OLD
+    "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     store=storage,url=url,file=filelist),
   M('WJ','W1JetsToLNu',
     "/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
@@ -75,12 +73,10 @@ samples  = [
   
   # DIBOSON
   M('VV','WW',
-    #"/WW_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
     "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,channels=["skim*"],
   ),
   M('VV','WZ',
-    #"/WZ_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
     "/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     store=storage,url=url,file=filelist,channels=["skim*"],
   ),
@@ -92,8 +88,8 @@ samples  = [
   # SINGLE MUON
   D('Data','SingleMuon_Run2017B',"/SingleMuon/Run2017B-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
-  D('Data','SingleMuon_Run2017C',"/SingleMuon/Run2017C-UL2017_02Dec2019-v1/NANOAOD", # OLD
-    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
+  #D('Data','SingleMuon_Run2017C',"/SingleMuon/Run2017C-UL2017_02Dec2019-v1/NANOAOD", # OLD
+  #  store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
   D('Data','SingleMuon_Run2017D',"/SingleMuon/Run2017D-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
   D('Data','SingleMuon_Run2017E',"/SingleMuon/Run2017E-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",

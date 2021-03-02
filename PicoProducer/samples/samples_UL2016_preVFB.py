@@ -43,9 +43,9 @@ samples  = [
     store=storage,url=url,file=filelist,opts='toppt=True'),
   
   # W+JETS
-  M('WJ','WJetsToLNu',
-    "...", # MISSING
-    store=storage,url=url,file=filelist),
+  #M('WJ','WJetsToLNu',
+  #  "...", # MISSING
+  #  store=storage,url=url,file=filelist),
   M('WJ','W1JetsToLNu',
     "/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM",
     store=storage,url=url,file=filelist),
@@ -87,40 +87,40 @@ samples  = [
     "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM",
     store=storage,url=url,file=filelist),
   
-  ## SINGLE MUON - HIP mitigated
-  ##D('Data','SingleMuon_Run2016B',"/SingleMuon/Run2016B_ver2-Nano25Oct2019_ver2-v1/NANOAOD",
-  ##  store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
-  #D('Data','SingleMuon_Run2016C',"/SingleMuon/Run2016C-UL2016_MiniAODv1_NanoAODv2-v2/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
-  #D('Data','SingleMuon_Run2016D',"/SingleMuon/Run2016D-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
-  #D('Data','SingleMuon_Run2016E',"/SingleMuon/Run2016E-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
-  #D('Data','SingleMuon_Run2016F',"/SingleMuon/Run2016F-UL2016_MiniAODv1_NanoAODv2-v2/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
-  #
-  ## SINGLE ELECTRON - HIP mitigated
-  ##D('Data','SingleElectron_Run2016B',"/SingleElectron/Run2016B_ver2-Nano25Oct2019_ver2-v1/NANOAOD",
-  ##  store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  #D('Data','SingleElectron_Run2016C',"/SingleElectron/Run2016C-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  # SINGLE MUON
+  D('Data','SingleMuon_Run2016B',"/SingleMuon/Run2016B-ver2_HIPM_UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
+  D('Data','SingleMuon_Run2016C',"/SingleMuon/Run2016C-UL2016_MiniAODv1_NanoAODv2-v2/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
+  D('Data','SingleMuon_Run2016D',"/SingleMuon/Run2016D-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
+  D('Data','SingleMuon_Run2016E',"/SingleMuon/Run2016E-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
+  D('Data','SingleMuon_Run2016F',"/SingleMuon/Run2016F-HIPM_UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'mutau','mumu','emu']),
+  
+  # SINGLE ELECTRON
+  #D('Data','SingleElectron_Run2016B',"/SingleElectron/Run2016B-ver1_HIPM_UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated - MISSING
   #  store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  #D('Data','SingleElectron_Run2016D',"/SingleElectron/Run2016D-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  #D('Data','SingleElectron_Run2016E',"/SingleElectron/Run2016E-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  #D('Data','SingleElectron_Run2016F',"/SingleElectron/Run2016F-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
-  #
-  ## TAU - HIP mitigated
-  ##D('Data','Tau_Run2016B',"/Tau/Run2016B_ver2-Nano25Oct2019_ver2-v1/NANOAOD",
-  ##  store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
-  #D('Data','Tau_Run2016C',"/Tau/Run2016C-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
-  #D('Data','Tau_Run2016D',"/Tau/Run2016D-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
-  #D('Data','Tau_Run2016E',"/Tau/Run2016E-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
-  #D('Data','Tau_Run2016F',"/Tau/Run2016F-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD",
-  #  store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
+  D('Data','SingleElectron_Run2016C',"/SingleElectron/Run2016C-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
+  D('Data','SingleElectron_Run2016D',"/SingleElectron/Run2016D-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
+  D('Data','SingleElectron_Run2016E',"/SingleElectron/Run2016E-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
+  D('Data','SingleElectron_Run2016F',"/SingleElectron/Run2016F-HIPM_UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'etau','ee']),
+  
+  # TAU
+  D('Data','Tau_Run2016B',"/Tau/Run2016B-ver2_HIPM_UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
+  D('Data','Tau_Run2016C',"/Tau/Run2016C-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
+  D('Data','Tau_Run2016D',"/Tau/Run2016D-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
+  D('Data','Tau_Run2016E',"/Tau/Run2016E-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
+  D('Data','Tau_Run2016F',"/Tau/Run2016F-HIPM_UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
+    store=storage,url=url,file=filelist,channels=["skim*",'tautau']),
   
 ]
