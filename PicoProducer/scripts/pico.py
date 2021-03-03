@@ -982,27 +982,32 @@ def checkchunks(sample,**kwargs):
         continue
     
     # GET FILES for RESUBMISSION + sanity checks
-    for ichunk in chunkdict.keys():
+    for ichunk in chunkdict.keys(): # chuckdict length might be changed (popped)
       if ichunk in pendchunks: # output still pending
         continue
       chunkfiles = chunkdict[ichunk]
-      if all(f in goodfiles for f in chunkfiles): # all files in this chunk were succesful
-        goodchunks.append(ichunk)
-        continue
-      bad = False # count each chunk only once: bad, else missing
-      for fname in chunkfiles:
+      keepfiles  = [ ] # do not redo good files in this chunk
+      bad        = False # count each chunk only once: bad, else missing
+      for fname in chunkfiles: # check bad (corrupted) or missing
         LOG.insist(fname not in resubfiles,"Found file for chunk '%d' more than once: %s "%(ichunk,fname)+
                                            "Possible overcounting or conflicting job output file format!")
-        if fname in badfiles:
-          bad = True
+        if fname in goodfiles: # good file, do not resubmit
+          keepfiles.append(fname)
+        else:
+          bad = bad or fname in badfiles # bad (corrupted) or missing, resubmit
           resubfiles.append(fname)
-        elif fname not in goodfiles: # output file missing
-          resubfiles.append(fname)
-      if bad:
-        badchunks.append(ichunk)
+      if len(keepfiles)==len(chunkfiles): # all files in this chunk were succesful
+        goodchunks.append(ichunk)
       else:
-        misschunks.append(ichunk)
-      chunkdict.pop(ichunk)
+        if len(keepfiles)==0: # all files bad or missing
+          chunkdict.pop(ichunk) # remove chunk from chunkdict to allow for reshuffling
+        else: # part of file list bad or missing
+          chunkdict[ichunk] = keepfiles # keep record of good ones for bookkeeping, resubmit bad ones
+        if bad:
+          badchunks.append(ichunk)
+        else:
+          misschunks.append(ichunk)
+  
   
   ###########################################################################
   # CHECK ANALYSIS OUTPUT: custom tree format, one output file per job, numbered post-fix
