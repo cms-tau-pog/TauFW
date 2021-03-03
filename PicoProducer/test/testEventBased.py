@@ -102,7 +102,9 @@ def gettree(fname):
   if '*' in fname:
     fnames = glob.glob(fname)
     file = None
-    tree = TChain(fnames)
+    tree = TChain('tree')
+    for fname in fnames:
+      tree.Add(fname)
   else:
     file = ensureTFile(fname)
     tree = file.Get('tree')
