@@ -1,9 +1,9 @@
 # Author: Izaak Neutelings (May 2020)
-import os, re, shutil
+import os, re, shutil, glob
 import importlib, traceback
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from TauFW.common.tools.log import LOG
-from TauFW.common.tools.utils import ensurelist
+from TauFW.common.tools.utils import ensurelist, isglob
 basedir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 
@@ -80,13 +80,22 @@ def ensuremodule(modname,package):
   return module
   
 
-def rmfile(filepaths):
+def rmfile(filepaths,verb=0):
   """Remove (list of) files."""
-  if isinstance(filepaths,str):
+  if isinstance(filepaths,basestring):
     filepaths = [filepaths]
+  for filepath in filepaths[:]:
+    if isglob(filepath):
+      subpaths = glob.glob(filepath)
+      i = filepaths.index(filepath)
+      filepaths = filepaths[:i] + subpaths + filepaths[i+1:] # insert
   for filepath in filepaths:
     if os.path.isfile(filepath):
+      if verb>=2:
+        print ">>> rmfile: Removing %r..."%(filepath)
       os.unlink(filepath)
+    elif verb>=2:
+      print ">>> rmfile: Did not find %r..."%(filepath)
   
 
 def getline(fname,iline):
@@ -101,7 +110,7 @@ def getline(fname,iline):
 
 def ensureTFile(filename,option='READ',verb=0):
   """Open TFile, checking if the file in the given path exists."""
-  if isinstance(filename,str):
+  if isinstance(filename,basestring):
     if option=='READ' and ':' not in filename and not os.path.isfile(filename):
       LOG.throw(IOError,'File in path "%s" does not exist!'%(filename))
       exit(1)
@@ -142,7 +151,7 @@ def ensureinit(*paths,**kwargs):
 
 def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True,warn=True):
   """Get histogram from a given file."""
-  if isinstance(file,str): # open TFile
+  if isinstance(file,basestring): # open TFile
     file = ensureTFile(file)
     if close==None:
       close = not retfile
