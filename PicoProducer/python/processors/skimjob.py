@@ -118,7 +118,7 @@ if copydir and outdir!=copydir:
   store = getstorage(copydir,verb=2)
   store.cp(outfiles)
   print(">>> Removing %s..."%(outfiles))
-  rmfile(outfiles)
+  rmfile(outfiles,verb=2)
 
 # DONE
 print(">>> skimjob.py done after %.1f seconds"%(time.time()-time0))

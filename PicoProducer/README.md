@@ -154,7 +154,7 @@ pico.py channel mutau_TES1p03 ModuleMuTau 'tes=1.03'
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
 ```
-pico.py era 2016 sample_2016.py
+pico.py era 2016 samples_2016.py
 ```
 
 

@@ -44,7 +44,7 @@ samples  = [
   
   # W+JETS
   #M('WJ','WJetsToLNu',
-  #  "...", # MISSING
+  #  "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
   #  store=storage,url=url,file=filelist),
   M('WJ','W1JetsToLNu',
     "/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM",

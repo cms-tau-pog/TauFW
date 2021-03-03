@@ -135,10 +135,10 @@ def compare_output(args,verb=0):
   nfound = 0
   for i in range(0,nbins+2):
     if nfound==20:
-      print ">>>    BREAK! Already found 20 different bins"
+      print ">>>   BREAK! Already found 20 different bins"
       break
     if hist1.GetBinContent(i)!=0.0:
-      print ">>>    difference in bin %4d, [%d,%d]!"%(i,hist1.GetXaxis().GetBinLowEdge(i),hist1.GetXaxis().GetBinUpEdge(i))
+      print ">>>   difference %3d in bin %3d, [%3d,%3d]!"%(i,hist1.GetBinContent(i),hist1.GetXaxis().GetBinLowEdge(i),hist1.GetXaxis().GetBinUpEdge(i))
       nfound += 1
   if file1:
     file1.Close()

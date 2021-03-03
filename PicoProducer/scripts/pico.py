@@ -1499,7 +1499,7 @@ if __name__ == "__main__":
   parser_era.add_argument('value',              metavar='samples', help='samplelist linked to by given era')
   parser_ins.add_argument('type',               choices=['standalone','cmmsw'], #default=None,
                                                 help='type of installation: standalone or compiled in CMSSW')
-  parser_get.add_argument('-U','--URL',         dest='inclurl', action='store_true',
+  parser_get.add_argument('-U','--url',         dest='inclurl', action='store_true',
                                                 help="include XRootD url in filename for 'get files'" )
   parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1,
                           metavar='NFILES',     help="limit number files in list for 'get files'" )
