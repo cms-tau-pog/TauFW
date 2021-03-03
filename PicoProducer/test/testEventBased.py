@@ -4,7 +4,7 @@
 #   test/testEventBased.py
 #   test/testEventBased.py filesplit.root evtsplit.root
 #   test/testEventBased.py '*_filesplit.root' '*_evtsplit.root' -T Events
-import os, platform
+import os, glob, platform
 from time import sleep
 from TauFW.common.tools.file import ensureTFile
 from TauFW.common.tools.math import partition_by_max, ceil
