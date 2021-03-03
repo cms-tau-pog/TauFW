@@ -922,11 +922,9 @@ def checkchunks(sample,**kwargs):
             break
           if matches2:
             file += ":%s"%(matches2[0][0]) #,matches2[0][1])
-            print file
           infiles.append(file)
         LOG.insist(infiles,"Did not find any ROOT files in job arguments %r, matches=%r"%(jobarg,matches))
         ichunk = -1
-        print chunkdict
         for i in chunkdict:
           if all(any(f in c for c in chunkdict[i]) for f in infiles):
             ichunk = i
