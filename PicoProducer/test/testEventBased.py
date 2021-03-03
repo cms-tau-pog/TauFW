@@ -105,7 +105,7 @@ def gettree(fname):
     tree = TChain(fnames)
   else:
     file = ensureTFile(fname)
-    tree = file1.Get('tree')
+    tree = file.Get('tree')
   return file, tree
   
 
