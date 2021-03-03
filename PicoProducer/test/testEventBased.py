@@ -3,7 +3,7 @@
 # Description: Test EventBased splitting
 #   test/testEventBased.py
 #   test/testEventBased.py filesplit.root evtsplit.root
-#   test/testEventBased.py '*_filesplit.root' '*_evtsplit.root'
+#   test/testEventBased.py '*_filesplit.root' '*_evtsplit.root' -t Events
 import os, platform
 from time import sleep
 from TauFW.common.tools.file import ensureTFile
@@ -97,17 +97,17 @@ def testEventBased(args,verb=0):
       print chunk
   
 
-def gettree(fname):
+def gettree(fname,tree='tree'):
   """Get file and tree. If glob pattern, expand and use TChain."""
   if '*' in fname:
     fnames = glob.glob(fname)
     file = None
-    tree = TChain('tree')
+    tree = TChain(tree)
     for fname in fnames:
       tree.Add(fname)
   else:
     file = ensureTFile(fname)
-    tree = file.Get('tree')
+    tree = file.Get(tree)
   return file, tree
   
 
@@ -121,8 +121,8 @@ def compare_output(args,verb=0):
     fname1, fname2 = args.infiles[:2]
   print ">>>  ",fname1
   print ">>>  ",fname2
-  file1, tree1 = gettree(fname1)
-  file2, tree2 = gettree(fname2)
+  file1, tree1 = gettree(fname1,args.tree)
+  file2, tree2 = gettree(fname2,args.tree)
   hist1  = TH1F('h1','h1',nbins,0,1000000)
   hist2  = TH1F('h2','h2',nbins,0,1000000)
   tree1.Draw("evt >> h1","","gOff")
@@ -157,12 +157,14 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Test event-based splitting of files."""
   parser = ArgumentParser(prog="testBatch",description=description,epilog="Good luck!")
-  parser.add_argument('infiles',            type=str, nargs='*', default=[], action='store',
-                                            help="files to compare" )
-  parser.add_argument('-v', '--verbose',    dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
-                                            help="set verbosity" )
-  parser.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
-                                            help='maximum number of events (per file) to process')
+  parser.add_argument('infiles',         type=str, nargs='*', default=[], action='store',
+                                         help="files to compare" )
+  parser.add_argument('-T', '--tree',    default='tree', action='store',
+                                         help="tree name, default=%(default)s" )
+  parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
+                                         help="set verbosity" )
+  parser.add_argument('-m','--maxevts',  dest='maxevts', type=int, default=None,
+                                         help='maximum number of events (per file) to process')
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
