@@ -121,8 +121,8 @@ def compare_output(args,verb=0):
     fname1, fname2 = args.infiles[:2]
   tname = args.tree
   ename = args.evt
-  print ">>>  ",fname1
-  print ">>>  ",fname2
+  print ">>>  %s"%(fname1)
+  print ">>>  %s"%(fname2)
   file1, tree1 = gettree(fname1,tname)
   file2, tree2 = gettree(fname2,tname)
   hist1  = TH1F('h1','h1',nbins,0,1000000)
@@ -138,7 +138,7 @@ def compare_output(args,verb=0):
       print ">>>    BREAK! Already found 20 different bins"
       break
     if hist1.GetBinContent(i)!=0.0:
-      print ">>>    difference in bin %4d, [%d,%d]!"%(i,hist1.GetBinLowEdge(i),hist1.GetBinUpEdge(i))
+      print ">>>    difference in bin %4d, [%d,%d]!"%(i,hist1.GetXaxis().GetBinLowEdge(i),hist1.GetXaxis().GetBinUpEdge(i))
       nfound += 1
   if file1:
     file1.Close()
