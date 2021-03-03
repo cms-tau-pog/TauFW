@@ -119,7 +119,7 @@ def compare_output(args,verb=0):
   fname2 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau_test.root" # event-based split
   if len(args.infiles)>=2:
     fname1, fname2 = args.infiles[:2]
-  tname = args.treename
+  tname = args.tree
   ename = args.evt
   print ">>>  ",fname1
   print ">>>  ",fname2
