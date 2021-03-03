@@ -3,7 +3,7 @@
 # Description: Test EventBased splitting
 #   test/testEventBased.py
 #   test/testEventBased.py filesplit.root evtsplit.root
-#   test/testEventBased.py '*_filesplit.root' '*_evtsplit.root' -t Events
+#   test/testEventBased.py '*_filesplit.root' '*_evtsplit.root' -T Events
 import os, platform
 from time import sleep
 from TauFW.common.tools.file import ensureTFile
@@ -119,14 +119,16 @@ def compare_output(args,verb=0):
   fname2 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau_test.root" # event-based split
   if len(args.infiles)>=2:
     fname1, fname2 = args.infiles[:2]
+  tname = args.treename
+  ename = args.evt
   print ">>>  ",fname1
   print ">>>  ",fname2
-  file1, tree1 = gettree(fname1,args.tree)
-  file2, tree2 = gettree(fname2,args.tree)
+  file1, tree1 = gettree(fname1,tname)
+  file2, tree2 = gettree(fname2,tname)
   hist1  = TH1F('h1','h1',nbins,0,1000000)
   hist2  = TH1F('h2','h2',nbins,0,1000000)
-  tree1.Draw("evt >> h1","","gOff")
-  tree2.Draw("evt >> h2","","gOff")
+  tree1.Draw("%s >> h1"%(ename),"","gOff")
+  tree2.Draw("%s >> h2"%(ename),"","gOff")
   print ">>>   tree1: %9d, hist1: %9d"%(tree1.GetEntries(),hist1.GetEntries())
   print ">>>   tree2: %9d, hist2: %9d"%(tree2.GetEntries(),hist2.GetEntries())
   hist1.Add(hist2,-1)
@@ -159,8 +161,10 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="testBatch",description=description,epilog="Good luck!")
   parser.add_argument('infiles',         type=str, nargs='*', default=[], action='store',
                                          help="files to compare" )
-  parser.add_argument('-T', '--tree',    default='tree', action='store',
+  parser.add_argument('-T', '--tree',    action='store', default='tree',
                                          help="tree name, default=%(default)s" )
+  parser.add_argument('-e', '--evt',     action='store', default='evt',
+                                         help="event branch name, default=%(default)s" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   parser.add_argument('-m','--maxevts',  dest='maxevts', type=int, default=None,
