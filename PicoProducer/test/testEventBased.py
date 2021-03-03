@@ -2,6 +2,8 @@
 # Author: Izaak Neutelings (September 2020)
 # Description: Test EventBased splitting
 #   test/testEventBased.py
+#   test/testEventBased.py filesplit.root evtsplit.root
+#   test/testEventBased.py '*_filesplit.root' '*_evtsplit.root'
 import os, platform
 from time import sleep
 from TauFW.common.tools.file import ensureTFile
@@ -11,7 +13,7 @@ from TauFW.PicoProducer.storage.Sample import Data as D
 from TauFW.PicoProducer.storage.Sample import Sample, LOG
 from TauFW.PicoProducer.storage.utils import getsamples
 #from TauFW.PicoProducer.batch.utils import chunkify_by_evts
-from ROOT import TFile, TH1F
+from ROOT import TFile, TChain, TH1F
 
 
 def chunkify_by_evts(fnames,nmax,evenly=True):
@@ -93,7 +95,19 @@ def testEventBased(args,verb=0):
     chunks = chunkify_by_evts(files,nmax=100000)
     for chunk in chunks:
       print chunk
+  
 
+def gettree(fname):
+  """Get file and tree. If glob pattern, expand and use TChain."""
+  if '*' in fname:
+    fnames = glob.glob(fname)
+    file = None
+    tree = TChain(fnames)
+  else:
+    file = ensureTFile(fname)
+    tree = file1.Get('tree')
+  return file, tree
+  
 
 def compare_output(args,verb=0):
   """Quick comparison between job output."""
@@ -105,10 +119,8 @@ def compare_output(args,verb=0):
     fname1, fname2 = args.infiles[:2]
   print ">>>  ",fname1
   print ">>>  ",fname2
-  file1  = ensureTFile(fname1)
-  file2  = ensureTFile(fname2)
-  tree1  = file1.Get('tree')
-  tree2  = file2.Get('tree')
+  file1, tree1 = gettree(fname1)
+  file2, tree2 = gettree(fname2)
   hist1  = TH1F('h1','h1',nbins,0,1000000)
   hist2  = TH1F('h2','h2',nbins,0,1000000)
   tree1.Draw("evt >> h1","","gOff")
@@ -124,13 +136,17 @@ def compare_output(args,verb=0):
     if hist1.GetBinContent(i)!=0.0:
       print ">>>    difference in bin %4d!"
       nfound += 1
-  file1.Close()
-  file2.Close()
+  if file1:
+    file1.Close()
+  if file2:
+    file2.Close()
   
 
 def main(args):
-  #testEventBased(args)
-  compare_output(args)
+  if args.infiles:
+    compare_output(args)
+  else:
+    testEventBased(args)
   
 
 if __name__ == "__main__":
@@ -145,24 +161,6 @@ if __name__ == "__main__":
                                             help="set verbosity" )
   parser.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                                             help='maximum number of events (per file) to process')
-  #parser.add_argument('-f','--force',       dest='force', action='store_true',
-  #                                          help='force overwrite')
-  #parser.add_argument('-d','--dry',         dest='dryrun', action='store_true',
-  #                                          help='dry run: prepare job without submitting for debugging purposes')
-  #parser.add_argument('-N','--ntasks',      dest='ntasks', type=int, default=2,
-  #                    metavar='N',          help='number of tasks per job to submit, default=%(default)d' )
-  #parser.add_argument('-n','--nchecks',     dest='nchecks', type=int, default=5,
-  #                    metavar='N',          help='number of job status checks, default=%(default)d' )
-  ##parser.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1,
-  ##                        metavar='N',      help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
-  #parser.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
-  #                                          help='extra options for the batch system')
-  #parser.add_argument('-M','--time',        dest='time', default=None,
-  #                                          help='maximum run time of job')
-  #parser.add_argument('-q','--queue',       dest='queue', default=None,
-  #                                          help='queue of batch system (job flavor on HTCondor)')
-  ##parser.add_argument('-P','--prompt',      dest='prompt', action='store_true',
-  ##                                          help='ask user permission before submitting a sample')
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
