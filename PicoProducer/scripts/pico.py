@@ -254,7 +254,7 @@ def main_set(args):
       GLOB.setdefaultconfig(verb=verb)
     else:
       LOG.warning("Did not recognize value '%s'. Did you mean 'default'?"%(value))
-  elif variable == 'nfilesperjob':
+  elif variable in ['nfilesperjob','maxevtsperjob']:
     CONFIG[variable] = int(value)
     CONFIG.write()
   else:
