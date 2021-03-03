@@ -635,8 +635,9 @@ def preparejobs(args):
         
         # DIRECTORIES
         subtry     = sample.subtry+1 if resubmit else 1
-        jobids     = sample.jobcfg.get('jobids',[ ]  )
-        queue_     = queue or sample.jobcfg.get('queue', None )
+        jobids     = sample.jobcfg.get('jobids',[ ])
+        queue_     = queue or sample.jobcfg.get('queue',None)
+        prefetch_  = sample.jobcfg.get('prefetch',prefetch) or prefetch # if resubmit: reuse old setting, or override by user
         dtype      = sample.dtype
         postfix    = "_%s%s"%(channel,tag)
         jobtag     = "%s_try%d"%(postfix,subtry)
@@ -674,7 +675,7 @@ def preparejobs(args):
           print ">>> %-12s = %r"%('postfix',postfix)
           print ">>> %-12s = %r"%('outdir',outdir)
           print ">>> %-12s = %r"%('extraopts',extraopts_)
-          print ">>> %-12s = %r"%('prefetch',prefetch)
+          print ">>> %-12s = %r"%('prefetch',prefetch_)
           print ">>> %-12s = %r"%('preselect',preselect)
           print ">>> %-12s = %r"%('cfgdir',cfgdir)
           print ">>> %-12s = %r"%('logdir',logdir)
@@ -780,7 +781,7 @@ def preparejobs(args):
               ###  jobcmd += " -o %s -t %s -i %s"%(outdir,filetag)
               else:
                 jobcmd   += " -y %s -d %r -c %s -M %s --copydir %s -t %s"%(era,dtype,channel,module,outdir,filetag)
-              if prefetch:
+              if prefetch_:
                 jobcmd   += " -p"
               if preselect and skim:
                 jobcmd   += " --preselect '%s'"%(preselect)
@@ -805,7 +806,7 @@ def preparejobs(args):
           ('group',sample.group), ('paths',sample.paths), ('name',sample.name), ('nevents',nevents),
           ('dtype',dtype),        ('channel',channel),    ('module',module),    ('extraopts',extraopts_),
           ('jobname',jobname),    ('jobtag',jobtag),      ('tag',tag),          ('postfix',postfix),
-          ('try',subtry),         ('queue',queue_),       ('jobids',jobids),
+          ('try',subtry),         ('queue',queue_),       ('jobids',jobids),    ('prefetch',prefetch_),
           ('outdir',outdir),      ('jobdir',jobdir),      ('cfgdir',cfgdir),    ('logdir',logdir),
           ('cfgname',cfgname),    ('joblist',joblist),    ('maxevts',maxevts_),
           ('nfiles',nfiles),      ('files',infiles),      ('nfilesperjob',nfilesperjob_), #('nchunks',nchunks),
