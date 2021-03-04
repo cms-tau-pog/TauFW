@@ -577,6 +577,8 @@ def preparejobs(args):
   split_nfpj   = args.split_nfpj   # split failed (file-based) chunks into even smaller chunks
   testrun      = args.testrun      # only run a few test jobs
   queue        = args.queue        # queue option for the batch system (job flavor for HTCondor)
+  force        = args.force        # force submission, even if old job output exists
+  prompt       = args.prompt       # ask user for confirmation
   tmpdir       = args.tmpdir or CONFIG.get('tmpskimdir',None) # temporary dir for creating skimmed file before copying to outdir
   verbosity    = args.verbosity
   jobs         = [ ]
@@ -626,9 +628,9 @@ def preparejobs(args):
         samples = samples[:2] # run at most two samples
       
       # SAMPLE over SAMPLES
-      found = False
+      found  = len(samples)>=0
+      failed = [ ] # failed samples
       for sample in samples:
-        found = True
         print ">>> %s"%(bold(sample.name))
         for path in sample.paths:
           print ">>> %s"%(bold(path))
@@ -688,10 +690,34 @@ def preparejobs(args):
         
         # CHECKS
         if os.path.isfile(cfgname):
-          # TODO: check for running jobs
-          LOG.warning("Job configuration %r already exists and will be overwritten! "%(cfgname)+
-                      "Beware of conflicting job output!")
-        if not resubmit:
+          # TODO: check for running jobs ?
+          skip = False
+          if force:
+            LOG.warning("Job configuration %r already exists and will be overwritten! "%(cfgname)+
+                        "Please beware of conflicting job output!")
+          elif args.prompt:
+            LOG.warning("Job configuration %r already exists and might cause conflicting job output!"%(cfgname))
+            while True:
+              submit = raw_input(">>> Submit anyway? [y/n] "%(nchunks))
+              if 'f' in submit.lower(): # submit this job, and stop asking
+                print ">>> Force all."
+                force = True; skip = True; break
+              elif 'y' in submit.lower(): # submit this job
+                print ">>> Continue submission..."
+                skip = True; break
+              elif 'n' in submit.lower(): # do not submit this job
+                print ">>> Not submitting."
+                break
+              else:
+                print ">>> '%s' is not a valid answer, please choose y/n."%submit
+          else:
+            skip = True
+            LOG.warning("Job configuration %r already exists and might cause conflicting job output! "%(cfgname)+
+                        "To submit anyway, please use the --force flag")
+          if skip: # do not submit this job
+            failed.append(sample)
+            continue
+        if not resubmit: # check for existing jobss
           cfgpattern = re.sub(r"(?<=try)\d+(?=.json$)",r"*",cfgname)
           cfgnames   = [f for f in glob.glob(cfgpattern) if not f.endswith("_try1.json")]
           if cfgnames:
@@ -733,7 +759,13 @@ def preparejobs(args):
         infiles.sort() # to have consistent order with resubmission
         chunks    = [ ] # chunk indices
         if maxevts_>1:
-          fchunks = chunkify_by_evts(infiles,maxevts_,verb=verbosity) # list of file chunks split by events
+          try:
+            fchunks = chunkify_by_evts(infiles,maxevts_,verb=verbosity) # list of file chunks split by events
+          except IOError as err: # capture if opening files fail
+            print "IOError: "+err.message
+            LOG.warning("Skipping submission...")
+            failed.append(sample)
+            continue # ignore this submission
           if testrun:
             fchunks = fchunks[:4]
         else:
@@ -819,6 +851,8 @@ def preparejobs(args):
       
       if not found:
         print_no_samples(dtypes,filters,vetoes,jobdir_,jobcfgs)
+      elif failed and len(failed)!=len(samples):
+        print ">>> %d/%d samples failed: %s"%(len(failed),len(samples),', '.join(s.name for s in failed))
     
 
 
