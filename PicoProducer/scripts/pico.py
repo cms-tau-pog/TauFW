@@ -716,6 +716,7 @@ def preparejobs(args):
                         "To submit anyway, please use the --force flag")
           if skip: # do not submit this job
             failed.append(sample)
+            print ""
             continue
         if not resubmit: # check for existing jobss
           cfgpattern = re.sub(r"(?<=try)\d+(?=.json$)",r"*",cfgname)
@@ -765,6 +766,7 @@ def preparejobs(args):
             print "IOError: "+err.message
             LOG.warning("Skipping submission...")
             failed.append(sample)
+            print ""
             continue # ignore this submission
           if testrun:
             fchunks = fchunks[:4]
@@ -852,7 +854,7 @@ def preparejobs(args):
       if not found:
         print_no_samples(dtypes,filters,vetoes,jobdir_,jobcfgs)
       elif failed and len(failed)!=len(samples):
-        print ">>> %d/%d samples failed: %s"%(len(failed),len(samples),', '.join(s.name for s in failed))
+        print ">>> %d/%d samples failed: %s\n"%(len(failed),len(samples),', '.join(s.name for s in failed))
     
 
 
