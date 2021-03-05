@@ -627,7 +627,7 @@ def preparejobs(args):
       if testrun:
         samples = samples[:2] # run at most two samples
       
-      # SAMPLE over SAMPLES
+      # LOOP over SAMPLES
       found  = len(samples)>=0
       failed = [ ] # failed samples
       for sample in samples:
@@ -1528,8 +1528,8 @@ if __name__ == "__main__":
   parser_hdd = subparsers.add_parser('hadd',     parents=[parser_chk], help=help_hdd, description=help_hdd)
   parser_cln = subparsers.add_parser('clean',    parents=[parser_chk], help=help_cln, description=help_cln)
   #parser_get.add_argument('variable',           help='variable to change in the config file')
-  parser_get.add_argument('variable',           help='variable to get information on')
-  parser_set.add_argument('variable',           help='variable to change in the config file')
+  parser_get.add_argument('variable',           help='variable to get information on',choices=['samples','files','nevents','nevts',]+CONFIG.keys())
+  parser_set.add_argument('variable',           help='variable to set or change in the config file')
   parser_set.add_argument('key',                help='channel or era key name', nargs='?', default=None)
   parser_set.add_argument('value',              help='value for given value')
   parser_wrt.add_argument('listname',           help='file name of text file for file list, default=%(default)r', nargs='?', default=str(CONFIG.filelistdir))

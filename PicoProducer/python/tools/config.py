@@ -137,6 +137,9 @@ class Config(object):
             item = str(item)
           self._dict[str(key)].pop(subkey,None)
           self._dict[str(key)][str(subkey)] = item # convert unicode to str
+      elif isinstance(key,unicode):
+        self._dict[str(key)] = self._dict[key] # convert unicode to str
+        
   
   def __str__(self):
     return str(self._dict)
@@ -192,11 +195,14 @@ class Config(object):
       self._dict = json.load(infile,object_pairs_hook=OrderedDict)
     return self._dict
   
+  def keys(self,*args,**kwargs):
+    return self._dict.keys(*args,**kwargs)
+  
   def get(self,*args,**kwargs):
-    self._dict.get(*args,**kwargs)
+    return self._dict.get(*args,**kwargs)
   
   def pop(self,*args,**kwargs):
-    self._dict.pop(*args,**kwargs)
+    return self._dict.pop(*args,**kwargs)
   
   def write(self,path=None):
     if path==None:
