@@ -30,7 +30,7 @@ samples  = [
   ),
   M('DY','DY4JetsToLL_M-50',
     "/DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_v2_102X_mc2017_realistic_v7-v1/NANOAODSIM",
-    store=storage,url=url,files="samples/files/2017/DY4JetsToLL_M-50.txt",opts='zpt=True', # "samples/files/2017/DY4JetsToLL_M-50.txt"
+    store=storage,url=url,files=filelist,opts='zpt=True', # "samples/files/2017/DY4JetsToLL_M-50.txt"
   ),
   M('DY','DYJetsToLL_M-10to50',
     "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v2/NANOAODSIM",

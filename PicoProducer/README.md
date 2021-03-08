@@ -154,7 +154,7 @@ pico.py channel mutau_TES1p03 ModuleMuTau 'tes=1.03'
 ### Sample list
 To link an era to your favorite sample list in [`samples/`](samples/), do
 ```
-pico.py era 2016 samples_2016.py
+pico.py era 2016 sample_2016.py
 ```
 
 
@@ -204,24 +204,27 @@ Other optional keyword arguments are
 * `opts`: Extra key-worded options (`key=value`) to be passed to the analysis modules.
   Can be a comma-separated string (`'opt1=val1,opt2=val2'`) or a list of strings (`['opt1=val1','opt2=val2']`).
 
-Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanoAOD files)
-for the same era as specified in the configuration.
-While skimming is an optional step, typically you first want to skim nanoAOD from existing files on the GRID (given by DAS)
-and store them locally for faster and more reliable access.
-To run on skimmed nanoAOD files, you need to change `store` for each skimmed sample to point to the storage location.
-
 To get a file list for a particular sample in the sample list, you can use the `get files` subcommand.
 If you include `--write`, the list will be written to a text file as defined by `filelistdir` in the [configuration](#Configuration):
 ```
 pico.py get files -y 2016 -s DYJets --write
 ```
+Pass the full path of this text file to the sample via `files`.
+It may contain variables, e.g. `samples/files/$ERA/$SAMPLE.txt`.
 If you like to split jobs based on events (`maxevtsperjob`) instead of files, do
 ```
 pico.py write -y 2016 -s DYJets --nevts
 ```
 which will save the number of events per file as well.
 In this way the submission script does not have to open each file
-and get the number of nanoAOD events on the fly, which can take long.
+and get the number of nanoAOD events on the fly, which can take much long.
+
+Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanoAOD files)
+for the same era as specified in the configuration.
+While skimming is an optional step, typically you first want to skim nanoAOD from existing files on the GRID (given by DAS)
+and store them locally for faster and more reliable access.
+To run on skimmed nanoAOD files, you need to change `store` for each skimmed sample to point to the storage location.
+If you have a text file with the file list, you also need to remember to remove or update this list.
 
 
 ## Local run

@@ -28,7 +28,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
     print ">>> chunkify_by_evts: events per file:"
   for fname in fnames[:]:
     if evtsplitexp.match(fname): # already split; cannot be split again
-      # TODO: add nevts to ntot ?
+      # TODO: add maxevts to ntot ?
       result.append([fname]) # do not split again, keep in single chunk
       continue
     if evtdict and fname in evtdict: # get number of events from sample's dictionary to speed up
