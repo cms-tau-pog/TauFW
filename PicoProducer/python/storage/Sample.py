@@ -73,11 +73,11 @@ class Sample(object):
     self.nevents      = kwargs.get('nevts',         0      ) # number of nanoAOD events that can be processed
     self.nevents      = kwargs.get('nevents', self.nevents ) # cache of number of events
     self.files        = kwargs.get('files',         [ ]    ) # list of ROOT files, OR text file with list of files
-    self.filenevts    = { } # cache of number of events for each file
+    self.filenevts    = { } # cache of number of events for each file; might speed up event splitting, if sample is submitted multiple times
     self.postfix      = kwargs.get('postfix',       None   ) or "" # post-fix (before '.root') for stored ROOT files
     self.era          = kwargs.get('era',           ""     ) # for expansion of $ERA variable
     self.dosplit      = kwargs.get('split', len(self.paths)>=2 ) # allow splitting (if multiple DAS datasets)
-    self.verbosity    = kwargs.get('verbosity',     0      ) # verbosity level for debugging
+    self.verbosity    = kwargs.get('verbosity', LOG.verbosity ) # verbosity level for debugging
     self.refreshable  = not self.files                       # allow refresh on file list in getfiles()
     
     # ENSURE LIST
@@ -102,10 +102,6 @@ class Sample(object):
           self.url = self.storage.fileurl
       else:
         self.url = self.dasurl
-    
-    # GET FILE LIST FROM TEXT FILE
-    if isinstance(self.files,str):
-      self.loadfiles(self.files)
   
   def __str__(self):
     return self.name
@@ -173,6 +169,8 @@ class Sample(object):
   
   def getfiles(self,das=False,refresh=False,url=True,limit=-1,verb=0):
     """Get list of files from storage system (default), or DAS (if no storage system of das=True)."""
+    if isinstance(self.files,str): # get file list from text file for first time
+      self.loadfiles(self.files)
     files   = self.files
     url_    = self.dasurl if (das and self.storage) else self.url
     if self.refreshable and (not files or das or refresh):
@@ -200,22 +198,24 @@ class Sample(object):
       files = [(url_+f if url_ not in f else f) for f in files]
     elif not url and any(url_ in f for f in files): # remove url
       files = [f.replace(url_,"") for f in files]
-    return files
+    return files[:] # pass copy to protect private self.files
   
   def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,verb=0):
     """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
+    if isinstance(self.files,str): # get file list from text file for first time
+      self.loadfiles(self.files)
     nevents   = self.nevents
     filenevts = self.filenevts
     treename  = tree
     if nevents<=0 or refresh:
-      if checkfiles or (self.storage and not das): # get number of events from storage system
+      if checkfiles or (self.storage and not das): # get number of events per file from storage system
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         for fname in files:
           nevts = getnevents(fname,treename)
           filenevts[fname] = nevts # cache
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
-      else: # get number of events from DAS
+      else: # get total number of events from DAS
         for daspath in self.paths:
           nevents += getdasnevents(daspath,instance=self.instance,verb=verb-1)
       if limit<0:
@@ -234,7 +234,7 @@ class Sample(object):
     """Write filenames to text file for fast look up in future."""
     writeevts = kwargs.pop('nevts',False) # also write nevents to file
     listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
-    print ">>> Write list to %r..."%(listname)
+    print ">>> Write file list to %r..."%(listname)
     ensuredir(os.path.dirname(listname))
     filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
     treename  = kwargs.pop('tree','Events')
@@ -254,8 +254,8 @@ class Sample(object):
     listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
     filenevts = self.filenevts
     nevents   = 0
-    if self.verbosity+2>=1:
-      print ">>> Loading sample files from '%r'"%(listname)
+    if self.verbosity>=1:
+      print ">>> Loading sample files from %r..."%(listname)
     ensurefile(listname,fatal=True)
     filelist = [ ]
     with open(listname,'r') as file:

@@ -13,46 +13,58 @@ LOG = Logger('Storage')
 evtsplitexp = re.compile(r"(.+\.root):(\d+):(\d+)$") # input file split by events
 
 
-def chunkify_by_evts(fnames,maxevts,evenly=True,verb=0):
+def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
   """Split list of files into chunks with total events per chunks less than given maximum,
   and update input fnames to bookkeep first event and maximum events.
   E.g. ['nano_1.root','nano_2.root','nano_3.root','nano_4.root']
         -> [ ['nano_1.root:0:1000'], ['nano_1.root:1000:1000'], # 'fname:firstevt:maxevts'
              ['nano_2.root','nano_3.root','nano_4.root'] ]
   """ 
-  result  = [ ] # list of chunks
-  nlarge  = { }
-  nsmall  = { }
+  result   = [ ] # list of chunks
+  nlarge   = { }
+  nsmall   = { }
+  ntot     = 0
   if verb>=4:
     print ">>> chunkify_by_evts: events per file:"
   for fname in fnames[:]:
     if evtsplitexp.match(fname): # already split; cannot be split again
-      result.append([fname]) 
-    else: # get number of events
+      # TODO: add nevts to ntot ?
+      result.append([fname]) # do not split again, keep in single chunk
+      continue
+    if evtdict and fname in evtdict: # get number of events from sample's dictionary to speed up
+      nevts = evtdict[fname]
+      if verb>=4:
+        print ">>> %10d %s (dict)"%(nevts,fname)
+    else: # get number of events from file
       file  = ensureTFile(fname,'READ')
       nevts = file.Get('Events').GetEntries()
       file.Close()
+      if isinstance(evtdict,dict):
+        evtdict[fname] = nevts # store for possible later reuse (if same sample is submitted multiple times)
       if verb>=4:
-        print "%10d %s"%(nevts,fname)
-      if nevts<maxevts: # split this large file into several chunks
-        nsmall.setdefault(nevts,[ ]).append(fname)
-      else: # don't split this small, group with others in chunks, if possible
-        nlarge.setdefault(nevts,[ ]).append(fname)
-        fnames.remove(fname)
+        print ">>> %10d %s"%(nevts,fname)
+    if nevts<maxevts: # split this large file into several chunks
+      nsmall.setdefault(nevts,[ ]).append(fname)
+    else: # don't split this small, group with others in chunks, if possible
+      nlarge.setdefault(nevts,[ ]).append(fname)
+      fnames.remove(fname)
+    ntot += nevts
   if verb>=1:
     print ">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%(
       len(nsmall),maxevts,len(nlarge),maxevts)
   for nevts in nlarge:
     for fname in nlarge[nevts]: # split large files into several chunks
       maxevts_ = maxevts
-      if evenly:
+      if evenly: # split events evenly over chunks
         nchunks  = ceil(float(nevts)/maxevts)
-        maxevts_ = int(ceil(nevts/nchunks))
+        maxevts_ = int(ceil(nevts/nchunks)) # new maxevts per chunk
         if verb>=3:
           print ">>>   nevts/maxevts = %d/%d = %.2f => make %d chunks with max. %d events"%(
             nevts,maxevts,nevts/float(maxevts),nchunks,maxevts_)
-      ifirst = 0
+      ifirst = 0 # first event to process in first chunk
       while ifirst<nevts:
+        #if ifirst+maxevts_+1>=nevts: # if nevts%maxevts_!=0; index starts counting from 0
+        #  maxevts_ = nevts - (nchunks-1)*maxevts_ # maxevts for the last chunk; use correct maxevts for bookkeeping ntot
         infname = "%s:%d:%d"%(fname,ifirst,maxevts_)
         fnames.append(infname) # update for book keeping
         result.append([infname])
@@ -71,7 +83,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,verb=0):
     for chunk in result:
       print ">>>   %s"%(chunk)
     print ">>> ]"
-  return result
+  return ntot, result
 
 
 def getbatch(arg,verb=0):

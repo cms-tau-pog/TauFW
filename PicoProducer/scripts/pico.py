@@ -741,7 +741,7 @@ def preparejobs(args):
             nevents = sample.getnevents()
           chunkdict = { }
         if testrun:
-          infiles = infiles[:4] # only run two files per sample
+          infiles = infiles[:4] # only run four files per sample
         if verbosity==1:
           print ">>> %-12s = %s"%('maxevts',maxevts_)
           print ">>> %-12s = %s"%('nfilesperjob',nfilesperjob_)
@@ -754,14 +754,15 @@ def preparejobs(args):
           for file in infiles:
             print ">>>   %r"%file
           print ">>> ]"
-          print ">>> %-12s = %s"%('nevents',nevents)
         
         # CHUNKS - partition/split list 
         infiles.sort() # to have consistent order with resubmission
         chunks    = [ ] # chunk indices
         if maxevts_>1:
           try:
-            fchunks = chunkify_by_evts(infiles,maxevts_,verb=verbosity) # list of file chunks split by events
+            ntot, fchunks = chunkify_by_evts(infiles,maxevts_,evtdict=sample.filenevts,verb=verbosity) # list of file chunks split by events
+            if nevents<=0 and not resubmit:
+              nevents = ntot
           except IOError as err: # capture if opening files fail
             print "IOError: "+err.message
             LOG.warning("Skipping submission...")
@@ -777,6 +778,7 @@ def preparejobs(args):
         if verbosity>=1:
           print ">>> %-12s = %s"%('nchunks',nchunks)
         if verbosity>=2:
+          print ">>> %-12s = %s"%('nevents',nevents)
           print '-'*80
         
         # WRITE JOB LIST with arguments per job

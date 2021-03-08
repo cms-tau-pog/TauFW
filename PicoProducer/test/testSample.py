@@ -58,7 +58,7 @@ def testSample():
     # WRITE
     fname = repkey(listname,ERA=era)
     print ">>>\n>>> Write..."
-    sample.writefiles(fname,nevts=True)
+    sample.writefiles(fname,nevts=True) # write Sample.files to txt file
     print ">>> %-14s = %r"%("listname",fname)
     #print ">>> %-14s = %r"%("files",sample.files)
     print ">>> %-14s = %r"%("nfiles",len(sample.files))
@@ -69,9 +69,14 @@ def testSample():
     newsample = Sample(sample.group,sample.name,*sample.paths,
                        store=storage,url=url,files=fname,opts=sample.extraopts)
     print ">>> %-14s = %r"%("listname",fname)
-    #print ">>> %-14s = %r"%("files",sample.files)
-    print ">>> %-14s = %r"%("nfiles",len(sample.files))
-    print ">>> %-14s = %r"%("nevents",sample.nevents)
+    print ">>> %-14s = %r"%("files",newsample.files)
+    print ">>> %-14s = %r"%("nfiles",len(newsample.files))
+    print ">>> %-14s = %r"%("nevents",newsample.nevents)
+    print ">>> Call Sample.getfiles..." # load Sample.files from txt file
+    files = newsample.getfiles()
+    print ">>> %-14s = %r"%("files",newsample.files)
+    print ">>> %-14s = %r"%("nfiles",len(newsample.files))
+    print ">>> %-14s = %r"%("nevents",newsample.nevents)
     
 
 def testModule(era):
