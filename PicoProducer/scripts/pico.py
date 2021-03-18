@@ -901,8 +901,8 @@ def checkchunks(sample,**kwargs):
   # NUMBER OF EVENTS
   nprocevents = 0   # total number of processed events
   ndasevents  = oldjobcfg['nevents'] # total number of available events
-  if checkdas and oldjobcfg['nevents']==0:
-    ndasevents = sample.getnevents()
+  if checkdas: #and ndasevents==0: # get nevents straight from DAS
+    ndasevents = sample.getnevents(das=True)
     oldjobcfg['nevents'] = ndasevents
   if verbosity>=2:
     print ">>> %-12s = %s"%('ndasevents',ndasevents)
@@ -1378,7 +1378,7 @@ def main_status(args):
               print ">>> %-12s = %r"%('outfile',outfile)
           resubfiles, chunkdict, npend = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
                                                      checkqueue=checkqueue,das=checkdas,verb=verbosity)
-          if (len(resubfiles)>0 or npend>0) and not force:
+          if (len(resubfiles)>0 or npend>0) and not force: # only clean or hadd if all jobs were successful
             LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
                         " Please use -f or --force to %s anyway.\n"%(subcmd))
             continue

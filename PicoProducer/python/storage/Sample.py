@@ -234,14 +234,14 @@ class Sample(object):
     """Write filenames to text file for fast look up in future."""
     writeevts = kwargs.pop('nevts',False) # also write nevents to file
     listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
-    print ">>> Write file list to %r..."%(listname)
     ensuredir(os.path.dirname(listname))
     filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
     treename  = kwargs.pop('tree','Events')
     files     = self.getfiles(**kwargs)
+    print ">>> Write %s files to list %r..."%(len(files),listname)
     with open(listname,'w+') as lfile:
       for infile in files:
-        if writeevts:
+        if writeevts: # add nevents to infile string
           nevts  = filenevts.get(infile,-1)
           if nevts<0:
             LOG.warning("Did not find nevents of %s. Trying again..."%(infile))
@@ -256,7 +256,7 @@ class Sample(object):
     nevents   = 0
     if self.verbosity>=1:
       print ">>> Loading sample files from %r..."%(listname)
-    ensurefile(listname,fatal=True)
+    listname = ensurefile(listname,fatal=True)
     filelist = [ ]
     with open(listname,'r') as file:
       for line in file:

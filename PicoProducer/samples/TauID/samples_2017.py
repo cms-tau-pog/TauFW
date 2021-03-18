@@ -2,7 +2,7 @@ from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = "/pnfs/psi.ch/cms/trivcat/store/user/$USER/samples/NANOAOD_2017/$PATH"
 url      = None #"root://cms-xrd-global.cern.ch/"
-filelist = None #"samples/files/2016/$SAMPLE.txt"
+filelist = "samples/files/2017/$SAMPLE.txt"
 samples  = [
   
   # DRELL-YAN
