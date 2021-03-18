@@ -60,6 +60,7 @@ def ensurefile(*paths,**kwargs):
       raise IOError("Did not find file %s."%(path))
     else:
       print ">>> Warning! Did not find file %s."%(path)
+    #path = None
   return path
   
 

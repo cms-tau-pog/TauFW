@@ -21,7 +21,7 @@ parser.add_argument('-t', '--tag',      dest='tags', type=str, nargs='+', defaul
 parser.add_argument('-e', '--outtag',   dest='outtag', type=str, default="", action='store',
                     metavar='TAG',      help="extra tag for output files")
 parser.add_argument('-o', '--obs',      dest='observables', type=str, nargs='*', default=[ 'mvis' ], action='store',
-                    metavar='VARIABLE', help="name of observable for TES measurement" )
+                    metavar='VARIABLE', help="name of observable" )
 parser.add_argument('-n', '--noshapes', dest='noshapes', default=False, action='store_true',
                                         help="do not include shape uncertainties")
 parser.add_argument('-v', '--verbose',  dest='verbose',  default=False, action='store_true',
@@ -30,17 +30,7 @@ args = parser.parse_args()
 verbosity = 1 if args.verbose else 0
 doshapes  = not args.noshapes #and False # do not include shapes
 dobbb     = doshapes #and False          # do bin-by-bin uncertainties
-tauidsfs  = { # 2017 DM-dependent tau eff. SF
-  '2017': {  0: (0.90981,  0.03164),
-             1: (0.89021,  0.02192),
-            10: (0.84030,  0.02684),
-            11: (0.76696,  0.04190), },
-  '2018': {  0: (0.974055, 0.032836),
-             1: (0.914428, 0.023855),
-            10: (0.912338, 0.028413),
-            11: (0.860567, 0.040581), },
-}
-
+#from createinputs import tauidsfs # 2017 DM-dependent tau eff. SF
 
 def harvest(obs,channel,era,**kwargs):
   """Harvest cards."""
@@ -74,7 +64,8 @@ def harvest(obs,channel,era,**kwargs):
   if "mtau" in obs:
     for key, plist in procs.iteritems():
       if 'ZTT' in plist:
-        procs[key] = ['ZTT_DM0','ZTT_DM1','ZTT_DM10','ZTT_DM11']+plist[1:]
+        idx = plist.index('ZTT')
+        procs[key] = plist[:idx]+['ZTT_DM0','ZTT_DM1','ZTT_DM10','ZTT_DM11']+plist[idx+1:] # insert
   cats = [c for c in enumerate(cats,1)] # autmatically number; ($BINID,$BIN)
   harvester = CombineHarvester()
   harvester.AddObservations(['*'], [analysis],[era],[channel],             cats      )
@@ -94,11 +85,11 @@ def harvest(obs,channel,era,**kwargs):
   harvester.cp().process(procs['DY']+procs['TT']+procs['ST']+['VV']).AddSyst(
     harvester, 'eff_m', 'lnN', SystMap()(1.02)) # muon efficiency
   
-  if 'mtau' in obs:
-    for dm in [0,1,10,11]:
-      sf, err = tauidsfs[era][dm]
-      harvester.cp().process(['ZTT_DM%d'%dm]).AddSyst(
-        harvester, 'eff_t_dm%s'%dm, 'lnN', SystMap()(1.+err/sf)) # tau eff. SF (DM-dependent)
+  #if 'mtau' in obs:
+  #  for dm in [0,1,10,11]:
+  #    sf, err = tauidsfs[era][dm]
+  #    harvester.cp().process(['ZTT_DM%d'%dm]).AddSyst(
+  #      harvester, 'eff_t_dm%s'%dm, 'lnN', SystMap()(1.+err/sf)) # tau eff. SF (DM-dependent)
   #else:
   #  harvester.cp().process(procs['tau']).AddSyst(
   #    harvester, 'eff_t', 'lnN', SystMap()(1.20)) # tau efficiency
@@ -135,12 +126,9 @@ def harvest(obs,channel,era,**kwargs):
     harvester.cp().process(['ZJ','W','QCD']).AddSyst( #'ZJ','TTJ','STJ'
       harvester, 'shape_jtf', 'shape', SystMap()(1.00)) # j -> tau fake energy scale
     
-    if 'mtau' in obs:
-      harvester.cp().process(['TTT','STT']).AddSyst(
-        harvester, 'shape_tid', 'shape', SystMap()(1.00)) # tau eff. SF (pt-dependent)
-    else:
-      harvester.cp().process(procs['tau']).AddSyst(
-        harvester, 'shape_tid', 'shape', SystMap()(1.00)) # tau eff. SF (pt-dependent)
+    harvester.cp().process(procs['tau']).AddSyst( #['TTT','STT']
+      harvester, 'shape_tid', 'shape', SystMap()(1.00)) # tau eff. SF
+    if 'mtau' not in obs:
       harvester.cp().process(['ZL']).AddSyst( #bin_id([1,2])
         harvester, 'shape_ltf', 'shape', SystMap()(1.00)) # l -> tau fake energy scale
     
@@ -161,11 +149,11 @@ def harvest(obs,channel,era,**kwargs):
   print ">>>   file %r"%(infile)
   harvester.cp().channel([channel]).ExtractShapes(infile,"$BIN/$PROCESS","$BIN/$PROCESS_$SYSTEMATIC")
   
-  # RESCALE on the fly
-  if 'mtau' in obs:
-    for dm in [0,1,10,11]:
-      sf, err = tauidsfs[era][dm]
-      harvester.cp().process(['ZTT_DM%d'%dm]).ForEachProc(lambda p: scaleproc(p,sf))
+  ## RESCALE on the fly
+  #if 'mtau' in obs:
+  #  for dm in [0,1,10,11]:
+  #    sf, err = tauidsfs[era][dm]
+  #    harvester.cp().process(['ZTT_DM%d'%dm]).ForEachProc(lambda p: scaleproc(p,sf))
   
   # AUTOREBIN
   #LOG.color("automatically rebin (30%)...")

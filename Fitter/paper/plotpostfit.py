@@ -61,7 +61,7 @@ def main(args):
     groups  = [
       (['^TT*'],'Top','ttbar'), #,STYLE.sample_colors['TT']),
       #(['^TT*','ST*'],'Top','ttbar and single top'),
-      (['W*','ZJ','VV','ST*','QCD'],'EWK','Electroweak'), #,STYLE.sample_colors['EWK']),
+      (['W*','ZJ','VV','ST*'],'EWK','Electroweak'), #,STYLE.sample_colors['EWK']),
     ]
     title_dict = {
       'mvis': "m_{vis} (GeV)",

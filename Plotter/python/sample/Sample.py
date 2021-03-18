@@ -605,7 +605,7 @@ class Sample(object):
       weight = joinweights(self.weight,self.extraweight,kwargs.get('weight',""))
     else:
       weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
-    cuts     = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
+    cuts = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
     if replaceweight:
       if len(replaceweight)==2 and not islist(replaceweight[0]):
         replaceweight = [replaceweight]
