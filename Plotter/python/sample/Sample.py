@@ -607,11 +607,18 @@ class Sample(object):
       weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
     cuts = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
     if replaceweight:
-      if len(replaceweight)==2 and not islist(replaceweight[0]):
+      if len(replaceweight) in [2,3] and not islist(replaceweight[0]):
         replaceweight = [replaceweight]
-      for pattern, newweight in replaceweight:
+      for wargs in replaceweight:
+        if len(wargs)>=3:
+          pattern, newweight, regexp = wargs[:3]
+        else:
+          pattern, newweight, regexp = wargs[0], wargs[1], False
         LOG.verb('Sample.gethist: replacing weight: before %r'%weight,verbosity,3)
-        weight = re.sub(pattern,newweight,weight)
+        if regexp:
+          weight = re.sub(pattern,newweight,weight)
+        else:
+          weight = weight.replace(pattern,newweight)
         weight = weight.replace("**","*").strip('*')
         LOG.verb('Sample.gethist: replacing weight: after  %r'%weight,verbosity,3)
     cuts = joincuts(cuts,weight=weight)

@@ -7,28 +7,28 @@ sys.path.append("../../Plotter/") # for config.samples
 from config.samples import *
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Fitter.plot.datacard import createinputs, plotinputs, preparesysts
+tauidsfs  = { # DM-dependent tau eff. SF
+  '2016': {  0: (0.898769, 0.027698),
+             1: (0.913407, 0.018917),
+            10: (0.855584, 0.028186),
+            11: (0.832295, 0.035329), },
+  '2017': {  0: (0.974055, 0.032836),
+             1: (0.914428, 0.023855),
+            10: (0.912338, 0.028413),
+            11: (0.860567, 0.040581), },
+  '2018': {  0: (0.974055, 0.032836),
+             1: (0.914428, 0.023855),
+            10: (0.912338, 0.028413),
+            11: (0.860567, 0.040581), },
+}
 
 
 def getdmsf(era):
   """Help function to quickly get DM-dependent tau ID SF."""
-  tauidsfs  = { # DM-dependent tau eff. SF
-    '2016': {  0: (0.898769, 0.027698),
-               1: (0.913407, 0.018917),
-              10: (0.855584, 0.028186),
-              11: (0.832295, 0.035329), },
-    '2017': {  0: (0.974055, 0.032836),
-               1: (0.914428, 0.023855),
-              10: (0.912338, 0.028413),
-              11: (0.860567, 0.040581), },
-    '2018': {  0: (0.974055, 0.032836),
-               1: (0.914428, 0.023855),
-              10: (0.912338, 0.028413),
-              11: (0.860567, 0.040581), },
-  }
   sfs = tauidsfs[era]
-  wgt   = "("+":".join("dm_2==%d?%f"%(k,v[0]) for k,v in sfs.items())+":1)"
-  wgtup = "("+":".join("dm_2==%d?%f"%(k,v[0]+v[1]) for k,v in sfs.items())+":1)"
-  wgtdn = "("+":".join("dm_2==%d?%f"%(k,v[0]-v[1]) for k,v in sfs.items())+":1)"
+  wgt   = "("+":".join("dm_2==%d?%.4f"%(k,v[0]) for k,v in sfs.items())+":1)"
+  wgtup = "("+":".join("dm_2==%d?%.4f"%(k,v[0]+v[1]) for k,v in sfs.items())+":1)"
+  wgtdn = "("+":".join("dm_2==%d?%.4f"%(k,v[0]-v[1]) for k,v in sfs.items())+":1)"
   return wgt, wgtup, wgtdn
   
 

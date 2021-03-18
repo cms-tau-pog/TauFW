@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (August 2020)
 # Description: Help function to create and plot input histogram for datacards
-import os
+import os, re
 from collections import OrderedDict
 from TauFW.common.tools.utils import ensurelist, repkey, lreplace #, rreplace
 from TauFW.common.tools.file import ensuredir, ensureTDirectory, ensureTFile, gethist
@@ -18,12 +18,14 @@ class Systematic(object):
   """Container class for systematics."""
   
   def __init__(self, systag, procs, replaceweight=('','',''), **kwargs):
+    regexp     = kwargs.pop('regex',False)
     self.procs = procs # list of processes
     self.tag   = repkey(systag,**kwargs)
     self.dn    = self.tag +'Down'
     self.up    = self.tag +'Up'
-    self.wgtup = (replaceweight[0],replaceweight[1]) # (oldweight,newweightUp)
-    self.wgtdn = (replaceweight[0],replaceweight[2]) # (oldweight,newweightDown)
+    #weightnom  = replaceweight[0] if regexp else re.escape(replaceweight[0]) # escape non regexp
+    self.wgtup = (replaceweight[0],replaceweight[1],regexp) # (oldweight,newweightUp)
+    self.wgtdn = (replaceweight[0],replaceweight[2],regexp) # (oldweight,newweightDown)
     
 
 def preparesysts(*args,**kwargs):

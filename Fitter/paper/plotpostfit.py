@@ -70,26 +70,28 @@ def main(args):
     tsize   = 0.054
     PLOT._lsize = 0.040 # label size
     ratio   = False
-    pos     = 'x=0.56,y=0.88'
-    ncol    = 1
     square  = not ratio and False
     exts    = [ 'png', 'pdf', 'root', 'C' ]
-    if "mtau" in obsset:
-      procs = ['ZTT_DM0','ZTT_DM1','ZTT_DM10','ZTT_DM11']+procs[1:]
-      pos   = 'x=0.22,y=0.85'
-      ncol  = 2
     
     # PLOT
     for era in eras:
       setera(era,extra="")
       for channel in channels:
         for obs in obsset:
+          if "mtau" in obs:
+            procs_ = ['ZTT_DM0','ZTT_DM1','ZTT_DM10','ZTT_DM11']+procs[1:]
+            pos    = 'x=0.22,y=0.85'
+            ncol   = 2
+          else:
+            procs_ = procs[:]
+            pos    = 'x=0.56,y=0.88'
+            ncol   = 1
           indir  = "output/%s"%era
           outdir = ensuredir("plots/%s"%era)
           xtitle = title_dict.get(obs)
           fname_ = repkey(fname,DIR=indir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,BIN=bin,ERA=era,TAG=tag)
           pname_ = repkey(pname,DIR=outdir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,BIN=bin,ERA=era,TAG=tag)
-          drawpostfit(fname_,bin,procs,pname=pname_,tag=tag,group=groups,title=title,xtitle=xtitle,
+          drawpostfit(fname_,bin,procs_,pname=pname_,tag=tag,group=groups,title=title,xtitle=xtitle,
                       tsize=tsize,pos=pos,ncol=ncol,ratio=ratio,square=square,exts=exts)
     
 

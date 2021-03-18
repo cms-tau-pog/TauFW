@@ -32,9 +32,10 @@ doshapes  = not args.noshapes #and False # do not include shapes
 dobbb     = doshapes #and False          # do bin-by-bin uncertainties
 #from createinputs import tauidsfs # 2017 DM-dependent tau eff. SF
 
+
 def harvest(obs,channel,era,**kwargs):
   """Harvest cards."""
-  
+  print ">>>\n>>> %s, %s, %s"%(obs,channel,era)
   tag      = kwargs.get('tag',     ""            ) # tag for input and output file names
   outtag   = kwargs.get('outtag',  ""            ) # extra tag for output file names
   analysis = kwargs.get('analysis','ztt_tid'     )
@@ -61,7 +62,7 @@ def harvest(obs,channel,era,**kwargs):
     'tau':   [ 'ZTT', 'TTT' ], #'STT'
   }
   procs['all'] = procs['sig'] + procs['bkg']
-  if "mtau" in obs:
+  if "mtau" in obs: # split ZTT into DMs
     for key, plist in procs.iteritems():
       if 'ZTT' in plist:
         idx = plist.index('ZTT')
@@ -239,6 +240,7 @@ def main():
   
 
 if __name__ == '__main__':
+  print
   main()
   print ">>>\n>>> Done harvesting\n"
   
