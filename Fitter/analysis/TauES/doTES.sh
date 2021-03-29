@@ -18,6 +18,7 @@ CMIN_OPTS="--cminFallbackAlgo Minuit2,Migrad,0:0.5 --cminFallbackAlgo Minuit2,Mi
 WORKDIR="${CMSSW_BASE}/src/TauFW/Fitter/analysis/TauES"
 OUTDIR="${WORKDIR}/output_${YEAR}"
 PULL="${CMSSW_BASE}/src/HiggsAnalysis/CombinedLimit/test/diffNuisances.py"
+PULLS="${CMSSW_BASE}/src/TauFW/Fitter/scripts/pulls.py"
 #CHECKS="1.020"
 CHECKS="0.990 1.000 1.010 "
 
@@ -115,7 +116,7 @@ function main {
         ################ PULLS ################################
           echo
           peval "python $PULL --vtol=0.0001 $OUTDIR/$FITDIAGN | sed 's/[!,]/ /g' | tail -n +3 > $PULLT" 2>&1 | tee -a $LOGT || exit 1
-          peval "python pulls.py -b -f $PULLT -o ${OUTDIR_PF}/pulls_${BINLABELT} -t '$var, $DMLABEL, $PVAL TES'" 2>&1 | tee -a $LOGT || exit 1
+          peval "python $PULLS -b -f $PULLT -o ${OUTDIR_PF}/pulls_${BINLABELT} -t '$var, $DMLABEL, $PVAL TES'" 2>&1 | tee -a $LOGT || exit 1
         
         done
       fi
