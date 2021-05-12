@@ -212,15 +212,27 @@ def main_write(args):
       if verbosity>=1:
         print ">>> %-12s = %r"%('channel',channel)
       LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-      samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
+      samples1 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
+      samples2 = [ ] # retry
       
       # LOOP over SAMPLES
-      for sample in samples:
-        print ">>> %s"%(bold(sample.name))
-        #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
-        flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
-        sample.writefiles(flistname,nevts=getnevts,das=checkdas)
-        print ">>> "
+      for samples in [samples1,samples2]:
+        if samples==samples2:
+          print ">>> Trying again %d/%d samples...\n>>>"%(len(samples2),len(samples1))
+        for sample in samples:
+          print ">>> %s"%(bold(sample.name))
+          #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
+          flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
+          try:
+            sample.writefiles(flistname,nevts=getnevts,das=checkdas)
+          except IOError as err:
+            if sample not in samples2:
+              print err
+              print ">>> Will try again..."
+              samples2.append(sample) # try again
+            else:
+              raise err
+          print ">>> "
   
 
 
