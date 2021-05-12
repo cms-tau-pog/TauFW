@@ -238,7 +238,7 @@ class Sample(object):
     filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
     treename  = kwargs.pop('tree','Events')
     files     = self.getfiles(**kwargs)
-    if not filelist:
+    if not files:
       LOG.warning("writefiles: Did not find any files!")
     print ">>> Write %s files to list %r..."%(len(files),listname)
     with open(listname,'w+') as lfile:
