@@ -217,7 +217,7 @@ def main_write(args):
       
       # LOOP over SAMPLES
       for samples in [samples1,samples2]:
-        if samples==samples2:
+        if samples2 and samples==samples2:
           print ">>> Trying again %d/%d samples...\n>>>"%(len(samples2),len(samples1))
         for sample in samples:
           print ">>> %s"%(bold(sample.name))
@@ -227,8 +227,8 @@ def main_write(args):
             sample.writefiles(flistname,nevts=getnevts,das=checkdas)
           except IOError as err:
             print err
-            print ">>> Will try again..."
             if sample not in samples2:
+              print ">>> Will try again..."
               samples2.append(sample) # try again
           print ">>> "
   
