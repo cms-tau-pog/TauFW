@@ -1,6 +1,6 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-storage  = "/pnfs/psi.ch/cms/trivcat/store/user/$USER/samples/NANOAOD_UL2017/$PATH"
+storage  = None #"/pnfs/psi.ch/cms/trivcat/store/user/$USER/samples/NANOAOD_UL2017/$PATH"
 url      = None #"root://cms-xrd-global.cern.ch/"
 filelist = None #"samples/files/2016/$SAMPLE.txt"
 samples  = [
@@ -101,7 +101,7 @@ samples  = [
   # SINGLE ELECTRON
   D('Data','SingleElectron_Run2017B',"/SingleElectron/Run2017B-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
-  D('Data','SingleElectron_Run2017C',"/SingleElectron/Run2017C-UL2017_MiniAODv1_NanoAODv2-v3/NANOAOD",
+  D('Data','SingleElectron_Run2017C',"/SingleElectron/Run2017C-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD", #/SingleElectron/Run2017C-UL2017_MiniAODv1_NanoAODv2-v3/NANOAOD
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
   D('Data','SingleElectron_Run2017D',"/SingleElectron/Run2017D-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),

@@ -273,6 +273,8 @@ class Sample(object):
           filenevts[infile] = nevts # store/cache in dictionary
           nevents += nevts
         filelist.append(infile)
+    if not filelist:
+      LOG.warning("loadfiles: Did not find any files!")
     if self.nevents<=0:
       self.nevents = nevents
     elif self.nevents!=nevents:
