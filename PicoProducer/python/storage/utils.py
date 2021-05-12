@@ -72,7 +72,7 @@ def getstorage(path,verb=0,ensure=False):
   return storage
   
 
-def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=0):
+def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},split=False,verb=0):
   """Help function to get samples from a sample list and filter if needed."""
   import TauFW.PicoProducer.tools.config as GLOB
   CONFIG   = GLOB.getconfig(verb=verb)
@@ -97,7 +97,7 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},verb=
     if sample.name in sampledict:
       LOG.throw(IOError,"Sample short names should be unique. Found two samples '%s'!\n\t%s\n\t%s"%(
                         sample.name,','.join(sampledict[sample.name].paths),','.join(sample.paths)))
-    if 'skim' in channel and sample.dosplit: # split samples with multiple DAS dataset paths, and submit as separate jobs
+    if (split or 'skim' in channel) and sample.dosplit: # split samples with multiple DAS dataset paths, and submit as separate jobs
       for subsample in sample.split():
         samples.append(subsample) # keep correspondence sample to one sample in DAS
     else:

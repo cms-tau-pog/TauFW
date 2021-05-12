@@ -184,6 +184,7 @@ def main_write(args):
   filters    = args.samples
   vetoes     = args.vetoes
   checkdas   = args.checkdas or args.dasfiles # check file list in DAS
+  split      = args.split # split samples with multiple paths
   getnevts   = args.getnevts # check nevents in local files
   verbosity  = args.verbosity
   cfgname    = CONFIG._path
@@ -212,7 +213,7 @@ def main_write(args):
       if verbosity>=1:
         print ">>> %-12s = %r"%('channel',channel)
       LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-      samples1 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
+      samples1 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,split=split,verb=verbosity)
       samples2 = [ ] # retry
       
       # LOOP over SAMPLES
@@ -1563,6 +1564,8 @@ if __name__ == "__main__":
                           metavar='FILE',       help="write file list, default=%(const)r" )
   parser_wrt.add_argument('-n','--nevts',       dest='getnevts', action='store_true',
                                                 help="get nevents per file" )
+  parser_wrt.add_argument('-S','--split',       dest='split', action='store_true',
+                                                help="split samples with multiple datasets (extensions)" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                           metavar='NEVTS',      help='maximum number of events (per file) to process')
   parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
