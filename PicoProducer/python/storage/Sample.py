@@ -260,7 +260,7 @@ class Sample(object):
       print ">>> Loading sample files from %r..."%(listname)
     #listname = ensurefile(listname,fatal=False)
     filelist = [ ]
-    if os.path.isfile(self.files):
+    if os.path.isfile(listname):
       with open(listname,'r') as file:
         for line in file:
           line = line.strip().split()
