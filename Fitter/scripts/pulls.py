@@ -1,44 +1,18 @@
 #! /usr/bin/env python
-
-import os, re
+import sys, os, re
 import multiprocessing
 import copy
 import math
 from array import array
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions
 from ROOT import ROOT, gROOT, gStyle, gRandom, TSystemDirectory
 from ROOT import TFile, TChain, TTree, TCut, TH1F, TH2F, THStack, TGraph, TGraphAsymmErrors
 from ROOT import TStyle, TCanvas, TPad, TBox
 from ROOT import TLegend, TLatex, TText, TLine, TPaveText, kBlack, kRed, kOrange, kGreen
 #from utils import *
-
-import optparse
-usage = "usage: %prog [options]"
-parser = optparse.OptionParser(usage)
-parser.add_option("-b", "--bash",     action="store_true", dest="bash", default=False )
-parser.add_option("-f", "--fileName", action="store", type="string", dest="fileName", default="pulls.txt")
-parser.add_option("-o", "--outName",  action="store", type="string", dest="outName",  default="pulls"    )
-parser.add_option("-t", "--text",     action="store", type="string", dest="text",     default=""         )
-parser.add_option("-l", "--header",   action="store", type="string", dest="header",   default=""         )
-(options, args) = parser.parse_args()
-if options.bash: gROOT.SetBatch(True)
-
-fileName = options.fileName
-outName  = options.outName
-text     = options.text
-header   = options.header
-
-# Format:
-#0 : sys name
-#1 : b-only DX
-#2 : b-only dDX
-#3 : s+b DX
-#4 : s+b dDX
-#5 : rho
-
+gROOT.SetBatch(True)
 gStyle.SetOptStat(0)
 gStyle.SetErrorX(0)
-var_dict = { 'pfmt_1': "m_{T}", 'm_vis': "m_{vis}", 'm_2': "m_{#tau}", }
-cat_dict = { 'DM0': "h^{#pm}", 'DM1': "h^{#pm}#pi^{0}", 'DM10': "h^{#pm}h^{#mp}h^{#pm}", }
 
 
 def pulls(fileName):
@@ -358,19 +332,54 @@ def formatParameter(param):
       string = re.sub(r"mt_DM\d+_","",string)
     return string
 
-def makeLatex(string):
-    for var in var_dict:
-      string = string.replace(var,var_dict[var])
-    for wp,Wp in [("vvlo","VVLo"),("vlo","VLo"),("lo","Lo"),("me","Me"),
-                  ("vvti","VVTi"),("vti","VTi"),("ti","Ti")]:
-      if wp in string:
-        string = string.replace(wp,Wp)
-    #if '_' in string:
-    #  string = re.sub(r"\b([^_]*)_([^_]*)\b",r"\1_{\2}",string,flags=re.IGNORECASE)
-    return string
+var_dict = { 'pfmt_1': "m_{T}", 'm_vis': "m_{vis}", 'm_2': "m_{#tau}", }
+cat_dict = { 'DM0': "h^{#pm}", 'DM1': "h^{#pm}#pi^{0}", 'DM10': "h^{#pm}h^{#mp}h^{#pm}", }
+#def makeLatex(string):
+#    for var in var_dict:
+#      string = string.replace(var,var_dict[var])
+#    for wp,Wp in [("vvlo","VVLo"),("vlo","VLo"),("lo","Lo"),("me","Me"),
+#                  ("vvti","VVTi"),("vti","VTi"),("ti","Ti")]:
+#      if wp in string:
+#        string = string.replace(wp,Wp)
+#    #if '_' in string:
+#    #  string = re.sub(r"\b([^_]*)_([^_]*)\b",r"\1_{\2}",string,flags=re.IGNORECASE)
+#    return string
 
+import optparse
+usage = "usage: %prog [options]"
+parser = optparse.OptionParser(usage)
+parser.add_option("-f", "--fileName", action="store", type=str, dest="fileName", default="pulls.txt")
+parser.add_option("-o", "--outName",  action="store", type=str, dest="outName",  default="pulls"    )
+parser.add_option("-t", "--text",     action="store", type=str, dest="text",     default=""         )
+parser.add_option("-l", "--header",   action="store", type=str, dest="header",   default=""         )
+(options, args) = parser.parse_args()
 
+fileName = options.fileName
+outName  = options.outName
+text     = options.text
+header   = options.header
 
-text = makeLatex(text)
-header = makeLatex(header)
+# Format:
+#0 : sys name
+#1 : b-only DX
+#2 : b-only dDX
+#3 : s+b DX
+#4 : s+b dDX
+#5 : rho
+
+#if __name__ == '__main__':
+#  from argparse import ArgumentParser
+#  argv = sys.argv
+#  description = '''This script creates datacards with CombineHarvester.'''
+#  parser = ArgumentParser(prog="harvestercards",description=description,epilog="Succes!")
+#  parser.add_argument('-f', "--fileName", action="store", type=str, dest="fileName", default="pulls.txt")
+#  parser.add_argument('-o', "--outName",  action="store", type=str, dest="outName",  default="pulls"    )
+#  parser.add_argument('-t', "--text",     action="store", type=str, dest="text",     default=""         )
+#  parser.add_argument('-l', "--header",   action="store", type=str, dest="header",   default=""         )
+#  parser.add_argument('-v', '--verbose',  dest='verbose',  default=False, action='store_true', help="set verbose")
+#  args = parser.parse_args()
+#  main(args)
+
+#text = makeLatex(text)
+#header = makeLatex(header)
 pullsVertical_noBonly(fileName)
