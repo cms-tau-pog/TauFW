@@ -90,7 +90,7 @@ samples  = [
   # SINGLE MUON
   D('Data','SingleMuon_Run2016B',"/SingleMuon/Run2016B-ver2_HIPM_UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
-  D('Data','SingleMuon_Run2016C',"/SingleMuon/Run2016C-UL2016_MiniAODv1_NanoAODv2-v2/NANOAOD", # HIP-mitigated
+  D('Data','SingleMuon_Run2016C',"/SingleMuon/Run2016C-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
   D('Data','SingleMuon_Run2016D',"/SingleMuon/Run2016D-UL2016_MiniAODv1_NanoAODv2-v1/NANOAOD", # HIP-mitigated
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
