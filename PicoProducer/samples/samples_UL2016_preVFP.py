@@ -35,10 +35,8 @@ samples  = [
     store=storage,url=url,files=filelist,opts='toppt=True'),
   M('TT','TTToSemiLeptonic',
     "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # Summer20
-    "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # Summer20
     store=storage,url=url,files=filelist,opts='toppt=True'),
   M('TT','TTToHadronic',
-    "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # Summer20
     "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # Summer20
     store=storage,url=url,files=filelist,opts='toppt=True'),
   

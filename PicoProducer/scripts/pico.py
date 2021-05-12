@@ -218,7 +218,7 @@ def main_write(args):
       
       # LOOP over SAMPLES
       for samples in [samples1,samples2]:
-        if samples2 and samples==samples2:
+        if samples2 and samples==samples2 and len(samples)>1:
           print ">>> Trying again %d/%d samples...\n>>>"%(len(samples2),len(samples1))
         for sample in samples:
           print ">>> %s"%(bold(sample.name))
@@ -1585,7 +1585,7 @@ if __name__ == "__main__":
   #parser_hdd.add_argument('--keep',             dest='cleanup', action='store_false',
   #                                              help="do not remove job output after hadd'ing" )
   parser_hdd.add_argument('-r','--clean',       dest='cleanup', action='store_true',
-                                                help="remove job output after hadd'ing" )
+                                                help="remove job output (to be used after hadd'ing)" )
   
   # SUBCOMMAND ABBREVIATIONS, e.g. 'pico.py s' or 'pico.py sub'
   args = sys.argv[1:]
