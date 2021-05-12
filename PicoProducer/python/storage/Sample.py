@@ -258,25 +258,26 @@ class Sample(object):
     nevents   = 0
     if self.verbosity>=1:
       print ">>> Loading sample files from %r..."%(listname)
-    listname = ensurefile(listname,fatal=True)
+    #listname = ensurefile(listname,fatal=False)
     filelist = [ ]
-    with open(listname,'r') as file:
-      for line in file:
-        line = line.strip().split()
-        if not line: continue
-        line = line[0].strip() # remove spaces, one per line
-        if line[0]=='#': continue # do not consider out-commented
-        #if v.endswith('.root'):
-        match = fevtsexp.match(line) # match $FILENAM(:NEVTS)
-        if not match: continue
-        infile = match.group(1)
-        if match.group(2): # found nevents in filename
-          nevts  = int(match.group(2))
-          filenevts[infile] = nevts # store/cache in dictionary
-          nevents += nevts
-        filelist.append(infile)
-    if not filelist:
-      LOG.warning("loadfiles: Did not find any files!")
+    if os.path.isfile(self.files):
+      with open(listname,'r') as file:
+        for line in file:
+          line = line.strip().split()
+          if not line: continue
+          line = line[0].strip() # remove spaces, one per line
+          if line[0]=='#': continue # do not consider out-commented
+          #if v.endswith('.root'):
+          match = fevtsexp.match(line) # match $FILENAM(:NEVTS)
+          if not match: continue
+          infile = match.group(1)
+          if match.group(2): # found nevents in filename
+            nevts  = int(match.group(2))
+            filenevts[infile] = nevts # store/cache in dictionary
+            nevents += nevts
+          filelist.append(infile)
+      if not filelist:
+        LOG.warning("loadfiles: Did not find any files!")
     if self.nevents<=0:
       self.nevents = nevents
     elif self.nevents!=nevents:
