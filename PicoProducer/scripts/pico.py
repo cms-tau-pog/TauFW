@@ -226,12 +226,10 @@ def main_write(args):
           try:
             sample.writefiles(flistname,nevts=getnevts,das=checkdas)
           except IOError as err:
+            print err
+            print ">>> Will try again..."
             if sample not in samples2:
-              print err
-              print ">>> Will try again..."
               samples2.append(sample) # try again
-            else:
-              raise err
           print ">>> "
   
 
