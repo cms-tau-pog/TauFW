@@ -116,14 +116,15 @@ p.run()
 #   https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3734/1.html
 #   https://github.com/cms-nanoAOD/nanoAOD-tools/issues/249
 print(">>> Reduce file size...")
+import glob
 from TauFW.common.tools.utils import execute
-execute("ls -hlt %s %s"%(ftmp,fname),verb=2)
+execute("ls -hlt %s"%(outfiles),verb=2)
 for outfile in glob.glob(outfiles):
   ftmp = outfile.replace(".root","_tmp.root")
-  execute("hadd -fk %s %s"%(ftmp,fname),verb=2) # reduce file size
-  execute("ls -hlt %s %s"%(ftmp,fname),verb=2)
-  execute("mv %s %s"%(ftmp,fname),verb=2)
-execute("ls -hlt %s %s"%(ftmp,fname),verb=2)
+  execute("haddnano.py %s %s"%(ftmp,outfile),verb=2) # reduce file size
+  execute("ls -hlt %s %s"%(ftmp,outfile),verb=2)
+  execute("mv %s %s"%(ftmp,outfile),verb=2)
+execute("ls -hlt %s"%(outfiles),verb=2)
 
 # COPY
 if copydir and outdir!=copydir:
