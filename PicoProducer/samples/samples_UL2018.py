@@ -44,6 +44,7 @@ samples  = [
   # W+JETS
   M('WJ','WJetsToLNu',
     "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
+    "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist),
   M('WJ','W1JetsToLNu',
     "/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
@@ -53,6 +54,7 @@ samples  = [
     store=storage,url=url,files=filelist),
   M('WJ','W3JetsToLNu',
     "/W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
+    "/W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist),
   M('WJ','W4JetsToLNu',
     "/W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
@@ -100,8 +102,8 @@ samples  = [
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
   D('Data','EGamma_Run2018B',"/EGamma/Run2018B-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
-  #D('Data','EGamma_Run2018C',"", # MISSING
-  #  store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
+  D('Data','EGamma_Run2018C',"/EGamma/Run2018C-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+    store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
   D('Data','EGamma_Run2018D',"/EGamma/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
   

@@ -43,6 +43,7 @@ samples  = [
   # W+JETS
   M('WJ','WJetsToLNu',
     "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
+    "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,nfilesperjob=3),
   M('WJ','W1JetsToLNu',
     "/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
@@ -80,15 +81,15 @@ samples  = [
     "/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,channels=["skim*"],
   ),
-  #M('VV','ZZ',
-  #  "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer19UL17NanoAOD-106X_mc2017_realistic_v6-v2/NANOAODSIM", # NO DeepTau2017v2p1
-  #  store=storage,url=url,files=filelist,channels=["skim*"],
-  #),
+  M('VV','ZZ',
+    "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,channels=["skim*"],
+  ),
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2017B',"/SingleMuon/Run2017B-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
-  D('Data','SingleMuon_Run2017C',"/SingleMuon/Run2017C-UL2017_02Dec2019-v1/NANOAOD", # OLD
+  D('Data','SingleMuon_Run2017C',"/SingleMuon/Run2017C-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
   D('Data','SingleMuon_Run2017D',"/SingleMuon/Run2017D-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
