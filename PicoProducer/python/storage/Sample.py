@@ -226,8 +226,11 @@ class Sample(object):
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         for fname in files:
-          nevts = getnevents(fname,treename)
-          filenevts[fname] = nevts # cache
+          if refresh or fname not in filenevts:
+            nevts = getnevents(fname,treename)
+            filenevts[fname] = nevts # cache
+          else: # get from cache
+            nevts = filenevts[fname]
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
       else: # get total number of events from DAS
