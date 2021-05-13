@@ -177,8 +177,8 @@ class Sample(object):
     LOG.verb("getfiles: das=%r, refresh=%r, url=%r, limit=%r"%(das,refresh,url,limit),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist)
-    files   = self.files # cache for efficiency
-    url_    = self.dasurl if (das and self.storage) else self.url
+    files = self.files # cache for efficiency
+    url_  = self.dasurl if (das and self.storage) else self.url
     if self.refreshable and (not files or das or refresh): # (re)derive file list
       if not files or das:
         LOG.verb("getfiles: Retrieving files...",verb,2)
@@ -322,7 +322,6 @@ class Sample(object):
                 skip = True
             else:
               if skip: continue # only load files for this sample's DAS dataset paths
-              print "%r"%(line)
               match = fevtsexp.match(line) # match $FILENAM(:NEVTS)
               if not match: continue
               infile = match.group(1)
