@@ -229,7 +229,7 @@ class Sample(object):
           if refresh or fname not in filenevts:
             nevts = getnevents(fname,treename)
             filenevts[fname] = nevts # cache
-          else: # get from cache
+          else: # get from cache or efficiency
             nevts = filenevts[fname]
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)

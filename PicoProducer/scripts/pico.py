@@ -217,12 +217,15 @@ def main_write(args):
           print ">>> Trying again %d/%d samples...\n>>>"%(len(samples2),len(samples1))
         for sample in samples:
           print ">>> %s"%(bold(sample.name))
+          sample.filelist = None # do not load from existing text file
+          for path in sample.paths:
+            print ">>> %s"%(bold(path))
           #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
           flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
           try:
-            sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas)
+            sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,verb=verbosity)
           except IOError as err:
-            print err
+            print "IOError: "+err
             if sample not in samples2:
               print ">>> Will try again..."
               samples2.append(sample) # try again
