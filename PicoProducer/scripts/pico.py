@@ -225,7 +225,7 @@ def main_write(args):
           #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
           flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
           try:
-            sample.writefiles(flistname,nevts=getnevts,das=checkdas)
+            sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas)
           except IOError as err:
             print err
             if sample not in samples2:
