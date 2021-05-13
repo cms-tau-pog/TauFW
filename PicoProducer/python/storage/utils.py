@@ -81,6 +81,8 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},split
   dtypes   = dtype  if not dtype  or isinstance(dtype,list)  else [dtype]
   sampfile = ensurefile("samples",repkey(CONFIG.eras[era],ERA=era,CHANNEL=channel,TAG=tag))
   samppath = sampfile.replace('.py','').replace('/','.')
+  LOG.verb("getsamples: sampfile=%r"%(sampfile),verb,1)
+  LOG.verb("getsamples: samppath=%r"%(samppath),verb,3)
   if samppath not in moddict:
     moddict[samppath] = importlib.import_module(samppath) # save time by loading once
   if not hasattr(moddict[samppath],'samples'):

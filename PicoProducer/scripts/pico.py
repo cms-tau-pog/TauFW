@@ -80,6 +80,7 @@ def main_get(args):
   inclurl    = args.inclurl    # include URL in filelist
   checkdas   = args.checkdas or args.dasfiles # check file list in DAS
   checklocal = args.checklocal # check nevents in local files
+  split      = args.split # split samples with multiple DAS dataset paths
   limit      = args.limit
   writedir   = args.write      # write sample file list to text file
   tag        = args.tag
@@ -128,33 +129,30 @@ def main_get(args):
           print ">>> Getting %s for era %r"%(target,era)
         print ">>> "
         
-        # VERBOSE
-        if verbosity>=1:
-          print ">>> %-12s = %r"%('channel',channel)
-        
         # GET SAMPLES
         LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
+        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,split=split,verb=verbosity)
         
         # LOOP over SAMPLES
         for sample in samples:
           print ">>> %s"%(bold(sample.name))
           for path in sample.paths:
             print ">>> %s"%(bold(path))
-            if getnevts or checkdas or checklocal:
-              nevents = sample.getnevents(das=(not checklocal),verb=verbosity+1)
-              storage = sample.storage.__class__.__name__ if checklocal else "DAS"
-              print ">>>   %-7s = %s (%s)"%('nevents',nevents,storage)
-            if variable=='files':
-              infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
-              print ">>>   %-7s = %r"%('url',sample.url)
-              print ">>>   %-7s = %r"%('postfix',sample.postfix)
-              print ">>>   %-7s = %s"%('nfiles',len(infiles))
-              print ">>>   %-7s = [ "%('infiles')
-              for file in infiles:
-                print ">>>     %r"%file
-              print ">>>   ]"
-            print ">>> "
+          if getnevts or checkdas or checklocal:
+            nevents = sample.getnevents(das=(not checklocal),verb=verbosity+1)
+            storage = sample.storage.__class__.__name__ if checklocal else "DAS"
+            print ">>>   %-7s = %s (%s)"%('nevents',nevents,storage)
+          if variable=='files':
+            infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
+            print ">>>   %-7s = %r"%('channel',channel)
+            print ">>>   %-7s = %r"%('url',sample.url)
+            print ">>>   %-7s = %r"%('postfix',sample.postfix)
+            print ">>>   %-7s = %s"%('nfiles',len(infiles))
+            print ">>>   %-7s = [ "%('infiles')
+            for file in infiles:
+              print ">>>     %r"%file
+            print ">>>   ]"
+          print ">>> "
           if writedir: # write files to text files
             flistname = repkey(writedir,ERA=era,GROUP=sample.group,SAMPLE=sample.name,TAG=tag)
             print ">>> Write list to %r..."%(flistname)
@@ -184,7 +182,7 @@ def main_write(args):
   filters    = args.samples
   vetoes     = args.vetoes
   checkdas   = args.checkdas or args.dasfiles # check file list in DAS
-  split      = args.split # split samples with multiple paths
+  split      = args.split # split samples with multiple DAS dataset paths
   getnevts   = args.getnevts # check nevents in local files
   verbosity  = args.verbosity
   cfgname    = CONFIG._path
@@ -209,9 +207,6 @@ def main_write(args):
       print info
       print ">>> "
       
-      # VERBOSE
-      if verbosity>=1:
-        print ">>> %-12s = %r"%('channel',channel)
       LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
       samples1 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,split=split,verb=verbosity)
       samples2 = [ ] # retry
@@ -1562,6 +1557,8 @@ if __name__ == "__main__":
                                                 help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'" )
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="",
                           metavar='FILE',       help="write file list, default=%(const)r" )
+  parser_get.add_argument('-S','--split',       dest='split', action='store_true',
+                                                help="split samples with multiple datasets (extensions)" )
   parser_wrt.add_argument('-n','--nevts',       dest='getnevts', action='store_true',
                                                 help="get nevents per file" )
   parser_wrt.add_argument('-S','--split',       dest='split', action='store_true',

@@ -93,7 +93,7 @@ samples  = [
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
   D('Data','SingleMuon_Run2017D',"/SingleMuon/Run2017D-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
-  D('Data','SingleMuon_Run2017E',"/SingleMuon/Run2017E-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','SingleMuon_Run2017E',"/SingleMuon/Run2017E-UL2017_MiniAODv1_NanoAODv2-v2/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
   D('Data','SingleMuon_Run2017F',"/SingleMuon/Run2017F-UL2017_MiniAODv1_NanoAODv2-v2/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'mutau','mumu','emu']),
@@ -107,7 +107,7 @@ samples  = [
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
   D('Data','SingleElectron_Run2017E',"/SingleElectron/Run2017E-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
-  D('Data','SingleElectron_Run2017F',"/SingleElectron/Run2017F-UL2017_MiniAODv1_NanoAODv2-v2/NANOAOD",
+  D('Data','SingleElectron_Run2017F',"/SingleElectron/Run2017F-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee']),
   
   # TAU
