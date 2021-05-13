@@ -225,7 +225,7 @@ def main_write(args):
           try:
             sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,verb=verbosity)
           except IOError as err:
-            print "IOError: "+err
+            print "IOError: "+err.message
             if sample not in samples2:
               print ">>> Will try again..."
               samples2.append(sample) # try again
