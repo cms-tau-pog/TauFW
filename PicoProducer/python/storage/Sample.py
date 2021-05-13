@@ -277,7 +277,11 @@ class Sample(object):
             nevents += nevts
           filelist.append(infile)
       if not filelist:
-        LOG.warning("loadfiles: Did not find any files!")
+        LOG.warning("loadfiles: Did not find any files in %s!"%(listname))
+        self.refreshable = True
+    else:
+      LOG.warning("loadfiles: file list %s does not exist!"%(listname))
+      self.refreshable = True
     if self.nevents<=0:
       self.nevents = nevents
     elif self.nevents!=nevents:
