@@ -62,7 +62,7 @@ class Sample(object):
     self.storepath    = kwargs.get('store',         None   ) # if stored elsewhere than DAS
     self.url          = kwargs.get('url',           None   ) # URL if stored elsewhere
     self.dasurl       = kwargs.get('dasurl',        None   ) or "root://cms-xrd-global.cern.ch/" # URL for DAS
-    self.blacklist    = kwargs.get('blacklist',     [ ]    ) # black list file
+    self.blacklist    = kwargs.get('blacklist',     [ ]    ) # black list for ROOT files
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global') # if None, does not exist in DAS
     self.nfilesperjob = kwargs.get('nfilesperjob',  -1     ) # number of nanoAOD files per job
     self.maxevts      = kwargs.get('maxevtsperjob', -1     ) # maximum number of events processed per job

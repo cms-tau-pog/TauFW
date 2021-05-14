@@ -183,6 +183,7 @@ def main_write(args):
   vetoes     = args.vetoes
   checkdas   = args.checkdas or args.dasfiles # check file list in DAS
   split      = args.split # split samples with multiple DAS dataset paths
+  retries    = args.retries
   getnevts   = args.getnevts # check nevents in local files
   verbosity  = args.verbosity
   cfgname    = CONFIG._path
@@ -208,13 +209,17 @@ def main_write(args):
       print ">>> "
       
       LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-      samples1 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,split=split,verb=verbosity)
-      samples2 = [ ] # retry
+      samples0 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,split=split,verb=verbosity)
+      sampleset = [samples0]
+      for retry in range(retries):
+        sampleset.append([ ]) # list for retries
       
       # LOOP over SAMPLES
-      for samples in [samples1,samples2]:
-        if samples2 and samples==samples2 and len(samples)>1:
-          print ">>> Trying again %d/%d samples...\n>>>"%(len(samples2),len(samples1))
+      for retry, samples in enumerate(sampleset):
+        if not samples:
+          break
+        if retry>0 and len(samples0)>1:
+          print ">>> Trying again %d/%d samples...\n>>>"%(len(samples),len(samples0))
         for sample in samples:
           print ">>> %s"%(bold(sample.name))
           sample.filelist = None # do not load from existing text file
@@ -226,9 +231,9 @@ def main_write(args):
             sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,verb=verbosity)
           except IOError as err:
             print "IOError: "+err.message
-            if sample not in samples2:
+            if sample not in sampleset[i+1]:
               print ">>> Will try again..."
-              samples2.append(sample) # try again
+              sampleset[i+1].append(sample) # try again
           print ">>> "
   
 
@@ -1566,6 +1571,8 @@ if __name__ == "__main__":
                                                 help="get nevents per file" )
   parser_wrt.add_argument('-S','--split',       dest='split', action='store_true',
                                                 help="split samples with multiple datasets (extensions)" )
+  parser_wrt.add_argument('-T','--try',         dest='retries', type=int, default=1, action='store',
+                                                help="number of retries if file is not found" )
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
                           metavar='NEVTS',      help='maximum number of events (per file) to process')
   parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
