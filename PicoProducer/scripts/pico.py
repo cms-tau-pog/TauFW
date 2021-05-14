@@ -1505,7 +1505,7 @@ if __name__ == "__main__":
   parser_job.add_argument('--checkqueue',       dest='checkqueue', type=int, nargs='?', const=1, default=-1,
                           metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job, slow, default)" ) # speed up if batch is slow
   parser_job.add_argument('--skipevts',         dest='checkevts', action='store_false',
-                          metavar='N',          help="skip validation and counting of events in output files (faster)" )
+                                                help="skip validation and counting of events in output files (faster)" )
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
   parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
                                                 help='extra options for the batch system')
