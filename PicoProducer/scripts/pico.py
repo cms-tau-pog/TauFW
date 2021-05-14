@@ -219,7 +219,10 @@ def main_write(args):
         if not samples:
           break
         if retry>0 and len(samples0)>1:
-          print ">>> Trying again %d/%d samples...\n>>>"%(len(samples),len(samples0))
+          if retries>=2:
+            print ">>> Retry %d/%d: %d/%d samples...\n>>>"%(retry,retries,len(samples),len(samples0))
+          else:
+            print ">>> Trying again %d/%d samples...\n>>>"%(len(samples),len(samples0))
         for sample in samples:
           print ">>> %s"%(bold(sample.name))
           sample.filelist = None # do not load from existing text file
@@ -229,11 +232,11 @@ def main_write(args):
           flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
           try:
             sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,verb=verbosity)
-          except IOError as err:
+          except IOError as err: # one of the ROOT file could not be opened
             print "IOError: "+err.message
-            if retry<retries and sample not in sampleset[retry+1]:
+            if retry<retries and sample not in sampleset[retry+1]: # try again after the others
               print ">>> Will try again..."
-              sampleset[retry+1].append(sample) # try again
+              sampleset[retry+1].append(sample)
           print ">>> "
   
 
@@ -582,7 +585,8 @@ def preparejobs(args):
   vetoes       = args.vetoes       # exclude these sample (glob patterns)
   dasfiles     = args.dasfiles     # explicitly process nanoAOD files stored on DAS (as opposed to local storage)
   checkdas     = args.checkdas     # look up number of events in DAS and compare to processed events in job output
-  checkqueue   = args.checkqueue   # check job status to speed up if batch is slow: 0 (no check), 1 (check once), -1 (check every job)
+  checkqueue   = args.checkqueue   # check job status to speed up if batch is slow: 0 (no check), 1 (check once, fast), -1 (check every job, slow, default)
+  checkevts    = args.checkevts    # validate output files and counts events (default, but slow)
   extraopts    = args.extraopts    # extra options for module (for all runs)
   prefetch     = args.prefetch     # copy input file first to local output directory
   preselect    = args.preselect    # preselection string for post-processing
@@ -743,11 +747,11 @@ def preparejobs(args):
         # GET FILES
         nevents = 0
         if resubmit: # resubmission
-          if checkqueue==0 and not jobs: # check jobs only once to speed up performance
+          if checkqueue==1 and not jobs: # check jobs only once to speed up performance
             batch = getbatch(CONFIG,verb=verbosity)
             jobs  = batch.jobs(verb=verbosity-1)
           infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
-                                           checkqueue=checkqueue,das=checkdas,verb=verbosity)[:2]
+                                           checkqueue=checkqueue,checkevts=checkevts,das=checkdas,verb=verbosity)[:2]
           nevents = sample.jobcfg['nevents'] # updated in checkchunks
         else: # first-time submission
           infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
@@ -884,7 +888,8 @@ def checkchunks(sample,**kwargs):
   outdir       = kwargs.get('outdir',     None  )
   channel      = kwargs.get('channel',    None  )
   tag          = kwargs.get('tag',        None  )
-  checkqueue   = kwargs.get('checkqueue', False ) # check queue of batch system for pending jobs
+  checkqueue   = kwargs.get('checkqueue', -1    ) # check queue of batch system for pending jobs
+  checkevts    = kwargs.get('checkevts',  True  ) # validate output file & count events (slow, default)
   pendjobs     = kwargs.get('jobs',       [ ]   )
   checkdas     = kwargs.get('das',        True  ) # check number of events from DAS
   showlogs     = kwargs.get('showlogs',   False ) # print log files of failed jobs
@@ -927,7 +932,7 @@ def checkchunks(sample,**kwargs):
   if checkqueue<0 or pendjobs:
     batch = getbatch(CONFIG,verb=verbosity)
     if checkqueue!=1 or not pendjobs:
-      pendjobs = batch.jobs(jobids,verb=verbosity-1) # get refreshed job list
+      pendjobs = batch.jobs(jobids,verb=verbosity-1) # refresh job list
     else:
       pendjobs = [j for j in pendjobs if j.jobid in jobids] # get new job list with right job id
   
@@ -1004,7 +1009,7 @@ def checkchunks(sample,**kwargs):
       infile   = chunkexp.sub(r"\1.root",basename) # reconstruct input file without path or postfix
       outmatch = chunkexp.match(basename)
       ipart    = int(outmatch.group(2) or -1) if outmatch else -1 # >0 if input file split by events
-      nevents  = isvalid(fname) # check for corruption
+      nevents  = isvalid(fname) if checkevts else 0 # check for corruption
       ichunk   = -1
       for i in chunkdict:
         if ichunk>-1: # found corresponding input file
@@ -1114,7 +1119,7 @@ def checkchunks(sample,**kwargs):
       else:
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
-      nevents = isvalid(fname) # check for corruption
+      nevents = isvalid(fname) if checkevts else 0 # check for corruption
       if nevents<0:
         if verbosity>=2:
           print ">>>   => Bad, nevents=%s"%(nevents)
@@ -1156,15 +1161,21 @@ def checkchunks(sample,**kwargs):
    if jobden:
      ratio = color("%4d/%d"%(len(jobden),noldchunks),col,bold=False)
      label = color(label,col,bold=True)
-     jlist = (": "+', '.join(str(j) for j in jobden)) if show else ""
-     print ">>> %s %s - %s%s"%(ratio,label,text,jlist)
+     if len(jobden)!=noldchunks: # list pending job IDs
+       jstr = (": "+', '.join(str(j) for j in jobden)) if show else ""
+     else: # do not bother printing out full list
+       jstr = ": all"
+     print ">>> %s %s - %s%s"%(ratio,label,text,jstr)
    #else:
    #  print ">>> %2d/%d %s - %s"%(len(jobden),len(jobs),label,text)
   rtext = ""
-  if ndasevents>0:
-    ratio = 100.0*nprocevents/ndasevents
-    rcol  = 'green' if ratio>90. else 'yellow' if ratio>80. else 'red'
-    rtext = ": "+color("%d/%d (%d%%)"%(nprocevents,ndasevents,ratio),rcol,bold=True)
+  if ndasevents>0: # report number of processed events
+    if checknevts:
+      ratio = 100.0*nprocevents/ndasevents
+      rcol  = 'green' if ratio>90. else 'yellow' if ratio>80. else 'red'
+      rtext = ": "+color("%d/%d (%d%%)"%(nprocevents,ndasevents,ratio),rcol,bold=True)
+    else:
+      rtext = ": expect %d events"%(ndasevents)
   printchunks(goodchunks,'SUCCESS', "Chunks with output in outdir"+rtext,'green')
   printchunks(pendchunks,'PEND',"Chunks with pending or running jobs",'white',True)
   printchunks(badchunks, 'FAIL', "Chunks with corrupted output in outdir",'red',True)
@@ -1491,8 +1502,10 @@ if __name__ == "__main__":
                                                 help="copy remote file during job to increase processing speed and ensure stability" )
   parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
                           metavar='NEVTS',      help='run a test with limited nummer of jobs and events, default nevts=%(const)d' )
-  parser_job.add_argument('--getjobs',          dest='checkqueue', type=int, nargs='?', const=1, default=-1,
-                          metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job)" ) # speed up if batch is slow
+  parser_job.add_argument('--checkqueue',       dest='checkqueue', type=int, nargs='?', const=1, default=-1,
+                          metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job, slow, default)" ) # speed up if batch is slow
+  parser_job.add_argument('--skipevts',         dest='checkevts', action='store_false',
+                          metavar='N',          help="skip validation and counting of events in output files (faster)" )
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
   parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
                                                 help='extra options for the batch system')
