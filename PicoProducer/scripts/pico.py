@@ -1319,6 +1319,7 @@ def main_status(args):
   tag            = args.tag
   checkdas       = args.checkdas
   checkqueue     = args.checkqueue
+  checkevts      = args.checkevts
   dtypes         = args.dtypes
   filters        = args.samples
   vetoes         = args.vetoes
@@ -1402,7 +1403,7 @@ def main_status(args):
             if subcmd=='hadd':
               print ">>> %-12s = %r"%('outfile',outfile)
           resubfiles, chunkdict, npend = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,
-                                                     checkqueue=checkqueue,das=checkdas,verb=verbosity)
+                                                     checkqueue=checkqueue,checkevts=checkevts,das=checkdas,verb=verbosity)
           if (len(resubfiles)>0 or npend>0) and not force: # only clean or hadd if all jobs were successful
             LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
                         " Please use -f or --force to %s anyway.\n"%(subcmd))
@@ -1451,7 +1452,7 @@ def main_status(args):
             print ">>> %-12s = %r"%('outdir',outdir)
             print ">>> %-12s = %r"%('logdir',logdir)
           checkchunks(sample,channel=channel,tag=tag,jobs=jobs,showlogs=showlogs,
-                      checkqueue=checkqueue,das=checkdas,verb=verbosity)
+                      checkqueue=checkqueue,checkevts=checkevts,das=checkdas,verb=verbosity)
         
         print
       
