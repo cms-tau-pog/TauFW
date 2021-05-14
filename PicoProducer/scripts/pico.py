@@ -1161,10 +1161,12 @@ def checkchunks(sample,**kwargs):
    if jobden:
      ratio = color("%4d/%d"%(len(jobden),noldchunks),col,bold=False)
      label = color(label,col,bold=True)
-     if len(jobden)!=noldchunks: # list pending job IDs
-       jstr = (": "+', '.join(str(j) for j in jobden)) if show else ""
-     else: # do not bother printing out full list
+     if not show: # do not print chunks
+       jstr = ""
+     elif len(jobden)==noldchunks:# do not bother printing out full chunks list
        jstr = ": all"
+     else: # list pending/failed/missing chunks
+       jstr = (": "+', '.join(str(j) for j in jobden))
      print ">>> %s %s - %s%s"%(ratio,label,text,jstr)
    #else:
    #  print ">>> %2d/%d %s - %s"%(len(jobden),len(jobs),label,text)
