@@ -1170,7 +1170,7 @@ def checkchunks(sample,**kwargs):
    #  print ">>> %2d/%d %s - %s"%(len(jobden),len(jobs),label,text)
   rtext = ""
   if ndasevents>0: # report number of processed events
-    if checknevts:
+    if checkevts:
       ratio = 100.0*nprocevents/ndasevents
       rcol  = 'green' if ratio>90. else 'yellow' if ratio>80. else 'red'
       rtext = ": "+color("%d/%d (%d%%)"%(nprocevents,ndasevents,ratio),rcol,bold=True)
