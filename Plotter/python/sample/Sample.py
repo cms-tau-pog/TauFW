@@ -636,8 +636,8 @@ class Sample(object):
         if blind:
           if isinstance(blind,tuple) and len(blind)==2:
             blindcuts = variable.blind(*blind)
-          elif variable.name_ in self.blinddict:
-            blindcuts = variable.blind(*self.blinddict[variable.name_])
+          elif variable._name in self.blinddict:
+            blindcuts = variable.blind(*self.blinddict[variable._name])
           elif variable.blindcuts:
             blindcuts = variable.blindcuts
         varcut = joincuts(blindcuts,variable.cut,weight=variable.dataweight)

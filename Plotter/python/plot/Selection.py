@@ -159,15 +159,37 @@ class Selection(object):
   def latex(self):
     return makelatex(self.name)
   
-  def shift(self,shifts,**kwargs):
-    if len(shifts)>0 and shifts[0]!='_':
-      shifts = '_'+shifts
-    newstring              = shift(self.selection,shifts,**kwargs)
-    newselection           = deepcopy(self)
-    newselection.selection = newstring
-    if self.selection != newstring:
-      newselection.filename += shifts
-    return newselection
+  def shift(self,vshift,vars,**kwargs):
+    """Shift all given variable in selections string,
+    and create new Selection object, e.g.
+      sel = Selection('ptcut','jpt_1_jecUp>50 && met_jecUp<50')
+      sel.shift('jecUp',['jpt_[12]','met']) -> 'jpt_1_jecUp>50 && met_jecUp<50'
+    """
+    if kwargs.get('us',True) and len(vshift)>0 and vshift[0]!='_':
+      vshift = '_'+vshift
+    oldstr = self.selection # old selection string
+    newstr = shift(oldstr,vshift,vars,**kwargs) # shift variables in string
+    newsel = deepcopy(self) # create new object
+    newsel.selection = newstr # overwrite selection string
+    if kwargs.get('keepfile',False) and self.selection!=newstr:
+      newsel.filename += vshift # overwrite filename
+    return newsel
+  
+  def shiftjme(self,jshift,jmevars=None,**kwargs):
+    """Shift all jet variable in selection string (e.g. to propagate JEC/JER),
+    and create new Selection object, e.g.
+      sel = Selection('ptcut','jpt_1_jecUp>50 && met_jecUp<50')
+      sel.shiftjme('jecUp') -> 'jpt_1_jecUp>50 && met_jecUp<50'
+    """
+    if kwargs.get('us',True) and len(jshift)>0 and jshift[0]!='_':
+      jshift = '_'+jshift
+    oldstr = self.selection # old selection string
+    newstr = shiftjme(oldstr,jshift,jmevars,**kwargs) # shift variables in string
+    newsel = deepcopy(self) # create new object
+    newsel.selection = newstr # overwrite selection string
+    if kwargs.get('keepfile',False) and self.selection!=newstr:
+      newsel.filename += jshift # overwrite filename
+    return newsel
   
   def match(self, *terms, **kwargs):
     """Match search terms to the selection's name, title and selection strings."""
