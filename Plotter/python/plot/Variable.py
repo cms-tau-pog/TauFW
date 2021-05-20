@@ -330,7 +330,7 @@ class Variable(object):
     newvar.name = newname # overwrite name
     if not kwargs.get('keepfile',False) and self.name!=newname:
       newvar.filename += vshift # overwrite file name
-    return newvariable
+    return newvar
   
   def shiftjme(self,jshift,**kwargs):
     """Create new variable with a shift tag added to its name."""
@@ -341,7 +341,7 @@ class Variable(object):
     newvar.name = newname # overwrite name
     if not kwargs.get('keepfile',False) and self.name!=newname:
       newvar.filename += jshift # overwrite file name
-    return newvariable
+    return newvar
   
   def shiftname(self,vshift,**kwargs):
     """Shift name and return string only (without creating new Variable object)."""
