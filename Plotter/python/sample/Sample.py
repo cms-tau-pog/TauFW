@@ -702,10 +702,10 @@ class Sample(object):
     """Create and fill a 2D histogram from a tree."""
     variables, selection, issingle = unwrap_gethist2D_args(*args)
     verbosity = LOG.getverbosity(kwargs)
-    scale     = kwargs.get('scale',         1.0        ) * self.scale * self.norm
-    name      = kwargs.get('name',          self.name  )
-    name     += kwargs.get('tag',           ""         )
-    title     = kwargs.get('title',         self.title )
+    scale     = kwargs.get('scale', 1.0        ) * self.scale * self.norm
+    name      = kwargs.get('name',  self.name  )
+    name     += kwargs.get('tag',   ""         )
+    title     = kwargs.get('title', self.title )
     drawopt   = 'COLZ'
     drawopt   = 'gOff'+kwargs.get('option', drawopt    )
     

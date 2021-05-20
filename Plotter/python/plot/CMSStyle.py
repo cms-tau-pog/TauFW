@@ -74,8 +74,10 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
   if iPosX/10==0:
     outOfFrame  = True
   lumiTextSize_ = lumiTextSize
-  relPosX_      = kwargs.get('relPosX',  relPosX)
-  lumiText_     = kwargs.get('lumiText', lumiText)
+  relPosX_      = kwargs.get('relPosX',    relPosX)
+  lumiText_     = kwargs.get('lumiText',   lumiText)
+  outOfFrame    = kwargs.get('outOfFrame', outOfFrame)
+  verbosity     = kwargs.get('verb',       0)
   if outOfFrame:
     lumiTextSize_ *= 0.90
   
@@ -165,8 +167,8 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText_)
   
   if iPosX==0:
-    relPosX_ = relPosX_*(50*t*scale)*(cmsTextSize/0.84)
-    posX = l + relPosX_*(1-l-r)
+    relPosX_ = relPosX_*(42*t*scale)*(cmsTextSize/0.84)
+    posX = l + relPosX_ #*(1-l-r)
     posY = 1 - t + lumiTextOffset*t
   else:
     posX = 0
@@ -214,6 +216,11 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
       latex.SetTextSize(extraTextSize*t)
       latex.DrawLatex(posX,posY-relExtraDY*cmsTextSize*t,extraText)
   
+  if verbosity>=2:
+    print ">>> setCMSLumiStyle: outOfFrame=%r, iPosX=%s, alignX_=%s, align=%s"%(outOfFrame,iPosX,alignX_,align)
+    print ">>> setCMSLumiStyle: extraTextSize=%s, extraOverCmsTextSize=%s, cmsTextSize=%s"%(extraTextSize,extraOverCmsTextSize,cmsTextSize)
+    print ">>> setCMSLumiStyle: posX=%s, posY=%s, relPosX_=%s"%(posX,posY,relPosX_)
+    
   pad.Update()
   
 
