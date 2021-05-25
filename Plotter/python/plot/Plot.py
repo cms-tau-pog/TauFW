@@ -166,7 +166,8 @@ class Plot(object):
     lcolors      = kwargs.get('colors',       None            )
     lcolors      = kwargs.get('lcolors',      lcolors         ) or self.lcolors # line colors
     fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors # fill colors
-    lstyles      = kwargs.get('lstyle',       None            )
+    lstyles      = kwargs.get('style',        None            )
+    lstyles      = kwargs.get('lstyle',       lstyles         )
     lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles # line styles
     lwidth       = kwargs.get('lwidth',       2               ) # line width
     mstyle       = kwargs.get('mstyle',       None            ) # marker style
