@@ -18,7 +18,7 @@
 #     +---+---+---+---+---+--     --+----+
 #     | 1 | 2 | 3 | 4 | 5 |   ...   | 20 |
 #     +---+---+---+---+---+--     --+----+--> x axis
-#     1   2   3   4   5   6             21
+#     1   2   3   4   5   6        20   21
 #
 import os, re
 from time import time
@@ -76,12 +76,12 @@ def test_unroll(fname,xvars,yvars,cut="",verb=0):
   #hist1  = TH1D(hname1,hname1,*xbins)
   histpy = TH1D(hnamepy,hnamepy,nbins,1,1+nbins) # unrolled
   hist2d = TH2D(hname2d,hname2d,nxbins,xmin,xmax,nybins,ymin,ymax) #*(xbins+ybins)
-  hist4d = TH2D(hname4d,hname4d,nbins,1,1+nbins,nbins,1,1+nbins)
+  hist4d = TH2D(hname4d,hname4d,nbins,1,1+nbins,nbins,1,1+nbins) # response / migration matrix
   tree.Draw("%s:%s >> %s"%(yvar1,xvar1,hname2d),cut,'gOFF')
   Unroll.SetBins(hist2d,verb) # set axis for unrolling in Unroll::GetBin
   histcpp = Unroll.Unroll(hist2d,hnamecpp,False,verb) # unrolled
   tree.Draw("Unroll::GetBin(%s,%s) >> %s"%(xvar1,yvar1,hnamepy),cut,'gOFF') # unrolled
-  tree.Draw("Unroll::GetBin(%s,%s):Unroll::GetBin(%s,%s) >> %s"%(xvar1,yvar1,xvar2,yvar2,hname4d),cut,'gOFF')
+  tree.Draw("Unroll::GetBin(%s,%s):Unroll::GetBin(%s,%s) >> %s"%(xvar2,yvar2,xvar1,yvar1,hname4d),cut,'gOFF') # x: reco, y: gen
   hist2dcpp = Unroll.RollUp(histcpp,hname2dcpp,hist2d,verb) # rolled up
   #hist = TH2F(hname,hname,nbins,xmin,xmax)
   #tree.Draw("%s:%s >> %s"%(xvar,yvar,hname),"(%s)*%s"%(cut,weight),'gOFF')
@@ -231,8 +231,8 @@ def draw2d(hist,xtitle,ytitle,number=False,nxbins=0,nybins=0):
 def main():
   #print ">>> main()"
   fname = "test/DYJetsToLL_M-50_mumu.root"
-  xvars = ('m_vis', 'm_moth',   5, 60, 110)
-  yvars = ('pt_ll', 'pt_moth', 10,  0, 150)
+  xvars = ('m_vis', 'm_moth',   5, 60, 110) # xreco, xgen, nxbins, xmin, xmax
+  yvars = ('pt_ll', 'pt_moth', 10,  0, 150) # yreco, ygen, nybins, ymin, ymax
   cut   = ""
   test_unroll(fname,xvars,yvars,cut,verb=1)
   

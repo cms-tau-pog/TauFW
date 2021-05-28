@@ -245,33 +245,13 @@ class MergedSample(Sample):
     name             = kwargs.get('name',               self.name+"_merged" )
     name            += kwargs.get('tag',                ""                  )
     title            = kwargs.get('title',              self.title          )
-    parallel         = kwargs.get('parallel',       False                )
+    parallel         = kwargs.get('parallel',           False                )
     kwargs['cuts']   = joincuts(kwargs.get('cuts'),     self.cuts           )
     kwargs['weight'] = joinweights(kwargs.get('weight', ""), self.weight    ) # pass scale down
     kwargs['scale']  = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
     if verbosity>=2:
       print ">>>\n>>> MergedSample.gethist2D: %s: %s"%(color(name,color="grey"), self.fnameshort)
       #print ">>>    norm=%.4f, scale=%.4f, total %.4f"%(self.norm,kwargs['scale'],self.scale)
-    
-    #### HISTOGRAMS
-    ###hists = [ ]
-    ###garbage = [ ]
-    ###for sample in self.samples:
-    ###  if 'name' in kwargs: # prevent memory leaks
-    ###    kwargs['name']  = makehistname(kwargs.get('name',""),sample.name)
-    ###  subhists = sample.gethist2D(variables,selection,**kwargs)
-    ###  if hists==[ ]:
-    ###    for (xvariable,yvariable), subhist in zip(variables,subhists):
-    ###      #hist = subhist.Clone("%s_vs_%s_%s"%(xvariable.filename,yvariable.filename,name))
-    ###      subhist.SetName("%s_vs_%s_%s"%(xvariable.filename,yvariable.filename,name))
-    ###      subhist.SetTitle(title)
-    ###      subhist.SetDirectory(0)
-    ###      hists.append(subhist)
-    ###  else:
-    ###    for hist, subhist in zip(hists,subhists):
-    ###      hist.Add(subhist)
-    ###      garbage.append(subhist)
-    ###deletehist(garbage)
     
     # HISTOGRAMS
     allhists = [ ]

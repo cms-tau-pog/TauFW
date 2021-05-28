@@ -131,6 +131,8 @@ class Plot(object):
     verbosity    = LOG.getverbosity(self,kwargs)
     xtitle       = (args[0] if args else self.xtitle) or ""
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
+    cwidth       = kwargs.get('cwidth',       None            ) # canvas width
+    cheight      = kwargs.get('cheight',      None            ) # canvas height
     square       = kwargs.get('square',       False           ) # square canvas
     lmargin      = kwargs.get('lmargin',      1.              ) # canvas left margin
     rmargin      = kwargs.get('rmargin',      1.              ) # canvas righ margin
@@ -235,7 +237,7 @@ class Plot(object):
       gStyle.SetErrorX(0)
     
     # CANVAS
-    self.canvas = self.setcanvas(square=square,ratio=ratio,
+    self.canvas = self.setcanvas(square=square,ratio=ratio,width=cwidth,height=cheight,
                                  lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
     
     # STYLE
@@ -347,8 +349,8 @@ class Plot(object):
     """Make canvas and pads for ratio plots."""
     square  = kwargs.get('square',  False )
     double  = kwargs.get('ratio',   False ) # include lower panel
-    width   = kwargs.get('width',   900 if square else 800 if double else 800 )
-    height  = kwargs.get('height',  900 if square else 750 if double else 600 )
+    width   = kwargs.get('width',   None  ) or (900 if square else 800 if double else 800)
+    height  = kwargs.get('height',  None  ) or (900 if square else 750 if double else 600)
     lmargin = kwargs.get('lmargin', 1.    )
     rmargin = kwargs.get('rmargin', 1.    )
     tmargin = kwargs.get('tmargin', 1.    )
@@ -395,10 +397,12 @@ class Plot(object):
     verbosity = LOG.getverbosity(self,kwargs)
     hists     = [ ]
     binning   = [ ]
+    lower     = False # lower panel (e.g. for ratio)
     for arg in args[:]:
       if hasattr(arg,'GetXaxis'):
         hists.append(arg)
       elif isinstance(arg,Ratio):
+        lower = True
         hists.append(arg.frame)
       elif isnumber(arg):
         binning.append(arg)
@@ -432,6 +436,7 @@ class Plot(object):
     nxdivisions   = kwargs.get('nxdiv',        510              )
     nydivisions   = kwargs.get('nydiv',        510              )
     main          = kwargs.get('main',         False            ) # main panel of ratio plot
+    lower         = kwargs.get('lower',        lower            )
     scale         = 600./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     xtitlesize    = kwargs.get('xtitlesize',   _tsize           )*scale
     ytitlesize    = kwargs.get('ytitlesize',   _tsize           )*scale
@@ -580,7 +585,7 @@ class Plot(object):
       print ">>> Plot.setaxes: xtitlesize=%4.4g, xlabelsize=%4.4g, xtitleoffset=%4.4g, xtitle=%r"%(xtitlesize,xlabelsize,xtitleoffset,xtitle)
       print ">>> Plot.setaxes: ytitlesize=%4.4g, ylabelsize=%4.4g, ytitleoffset=%4.4g, ytitle=%r"%(ytitlesize,ylabelsize,ytitleoffset,ytitle)
       print ">>> Plot.setaxes: scale=%4.4g, nxdivisions=%s, nydivisions=%s, ymargin=%.3f, logyrange=%.3f"%(scale,nxdivisions,nydivisions,ymargin,logyrange)
-    if main:
+    if main or not lower:
       #if any(a!=None and a!=b for a, b in [(self.xmin,xmin),(self.xmax,xmax)]):
       #  LOG.warning("Plot.setaxes: x axis range changed: [xmin,xmax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
       #              self.xmin,self.xmax,xmin,xmax))

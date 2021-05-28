@@ -31,8 +31,9 @@ def makeTObjArray(theList):
     result.Add(item)
   return result
   
-varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$")
-varregex2D = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$")
+varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$") # named, create new histogram
+varregex2  = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$") # unnamed; existing histogram
+varregex2D = re.compile(r"^([^?]+)(?<!:)\s*:\s*(?!:)(.+)$") # look for single :, excluding double (e.g. TMath::Sqrt)
 binregex   = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
 binregex2D = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
 def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
@@ -81,29 +82,30 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
         
         # PREPARE histogram
         match = varregex.match(varexp)
-        if match:
+        if match: # create new histogram: varexp = "x >> h(100,0,100)" or "y:x >> h(100,0,100,100,0,100)"
             xvar, name, binning = match.group(1), match.group(2), match.group(3)
             
-            # 1D histogram
-            if xvar.count(':')==0:
-              match = binregex.match(binning)
-              if not match:
+            # CREATE HISTOGRAM
+            vmatch = varregex2D.match(xvar)
+            if not vmatch or xvar.replace('::','').count(':')==xvar.count('?'): # 1D, allow "(x>100 ? 1 : 0) >> h(2,0,2)"
+              bmatch = binregex.match(binning)
+              if not bmatch:
                 raise error("MultiDraw: Could not parse formula for %r: %r"%(name,varexp))
-              nxbins, xmin, xmax = int(match.group(1)), float(match.group(2)), float(match.group(3))
+              nxbins, xmin, xmax = int(bmatch.group(1)), float(bmatch.group(2)), float(bmatch.group(3))
               hist = TH1D(name,name,nxbins,xmin,xmax)
-            
-            # 2D histogram
-            else:
-              xvar, yvar = xvar.split(':')
-              match = binregex2D.match(binning)
-              if not match:
+            elif vmatch: # 2D histogram
+              yvar, xvar = vmatch.group(1), vmatch.group(2)
+              bmatch = binregex2D.match(binning)
+              if not bmatch:
                 raise error('MultiDraw: Could not parse formula for %r: "%s"'%(name,varexp))
-              nxbins, xmin, xmax = int(match.group(1)), float(match.group(2)), float(match.group(3))
-              nybins, ymin, ymax = int(match.group(4)), float(match.group(5)), float(match.group(6))
+              nxbins, xmin, xmax = int(bmatch.group(1)), float(bmatch.group(2)), float(bmatch.group(3))
+              nybins, ymin, ymax = int(bmatch.group(4)), float(bmatch.group(5)), float(bmatch.group(6))
               hist = TH2D(name,name,nxbins,xmin,xmax,nybins,ymin,ymax)
+            else: # impossible
+              raise error('MultiDraw: Could not parse variable %r for %r: "%s"'%(xvar,name,varexp))
             
-        else:
-            match = varregex2D.match(varexp)
+        else: # get existing histogram: varexp = "x >> h" or "y:x >> h"
+            match = varregex2.match(varexp)
             if not match:
               raise error('MultiDraw: Could not parse formula: "%s"'%(name,varexp))
             xvar, name = match.groups()
@@ -119,11 +121,16 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
                 if not hist:
                   raise error("MultiDraw: Could not find histogram to fill %r in current directory (varexp %r)."%(name,varexp))
             
-            # 2D histogram
-            if xvar.count(':')!=xvar.count('?'):
-              yvar, xvar = xvar.split(':')
+            # SANITY CHECKS
+            vmatch = varregex2D.match(xvar)
+            if not vmatch or xvar.replace('::','').count(':')==xvar.count('?'): # 1D, allow "(x>100 ? 1 : 0) >> h(2,0,2)"
+              pass
+            elif vmatch: # 2D histogram
+              yvar, xvar = vmatch.group(1), vmatch.group(2)
               if not isinstance(hist,TH2):
                 raise error("MultiDraw: Existing histogram with name %r is not 2D! Found xvar=%r, yvar=%r..."%(name,xvar,yvar))
+            else: # impossible
+              raise error('MultiDraw: Could not parse variable %r for %r: "%s"'%(xvar,name,varexp))
             
         if sumw2:
           hist.Sumw2()
@@ -180,8 +187,8 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     
     # DRAW
     if verbosity>=2:
-      print ">>> MultiDraw: xformulae=%s, yformulae=%s"%(xformulae,yformulae)
-      print ">>> MultiDraw: weights=%s, results=%s"%(weights,results)
+      print ">>> MultiDraw: xformulae=%s, yformulae=%s"%([x.GetTitle() for x in xformulae],[y.GetTitle() for y in yformulae])
+      print ">>> MultiDraw: weights=%s, results=%s"%([w.GetTitle() for w in weights],results)
     if len(yformulae)==0:
       _MultiDraw(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae))
     elif len(xformulae)==len(yformulae):

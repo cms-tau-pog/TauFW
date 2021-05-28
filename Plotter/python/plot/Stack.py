@@ -142,7 +142,6 @@ class Stack(Plot):
     for hist in reversed(self.exphists): # stacked bottom to top
       stack.Add(hist)
     
-    
     # DRAW FRAME
     self.canvas.cd(1)
     if not self.frame: # if not given by user
@@ -150,6 +149,10 @@ class Stack(Plot):
       #self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
     else:
       self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+    
+    # DRAW LINE
+    for line in self.lines:
+      line.Draw("LSAME")
     
     # DRAW
     stack.Draw('HIST SAME')

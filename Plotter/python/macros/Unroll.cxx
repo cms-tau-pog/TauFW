@@ -17,7 +17,7 @@
 //     +---+---+---+---+---+--     --+----+
 //     | 1 | 2 | 3 | 4 | 5 |   ...   | 20 |
 //     +---+---+---+---+---+--     --+----+--> x axis
-//     1   2   3   4   5   6             21
+//     1   2   3   4   5   6        20   21
 //
 //   In python:
 //     gROOT.ProcessLine(".L Unroll.cxx+O")
@@ -32,7 +32,7 @@
 //   
 //   4D migration / response matrix unrolled to 2D:
 //     hist4d = TH2D('h_response',"Response",20,1,21,20,1,21) # original 2D
-//     tree.Draw("Unroll::GetBin(xreco,yreco):Unroll::GetBin(xgen,ygen) >> h_response")
+//     tree.Draw("Unroll::GetBin(xgen,ygen):Unroll::GetBin(xreco,yreco) >> h_response")
 //   
 #include <iostream>
 #include "TROOT.h"
@@ -53,7 +53,8 @@ namespace Unroll {
     if(verb>=1)
       std::cout << ">>> Unroll::SetBins: Setting unroll bins to '" << hist2d->GetName() << "' ("
                 << nxbins << "x" << nybins << ")... " << std::endl;
-    _hist2d = hist2d;
+    _hist2d = (TH2*) hist2d->Clone("axes");
+    _hist2d->SetDirectory(0);
     return nxbins*nybins;
   }
   
@@ -76,6 +77,7 @@ namespace Unroll {
   
   Double_t GetBin(Double_t x, Double_t y) {
     // Get bin number from global 2D histogram for "unrolled" 1D histogram
+    // Useful for TTree::Draw: e.g. tree.Draw("Unroll::GetBin(x,y) >> hist1d")
     return GetBin(x,y,_hist2d);
   }
   

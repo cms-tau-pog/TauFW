@@ -722,7 +722,7 @@ class Sample(object):
     for xvar, yvar in variables:
       
       # VAREXP
-      hname = makehistname("%s_vs_%s"%(xvar,yvar),name)
+      hname = makehistname("%s_vs_%s"%(xvar.filename,yvar.filename),name)
       if xvar.cut or yvar.cut or ((xvar.weight or yvar.weight) and not self.isdata):
         if self.isdata:
           varcut = joincuts(xvar.cut,yvar.cut)

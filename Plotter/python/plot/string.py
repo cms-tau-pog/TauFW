@@ -200,7 +200,7 @@ def makehistname(*strings,**kwargs):
   """Use label and var to make an unique and valid histogram name."""
   hname = '_'.join(getfilename(s).strip('_') for s in strings)
   hname = hname.replace('+','-').replace(' - ','-').replace('.','p').replace(',','-').replace(' ','_').replace(
-                        '(','-').replace(')','-').replace('[','-').replace(']','-').replace('||','OR').replace('&&','AND').replace(
+                        '(','-').replace(')','').replace('[','-').replace(']','-').replace('||','OR').replace('&&','AND').replace(
                         '/','_').replace('<','lt').replace('>','gt').replace('=','e').replace('*','x')
   return hname
   
@@ -214,8 +214,8 @@ def makefilename(*strings,**kwargs):
     fname = re.sub(r"abs\(([^\)]*)\)",r"\1",fname).replace('eta_2','eta')
   if 'm_t' in fname:
     fname = re.sub(r"(?<!zoo)m_t(?!au)",r"mt",fname)
-  fname = fname.replace(" and ",'-').replace(',','-').replace(',','-').replace('+','-').replace(':','-').replace(
-                        '(','').replace(')','').replace('{','').replace('}','').replace(
+  fname = fname.replace(" and ",'-').replace(',','-').replace(',','-').replace('+','-').replace('::','-').replace(':','-').replace(
+                        '(','-').replace(')','').replace('{','').replace('}','').replace(
                         '|','').replace('&','').replace('#','').replace('!','not').replace(
                         'pt_mu','pt').replace('m_T','mt').replace(
                         '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace("=","eq").replace(
