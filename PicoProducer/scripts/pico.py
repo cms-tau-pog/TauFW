@@ -1164,7 +1164,8 @@ def checkchunks(sample,**kwargs):
      if not show: # do not print chunks
        jstr = ""
      elif len(jobden)==noldchunks:# do not bother printing out full chunks list
-       jstr = ": all"
+       jobden.sort()
+       jstr = ": all %s-%s"%(jobden[0],jobden[-1])
      else: # list pending/failed/missing chunks
        jstr = (": "+', '.join(str(j) for j in jobden))
      print ">>> %s %s - %s%s"%(ratio,label,text,jstr)
@@ -1506,7 +1507,7 @@ if __name__ == "__main__":
   parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
                           metavar='NEVTS',      help='run a test with limited nummer of jobs and events, default nevts=%(const)d' )
   parser_job.add_argument('--checkqueue',       dest='checkqueue', type=int, nargs='?', const=1, default=-1,
-                          metavar='N',          help="check job status: 0 (no check), 1 (check once), -1 (check every job, slow, default)" ) # speed up if batch is slow
+                          metavar='N',          help="check job status: 0 (no check), 1 (check once, fast), -1 (check every job, slow, default)" ) # speed up if batch is slow
   parser_job.add_argument('--skipevts',         dest='checkevts', action='store_false',
                                                 help="skip validation and counting of events in output files (faster)" )
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])

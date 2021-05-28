@@ -218,6 +218,7 @@ pico.py write -y 2016 -s DYJets --nevts
 which will save the number of events per file as well.
 In this way the submission script does not have to open each file
 and get the number of nanoAOD events on the fly, which can take much long.
+Sometimes some GRID files as not available, and several retries are needed.
 
 Note that a priori skimming and analysis channels use the same sample lists (and therefore the same nanoAOD files)
 for the same era as specified in the configuration.
@@ -294,6 +295,8 @@ Check the job status with
 pico.py status -y 2016 -c mutau
 ```
 This will check which jobs are still running, and if the output files exist and are not corrupted.
+You can skip the validation step and only look for missing files with `--skipevts` to speed up the status check.
+
 For skimming jobs, the nanoAOD output files should appear in `nanodir`, and they are checked for having an `Events` tree.
 For analysis jobs, the pico output files should appear in `outdir`, and they are checked for having a tree called `tree`,
 and a histogram called `cutflow`.
@@ -311,6 +314,8 @@ This will resubmit files that are missing or corrupted (unless they are associat
 In case the jobs take too long, you can specify a smaller number of files per job with `--filesperjob` on the fly,
 or use `--split` to split the previous number.
 Otherwise you can limit the number of events per job with `--maxevts` if it was not already set in the first submission.
+
+Use `--skipevts` to speed up the resubmission by checking for missing files. 
 
 
 ### Finalize
