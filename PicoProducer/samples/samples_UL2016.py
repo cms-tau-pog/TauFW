@@ -63,7 +63,9 @@ samples  = [
   # SINGLE TOP
   M('ST','ST_tW_antitop',
     "/ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist),
+    store=storage,url=url,files=filelist,blacklist=[
+      "/store/mc/RunIISummer19UL16NanoAODv2/ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/280000/213C8681-C6B9-A746-BFE4-1AA26E94E5C0.root",
+    ]),
   M('ST','ST_tW_top',
     "/ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
     store=storage,url=url,files=filelist),
