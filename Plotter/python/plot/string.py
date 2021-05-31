@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
 import re
-from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist
+from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist, islist
 
 var_dict = {
     'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",
@@ -342,7 +342,10 @@ def cleanbool(string):
   
 
 def undoshift(string):
-  shiftless = re.sub(r"_[a-zA-Z]+(Up|Down|nom)","",string)
+  if islist(string):
+    return [undoshift(s) for s in string]
+  else:
+    shiftless = re.sub(r"_[a-zA-Z]+([Uu]p|[Dd]own|[Nn]om)","",string)
   return shiftless
   
 
