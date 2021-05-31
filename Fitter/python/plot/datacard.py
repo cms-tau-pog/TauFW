@@ -68,8 +68,11 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   ensuredir(outdir)
   fname = os.path.join(outdir,fname)
   if shift: # shift observable name
-    obsset = [o.shift(shift,keepfile=True) for o in obsset]
-    #bins = [s.shift(shift,keepfile=True) for s in bins]
+    if isinstance(shift,str): # shift only variable by adding tag, e.g. shift='_ResUp'
+      obsset = [o.shift(shift,keepfile=True) for o in obsset]
+    else: # shift specified variables, e.g. shift=('_ResUp','m_vis')
+      obsset = [o.shift(*shift,keepfile=True) for o in obsset]
+      bins = [s.shift(*shift,keepfile=True) for s in bins]
   if shiftjme: # shift jet/MET variables, e.g. shiftjme='jec', 'jer', 'unclen'
     obsset = [o.shiftjme(shiftjme,keepfile=True) for o in obsset]
     bins = [s.shiftjme(shiftjme,keepfile=True) for s in bins]
@@ -97,8 +100,6 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
     print ">>>\n>>> "+color(" %s "%(bin),'magenta',bold=True,ul=True)
     if htag: # hist tag for systematic
       print ">>> systematic uncertainty: %s"%(color(htag.lstrip('_'),'grey'))
-    if shift:
-      selection.shift(shift)
     if recreate or verbosity>=1:
       print ">>> %r"%(selection.selection)
     hists = sampleset.gethists(obsset,selection,method=method,split=True,
