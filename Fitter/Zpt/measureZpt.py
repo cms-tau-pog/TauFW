@@ -14,7 +14,7 @@ Zmbins0  = [20,30,40,50,60,70,80,85,88,89,89.5,90,90.5,91,91.5,92,93,94,95,100,1
 Zmbins1  = [20,70,91,110,150,200,300,500,800,1500]
 ptbins0  = [0,5,10,15,20,25,30,35,40,45,50,60,70,100,140,200,300,500,1000]
 ptbins1  = [0,5,15,30,50,100,200,500,1000]
-nurbins  = len(Zmbins1)*len(ptbins1) # number of 2D bins (excl. under-/overflow)
+nurbins  = (len(Zmbins1)-1)*(len(ptbins1)-1) # number of 2D bins (excl. under-/overflow)
 urbins0  = (nurbins,1,1+nurbins) # unrolled
 
 
@@ -48,10 +48,11 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   yvar_gen  = Var('m_moth', Zmbins1,"Gen-level "+mtitle) # Z boson mass
   bvar_reco = Var('Unroll::GetBin(pt_ll,m_ll)',"Reco-level bin(p_{T}^{#mu#mu},m_{#mu#mu})",*urbins0) # unroll bin number
   bvar_gen  = Var('Unroll::GetBin(pt_moth,m_moth)',"Gen-level bin(p_{T}^{Z},m_{Z})",*urbins0) # unroll bin number
+  print ">>> %d 2D bins = %d pt bins x %d mass bins"%(bvar_reco.nbins,xvar_reco.nbins,yvar_reco.nbins)
   
   for selection in selections:
     LOG.color(selection.title,col='green')
-    print ">>> %s"%(selection.selection)
+    print ">>> selection: %r"%(selection.selection)
     for var in [xvar_reco,xvar_gen,yvar_reco,yvar_gen,bvar_reco,bvar_gen]:
       var.changecontext(selection.selection)
     fname_ = repkey(fname,CAT=selection.filename).replace('_baseline',"")
@@ -120,12 +121,11 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     plot   = Plot(bvar_reco,sfhist1D,dividebins=False)
     plot.draw(logx=False,xmin=1.0,ymin=0.2,ymax=1.8)
     plot.drawline(*rline,color=kRed,title=stitle)
-    print plot.ymin, plot.ymax
+    #plot.drawlegend()
+    plot.drawtext(selection.title)
     for i in range(1,yvar_reco.nbins):
       x = bvar_reco.min + (bvar_reco.max-bvar_reco.min)*i/yvar_reco.nbins
       plot.drawline(x,0.2,x,1.8,color=kRed,style=kDashed,title=stitle)
-    #plot.drawlegend()
-    plot.drawtext(selection.title)
     plot.saveas(pname_,ext=['.png','.pdf'])
     plot.canvas.Write("weight_1D",gStyle.kOverwrite)
     plot.close()
@@ -157,12 +157,14 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     # PLOT - Drell-Yan distributions
     pname_ = repkey(pname,CAT="dy_"+selection.filename).replace('_baseline',"")
     plot   = Plot(bvar_reco,[dyhist,obsdyhist,dyhist_gen,dyhist_unf],clone=True,dividebins=True,ratio=True)
-    plot.draw(ptitle,logx=False,logy=logy,xmin=1.0,title="Events / GeV",style=1)
-    for i in range(1,yvar_reco.nbins):
-      x = bvar_reco.min + (bvar_reco.max-bvar_reco.min)*i/yvar_reco.nbins
-      plot.drawline(x,plot.ymin,x,plot.ymax,color=kRed,style=kDashed,title=stitle)
+    plot.draw(ptitle,logx=False,logy=logy,xmin=1.0,ymin=10,title="Events / GeV",style=1)
     plot.drawlegend()
     plot.drawtext(selection.title)
+    for ip in [1,2]:
+      ymin, ymax = (plot.ymin, plot.ymax) if ip==1 else (plot.rmin, plot.rmax)
+      for i in range(1,yvar_reco.nbins):
+        x = bvar_reco.min + (bvar_reco.max-bvar_reco.min)*i/yvar_reco.nbins
+        plot.drawline(x,ymin,x,ymax,color=kRed,style=kDashed,title=stitle,pad=ip)
     plot.saveas(pname_,ext=['.png','.pdf'])
     plot.canvas.Write("dy",gStyle.kOverwrite)
     plot.close()
@@ -170,12 +172,14 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     # PLOT - Drell-Yan distributions - normalized
     pname_ = repkey(pname,CAT="dy_norm_"+selection.filename).replace('_baseline',"")
     plot   = Plot(bvar_reco,[dyhist,obsdyhist,dyhist_gen,dyhist_unf],clone=True,dividebins=True,ratio=True)
-    plot.draw(ptitle,logx=False,logy=logy,xmin=1.0,norm=True,style=1)
-    for i in range(1,yvar_reco.nbins):
-      x = bvar_reco.min + (bvar_reco.max-bvar_reco.min)*i/yvar_reco.nbins
-      plot.drawline(x,plot.ymin,x,plot.ymax,color=kRed,style=kDashed,title=stitle)
+    plot.draw(ptitle,logx=False,logy=logy,xmin=1.0,ymin=0.005,norm=True,style=1)
     plot.drawlegend()
     plot.drawtext(selection.title)
+    for ip in [1,2]:
+      ymin, ymax = (plot.ymin, plot.ymax) if ip==1 else (plot.rmin, plot.rmax)
+      for i in range(1,yvar_reco.nbins):
+        x = bvar_reco.min + (bvar_reco.max-bvar_reco.min)*i/yvar_reco.nbins
+        plot.drawline(x,ymin,x,ymax,color=kRed,style=kDashed,title=stitle,pad=ip)
     plot.saveas(pname_,ext=['.png','.pdf'])
     plot.canvas.Write("dy_norm",gStyle.kOverwrite)
     plot.close()
@@ -220,12 +224,14 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     # PLOT - Obs. / Exp.
     pname_ = repkey(pname,CAT="data-mc_"+selection.filename).replace('_baseline',"")
     plot   = Stack(bvar_reco,obshist,hists.exp)
-    plot.draw(logx=False,logy=False,title="Events / GeV")
-    for i in range(1,yvar_reco.nbins):
-      x = bvar_reco.min + (bvar_reco.max-bvar_reco.min)*i/yvar_reco.nbins
-      plot.drawline(x,plot.ymin,x,plot.ymax,color=kRed,style=kDashed,title=stitle)
+    plot.draw(logx=False,logy=logy,ymin=10,title="Events / GeV")
     plot.drawlegend()
     plot.drawtext(selection.title)
+    for ip in [1,2]:
+      ymin, ymax = (plot.ymin, plot.ymax) if ip==1 else (plot.rmin, plot.rmax)
+      for i in range(1,yvar_reco.nbins):
+        x = bvar_reco.min + (bvar_reco.max-bvar_reco.min)*i/yvar_reco.nbins
+        plot.drawline(x,ymin,x,ymax,color=kRed,style=kDashed,title=stitle,pad=ip)
     plot.saveas(pname_,ext=['.png','.pdf'])
     gStyle.Write('style',gStyle.kOverwrite)
     plot.canvas.Write("data_mc",gStyle.kOverwrite)

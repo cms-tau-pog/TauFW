@@ -152,7 +152,8 @@ class Stack(Plot):
     
     # DRAW LINE
     for line in self.lines:
-      line.Draw("LSAME")
+      if line.pad==1:
+        line.Draw("LSAME")
     
     # DRAW
     stack.Draw('HIST SAME')
@@ -202,6 +203,9 @@ class Stack(Plot):
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
                    rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
+      for line in self.lines:
+        if line.pad==2:
+          line.Draw("LSAME")
       self.canvas.cd(1)
     
 

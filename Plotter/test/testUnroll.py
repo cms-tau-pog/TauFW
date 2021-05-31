@@ -41,7 +41,7 @@ titledict = { # convert TTree variable names
 
 def red(string):
   return "\033[31m%s\033[0m"%string
-
+  
 
 def test_unroll(fname,xvars,yvars,cut="",verb=0):
   """Test unrolling of 2D histogram and create 4D response matrix."""

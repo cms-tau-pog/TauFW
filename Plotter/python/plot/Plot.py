@@ -258,7 +258,8 @@ class Plot(object):
     
     # DRAW LINE
     for line in self.lines:
-      line.Draw("LSAME")
+      if line.pad==1:
+        line.Draw("LSAME")
     
     # DRAW HISTS
     for i, (hist, option1) in enumerate(zip(hists,options)):
@@ -293,6 +294,9 @@ class Plot(object):
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
                    rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
+      for line in self.lines:
+        if line.pad==2:
+          line.Draw("LSAME")
       self.canvas.cd(1)
     
   
@@ -594,6 +598,8 @@ class Plot(object):
       #              self.ymin,self.ymax,ymin,ymax))
       self.xmin, self.xmax = xmin, xmax
       self.ymin, self.ymax = ymin, ymax
+    else:
+      self.rmin, self.rmax = ymin, ymax
     return xmin, xmax, ymin, ymax
     
   
@@ -899,8 +905,10 @@ class Plot(object):
     line.SetLineStyle(style)
     line.pad = pad
     if self.canvas:
+      oldpad = gPad
       self.canvas.cd(pad)
       line.Draw("LSAME")
+      oldpad.cd()
     self.lines.append(line)
     return line
     
