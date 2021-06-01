@@ -597,6 +597,7 @@ class Sample(object):
     replaceweight = kwargs.get('replaceweight', None ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
     undoshifts = self.isdata and (any('Up' in v.name or 'Down' in v.name for v in variables)
                                   or 'Up' in selection or 'Down' in selection)
+    undoshifts = kwargs.get('undoshifts', undoshifts   ) # remove up/down from variable names
     drawopt = 'E0' if self.isdata else 'HIST'
     drawopt = kwargs.get('option', drawopt ) + 'gOff'
     
@@ -606,6 +607,8 @@ class Sample(object):
     else:
       weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
     cuts = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
+    if undoshifts: # remove up/down from variable names in selection string
+      cuts = undoshift(cuts)
     if replaceweight:
       if len(replaceweight) in [2,3] and not islist(replaceweight[0]):
         replaceweight = [replaceweight]
@@ -643,12 +646,10 @@ class Sample(object):
         varcut = joincuts(blindcuts,variable.cut,weight=variable.dataweight)
       elif not self.isdata and (variable.cut or variable.weight):
         varcut = joincuts(variable.cut,weight=variable.weight)
-      if undoshifts: # remove up/down from variable name
-        varexp = undoshift(varexp)
       if varcut:
-        varexp = (variable.drawcmd(hname),varcut)
+        varexp = (variable.drawcmd(hname,undoshift=undoshifts),varcut)
       else:
-        varexp = variable.drawcmd(hname)
+        varexp = variable.drawcmd(hname,undoshift=undoshifts)
       varexps.append(varexp)
       
       # HISTOGRAM

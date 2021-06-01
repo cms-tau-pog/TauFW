@@ -171,6 +171,14 @@ class Variable(object):
     else:
       return (self.nbins,self.min,self.max)
   
+  def getedge(self,i):
+    """Get edge. 0=first edge, nbins+1=last edge"""
+    LOG.insist(i>=0,"getedge: Number of bin edge has to be >= 0!")
+    LOG.insist(i<=self.nbins+1,"getedge: Number of bin edge has to be <= %d!"%(self.nbins+1))
+    if self.hasvariablebins():
+      return self.bins[i]
+    return self.min+i*(self.max-self.min)/self.nbins
+  
   def hasvariablebins(self):
     """True if bins is set."""
     return self.bins!=None
@@ -292,13 +300,16 @@ class Variable(object):
     hist.GetXaxis().SetTitle(xtitle)
     return hist
   
-  def drawcmd(self,name=None,tag="",bins=False):
+  def drawcmd(self,name=None,tag="",bins=False,**kwargs):
     """Create variable expression for the Tree.Draw method."""
     histname, title = self.getnametitle(name,None,tag)
+    varname = self.name
+    if kwargs.get('undoshift',False): # remove up/down tags from varname
+      varname = undoshift(varname)
     if bins:
-      dcmd = "%s >> %s(%d,%s,%s)"%(self.name,histname,self.nbins,self.min,self.max)
+      dcmd = "%s >> %s(%d,%s,%s)"%(varname,histname,self.nbins,self.min,self.max)
     else:
-      dcmd = "%s >> %s"%(self.name,histname)
+      dcmd = "%s >> %s"%(varname,histname)
     return dcmd
   
   def drawcmd2D(self,yvar,name=None,tag="",bins=False):
