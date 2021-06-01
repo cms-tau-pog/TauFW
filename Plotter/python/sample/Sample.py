@@ -643,12 +643,12 @@ class Sample(object):
         varcut = joincuts(blindcuts,variable.cut,weight=variable.dataweight)
       elif not self.isdata and (variable.cut or variable.weight):
         varcut = joincuts(variable.cut,weight=variable.weight)
+      if undoshifts: # remove up/down from variable name
+        varexp = undoshift(varexp)
       if varcut:
         varexp = (variable.drawcmd(hname),varcut)
       else:
         varexp = variable.drawcmd(hname)
-      if undoshifts:
-        varexp = undoshift(varexp)
       varexps.append(varexp)
       
       # HISTOGRAM
