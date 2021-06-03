@@ -23,6 +23,8 @@ class Plot2D(Plot):
         vars.append(arg)
     if len(hists)==1 and isinstance(hists[0],TH2):
       hist = hists[0]
+      if kwargs.get('clone',False):
+        hist = hist.Clone(hist.GetName()+"_clone_Plot2D")
     else:
       LOG.warning("Plot2D.__init__: Did not recognize input: %s"%(args,))
     if len(vars)==1:
@@ -35,6 +37,7 @@ class Plot2D(Plot):
       yvariable   = None
     self.canvas   = None
     self.legend   = None
+    self.ratio    = None # not used
     self.profiles = [ ]
     self.graphs   = [ ]
     self.lines    = [ ]
@@ -63,8 +66,8 @@ class Plot2D(Plot):
       self.logx       = kwargs.get('logx',       False                     )
       self.xbinlabels = kwargs.get('xbinlabels', None                      )
       self.ytitle     = kwargs.get('ytitle',     yvariable                 )
-      self.ymin       = kwargs.get('ymin',       hist.GetXaxis().GetXmin() )
-      self.ymax       = kwargs.get('ymax',       hist.GetXaxis().GetXmax() )
+      self.ymin       = kwargs.get('ymin',       hist.GetYaxis().GetXmin() )
+      self.ymax       = kwargs.get('ymax',       hist.GetYaxis().GetXmax() )
       self.logy       = kwargs.get('logy',       False                     )
       self.ybinlabels = kwargs.get('ybinlabels', None                      )
       self.logz       = kwargs.get('logz',       False                     )
@@ -102,15 +105,15 @@ class Plot2D(Plot):
     cheight      = kwargs.get('height',       750                         )
     position     = kwargs.get('position',     self.position               )
     lmargin      = 0.16 if self.hist.GetYaxis().GetXmax()>=1000 else 0.14
-    rmargin      = (0.16 if hist.GetMaximum()>=1000 else 0.14) + (0.06 if ztitle else 0.0)
+    rmargin      = (0.12 if logz else 0.16 if hist.GetMaximum()>=1000 else 0.14) + (0.06 if ztitle else 0.0)
     yoffset      = 1.35 if (not logy and self.hist.GetYaxis().GetXmax()>=1000) else 1.15
-    tmargin      = kwargs.get('tmargin',      0.055                       )
+    tmargin      = kwargs.get('tmargin',      0.05                        )
     bmargin      = kwargs.get('bmargin',      0.14                        )
     lmargin      = kwargs.get('lmargin',      lmargin                     )
     rmargin      = kwargs.get('rmargin',      rmargin                     )
     xoffset      = kwargs.get('xoffset',      1.02                        )
     yoffset      = kwargs.get('yoffset',      yoffset                     )
-    zoffset      = kwargs.get('zoffset',      7.3*rmargin                 )
+    zoffset      = kwargs.get('zoffset',      5.5 if logz else 7.3        )*rmargin
     labelsize    = kwargs.get('labelsize',    0.048                       )
     xbinlabels   = kwargs.get('xbinlabels',   self.xbinlabels             )
     ybinlabels   = kwargs.get('ybinlabels',   self.ybinlabels             )
@@ -122,9 +125,12 @@ class Plot2D(Plot):
     markersize   = kwargs.get('markersize',   1.0                         )
     if zmin: hist.SetMinimum(zmin)
     if zmax: hist.SetMaximum(zmax)
+    self.xmin, self.xmax = xmin, xmax
+    self.ymin, self.ymax = ymin, ymax
+    self.zmin, self.zmax = zmin, zmax
     
     # CANVAS
-    canvas = TCanvas("canvas","canvas",100,100,cwidth,cheight)
+    canvas = TCanvas("canvas","canvas",100,100,int(cwidth),int(cheight))
     canvas.SetFillColor(0)
     canvas.SetBorderMode(0)
     canvas.SetFrameFillStyle(0)
@@ -168,7 +174,7 @@ class Plot2D(Plot):
     if zmin!=None: hist.SetMinimum(zmin)
     if zmax!=None: hist.SetMaximum(zmax)
     hist.Draw(option)
-    
+    canvas.RedrawAxis()
     
     # alphanumerical bin labels
     if xbinlabels:

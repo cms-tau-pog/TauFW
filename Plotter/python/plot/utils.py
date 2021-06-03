@@ -8,7 +8,7 @@ from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, THStack, TGraph, TGraphErrors, TGraphAsymmErrors, Double,\
+from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, TH2, THStack, TGraph, TGraphErrors, TGraphAsymmErrors, Double,\
                  kSolid, kDashed, kDotted, kBlack, kWhite
 #moddir = os.path.dirname(__file__)
 gROOT.SetBatch(True)
@@ -475,4 +475,63 @@ def dividebybinsize(hist,**kwargs):
       hist.SetBinError(ibin,yerr/width)
       TAB.printrow(ibin,xval,width,yval,yerr,hist.GetBinErrorUp(ibin),hist.GetBinErrorLow(ibin),yval/width)
   return hist
+  
+
+def addoverflow(*hists,**kwargs):
+  """Add overflow to last bin(s)."""
+  verbosity = LOG.getverbosity(kwargs)
+  hists     = unwraplistargs(hists)
+  merge     = kwargs.get('merge',False) # merge last and overflow bin(s), otherwise reset to 0
+  LOG.verbose("addoverflow: %r (merge=%r)"%("', '".join(h.GetName() for h in hists),merge),verbosity,2)
+  for hist in hists:
+    LOG.verbose("addoverflow: %r"%(hist.GetName()),verbosity,3)
+    if isinstance(hist,TH2):
+      nxbins = hist.GetXaxis().GetNbins()
+      nybins = hist.GetYaxis().GetNbins()
+      bins = [(ix,nybins) for ix in range(1,nxbins)] +\
+             [(nxbins,iy) for iy in range(1,nybins)] + [(nxbins,nybins)]
+      for xbin, ybin in bins:
+        yval   = hist.GetBinContent(xbin,ybin)    # last bin
+        yerr2  = hist.GetBinError(xbin,ybin)**2   # last bin
+        ofbins = [ ] # 1 or 3 overflow bins
+        if xbin==nxbins:
+          ofbins.append((xbin+1,ybin)) # add overflow in x
+        if ybin==nybins:
+          ofbins.append((xbin,ybin+1)) # add overflow in y
+        if xbin==nxbins and ybin==nybins:
+          ofbins.append((xbin+1,ybin+1))
+        for xof, yof in ofbins:
+          yval  += hist.GetBinContent(xof,yof) # overflow
+          yerr2 += hist.GetBinError(xof,yof)**2 # overflow
+        yerr = sqrt(yerr2)
+        LOG.verbose("addoverflow: bin (%d,%d): %7.2f +- %6.2f -> %7.2f +- %6.2f"%(
+          xbin,ybin,hist.GetBinContent(xbin,ybin),hist.GetBinError(xbin,ybin),yval,yerr),verbosity,3)
+        hist.SetBinContent(xbin,ybin,yval)
+        hist.SetBinError(xbin,ybin,yerr) # add in quadrature
+        if merge: # merge last and overflow bin(s)
+          for xof, yof in ofbins:
+            hist.SetBinContent(xof,yof,yval)
+            hist.SetBinError(xof,yof,sqrt(yerr2))
+        else: # reset to 0
+          for xof, yof in ofbins:
+            hist.SetBinContent(xof,yof,0)
+            hist.SetBinError(xof,yof,0)
+    else:
+      nbins  = hist.GetXaxis().GetNbins()
+      yval   = hist.GetBinContent(nbins)    # last bin
+      yerr2  = hist.GetBinError(nbins)**2   # last bin
+      yval  += hist.GetBinContent(nbins+1)  # overflow
+      yerr2 += hist.GetBinError(nbins+1)**2 # overflow
+      yerr   = sqrt(yerr2)
+      LOG.verbose("addoverflow: bin %d: %7.2f +- %6.2f -> %7.2f +- %6.2f"%(
+        nbins,hist.GetBinContent(nbins),hist.GetBinError(nbins),yval,yerr),verbosity,3)
+      hist.SetBinContent(nbins,yval)
+      hist.SetBinError(nbins,yerr) # add in quadrature
+      if merge: # merge last and overflow bin(s)
+        hist.SetBinContent(nbins+1,yval)
+        hist.SetBinError(nbins+1,sqrt(yerr2))
+      else: # reset to 0
+        hist.SetBinContent(nbins+1,0) # reset
+        hist.SetBinError(nbins+1,0)
+  return hists
   

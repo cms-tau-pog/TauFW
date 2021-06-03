@@ -46,7 +46,7 @@ def getdyhist(hname,hists,tag="",verb=0):
     print ">>> getdyhist: Adding %r to %r..."%(hists.data.GetName(),obsname)
   obshist = hists.data # observed data
   obshist.SetName(obsname)
-  obshist.SetTitle(obsname)
+  obshist.SetTitle("Observed")
   
   # SEPARATE DRELL-YAN & BACKGROUNDS
   for hist in hists.exp:
@@ -56,7 +56,7 @@ def getdyhist(hname,hists,tag="",verb=0):
       if verb>=1:
         print ">>> getdyhist: Cloning %r to %r..."%(hist.GetName(),expname)
       exphist = hist.Clone(expname)
-      exphist.SetTitle(expname)
+      exphist.SetTitle("Expected")
     else:
       if verb>=1:
         print ">>> getdyhist: Adding %r to %r..."%(hist.GetName(),expname)
@@ -67,9 +67,9 @@ def getdyhist(hname,hists,tag="",verb=0):
       if not dyhist:
         if verb>=1:
           print ">>> getdyhist: Cloning %r to %r..."%(hist.GetName(),dyname)
-        dyhist = hist
-        dyhist.SetName(dyname)
-        dyhist.SetTitle(dyname)
+        dyhist = hist.Clone(dyname)
+        #dyhist.SetName(dyname)
+        #dyhist.SetTitle(dyname)
       else:
         LOG.fatal("Found more than one DY hist: %s and %s in %s"%(dyhist,hist,hists.exp))
    
@@ -79,11 +79,16 @@ def getdyhist(hname,hists,tag="",verb=0):
         if verb>=1:
           print ">>> getdyhist: Cloning %r to %r..."%(hist.GetName(),bkgname)
         bkghist = hist.Clone(bkgname)
-        bkghist.SetTitle(bkgname)
+        bkghist.SetTitle("Background")
       else:
         if verb>=1:
           print ">>> getdyhist: Adding %r to %r..."%(hist.GetName(),bkgname)
         bkghist.Add(hist)
+  
+  # GET OBS. DY = OBS. DATA - BKG
+  obsdyhist = obshist.Clone(hname+"_obsdy"+tag) # DATA - BKG
+  obsdyhist.SetBinErrorOption(obshist.kNormal)
+  obsdyhist.Add(bkghist,-1)
   
   # SANITY CHECK
   if verb>=1:
@@ -92,16 +97,19 @@ def getdyhist(hname,hists,tag="",verb=0):
       "Integral",obshist.Integral(),exphist.Integral(),dyhist.Integral(),bkghist.Integral(),dyhist.Integral()+bkghist.Integral())
     print ">>> getdyhist: %9s %11.1f %11.1f %11.1f %11.1f %11.1f"%(
       "Entries", obshist.GetEntries(),exphist.GetEntries(),dyhist.GetEntries(),bkghist.GetEntries(),dyhist.GetEntries()+bkghist.GetEntries())
+    ratio = dyhist.Integral()/obsdyhist.Integral() # check for over-/underestimation in ratio
+    print ">>> getdyhist: Exp. DY / Obs. DY = %.1f / %.1f = %.4f"%(dyhist.Integral(),obsdyhist.Integral(),ratio)
   
-  return obshist, exphist, dyhist, bkghist
+  return obshist, exphist, dyhist, bkghist, obsdyhist
   
 
-def getsfhist(hname,obshist,exphist,dyhist,bkghist,tag=""):
+def getsfhist(hname,obshist,exphist,dyhist,bkghist,obsdyhist=None,tag=""):
   # WEIGHTS = ( DATA - BKG ) / DY = ( DATA - MC + DY ) / DY
   #sfhist  = ( obshist - bkghist ) / dyhist
-  obsdyhist = obshist.Clone(hname+"_obsdy"+tag) # DATA - BKG
-  obsdyhist.SetBinErrorOption(obshist.kNormal)
-  obsdyhist.Add(bkghist,-1)
+  if obsdyhist==None:
+    obsdyhist = obshist.Clone(hname+"_obsdy"+tag) # DATA - BKG
+    obsdyhist.SetBinErrorOption(obshist.kNormal)
+    obsdyhist.Add(bkghist,-1)
   sfhist = obsdyhist.Clone(hname+"_weights"+tag) # ( DATA - BKG ) / DY
   sfhist.Divide(dyhist)
   sfhist.SetName(hname+"_weights"+tag)
@@ -118,5 +126,5 @@ def getsfhist(hname,obshist,exphist,dyhist,bkghist,tag=""):
   print ">>>   => ratio = ( obs. data - other MC ) / ( DY MC ) = %.1f / %.1f = %.3f"%(intnum,intdy,scale)
   sfhist.Scale(1./scale)
   
-  return sfhist, obsdyhist
+  return sfhist
   

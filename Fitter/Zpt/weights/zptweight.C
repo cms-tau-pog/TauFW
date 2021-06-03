@@ -4,7 +4,7 @@
  *   gROOT.Macro('weights/zptweight.C+')
  *   from ROOT import loadZptWeights
  *   loadZptWeights("weights.root","zpt_weight")
- *   tree.Draw("pt_ll >> h","getZptWeight(pt_moth)",'gOff')
+ *   tree.Draw("pt_ll >> h","(pt_1>20 && pt_2>30)*getZptWeight(pt_moth)",'gOff')
  */
 #include "TROOT.h"
 #include "TFile.h"
@@ -23,13 +23,13 @@ TH1* histZpt;
 //TH2F* histZpt;
 
 void loadZptWeights(TString fname="2017", TString hname=_hname, TString tag=""){
-  if(!fname.EndsWith(".root"))
+  if(!fname.EndsWith(".root")) // replace $-keys in file pattern _fname
     fname = _fname.Copy().ReplaceAll("$ERA",fname).ReplaceAll("$TAG",tag);
   std::cout << ">>> loadZptWeights(): opening " << fname << ":" << hname << std::endl;
   if(histZpt)
     histZpt->Delete();
   TFile *file = new TFile(fname);
-  histZpt = (TH1*) file->Get(hname);
+  histZpt = (TH1*) file->Get(hname); // allows both TH1 and TH2
   if(!histZpt){
     std::cerr << ">>> loadZptWeights(): Did not find " << hname << " in " << fname << std::endl;
     file->ls();

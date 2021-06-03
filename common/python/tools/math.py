@@ -104,3 +104,13 @@ def reldiff(x,y):
     return 0 if y==0 else -1
   return abs(x-y)/float(x)
   
+
+def scalevec(a,b,r,log=False):
+  """Scale vector ab by r."""
+  if log:
+    assert a!=0, "scale: Cannot logarithmically scale ab vector if a=0!"
+    assert a*b>0, "scale: Cannot logarithmically scale ab vector if a and b do not have the same sign! a=%s, b=%s"%(a,b)
+    span = abs(r*log10(b/a)) # get magnitude range
+    return a*(10**span)
+  return a+r*(b-a)
+  

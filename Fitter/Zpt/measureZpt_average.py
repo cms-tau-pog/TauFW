@@ -65,8 +65,8 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
       # HISTOGRAMS
       hists = samples.gethists(xvar_reco,selection,split=False,blind=False,method=method,
                                signal=False,parallel=parallel)
-      obshist, exphist, dyhist, bkghist = getdyhist(hname,hists,"_reco")
-      sfhist, obsdyhist = getsfhist(hname,obshist,exphist,dyhist,bkghist,tag="")
+      obshist, exphist, dyhist, bkghist, obsdyhist = getdyhist(hname,hists,"_reco")
+      sfhist = getsfhist(hname,obshist,exphist,dyhist,bkghist,obsdyhist,tag="")
       setmax(sfhist,0.35)
       #histSF_gaps = histSF.Clone("gaps")
       #setContentRange(histSF,0.0,3.0)

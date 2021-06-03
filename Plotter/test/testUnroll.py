@@ -154,7 +154,7 @@ def draw(hist,xtitle,nbins=0):
   #hist.SetMarkerSize(size)
   #hist.SetMarkerColor(color)
   #hist.SetMarkerStyle(8)
-  hist.Draw("HIST")
+  hist.Draw('HIST')
   if nbins>0: # divide with nlines
     xmin, xmax = hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax()
     ymin, ymax = hist.GetMinimum(), hist.GetMaximum()

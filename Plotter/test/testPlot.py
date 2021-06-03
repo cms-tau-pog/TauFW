@@ -7,7 +7,7 @@ from TauFW.Plotter.plot.Plot import Plot, CMSStyle
 from ROOT import TH1D, gRandom
 
 
-def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
+def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None):
   
   # SETTING
   outdir   = ensuredir("plots/")
@@ -18,8 +18,10 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
     fname += "_logy"
   if norm:
     fname += "_norm" # normalize each histogram
+  if cwidth:
+    fname += "_W%d"%(cwidth)
   rrange   = 0.5
-  width    = 0.2             # legend width
+  lwidth   = 0.2             # legend width
   position = 'topright'      # legend position
   header   = "Gaussians"     # legend header
   text     = "#mu#tau_{h}"   # corner text
@@ -30,8 +32,8 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False):
   # PLOT
   LOG.header(fname)
   plot = Plot(xtitle,hists,norm=norm)
-  plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,lstyle=lstyle,grid=grid,staterr=staterr)
-  plot.drawlegend(position,header=header,width=width)
+  plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,width=cwidth,lstyle=lstyle,grid=grid,staterr=staterr)
+  plot.drawlegend(position,header=header,width=lwidth,)
   plot.drawtext(text)
   plot.saveas(fname+".png")
   plot.saveas(fname+".pdf")
@@ -72,8 +74,10 @@ def main():
   for ratio in [True,False]:
     for logy in [True,False]:
       for norm in [True,False]:
-        hists = createhists()
-        plothist(xtitle,hists,ratio=ratio,logy=logy,norm=norm)
+        for cwidth in [500,800,1400]:
+        #for cwidth in [None,1000]:
+          hists = createhists()
+          plothist(xtitle,hists,ratio=ratio,logy=logy,norm=norm,cwidth=cwidth)
   
 
 if __name__ == "__main__":

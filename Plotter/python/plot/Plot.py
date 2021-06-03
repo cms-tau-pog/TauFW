@@ -3,7 +3,7 @@
 # Description: Class to automatically make CMS plot comparing histograms.
 import os, re
 from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
-from TauFW.common.tools.math import log10, magnitude, columnize
+from TauFW.common.tools.math import log10, magnitude, columnize, scalevec
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable, Var
@@ -40,6 +40,7 @@ _fcolors = [ kRed-2, kAzure+5,
              kRed-7, kAzure-9, kOrange+382,  kGreen+3,  kViolet+5, kYellow-2 ]
              #kYellow-3
 _lstyles = [ kSolid, kDashed, ] # kDotted ]
+_lmargin = 0.145 # default left margin used in Plot.setcanvas, Plot.setaxes
 
 
 class Plot(object):
@@ -61,9 +62,12 @@ class Plot(object):
       variable = args[0] # string or Variable
       hists    = ensurelist(args[1]) # list of histograms
     else:
-      LOG.throw(IOError,"Plot: Wrong input %s"%(args))
+      LOG.throw(IOError,"Plot: Wrong input %s"%(args,))
+    for hist in hists:
+      if not hist or not isinstance(hist,TH1):
+        LOG.throw(IOError,"Plot: Did not recognize histogram in input: %s"%(args,))
     if kwargs.get('clone',False):
-      hists    = [h.Clone(h.GetName()+"_plot") for h in hists]
+      hists    = [h.Clone(h.GetName()+"_clone_Plot") for h in hists]
     self.hists = hists
     self.frame = kwargs.get('frame', None )
     frame      = self.frame or self.hists[0]
@@ -131,8 +135,8 @@ class Plot(object):
     verbosity    = LOG.getverbosity(self,kwargs)
     xtitle       = (args[0] if args else self.xtitle) or ""
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
-    cwidth       = kwargs.get('cwidth',       None            ) # canvas width
-    cheight      = kwargs.get('cheight',      None            ) # canvas height
+    cwidth       = kwargs.get('width',        None            ) # canvas width
+    cheight      = kwargs.get('height',       None            ) # canvas height
     square       = kwargs.get('square',       False           ) # square canvas
     lmargin      = kwargs.get('lmargin',      1.              ) # canvas left margin
     rmargin      = kwargs.get('rmargin',      1.              ) # canvas righ margin
@@ -155,8 +159,8 @@ class Plot(object):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
-    ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
-    xtitleoffset = kwargs.get('xtitleoffset', 1.0             )
+    xtitleoffset = kwargs.get('xtitleoffset', 1.0             )*bmargin # scale x title offset
+    ytitleoffset = kwargs.get('ytitleoffset', 1.0             ) # scale y title offset
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
@@ -237,7 +241,7 @@ class Plot(object):
       gStyle.SetErrorX(0)
     
     # CANVAS
-    self.canvas = self.setcanvas(square=square,ratio=ratio,width=cwidth,height=cheight,
+    self.canvas = self.setcanvas(square=square,lower=ratio,width=cwidth,height=cheight,
                                  lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
     
     # STYLE
@@ -351,14 +355,18 @@ class Plot(object):
   
   def setcanvas(self,**kwargs):
     """Make canvas and pads for ratio plots."""
+    verbosity = LOG.getverbosity(self,kwargs)
     square  = kwargs.get('square',  False )
-    double  = kwargs.get('ratio',   False ) # include lower panel
-    width   = kwargs.get('width',   None  ) or (900 if square else 800 if double else 800)
-    height  = kwargs.get('height',  None  ) or (900 if square else 750 if double else 600)
-    lmargin = kwargs.get('lmargin', 1.    )
-    rmargin = kwargs.get('rmargin', 1.    )
-    tmargin = kwargs.get('tmargin', 1.    )
-    bmargin = kwargs.get('bmargin', 1.    )
+    lower   = kwargs.get('lower',   False ) # include lower panel
+    split   = kwargs.get('split',   0.33  ) # split lower panel
+    width_  = 900 if square else 800 # default
+    width   = kwargs.get('width',   None  ) or width_
+    height  = kwargs.get('height',  None  ) or (900 if square else 750 if lower else 600)
+    wscale  = width_/float(width)
+    lmargin = kwargs.get('lmargin', 1.    )*wscale # scale left margin
+    rmargin = kwargs.get('rmargin', 1.    )*wscale # scale right margin
+    tmargin = kwargs.get('tmargin', 1.    ) # scale top margin
+    bmargin = kwargs.get('bmargin', 1.    ) # scale bottom margin
     pads    = kwargs.get('pads',    [ ]   ) # pass list as reference
     #if not CMSStyle.lumi_13TeV:
     #  tmargin *= 0.7
@@ -367,32 +375,36 @@ class Plot(object):
       tmargin *= 0.90
       #rmargin *= 3.6
       #CMSStyle.relPosX = 0.15
-    canvas = TCanvas('canvas','canvas',100,100,width,height)
+    if verbosity>=2:
+      print "Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
+      print "Plot.setcanvas: width=%s, height=%s"%(width,height)
+      print "Plot.setcanvas: lmargin=%.5g, rmargin=%.5g, tmargin=%.5g, bmargin=%.5g"%(lmargin,rmargin,tmargin,bmargin)
+    canvas = TCanvas('canvas','canvas',100,100,int(width),int(height))
     canvas.SetFillColor(0)
     #canvas.SetFillStyle(0)
     canvas.SetBorderMode(0)
     canvas.SetFrameBorderMode(0)
-    if double:
+    if lower:
       canvas.SetMargin(0.0,0.0,0.0,0.0) # LRBT
       canvas.Divide(2)
       canvas.cd(1)
-      gPad.SetPad('pad1','pad1',0.0,0.33,1.0,1.0)
-      gPad.SetMargin(0.145*lmargin,0.04*rmargin,0.029,0.075*tmargin)
+      gPad.SetPad('pad1','pad1',0.0,split,1.0,1.0)
+      gPad.SetMargin(_lmargin*lmargin,0.04*rmargin,0.029,0.075*tmargin)
       gPad.SetFillColor(0)
       gPad.SetFillStyle(4000) # transparant (for pdf)
       #gPad.SetFillStyle(0)
       gPad.SetBorderMode(0)
       gPad.Draw()
       canvas.cd(2)
-      gPad.SetPad('pad2','pad2',0.0,0.0,1.0,0.33)
-      gPad.SetMargin(0.145*lmargin,0.04*rmargin,0.355*bmargin,0.04)
+      gPad.SetPad('pad2','pad2',0.0,0.0,1.0,split)
+      gPad.SetMargin(_lmargin*lmargin,0.04*rmargin,0.355*bmargin,0.04)
       gPad.SetFillColor(0) #gPad.SetFillColorAlpha(0,0.0)
       gPad.SetFillStyle(4000) # transparant (for pdf)
       gPad.SetBorderMode(0)
       gPad.Draw()
       canvas.cd(1)
     else:
-      canvas.SetMargin(0.145*lmargin,0.05*rmargin,0.145*bmargin,0.06*tmargin)
+      canvas.SetMargin(_lmargin*lmargin,0.05*rmargin,0.145*bmargin,0.06*tmargin)
     return canvas
     
   
@@ -439,14 +451,15 @@ class Plot(object):
     ycenter       = kwargs.get('center',       False            )
     nxdivisions   = kwargs.get('nxdiv',        510              )
     nydivisions   = kwargs.get('nydiv',        510              )
-    main          = kwargs.get('main',         False            ) # main panel of ratio plot
+    main          = kwargs.get('main',         not lower        ) # main panel of ratio plot
     lower         = kwargs.get('lower',        lower            )
     scale         = 600./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
+    yscale        = 1.27/scale*gPad.GetLeftMargin()/_lmargin # ytitleoffset
     xtitlesize    = kwargs.get('xtitlesize',   _tsize           )*scale
     ytitlesize    = kwargs.get('ytitlesize',   _tsize           )*scale
     xlabelsize    = kwargs.get('xlabelsize',   _lsize           )*scale
     ylabelsize    = kwargs.get('ylabelsize',   _lsize           )*scale
-    ytitleoffset  = kwargs.get('ytitleoffset', 1.0              )*1.27/scale
+    ytitleoffset  = kwargs.get('ytitleoffset', 1.0              )*yscale
     xtitleoffset  = kwargs.get('xtitleoffset', 1.0              )*1.00
     xlabeloffset  = kwargs.get('xlabeloffset', -0.008*scale if logx else 0.007 )
     if main:
@@ -455,6 +468,15 @@ class Plot(object):
     if latex:
       xtitle      = makelatex(xtitle)
     LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f)"%(nbins,xmin,xmax),verbosity,2)
+    if verbosity>=3:
+      print "Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex)
+      print "Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r"%(logx,logy,ycenter,intbins)
+      print "Plot.setaxes: nxdiv=%s, nydiv=%s"%(nxdivisions,nydivisions)
+      print "Plot.setaxes: lmargin=%.5g, _lmargin=%.5g"%(gPad.GetLeftMargin(),_lmargin)
+      print "Plot.setaxes: scale=%s, yscale=%s"%(scale,yscale)
+      print "Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g"%(xtitlesize,ytitlesize)
+      print "Plot.setaxes: xlabelsize=%.5g, ylabelsize=%.5g"%(xlabelsize,ylabelsize)
+      print "Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
     
     if ratiorange:
       ymin, ymax  = 1-ratiorange, 1+ratiorange
@@ -667,8 +689,10 @@ class Plot(object):
     
     # CHECK
     LOG.insist(self.canvas,"Canvas does not exist!")
+    oldpad = gPad
     self.canvas.cd(panel)
     scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
+    xscale = 800./gPad.GetWw()
     tsize *= scale # text size
     
     # ENTRIES
@@ -711,7 +735,7 @@ class Plot(object):
     if title:   nlines += 1 + title.count('\n')
     
     # DIMENSIONS
-    if width<0:  width  = twidth*max(0.22,min(0.60,0.036+0.016*maxlen))
+    if width<0:  width  = twidth*xscale*max(0.22,min(0.60,0.036+0.016*maxlen))
     if height<0: height = theight*1.34*tsize*nlines
     if ncols>1:  width *= ncols/(1-colsep)
     x2 = 0.90; x1 = x2 - width
@@ -773,8 +797,10 @@ class Plot(object):
     legend.SetMargin(margin)
     
     # STYLE
-    if transparent: legend.SetFillStyle(0) # 0 = transparent
-    else: legend.SetFillColor(0)
+    if transparent:
+      legend.SetFillStyle(0) # 0 = transparent
+    else:
+      legend.SetFillColor(0)
     legend.SetBorderSize(border)
     legend.SetTextSize(tsize)
     legend.SetTextFont(headerfont) # bold for title
@@ -791,6 +817,7 @@ class Plot(object):
     if hists:
       for hist1, entry1, style1 in columnize(zip(hists,entries,styles),ncols):
         for entry in entry1.split('\n'):
+          LOG.verb("Plot.drawlegend: Add entry (%r,%r,%r)"%(hist1,entry,style1),verbosity,2)
           legend.AddEntry(hist1,entry,style1)
           hist1, style1 = 0, ''
     for line in texts:
@@ -806,6 +833,7 @@ class Plot(object):
     
     legend.Draw(option)
     self.legends.append(legend)
+    oldpad.cd()
     return legend
     
   
@@ -831,12 +859,14 @@ class Plot(object):
     verbosity  = LOG.getverbosity(self,kwargs)
     position   = kwargs.get('pos',      'topleft' )
     position   = kwargs.get('position', position  ) #.lower()
-    tsize      = kwargs.get('tsize',    _lsize    ) # text size
+    tsize      = kwargs.get('size',     _lsize    ) # text size
+    tsize      = kwargs.get('tsize',    tsize     ) # text size
     theight    = kwargs.get('theight',  None      ) or 1
     bold       = kwargs.get('bold',     False     ) # bold text
     dolatex    = kwargs.get('latex',    True      ) # automatically format strings as LaTeX
     xuser      = kwargs.get('x',        None      ) # horizontal position
     yuser      = kwargs.get('y',        None      ) # vertical position
+    ndc        = kwargs.get('ndc',      True      ) # normalized coordinates
     align_user = kwargs.get('align',    None      ) # text line
     panel      = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
     texts      = unwraplistargs(texts)
@@ -851,7 +881,7 @@ class Plot(object):
     
     # POSITION
     font  = 62 if bold else 42
-    align = 13
+    align = 13 # 10*horiz. + vert.: https://root.cern.ch/doc/master/classTAttText.html#T1
     position = position.replace('left','L').replace('center','C').replace('right','R').replace( #.lower()
                                 'top','T').replace('middle','M').replace('bottom','B')
     if 'R' in position:
@@ -873,8 +903,9 @@ class Plot(object):
     if align_user!=None: align = align_user
     L, R  = gPad.GetLeftMargin(), gPad.GetRightMargin()
     T, B  = gPad.GetTopMargin(),  gPad.GetBottomMargin()
-    x = L+(1-L-R)*x # convert frame to canvas coordinates
-    y = B+(1-T-B)*y # convert frame to canvas coordinates
+    if ndc:
+      x = L+(1-L-R)*x # convert frame to canvas coordinates
+      y = B+(1-T-B)*y # convert frame to canvas coordinates
     
     # LATEX
     latex = TLatex()
@@ -882,7 +913,7 @@ class Plot(object):
     latex.SetTextAlign(align)
     latex.SetTextFont(font)
     #latex.SetTextColor(kRed)
-    latex.SetNDC(True)
+    latex.SetNDC(ndc)
     for i, line in enumerate(texts):
       if dolatex:
         line = maketitle(line)
@@ -911,6 +942,59 @@ class Plot(object):
       oldpad.cd()
     self.lines.append(line)
     return line
+    
+  
+  def drawbins(self,bins,text=True,y=0.96,**kwargs):
+    """Divide xaxis into bins with extra lines, e.g. for unrolled 2D plots."""
+    verbosity = LOG.getverbosity(self,kwargs)
+    title = kwargs.get('title',       ""    )
+    size  = kwargs.get('size',        0.025 )
+    align = kwargs.get('align',       23    )
+    axis  = kwargs.get('axis',        'x'   )
+    addof = kwargs.get('addoverflow', False ) # last bin is infinity
+    xmin, xmax = self.xmin, self.xmax
+    if isinstance(bins,Variable):
+      nbins = bins.nbins
+    elif islist(bins):
+      nbins = len(bins)-1
+    else:
+      text  = False
+      nbins = bins
+    for ip in [1,2]:
+      if ip==2 and not self.ratio: continue
+      ymin, ymax = (self.ymin, self.ymax) if ip==1 else (self.rmin, self.rmax)
+      for i in range(0,nbins):
+        if i>=1:
+          if axis=='x':
+            x = xmin + (xmax-xmin)*i/nbins
+            coords = (x,ymin,x,ymax)
+          else:
+            y = ymin + (ymax-ymin)*i/nbins
+            coords = (xmin,y,xmax,y)
+          LOG.verb("Plot.drawbins: coords=%r"%(coords,),verbosity,2)
+          self.drawline(*coords,color=kRed,style=kDashed,pad=ip)
+        if text and ip==1:
+          pad = self.canvas.GetPad(ip) if self.ratio else self.canvas
+          if axis=='x':
+            logy = pad.GetLogy()>0
+            x = xmin + (xmax-xmin)*(i+0.5)/nbins
+            y_ = scalevec(ymin,ymax,y,log=logy)
+          else:
+            logx = pad.GetLogx()>0
+            x = scalevec(xmin,xmax,y,log=logx)
+            y_ = ymin + (ymax-ymin)*(i+0.5)/nbins
+          if isinstance(bins,Variable):
+            y1, y2 = bins.getedge(i), bins.getedge(i+1) # edges mass bin
+          else:
+            y1, y2 = bins[i], bins[i+1] # edges mass bin
+          if addof and i==nbins-1:
+            btext = "[%d,#infty]"%(y1) # mass bin text
+          else:
+            btext = "[%d,%d]"%(y1,y2) # mass bin text
+          if isinstance(text,str) and i==0:
+            btext = text+" #in "+btext
+          LOG.verb("Plot.drawbins: text=%r, (x,y)=(%s,%s)"%(btext,x,y),verbosity,2)
+          self.drawtext(btext,x=x,y=y_,ndc=False,tsize=size,align=align)
     
   
   def setlinestyle(self,hists,**kwargs):

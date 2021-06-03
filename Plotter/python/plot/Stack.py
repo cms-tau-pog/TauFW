@@ -32,12 +32,17 @@ class Stack(Plot):
     #  hists        = args[1]
     #else:
     #  LOG.throw(IOError,"Plot: Wrong input %s"%(args))
-    self.datahist  = datahist
-    self.exphists  = ensurelist(exphists)
-    self.sighists  = ensurelist(sighists)
-    self.hists     = [datahist]+self.exphists+self.sighists
+    self.datahist   = datahist
+    self.exphists   = ensurelist(exphists)
+    self.sighists   = ensurelist(sighists)
+    if kwargs.get('clone',False):
+      self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
+      self.exphists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.exphists]
+      self.sighists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.sighists]
+    self.hists      = [self.datahist]+self.exphists+self.sighists
+    kwargs['clone'] = False
+    self.ratio      = kwargs.setdefault('ratio', True )
     super(Stack,self).__init__(variable,self.hists,**kwargs)
-    self.ratio     = kwargs.get('ratio', True )
     
   
   def draw(self,*args,**kwargs):
@@ -48,6 +53,8 @@ class Stack(Plot):
     xtitle       = (args[0] if args else self.xtitle) or ""
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
     square       = kwargs.get('square',       False           ) # square canvas
+    cwidth       = kwargs.get('width',        None            ) # canvas width
+    cheight      = kwargs.get('height',       None            ) # canvas height
     lmargin      = kwargs.get('lmargin',      1.              ) # canvas left margin
     rmargin      = kwargs.get('rmargin',      1.              ) # canvas righ margin
     tmargin      = kwargs.get('tmargin',      1.              ) # canvas bottom margin
@@ -70,7 +77,7 @@ class Stack(Plot):
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
-    xtitleoffset = kwargs.get('xtitleoffset', 1.0             )
+    xtitleoffset = kwargs.get('xtitleoffset', 1.0             )*bmargin
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
@@ -133,7 +140,7 @@ class Stack(Plot):
       gStyle.SetErrorX(0) # 'XE0' should also work
     
     # CANVAS
-    self.canvas = self.setcanvas(square=square,ratio=ratio,
+    self.canvas = self.setcanvas(square=square,lower=ratio,width=cwidth,height=cheight,
                                  lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
     
     # CREATE STACK

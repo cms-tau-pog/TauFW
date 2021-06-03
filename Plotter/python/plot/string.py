@@ -343,7 +343,7 @@ def cleanbool(string):
 
 def undoshift(string):
   if islist(string):
-    return [undoshift(s) for s in string]
+    shiftless = [undoshift(s) for s in string]
   else:
     shiftless = re.sub(r"_[a-zA-Z]+([Uu]p|[Dd]own|[Nn]om)","",string)
   return shiftless

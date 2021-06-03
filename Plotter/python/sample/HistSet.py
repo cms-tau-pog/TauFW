@@ -84,6 +84,18 @@ class HistSet(object):
     self.signal = self.signal.get(self.var,[ ])
     self.single = True
   
+  def all(self):
+    """Get list of all histograms."""
+    if self.single:
+      hists = [h for h in [self.data]+self.exp+self.signal if h]
+    else:
+      hists = [ ]
+      for var in self.vars:
+        hists_ = [self.data.get(var,None)]+self.exp.get(var,[ ])+self.signal.get(var,[ ])
+        hists.extend([h for h in hists_ if h])
+    return hists
+    
+  
   def printall(self,full=False):
     """Print for debugging purposes."""
     nvars = len(self.vars) if islist(self.vars) else 1

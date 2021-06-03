@@ -62,7 +62,8 @@ class Variable(object):
     self.only         = kwargs.get('only',        [ ]           ) # only plot for these patterns
     self.veto         = kwargs.get('veto',        [ ]           ) # do not plot for these patterns
     self.blindcuts    = kwargs.get('blind',       ""            ) # string for blind cuts to blind data
-    self._addoverflow = kwargs.get('addoverflow', False         ) # add overflow to last bin
+    self._addoverflow = kwargs.get('addof',       False         ) # add overflow to last bin
+    self._addoverflow = kwargs.get('addoverflow', self._addoverflow ) # add overflow to last bin
     if self.latex:
       self.title = makelatex(self.title,units=self.units)
       if 'ctitle' in kwargs:
@@ -173,8 +174,8 @@ class Variable(object):
   
   def getedge(self,i):
     """Get edge. 0=first edge, nbins+1=last edge"""
-    LOG.insist(i>=0,"getedge: Number of bin edge has to be >= 0!")
-    LOG.insist(i<=self.nbins+1,"getedge: Number of bin edge has to be <= %d!"%(self.nbins+1))
+    LOG.insist(i>=0,"getedge: Number of bin edge has to be >= 0! Got: %s"%(i))
+    LOG.insist(i<=self.nbins+1,"getedge: Number of bin edge has to be <= %d! Got: %s"%(self.nbins+1,i))
     if self.hasvariablebins():
       return self.bins[i]
     return self.min+i*(self.max-self.min)/self.nbins

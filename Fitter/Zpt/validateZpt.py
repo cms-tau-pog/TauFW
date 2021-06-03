@@ -11,8 +11,7 @@ from ROOT import loadZptWeights
 
 baseline = "q_1*q_2<0 && iso_1<0.15 && iso_1<0.15 && !extraelec_veto && !extramuon_veto && m_vis>20"
 Zmbins0  = [20,70,91,110,150,200,300,400,500,600,700,800,900,1000]
-Zmbins1  = [20,30,40,50,60,70,80,85,88,89,89.5,90,90.5,91,91.5,92,93,94,95,100,110,120,180,500,1000]
-Zmbins2  = [20,30,40,50,60,70,80,85,86,87,88,88.5,89,89.5,90,90.5,91,91.5,92,92.5,93,94,95,100,110,120,180,250,500,1000]
+Zmbins1  = [20,30,40,50,60,70,80,90,100,110,120,180,500,1000]
 Zmbins3  = [200,300,400,500,600,700,800,900,1000,1200,1500,2000]
 ptbins0  = [0,10,20,30,50,70,100,140,190,250,300,500,700,1000]
 ptbins1  = [0,2,4,6,8,10,12,15,20,30,40,50,60,70,80,90,100,120,140,160,180,200,225,250,350,500,1000]
@@ -20,7 +19,7 @@ dRbins   = [0,0.4,1.0,1.5,2.0]+frange(2.2,5.61,0.2)+[6.0]
 print dRbins
 
 
-def plot(era,channel,weight="",tag="",outdir="plots",parallel=True,pdf=False):
+def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=False):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plot %s"%(tag.strip('_')))
   
@@ -73,6 +72,8 @@ def plot(era,channel,weight="",tag="",outdir="plots",parallel=True,pdf=False):
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',parallel=parallel)
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu',"m"),selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
+    if title:
+      text += ", "+title
     for stack, variable in stacks.iteritems():
       #position = "" #variable.position or 'topright'
       stack.draw()
@@ -96,10 +97,12 @@ def main(args):
       setera(era) # set era for plot style and lumi-xsec normalization
       plot(era,channel,weight="",                     tag="_noweight",  outdir=outdir,parallel=parallel,pdf=pdf)
       #loadZptWeights("0j-mgt200_"+era,"zpt_weight_reco")
-      #plot(era,channel,weight="getZptWeight(pt_ll)",  tag="_recoweight",outdir=outdir,parallel=parallel,pdf=pdf)
-      loadZptWeights(era,"zpt_weight")
+      #plot(era,channel,weight="getZptWeight(pt_ll)",title="reco. weight",tag="_recoweight",outdir=outdir,parallel=parallel,pdf=pdf)
+      #loadZptWeights(era,"zpt_weight")
       #loadZptWeights("0j-mgt200_"+era,"zpt_weight")
-      plot(era,channel,weight="getZptWeight(pt_moth)",tag="_genweight", outdir=outdir,parallel=parallel,pdf=pdf)
+      #plot(era,channel,weight="getZptWeight(pt_moth)",title="gen. weight",tag="_genweight", outdir=outdir,parallel=parallel,pdf=pdf)
+      loadZptWeights(era,"zptmass_weight")
+      plot(era,channel,weight="getZptWeight(pt_moth,m_moth)",title="unfolded",tag="_zptmass_unfolded", outdir=outdir,parallel=parallel,pdf=pdf)
   
 
 if __name__ == "__main__":

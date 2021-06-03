@@ -2,9 +2,10 @@
 
 This module includes some tools to derive the Z pT reweighting in dimuon events for LO Drell-Yan samples.
 
-Two techniques are available:
+Two techniques to take into account the resolution are available:
 * `measureZpt.py` using unfolding from reconstructed dimuon pT (and mass) to generator-level Z pT (and mass) using `RooUnfold`.
 * `measureZpt_average.py` derives weights by first comparing reconstructed dimuon distribution in data and MC, and then simply averaging those weights as a function of Z pT.
+
 
 ## Installation
 Install the `TauFW` as usual.
@@ -27,6 +28,19 @@ cd RooUnfold
 make
 ```
 
+
 ## Unfolding 2D
 The script `measureZpt.py` can do unfolding for the reconstructed dimuon pT and mass distribution to generator-level Z pT and mass.
-It does so by "unrolling" the 2D histogram to a 1D one using the [`Unroll.cxx` macro](https://github.com/cms-tau-pog/TauFW/blob/master/Plotter/python/macros/Unroll.cxx).
+It does so by "unrolling" the 2D histogram to a 1D one using the [`Unroll.cxx` macro](../../Plotter/python/macros/Unroll.cxx).
+
+
+## Application
+To apply the Z pT reweighting on the fly, please use the [`weights/zptweight.C` macro](weights/zptweight.C).
+```
+from ROOT import gROOT
+gROOT.Macro('weights/zptweight.C+')
+from ROOT import loadZptWeights
+loadZptWeights("weights/zptmass_weight_2017.root",'zpt_weight') # load histogram from histogram
+tree.Draw("pt_mumu >> h","(pt_1>20 && pt_2>30)*getZptWeight(Zpt)",'gOff')
+```
+Or to apply during the processing of nanoAOD Drell-Yan, please have a look at [`PicoProducer/python/corrections/RecoilCorrectionTool.py`](../../PicoProducer/python/corrections/RecoilCorrectionTool.py).
