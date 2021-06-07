@@ -529,6 +529,27 @@ Alternatively, you could edit the module file locally, setting the
 [hardcoded default](https://github.com/cms-tau-pog/TauFW/blob/828faddc0862229e827207fc04a7903562930eb7/PicoProducer/python/analysis/ModuleTauPair.py#L44)
 to `False`.
 
+At some point the jet/MET correction tools in `nanoAOD-tools` were updated to include T1 smearing,
+and now corrected MET branches are called `MET_T1_nom`, etc.
+If you have nanoAOD files with this new correction method, please use `useT1=True`. Specify it during running:
+```
+pico.py run -c mutau -y 2018 -E useT1=True
+```
+or change it in the channel:
+```
+pico.py channel mutau 'MuTauModule useT1=True'
+pico.py run -c mutau -y 2018
+```
+or set the
+[hardcoded default](https://github.com/cms-tau-pog/TauFW/blob/f0ff144d7a003f197a627e70c92980a077a01c28/PicoProducer/python/analysis/ModuleTauPair.py#L49)
+to `True`,
+or add this option to all the new samples in the sample list:
+```
+  M('DY','DYJetsToLL_M-50',
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=['zpt=True','useT1=True']),
+```
+
 
 ### Why do my jobs fail ?
 

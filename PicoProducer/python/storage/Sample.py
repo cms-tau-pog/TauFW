@@ -91,7 +91,8 @@ class Sample(object):
     if isinstance(self.extraopts,str):
       if ',' in self.extraopts:
         self.extraopts = self.extraopts.split(',')
-      self.extraopts = [self.extraopts]
+      else:
+        self.extraopts = [self.extraopts]
     
     # STORAGE & URL DEFAULTS
     if self.storepath:

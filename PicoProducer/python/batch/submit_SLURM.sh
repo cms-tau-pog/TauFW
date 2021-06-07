@@ -1,7 +1,7 @@
 #! /bin/bash
 ####### Script to run on a SLURM batch system
 ####### partition/queue
-#SBATCH --partition wn
+#SBATCH --partition standard
 ####### the cpu time for this job
 #SBATCH --time 05:30:00
 ####### the maximum memory usage of this job
