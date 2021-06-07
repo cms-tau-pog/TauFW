@@ -13,10 +13,12 @@ class EOS(StorageSystem):
     super(EOS,self).__init__(path,verb=verb,ensure=False)
     if not self.mounted: # EOS is mounted on lxplus
       # https://cern.service-now.com/service-portal?id=kb_article&n=KB0001998
+      os.environ["EOS_MGM_URL"] = "root://eosuser.cern.ch"
+      self.lscmd   = "eos ls" # do export EOS_MGM_URL=root://eosuser.cern.ch
       self.cpcmd   = 'xrdcp -f'
       self.chmdprm = '2777'
       self.cpurl   = "root://eoscms.cern.ch/"
-      self.fileurl = "root://eoscms/"
+      self.fileurl = "root://eosuser.cern.ch/" #"root://eoscms/"
       #self.prefix  = "root://eoscms.cern.ch/"
     self.tmpdir  = '/tmp/$USER/'
     if ensure:

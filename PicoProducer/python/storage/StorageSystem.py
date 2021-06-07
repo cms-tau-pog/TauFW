@@ -31,9 +31,9 @@ class StorageSystem(object):
     self.fileurl = ""
     self.verbosity = verb
     if path.startswith('/'):
-      self.parent = '/'.join(path.split('/')[:3])
+      self.parent = '/'.join(path.split('/')[:4])
     else:
-      self.parent = '/'+'/'.join(path.split('/')[:2])
+      self.parent = '/'+'/'.join(path.split('/')[:3])
     self.mounted  = os.path.exists(self.parent)
   
   def __str__(self):
