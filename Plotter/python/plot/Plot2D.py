@@ -16,6 +16,7 @@ class Plot2D(Plot):
       Plot(xvar,yvar,hists)
     """
     hists, vars = [ ], [ ]
+    self.verbosity = LOG.getverbosity(kwargs)
     for arg in args:
       if isinstance(arg,TH2):
         hists.append(arg)
@@ -38,6 +39,8 @@ class Plot2D(Plot):
     self.canvas   = None
     self.legend   = None
     self.ratio    = None # not used
+    self.frame    = None
+    self.garbage  = [ ]
     self.profiles = [ ]
     self.graphs   = [ ]
     self.lines    = [ ]
@@ -80,6 +83,7 @@ class Plot2D(Plot):
   def draw(self,*args,**kwargs):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
     hist         = self.hist
+    verbosity    = LOG.getverbosity(self,kwargs)
     yoffset      = kwargs.get('yoffset',      1.35 if self.hist.GetYaxis().GetXmax()>=1000 else 1.15 )
     option       = kwargs.get('option',       'COLZ',                     ) # COLZTEXT44
     title        = kwargs.get('title',        ""                          )
@@ -100,6 +104,7 @@ class Plot2D(Plot):
     tcolor       = kwargs.get('tcolor',       kBlack                      )
     format       = kwargs.get('format',       ".2f"                       )
     legend       = kwargs.get('legend',       False                       )
+    grid         = kwargs.get('grid',         True                        )
     lcolor       = kwargs.get('lcolor',       kBlack                      )
     cwidth       = kwargs.get('width',        850                         )
     cheight      = kwargs.get('height',       750                         )
@@ -117,17 +122,25 @@ class Plot2D(Plot):
     labelsize    = kwargs.get('labelsize',    0.048                       )
     xbinlabels   = kwargs.get('xbinlabels',   self.xbinlabels             )
     ybinlabels   = kwargs.get('ybinlabels',   self.ybinlabels             )
-    xlabelsize   = kwargs.get('xlabelsize',   labelsize*(1.7 if xbinlabels else 1) )
-    ylabelsize   = kwargs.get('ylabelsize',   labelsize*(1.7 if ybinlabels else 1) )
+    xlabeloption = kwargs.get('xlabeloption', None                        ) # 'h'=horizontal, 'v'=vertical
+    ylabeloption = kwargs.get('ylabeloption', None                        ) # 'h'=horizontal, 'v'=vertical
+    xlabelsize   = kwargs.get('xlabelsize',   labelsize                   )*(1.7 if xbinlabels else 1)
+    ylabelsize   = kwargs.get('ylabelsize',   labelsize                   )*(1.7 if ybinlabels else 1)
     xlabeloffset = kwargs.get('xlabeloffset', 0.005 if xbinlabels else -0.004 if logx else 0.01 )
     ylabeloffset = kwargs.get('ylabeloffset', 0.008 if ybinlabels else 0.005                    )
     zlabeloffset = kwargs.get('zlabeloffset', -0.003 if logz else 0.01    )
     markersize   = kwargs.get('markersize',   1.0                         )
-    if zmin: hist.SetMinimum(zmin)
-    if zmax: hist.SetMaximum(zmax)
     self.xmin, self.xmax = xmin, xmax
     self.ymin, self.ymax = ymin, ymax
     self.zmin, self.zmax = zmin, zmax
+    resetx = logx and hist.GetXaxis().GetBinLowEdge(1)<=0 and xmax>0
+    resety = logy and hist.GetYaxis().GetBinLowEdge(1)<=0 and ymax>0
+    if verbosity>=2:
+      print ">>> Plot2D.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, zmin=%s, zmax=%s"%(xmin,xmax,ymin,ymax,zmin,zmax)
+      print ">>> Plot2D.draw: logx=%s, logy=%s, logz=%s, resetx=%r, resety=%r"%(logx,logy,logz,resetx,resety)
+      print ">>> Plot2D.draw: tmargin=%s, bmargin=%s, lmargin=%s, rmargin=%s"%(tmargin,bmargin,lmargin,rmargin)
+      print ">>> Plot2D.draw: xoffset=%s, yoffset=%s, zoffset=%s"%(xoffset,yoffset,zoffset)
+      print ">>> Plot2D.draw: xlabeloffset=%s, xlabeloffset=%s, xlabeloffset=%s"%(xlabeloffset,ylabeloffset,zlabeloffset)
     
     # CANVAS
     canvas = TCanvas("canvas","canvas",100,100,int(cwidth),int(cheight))
@@ -135,45 +148,69 @@ class Plot2D(Plot):
     canvas.SetBorderMode(0)
     canvas.SetFrameFillStyle(0)
     canvas.SetFrameBorderMode(0)
-    canvas.SetTopMargin(  tmargin ); canvas.SetBottomMargin( bmargin )
-    canvas.SetLeftMargin( lmargin ); canvas.SetRightMargin(  rmargin )
+    canvas.SetMargin(lmargin,rmargin,bmargin,tmargin) # LRBT
     canvas.SetTickx(0); canvas.SetTicky(0)
-    canvas.SetGrid()
+    if grid:
+      canvas.SetGrid()
     canvas.cd()
     self.canvas = canvas
-    if logy: canvas.Update(); canvas.SetLogy()
-    if logx: canvas.Update(); canvas.SetLogx()
-    if logz: canvas.Update(); canvas.SetLogz()
+    if logx:
+      canvas.Update(); canvas.SetLogx()
+      if xmin<=0 and xmax>0:
+        xmin = xmax/1e4
+    if logy:
+      canvas.Update(); canvas.SetLogy()
+      if ymin<=0 and ymax>0:
+        ymin = ymax/1e4
+    if logz:
+      canvas.Update(); canvas.SetLogz()
+      if zmin<=0 and zmax>0:
+        zmin = zmax/1e4
     
     # AXES
-    hist.SetTitle("")
-    hist.GetXaxis().SetTitleSize(0.058)
-    hist.GetYaxis().SetTitleSize(0.058)
-    hist.GetZaxis().SetTitleSize(0.056)
-    hist.GetXaxis().SetLabelSize(xlabelsize)
-    hist.GetYaxis().SetLabelSize(ylabelsize)
-    hist.GetZaxis().SetLabelSize(0.044)
-    hist.GetXaxis().SetLabelOffset(xlabeloffset)
-    hist.GetYaxis().SetLabelOffset(ylabeloffset)
-    hist.GetZaxis().SetLabelOffset(zlabeloffset)
-    hist.GetXaxis().SetTitleOffset(0.97)
-    hist.GetXaxis().SetTitleOffset(xoffset)
-    hist.GetYaxis().SetTitleOffset(yoffset)
-    hist.GetZaxis().SetTitleOffset(zoffset)
-    hist.GetZaxis().CenterTitle(True)
-    hist.GetXaxis().SetTitle(makelatex(xtitle))
-    hist.GetYaxis().SetTitle(makelatex(ytitle))
-    hist.GetZaxis().SetTitle(makelatex(ztitle))
-    hist.GetXaxis().SetRangeUser(xmin,xmax)
-    hist.GetYaxis().SetRangeUser(ymin,ymax)
-    if "text" in option.lower():
+    #hist.SetTitle("") # assume gStyle.SetOptTitle(False) in TDR style
+    if resetx or resety: # create new TH2 frame to have better control over the axis ranges
+      LOG.verb("Plot2D.draw: creating new TH2 frame...",verbosity,1)
+      hist = resetrange(hist,xmin,xmax,ymin,ymax,verb=verbosity)
+      frame = hist
+      self.garbage.append(hist) # save for later deletion
+      #fname = "%s_frame"%(hist.GetName())
+      #frame = TH2F(fname,fname,10,xmin,xmax,10,ymin,ymax) # doest not work ?
+      #hist.SetMinimum(zmin)
+      #hist.SetMaximum(zmax)
+    else:
+      frame = hist
+    frame.GetXaxis().SetTitleSize(0.058)
+    frame.GetYaxis().SetTitleSize(0.058)
+    frame.GetZaxis().SetTitleSize(0.056)
+    frame.GetXaxis().SetLabelSize(xlabelsize)
+    frame.GetYaxis().SetLabelSize(ylabelsize)
+    frame.GetZaxis().SetLabelSize(0.044)
+    frame.GetXaxis().SetLabelOffset(xlabeloffset)
+    frame.GetYaxis().SetLabelOffset(ylabeloffset)
+    frame.GetZaxis().SetLabelOffset(zlabeloffset)
+    frame.GetXaxis().SetTitleOffset(0.97)
+    frame.GetXaxis().SetTitleOffset(xoffset)
+    frame.GetYaxis().SetTitleOffset(yoffset)
+    frame.GetZaxis().SetTitleOffset(zoffset)
+    frame.GetZaxis().CenterTitle(True)
+    frame.GetXaxis().SetTitle(makelatex(xtitle))
+    frame.GetYaxis().SetTitle(makelatex(ytitle))
+    frame.GetZaxis().SetTitle(makelatex(ztitle))
+    frame.GetXaxis().SetRangeUser(xmin,xmax)
+    frame.GetYaxis().SetRangeUser(ymin,ymax)
+    frame.SetMinimum(zmin)
+    frame.SetMaximum(zmax)
+    #frame.Draw()
+    self.frame = frame
+    
+    # DRAW
+    if 'TEXT' in option.upper():
       gStyle.SetPaintTextFormat(format)
       hist.SetMarkerSize(markersize)
       hist.SetMarkerColor(tcolor)
       #hist.SetMarkerSize(1)
-    if zmin!=None: hist.SetMinimum(zmin)
-    if zmax!=None: hist.SetMaximum(zmax)
-    hist.Draw(option)
+    hist.Draw(option+'SAME')
     canvas.RedrawAxis()
     
     # alphanumerical bin labels
@@ -189,6 +226,10 @@ class Plot2D(Plot):
         LOG.warning("Plot2D.plot: len(ybinlabels)=%d < %d=nybins"%(len(ybinlabels),nybins))
       for i, ybinlabels in zip(range(1,nybins+1),ybinlabels):
         hist.GetYaxis().SetBinLabel(i,makelatex(ybinlabels,units=False))
+    if xlabeloption: # https://root.cern.ch/doc/master/classTAxis.html#a05dd3c5b4c3a1e32213544e35a33597c
+      frame.GetXaxis().LabelsOption(xlabeloption) # 'h'=horizontal, 'v'=vertical
+    if ylabeloption: # https://root.cern.ch/doc/master/classTAxis.html#a05dd3c5b4c3a1e32213544e35a33597c
+      frame.GetYaxis().LabelsOption(ylabeloption) # 'h'=horizontal, 'v'=vertical
     
     # CMS STYLE
     if CMSStyle.lumiText:
@@ -221,12 +262,8 @@ class Plot2D(Plot):
     if not keep: # do not keep histograms
       if self.hist:
         deletehist(self.hist)
-    for profile in self.profiles:
-      deletehist(graph)
-    for graph in self.graphs:
-      deletehist(graph)
-    for line in self.lines:
-      deletehist(line)
+    for obj in self.garbage+self.profiles+self.graphs+self.lines:
+      deletehist(obj)
     LOG.verb("closed\n>>>",verbosity,2)
     
   def drawgraph(self,graphs,entries=[ ],**kwargs):

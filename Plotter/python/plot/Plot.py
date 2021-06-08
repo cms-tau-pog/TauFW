@@ -10,7 +10,7 @@ from TauFW.Plotter.plot.Variable import Variable, Var
 from TauFW.Plotter.plot.Ratio import Ratio
 import ROOT
 from ROOT import gDirectory, gROOT, gPad, gStyle, TFile, TCanvas,\
-                 TH1, TH1D, TH2, THStack, TGraph, TGraphAsymmErrors, TLine, TProfile,\
+                 TH1, TH1D, TH2, TH2F, THStack, TGraph, TGraphAsymmErrors, TLine, TProfile,\
                  TLegend, TAxis, TGaxis, Double, TLatex, TBox, TColor,\
                  kBlack, kGray, kWhite, kRed, kBlue, kGreen, kYellow, kAzure, kCyan, kMagenta,\
                  kOrange, kPink, kSpring, kTeal, kViolet, kSolid, kDashed, kDotted
@@ -159,8 +159,11 @@ class Plot(object):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
+    labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
     xtitleoffset = kwargs.get('xtitleoffset', 1.0             )*bmargin # scale x title offset
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             ) # scale y title offset
+    xlabelsize   = kwargs.get('xlabelsize',   _lsize          ) # x label size
+    ylabelsize   = kwargs.get('ylabelsize',   _lsize          ) # y label size
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
@@ -287,17 +290,18 @@ class Plot(object):
       self.errband.Draw('E2 SAME')
     
     # AXES
-    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
-                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,
-                 binlabels=binlabels,ymargin=ymargin,logyrange=logyrange,main=ratio,grid=grid,latex=latex)
+    self.setaxes(self.frame,*hists,main=ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
+                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,xlabelsize=xlabelsize,
+                 binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
     
     # RATIO
     if ratio:
       self.canvas.cd(2)
       self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
-      self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
-                   rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
+      self.setaxes(self.ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,
+                   binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
+                   center=True,nydiv=506,rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,latex=latex)
       for line in self.lines:
         if line.pad==2:
           line.Draw("LSAME")
@@ -437,8 +441,9 @@ class Plot(object):
     ymin          = kwargs.get('ymin',         None             )
     ymax          = kwargs.get('ymax',         None             )
     ratiorange    = kwargs.get('rrange',       None             )
-    binlabels     = kwargs.get('binlabels',    None             )
+    binlabels     = kwargs.get('binlabels',    None             ) # alphanumerical bin labels
     intbins       = kwargs.get('intbins',      True             ) # allow integer binning
+    labeloption   = kwargs.get('labeloption',  None             ) # 'h'=horizontal, 'v'=vertical
     logx          = kwargs.get('logx',         False            )
     logy          = kwargs.get('logy',         False            )
     ymargin       = kwargs.get('ymargin',      None             ) or (1.3 if logy else 1.2) # margin between hist maximum and plot's top
@@ -578,7 +583,8 @@ class Plot(object):
         LOG.warning("Plot.setaxes: len(binlabels)=%d < %d=nbins"%(len(binlabels),nbins))
       for i, binlabel in zip(range(1,nbins+1),binlabels):
         frame.GetXaxis().SetBinLabel(i,binlabel)
-      #frame.GetXaxis().LabelsOption('h')
+      if labeloption: # https://root.cern.ch/doc/master/classTAxis.html#a05dd3c5b4c3a1e32213544e35a33597c
+        frame.GetXaxis().LabelsOption(labeloption) # 'h'=horizontal, 'v'=vertical
     
     # X axis
     frame.GetXaxis().SetTitleSize(xtitlesize)
@@ -857,8 +863,8 @@ class Plot(object):
     Values less than 0, or larger than 1, will put the text outside the frame.
     """
     verbosity  = LOG.getverbosity(self,kwargs)
-    position   = kwargs.get('pos',      'topleft' )
-    position   = kwargs.get('position', position  ) #.lower()
+    position   = kwargs.get('pos',      None )
+    position   = kwargs.get('position', position  ) or 'topleft' #.lower()
     tsize      = kwargs.get('size',     _lsize    ) # text size
     tsize      = kwargs.get('tsize',    tsize     ) # text size
     theight    = kwargs.get('theight',  None      ) or 1
@@ -896,8 +902,10 @@ class Plot(object):
       y = 0.50; align += 2 # middle
     else:
       y = 0.95; align += 3 # top
-    #x1 = float(re.findall(r"x=(\d\.\d+)",position)[0])
-    #y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
+    if 'x='  in position:
+      x = float(re.findall(r"x=(\d\.\d+)",position)[0])
+    if 'y='  in position:
+      y = float(re.findall(r"y=(\d\.\d+)",position)[0])
     if xuser!=None: x = xuser
     if yuser!=None: y = yuser
     if align_user!=None: align = align_user

@@ -6,7 +6,7 @@
 #   https://twiki.cern.ch/twiki/bin/view/CMS/StatComWideBins
 #   https://twiki.cern.ch/twiki/bin/view/CMS/DataMCComparison
 from TauFW.Plotter.plot.Plot import *
-from TauFW.Plotter.plot.Plot import _tsize
+from TauFW.Plotter.plot.Plot import _tsize, _lsize
 
 
 class Stack(Plot):
@@ -76,8 +76,11 @@ class Stack(Plot):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
+    labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
     xtitleoffset = kwargs.get('xtitleoffset', 1.0             )*bmargin
+    xlabelsize   = kwargs.get('xlabelsize',   _lsize          ) # x label size
+    ylabelsize   = kwargs.get('ylabelsize',   _lsize          ) # y label size
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
@@ -197,9 +200,9 @@ class Stack(Plot):
       self.errband.Draw('E2 SAME')
     
     # AXES
-    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
-                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,
-                 binlabels=binlabels,ymargin=ymargin,logyrange=logyrange,main=ratio,grid=grid,latex=latex)
+    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,
+                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
+                 binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,grid=grid,latex=latex)
     
     # RATIO
     if ratio:
@@ -208,8 +211,9 @@ class Stack(Plot):
       histnums   = [self.datahist]+self.sighists
       self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,errorX=errorX,option=roption)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
-      self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,binlabels=binlabels,center=True,nydiv=506,
-                   rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,xtitleoffset=xtitleoffset,grid=grid,latex=latex)
+      self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,center=True,nydiv=506,
+                   binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
+                   rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,grid=grid,latex=latex)
       for line in self.lines:
         if line.pad==2:
           line.Draw("LSAME")

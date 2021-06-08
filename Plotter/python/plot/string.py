@@ -86,6 +86,8 @@ def makelatex(string,**kwargs):
     string = '+'.join(makelatex(s,**kwargs) for s in string.split('+'))
   else:
     strlow = string.lower().strip()
+    if not strlow:
+      return string
     if "p_" in strlow:
       string = re.sub(r"(?<!i)(p)_([^{}()|<>=\ ]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
       GeV    = True
@@ -105,7 +107,7 @@ def makelatex(string,**kwargs):
     if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow): # HT
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
-    if strlow[0]=='s' and 't' in strlow[1:3]: # scalar sum pT
+    if strlow[0]=='s' and 't' in strlow[:3]: # scalar sum pT
       string = re.sub(r"s_?t(?!at)",r"S_{T}",string,flags=re.IGNORECASE)
       string = re.sub(r"met",r"^{MET}",string,flags=re.IGNORECASE)
       GeV    = True

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
 import os
-from math import sqrt
+from math import sqrt, floor
+from array import array
 from TauFW.common.tools.file import ensuredir, ensureTFile
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs
 from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, TH2, THStack, TGraph, TGraphErrors, TGraphAsymmErrors, Double,\
+from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, TH2, TH1D, TH2D, THStack, TGraph, TGraphErrors, TGraphAsymmErrors, Double,\
                  kSolid, kDashed, kDotted, kBlack, kWhite
 #moddir = os.path.dirname(__file__)
 gROOT.SetBatch(True)
@@ -30,8 +31,9 @@ def normalize(*hists,**kwargs):
       LOG.warning("norm: Could not normalize; integral = 0!")
   
 
-def getframe(pad,hist,xmin=None,xmax=None):
+def getframe(pad,hist,xmin=None,xmax=None,**kwargs):
   """Help function to get frame."""
+  verbosity = LOG.getverbosity(kwargs)
   garbage = [ ]
   if isinstance(hist,THStack):
     hist = hist.GetStack().Last()
@@ -40,7 +42,11 @@ def getframe(pad,hist,xmin=None,xmax=None):
     garbage.append(hist)
   xmin_ = hist.GetXaxis().GetXmin() if not xmin and xmin!=0 else xmin
   xmax_ = hist.GetXaxis().GetXmax() if not xmax and xmax!=0 else xmax
-  frame = pad.DrawFrame(xmin_,hist.GetMinimum(),xmax_,hist.GetMaximum())
+  frame = pad.DrawFrame(xmin_,hist.GetMinimum(),xmax_,hist.GetMaximum()) # 1000,xmin,xmax
+  if hist not in garbage: #not hist.GetXaxis().IsVariableBinSize() # create identical binning
+    xbins = resetbinning(hist.GetXaxis(),xmin,xmax,variable=True,verb=verbosity)
+    LOG.verb("getframe: Resetting binning of frame: %r"%(xbins,),verbosity,2)
+    frame.SetBins(*xbins) # reset binning
   close(garbage)
   return frame
   
@@ -534,4 +540,110 @@ def addoverflow(*hists,**kwargs):
         hist.SetBinContent(nbins+1,0) # reset
         hist.SetBinError(nbins+1,0)
   return hists
+  
+
+def resetedges(oldedges,xmin=None,xmax=None,**kwargs):
+  """Reset the range a list of bin edges."""
+  newedges = list(oldedges)[:]
+  if xmin!=None:
+    LOG.insist(xmin<newedges[-1],"resetedges: xmin=%s >= last bin %s"%(xmin,newedges[-1]))
+    for i, xlow in enumerate(newedges):
+      if xmin<=xlow:
+        #if i==0: i += 1 # reset lowest edge
+        if xmin==xlow: i += 1
+        newedges = [xmin]+newedges[i:]
+        break
+  if xmax!=None:
+    LOG.insist(xmax>newedges[0],"resetedges: xmax=%s <= last bin %s"%(xmax,newedges[0]))
+    for i, xup in enumerate(reversed(newedges)):
+      if xmax>=xup:
+        #if i==0: i += 1 # reset last edge
+        if xmax==xup: i += 1
+        newedges = newedges[:len(newedges)-i]+[xmax]
+        break
+  return newedges
+  
+
+def resetbinning(axis,xmin=None,xmax=None,variable=False,**kwargs):
+  """Reset the range a list of bin edges for a given TAxis."""
+  verbosity = LOG.getverbosity(kwargs)
+  if axis.IsVariableBinSize():
+    oldbins = (axis.GetNbins(),list(axis.GetXbins()))
+    edges = resetedges(axis.GetXbins(),xmin,xmax)
+    xbins = (len(edges)-1,array('d',edges))
+  else: # constant width
+    nbins = axis.GetNbins()
+    xmin_, xmax_ = axis.GetXmin(), axis.GetXmax()
+    oldbins = (nbins,xmin_,xmax_)
+    width = (xmax_-xmin_)/nbins # original width
+    xmin = xmin_ if xmin==None else xmin
+    xmax = xmax_ if xmax==None else xmax
+    if not variable and (xmax_-xmin)%width==0 and (xmax-xmin_)%width==0: # bin edges align
+      nbins = (xmax-xmin)/width # new number of bins
+      xbins = (nbins,xmin,xmax)
+    else: # bin edges do not align; create a variable binning
+      edges = [xmin_+width*i for i in range(0,nbins+1)] # original bin edges
+      edges = resetedges(edges,xmin,xmax) # reset range
+      xbins = (len(edges)-1,array('d',edges))
+  LOG.verb("resetbinning: axis=%r, xbins=%r -> %r"%(axis,oldbins,xbins),verbosity,1)
+  return xbins
+  
+
+def resetrange(oldhist,xmin=None,xmax=None,ymin=None,ymax=None,**kwargs):
+  """Reset the range of a TH1 histogram and return new histogram. Useful to to draw a logarithmic
+  plot, if lowest edge is 0, and xmin does not align with a bin edge."""
+  verbosity = LOG.getverbosity(kwargs)
+  LOG.verbose("setrange: xmin=%s, xmax=%s, %r"%(xmin,xmax,oldhist),verbosity,2)
+  hname = "%s_resetrange"%(oldhist.GetName())
+  def getbincenter(axis,ibin,amin=None,amax=None):
+    """Help function to get bin center."""
+    alow = axis.GetBinLowEdge(ibin)
+    aup  = axis.GetBinUpEdge(ibin)
+    if amin!=None and alow<amin<aup:
+      aval = (amin+aup)/2. # make sure to find the right bin
+    elif amax!=None and alow<amax<aup:
+      aval = (amax+alow)/2. # make sure to find the right bin
+    else:
+      aval = axis.GetBinCenter(ibin)
+    return aval
+  if isinstance(oldhist,TH2):
+    xbins = resetbinning(oldhist.GetXaxis(),xmin,xmax,verb=verbosity)
+    ybins = resetbinning(oldhist.GetYaxis(),ymin,ymax,verb=verbosity)
+    bins = xbins+ybins
+    newhist = TH2D(hname,hname,*bins)
+    if verbosity>=1:
+      print ">>> resetrange: (nxbins,xmin,xmax) = (%s,%s,%s) -> (%s,%s,%s)"%(
+        oldhist.GetXaxis().GetNbins(),oldhist.GetXaxis().GetXmin(),oldhist.GetXaxis().GetXmax(),
+        newhist.GetXaxis().GetNbins(),newhist.GetXaxis().GetXmin(),newhist.GetXaxis().GetXmax())
+      print ">>> resetrange: (nybins,ymin,ymax) = (%s,%s,%s) -> (%s,%s,%s)"%(
+        oldhist.GetYaxis().GetNbins(),oldhist.GetYaxis().GetXmin(),oldhist.GetYaxis().GetXmax(),
+        newhist.GetYaxis().GetNbins(),newhist.GetYaxis().GetXmin(),newhist.GetYaxis().GetXmax())
+    for iyold in range(0,oldhist.GetYaxis().GetNbins()+2):
+      for ixold in range(0,oldhist.GetXaxis().GetNbins()+2):
+        xval  = getbincenter(oldhist.GetXaxis(),ixold,xmin,xmax)
+        yval  = getbincenter(oldhist.GetYaxis(),iyold,ymin,ymax)
+        ixnew = newhist.GetXaxis().FindBin(xval)
+        iynew = newhist.GetYaxis().FindBin(yval)
+        zval  = oldhist.GetBinContent(ixold,iyold)
+        zerr  = oldhist.GetBinError(ixold,iyold)
+        newhist.SetBinContent(ixnew,iynew,zval)
+        newhist.SetBinError(ixnew,iynew,zerr)
+        LOG.verb("resetrange: (x,y)=(%7.2f,%7.2f), (ix,iy)=(%2s,%2s) -> (%2s,%2s): %8.2f +- %7.2f"%(
+          xval,yval,ixold,iyold,ixnew,iynew,zval,zerr),verbosity,2)
+  else:
+    xbins = resetbinning(oldhist.GetYaxis(),xmin,xmax,verb=verbosity)
+    newhist = TH1D(hname,hname,*xbins)
+    LOG.verb("resetrange: (nxbins,xmin,xmax) = (%s,%s,%s) -> (%s,%s,%s)"%(
+      oldhist.GetXaxis().GetNbins(),oldhist.GetXaxis().GetXmin(),oldhist.GetXaxis().GetXmax(),
+      newhist.GetXaxis().GetNbins(),newhist.GetXaxis().GetXmin(),newhist.GetXaxis().GetXmax()),verbosity,1)
+    for ixold in range(0,oldhist.GetXaxis().GetNbins()+2):
+      xval  = getbincenter(oldhist.GetXaxis(),ixold,xmin,xmax)
+      ixnew = newhist.GetXaxis().FindBin(xval)
+      zval  = oldhist.GetBinContent(ixold)
+      zerr  = oldhist.GetBinError(ixold)
+      newhist.SetBinContent(ixnew,zval)
+      newhist.SetBinError(ixnew,zerr)
+      LOG.verb("resetrange: x=%7.2f, ix=%2s -> %2s: %8.2f +- %7.2f"%(
+        xval,ixold,ixnew,zval,zerr),verbosity,2)
+  return newhist
   
