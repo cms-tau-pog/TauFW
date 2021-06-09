@@ -6,7 +6,7 @@ from collections import OrderedDict
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureinit, getline
-from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key, lreplace
+from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key, lreplace, rreplace
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import getmodule, ensuremodule
 from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples, chunkify_by_evts, evtsplitexp
@@ -324,7 +324,7 @@ def main_link(args):
       LOG.insist(all('=' in o for o in parts[1:]),"All extra module options should be of format KEY=VALUE!")
       if 'python/analysis/' in module: # useful for tab completion
         module = module.split('python/analysis/')[-1].replace('/','.')
-      module = module.rstrip('.py')
+      module = rreplace(module,'.py')
       path   = os.path.join('python/analysis/','/'.join(module.split('.')[:-1]))
       ensureinit(path,by="pico.py")
       ensuremodule(module)
