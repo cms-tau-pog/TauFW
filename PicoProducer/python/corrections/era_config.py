@@ -13,12 +13,22 @@ def getjson(era,dtype='data'):
   json = None
   year = getyear(era)
   if dtype=='data':
-    if year==2016:
-      json = 'Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
-    elif year==2017:
-      json = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+    if 'UL' in era:
+      if year==2016:
+        json = 'Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'
+      elif year==2017:
+        json = 'Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt'
+      elif year==2018:
+        json = 'Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'
     else:
-      json = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
+      if year==2016:
+        json = 'Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
+      elif year==2017:
+        json = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+      elif year==2018:
+        json = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
+      print "Warning! Using outdated certified run JSON file %s for era %s... Please move to UltraLegacy (UL)!"%(json,era)
+    assert json!=None, "getjson: Did not find certified run JSON for era %r, year %r"%(era,year)
   json = ensurefile(datadir,'json',str(year),json)
   return json
   
