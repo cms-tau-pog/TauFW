@@ -1,11 +1,25 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (January 2019)
-# https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis
-# https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2018Analysis
-# https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#PileupInformation
+# Description: Create PU profiles for data & MC
+# Instructions
+#   Create pilup histograms for as many MC samples as possible
+#   pico.py channel pileup PileUp # link channel to module
+#   pico.py submit -c pileup -y UL2016 --dtype mc
+#   pico.py hadd -c pileup -y UL2016 --dtype mc
+#   ./getPileupProfiles.py -y UL2016 -c pileup
+# Sources:
+#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2016Analysis
+#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis
+#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2018Analysis
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2016preVFPAnalysis
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2016postVFPAnalysis
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2017Analysis
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2018Analysis
+#   https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#PileupInformation
 import os, sys, re, shutil, json
 from argparse import ArgumentParser
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+from filterRunsJSON import getJSON, getRuns, cleanPeriods, getPeriodRunNumbers, filterJSONByRunNumberRange
 from TauFW.common.tools.file import ensuredir, ensureTFile, gethist
 from TauFW.common.tools.utils import repkey, getyear
 from TauFW.PicoProducer import datadir
@@ -19,11 +33,11 @@ linecolors = [ kRed+1, kAzure+5, kGreen+2, kOrange+1, kMagenta-4, kYellow+1,
                kRed-9, kAzure-4, kGreen-2, kOrange+6, kMagenta+3, kYellow+2, ]
 argv = sys.argv
 description = '''This script makes pileup profiles for MC and data.'''
-parser = ArgumentParser(prog="pileup",description=description,epilog="Succes!")
+parser = ArgumentParser(prog="pileup",description=description,epilog="Good luck!")
 parser.add_argument('-y', '-e', '--era', dest='eras', nargs='+',
                     metavar='ERA',       help="select era" )
-parser.add_argument('-c', '--channel',   dest='channel', default='mutau',
-                                         help="select channel" )
+parser.add_argument('-c', '--channel',   dest='channel', default='pileup',
+                                         help="select channel for which MC pile up distributions were made" )
 parser.add_argument('-t', '--type',      dest='types', choices=['data','mc','flat'], type=str, nargs='+', default=['data','mc'],
                                          help="make profile for data and/or MC" )
 parser.add_argument('-P', '--period',    dest='periods', type=str, nargs='+', default=[ ],
@@ -110,29 +124,54 @@ def getGenProfile(outfname,era):
   """Create generator pileup profile."""
   print ">>> getGenProfile(%s):"%(era)
   if era=='2016':
-    bins = [
+    if 'UL' in era:
+      # https://github.com/cms-sw/cmssw/blob/CMSSW_10_6_X/SimGeneral/MixingModule/python/mix_2016_25ns_UltraLegacy_PoissonOOTPU_cfi.py
+      bins = [
+        1.00402360149e-05, 5.76498797172e-05, 7.37891400294e-05, 0.000110932895295, 0.000158857714773,
+        0.000368637432599, 0.000893114107873, 0.00189700774575, 0.00358880167437, 0.00636052573486,
+        0.0104173961179, 0.0158122597405, 0.0223785660712, 0.0299186888073, 0.0380275944896,
+        0.0454313901624, 0.0511181088317, 0.0547434577348, 0.0567906239028, 0.0577145461461,
+        0.0578176902735, 0.0571251566494, 0.0555456541498, 0.053134383488, 0.0501519041462,
+        0.0466815838899, 0.0429244592524, 0.0389566776898, 0.0348507152776, 0.0307356862528,
+        0.0267712092206, 0.0229720184534, 0.0193388653099, 0.0159602510813, 0.0129310510552,
+        0.0102888654183, 0.00798782770975, 0.00606651703058, 0.00447820948367, 0.00321589786478,
+        0.0022450422045, 0.00151447388514, 0.000981183695515, 0.000609670479759, 0.000362193408119,
+        0.000211572646801, 0.000119152364744, 6.49133515399e-05, 3.57795801581e-05, 1.99043569043e-05,
+        1.13639319832e-05, 6.49624103579e-06, 3.96626216416e-06, 2.37910222874e-06, 1.50997403362e-06,
+        1.09816650247e-06, 7.31298519122e-07, 6.10398791529e-07, 3.74845774388e-07, 2.65177281359e-07,
+        2.01923536742e-07, 1.39347583555e-07, 8.32600052913e-08, 6.04932421298e-08, 6.52536630583e-08,
+        5.90574603808e-08, 2.29162474068e-08, 1.97294602668e-08, 1.7731096903e-08, 3.57547932012e-09,
+        1.35039815662e-09, 8.50071242076e-09, 5.0279187473e-09, 4.93736669066e-10, 8.13919708923e-10,
+        5.62778926097e-09, 5.15140589469e-10, 8.21676746568e-10, 0.0, 1.49166873577e-09,
+        8.43517992503e-09, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0
+      ]
+    else:
       # https://github.com/cms-sw/cmssw/blob/CMSSW_9_4_X/SimGeneral/MixingModule/python/mix_2016_25ns_Moriond17MC_PoissonOOTPU_cfi.py
-      1.78653e-05, 2.56602e-05, 5.27857e-05, 8.88954e-05, 0.000109362,
-      0.000140973, 0.000240998, 0.00071209,  0.00130121,  0.00245255, 
-      0.00502589,  0.00919534,  0.0146697,   0.0204126,   0.0267586,
-      0.0337697,   0.0401478,   0.0450159,   0.0490577,   0.0524855,
-      0.0548159,   0.0559937,   0.0554468,   0.0537687,   0.0512055,
-      0.0476713,   0.0435312,   0.0393107,   0.0349812,   0.0307413,
-      0.0272425,   0.0237115,   0.0208329,   0.0182459,   0.0160712,
-      0.0142498,   0.012804,    0.011571,    0.010547,    0.00959489,
-      0.00891718,  0.00829292,  0.0076195,   0.0069806,   0.0062025,
-      0.00546581,  0.00484127,  0.00407168,  0.00337681,  0.00269893,
-      0.00212473,  0.00160208,  0.00117884,  0.000859662, 0.000569085,
-      0.000365431, 0.000243565, 0.00015688,  9.88128e-05, 6.53783e-05,
-      3.73924e-05, 2.61382e-05, 2.0307e-05,  1.73032e-05, 1.435e-05,
-      1.36486e-05, 1.35555e-05, 1.37491e-05, 1.34255e-05, 1.33987e-05,
-      1.34061e-05, 1.34211e-05, 1.34177e-05, 1.32959e-05, 1.33287e-05,
-      0.0, 0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0, 0.0,
-    ]
+      bins = [
+        1.78653e-05, 2.56602e-05, 5.27857e-05, 8.88954e-05, 0.000109362,
+        0.000140973, 0.000240998, 0.00071209,  0.00130121,  0.00245255, 
+        0.00502589,  0.00919534,  0.0146697,   0.0204126,   0.0267586,
+        0.0337697,   0.0401478,   0.0450159,   0.0490577,   0.0524855,
+        0.0548159,   0.0559937,   0.0554468,   0.0537687,   0.0512055,
+        0.0476713,   0.0435312,   0.0393107,   0.0349812,   0.0307413,
+        0.0272425,   0.0237115,   0.0208329,   0.0182459,   0.0160712,
+        0.0142498,   0.012804,    0.011571,    0.010547,    0.00959489,
+        0.00891718,  0.00829292,  0.0076195,   0.0069806,   0.0062025,
+        0.00546581,  0.00484127,  0.00407168,  0.00337681,  0.00269893,
+        0.00212473,  0.00160208,  0.00117884,  0.000859662, 0.000569085,
+        0.000365431, 0.000243565, 0.00015688,  9.88128e-05, 6.53783e-05,
+        3.73924e-05, 2.61382e-05, 2.0307e-05,  1.73032e-05, 1.435e-05,
+        1.36486e-05, 1.35555e-05, 1.37491e-05, 1.34255e-05, 1.33987e-05,
+        1.34061e-05, 1.34211e-05, 1.34177e-05, 1.32959e-05, 1.33287e-05,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+      ]
   elif era=='2017':
     # https://github.com/cms-sw/cmssw/blob/CMSSW_9_4_X/SimGeneral/MixingModule/python/mix_2017_25ns_WinterMC_PUScenarioV1_PoissonOOTPU_cfi.py
     bins = [
@@ -225,6 +264,7 @@ def compareMCProfiles(samples,channel,era,tag=""):
     htitle += " %s pre-mixing"%("old" if "old" in tag else "new")
   
   # GET histograms
+  assert samples, "compareMCProfiles: Did not find any samples..."
   for sample, fname in samples:
     print ">>>   %s"%(fname)
     file, hist = gethist(fname,hname,retfile=True)
@@ -297,68 +337,6 @@ def compareDataMCProfiles(datahist,mchist,era,minbias,tag="",rmin=0.75,rmax=1.25
   deletehist(datahist) # clean memory
   
 
-def filterJSONByRunNumberRange(jsoninname,jsonoutname,start,end,verb=0):
-  """Split a given JSON file by start and end run number."""
-  print ">>> filterJSONByRunNumberRange: %s %s - %s"%(jsonoutname,start,end)
-  
-  # READ JSON IN
-  with open(jsoninname,'r') as jsonin:
-    data = json.load(jsonin)
-  
-  # FILTER run number range
-  nkeep = 0
-  ndrop = 0
-  for element in sorted(data.keys()):
-    if element.isdigit():
-      runnumber = int(element)
-      if runnumber<start or runnumber>end:
-        ndrop += 1
-        if verb>=1: print "  dropping %s"%runnumber
-        del data[element]
-      else:
-        nkeep += 1
-        if verb>=1: print "  keeping %s"%runnumber
-    else:
-      print "Warning! filterJSONByRunNumberRange: element is not an integer (run number): '%s'"%element
-  
-  # WRITE JSON OUT
-  with open(jsonoutname,'w') as jsonout:
-    data = json.dump(data,jsonout,sort_keys=True)
-  
-  # SUMMARY
-  print ">>>   saved %s / %s run numbers"%(nkeep,nkeep+ndrop)
-  
-  return jsonoutname
-  
-
-def cleanEras(eras):
-  """Clean up eras."""
-  if not eras: return eras
-  for i, era in enumerate(eras):
-    era = era.upper()
-    assert all(s in 'ABCDEFGH' for s in era), "Did not recognize era '%s'!"%era
-    eras[i] = ''.join(sorted(era))
-  return eras
-  
-
-def getPeriodRunNumbers(era,datasets):
-  """Get runnumbers for an period (e.g. 'B', 'BCD' or 'GH')."""
-  start  = -1
-  end    = -1
-  for set in era:
-    assert set in datasets, "Dataset '%s' not in list %s"%(set,datasets)
-    setstart, setend = datasets[set]
-    if start<0 or end<0:
-      start, end = setstart, setend
-      continue
-    if setstart<start:
-      start = setstart
-    if setend>end:
-      end = setend
-  assert start>0 and end>0, "Invalid runnumbers %s to %s"%(start,end)
-  return start, end
-
-
 def copy2local(filename):
   """Copy file to current directory, and return new name."""
   fileold = filename
@@ -374,81 +352,64 @@ def copy2local(filename):
 def main():
   
   eras      = args.eras
-  periods   = cleanEras(args.periods)
+  periods   = cleanPeriods(args.periods) 
   channel   = args.channel
   types     = args.types
   verbosity = args.verbosity
   minbiases = [ 69.2 ] if periods else [ 69.2, 80.0, 69.2*1.046, 69.2*0.954 ]
+  
+  fname_ = "$PICODIR/$SAMPLE_$CHANNEL.root" # sample file name
+  if 'mc' in types and '$PICODIR' in fname_:
+    import TauFW.PicoProducer.tools.config as GLOB
+    CONFIG = GLOB.getconfig(verb=verbosity)
+    fname_ = repkey(fname_,PICODIR=CONFIG['picodir'])
   
   for era in args.eras:
     year       = getyear(era)
     mcfilename = "MC_PileUp_%s.root"%(era)
     jsondir    = os.path.join(datadir,'json',str(year))
     pileup     = os.path.join(jsondir,"pileup_latest.txt")
+    jname      = getJSON(era)
     CMSStyle.setCMSEra(year)
+    samples_bug = [ ] # buggy samples in (pre-UL) 2017 with "old pmx" library
+    samples_fix = [ ] # fixed samples in (pre-UL) 2017 with "new pmx" library
+    samples = [ # default set of samples
+      ( 'DY', "DYJetsToMuTauh_M-50"   ),
+      ( 'DY', "DYJetsToLL_M-50"       ),
+      ( 'DY', "DY4JetsToLL_M-50"      ),
+      ( 'DY', "DY3JetsToLL_M-50"      ),
+      ( 'DY', "DY2JetsToLL_M-50"      ),
+      ( 'DY', "DY1JetsToLL_M-50"      ),
+      ( 'WJ', "WJetsToLNu"            ),
+      ( 'WJ', "W4JetsToLNu"           ),
+      ( 'WJ', "W3JetsToLNu"           ),
+      ( 'WJ', "W2JetsToLNu"           ),
+      ( 'WJ', "W1JetsToLNu"           ),
+      ( 'TT', "TTToHadronic"          ),
+      ( 'TT', "TTTo2L2Nu"             ),
+      ( 'TT', "TTToSemiLeptonic"      ),
+      ( 'ST', "ST_tW_top"             ),
+      ( 'ST', "ST_tW_antitop"         ),
+      ( 'ST', "ST_t-channel_top"      ),
+      ( 'ST', "ST_t-channel_antitop"  ),
+      ( 'VV', "WW"                    ),
+      ( 'VV', "WZ"                    ),
+      ( 'VV', "ZZ"                    ),
+    ]
     if era=='2016':
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis
-      # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt"
-      # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
-      # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt
-      JSON     = os.path.join(jsondir,"Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt")
-      datasets = {
-        'B': (272007,275376),
-        'C': (275657,276283),
-        'D': (276315,276811),
-        'E': (276831,277420),
-        'F': (277772,278808),
-        'G': (278820,280385),
-        'H': (280919,284044),
-      }
       campaign = "Moriond17"
-      samples  = [
-        ( 'TT', "TT",                   ),
-        ( 'DY', "DYJetsToLL_M-10to50",  ),
-        ( 'DY', "DYJetsToLL_M-50",      ),
-        ( 'DY', "DY1JetsToLL_M-50",     ),
-        ( 'DY', "DY2JetsToLL_M-50",     ),
-        ( 'DY', "DY3JetsToLL_M-50",     ),
-        ( 'WJ', "WJetsToLNu",           ),
-        ( 'WJ', "W1JetsToLNu",          ),
-        ( 'WJ', "W2JetsToLNu",          ),
-        ( 'WJ', "W3JetsToLNu",          ),
-        ( 'WJ', "W4JetsToLNu",          ),
-        ( 'ST', "ST_tW_top",            ),
-        ( 'ST', "ST_tW_antitop",        ),
-        ( 'ST', "ST_t-channel_top",     ),
-        ( 'ST', "ST_t-channel_antitop", ),
-        #( 'ST', "ST_s-channel",         ),
-        ( 'VV', "WW",                   ),
-        ( 'VV', "WZ",                   ),
-        ( 'VV', "ZZ",                   ),
-      ]
-    elif '2017' in era:
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis
-      # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
-      # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/pileup_latest.txt
-      JSON     = os.path.join(jsondir,"Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt") 
-      datasets = {
-        'B': (297020,299329),
-        'C': (299337,302029),
-        'D': (302030,303434),
-        'E': (303435,304826),
-        'F': (304911,306462),
-      }
-      samples_bug = [ ]
-      samples_fix = [ ]
-      if 'UL' in era:
+      if 'UL' in era and 'preVFP' in era:
         campaign = "Summer19"
-        samples_fix = [
-          #( 'DY', "DYJetsToLL_M-10to50",  ),
+      elif 'UL' in era:
+        campaign = "Summer19"
+      else:
+        samples  = [
+          ( 'TT', "TT",                   ),
+          ( 'DY', "DYJetsToLL_M-10to50",  ),
           ( 'DY', "DYJetsToLL_M-50",      ),
           ( 'DY', "DY1JetsToLL_M-50",     ),
           ( 'DY', "DY2JetsToLL_M-50",     ),
           ( 'DY', "DY3JetsToLL_M-50",     ),
-          ( 'DY', "DY4JetsToLL_M-50",     ),
-          #( 'TT', "TTTo2L2Nu",            ),
-          ( 'TT', "TTToHadronic",         ),
-          #( 'TT', "TTToSemiLeptonic",     ),
           ( 'WJ', "WJetsToLNu",           ),
           ( 'WJ', "W1JetsToLNu",          ),
           ( 'WJ', "W2JetsToLNu",          ),
@@ -459,18 +420,21 @@ def main():
           ( 'ST', "ST_t-channel_top",     ),
           ( 'ST', "ST_t-channel_antitop", ),
           #( 'ST', "ST_s-channel",         ),
-          #( 'VV', "WW",                   ),
-          #( 'VV', "WZ",                   ),
-          #( 'VV', "ZZ",                   ),
+          ( 'VV', "WW",                   ),
+          ( 'VV', "WZ",                   ),
+          ( 'VV', "ZZ",                   ),
         ]
+    elif '2017' in era:
+      if 'UL' in era:
+        campaign = "Summer19"
       else:
         campaign = "Winter17_V2"
-        samples_bug = [
+        samples_bug = [ # buggy samples in (pre-UL) 2017
           ( 'DY', "DYJetsToLL_M-50",      ),
           ( 'WJ', "W3JetsToLNu",          ),
           ( 'VV', "WZ",                   ),
         ]
-        samples_fix = [
+        samples_fix = [ # fixed samples in (pre-UL) 2017
           ( 'DY', "DYJetsToLL_M-10to50",  ),
           ( 'DY', "DY1JetsToLL_M-50",     ),
           ( 'DY', "DY2JetsToLL_M-50",     ),
@@ -491,52 +455,41 @@ def main():
           ( 'VV', "WW",                   ),
           ( 'VV', "ZZ",                   ),
         ]
-      samples = samples_bug + samples_fix
+        samples = samples_bug + samples_fix
     else:
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2018Analysis
-      # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco
-      # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt
-      JSON     = os.path.join(jsondir,"Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt")
-      datasets = {
-        'A': (315252,316995),
-        'B': (317080,319310),
-        'C': (319337,320065),
-        'D': (320673,325175),
-      }
-      campaign = "Autumn18"
-      samples = [
-        ( 'TT', "TTTo2L2Nu",            ),
-        ( 'TT', "TTToHadronic",         ),
-        ( 'TT', "TTToSemiLeptonic",     ),
-        ( 'DY', "DYJetsToLL_M-10to50",  ),
-        ( 'DY', "DYJetsToLL_M-50",      ),
-        ( 'DY', "DY1JetsToLL_M-50",     ),
-        ( 'DY', "DY2JetsToLL_M-50",     ),
-        ( 'DY', "DY3JetsToLL_M-50",     ),
-        ( 'DY', "DY4JetsToLL_M-50",     ),
-        #( 'WJ', "WJetsToLNu",           ),
-        ( 'WJ', "W1JetsToLNu",          ),
-        ( 'WJ', "W2JetsToLNu",          ),
-        ( 'WJ', "W3JetsToLNu",          ),
-        ( 'WJ', "W4JetsToLNu",          ),
-        ( 'ST', "ST_tW_top",            ),
-        ( 'ST', "ST_tW_antitop",        ),
-        ( 'ST', "ST_t-channel_top",     ),
-        ( 'ST', "ST_t-channel_antitop", ),
-        #( 'ST', "ST_s-channel",         ),
-        ( 'VV', "WW",                   ),
-        ( 'VV', "WZ",                   ),
-        ( 'VV', "ZZ",                   ),
-      ]
+      if 'UL' in era:
+        campaign = "Summer19"
+      else:
+        campaign = "Autumn18"
+        samples = [
+          ( 'TT', "TTTo2L2Nu",            ),
+          ( 'TT', "TTToHadronic",         ),
+          ( 'TT', "TTToSemiLeptonic",     ),
+          ( 'DY', "DYJetsToLL_M-10to50",  ),
+          ( 'DY', "DYJetsToLL_M-50",      ),
+          ( 'DY', "DY1JetsToLL_M-50",     ),
+          ( 'DY', "DY2JetsToLL_M-50",     ),
+          ( 'DY', "DY3JetsToLL_M-50",     ),
+          ( 'DY', "DY4JetsToLL_M-50",     ),
+          #( 'WJ', "WJetsToLNu",           ),
+          ( 'WJ', "W1JetsToLNu",          ),
+          ( 'WJ', "W2JetsToLNu",          ),
+          ( 'WJ', "W3JetsToLNu",          ),
+          ( 'WJ', "W4JetsToLNu",          ),
+          ( 'ST', "ST_tW_top",            ),
+          ( 'ST', "ST_tW_antitop",        ),
+          ( 'ST', "ST_t-channel_top",     ),
+          ( 'ST', "ST_t-channel_antitop", ),
+          #( 'ST', "ST_s-channel",         ),
+          ( 'VV', "WW",                   ),
+          ( 'VV', "WZ",                   ),
+          ( 'VV', "ZZ",                   ),
+        ]
     
     # SAMPLES FILENAMES
-    fname = "$PICODIR/$SAMPLE_$CHANNEL.root"
-    if '$PICODIR' in fname:
-      import TauFW.PicoProducer.tools.config as GLOB
-      CONFIG = GLOB.getconfig(verb=verbosity)
-      fname  = repkey(fname,PICODIR=CONFIG['picodir'])
     for i, (group,sample) in enumerate(samples):
-      fname      = repkey(fname,ERA=era,GROUP=group,SAMPLE=sample,CHANNEL=channel)
+      era_       = era.replace("_postVFP","")
+      fname      = repkey(fname_,ERA=era_,GROUP=group,SAMPLE=sample,CHANNEL=channel)
       samples[i] = (sample,fname)
     if verbosity>=1:
       print ">>> samples = %r"%(samples)
@@ -544,15 +497,11 @@ def main():
     # JSON
     jsons = { }
     if periods:
-      outdir = ensuredir("json")
       for period in periods:
-        start, end = getPeriodRunNumbers(period,datasets)
-        erarun     = "Run%d%s"%(era,period)
-        jsonout    = "json/"+re.sub(r"\d{6}-\d{6}",erarun,JSON.split('/')[-1])
-        filterJSONByRunNumberRange(JSON,jsonout,start,end,verb=verbosity)
+        jsonout = filterJSONByRunNumberRange(jname,era,period=period,outdir='json',verb=verbosity)
         jsons[erarun] = jsonout
     else:
-      jsons[era] = JSON
+      jsons[era] = jname
     
     # DATA
     datahists = { period: [ ] for period in jsons }
@@ -574,6 +523,7 @@ def main():
     
     # MC
     if 'mc' in types:
+      assert samples, "compareMCProfiles: Did not find any samples for %r..."%(era)
       mcfilename = "MC_PileUp_%s.root"%(era)
       #mcfilename = "MC_PileUp_%s_%s.root"%(era,campaign)
       getMCProfile(mcfilename,samples,channel,era)
@@ -583,7 +533,7 @@ def main():
           for minbias, datahist in datahists[era]:
             compareDataMCProfiles(datahist,mchist,era,minbias)
         deletehist(mchist) # clean memory
-      if era=='2017': # also check new/old pmx separately
+      if era=='2017': #and 'UL' not in era # buggy (pre-UL) 2017: also check new/old pmx separately
         mcfilename_bug = mcfilename.replace(".root","_old_pmx.root")
         mcfilename_fix = mcfilename.replace(".root","_new_pmx.root")
         getMCProfile(mcfilename_bug,samples_bug,channel,era)
@@ -608,5 +558,5 @@ def main():
 if __name__ == '__main__':
   print
   main()
-  print ">>> done\n"
+  print ">>> Done!\n"
   

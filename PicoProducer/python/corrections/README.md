@@ -13,18 +13,40 @@ Data for corrections is saved in in [`../../data/`](../../data)
 ## Pileup reweighting
 
 [`PileupTool.py`](PileupTool.py) provides the pileup event weight based on the data and MC profiles in [`data/pileup/`](pileup).
+Please note that the official tools also provide the
+[`puWeightProducer.py`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/common/puWeightProducer.py) module.
 
 The data profile can be computed with the `pileupCalc.py` tool.
 The MC profile can be taken from the distribution of the `Pileup_nTrueInt` variable in nanoAOD, for each MC event:
 ```
     self.out.pileup.Fill(event.Pileup_nTrueInt)
 ```
-and then extracted with [`data/pileup/getPileupProfiles.py`](../../data/pileup/getPileupProfiles.py). Comparisons are shown [here for 2016](https://ineuteli.web.cern.ch/ineuteli/pileup/2016/), [here for 2017](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/) and [here for 2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/).
+and then extracted with [`data/pileup/getPileupProfiles.py`](../../data/pileup/getPileupProfiles.py).
+A simple module, [`PicoProducer/python/analysis/PileUp.py`](../analysis/PileUp.py) is already provided. Run as:
+```
+pico.py channel pileup PileUp # link channel to module
+pico.py submit -c pileup -y UL2016 --dtype mc
+# wait until the jobs are done
+pico.py hadd -c pileup -y UL2016 --dtype mc
+./getPileupProfiles.py -y UL2016 -c pileup
+```
+Comparisons are shown here:
+[2016](https://ineuteli.web.cern.ch/ineuteli/pileup/2016/),
+[2017](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/),
+[2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/),
+[UL2016_preVFP](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2016_preVFP/),
+[UL2016_postVFP](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2016_postVFP/),
+[UL2017](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2017/), and
+[UL2018](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2018/),
 
-Please note that some 2017 samples had a buggy pileup module, and need to be treated separately, see [this](https://hypernews.cern.ch/HyperNews/CMS/get/generators/4060.html?inline=-1) or [this HyperNews post](https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/3128.html).
+Please note that some (pre-UL) 2017 samples had a buggy pileup module, and need to be treated separately,
+see [this](https://hypernews.cern.ch/HyperNews/CMS/get/generators/4060.html?inline=-1) or
+[this HyperNews post](https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/3128.html).
 `PileupTool.py` manually checks for some of these samples with the `hasBuggyPU` help function.
-Also, [`data/pileup/getPileupProfiles.py`](../../data/pileup/getPileupProfiles.py) splits the 2017 MC pileup profiles into those of the buggy (`old_pmx`) and fixed (`new_pmx`) samples.
-You can find out if your favorite samples has a buggy pileup profile by passing its DAS path to [`data/pileup/checkBuggyPileup2017.sh`](../../data/pileup/checkBuggyPileup2017.sh), which makes use of `dasgoclient`:
+Also, [`data/pileup/getPileupProfiles.py`](../../data/pileup/getPileupProfiles.py) splits
+the 2017 MC pileup profiles into those of the buggy (`old_pmx`) and fixed (`new_pmx`) samples.
+You can find out if your favorite samples has a buggy pileup profile by passing its DAS path to
+[`data/pileup/checkBuggyPileup2017.sh`](../../data/pileup/checkBuggyPileup2017.sh), which makes use of `dasgoclient`:
 ```
 ./pileup/checkBuggyPileup2017.sh /DY*JetsToLL_M-50_TuneCP5*mad*/RunIIFall17*/NANOAOD*
 ```

@@ -22,20 +22,30 @@ class PileupWeightTool:
     if era=='2016':
       datafilename = os.path.join(datadir,"Data_PileUp_%s_%s.root"%(era,minbias))
       mcfilename   = os.path.join(datadir,"MC_PileUp_%s_Moriond17.root"%(era))
+    elif 'UL' in era and '2016' in era:
+      if 'preVFP' in era:
+        datafilename = os.path.join(datadir,"Data_PileUp_UL2016_preVFP_%s.root"%(minbias))
+        mcfilename   = os.path.join(datadir,"MC_PileUp_UL2016_preVFP_Summer19.root")
+      else:
+        datafilename = os.path.join(datadir,"Data_PileUp_UL2016_postVFP_%s.root"%(minbias))
+        mcfilename   = os.path.join(datadir,"MC_PileUp_UL2016_postVFP_Summer19.root")
     elif era=='2017':
       tag = ""
-      if buggy or sample:
+      if buggy or sample: # pre-UL 2017 had buggy samples
         buggy = buggy or hasBuggyPU(sample)
         if buggy: tag = "_old_pmx"
         else:     tag = "_new_pmx"
       datafilename = os.path.join(datadir,"Data_PileUp_%s_%s.root"%(era,minbias))
       mcfilename   = os.path.join(datadir,"MC_PileUp_%s_Winter17_V2%s.root"%(era,tag))
-    elif era=='UL2017':
-      datafilename = os.path.join(datadir,"Data_PileUp_%s_%s.root"%(era,minbias))
-      mcfilename   = os.path.join(datadir,"MC_PileUp_%s_Summer19.root"%(era))
+    elif 'UL' in era and '2017' in era:
+      datafilename = os.path.join(datadir,"Data_PileUp_UL2017_%s.root"%(minbias))
+      mcfilename   = os.path.join(datadir,"MC_PileUp_UL2017_Summer19.root")
     elif era=='2018':
       datafilename = os.path.join(datadir,"Data_PileUp_%s_%s.root"%(era,minbias))
       mcfilename   = os.path.join(datadir,"MC_PileUp_%s_Autumn18.root"%(era))
+    elif 'UL' in era and '2018' in era:
+      datafilename = os.path.join(datadir,"Data_PileUp_UL2018_%s.root"%(minbias))
+      mcfilename   = os.path.join(datadir,"MC_PileUp_UL2018_Summer19.root")
     else:
       raise IOError("Did not recognize era %r! You must choose a year from: 2016, 2017, UL2017, or 2018."%(era))
     
