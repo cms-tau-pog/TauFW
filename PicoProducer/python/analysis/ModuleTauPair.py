@@ -67,7 +67,7 @@ class ModuleTauPair(Module):
       self.puTool         = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
       self.btagTool       = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
-        self.zptTool      = ZptCorrectionTool(year=self.year)
+        self.zptTool      = ZptCorrectionTool(era=self.era)
       #if self.dorecoil:
       #  self.recoilTool   = RecoilCorrectionTool(year=self.year)
       #if self.year in [2016,2017]:

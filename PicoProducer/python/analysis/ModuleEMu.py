@@ -38,7 +38,7 @@ class ModuleEMu(ModuleTauPair):
     # CORRECTIONS
     if self.ismc:
       self.muSFs   = MuonSFs(era=self.era)
-      self.eleSFs  = ElectronSFs(year=self.year)
+      self.eleSFs  = ElectronSFs(era=self.era)
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )

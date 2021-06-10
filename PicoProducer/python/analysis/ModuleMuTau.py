@@ -69,12 +69,6 @@ class ModuleMuTau(ModuleTauPair):
     """Process and pre-select events; fill branches and return True if the events passes,
     return False otherwise."""
     sys.stdout.flush()
-    for tau in Collection(event,'Tau'):
-      if tau.decayMode==2:
-        print ">>> FOUND 2!!!!!!!"
-      elif tau.decayMode==5:
-        print ">>> FOUND 5!!!!!!!"
-    return False
     
     ##### NO CUT #####################################
     self.out.cutflow.fill('none')

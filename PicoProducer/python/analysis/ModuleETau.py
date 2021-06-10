@@ -28,7 +28,7 @@ class ModuleETau(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      self.eleSFs  = ElectronSFs(year=self.year) # electron id/iso/trigger SFs
+      self.eleSFs  = ElectronSFs(era=self.era) # electron id/iso/trigger SFs
       self.tesTool = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
       self.fesTool = TauFESTool(tauSFVersion[self.year]) # e -> tau fake energy scale
       self.tauSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
