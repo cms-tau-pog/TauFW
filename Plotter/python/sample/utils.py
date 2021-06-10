@@ -15,11 +15,11 @@ era  = None # data period: 2016, 2017, 2018, ...
 lumi = -1   # integrated luminosity [fb-1]
 cme  = 13   # center-of-mass energy [TeV]
 lumi_dict      = {
-  '7':      5.1,    '2016': 35.9,
-  '8':      19.7,   '2017': 41.5,
-  '2012':   19.7,   '2018': 59.7,
-  'Run2':   137.1,
-  'Phase2': 3000,
+  '7':      5.1,    '2016': 35.9, 'UL2016_preVFP': 19.28, # actually 19.5, update after reprocessing with new JSON
+  '8':      19.7,   '2017': 41.5, 'UL2016_postVFP': 16.61, # actually 16.8, update after reprocessing with new JSON
+  '2012':   19.7,   '2018': 59.7, 'UL2016': 35.9, # actually 19.5+16.8=36.3
+  'Run2':   137.1,                'UL2017': 41.5, # actually 41.48
+  'Phase2': 3000,                 'UL2018': 59.7, # actually 59.83
 }
 xsecs_nlo = { # NLO cross sections to compute k-factor for stitching
   'DYJetsToLL_M-50':     3*2025.74,
@@ -108,17 +108,20 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
 def setera(era_,lumi_=None,**kwargs):
   """Set global era and integrated luminosity for Samples and CMSStyle."""
   global era, lumi, cme
-  era   = str(era_).replace('UL',"")
+  era   = str(era_) #.replace('UL',"")
   lumi  = kwargs.get('lumi',lumi_)
   if lumi==None:
     lumi = lumi_dict.get(era,None)
+    if lumi==None: # try again with year
+      year  = str(getyear(era_))
+      lumi  = lumi_dict.get(year,None)
   else:
     kwargs['lumi'] = lumi
   cme  = kwargs.get('cme', 13 )
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   if not lumi or lumi<0:
-    LOG.warning("Could not set luminosity for era %r... Returning %s"%(era,lumi))
+    LOG.warning("setera: Could not set luminosity for era %r... Returning %s"%(era,lumi))
   return lumi
   
 

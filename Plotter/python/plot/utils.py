@@ -543,7 +543,7 @@ def addoverflow(*hists,**kwargs):
   
 
 def capoff(hist,ymin=None,ymax=None,verb=0):
-  """Ensure maximum & minimum value yvar. Keep error."""
+  """Ensure bin content is within maximum & minimum value. Keep error."""
   ntot, nmin, nmax = 0, 0, 0
   for i in range(0,hist.GetNcells()+2):
     ntot += 1
@@ -560,7 +560,7 @@ def capoff(hist,ymin=None,ymax=None,verb=0):
     hist.SetBinContent(i,yval)
     hist.SetBinError(i,yerr)
   if verb>=2:
-    print ">>> capoff: Found %d/%d values > %s, and %d/%d values < %s for histogram %s"%(nmax,ntot,vmax,nmin,ntot,ymin,hist)
+    print ">>> capoff: Found %d/%d values < %s, and %d/%d values > %s for histogram %s"%(nmin,ntot,ymin,nmax,ntot,ymax,hist)
   return nmin+nmax # number of reset bins
   
 

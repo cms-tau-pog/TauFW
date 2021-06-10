@@ -6,6 +6,7 @@
 #    https://ghm.web.cern.ch/ghm/plots/
 #    https://twiki.cern.ch/twiki/bin/view/CMSPublic/LumiPublicResults#Multi_year_plots
 from ROOT import TStyle, TPad, TLatex, TASImage, kBlack, kWhite, TGaxis
+import re
 
 cmsText        = "CMS"
 cmsTextFont    = 61
@@ -23,11 +24,11 @@ relExtraDY     = 1.2
 drawLogo       = False
 outOfFrame     = False
 lumi_dict      = {
-  '7':      5.1,    '2016': 35.9,
-  '8':      19.7,   '2017': 41.5,
-  '2012':   19.7,   '2018': 59.7,
-  'Run2':   137.1,
-  'Phase2': 3000,
+  '7':      5.1,    '2016': 35.9, 'UL2016_preVFP':  19.28, # actually 19.5, update after reprocessing with new JSON
+  '8':      19.7,   '2017': 41.5, 'UL2016_postVFP': 16.61, # actually 16.8, update after reprocessing with new JSON
+  '2012':   19.7,   '2018': 59.7, 'UL2016': 35.9, # actually 19.5+16.8=36.3
+  'Run2':   137.1,                'UL2017': 41.5, # actually 41.48
+  'Phase2': 3000,                 'UL2018': 59.7, # actually 59.83
 }
 cme_dict       = {
   '7':      7,   '2016': 13,
@@ -42,7 +43,20 @@ era_dict       = {
   '13':     "Run 2",    'Run3': "Run 3",
   'Phase1': "Phase I",
   'Phase2': "Phase II",
+  #'UL2016_preVFP': "2016 (pre VFP)",
+  #'UL2016_postVFP':  "2016 (post VFP)",
+  #'UL2016': "2016",
+  #'UL2017': "2016",
+  #'UL2018': "2016",
 }
+
+
+def getyear(era):
+  match = re.search(r"(?<!\d)(20\d{2})(?!\d)",era)
+  if match:
+    return match.group(1)
+  return era
+  
 
 def setCMSEra(*eras,**kwargs):
   global cmsText, extraText, lumiText
@@ -53,9 +67,14 @@ def setCMSEra(*eras,**kwargs):
   strings   = [ ]
   for era in eras:
     era     = str(era)
+    year    = getyear(era)
     string  = era_dict.get(era,   era   )
     lumi    = lumi_dict.get(era,  False )
     cme     = cme_dict.get(era,   False )
+    if not lumi: # try again with year
+      lumi  = lumi_dict.get(year, lumi  )
+    if not cme: # try again with year
+      cme   = cme_dict.get(year,  cme   )
     lumi    = kwargs.get('lumi',  lumi  )
     cme     = kwargs.get('cme',   cme   )
     if lumi:

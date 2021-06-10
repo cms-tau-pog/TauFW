@@ -27,7 +27,7 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DYJetsToMuTauh_M-50',
     "/DYJetsToTauTauToMuTauh_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
+    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True",channels=["skim*",'mutau*']),
   
   # TTBAR
   M('TT','TTTo2L2Nu',

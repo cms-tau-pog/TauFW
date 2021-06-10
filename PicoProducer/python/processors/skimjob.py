@@ -65,7 +65,11 @@ if dtype==None: # guess type
   else:
     dtype = 'mc'
 
-MET = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
+if 'UL' in era:
+  MET = 'MET'
+  era = era.replace("_postVFP","") # remove for getjmecalib
+else:
+  MET = 'METFixEE2017' if ('2017' in era) else 'MET'
 if dtype=='data':
   period = getperiod(infiles[0],year,dtype=dtype) # gets data run era (e.g. 'B' from '2016B') from filename
   assert all(str(year) in f for f in infiles), "Not all files names are of the same year '%s': %s"%(year,infiles)

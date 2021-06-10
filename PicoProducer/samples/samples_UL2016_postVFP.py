@@ -1,8 +1,8 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-storage  = "/eos/cms/store/group/phys_tau/TauFW/nano/UL2016/$DAS"
+storage  = "/eos/cms/store/group/phys_tau/TauFW/nano/UL2016_postVFP/$DAS"
 url      = None #"root://eosuser.cern.ch/"
-filelist = None #"samples/files/UL2016/$SAMPLE.txt"
+filelist = None #"samples/files/UL2016_postVFP/$SAMPLE.txt"
 samples  = [
   
   # DRELL-YAN
@@ -26,7 +26,7 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DYJetsToMuTauh_M-50',
     "/DYJetsToTauTauToMuTauh_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
+    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True",channels=["skim*",'mutau*']),
   
   # TTBAR
   M('TT','TTTo2L2Nu',
