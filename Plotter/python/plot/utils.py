@@ -542,6 +542,28 @@ def addoverflow(*hists,**kwargs):
   return hists
   
 
+def capoff(hist,ymin=None,ymax=None,verb=0):
+  """Ensure maximum & minimum value yvar. Keep error."""
+  ntot, nmin, nmax = 0, 0, 0
+  for i in range(0,hist.GetNcells()+2):
+    ntot += 1
+    yval = hist.GetBinContent(i)
+    if ymax and yval>ymax:
+      yval = ymax # cap off
+      nmax += 1
+    elif ymin and yval<ymin:
+      yval = ymin # cap off
+      nmin += 1
+    else:
+      continue
+    yerr = hist.GetBinError(i) # keep error
+    hist.SetBinContent(i,yval)
+    hist.SetBinError(i,yerr)
+  if verb>=2:
+    print ">>> capoff: Found %d/%d values > %s, and %d/%d values < %s for histogram %s"%(nmax,ntot,vmax,nmin,ntot,ymin,hist)
+  return nmin+nmax # number of reset bins
+  
+
 def resetedges(oldedges,xmin=None,xmax=None,**kwargs):
   """Reset the range a list of bin edges."""
   newedges = list(oldedges)[:]

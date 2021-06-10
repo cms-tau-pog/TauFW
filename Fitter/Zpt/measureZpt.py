@@ -3,7 +3,7 @@
 # Description: Script to measure Z pt reweighting based on dimuon events
 #   ./measureZpt.py -y 2018
 from utils import *
-from TauFW.Plotter.plot.Plot2D import Plot2D, addoverflow
+from TauFW.Plotter.plot.Plot2D import Plot2D, addoverflow, capoff
 from TauFW.common.tools.math import scalevec
 gSystem.Load('RooUnfold/libRooUnfold.so')
 from ROOT import RooUnfoldResponse, RooUnfoldBinByBin
@@ -118,6 +118,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     sfhist1D = dyhist_unf.Clone(hname+"_weight")
     sfhist1D.Divide(dyhist_gen)
     sfhist1D.Scale(1./ratio)
+    capoff(sfhist1D,0.3,1.7,verb=verbosity+1) # cap off large values
     print ">>> Convert 1D unrolled weights back to 2D..."
     dyhist2D_unf = Unroll.RollUp(dyhist_unf,hname+"_dy_unfold_2D",dyhist2D_reco,verbosity)
     sfhist2D     = Unroll.RollUp(sfhist1D,  hname+"_weight_2D",dyhist2D_reco,verbosity)
@@ -128,6 +129,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     sfhist1D_reco = obsdyhist.Clone(hname+"_weight_reco")
     sfhist1D_reco.Divide(dyhist)
     sfhist1D_reco.Scale(1./ratio) # remove normalization effect
+    capoff(sfhist1D_reco,0.3,1.7,verb=verbosity+1) # cap off large values
     sfhist2D_reco = Unroll.RollUp(sfhist1D_reco,hname+"_weight_reco_2D",dyhist2D_reco,verbosity)
     
     # WRITE
@@ -408,6 +410,7 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     sfhist = dyhist_unf.Clone(hname+"_weight")
     sfhist.Divide(dyhist_gen)
     sfhist.Scale(1./ratio) # remove normalization effect
+    capoff(sfhist,0.4,1.6,verb=verbosity+1) # cap off large values
     
     # RECO WEIGHT
     ratio = obsdyhist.Integral()/dyhist.Integral()
@@ -415,6 +418,7 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     sfhist_reco = obsdyhist.Clone(hname+"_recoweight")
     sfhist_reco.Divide(dyhist) # (obs. DY) / (sim. DY)
     sfhist_reco.Scale(1./ratio) # remove normalization effect
+    capoff(sfhist_reco,0.4,1.6,verb=verbosity+1) # cap off large values
     
     # WRITE
     print ">>> Writing histograms to %s..."%(outfile.GetPath())

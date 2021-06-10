@@ -19,21 +19,6 @@ def writehist(hist,name,title,xtitle,ytitle,ztitle=None,verb=0):
   hist.Write(name,hist.kOverwrite)
   
 
-def setmax(hist,yvar=0.4):
-  """Set maximum & minimum value 1+-yvar. Keep error."""
-  for i in range(0,hist.GetNcells()+2):
-    yval = hist.GetBinContent(i)
-    if yval>1.+yvar:
-      yval = 1.+yvar
-    elif yval<1.-yvar:
-      yval = 1.-yvar
-    else:
-      continue
-    yerr = hist.GetBinError(i)
-    hist.SetBinContent(i,yval)
-    hist.SetBinError(i,yerr)
-  
-
 def getdyhist(hname,hists,tag="",verb=0):
   """Separate DY from other background histograms and
   create data/MC weight histogram."""

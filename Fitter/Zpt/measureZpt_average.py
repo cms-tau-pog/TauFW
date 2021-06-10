@@ -67,7 +67,7 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
                                signal=False,parallel=parallel)
       obshist, exphist, dyhist, bkghist, obsdyhist = getdyhist(hname,hists,"_reco")
       sfhist = getsfhist(hname,obshist,exphist,dyhist,bkghist,obsdyhist,tag="")
-      setmax(sfhist,0.35)
+      capoff(sfhist,0.4,1.6,verb=verbosity+1) # cap off large values
       #histSF_gaps = histSF.Clone("gaps")
       #setContentRange(histSF,0.0,3.0)
       #fillTH2Gaps(histSF,axis='x')
@@ -141,7 +141,7 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
       dyhist_nowgt = dysample.gethist(xvar_gen,selection,split=False,parallel=parallel,weight="")
       sfhist = dyhist_wgted.Clone(hname+"_weight")
       sfhist.Divide(dyhist_nowgt)
-      setmax(sfhist,0.35)
+      capoff(sfhist,0.4,1.6,verb=verbosity+1) # cap off large values
       
       # WRITE
       outfile = ensureTFile(fname_,'UPDATE')
