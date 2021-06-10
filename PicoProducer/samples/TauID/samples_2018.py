@@ -170,7 +170,7 @@ samples  = [
   D('Data','EGamma_Run2017C',"/EGamma/Run2018C-Nano25Oct2019-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee'],
   ),
-  D('Data','EGamma_Run2017D',"/EGamma/Run2018D-Nano25Oct2019-v1/NANOAOD",
+  D('Data','EGamma_Run2017D',"/EGamma/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD", #"/EGamma/Run2018D-Nano25Oct2019-v1/NANOAOD",
     store=storage,url=url,files=filelist,channels=["skim*",'etau','ee'],
   ),
   
@@ -188,11 +188,11 @@ samples  = [
     store=storage,url=url,files=filelist,channels=["skim*",'tautau'],
   ),
   
-  # HIGGS
-  M('Higgs','GluGluHToCC',
-    "/GluGluHToCC_M125_13TeV_powheg_pythia8/RunIIAutumn18NanoAODv7-Nano02Apr2020_102X_upgrade2018_realistic_v21-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist,
-  ),
+  ### HIGGS
+  ##M('Higgs','GluGluHToCC',
+  ##  "/GluGluHToCC_M125_13TeV_powheg_pythia8/RunIIAutumn18NanoAODv7-Nano02Apr2020_102X_upgrade2018_realistic_v21-v1/NANOAODSIM",
+  ##  store=storage,url=url,files=filelist,
+  ##),
   
   ## LQ
   #M('LQ','SLQ_single_M1100_L1p0_old',

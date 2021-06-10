@@ -51,7 +51,7 @@ class PileupWeightTool:
     assert datafilename and mcfilename, "PileupWeightTool: Did not recognize era %r!"%(era)
     
     if flat or (sample and hasFlatPU(sample)):
-      mcfilename   = os.path.join(datadir,"MC_PileUp_%d_FlatPU0to75.root"%year)
+      mcfilename  = os.path.join(datadir,"MC_PileUp_%d_FlatPU0to75.root"%year)
     
     print "Loading PileupWeightTool for '%s' and '%s'"%(datafilename,mcfilename)
     self.datafile = ensureTFile(datafilename, 'READ')

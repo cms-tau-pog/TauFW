@@ -18,9 +18,7 @@ class ScaleFactor:
     LOG.insist(self.hist,"ScaleFactor(%s): histogram %r does not exist in %s"%(self.name,histname,filename))
     self.hist.SetDirectory(0)
     self.file.Close()
-    
-    if ptvseta: self.getSF = self.getSF_ptvseta
-    else:       self.getSF = self.getSF_etavspt
+    self.getSF = self.getSF_ptvseta if ptvseta else self.getSF_etavspt
   
   def __mul__(self, oScaleFactor):
     return ScaleFactorProduct(self, oScaleFactor)

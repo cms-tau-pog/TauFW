@@ -24,6 +24,7 @@ class ElectronSFs:
     self.sftool_trig = None
     self.sftool_idiso = None
     if 'UL' in era:
+      # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018
       if '2016' in era and 'preVFP' in era:
         self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Electron_Run2016_legacy_Ele25.root",'ZMass','ele_trig')
         self.sftool_reco  = ScaleFactor(pathPOG+"UL2016_preVFP/egammaEffi_ptAbove20.txt_EGM2D_UL2016preVFP.root",'EGamma_SF2D','ele_reco')
@@ -40,7 +41,8 @@ class ElectronSFs:
         self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2018/Electron_Run2018_Ele32orEle35.root",'ZMass','ele_trig')
         self.sftool_reco  = ScaleFactor(pathPOG+"UL2018/egammaEffi_ptAbove20.txt_EGM2D_UL2018.root",'EGamma_SF2D','ele_reco')
         self.sftool_idiso = ScaleFactor(pathPOG+"UL2018/egammaEffi.txt_Ele_wp90noiso_EGM2D.root",'EGamma_SF2D','ele_id')
-    else:
+    else: # pre-UL
+      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaRunIIRecommendations
       if '2016' in era:
         #self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016BtoH/Electron_Ele27Loose_OR_Ele25Tight_eff.root",'ZMass','ele_trig')
         self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Electron_Run2016_legacy_Ele25.root",'ZMass','ele_trig')
