@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from TauFW.PicoProducer.analysis.TreeProducerMuTau import *
 from TauFW.PicoProducer.analysis.ModuleTauPair import *
-from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, matchgenvistau, matchtaujet
+from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, matchgenvistau, matchtaujet, filtermutau
 from TauFW.PicoProducer.corrections.MuonSFs import *
 #from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool, campaigns
@@ -69,6 +69,7 @@ class ModuleMuTau(ModuleTauPair):
     """Process and pre-select events; fill branches and return True if the events passes,
     return False otherwise."""
     sys.stdout.flush()
+    
     
     ##### NO CUT #####################################
     self.out.cutflow.fill('none')
@@ -244,6 +245,8 @@ class ModuleMuTau(ModuleTauPair):
       self.out.genvistaueta_2[0] = eta
       self.out.genvistauphi_2[0] = phi
       self.out.gendm_2[0]        = status
+      if self.dozpt:
+        self.out.mutaufilter     = filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
     
     
     # JETS

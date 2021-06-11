@@ -77,10 +77,10 @@ def dumpgenpart(part,genparts=None,event=None,flags=[]):
   if part.genPartIdxMother>=0:
     if genparts: 
       moth  = genparts[part.genPartIdxMother].pdgId
-      info += " (%s)"%(moth)
+      info += " (%3s)"%(moth)
     elif event:
       moth  = event.GenPart_pdgId[part.genPartIdxMother]
-      info += " (%s)"%(moth)
+      info += " (%3s)"%(moth)
   for bit in flags:
     info += ", bit%s=%d"%(bit,hasbit(part.statusFlags,bit))
   print info
@@ -179,6 +179,35 @@ def idIso(tau):
   if tau.photonsOutsideSignalCone/tau.pt<0.10:
     return 0 if raw>4.5 else 1 if raw>3.5 else 3 if raw>2.5 else 7 if raw>1.5 else 15 if raw>0.8 else 31 # VVLoose, VLoose, Loose, Medium, Tight
   return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
+  
+
+def filtermutau(event):
+  """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
+  for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
+  Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.801% for DYJetsToLL_M-50."""
+  ###print '-'*80
+  particles = Collection(event,'GenPart')
+  muon = None
+  taus = [ ]
+  for particle in particles:
+    pid = abs(particle.pdgId)
+    if pid==13 and (hasbit(particle.statusFlags,9) or hasbit(particle.statusFlags,10)):
+      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
+      if muon: # more than two muons from hard-proces taus
+        return False # do not bother any further
+      muon = particle
+    elif pid==15 and particle.status==2 and hasbit(particle.statusFlags,8):
+      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
+      taus.append(particle)
+  if len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
+    ###dRmin = 10.
+    for genvistau in Collection(event,'GenVisTau'):
+      ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
+      if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0:
+        ###dR = min(genvistau.DeltaR(t) for t in taus)
+        ###if dR<dRmin: dRmin = dR
+        return True
+  return False
   
 
 def matchgenvistau(event,tau,dRmin=0.5):

@@ -445,94 +445,98 @@ def main_run(args):
         print ">>> %-12s = %r"%('userfiles',userfiles)
         print ">>> %-12s = %r"%('outdir',outdir)
       
-      # GET SAMPLES
-      if not userfiles and (filters or vetoes or dtypes):
-        LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-        samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,moddict=moddict,verb=verbosity)
-        if nsamples>0:
-          samples = samples[:nsamples]
-        if not samples:
-          print_no_samples(dtypes,filters,vetoes)
-      else:
-        samples = [None]
-      if verbosity>=2:
-        print ">>> %-12s = %r"%('samples',samples)
-      if verbosity>=1:
-        print '-'*80
-      
-      # LOOP over SAMPLES
-      for sample in samples:
-        if sample:
-          print ">>> %s"%(bold(sample.name))
-          if verbosity>=1:
-            for path in sample.paths:
-              print ">>> %s"%(bold(path))
+      # LOOP over FILTERS
+      for filter in filters:
+        filters_ = [filter]
         
-        # SETTINGS
-        dtype      = None
-        extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
-        if sample:
-          filetag  = "_%s_%s_%s%s"%(channel,era,sample.name,tag)
-          if sample.extraopts:
-            extraopts_.extend(sample.extraopts)
+        # GET SAMPLES
+        if not userfiles and (filters_ or vetoes or dtypes):
+          LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
+          samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters_,veto=vetoes,moddict=moddict,verb=verbosity)
+          if nsamples>0:
+            samples = samples[:nsamples]
+          if not samples:
+            print_no_samples(dtypes,filters_,vetoes)
         else:
-          filetag  = "_%s_%s%s"%(channel,era,tag)
+          samples = [None]
+        if verbosity>=2:
+          print ">>> %-12s = %r"%('samples',samples)
         if verbosity>=1:
-          print ">>> %-12s = %s"%('sample',sample)
-          print ">>> %-12s = %r"%('filetag',filetag) # postfix
-          print ">>> %-12s = %s"%('extraopts',extraopts_)
-        
-        # GET FILES
-        infiles = [ ]
-        if userfiles:
-          infiles = userfiles[:]
-        elif sample:
-          nevents = 0
-          infiles = sample.getfiles(das=dasfiles,verb=verbosity)
-          dtype   = sample.dtype
-          if nfiles>0:
-            infiles = infiles[:nfiles]
-          if verbosity==1:
-            print ">>> %-12s = %r"%('dtype',dtype)
-            print ">>> %-12s = %s"%('nfiles',len(infiles))
-            print ">>> %-12s = [ "%('infiles')
-            for file in infiles:
-              print ">>>   %r"%file
-            print ">>> ]"
-        if verbosity==1:
           print '-'*80
         
-        # RUN
-        runcmd = processor
-        if procopts:
-          runcmd += " %s"%(procopts)
-        if skim:
-          runcmd += " -y %s -o %s"%(era,outdir)
-          if preselect:
-            runcmd += " --preselect '%s'"%(preselect)
-        ###elif 'test' in channel:
-        ###  runcmd += " -o %s"%(outdir)
-        else: # analysis
-          runcmd += " -y %s -c %s -M %s -o %s"%(era,channel,module,outdir)
-        if dtype:
-          runcmd += " -d %r"%(dtype)
-        if filetag:
-          runcmd += " -t %r"%(filetag) # postfix
-        if maxevts:
-          runcmd += " -m %s"%(maxevts)
-        if infiles:
-          runcmd += " -i %s"%(' '.join(infiles))
-        if prefetch:
-          runcmd += " -p"
-        if extraopts_:
-          runcmd += " --opt '%s'"%("' '".join(extraopts_))
-        #elif nfiles:
-        #  runcmd += " --nfiles %s"%(nfiles)
-        print ">>> Executing: "+bold(runcmd)
-        if not dryrun:
-          #execute(runcmd,dry=dryrun,verb=verbosity+1) # real-time print out does not work well with python script 
-          os.system(runcmd)
-        print
+        # LOOP over SAMPLES
+        for sample in samples:
+          if sample:
+            print ">>> %s"%(bold(sample.name))
+            if verbosity>=1:
+              for path in sample.paths:
+                print ">>> %s"%(bold(path))
+          
+          # SETTINGS
+          dtype      = None
+          extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
+          if sample:
+            filetag  = "_%s_%s_%s%s"%(channel,era,sample.name,tag)
+            if sample.extraopts:
+              extraopts_.extend(sample.extraopts)
+          else:
+            filetag  = "_%s_%s%s"%(channel,era,tag)
+          if verbosity>=1:
+            print ">>> %-12s = %s"%('sample',sample)
+            print ">>> %-12s = %r"%('filetag',filetag) # postfix
+            print ">>> %-12s = %s"%('extraopts',extraopts_)
+          
+          # GET FILES
+          infiles = [ ]
+          if userfiles:
+            infiles = userfiles[:]
+          elif sample:
+            nevents = 0
+            infiles = sample.getfiles(das=dasfiles,verb=verbosity)
+            dtype   = sample.dtype
+            if nfiles>0:
+              infiles = infiles[:nfiles]
+            if verbosity==1:
+              print ">>> %-12s = %r"%('dtype',dtype)
+              print ">>> %-12s = %s"%('nfiles',len(infiles))
+              print ">>> %-12s = [ "%('infiles')
+              for file in infiles:
+                print ">>>   %r"%file
+              print ">>> ]"
+          if verbosity==1:
+            print '-'*80
+          
+          # RUN
+          runcmd = processor
+          if procopts:
+            runcmd += " %s"%(procopts)
+          if skim:
+            runcmd += " -y %s -o %s"%(era,outdir)
+            if preselect:
+              runcmd += " --preselect '%s'"%(preselect)
+          ###elif 'test' in channel:
+          ###  runcmd += " -o %s"%(outdir)
+          else: # analysis
+            runcmd += " -y %s -c %s -M %s -o %s"%(era,channel,module,outdir)
+          if dtype:
+            runcmd += " -d %r"%(dtype)
+          if filetag:
+            runcmd += " -t %r"%(filetag) # postfix
+          if maxevts:
+            runcmd += " -m %s"%(maxevts)
+          if infiles:
+            runcmd += " -i %s"%(' '.join(infiles))
+          if prefetch:
+            runcmd += " -p"
+          if extraopts_:
+            runcmd += " --opt '%s'"%("' '".join(extraopts_))
+          #elif nfiles:
+          #  runcmd += " --nfiles %s"%(nfiles)
+          print ">>> Executing: "+bold(runcmd)
+          if not dryrun:
+            #execute(runcmd,dry=dryrun,verb=verbosity+1) # real-time print out does not work well with python script 
+            os.system(runcmd)
+          print
       
 
       

@@ -193,6 +193,7 @@ def main(args):
     plotdir_ = ensuredir(repkey(plotdir,ERA=era))
     samples  = getsampleset(channel,era,fname=fname,dyweight="",dy="mass")
     measureZpt(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_)
+    samples.close() # close all sample files to clean memory
   
 
 if __name__ == "__main__":

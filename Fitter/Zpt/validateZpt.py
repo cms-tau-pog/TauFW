@@ -2,6 +2,7 @@
 # Author: Izaak Neutelings (January 2021)
 # Description: Script to measure Z pt reweighting based on dimuon events
 #   ./measureZpt.py -y 2018
+#   ./validateZpt.py -y 2018
 from config.samples import *
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.common.tools.math import frange
@@ -56,14 +57,15 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
     Var('m_ll',  "m_mumu",              40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
     Var('m_ll',  "m_mumu",              Zmbins1,      fname="$VAR_tail", logy=True, ymin=1e-1, logyrange=6 ), #cbins={"m_vis>200":Zmbins3}
     #Var('mt_1',  "mt(mu,MET)", 40,  0, 200),
-    #Var("jpt_1",  29,   10,  300, veto=[r"njets\w*==0"]),
-    #Var("jpt_2",  29,   10,  300, veto=[r"njets\w*==0"]),
+    Var("jpt_1",  29,   10,  300, veto=[r"njets\w*==0"]),
+    Var("jpt_2",  29,   10,  300, veto=[r"njets\w*==0"]),
     #Var("jeta_1", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
     #Var("jeta_2", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
     Var('njets',   8,  0,   8),
-    #Var('met',    50,  0, 150),
+    Var('met',    50,  0, 150),
     Var('pt_ll',   "pt(mumu)",    25, 0, 200, cbins={"m_vis>200":ptbins0}),
     Var('pt_ll',   "pt(mumu)",    25, 0, 200, fname="$VAR_log", logy=True, logx=True, ymin=1e4, pos='RR', cbins={"m_vis>200":ptbins0}),
+    Var('pt_ll',   "pt(mumu)",    50, 0, 500, fname="$VAR_500", logy=True, ymin=5e1, pos='RR'),
     Var('dR_ll',   "DR(mumu)",    30, 0, 6.0 ),
     Var('dR_ll',   "DR(mumu)",    dRbins, fname="$VAR_log", logy=True, pos='Ly=0.88', logyrange=7, ymargin=1.6),
     Var('deta_ll', "deta(mumu)",  20, 0, 6.0, logy=True, pos='TRR'), #, ymargin=8, logyrange=2.6
@@ -137,11 +139,11 @@ def main(args):
       #loadZptWeights("0j-mgt200_"+era,"zpt_weight")
       #plot(era,channel,weight="getZptWeight(pt_moth)",title="gen. weight",tag="_genweight",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
       loadZptWeights(fname1D,"zpt_weight")
-      plot(era,channel,weight="getZptWeight(pt_moth)",title="unfolded weight",tag="_weight",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
-      loadZptWeights(fname1D,"zpt_weight_reco")
-      plot(era,channel,weight="getZptWeight(pt_moth)",title="reco. weight",tag="_recoweight",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
+      plot(era,channel,weight="getZptWeight(pt_moth)",title="unfolded 1D weight",tag="_weight1D",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
+      loadZptWeights(fname1D,"zpt_recoweight")
+      plot(era,channel,weight="getZptWeight(pt_moth)",title="reco. 1D weight",tag="_recoweight1D",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
       loadZptWeights(fname2D,"zptmass_weight")
-      plot(era,channel,weight="getZptWeight(pt_moth,m_moth)",title="unfolded weight",tag="_weight2D",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
+      plot(era,channel,weight="getZptWeight(pt_moth,m_moth)",title="unfolded 2D weight",tag="_weight2D",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
   
 
 if __name__ == "__main__":
@@ -150,7 +152,7 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017'], default=['2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', default=['2017'], action='store', #, choices=['2016','2017','2018','UL2017']
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mumu'], default=['mumu'], action='store',
                                          help="set channel" )

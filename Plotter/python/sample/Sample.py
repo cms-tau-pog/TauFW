@@ -54,6 +54,7 @@ class Sample(object):
     self.fnameshort   = os.path.basename(self.filename) # short file name for printing
     self._file        = None                            # TFile file
     self._tree        = None                            # TTree tree
+    self.samples      = [self]                          # same as MergedSample
     self.splitsamples = [ ]                             # samples when splitting into subsamples
     self.treename     = kwargs.get('tree',         None         ) or 'tree'
     self.nevents      = kwargs.get('nevts',        nevts        ) # "raw" number of events

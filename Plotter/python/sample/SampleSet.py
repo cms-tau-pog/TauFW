@@ -51,6 +51,45 @@ class SampleSet(object):
     """Returns string representation of Sample object."""
     return ', '.join(repr(s.name) for s in [self.datasample]+self.mcsamples if s)
   
+  def __add__(self,oset):
+    """Add SampleSet objects together into a new one.
+    Merge samples for better efficiency when using parallel drawing."""
+    lumi = self.datasample.lumi + oset.datasample.lumi
+    
+    # OBSERVED DATA
+    datasamples  = self.datasample.samples + oset.datasample.samples
+    newdatasample = MergedSample(self.datasample.name,self.datasample.title,datasamples,
+                                 isdata=True,isexp=False,lumi=lumi)
+    
+    # EXPECTED (MC)
+    newexpsamples = [ ]
+    osamples = oset.expsamples[:] # only merge samples once
+    for sample in self.expsamples: # assume 1-to-1 matching of samples
+      subsamples = sample.samples[:]
+      splitsamples = sample.splitsamples
+      for osample in osamples:
+        if sample.name==osample.name:
+          subsamples.extend(osample.samples)
+          osamples.remove(osample) # only match once
+          if not splitsamples and osample.splitsamples:
+            splitsamples = osample.splitsamples
+          break
+      else:
+        LOG.warning("SampleSet.__add__: Could not match sample %r to %s"%(sample,osamples))
+      newsample = MergedSample(sample.name,sample.title,subsamples,
+                               isdata=False,isexp=sample.isexp,isembed=sample.isembed,lumi=lumi)
+      if splitsamples: # split again
+        for ssample in splitsamples:
+          newssample = newsample.clone(ssample.name,ssample.title,cuts=ssample.cuts,color=ssample.fillcolor)
+          newsample.splitsamples.append(newssample)
+      newexpsamples.append(newsample)
+    if osamples:
+      LOG.warning("SampleSet.__add__: Not all samples were matched:"%(osamples))
+      newexpsamples.extend(osamples)
+    newset = SampleSet(newdatasample,newexpsamples,name=self.name,
+                       label=self.label,loadingbar=self.loadingbar)
+    return newset
+  
   def printobjs(self,title="",file=False):
     for sample in self.samples:
       sample.printobjs(title="",file=file)

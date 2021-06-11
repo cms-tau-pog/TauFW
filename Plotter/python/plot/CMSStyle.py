@@ -43,11 +43,11 @@ era_dict       = {
   '13':     "Run 2",    'Run3': "Run 3",
   'Phase1': "Phase I",
   'Phase2': "Phase II",
-  #'UL2016_preVFP': "2016 (pre VFP)",
-  #'UL2016_postVFP':  "2016 (post VFP)",
-  #'UL2016': "2016",
-  #'UL2017': "2016",
-  #'UL2018': "2016",
+  'UL2016_preVFP': "UL2016", #(pre VFP)
+  'UL2016_postVFP':  "UL2016", #(pre VFP)
+  'UL2016': "UL2016",
+  'UL2017': "UL2017",
+  'UL2018': "UL2018",
 }
 
 

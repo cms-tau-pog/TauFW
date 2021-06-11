@@ -85,4 +85,6 @@ class TreeProducerMuTau(TreeProducerTauPair):
         self.addBranch('idweightDown_dm_2',      'f', 1.)
         self.addBranch('ltfweightUp_2',          'f', 1.)
         self.addBranch('ltfweightDown_2',        'f', 1.)
+      if self.module.dozpt:
+        self.addBranch('mutaufilter',            '?', title="has tautau -> mutau, pT>18, |eta|<2.5")
     

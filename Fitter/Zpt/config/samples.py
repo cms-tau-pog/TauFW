@@ -12,12 +12,24 @@ def getsampleset(channel,era,**kwargs):
   join     = kwargs.get('join',     ['VV','Top'] ) # join samples (e.g. VV, top)
   tag      = kwargs.get('tag',      ""           )
   table    = kwargs.get('table',    True         ) # print sample set table
-  setera(era) # set era for plot style and lumi-xsec normalization
+  setera(era) # set global era for plot style and lumi-xsec normalization
+  
+  if 'UL2016' in era and 'VFP' not in era: # join pre-/post-VFP into full UL2016
+    kwargs['table'] = False
+    kwargs1 = kwargs.copy() # prevent overwriting
+    kwargs2 = kwargs.copy() # prevent overwriting
+    sampleset1 = getsampleset(channel,era+"_preVFP",**kwargs1)
+    sampleset2 = getsampleset(channel,era+"_postVFP",**kwargs2)
+    setera(era) # reset era for plot style and lumi-xsec normalization
+    sampleset = sampleset1 + sampleset2 # merge samples
+    if table:
+      sampleset.printtable(merged=True,split=True)
+    return sampleset
   
   # SM BACKGROUND MC SAMPLES
-  xsec_dy_lo   = 4963.0    # MadGraph
+  xsec_dy_lo   = 4963.0    # MadGraph (LO)
   xsec_dy_nlo  = 6529.0    # aMC@NLO
-  xsec_dy_nnlo = 3*2025.74 # FEWZ
+  xsec_dy_nnlo = 3*2025.74 # FEWZ (NNLO)
   k_lo         = xsec_dy_nnlo/xsec_dy_lo
   k_nlo        = 1. #xsec_dy_nnlo/xsec_dy_nlo
   if 'UL' in era:

@@ -16,8 +16,8 @@ class MergedSample(Sample):
   
   def __init__(self, *args, **kwargs):
     name, title, samples = unwrap_MergedSamples_args(*args,**kwargs)
-    self.samples = samples
     Sample.__init__(self,name,title,"",**kwargs)
+    self.samples = samples
     if self.samples:
       self.init(samples[0],**kwargs)
   
