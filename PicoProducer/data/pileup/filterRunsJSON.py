@@ -79,7 +79,7 @@ def getRuns(era):
         'E': (276831,277420),
         'F': (277772,278770), # end 2016 pre VFP, https://twiki.cern.ch/twiki/bin/view/CMS/PdmVDatasetsUL2016
       }
-    elif 'UL' in era and 'full' not in era:
+    elif 'UL' in era and 'postVFP' in era:
       datasets = {
         'F': (278769,278808), # start 2016 post VFP, https://twiki.cern.ch/twiki/bin/view/CMS/PdmVDatasetsUL2016
         'G': (278820,280385),
@@ -151,7 +151,7 @@ def filterJSONByRunNumberRange(jsoninname,era="",period=None,rrange=None,start=N
   if period:
     datasets = getRuns(era)
     start, end = getPeriodRunNumbers(period,datasets)
-    eraname = "Run%d%s"%(era,period)
+    eraname = "Run%s%s"%(era,period)
   elif rrange:
     match = range_rexp.match(rrange)
     if not match:
@@ -241,32 +241,33 @@ def compareJSONs(jnames,verb=0):
   
 
 def main(args):
-  era       = args.era
+  eras      = args.eras
   injson    = args.injson
   periods   = args.periods
   rrange    = args.rrange
   diffs     = args.diffs
   outdir    = args.outdir
   verbosity = args.verbosity
-  if diffs:
-    compareJSONs(diffs,verb=verbosity)
-  elif periods:
-    periods = cleanPeriods(periods)
-    jname   = injson or getJSON(era)
-    outdir  = ensuredir("json")
-    for period in periods:
-      jsonout = filterJSONByRunNumberRange(jname,era,period=period,outdir=outdir,verb=verbosity)
-  elif rrange:
-    jname   = injson or getJSON(era)
-    jsonout = filterJSONByRunNumberRange(jname,era,rrange=rrange,outdir=outdir,verb=verbosity)
-  else:
-    print ">>> Please specifiy a period (-p BCD) or a range of run numbers (-r 272007-278770)"
-    print ">>> JSON for %r: %s"%(era,jname)
-    print ">>> datasets: "
-    datasets  = getRuns(era)
-    for period in sorted(datasets.keys()):
-      start, end = datasets[period]
-      print ">>>   %s: %s-%s"%(period,start,end)
+  for era in eras:
+    if diffs:
+      compareJSONs(diffs,verb=verbosity)
+    elif periods:
+      periods = cleanPeriods(periods)
+      jname   = injson or getJSON(era)
+      outdir  = ensuredir("json")
+      for period in periods:
+        jsonout = filterJSONByRunNumberRange(jname,era,period=period,outdir=outdir,verb=verbosity)
+    elif rrange:
+      jname   = injson or getJSON(era)
+      jsonout = filterJSONByRunNumberRange(jname,era,rrange=rrange,outdir=outdir,verb=verbosity)
+    else:
+      print ">>> Please specifiy a period (-p BCD) or a range of run numbers (-r 272007-278770)"
+      print ">>> JSON for %r: %s"%(era,jname)
+      print ">>> datasets: "
+      datasets  = getRuns(era)
+      for period in sorted(datasets.keys()):
+        start, end = datasets[period]
+        print ">>>   %s: %s-%s"%(period,start,end)
   
 
 if __name__ == '__main__':
@@ -274,7 +275,7 @@ if __name__ == '__main__':
   argv = sys.argv
   description = '''This script helps to filter runs in CMS JSON certification files.'''
   parser = ArgumentParser(prog="filter_json",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '-e', '--era', dest='era', default="",
+  parser.add_argument('-y', '-e', '--era', dest='eras', nargs='+', default="",
                       metavar='ERA',       help="select era" )
   parser.add_argument('-i', '--injson',    dest='injson',
                                            help="input JSON file for filter" )
