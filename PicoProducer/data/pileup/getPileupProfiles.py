@@ -21,11 +21,11 @@ from argparse import ArgumentParser
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from filterRunsJSON import getJSON, getRuns, cleanPeriods, getPeriodRunNumbers, filterJSONByRunNumberRange
 from TauFW.common.tools.file import ensuredir, ensureTFile, gethist
-from TauFW.common.tools.utils import repkey, getyear
+from TauFW.common.tools.utils import repkey, getyear, islist
 from TauFW.PicoProducer import datadir
 from TauFW.Plotter.plot.Plot import Plot, CMSStyle, deletehist
 from ROOT import gROOT, gDirectory, gStyle, gPad, TFile, TTree, TCanvas, TH1, TH1F, TLine, TLegend,\
-                 kBlack, kRed, kAzure, kGreen, kOrange, kMagenta, kYellow
+                 kBlack, kRed, kAzure, kGreen, kOrange, kMagenta, kYellow, kSolid, kDashed
 #gROOT.SetBatch(True)
 #gStyle.SetOptStat(False)
 #gStyle.SetOptTitle(False)
@@ -305,36 +305,61 @@ def compareMCProfiles(samples,channel,era,tag=""):
   return avehist
   
 
-def compareDataMCProfiles(datahist,mchist,era,minbias,tag="",rmin=0.75,rmax=1.25):
+def compareDataMCProfiles(datahists,mchist,era="",minbiases=0.0,tag="",rmin=0.6,rmax=1.4,delete=False):
   """Compare data/MC profiles."""
   print ">>> compareDataMCProfiles()"
   mctitle = "MC average"
   outdir  = ensuredir("plots")
-  hists   = [datahist,mchist]
-  colors  = [kBlack]+linecolors
-  width   = 0.36 if 'pmx' in tag else 0.26
-  if isinstance(era,str) and "Run" in era:
-    width =  max(width,0.26+(len(era)-5)*0.02)
+  if islist(datahists): # multiple datahists
+    if all(islist(x) for x in datahists): # datahists = [(minbias1,datahist1),...]
+      minbiases = [m for m,h in datahists]
+      datahists = [h for m,h in datahists]
+  else: # is single datahist histogram
+    minbiases = [minbiases]
+    datahists = [datahists]
+  hists  = datahists+[mchist]
+  styles = [kSolid]*len(datahists)+[kDashed]
+  colors = [kBlack]+linecolors if len(datahists)==1 else linecolors[:len(datahists)]+[kBlack]
+  if 'pmx' in tag:
+    width  = 0.36
+    position = 'TCR'
+  else:
+    width  = 0.39
+    position = 'TR'
+  if era and isinstance(era,str) and any(s in era for s in ["Run","VFP"]):
+    width =  max(width,0.26+(len(era)-5)*0.018)
+    position = 'TCR'
   if tag and tag[0]!='_':
     tag = '_'+tag
   if 'pmx' in tag:
     mctitle += " (%s pre-mixing)"%("old" if "old" in tag else "new")
+  if len(minbiases)==1 and minbiases[0]>0:
+    tag = "_"+str(minbiases[0]).replace('.','p')
   
-  datahist.SetTitle("Data %s, %.1f pb"%(era,minbias))
+  for datahist, minbias in zip(datahists,minbiases):
+    title = "Data"
+    if era:
+      title += " %s"%(era)
+    if minbias>0:
+      title += ", %.1f pb"%(minbias)
+    if 'VFP' in era:
+      title = title.replace("_"," ").replace("VFP","-VFP")
+    datahist.SetTitle(title)
+    datahist.Scale(1./datahist.Integral())
   mchist.SetTitle(mctitle)
-  datahist.Scale(1./datahist.Integral())
   mchist.Scale(1./mchist.Integral())
   
   xtitle = "Number of interactions"
-  pname  = "%s/pileup_Data-MC_%s_%s%s"%(outdir,era,str(minbias).replace('.','p'),tag)
+  pname  = "%s/pileup_Data-MC_%s%s"%(outdir,era,tag)
   plot   = Plot(hists,ratio=True)
   plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="Data / MC",
-            textsize=0.045,rmin=rmin,rmax=rmax,denom=2,colors=colors)
-  plot.drawlegend('TCR',width=width)
+            textsize=0.045,rmin=rmin,rmax=rmax,denom=-1,colors=colors,styles=styles)
+  plot.drawlegend(position,width=width)
   plot.saveas(pname+".png")
   plot.saveas(pname+".pdf")
   plot.close(keep=True)
-  deletehist(datahist) # clean memory
+  if delete:
+    deletehist(datahists) # clean memory
   
 
 def copy2local(filename):
@@ -356,7 +381,7 @@ def main():
   channel   = args.channel
   types     = args.types
   verbosity = args.verbosity
-  minbiases = [ 69.2 ] if periods else [ 69.2, 80.0, 69.2*1.046, 69.2*0.954 ]
+  minbiases = [ 69.2 ] if periods else [ 69.2, 69.2*1.046, 69.2*0.954, 80.0 ]
   
   fname_ = "$PICODIR/$SAMPLE_$CHANNEL.root" # sample file name
   if 'mc' in types and '$PICODIR' in fname_:
@@ -370,7 +395,7 @@ def main():
     jsondir    = os.path.join(datadir,'json',str(year))
     pileup     = os.path.join(jsondir,"pileup_latest.txt")
     jname      = getJSON(era)
-    CMSStyle.setCMSEra(year)
+    CMSStyle.setCMSEra(era)
     samples_bug = [ ] # buggy samples in (pre-UL) 2017 with "old pmx" library
     samples_fix = [ ] # fixed samples in (pre-UL) 2017 with "new pmx" library
     samples = [ # default set of samples
@@ -487,10 +512,13 @@ def main():
         ]
     
     # SAMPLES FILENAMES
-    for i, (group,sample) in enumerate(samples):
-      era_       = era.replace("_postVFP","")
-      fname      = repkey(fname_,ERA=era_,GROUP=group,SAMPLE=sample,CHANNEL=channel)
-      samples[i] = (sample,fname)
+    samples_ = [ ]
+    suberas = [era+"_preVFP",era+"_postVFP"] if era=='UL2016' else [era]
+    for subera in suberas:
+      for i, (group,sample) in enumerate(samples):
+          fname = repkey(fname_,ERA=subera,GROUP=group,SAMPLE=sample,CHANNEL=channel)
+          samples_.append((sample,fname))
+    samples = samples_ # replace sample list
     if verbosity>=1:
       print ">>> samples = %r"%(samples)
     
@@ -511,7 +539,7 @@ def main():
           filename = "Data_PileUp_%s_%s.root"%(period,str(minbias).replace('.','p'))
           datahist = getDataProfile(filename,json,pileup,100,era,minbias)
           datahists[period].append((minbias,datahist))
-    elif args.plot:
+    elif args.plot: # do not create new data profiles, but just load them
       for era in jsons:
         for minbias in minbiases:
           filename = "Data_PileUp_%s_%s.root"%(era,str(minbias).replace('.','p'))
@@ -532,6 +560,7 @@ def main():
         for era in jsons:
           for minbias, datahist in datahists[era]:
             compareDataMCProfiles(datahist,mchist,era,minbias)
+          compareDataMCProfiles(datahists[era],mchist,era,rmin=0.4,rmax=1.5,delete=True)
         deletehist(mchist) # clean memory
       if era=='2017': #and 'UL' not in era # buggy (pre-UL) 2017: also check new/old pmx separately
         mcfilename_bug = mcfilename.replace(".root","_old_pmx.root")

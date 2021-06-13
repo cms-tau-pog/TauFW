@@ -25,9 +25,12 @@ class PileupWeightTool:
       if '2016' in era and 'preVFP' in era:
         datafilename = os.path.join(datadir,"Data_PileUp_UL2016_preVFP_%s.root"%(minbias))
         mcfilename   = os.path.join(datadir,"MC_PileUp_UL2016_preVFP_Summer19.root")
-      elif '2016' in era:
+      elif '2016' in era and 'postVFP' in era:
         datafilename = os.path.join(datadir,"Data_PileUp_UL2016_postVFP_%s.root"%(minbias))
         mcfilename   = os.path.join(datadir,"MC_PileUp_UL2016_postVFP_Summer19.root")
+      elif '2016' in era:
+        datafilename = os.path.join(datadir,"Data_PileUp_UL2016_%s.root"%(minbias))
+        mcfilename   = os.path.join(datadir,"MC_PileUp_UL2016_Summer19.root")
       elif '2017' in era:
         datafilename = os.path.join(datadir,"Data_PileUp_UL2017_%s.root"%(minbias))
         mcfilename   = os.path.join(datadir,"MC_PileUp_UL2017_Summer19.root")

@@ -31,12 +31,12 @@ def getJSON(era):
   year    = getyear(era)
   jsondir = os.path.join(datadir,'json',str(year))
   if '2016' in era:
-    if 'UL' in era and 'full' in era:
+    if 'UL' in era and 'VFP' not in era:
       jname = os.path.join(jsondir,"Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt") # complete UL2016
     elif 'UL' in era and "preVFP" in era:
       # https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2016preVFPAnalysis
       jname = os.path.join(jsondir,"Cert_271036-278770_13TeV_UL2016_preVFP_Collisions16_JSON.txt") # create yourself first !
-    elif 'UL' in era:
+    elif 'UL' in era and "postVFP" in era:
       # https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2016postVFPAnalysis
       jname = os.path.join(jsondir,"Cert_278769-284044_13TeV_UL2016_postVFP_Collisions16_JSON.txt") # create yourself first !
     else: # 2016 legacy

@@ -34,8 +34,7 @@ Comparisons are shown here:
 [2016](https://ineuteli.web.cern.ch/ineuteli/pileup/2016/),
 [2017](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/),
 [2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/),
-[UL2016_preVFP](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2016_preVFP/),
-[UL2016_postVFP](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2016_postVFP/),
+[UL2016](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2016/),
 [UL2017](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2017/), and
 [UL2018](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2018/),
 
