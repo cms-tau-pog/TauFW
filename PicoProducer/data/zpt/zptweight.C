@@ -1,54 +1,73 @@
-/*
- * @short: provide Z pt weights at drawing level
+/* @short: provide Z pt weights at drawing level for checks
  * @author: Izaak Neutelings (June 2018)
- *
+ * @comment: in python:
+ *   gROOT.Macro('weights/zptweight.C+')
+ *   from ROOT import loadZptWeights
+ *   loadZptWeights("weights.root","zpt_weight")
+ *   tree.Draw("pt_ll >> h","(pt_1>20 && pt_2>30)*getZptWeight(pt_moth)",'gOff')
  */
-
 #include "TROOT.h"
 #include "TFile.h"
-#include "TH2.h"
-#include "TH2F.h"
+#include "TH1.h"
+//#include "TH2.h"
+//#include "TH1F.h"
+//#include "TH2F.h"
 #include <iostream>
 #include <algorithm>
 using namespace std;
-TH2F* histZpt;
 
+TString _fname = "weights/zpt_weights_$ERA$TAG.root";
+//TString _fname = "$CMSSW_BASE/src/TauFWFitter/Zpt/weights/$ERA/zpt_weights_$ERA$TAG.root";
+TString _hname = "zptweight";
+TH1* histZpt;
+//TH2F* histZpt;
 
-void readZptFile(Int_t year=2018){
-  
-  if(year!=2016 and year!=2017 and year!=2018){
-    std::cout << ">>> fakeRate.C::readFakeRateFile: Warning! Year "<<year<<" not recognized! Using 2017 instead..."<<std::endl;
-    year = 2017;
+TString setZptFile(TString fname){
+  _fname = fname;
+  return fname;
+}
+
+void loadZptWeights(TString fname="2017", TString hname=_hname, TString tag=""){
+  if(!fname.EndsWith(".root")){ // replace $-keys in file pattern _fname
+    fname = _fname.Copy().ReplaceAll("$ERA",fname).ReplaceAll("$TAG",tag);
+    if(hname.Contains("zptmass")) // 2D weights
+      fname = fname.Copy().ReplaceAll("zpt_weight","zptmass_weight");
   }
-  TString filename  = TString::Format("/work/ineuteli/analysis/LQ_legacy/plots/Zpt/%d/Zpt_weights_%d_Izaak.root",year,year);
-    
-  std::cout << ">>> opening " << filename << std::endl;
-  TFile *file = new TFile(filename);
-  histZpt = (TH2F*) file->Get("zptmass_weights");
+  std::cout << ">>> loadZptWeights(): opening " << fname << ":" << hname << std::endl;
+  if(histZpt)
+    histZpt->Delete();
+  TFile *file = new TFile(fname);
+  histZpt = (TH1*) file->Get(hname); // allows both TH1 and TH2
+  if(!histZpt){
+    std::cerr << ">>> loadZptWeights(): Did not find " << hname << " in " << fname << std::endl;
+    file->ls();
+  }
   histZpt->SetDirectory(0);
   file->Close();
-  
 }
 
-Float_t getZpt(Float_t m_genboson, Float_t pt_genboson){
-  //Int_t xbin = histZpt->GetXaxis()->FindBin(m_genboson);
-  //Int_t ybin = histZpt->GetYaxis()->FindBin(pt_genboson);
-  //while(xbin<1) xbin++; while(xbin>histZpt->GetXaxis()->GetNbins()) xbin--;
-  //while(ybin<1) ybin++; while(ybin>histZpt->GetYaxis()->GetNbins()) ybin--;
-  //return histIWN->GetBinContent(xbin,ybin);
-  return histZpt->GetBinContent(histZpt->GetXaxis()->FindBin(m_genboson),histZpt->GetYaxis()->FindBin(pt_genboson));
+Float_t getZptWeight(Float_t pt){
+  Int_t xbin = histZpt->GetXaxis()->FindBin(pt);
+  Float_t weight = 1.0;
+  while(xbin<1) xbin++;
+  while(xbin>histZpt->GetXaxis()->GetNbins()) xbin--;
+  weight = histZpt->GetBinContent(xbin);
+  if(weight<=0.0) return 1.;
+  return histZpt->GetBinContent(xbin);
 }
 
-Float_t getZpt_Down(Float_t m_genboson, Float_t pt_genboson, Float_t shift=0.90){
-  return 1.+shift*(getZpt(m_genboson,pt_genboson)-1.);
+Float_t getZptWeight(Float_t pt, Float_t mass){
+  Int_t xbin = histZpt->GetXaxis()->FindBin(pt);
+  Int_t ybin = histZpt->GetYaxis()->FindBin(mass);
+  Float_t weight = 1.0;
+  while(xbin<1) xbin++; while(xbin>histZpt->GetXaxis()->GetNbins()) xbin--;
+  while(ybin<1) ybin++; while(ybin>histZpt->GetYaxis()->GetNbins()) ybin--;
+  weight = histZpt->GetBinContent(xbin,ybin);
+  if(weight<=0.0) return 1.;
+  return histZpt->GetBinContent(xbin,ybin);
 }
-
-Float_t getZpt_Up(Float_t m_genboson, Float_t pt_genboson, Float_t shift=1.10){
-  return 1.+shift*(getZpt(m_genboson,pt_genboson)-1.);
-}
-
 
 void zptweight(){
-  std::cout << ">>> initializing zptweights.C ... " << std::endl;
+  std::cout << ">>> initializing zptweight.C ... " << std::endl;
 }
 

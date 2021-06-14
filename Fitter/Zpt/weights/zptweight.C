@@ -16,8 +16,8 @@
 #include <algorithm>
 using namespace std;
 
-TString _fname = "weights/zpt_weight_$ERA$TAG.root";
-//TString _fname = "$CMSSW_BASE/src/TauFWFitter/Zpt/weights/$ERA/zpt_weight_$ERA$TAG.root";
+TString _fname = "weights/zpt_weights_$ERA$TAG.root";
+//TString _fname = "$CMSSW_BASE/src/TauFWFitter/Zpt/weights/$ERA/zpt_weights_$ERA$TAG.root";
 TString _hname = "zptweight";
 TH1* histZpt;
 //TH2F* histZpt;

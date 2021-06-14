@@ -34,6 +34,8 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
   # ERA
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   dyweight  = weight #"zptweight"
+  sampleset = getsampleset('mutau','UL2018',fname=fname,dyweight=weight,dy="")
+  exit(0)
   #sampleset = getsampleset(channel,era,fname=fname,dyweight="")
   sampleset = getsampleset(channel,era,fname=fname,dyweight=weight,dy="")
   #sampleset = getsampleset(channel,era,fname=fname,dyweight=dyweight)
@@ -128,8 +130,8 @@ def main(args):
   tag       = ""
   for era in eras:
     for channel in channels:
-      fname1D = "weights/zpt_weight_%s.root"%(era)
-      fname2D = "weights/zptmass_weight_%s.root"%(era)
+      fname1D = "weights/zpt_weights_%s.root"%(era)
+      fname2D = "weights/zptmass_weights_%s.root"%(era)
       #fname = "weights/zpt_weight_0j-mgt200_%s.root"%(era)
       setera(era) # set era for plot style and lumi-xsec normalization
       plot(era,channel,weight="",title="no reweighting",tag="_noweight",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)

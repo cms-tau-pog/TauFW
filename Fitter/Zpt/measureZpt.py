@@ -28,7 +28,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   
   # SETTINGS
   hname     = 'zptmass'
-  fname     = "%s/%s_weight_$CAT%s.root"%(outdir,hname,tag)
+  fname     = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
   pname     = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
   outdir    = ensuredir(outdir) #repkey(outdir,CHANNEL=channel,ERA=era))
   stitle    = "Z boson unfolding weight"
@@ -370,7 +370,7 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
   
   # SETTINGS
   hname    = 'zpt'
-  fname    = "%s/%s_weight_$CAT%s.root"%(outdir,hname,tag)
+  fname    = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
   pname    = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
   outdir   = ensuredir(outdir) #repkey(outdir,CHANNEL=channel,ERA=era))
   stitle   = "Z boson unfolding weight"

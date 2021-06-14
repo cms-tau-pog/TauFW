@@ -84,6 +84,12 @@ but can be manually set as
 ```
 CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary")
 ```
+To change the default values, you can directly edit the hardcoded dictionaries:
+```
+import TauFW.Plotter.plot.CMSStyle as CMSStyle
+CMSStyle.lumi_dict['UL2018'] = 59.8
+CMSStyle.era_dict['UL2018'] = "2018"
+```
 
 
 ## Variable

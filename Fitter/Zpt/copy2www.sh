@@ -12,6 +12,8 @@ function header {
   echo "     $A####${BAR}####$E"
   echo
 }
+OUTDIR="/t3home/ineuteli/eos/www/Zpt/"
+[ ! -d $OUTDIR ] && echo "ERROR! Output directory $OUTDIR does not exist!" && continue
 
 ERAS="$@"
 for era in $ERAS; do

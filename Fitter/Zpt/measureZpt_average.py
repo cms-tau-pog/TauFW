@@ -26,7 +26,7 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
   hname    = 'zpt'
   rtitle   = "Reco-level weight"
   gtitle   = "Gen-level weight"
-  fname    = "%s/zpt_weight_$CAT%s.root"%(outdir,tag)
+  fname    = "%s/zpt_weights_$CAT%s.root"%(outdir,tag)
   pname    = "%s/zpt_$CAT%s.png"%(plotdir or outdir,tag)
   outdir   = ensuredir(outdir) #repkey(outdir,CHANNEL=channel,ERA=era))
   logx     = True #and False

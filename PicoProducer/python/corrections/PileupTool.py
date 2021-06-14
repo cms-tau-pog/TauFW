@@ -56,7 +56,7 @@ class PileupWeightTool:
     if flat or (sample and hasFlatPU(sample)):
       mcfilename  = os.path.join(datadir,"MC_PileUp_%d_FlatPU0to75.root"%year)
     
-    print "Loading PileupWeightTool for '%s' and '%s'"%(datafilename,mcfilename)
+    print "Loading PileupWeightTool for %s and %s"%(datafilename,mcfilename)
     self.datafile = ensureTFile(datafilename, 'READ')
     self.mcfile   = ensureTFile(mcfilename, 'READ')
     self.datahist = self.datafile.Get('pileup')

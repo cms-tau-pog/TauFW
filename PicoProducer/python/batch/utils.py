@@ -44,7 +44,10 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
       if verb>=4:
         print ">>> %10d %s"%(nevts,fname)
     if nevts<maxevts: # split this large file into several chunks
-      nsmall.setdefault(nevts,[ ]).append(fname)
+      if nevts<=0:
+        LOG.warning("chunkify_by_evts: File %r has %s<=0 events, not including..."%(fname,nevts))
+      else:
+        nsmall.setdefault(nevts,[ ]).append(fname)
     else: # don't split this small, group with others in chunks, if possible
       nlarge.setdefault(nevts,[ ]).append(fname)
       fnames.remove(fname)

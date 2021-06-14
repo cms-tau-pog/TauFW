@@ -175,8 +175,9 @@ class Plot(object):
     lcolors      = kwargs.get('colors',       None            )
     lcolors      = kwargs.get('lcolors',      lcolors         ) or self.lcolors # line colors
     fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors # fill colors
-    lstyles      = kwargs.get('style',        None            )
-    lstyles      = kwargs.get('lstyle',       lstyles         )
+    lstyles      = kwargs.get('style',        None            ) # alias
+    lstyles      = kwargs.get('styles',       lstyles         ) # alias
+    lstyles      = kwargs.get('lstyle',       lstyles         ) # alias
     lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles # line styles
     lwidth       = kwargs.get('lwidth',       2               ) # line width
     mstyle       = kwargs.get('mstyle',       None            ) # marker style
@@ -197,7 +198,7 @@ class Plot(object):
     if not xmax and xmax!=0: xmax = self.xmax
     hists        = self.hists
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else False
-    denom        = max(0,min(len(hists),kwargs.get('denom', denom ))) # denominator histogram in ratio plot
+    denom        = kwargs.get('denom', denom ) # denominator histogram in ratio plot
     
     # NORMALIZE
     if norm:
