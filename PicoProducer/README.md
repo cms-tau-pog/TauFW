@@ -329,10 +329,14 @@ as it is preferred to keep skimmed nanoAOD files split for further batch submiss
 
 
 ### Clean
-Remove leftover log files and directories with the `clean` subcommand
+Remove leftover job output files and directories with the `clean` subcommand
 (or use `-r` with `hadd`):
 ```
 pico.py clean -y 2016 -c mutau
+```
+If you trust the job output and `hadd` step, you can do the clean step during `hadd`:
+```
+pico.py hadd -y 2016 -c mutau --clean
 ```
 
 

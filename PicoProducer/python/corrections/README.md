@@ -5,6 +5,7 @@ Several tools to get corrections, efficiencies, scale factors (SFs), event weigh
 * [Lepton efficiencies](#lepton-efficiencies)<br>
 * [Tau scale factors](#Tau-scale-factors)<br>
 * [B tagging tools](#b-tagging-tools)<br>
+* [Z pT reweighting](#Z-pT-reweighting)<br>
 * [Test SFs](test-sfs)
 
 Data for corrections is saved in in [`../../data/`](../../data)
@@ -36,7 +37,7 @@ Comparisons are shown here:
 [2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/),
 [UL2016](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2016/),
 [UL2017](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2017/), and
-[UL2018](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2018/),
+[UL2018](https://ineuteli.web.cern.ch/ineuteli/pileup/UL2018/).
 
 Please note that some (pre-UL) 2017 samples had a buggy pileup module, and need to be treated separately,
 see [this](https://hypernews.cern.ch/HyperNews/CMS/get/generators/4060.html?inline=-1) or
@@ -146,6 +147,16 @@ Examples of efficiency maps per jet flavor, and as a function of jet pT versus j
   <img src="../../../docs/eff_DeepCSV_udsg_medium_mutau_log.png" alt="B tagging misidentification map" width="270"/>
 </p>
 
+
+
+## Z pT reweighting
+
+The observed Z pT spectrum is harder than in the LO MadGraph simulation, such as `DYJetsToLL_*_TuneCP5_13TeV-madgraphMLM-pythia8` samples.
+Therefore LO Drell-Yan events have to be reweighted as a function of Z pT (and maybe other variables such as mass, jet multiplicity, and/or MET).
+The TauFW provides a measurement tool in [`Fitter/Zpt/`](../../../Fitter/Zpt/).
+The weights are stored in [`data/zpt/`](../../data/zpt/), and [`RecoilCorrectionTool.py`](RecoilCorrectionTool.py)
+provides a tool to read them.
+Alternatively, you can use a [simple `C++` macro](../../data/zpt/zptweight.C) to run it on the fly in `TTree::Draw`.
 
 ## Test SFs
 

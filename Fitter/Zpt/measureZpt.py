@@ -6,7 +6,7 @@ from utils import *
 from TauFW.Plotter.plot.Plot2D import Plot2D, addoverflow, capoff
 from TauFW.common.tools.math import scalevec
 gSystem.Load('RooUnfold/libRooUnfold.so')
-from ROOT import RooUnfoldResponse, RooUnfoldBinByBin
+from ROOT import RooUnfoldResponse, RooUnfoldBinByBin, RooUnfoldBayes
 
 ptitle   = "p_{T}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
@@ -27,6 +27,8 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   from ROOT import Unroll
   
   # SETTINGS
+  niter     = 4 # number of iterations in RooUnfoldBayes
+  kterm     = (len(Zmbins1)-1)*(len(ptbins1)-1)/2. # kterm in RooUnfoldSvd
   hname     = 'zptmass'
   fname     = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
   pname     = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
@@ -107,8 +109,10 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     # UNFOLD
     print ">>> Creating RooUnfoldResponse..."
     resp   = RooUnfoldResponse(dyhist,dyhist_gen,resphist)
-    print ">>> Creating RooUnfoldBinByBin..."
-    unfold = RooUnfoldBinByBin(resp,obsdyhist)
+    #print ">>> Unfolding with RooUnfoldBinByBin..."
+    #unfold = RooUnfoldBinByBin(resp,obsdyhist)
+    print ">>> Unfolding with RooUnfoldBayes..."
+    unfold = RooUnfoldBayes(resp,obsdyhist,niter)
     #unfold.unfold()
     print ">>> Creating Hreco..."
     dyhist_unf = unfold.Hreco()
@@ -217,7 +221,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     plot.draw(logx=False,logy=False,logz=False,xmin=1.0,ymin=0.2,ymax=1.8,width=width,
               style=1,grid=False,xlabelsize=0.072,labeloption='h')
     plot.drawline(*rline,color=kBlue)
-    plot.drawtext("Reco. weight, %s"%(selection.title),y=0.91)
+    plot.drawtext(selection.title,y=0.91)
     plot.drawbins(yvar_reco,y=0.96,size=bsize,text="m_{#mu#mu}",addoverflow=True)
     plot.saveas(pname_,ext=['.png','.pdf'])
     plot.canvas.Write("ratio_weight_1D",gStyle.kOverwrite)
@@ -369,6 +373,8 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
   LOG.header("measureZpt_unfold()")
   
   # SETTINGS
+  niter    = 4 # number of iterations in RooUnfoldBayes
+  kterm    = len(ptbins0)/2. # kterm in RooUnfoldSvd
   hname    = 'zpt'
   fname    = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
   pname    = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
@@ -419,8 +425,10 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     # UNFOLD
     print ">>> Creating RooUnfoldResponse..."
     resp   = RooUnfoldResponse(dyhist,dyhist_gen,resphist)
-    print ">>> Creating RooUnfoldBinByBin..."
-    unfold = RooUnfoldBinByBin(resp,obsdyhist)
+    #print ">>> Unfolding with RooUnfoldBinByBin..."
+    #unfold = RooUnfoldBinByBin(resp,obsdyhist)
+    print ">>> Unfolding with RooUnfoldBayes..."
+    unfold = RooUnfoldBayes(resp,obsdyhist,niter)
     #unfold.unfold()
     print ">>> Creating Hreco..."
     dyhist_unf = unfold.Hreco()
@@ -484,6 +492,18 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     plot.drawtext(selection.title)
     plot.saveas(pname_,ext=['.png','.pdf'])
     plot.canvas.Write("weight_reco",gStyle.kOverwrite)
+    plot.close()
+    
+    # PLOT - ratio weight
+    rline  = (xvar_reco.min,1.,xvar_reco.max,1.)
+    pname_ = repkey(pname,CAT="ratio_weight_"+selection.filename).replace('_baseline',"")
+    plot   = Plot(xvar_reco,rathist,dividebins=False)
+    plot.draw(logx=logx,xmin=1.0,ymin=0.6,ymax=1.4)
+    plot.drawline(*rline,color=kBlue,title=stitle_reco)
+    #plot.drawlegend()
+    plot.drawtext(selection.title)
+    plot.saveas(pname_,ext=['.png','.pdf'])
+    plot.canvas.Write("ratio_weight",gStyle.kOverwrite)
     plot.close()
     
     # PLOT - Drell-Yan distributions
@@ -560,6 +580,7 @@ def main(args):
   eras      = sorted(args.eras,key=lambda x: x.count('UL')) # do UL last
   parallel  = args.parallel
   verbosity = args.verbosity
+  methods   = args.methods
   outdir    = "weights" #/$ERA"
   plotdir   = "weights/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
@@ -579,8 +600,10 @@ def main(args):
     outdir_  = ensuredir(repkey(outdir,ERA=era))
     plotdir_ = ensuredir(repkey(plotdir,ERA=era))
     samples  = getsampleset(channel,era,fname=fname,dyweight="",dy="")
-    measureZpt_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,verb=verbosity) # 1D
-    measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,verb=verbosity) # 2D
+    if 1 in methods:
+      measureZpt_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,verb=verbosity) # 1D
+    if 2 in methods:
+      measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,verb=verbosity) # 2D
     samples.close() # close all sample files to clean memory
   
 
@@ -590,8 +613,10 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Measure Z pT reweighting in dimuon events with RooUnfold."""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', default=['2017'], action='store', #choices=['2016','2017','2018','UL2017']
+  parser.add_argument('-y', '--era',     dest='eras', nargs='+', default=['2017'], action='store', #choices=['2016','2017','2018','UL2017']
                                          help="set era" )
+  parser.add_argument('-m', '--method',  dest='methods', type=int, nargs='+', default=[1,2], action='store',
+                                         help="methods: 1=1D (Z pT), 2=2D (Z pT and mass)" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',

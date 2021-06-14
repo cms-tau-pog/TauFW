@@ -34,9 +34,8 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
   # ERA
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   dyweight  = weight #"zptweight"
-  sampleset = getsampleset('mutau','UL2018',fname=fname,dyweight=weight,dy="")
-  exit(0)
-  #sampleset = getsampleset(channel,era,fname=fname,dyweight="")
+  #sampleset = getsampleset('mutau','UL2018',fname=fname,dyweight=weight,dy="") # check stitching
+  #sampleset = getsampleset(channel,era,fname=fname,dyweight="") # no Z pt reweighting
   sampleset = getsampleset(channel,era,fname=fname,dyweight=weight,dy="")
   #sampleset = getsampleset(channel,era,fname=fname,dyweight=dyweight)
   

@@ -6,6 +6,7 @@ Two techniques to take into account the resolution are available:
 * `measureZpt.py` using unfolding from reconstructed dimuon pT (and mass) to generator-level Z pT (and mass) using `RooUnfold`.
 * `measureZpt_average.py` derives weights by first comparing reconstructed dimuon distribution in data and MC, and then simply averaging those weights as a function of Z pT.
 
+This measurement was presented in [this Tau ID meeting](https://indico.cern.ch/event/1048446/#10-z-pt-reweighting-in-ul).
 
 ## Installation
 Install the `TauFW` as usual.
@@ -43,4 +44,6 @@ from ROOT import loadZptWeights
 loadZptWeights("weights/zptmass_weight_2017.root",'zpt_weight') # load histogram from histogram
 tree.Draw("pt_mumu >> h","(pt_1>20 && pt_2>30)*getZptWeight(Zpt)",'gOff')
 ```
-Or to apply during the processing of nanoAOD Drell-Yan, please have a look at [`PicoProducer/python/corrections/RecoilCorrectionTool.py`](../../PicoProducer/python/corrections/RecoilCorrectionTool.py).
+Or to apply during the processing of nanoAOD Drell-Yan, please have a look at
+[`PicoProducer/python/corrections/README.md`](../../PicoProducer/python/corrections/#Z-pT-reweighting) and
+[`PicoProducer/python/corrections/RecoilCorrectionTool.py`](../../PicoProducer/python/corrections/RecoilCorrectionTool.py).
