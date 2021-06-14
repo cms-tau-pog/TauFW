@@ -48,7 +48,7 @@ def redirectbranch(oldbranch,newbranch):
   if isinstance(oldbranch,str): # rename
     print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
     exec "setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch)
-  else: # set default
+  else: # set default value
     print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
     exec "setattr(Event,newbranch,%s)"%(oldbranch)  
   
