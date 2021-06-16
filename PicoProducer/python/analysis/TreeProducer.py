@@ -39,6 +39,7 @@ class TreeProducer(object):
     self.outfile  = TFile(filename,'RECREATE')
     ncuts         = kwargs.get('ncuts',25)
     self.cutflow  = Cutflow('cutflow',ncuts)
+    self.display  = kwargs.get('display_cutflow',True)
     self.pileup   = TH1D('pileup', 'pileup', 100, 0, 100)
     self.tree     = TTree('tree','tree')
   
@@ -68,6 +69,8 @@ class TreeProducer(object):
   
   def endJob(self):
     """Write and close files after the job ends."""
+    if self.display:
+      self.cutflow.display()
     self.outfile.Write()
     self.outfile.Close()
   

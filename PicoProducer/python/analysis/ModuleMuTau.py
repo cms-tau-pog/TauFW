@@ -130,11 +130,11 @@ class ModuleMuTau(ModuleTauPair):
           if tes!=1:
             tau.pt   *= tes
             tau.mass *= tes
-            tau.es    = tes
+            tau.es    = tes # store for later reuse
         elif self.ltf and 0<genmatch<5: # lepton -> tau fake
           tau.pt   *= self.ltf
           tau.mass *= self.ltf
-          tau.es    = self.ltf
+          tau.es    = self.ltf # store for later reuse
         #elif genmatch in [1,3]: # electron -> tau fake (apply by default, override with 'ltf=1.0')
         #  fes = self.fesTool.getFES(tau.eta,tau.decayMode,unc=self.fes)
         #  tau.pt   *= fes
