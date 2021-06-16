@@ -1,15 +1,17 @@
 # Description: Common configuration file for creating pico sample set plotting scripts
 import re
-from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, setera, getyear, Sel, Var
+from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, ensurelist,\
+                                       setera, getyear, Sel, Var
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
   year  = getyear(era) # get integer year
-  split = kwargs.get('split', ['DY']       ) # split samples (e.g. DY) into genmatch components
-  join  = kwargs.get('join',  ['VV','Top'] ) # join samples (e.g. VV, top)
-  tag   = kwargs.get('tag',   ""           )
-  table = kwargs.get('table', True         ) # print sample set table
+  split = kwargs.get('split',  ['DY']       ) # split samples (e.g. DY) into genmatch components
+  join  = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
+  rmsfs = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
+  tag   = kwargs.get('tag',    ""           )
+  table = kwargs.get('table',  True         ) # print sample set table
   setera(era) # set era for plot style and lumi-xsec normalization
   
   # SM BACKGROUND MC SAMPLES
@@ -153,8 +155,8 @@ def getsampleset(channel,era,**kwargs):
   
   # SAMPLE SET
   weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
-  ###if 'UL' in era: # undo for new SF measurement
-  ###  weight = weight.replace("*idweight_2*ltfweight_2","")
+  for sf in rmsfs: # remove (old) SFs, e.g. for SF measurement
+    weight = weight.replace(sf,"").replace("**","")
   fname  = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
@@ -207,5 +209,6 @@ def getsampleset(channel,era,**kwargs):
   
   if table:
     sampleset.printtable(merged=True,split=True)
+  print ">>> common weight: %r"%(weight)
   return sampleset
   
