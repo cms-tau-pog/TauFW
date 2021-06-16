@@ -153,8 +153,8 @@ def getsampleset(channel,era,**kwargs):
   
   # SAMPLE SET
   weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
-  if era=='UL2017':
-    weight = weight.replace("*idweight_2*ltfweight_2","")
+  ###if 'UL' in era: # undo for new SF measurement
+  ###  weight = weight.replace("*idweight_2*ltfweight_2","")
   fname  = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
