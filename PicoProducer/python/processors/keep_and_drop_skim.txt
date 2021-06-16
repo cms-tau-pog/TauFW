@@ -2,7 +2,7 @@ keep * # start with all
 drop L1_*
 drop HLT_*
 keep HLT_Iso*Mu*
-#keepmatch HLT_(Iso)?Mu\d+
+keepmatch HLT_(Iso|Tk|Old)?Mu\d+
 keep HLT_Ele*
 keep HLT_*Tau*
 keep HLT_Mu*_Ele*
