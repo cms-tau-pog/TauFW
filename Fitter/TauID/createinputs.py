@@ -120,8 +120,8 @@ def main(args):
         
         mvis = Var('m_vis', 30, 50, 200, fname='mvis')
         observables = [
-          Var('dm_2==0 ? 0.13957 : m_2', "m_tau", 18, 0, 1.8, fname='mtau'),
-          #Var('m_vis', 30, 50, 200, fname='mvis'),
+          #Var('dm_2==0 ? 0.13957 : m_2', "m_tau", 18, 0, 1.8, fname='mtau'),
+          Var('m_vis', 30, 50, 200, fname='mvis'),
           #Var('m_vis', 38, 10, 200, fname='mvis'), # broad range
           #Var('m_vis', 15, 50, 200, tag="_10"), # coarser binning
         ]
@@ -131,28 +131,28 @@ def main(args):
         # => use 'cut' option as hack to save time drawing pt or DM bins
         #    instead of looping over many selection,
         #    also, each pt/DM bin will be a separate file
-        #dmbins = [0,1,10,11]
-        #ptbins = [20,25,30,35,40,50,70,2000] #500,1000]
-        #print ">>> DM cuts:"
-        #for dm in dmbins:
-        #  dmcut = "pt_2>40 && dm_2==%d"%(dm)
-        #  fname = "$FILE_dm%s"%(dm)
-        #  mvis_cut = mvis.clone(fname=fname,cut=dmcut) # create observable with extra cut for dm bin
-        #  print ">>>   %r (%r)"%(dmcut,fname)
-        #  observables.append(mvis_cut)
-        #print ">>> pt cuts:"
-        #for imax, ptmin in enumerate(ptbins,1):
-        #  if imax<len(ptbins):
-        #    ptmax = ptbins[imax]
-        #    ptcut = "pt_2>%s && pt_2<=%s"%(ptmin,ptmax)
-        #    fname = "$FILE_pt%sto%s"%(ptmin,ptmax)
-        #  else: # overflow
-        #    #ptcut = "pt_2>%s"%(ptmin)
-        #    #fname = "$FILE_ptgt%s"%(ptmin)
-        #    continue # skip overflow bin
-        #  mvis_cut = mvis.clone(fname=fname,cut=ptcut) # create observable with extra cut for pt bin
-        #  print ">>>   %r (%r)"%(ptcut,fname)
-        #  observables.append(mvis_cut)
+        dmbins = [0,1,10,11]
+        ptbins = [20,25,30,35,40,50,70,2000] #500,1000]
+        print ">>> DM cuts:"
+        for dm in dmbins:
+          dmcut = "pt_2>40 && dm_2==%d"%(dm)
+          fname = "$FILE_dm%s"%(dm)
+          mvis_cut = mvis.clone(fname=fname,cut=dmcut) # create observable with extra cut for dm bin
+          print ">>>   %r (%r)"%(dmcut,fname)
+          observables.append(mvis_cut)
+        print ">>> pt cuts:"
+        for imax, ptmin in enumerate(ptbins,1):
+          if imax<len(ptbins):
+            ptmax = ptbins[imax]
+            ptcut = "pt_2>%s && pt_2<=%s"%(ptmin,ptmax)
+            fname = "$FILE_pt%sto%s"%(ptmin,ptmax)
+          else: # overflow
+            #ptcut = "pt_2>%s"%(ptmin)
+            #fname = "$FILE_ptgt%s"%(ptmin)
+            continue # skip overflow bin
+          mvis_cut = mvis.clone(fname=fname,cut=ptcut) # create observable with extra cut for pt bin
+          print ">>>   %r (%r)"%(ptcut,fname)
+          observables.append(mvis_cut)
       
       
       ############
