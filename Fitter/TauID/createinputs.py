@@ -33,7 +33,8 @@ def main(args):
       # GET SAMPLESET
       join      = ['VV','TT','ST']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-      sampleset = getsampleset(channel,era,fname=sname,join=join,split=None,table=False)
+      sampleset = getsampleset(channel,era,fname=sname,join=join,split=None,table=False,
+                               rmsf=['idweight_2','ltfweight_2'])
       
       if channel=='mumu':
         
@@ -60,7 +61,7 @@ def main(args):
         GML = "genmatch_2>0 && genmatch_2<5"
         GMJ = "genmatch_2==0"
         GMF = "genmatch_2<5"
-        splitbydm = True #and False
+        splitbydm = True and False # split by DM for public plots
         if splitbydm:
           sampleset.split('DY',[('ZTT_DM0', GMR+" && dm_2==0"), ('ZTT_DM1', GMR+" && dm_2==1"),
                                 ('ZTT_DM10',GMR+" && dm_2==10"),('ZTT_DM11',GMR+" && dm_2==11"),
@@ -79,14 +80,14 @@ def main(args):
           ('TES',"_shape_tes",['ZTT','TTT']),           # tau energy scale
           ('LTF',"_shape_ltf",['ZL', 'TTL']),           # l -> tau energy scale
           ('JTF',"_shape_jtf",['ZJ', 'TTJ','QCD','W']), # j -> tau energy scale
-          ('tid',"_shape_tid",['ZTT','TTT'],     ('idweight_2','idweightUp_2','idweightDown_2')), # replace 'idweight_2'
+          #('tid',"_shape_tid",['ZTT','TTT'],     ('idweight_2','idweightUp_2','idweightDown_2')), # replace 'idweight_2'
           ('zpt',"_shape_dy", ['ZTT','ZL','ZJ'], ('zptweight','(1.1*zptweight-0.1)','(0.9*zptweight+0.1)')), # replace 'zptweight'
           ERA=era,CHANNEL=channel) # keys to replace in systag
         if splitbydm:
           for syskey, syst in systs.iteritems():
             if 'ZTT' in syst.procs:
               syst.procs = ['ZTT_DM0','ZTT_DM1','ZTT_DM10','ZTT_DM11']+syst.procs[1:]
-        samplesets = { # sets of samples per variation
+        samplesets = { # create new sets of samples per energy scale variation
           'Nom':     sampleset, # nominal
           'TESUp':   sampleset.shift(systs['TES'].procs,"_TES1p030",systs['TES'].up," +3% TES", split=True,filter=False,share=True),
           'TESDown': sampleset.shift(systs['TES'].procs,"_TES0p970",systs['TES'].dn," -3% TES", split=True,filter=False,share=True),
@@ -121,7 +122,7 @@ def main(args):
         mvis = Var('m_vis', 30, 50, 200, fname='mvis')
         observables = [
           #Var('dm_2==0 ? 0.13957 : m_2', "m_tau", 18, 0, 1.8, fname='mtau'),
-          Var('m_vis', 30, 50, 200, fname='mvis'),
+          Var('m_vis', 30, 50, 200, fname='mvis', cbins={'pt_2>70':(15, 50, 200)}),
           #Var('m_vis', 38, 10, 200, fname='mvis'), # broad range
           #Var('m_vis', 15, 50, 200, tag="_10"), # coarser binning
         ]
@@ -201,8 +202,8 @@ def main(args):
         createinputs(fname,samplesets['LTFDown'],observables,bins,systs['LTF'].dn,filter=systs['LTF'].procs)
         createinputs(fname,samplesets['JTFUp'],  observables,bins,systs['JTF'].up,filter=systs['JTF'].procs)
         createinputs(fname,samplesets['JTFDown'],observables,bins,systs['JTF'].dn,filter=systs['JTF'].procs)
-        createinputs(fname,samplesets['Nom'],observables,bins,systs['tid'].up,filter=systs['tid'].procs,replaceweight=systs['tid'].wgtup)
-        createinputs(fname,samplesets['Nom'],observables,bins,systs['tid'].dn,filter=systs['tid'].procs,replaceweight=systs['tid'].wgtdn)
+        #createinputs(fname,samplesets['Nom'],observables,bins,systs['tid'].up,filter=systs['tid'].procs,replaceweight=systs['tid'].wgtup)
+        #createinputs(fname,samplesets['Nom'],observables,bins,systs['tid'].dn,filter=systs['tid'].procs,replaceweight=systs['tid'].wgtdn)
         createinputs(fname,samplesets['Nom'],observables,bins,systs['zpt'].up,filter=systs['zpt'].procs,replaceweight=systs['zpt'].wgtup)
         createinputs(fname,samplesets['Nom'],observables,bins,systs['zpt'].dn,filter=systs['zpt'].procs,replaceweight=systs['zpt'].wgtdn)
       
@@ -224,10 +225,11 @@ def main(args):
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
+  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018']
   argv = sys.argv
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017'], default=['UL2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['UL2017'], action='store',
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau','mumu'], default=['mutau'], action='store',
                                          help="set channel" )
