@@ -78,7 +78,7 @@ class Sample(object):
       self.filelist = self.files.replace("$SAMPLE",name) # text file
       self.files    = [ ] # list of ROOT files
     self.pathfiles    = { } # dictionary of DAS dataset path -> file list
-    self.filenevts    = { } # cache of number of events for each file; might speed up event splitting, if sample is submitted multiple times
+    self.filenevts    = kwargs.get('filenevts',     { }    ) # cache of number of events for each file; might speed up event splitting, if sample is submitted multiple times
     self.postfix      = kwargs.get('postfix',       None   ) or "" # post-fix (before '.root') for stored ROOT files
     self.era          = kwargs.get('era',           ""     ) # for expansion of $ERA variable
     self.dosplit      = kwargs.get('split', len(self.paths)>=2 ) # allow splitting (if multiple DAS datasets)
@@ -128,13 +128,14 @@ class Sample(object):
     jobcfg['config']    = str(cfgname)
     jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
-    dtype    = jobcfg['dtype']
-    channels = [jobcfg['channel']]
-    opts     = [str(s) for s in jobcfg['extraopts']]
-    subtry   = int(jobcfg['try'])
-    nevents  = int(jobcfg['nevents'])
-    sample   = Sample(jobcfg['group'],jobcfg['name'],jobcfg['paths'],dtype=dtype,channels=channels,
-                      subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,nevents=nevents,opts=opts)
+    filenevts = jobcfg.get('filenevts',{ })
+    dtype     = jobcfg['dtype']
+    channels  = [jobcfg['channel']]
+    opts      = [str(s) for s in jobcfg['extraopts']]
+    subtry    = int(jobcfg['try'])
+    nevents   = int(jobcfg['nevents'])
+    sample    = Sample(jobcfg['group'],jobcfg['name'],jobcfg['paths'],dtype=dtype,channels=channels,
+                       subtry=subtry,jobcfg=jobcfg,nfilesperjob=nfilesperjob,filenevts=filenevts,nevents=nevents,opts=opts)
     return sample
   
   def split(self,tag="ext"):

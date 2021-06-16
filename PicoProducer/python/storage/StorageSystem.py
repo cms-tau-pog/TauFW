@@ -148,9 +148,10 @@ class StorageSystem(object):
     dryrun  = kwargs.get('dry',    False)
     verb    = kwargs.get('verb',   self.verbosity)
     fileurl = kwargs.get('url',    self.fileurl)
+    maxopen = kwargs.get('maxopenfiles', 0) # maximum number of files opened via -n option
     tmpdir  = kwargs.get('tmpdir', target.startswith(self.parent) and self.cpurl!='')
     htarget = target
-    if tmpdir:
+    if tmpdir: # create temporary dir for hadd target, and copy after
       if not isinstance(tmpdir,str):
         tmpdir = self.tmpdir
       tmpdir  = ensuredir(tmpdir,verb=verb)
@@ -172,8 +173,12 @@ class StorageSystem(object):
       print ">>> %-10s = %r"%('source',source)
       print ">>> %-10s = %r"%('target',target)
       print ">>> %-10s = %r"%('htarget',htarget)
-    out = self.execute("%s %s %s"%(self.haddcmd,htarget,source),dry=dryrun,verb=verb)
-    if tmpdir:
+      print ">>> %-10s = %r"%('maxopen',maxopen)
+    haddcmd = self.haddcmd
+    if maxopen>=1:
+      haddcmd += " -n %s"%(maxopen)
+    out = self.execute("%s %s %s"%(haddcmd,htarget,source),dry=dryrun,verb=verb)
+    if tmpdir: # copy hadd target and remove temporary file
       cpout = self.cp(htarget,target,dry=dryrun,verb=verb)
       if not dryrun:
         rmfile(htarget)

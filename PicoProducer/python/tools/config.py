@@ -40,6 +40,7 @@ _batchsystem   = 'HTCondor'                       # batch system (HTCondor, SLUR
 _queue         = ""                               # batch queue / job flavor
 _nfilesperjob  = 1                                # group files per job
 _maxevtsperjob = -1                               # maximum number of events per job (split large files)
+_maxopenfiles  = -1                               # maximum number of open files during hadd
 _cfgdefaults   = OrderedDict([                    # ordered dictionary with defaults
   ('channels',_channels), ('eras',_eras),
   ('basedir',basedir),
@@ -48,6 +49,7 @@ _cfgdefaults   = OrderedDict([                    # ordered dictionary with defa
   ('batch',_batchsystem), ('queue',_queue),
   ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
   ('filelistdir',_filelistdir),
+  ('maxopenfiles',_maxopenfiles),
 ])
 sys.path.append(basedir)
 

@@ -11,6 +11,7 @@
     "2018": "examples/samples_2018.py"
   }, 
   "nfilesperjob": 1, 
-  "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "maxopenfiles": -1
 }
