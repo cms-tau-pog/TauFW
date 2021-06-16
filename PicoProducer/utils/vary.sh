@@ -22,10 +22,11 @@ CLEAN=0
 SHIFTS="" #`seq $TES_FIRST $STEP_SIZE $TES_LAST`
 
 OPTIND=2
-while getopts ":c:JLrs:Tvx:y:" option; do case "${option}" in
+while getopts ":c:JLm:rs:Tvx:y:" option; do case "${option}" in
   c) CHANNELS="${OPTARG//,/ }";;
   J) SHIFTS+="JTF0p900 JTF1p100 ";;
   L) SHIFTS+="LTF0p970 LTF1p030 ";;
+  m) OPTIONS+="-m $OPTARG ";;
   T) SHIFTS+="TES0p970 TES1p030 ";;
   r) OPTIONS+="-r "; CLEAN=1;;
   s) SAMPLES="${OPTARG//,/ }";;
