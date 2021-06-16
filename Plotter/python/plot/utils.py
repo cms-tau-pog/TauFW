@@ -607,7 +607,7 @@ def resetbinning(axis,xmin=None,xmax=None,variable=False,**kwargs):
       edges = [xmin_+width*i for i in range(0,nbins+1)] # original bin edges
       edges = resetedges(edges,xmin,xmax) # reset range
       xbins = (len(edges)-1,array('d',edges))
-  LOG.verb("resetbinning: axis=%r, xbins=%r -> %r"%(axis,oldbins,xbins),verbosity,1)
+  LOG.verb("resetbinning: axis=%r, xbins=%r -> %r"%(axis,oldbins,xbins),verbosity,2)
   return xbins
   
 
