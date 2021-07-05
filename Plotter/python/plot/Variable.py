@@ -25,11 +25,11 @@ class Variable(object):
     self.name         = name # variable name in tree, to be used in draw command
     self._name        = name # backup for addoverflow
     self.title        = strings[0] if strings else self.name
-    self.filename     = makefilename(self.name.replace('/','_'))
+    filename          = makefilename(self.name.replace('/','_'))  # file-safe name
     self.title        = kwargs.get('title',       self.title    ) # for plot axes
-    self.filename     = kwargs.get('fname',       self.filename ) # file-friendly name for files & histograms
+    self.filename     = kwargs.get('fname',       filename      ) # file-friendly name for files & histograms
     self.filename     = kwargs.get('filename',    self.filename ) # alias
-    self.filename     = self.filename.replace('$NAME',self.name).replace('$VAR',self.name) #.replace('$FILE',self.filename)
+    self.filename     = self.filename.replace('$NAME',self.name).replace('$VAR',filename) #.replace('$FILE',self.filename)
     self.tag          = kwargs.get('tag',         ""            )
     self.units        = kwargs.get('units',       True          ) # for plot axes
     self.latex        = kwargs.get('latex',       True          ) # for plot axes
@@ -119,18 +119,36 @@ class Variable(object):
   
   def clone(self,*args,**kwargs):
     """Shallow copy."""
+    verbosity = LOG.getverbosity(self,kwargs)
     if not args:
-      args = self.nbins, self.min, self.max
+      args = self.getbins()
+      cut  = kwargs.get('cut',None)
+      if cut and self.ctxbins: # change context based on extra cut
+        bins = self.ctxbins.getcontext(cut) # get bins in this context
+        if args!=bins and verbosity>=2:
+          print ">>> Variable.clone: Changing binning %r -> %r because of context %r"%(args,bins,cut)
+        args = bins
+      if isinstance(args,list): # assume list is bin edges
+        args = (args,)
     newdict = self.__dict__.copy()
     if 'fname' in kwargs:
       kwargs['filename'] = kwargs['fname']
     if 'filename' in kwargs:
       kwargs['filename'] = kwargs['filename'].replace('$FILE',self.filename)
-    for key in kwargs:
+    if kwargs.get('combine',True) and 'weight' in kwargs and self.weight:
+      kwargs['weight'] = combineWeights(kwargs['weight'],self.weight)
+    for key in kwargs.keys()+['nbins','min','max','bins']: # to be reset with args
       if key in newdict:
         newdict.pop(key)
+    if 'cbins' in kwargs:
+      newdict.pop('ctxbins')
+    elif self.ctxbins:
+      newdict['ctxbins'] = self.ctxbins.clone() # create new dictionary
+      newdict['ctxbins'].default = args # change default context
     newvar = Variable(self.name,*args,**kwargs)
     newvar.__dict__.update(newdict)
+    if verbosity>=2:
+      print ">>> Variable.clone: Cloned %r -> %r"%(self,newvar)
     return newvar
   
   def issame(self,ovar,**kwargs):
@@ -147,8 +165,8 @@ class Variable(object):
   def setbins(self,*args):
     """Set binning: (N,min,max), or bins if it is set"""
     LOG.verb('Variable.setbins: setting binning to %s'%(args,),level=2)
-    numbers         = [a for a in args if isnumber(a) ]
-    bins            = [a for a in args if islist(a)   ]
+    numbers         = [a for a in args if isnumber(a)]
+    bins            = [a for a in args if islist(a)  ]
     if len(numbers)==3:
       self.nbins    = numbers[0]
       self.min      = numbers[1]
@@ -167,7 +185,7 @@ class Variable(object):
     """Get binning: (N,xmin,xmax), or bins if it is set"""
     if self.hasvariablebins():
       return self.bins
-    elif full:
+    elif full: # get binedges
       return [self.min+i*(self.max-self.min)/self.nbins for i in xrange(self.nbins+1)]
     else:
       return (self.nbins,self.min,self.max)

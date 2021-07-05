@@ -45,7 +45,7 @@ class MultiProcessor:
       """Start and save process. Create a pipe to return output."""
       if not isinstance(args,tuple):
         args = (args,)
-      if parallel:
+      if parallel: # execute jobs in parallel (main functionality)
         endout, endin = Pipe(False)
         if kwret:
           newargs     = (endin,target,kwret) + args
@@ -55,11 +55,11 @@ class MultiProcessor:
           mptarget    = self.target
         process       = Process(group,mptarget,name,newargs,kwargs)
         process.kwret = kwret
-        process.start()
-      else:
+        process.start() # start running process in parallel now (or add to queue)
+      else: # execute jobs sequentially
         process = SimpleProcess(target,name,args,kwargs,kwret=kwret)
         endin   = None
-        endout  = process.start()
+        endout  = process.start() # execute process now and wait until it returns
       self.procs.append((process,endin,endout))
       
     def target(self,*args,**kwargs):
@@ -99,11 +99,11 @@ class ReturnProcess:
       
     def join(self,*args,**kwargs):
       """Join process, and return output."""
+      kwret = self.process.kwret
       if isinstance(self.process,Process):
         self.process.join(*args) # wait for process to finish
         #if self.endin:
         #  self.endin.close()
-        kwret = self.process.kwret
         if kwret in kwargs:
           out, kwretval = self.endout.recv()
           if isinstance(kwretval,dict):

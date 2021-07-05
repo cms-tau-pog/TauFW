@@ -11,7 +11,7 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",era="",pdf=False)
   LOG.header("plot")
   
   # SELECTIONS
-  baseline  = "(q_1*q_2<0) && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
+  baseline  = "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
   zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline)
   selections = [
     #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16","")),
@@ -74,6 +74,7 @@ def main(args):
       setera(era) # set era for plot style and lumi-xsec normalization
       sampleset = getsampleset(channel,era,fname=fname)
       plot(sampleset,channel,parallel=parallel,tag=tag,outdir=outdir,era=era,pdf=pdf)
+      sampleset.close()
   
 
 if __name__ == "__main__":
@@ -91,7 +92,7 @@ if __name__ == "__main__":
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',
                                          help="create pdf version of each plot" )
-  parser.add_argument('-t', '--tag',     dest='tag', help="extra tag for output" )
+  parser.add_argument('-t', '--tag',     default="", help="extra tag for output" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()
@@ -100,5 +101,3 @@ if __name__ == "__main__":
   main(args)
   print "\n>>> Done."
   
-
-

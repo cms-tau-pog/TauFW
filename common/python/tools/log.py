@@ -39,13 +39,14 @@ def underlined(string,**kwargs):
   
 
 #_headeri = 0
-def header(*strings):
+def header(*strings,**kwargs):
   #global _headeri
+  prefix = kwargs.get('pre',"")
   title  = ', '.join([str(s) for s in strings if s]) #.lstrip('_')
-  string = "\n" +\
-           "   ###%s\n"    % ('#'*(len(title)+3)) +\
-           "   #  %s  #\n" % (title) +\
-           "   ###%s\n"    % ('#'*(len(title)+3))
+  string = prefix+"\n" +\
+           prefix+"   ###%s\n"    % ('#'*(len(title)+3)) +\
+           prefix+"   #  %s  #\n" % (title) +\
+           prefix+"   ###%s\n"    % ('#'*(len(title)+3)) + prefix
   #_headeri += 1
   return string
   

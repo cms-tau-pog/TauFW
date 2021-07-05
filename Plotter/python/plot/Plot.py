@@ -198,7 +198,11 @@ class Plot(object):
     if not xmax and xmax!=0: xmax = self.xmax
     hists        = self.hists
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else False
+    denom        = kwargs.get('den',   denom ) # alias
     denom        = kwargs.get('denom', denom ) # denominator histogram in ratio plot
+    if verbosity>=1:
+      print ">>> Plot.draw: hists=%s"%(self.hists)
+      print ">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
     
     # NORMALIZE
     if norm:
@@ -758,28 +762,28 @@ class Plot(object):
     if not any(c in position for c in 'LCRx'): # set default horizontal
       position += 'RR' if ncols>1 else 'R' # if title else 'L'
     
-    if 'C'     in position:
-      if   'R' in position: center = 0.57
-      elif 'L' in position: center = 0.43
-      else:                 center = 0.50
+    if 'C'     in position: # horizontal center
+      if   'R' in position: center = 0.57 # right of center
+      elif 'L' in position: center = 0.43 # left of center
+      else:                 center = 0.50 # center
       x1 = center-width/2; x2 = center+width/2
-    elif 'LL'  in position: x1 = 0.03; x2 = x1 + width
-    elif 'L'   in position: x1 = 0.08; x2 = x1 + width
-    elif 'RR'  in position: x2 = 0.97; x1 = x2 - width
-    elif 'R'   in position: x2 = 0.92; x1 = x2 - width
-    elif 'x='  in position:
+    elif 'LL'  in position: x1 = 0.03; x2 = x1 + width # far left
+    elif 'L'   in position: x1 = 0.08; x2 = x1 + width # left
+    elif 'RR'  in position: x2 = 0.97; x1 = x2 - width # far right
+    elif 'R'   in position: x2 = 0.92; x1 = x2 - width # right
+    elif 'x='  in position: # horizontal coordinate set by user
       x1 = float(re.findall(r"x=(\d\.\d+)",position)[0])
       x2 = x1 + width
-    if 'M'     in position:
-      if   'T' in position: middle = 0.57
-      elif 'B' in position: middle = 0.43
-      else:                 middle = 0.50
+    if 'M'     in position: # vertical middle
+      if   'T' in position: middle = 0.57 # above middle
+      elif 'B' in position: middle = 0.43 # below middle
+      else:                 middle = 0.50 # exact middle
       y1 = middle-height/2; y2 = middle+height/2
-    elif 'TT'  in position: y2 = 0.97; y1 = y2 - height
-    elif 'T'   in position: y2 = 0.92; y1 = y2 - height
-    elif 'BB'  in position: y1 = 0.03; y2 = y1 + height
-    elif 'B'   in position: y1 = 0.08; y2 = y1 + height
-    elif 'y='  in position:
+    elif 'TT'  in position: y2 = 0.97; y1 = y2 - height # far top
+    elif 'T'   in position: y2 = 0.92; y1 = y2 - height # top
+    elif 'BB'  in position: y1 = 0.03; y2 = y1 + height # far bottom
+    elif 'B'   in position: y1 = 0.08; y2 = y1 + height # bottom
+    elif 'y='  in position: # vertical coordinate set by user
       y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
       y1 = y2 - height
     if x1_user!=None:
@@ -877,6 +881,15 @@ class Plot(object):
     align_user = kwargs.get('align',    None      ) # text line
     panel      = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
     texts      = unwraplistargs(texts)
+    i = 0
+    while i<len(texts):
+      line = texts[i]
+      if '\n' in line:
+        lines = line.replace('\\n','').split('\n')
+        texts = texts[:i]+lines+texts[i+1:]
+        i += len(lines)
+      else:
+        i += 1
     if not any(t!="" for t in texts):
       return None
     

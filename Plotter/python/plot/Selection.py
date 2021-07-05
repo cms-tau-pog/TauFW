@@ -94,7 +94,12 @@ class Selection(object):
       result = Selection("%s (%s)"(self.name,weight.title),joincuts(self.selection,weight=weight))
     return result
   
+  def contains(self, string, **kwargs):
+    """Return if selection string contains given substring."""
+    return string in self.selections
+  
   def replace(self, old, new, **kwargs):
+    """Replace given substring in selection string."""
     if kwargs.get('regex',False):
       self.selection = self.selection.replace(old,new)
     else:

@@ -4,10 +4,10 @@ import re
 from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist, islist
 
 var_dict = {
-    'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",
+    'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",          'njets50':  "Number of jets (pt>50 GeV)",
     'nfjets':    "Number of forward jets",  'nfjets20': "Number of forward jets (pt>20 GeV)",
     'ncjets':    "Number of central jets",  'ncjets20': "Number of central jets (pt>20 GeV)",
-    'nbtag':     "Number of b tagged jets", 'nbtag20':  "Number of b tagged jets (pt>20 GeV)",
+    'nbtag':     "Number of b tagged jets", 'nbtag20':  "Number of b tagged jets (pt>20 GeV)", 'nbtag50':  "Number of b tagged jets (pt>50 GeV)",
     'jpt_1':     "Leading jet pt",          'jpt_2':    "Subleading jet pt",
     'bpt_1':     "Leading b jet pt",        'bpt_2':    "Subleading b jet pt",
     'jeta_1':    "Leading jet eta",         'jeta_2':   "Subleading jet eta",
@@ -218,6 +218,7 @@ def makefilename(*strings,**kwargs):
     fname = re.sub(r"(?<!zoo)m_t(?!au)",r"mt",fname)
   fname = fname.replace(" and ",'-').replace(',','-').replace(',','-').replace('+','-').replace('::','-').replace(':','-').replace(
                         '(','-').replace(')','').replace('{','').replace('}','').replace(
+                        '\n','-').replace('\\','').replace('/','-').replace(
                         '|','').replace('&','').replace('#','').replace('!','not').replace(
                         'pt_mu','pt').replace('m_T','mt').replace(
                         '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace("=","eq").replace(

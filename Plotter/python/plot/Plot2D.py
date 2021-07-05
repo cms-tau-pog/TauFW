@@ -60,6 +60,7 @@ class Plot2D(Plot):
       self.ybinlabels = kwargs.get('ybinlabels', yvariable.binlabels )
       self.logz       = kwargs.get('logz',       xvariable.logy      )
       self.position   = kwargs.get('position',   xvariable.position  )
+      self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable.filename,xvariable.filename))
     else:
       self.xvariable  = xvariable or hist.GetXaxis().GetTitle()
       self.yvariable  = yvariable or hist.GetYaxis().GetTitle()
@@ -75,10 +76,10 @@ class Plot2D(Plot):
       self.ybinlabels = kwargs.get('ybinlabels', None                      )
       self.logz       = kwargs.get('logz',       False                     )
       self.position   = kwargs.get('position',   ""                        )
+      self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable,xvariable))
     self.zmin = kwargs.get('zmin', hist.GetMinimum() )
     self.zmax = kwargs.get('zmax', hist.GetMaximum() )
     self.hist = hist
-    self.name = kwargs.get('name',"%s_vs_%s"%(yvariable,xvariable))
     
   def draw(self,*args,**kwargs):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""

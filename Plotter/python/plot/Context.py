@@ -23,6 +23,12 @@ class Context(object):
     """Start iteration over selection information."""
     for i in self.context:
       yield i
+    self.regex   = kwargs.get('regex',False)
+  
+  def clone(self):
+    """Clone this Context object. Copy dictionary to get separate reference."""
+    newctx = Context(self.context.copy(),self.default,regex=self.regex)
+    return newctx
   
   def getcontext(self,*args,**kwargs):
     """Get the contextual object for a set of ordered arguments. If it is not available, return Default."""

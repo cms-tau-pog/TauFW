@@ -59,13 +59,20 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     expsamples[i] = sample
   
   # DATA (OBSERVED)
+  group = "Data"
   title = 'Observed'
   datakwargs = kwargs.copy()
   datakwargs['weight'] = dataweight
   if isinstance(datasample,dict) and channel:
     datasample = datasample[channel]
-  if len(datasample)==2:
-    group, name = datasample
+  if isinstance(datasample,str):
+    name = datasample
+  elif len(datasample)==2:
+    if isinstance(datasample[1],dict): # dictionary
+      name = datasample[0]
+      datakwargs.update(datasample[1])
+    else: # string
+      group, name = datasample
   elif len(datasample)==3:
     group, name = datasample[:2]
     if isinstance(datasample[2],dict): # dictionary

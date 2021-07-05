@@ -99,17 +99,17 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
               yvar, xvar = vmatch.group(1), vmatch.group(2)
               bmatch = binregex2D.match(binning)
               if not bmatch:
-                raise error('MultiDraw: Could not parse formula for %r: "%s"'%(name,varexp))
+                raise error('MultiDraw: Could not parse formula for %r to pattern %r: "%s"'%(name,binregex2D.pattern,varexp))
               nxbins, xmin, xmax = int(bmatch.group(1)), float(bmatch.group(2)), float(bmatch.group(3))
               nybins, ymin, ymax = int(bmatch.group(4)), float(bmatch.group(5)), float(bmatch.group(6))
               hist = TH2D(name,name,nxbins,xmin,xmax,nybins,ymin,ymax)
             else: # impossible
-              raise error('MultiDraw: Could not parse variable %r for %r: "%s"'%(xvar,name,varexp))
+              raise error('MultiDraw: Could not parse variable %r for %r to pattern %r: %r'%(xvar,name,varregex2D.pattern,varexp))
             
         else: # get existing histogram: varexp = "x >> h" or "y:x >> h"
             match = varregex2.match(varexp)
             if not match:
-              raise error('MultiDraw: Could not parse formula: "%s"'%(name,varexp))
+              raise error('MultiDraw: Could not parse formula to pattern %r: %r'%(varregex2.pattern,varexp))
             xvar, name = match.groups()
             if name.startswith("+") and name[1:] in hists:
               hist = hists[name[1:]] # add content to existing histogram
@@ -132,8 +132,8 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
               if not isinstance(hist,TH2):
                 raise error("MultiDraw: Existing histogram with name %r is not 2D! Found xvar=%r, yvar=%r..."%(name,xvar,yvar))
             else: # impossible
-              raise error('MultiDraw: Could not parse variable %r for %r: "%s"'%(xvar,name,varexp))
-            
+              raise error('MultiDraw: Could not parse variable %r for %r to pattern %r: "%s"'%(xvar,name,varregex2D.pattern,varexp))
+        
         if sumw2:
           hist.Sumw2()
         elif poisson:
