@@ -310,12 +310,13 @@ If jobs failed, you can resubmit with
 ```
 pico.py resubmit -y 2016 -c mutau
 ```
-This will resubmit files that are missing or corrupted (unless they are associated with a running job).
+This will resubmit files that are missing or corrupted, unless they are associated with a pending or running job.
 In case the jobs take too long, you can specify a smaller number of files per job with `--filesperjob` on the fly,
 or use `--split` to split the previous number.
 Otherwise you can limit the number of events per job with `--maxevts` if it was not already set in the first submission.
 
-Use `--skipevts` to speed up the resubmission by checking for missing files. 
+Use `--skipevts` to speed up the resubmission by checking for missing files without opening,
+and `--checkqueue 1` to only check the batch system for pending or running jobs once.
 
 
 ### Finalize
@@ -374,7 +375,7 @@ etc.
 
 This framework might not work for your computing system... yet.
 It was created with a modular design in mind, meaning that users can add their own
-"plug-in" modules to make it work with their own batch system and storage system.
+"plug-in" modules to make the scripts work with their own batch system and storage system.
 If you like to contribute, please make sure the changes run as expected,
 and then push the changes to a fork to make a pull request.
 

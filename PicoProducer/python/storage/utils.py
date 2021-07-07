@@ -72,13 +72,14 @@ def getstorage(path,verb=0,ensure=False):
   return storage
   
 
-def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},split=False,verb=0):
+def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],dasveto=[],moddict={},split=False,verb=0):
   """Help function to get samples from a sample list and filter if needed."""
   import TauFW.PicoProducer.tools.config as GLOB
   CONFIG   = GLOB.getconfig(verb=verb)
-  filters  = filter if not filter or isinstance(filter,list) else [filter]
-  vetoes   = veto   if not veto   or isinstance(veto,list)   else [veto]
-  dtypes   = dtype  if not dtype  or isinstance(dtype,list)  else [dtype]
+  filters  = filter  if not filter  or isinstance(filter,list)  else [filter]
+  vetoes   = veto    if not veto    or isinstance(veto,list)    else [veto]
+  dasveto  = dasveto if not dasveto or isinstance(dasveto,list) else [dasveto]
+  dtypes   = dtype   if not dtype   or isinstance(dtype,list)   else [dtype]
   sampfile = ensurefile("samples",repkey(CONFIG.eras[era],ERA=era,CHANNEL=channel,TAG=tag))
   samppath = sampfile.replace('.py','').replace('/','.')
   LOG.verb("getsamples: sampfile=%r"%(sampfile),verb,1)
@@ -92,13 +93,16 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],moddict={},split
   sampledict = { } # ensure for unique names
   LOG.verb("getsamples: samplelist=%r"%(samplelist),verb,3)
   for sample in samplelist:
-    if filters and not sample.match(filters,verb): continue
-    if vetoes and sample.match(vetoes,verb): continue
+    if filters and not sample.match(filters,verb=verb): continue
+    if vetoes and sample.match(vetoes,verb=verb): continue
     if dtypes and sample.dtype not in dtypes: continue
     if channel and sample.channels and not any(fnmatch(channel,c) for c in sample.channels): continue
     if sample.name in sampledict:
       LOG.throw(IOError,"Sample short names should be unique. Found two samples '%s'!\n\t%s\n\t%s"%(
                         sample.name,','.join(sampledict[sample.name].paths),','.join(sample.paths)))
+    if dasfilter or dasveto:
+      sample = sample.filterpath(filter=dasfilter,veto=dasveto,copy=True,verb=verb)
+      if len(sample.paths)==0: continue
     if (split or 'skim' in channel) and sample.dosplit: # split samples with multiple DAS dataset paths, and submit as separate jobs
       for subsample in sample.split():
         samples.append(subsample) # keep correspondence sample to one sample in DAS

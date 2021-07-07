@@ -98,8 +98,8 @@ def compare_nano(samplesets,tag="",**kwargs):
   selections = [
 #     Sel('pt(mu) > 24 GeV', "Muon_pt>24", fname="mu"),
 #     Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet', baseline, fname="mutau-VVVLoose"),
-#     Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet,\n21-25 vertices',
-#                                                              baseline+" && PV_npvs>20 && PV_npvs<=25", fname="mutau-VVVLoose-npv20to25"),
+    Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet,\n21-25 vertices',
+                                                             baseline+" && PV_npvs>20 && PV_npvs<=25", fname="mutau-VVVLoose-npv20to25"),
     Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet,\n26-30 vertices',
                                                              baseline+" && PV_npvs>25 && PV_npvs<=30", fname="mutau-VVVLoose-npv25to30"),
     #Sel('baseline', baseline),
@@ -113,7 +113,7 @@ def compare_nano(samplesets,tag="",**kwargs):
     ('jtf',    "j #rightarrow #tau_{h}","Tau_genPartFlav<=0"),
   ]
   oldselections = selections[:]
-  selections = [ ]
+  #selections = [ ]
   for gmname, gmtitle, gmcut in gms:
     for oldsel in oldselections[:]:
       if 'Tau' not in oldsel.selection: continue
@@ -135,7 +135,7 @@ def compare_nano(samplesets,tag="",**kwargs):
     Var('Tau_neutralIso', "Neutral tau_h isolation", 50, 0.00, 100, logy=True,ymin=6e-6,only=['Tau']),
     Var('Tau_chargedIso', "Charged tau_h isolation", 50, 0.00, 100, logy=True,ymin=6e-6,only=['Tau']),
     Var('log10(max(0.001,Tau_rawIso))', "log_{10} #Delta#beta-corrected tau_h isolation",
-                                                     70, -3, 4, fname="Tau_rawIso_log", logy=True,ymin=6e-6,only=['Tau']),
+                                                     28, -3, 4, fname="Tau_rawIso_log", logy=True,ymin=6e-6,only=['Tau']),
     Var('Tau_neutralIso>0.5?log10(Tau_neutralIso):-1', "log_{10} neutral tau_h isolation",
                                                      30, -1, 2, fname="Tau_neutralIso_log", logy=True,ymin=6e-6,only=['Tau']),
     Var('Tau_chargedIso>0.5?log10(Tau_chargedIso):-1', "log_{10} charged tau_h isolation",

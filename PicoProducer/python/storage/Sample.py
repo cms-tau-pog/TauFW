@@ -174,6 +174,27 @@ class Sample(object):
         print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
     return match_
   
+  def filterpath(self,filter=[],veto=[],copy=False,verb=0):
+    """Filter DAS paths by matching to (glob) pattern. Update this sample, or create copy"""
+    paths = [ ]
+    sample = self
+    for path in self.paths:
+      keep = not filter or any(fnmatch(path,'*'+f+'*') for f in filter)
+      if veto:
+        keep = not any(fnmatch(path,'*'+f+'*') for f in veto)
+      if keep:
+        paths.append(path)
+    if verb>=1:
+      print ">>> Sample.filterpath: filters=%s, vetoes=%s, %s -> %s"%(filter,veto,self.paths,paths)
+    if len(paths)!=len(self.paths):
+      if copy:
+        sample = deepcopy(self)
+      sample.paths = paths
+      for path in sample.pathfiles.keys():
+        if path not in paths:
+          sample.pathfiles.pop(path)
+    return sample
+  
   def getfiles(self,das=False,refresh=False,url=True,limit=-1,verb=0):
     """Get list of files from storage system (default), or DAS (if no storage system of das=True)."""
     LOG.verb("getfiles: das=%r, refresh=%r, url=%r, limit=%r"%(das,refresh,url,limit),verb,1)

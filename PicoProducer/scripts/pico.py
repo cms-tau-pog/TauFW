@@ -33,9 +33,9 @@ def main_install(args):
   
 
 
-###########
+############
 #   LIST   #
-###########
+############
 
 def main_list(args):
   """List contents of configuration for those lazy to do 'cat config/config.json'."""
@@ -72,15 +72,17 @@ def main_get(args):
   if args.verbosity>=1:
     print ">>> main_get", args
   variable   = args.variable
-  eras       = args.eras
-  channels   = args.channels or [""]
-  dtypes     = args.dtypes
-  filters    = args.samples
-  vetoes     = args.vetoes
+  eras       = args.eras       # eras to loop over and run
+  channels   = args.channels or [""] # channels to loop over and run
+  dtypes     = args.dtypes     # filter (only include) these sample types ('data','mc','embed')
+  filters    = args.samples    # filter (only include) these samples (glob patterns)
+  dasfilters = args.dasfilters # filter (only include) these das paths (glob patterns)
+  vetoes     = args.vetoes     # exclude these sample (glob patterns)
+  dasvetoes  = args.dasvetoes  # exclude these DAS paths (glob patterns)
   inclurl    = args.inclurl    # include URL in filelist
   checkdas   = args.checkdas or args.dasfiles # check file list in DAS
   checklocal = args.checklocal # check nevents in local files
-  split      = args.split # split samples with multiple DAS dataset paths
+  split      = args.split      # split samples with multiple DAS dataset paths
   limit      = args.limit
   writedir   = args.write      # write sample file list to text file
   tag        = args.tag
@@ -106,7 +108,7 @@ def main_get(args):
           print ">>> Getting file list for era %r, channel %r"%(era,channel)
         else:
           print ">>> Getting file list for era %r"%(era)
-        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,verb=verbosity)
+        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,verb=verbosity)
         if not samples:
           LOG.warning("No samples found for era %r."%(era))
         for sample in samples:
@@ -131,7 +133,7 @@ def main_get(args):
         
         # GET SAMPLES
         LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,split=split,verb=verbosity)
+        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,split=split,verb=verbosity)
         
         # LOOP over SAMPLES
         for sample in samples:
@@ -176,15 +178,17 @@ def main_write(args):
   if args.verbosity>=1:
     print ">>> main_write", args
   listname   = args.listname   # write sample file list to text file
-  eras       = args.eras
-  channels   = args.channels or [""]
-  dtypes     = args.dtypes
-  filters    = args.samples
-  vetoes     = args.vetoes
+  eras       = args.eras       # eras to loop over and run
+  channels   = args.channels or [""] # channels to loop over and run
+  dtypes     = args.dtypes     # filter (only include) these sample types ('data','mc','embed')
+  filters    = args.samples    # filter (only include) these samples (glob patterns)
+  dasfilters = args.dasfilters # filter (only include) these das paths (glob patterns)
+  vetoes     = args.vetoes     # exclude these sample (glob patterns)
+  dasvetoes  = args.dasvetoes  # exclude these DAS paths (glob patterns)
   checkdas   = args.checkdas or args.dasfiles # check file list in DAS
-  split      = args.split # split samples with multiple DAS dataset paths
-  retries    = args.retries
-  getnevts   = args.getnevts # check nevents in local files
+  split      = args.split      # split samples with multiple DAS dataset paths
+  retries    = args.retries    # retry if error is thrown
+  getnevts   = args.getnevts   # check nevents in local files
   verbosity  = args.verbosity
   cfgname    = CONFIG._path
   if verbosity>=1:
@@ -209,7 +213,7 @@ def main_write(args):
       print ">>> "
       
       LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-      samples0 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,split=split,verb=verbosity)
+      samples0 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,split=split,verb=verbosity)
       sampleset = [samples0]
       for retry in range(retries):
         sampleset.append([ ]) # list for retries
@@ -393,23 +397,25 @@ def main_run(args):
   """Run given module locally."""
   if args.verbosity>=1:
     print ">>> main_run", args
-  eras      = args.eras      # eras to loop over and run
-  channels  = args.channels  # channels to loop over and run
-  tag       = args.tag       # extra tag for output file
-  outdir    = args.outdir
-  dtypes    = args.dtypes    # filter (only include) these sample types ('data','mc','embed')
-  filters   = args.samples   # filter (only include) these samples (glob patterns)
-  vetoes    = args.vetoes    # exclude these sample (glob patterns)
-  extraopts = args.extraopts # extra options for module (for all runs)
-  prefetch  = args.prefetch  # copy input file first to local output directory
-  maxevts   = args.maxevts   # maximum number of files (per sample, era, channel)
-  dasfiles  = args.dasfiles  # explicitly process nanoAOD files stored on DAS (as opposed to local storage)
-  userfiles = args.infiles   # use these input files
-  nfiles    = args.nfiles    # maximum number of files (per sample, era, channel)
-  nsamples  = args.nsamples  # maximum number of samples (per era, channel)
-  dryrun    = args.dryrun    # prepare and print command, without executing
-  verbosity = args.verbosity
-  preselect = args.preselect # extra selection string
+  eras       = args.eras      # eras to loop over and run
+  channels   = args.channels  # channels to loop over and run
+  tag        = args.tag       # extra tag for output file
+  outdir     = args.outdir
+  dtypes     = args.dtypes    # filter (only include) these sample types ('data','mc','embed')
+  filters    = args.samples   # filter (only include) these samples (glob patterns)
+  dasfilters = args.dasfilters # filter (only include) these das paths (glob patterns)
+  vetoes     = args.vetoes     # exclude these sample (glob patterns)
+  dasvetoes  = args.dasvetoes  # exclude these DAS paths (glob patterns)
+  extraopts  = args.extraopts # extra options for module (for all runs)
+  prefetch   = args.prefetch  # copy input file first to local output directory
+  maxevts    = args.maxevts   # maximum number of files (per sample, era, channel)
+  dasfiles   = args.dasfiles  # explicitly process nanoAOD files stored on DAS (as opposed to local storage)
+  userfiles  = args.infiles   # use these input files
+  nfiles     = args.nfiles    # maximum number of files (per sample, era, channel)
+  nsamples   = args.nsamples  # maximum number of samples (per era, channel)
+  dryrun     = args.dryrun    # prepare and print command, without executing
+  verbosity  = args.verbosity
+  preselect  = args.preselect # extra selection string
   
   # LOOP over ERAS
   if not eras:
@@ -451,7 +457,7 @@ def main_run(args):
         # GET SAMPLES
         if not userfiles and (filters_ or vetoes or dtypes):
           LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-          samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters_,veto=vetoes,moddict=moddict,verb=verbosity)
+          samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters_,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,moddict=moddict,verb=verbosity)
           if nsamples>0:
             samples = samples[:nsamples]
           if not samples:
@@ -586,6 +592,8 @@ def preparejobs(args):
   dtypes       = args.dtypes       # filter (only include) these sample types ('data','mc','embed')
   filters      = args.samples      # filter (only include) these samples (glob patterns)
   vetoes       = args.vetoes       # exclude these sample (glob patterns)
+  dasfilters   = args.dasfilters   # filter (only include) these das paths (glob patterns)
+  dasvetoes    = args.dasvetoes    # exclude these DAS paths (glob patterns)
   dasfiles     = args.dasfiles     # explicitly process nanoAOD files stored on DAS (as opposed to local storage)
   checkdas     = args.checkdas     # look up number of events in DAS and compare to processed events in job output
   checkqueue   = args.checkqueue   # check job status to speed up if batch is slow: 0 (no check), 1 (check once, fast), -1 (check every job, slow, default)
@@ -1371,16 +1379,18 @@ def main_status(args):
     print ">>> main_status", args
   
   # SETTING
-  eras           = args.eras
-  channels       = args.channels
+  eras           = args.eras         # eras to loop over and run
+  channels       = args.channels     # channels to loop over and run
   tag            = args.tag
   checkdas       = args.checkdas     # check number of events from DAS
   checkqueue     = args.checkqueue   # check queue of batch system for pending jobs
   checkevts      = args.checkevts    # validate output file & count events (slow, default)
   checkexpevts   = args.checkexpevts # compare actual to expected number of processed events
-  dtypes         = args.dtypes
-  filters        = args.samples
-  vetoes         = args.vetoes
+  dtypes         = args.dtypes       # filter (only include) these sample types ('data','mc','embed')
+  filters        = args.samples      # filter (only include) these samples (glob patterns)
+  dasfilters     = args.dasfilters   # filter (only include) these das paths (glob patterns)
+  vetoes         = args.vetoes       # exclude these sample (glob patterns)
+  dasvetoes      = args.dasvetoes    # exclude these DAS paths (glob patterns)
   force          = args.force
   subcmd         = args.subcommand
   cleanup        = subcmd=='clean' or (subcmd=='hadd' and args.cleanup)
@@ -1545,8 +1555,12 @@ if __name__ == "__main__":
                                                 help='year or era to specify the sample list')
   parser_sam.add_argument('-s', '--sample',     dest='samples', type=str, nargs='+', default=[ ],
                           metavar='PATTERN',    help="filter these samples; glob patterns like '*' and '?' wildcards are allowed" )
+  parser_sam.add_argument('-Z', '--dasfilter',  dest='dasfilters', type=str, nargs='+', default=[ ],
+                          metavar='PATTERN',    help="filter these DAS paths; glob patterns like '*' and '?' wildcards are allowed" )
   parser_sam.add_argument('-x', '--veto',       dest='vetoes', nargs='+', default=[ ],
                           metavar='PATTERN',    help="exclude/veto these samples; glob patterns are allowed" )
+  parser_sam.add_argument('-X', '--dasveto',    dest='dasvetoes', nargs='+', default=[ ],
+                          metavar='PATTERN',    help="exclude/veto these DAS paths; glob patterns are allowed" )
   parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=GLOB._dtypes, nargs='+',
                                                 help='filter these data type(s)')
   parser_sam.add_argument('-D','--das',         dest='checkdas', action='store_true',
