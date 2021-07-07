@@ -8,7 +8,7 @@ samples  = [
   # DRELL-YAN
   M('DY','DYJetsToLL_M-10to50',
     "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts="useT1=True"opts='zpt=True"),
+    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DYJetsToLL_M-50',
     "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
     "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
@@ -83,16 +83,13 @@ samples  = [
   # DIBOSON
   M('VV','WW',
     "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts="useT1=True",
-  ),
+    store=storage,url=url,files=filelist,opts="useT1=True"),
   M('VV','WZ',
     "/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts="useT1=True",
-  ),
+    store=storage,url=url,files=filelist,opts="useT1=True"),
   M('VV','ZZ',
     "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts="useT1=True",
-  ),
+    store=storage,url=url,files=filelist,opts="useT1=True"),
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2017B',"/SingleMuon/Run2017B-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD",
