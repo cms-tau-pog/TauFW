@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (July 2021)
-# Description: Compare distributions in NanoAOD samples
-import os, glob
+# Description: Quickly compare distributions in NanoAOD samples
+import os, glob, re
 from TauFW.Plotter.sample.utils import LOG, STYLE, setera, ensuredir, ensurelist, Var, Sel, repkey
-from TauFW.Plotter.plot.Plot import Plot, deletehist
+import TauFW.Plotter.plot.Plot as PLOT
+from TauFW.Plotter.plot.Plot import Plot, deletehist, _lcolors
 from TauFW.Plotter.plot.Plot import LOG as PLOG
 from TauFW.Plotter.plot.MultiDraw import MultiDraw
 from TauFW.Plotter.plot.MultiThread import MultiProcessor
@@ -24,7 +25,6 @@ class Sample:
         fnames.insert(i,glob.glob(fname))
     if nfilemax>0 and len(fnames)>nfilemax:
       fnames    = fnames[:nfilemax]
-    print nfilemax, fnames
     self.name   = name
     self.title  = title
     self.fnames = fnames
@@ -84,6 +84,7 @@ def compare_nano(samplesets,tag="",**kwargs):
   """Compare distributions in NanoAOD samples."""
   LOG.header("compare",pre=">>>")
   tname     = kwargs.get('tree',     "Events" )
+  colors    = kwargs.get('colors',   None     )
   outdir    = kwargs.get('outdir',   "plots"  )
   parallel  = kwargs.get('parallel', True     ) #and False
   norms     = kwargs.get('norm',     [True]   )
@@ -97,12 +98,12 @@ def compare_nano(samplesets,tag="",**kwargs):
   baseline = "Muon_pt>24 && Tau_pt>20 && Tau_idDeepTau2017v2p1VSjet>=1"
   selections = [
 #     Sel('pt(mu) > 24 GeV', "Muon_pt>24", fname="mu"),
-#     Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet', baseline, fname="mutau-VVVLoose"),
+#     Sel('pt(mu) > 28 GeV', "Muon_pt>28", fname="mu"),
+    Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet', baseline, fname="mutau-VVVLoose"),
     Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet,\n21-25 vertices',
-                                                             baseline+" && PV_npvs>20 && PV_npvs<=25", fname="mutau-VVVLoose-npv20to25"),
+                                                            baseline+" && PV_npvs>20 && PV_npvs<=25", fname="mutau-VVVLoose-npv20to25"),
     Sel('pt(mu) > 24 GeV, pt(tau) > 20 GeV, VVVLoose VSjet,\n26-30 vertices',
-                                                             baseline+" && PV_npvs>25 && PV_npvs<=30", fname="mutau-VVVLoose-npv25to30"),
-    #Sel('baseline', baseline),
+                                                            baseline+" && PV_npvs>25 && PV_npvs<=30", fname="mutau-VVVLoose-npv25to30"),
   ]
   
   # GENMATCH SPLIT
@@ -113,7 +114,7 @@ def compare_nano(samplesets,tag="",**kwargs):
     ('jtf',    "j #rightarrow #tau_{h}","Tau_genPartFlav<=0"),
   ]
   oldselections = selections[:]
-  #selections = [ ]
+  #selections = [ ] # don't run inclusive selections
   for gmname, gmtitle, gmcut in gms:
     for oldsel in oldselections[:]:
       if 'Tau' not in oldsel.selection: continue
@@ -131,7 +132,7 @@ def compare_nano(samplesets,tag="",**kwargs):
                                                  16, -2, 2, fname="Muon_pfRelIso04_all_log", logy=True,ymin=6e-6),
     Var('Tau_pt', "Leading tau_h pt", 18, 0, 270, only=['Tau']),
     Var('Tau_decayMode', "tau_h decay mode", 14, 0, 14, logy=True,only=['Tau']),
-    Var('Tau_rawIso', "#Delta#beta-corrected tau_h isolation", 50, 0.00, 100, logy=True,ymin=6e-6,only=['Tau']),
+    Var('Tau_rawIso', "#Delta#beta-corrected tau_h isolation", 30, 0.00, 60, logy=True,ymin=6e-6,only=['Tau']),
     Var('Tau_neutralIso', "Neutral tau_h isolation", 50, 0.00, 100, logy=True,ymin=6e-6,only=['Tau']),
     Var('Tau_chargedIso', "Charged tau_h isolation", 50, 0.00, 100, logy=True,ymin=6e-6,only=['Tau']),
     Var('log10(max(0.001,Tau_rawIso))', "log_{10} #Delta#beta-corrected tau_h isolation",
@@ -142,9 +143,28 @@ def compare_nano(samplesets,tag="",**kwargs):
                                                      30, -1, 2, fname="Tau_chargedIso_log", logy=True,ymin=6e-6,only=['Tau']),
     Var('Tau_rawDeepTau2017v2p1VSe',   "rawDeepTau2017v2p1VSe",    30, 0.70, 1, fname="$VAR_zoom",logy=True,ymin=8e-4,pos='L;y=0.84',only=['Tau']),
     Var('Tau_rawDeepTau2017v2p1VSmu',  "rawDeepTau2017v2p1VSmu",   20, 0.80, 1, fname="$VAR_zoom",logy=True,ymin=8e-4,pos='L;y=0.84',only=['Tau']),
-    Var('Tau_rawDeepTau2017v2p1VSjet', "rawDeepTau2017v2p1VSjet", 100, 0.00, 1, fname="$VAR",     logy=True,ymin=8e-4,pos='L;y=0.84',only=['Tau']),
+    Var('Tau_rawDeepTau2017v2p1VSjet', "rawDeepTau2017v2p1VSjet",  40, 0.20, 1, fname="$VAR",     logy=True,ymin=8e-4,pos='L;y=0.84',only=['Tau']),
     Var('Tau_rawDeepTau2017v2p1VSjet', "rawDeepTau2017v2p1VSjet",  20, 0.80, 1, fname="$VAR_zoom",logy=True,ymin=8e-4,pos='L;y=0.84',only=['Tau']),
   ]
+  
+  # BRANCH STATUS to speed up
+  branches = set() # use set to avoid duplicates
+  branchexp = re.compile(r"(?<!\w)([A-Z][A-Za-z]+_)\w+")
+  for object in selections+variables:
+    string  = object.selection if isinstance(object,Sel) else object.name
+    matches = branchexp.findall(string)
+    if verbosity>=2:
+      print ">>> branch matches in %r: '%s'"%(string,"', '".join(set(matches)))
+    for match in matches:
+      branch = match+'*' # to be on safe side, include all branchs of this type
+      branches.add(branch)
+  if verbosity>=2:
+    print ">>> activating branches: '%s'"%("', '".join(branches))
+  for setname, samples in samplesets.items():
+    for sample in samples:
+      sample.tree.SetBranchStatus('*',0) # deactivate everything
+      for branch in branches:
+        sample.tree.SetBranchStatus(branch,1) # activate only these
   
   # PLOT
   for setname, samples in samplesets.items():
@@ -185,7 +205,7 @@ def compare_nano(samplesets,tag="",**kwargs):
         pos = var.position or "y=0.88"
         for norm in norms:
           ntag = '_norm' if norm else ""
-          plot = Plot(var,hists,norm=norm)
+          plot = Plot(var,hists,norm=norm,colors=colors)
           plot.draw(ratio=True,lstyle=1)
           plot.drawlegend(pos,header=header,entries=entries)
           plot.drawtext(text)
@@ -318,8 +338,8 @@ def main(args):
       eosdir+"UL2016_postVFP/SingleMuon/Run2016F-UL2016_MiniAODv1_NanoAODv2-v4/NANOAOD/6253CE88-11C1-5046-AE92-AC9CB585B6E5_skimrejec_2.root",
       eosdir+"UL2016_postVFP/SingleMuon/Run2016F-UL2016_MiniAODv1_NanoAODv2-v4/NANOAOD/6253CE88-11C1-5046-AE92-AC9CB585B6E5_skimrejec_3.root",
     ]+files_Run2016G+files_Run2016H,nfilemax=nfilemax,verb=verbosity),
-    Sample("SingleMuon_2016G_postVFP","UL2016G post-VFP",files_Run2016G,nfilemax=nfilemax,data=True,verb=verbosity),
-    Sample("SingleMuon_2016H_postVFP","UL2016H post-VFP",files_Run2016H,nfilemax=nfilemax,data=True,verb=verbosity),
+    #Sample("SingleMuon_2016G_postVFP","UL2016G post-VFP",files_Run2016G,nfilemax=nfilemax,data=True,verb=verbosity),
+    #Sample("SingleMuon_2016H_postVFP","UL2016H post-VFP",files_Run2016H,nfilemax=nfilemax,data=True,verb=verbosity),
     Sample("SingleMuon_2017","UL2017",[
       eosdir+"UL2017/SingleMuon/Run2017B-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD/0243BEE7-CEAC-C845-A533-C5D50D202056_skimjec_0.root",
       eosdir+"UL2017/SingleMuon/Run2017B-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD/0243BEE7-CEAC-C845-A533-C5D50D202056_skimjec_1.root",
@@ -423,7 +443,7 @@ def main(args):
   #   dasgoclient -query="/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM file" --limit 6
   #   dasgoclient -query="/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM file" --limit 6
   samplesets['DYJetsToLL_M-50'] = [
-    Sample("DY_19_preVFP","Summer19, UL2016 pre-VFP",[
+    Sample("DY_16_preVFP_19","Summer19, UL2016 pre-VFP",[
       eosdir+"UL2016_preVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/01DD3EB7-67AC-EA49-ADB8-481277FF50D8_skimjec_0.root",
       eosdir+"UL2016_preVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/01DD3EB7-67AC-EA49-ADB8-481277FF50D8_skimjec_1.root",
       eosdir+"UL2016_preVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/01DD3EB7-67AC-EA49-ADB8-481277FF50D8_skimjec_2.root",
@@ -465,21 +485,21 @@ def main(args):
       eosdir+"UL2016_preVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/1BA503A2-2D3E-6045-B817-FF5D0F22A5D8_skimjec_4.root",
       eosdir+"UL2016_preVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/1BA503A2-2D3E-6045-B817-FF5D0F22A5D8_skimjec_5.root",
     ],nfilemax=nfilemax,verb=verbosity),
-    Sample("DY_19_preVFP","Summer20, UL2016 pre-VFP",[
+    Sample("DY_16_preVFP_20","Summer20, UL2016 pre-VFP",[
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODAPVv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_preVFP_v9-v1/00000/79E1D9D9-4C44-1C4B-AD40-DC5B9B8056EC.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODAPVv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_preVFP_v9-v1/00000/1EDAAF46-2981-E240-B24E-55C33C41B0DF.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODAPVv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_preVFP_v9-v1/00000/EA0BA9F0-4967-1946-8A9A-B7A1B2376178.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODAPVv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_preVFP_v9-v1/00000/C7441CD0-BB23-E140-B0AD-D3316A7FDE57.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODAPVv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_preVFP_v9-v1/00000/AD0452CB-BA7A-A246-B721-8B2BF1A4867F.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODAPVv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_preVFP_v9-v1/00000/6EA9A456-D466-7049-90EB-8F4E40C637A4.root",
-      t3dir+"79E1D9D9-4C44-1C4B-AD40-DC5B9B8056EC.root",
-      t3dir+"1EDAAF46-2981-E240-B24E-55C33C41B0DF.root",
-      t3dir+"EA0BA9F0-4967-1946-8A9A-B7A1B2376178.root",
-      t3dir+"C7441CD0-BB23-E140-B0AD-D3316A7FDE57.root",
-      t3dir+"AD0452CB-BA7A-A246-B721-8B2BF1A4867F.root",
-      t3dir+"6EA9A456-D466-7049-90EB-8F4E40C637A4.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODAPVv2/79E1D9D9-4C44-1C4B-AD40-DC5B9B8056EC.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODAPVv2/1EDAAF46-2981-E240-B24E-55C33C41B0DF.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODAPVv2/EA0BA9F0-4967-1946-8A9A-B7A1B2376178.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODAPVv2/C7441CD0-BB23-E140-B0AD-D3316A7FDE57.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODAPVv2/AD0452CB-BA7A-A246-B721-8B2BF1A4867F.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODAPVv2/6EA9A456-D466-7049-90EB-8F4E40C637A4.root",
     ],nfilemax=nfilemax,verb=verbosity),
-    Sample("DY_19_postVFP","Summer19, UL2016 post-VFP",[
+    Sample("DY_16_postVFP_19","Summer19, UL2016 post-VFP",[
       eosdir+"UL2016_postVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/0506D2C0-BBF3-564D-8A20-73007E9E7158_skimjec_0.root",
       eosdir+"UL2016_postVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/0506D2C0-BBF3-564D-8A20-73007E9E7158_skimjec_1.root",
       eosdir+"UL2016_postVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/0506D2C0-BBF3-564D-8A20-73007E9E7158_skimjec_2.root",
@@ -521,19 +541,19 @@ def main(args):
       eosdir+"UL2016_postVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/1CAACDD7-7913-C24C-926F-13FAFD857C6D_skimjec_0.root",
       eosdir+"UL2016_postVFP/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/1CAACDD7-7913-C24C-926F-13FAFD857C6D_skimjec_1.root",
     ],nfilemax=nfilemax,verb=verbosity),
-    Sample("DY_19_postVFP","Summer20, UL2016 post-VFP",[
+    Sample("DY_16_postVFP_20","Summer20, UL2016 post-VFP",[
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/260000/99386FF5-D19F-8B40-915D-53B3DC7FFD23.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/260000/EDF20656-7588-C547-A621-AE1247AE3E08.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/260000/A4E16BDB-AD76-2D45-AECA-89C0E4135C82.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/280000/E6523A98-8A0F-E24E-B8A0-2A6D4FC3BA6E.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/280000/0DEE8BE7-06B0-A54B-8EFD-03555761B898.root",
       #dasurl+"/store/mc/RunIISummer20UL16NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/280000/84C44657-05EB-204C-9507-0D408C291B06.root",
-      t3dir+"99386FF5-D19F-8B40-915D-53B3DC7FFD23.root",
-      t3dir+"EDF20656-7588-C547-A621-AE1247AE3E08.root",
-      t3dir+"A4E16BDB-AD76-2D45-AECA-89C0E4135C82.root",
-      t3dir+"E6523A98-8A0F-E24E-B8A0-2A6D4FC3BA6E.root",
-      t3dir+"0DEE8BE7-06B0-A54B-8EFD-03555761B898.root",
-      t3dir+"84C44657-05EB-204C-9507-0D408C291B06.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODv2/99386FF5-D19F-8B40-915D-53B3DC7FFD23.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODv2/EDF20656-7588-C547-A621-AE1247AE3E08.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODv2/A4E16BDB-AD76-2D45-AECA-89C0E4135C82.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODv2/E6523A98-8A0F-E24E-B8A0-2A6D4FC3BA6E.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODv2/0DEE8BE7-06B0-A54B-8EFD-03555761B898.root",
+      t3dir+"DYJetsToLL_Summer20UL16NanoAODv2/84C44657-05EB-204C-9507-0D408C291B06.root",
     ],nfilemax=nfilemax,verb=verbosity),
     Sample("DY_17","Summer19, UL2017",[
       eosdir+"UL2017/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/0132269A-092C-8149-A68F-80415D023182_skimjec_0.root",
@@ -620,14 +640,209 @@ def main(args):
       eosdir+"UL2018/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/0DF03192-6F67-654A-A6C6-451F7C1794D5_skimjec_6.root",
     ],nfilemax=nfilemax,verb=verbosity),
   ]
+  
+  # W2JetsToLNu
+  #   head -n 40 ../PicoProducer/samples/files/UL2017/DYJetsToLL_M-50.txt | grep root
+  #   dasgoclient -query="/W2JetsToLNu*/RunIISummer20UL16*/NANOAODSIM"
+  #   dasgoclient -query="/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM file" --limit=8
+  #   for f in $F; do peval "xrdcp root://xrootd-cms.infn.it/$f /pnfs/psi.ch/cms/trivcat/store/user/ineuteli/samples/tmp/W2JetsToLNu_Summer20UL16NanoAODv2/"; done
+  samplesets['W2JetsToLNu'] = [
+    Sample("W2J_16_preVFP_19","Summer19, UL2016 pre-VFP",[
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_0.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_1.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_2.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_3.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_4.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_5.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_6.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/0C6F5334-CFE6-404F-99E0-CC01CA44C7B3_skimjec_7.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/1365422D-BF30-024C-8FC7-2147A481A76D_skimjec_0.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/1365422D-BF30-024C-8FC7-2147A481A76D_skimjec_1.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/1365422D-BF30-024C-8FC7-2147A481A76D_skimjec_2.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/1365422D-BF30-024C-8FC7-2147A481A76D_skimjec_3.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/212ADEC1-2C6F-7145-8C14-EA5025F2D637_skimjec_0.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/212ADEC1-2C6F-7145-8C14-EA5025F2D637_skimjec_1.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/212ADEC1-2C6F-7145-8C14-EA5025F2D637_skimjec_2.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/212ADEC1-2C6F-7145-8C14-EA5025F2D637_skimjec_3.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/212ADEC1-2C6F-7145-8C14-EA5025F2D637_skimjec_4.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/2E48474E-B7FF-8F49-8403-4863C616ADEA_skimjec_0.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/2E48474E-B7FF-8F49-8403-4863C616ADEA_skimjec_1.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/2E48474E-B7FF-8F49-8403-4863C616ADEA_skimjec_2.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/2E48474E-B7FF-8F49-8403-4863C616ADEA_skimjec_3.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/2E48474E-B7FF-8F49-8403-4863C616ADEA_skimjec_4.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/31A78F65-D131-6E4D-A167-C1A7187722FE_skimjec.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_0.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_1.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_2.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_3.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_4.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_5.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_6.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/340219C0-AE9C-354A-9EF4-31710287C207_skimjec_7.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_0.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_1.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_2.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_3.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_4.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_5.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_6.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/4371B1FE-3451-754E-AE36-18DAB2B9600C_skimjec_7.root",
+      eosdir+"UL2016_preVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM/45B7E9C6-E4FB-1549-8D8E-DF356F7DCD96_skimjec_0.root",
+    ],nfilemax=nfilemax,verb=verbosity),
+    Sample("W2J_16_postVFP_19","Summer19, UL2016 post-VFP",[
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/00A6167D-08DC-BB4F-92F4-D93E04827A82_skimjec_0.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/00A6167D-08DC-BB4F-92F4-D93E04827A82_skimjec_1.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/00A6167D-08DC-BB4F-92F4-D93E04827A82_skimjec_2.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/00A6167D-08DC-BB4F-92F4-D93E04827A82_skimjec_3.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/00A6167D-08DC-BB4F-92F4-D93E04827A82_skimjec_4.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/00A6167D-08DC-BB4F-92F4-D93E04827A82_skimjec_5.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/00A6167D-08DC-BB4F-92F4-D93E04827A82_skimjec_6.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/018193F1-E4DF-4B42-9596-EA33BBE84DD0_skimjec_0.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/018193F1-E4DF-4B42-9596-EA33BBE84DD0_skimjec_1.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/018193F1-E4DF-4B42-9596-EA33BBE84DD0_skimjec_2.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/018193F1-E4DF-4B42-9596-EA33BBE84DD0_skimjec_3.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/10481335-12B7-EE40-8521-46839D656796_skimjec_0.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/10481335-12B7-EE40-8521-46839D656796_skimjec_1.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/10481335-12B7-EE40-8521-46839D656796_skimjec_2.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/10481335-12B7-EE40-8521-46839D656796_skimjec_3.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/10481335-12B7-EE40-8521-46839D656796_skimjec_4.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/11218436-B8B1-3E47-8B37-535F5C21A9C0_skimjec_0.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/11218436-B8B1-3E47-8B37-535F5C21A9C0_skimjec_1.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/11218436-B8B1-3E47-8B37-535F5C21A9C0_skimjec_2.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/11218436-B8B1-3E47-8B37-535F5C21A9C0_skimjec_3.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/11218436-B8B1-3E47-8B37-535F5C21A9C0_skimjec_4.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_0.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_1.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_2.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_3.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_4.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_5.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_6.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_7.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/145835A6-2DDC-D14E-8C15-C913F1D8AD0F_skimjec_8.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/193BD7AD-DE6B-B646-AF61-A7BD09E4EF6E_skimjec_0.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/193BD7AD-DE6B-B646-AF61-A7BD09E4EF6E_skimjec_1.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/193BD7AD-DE6B-B646-AF61-A7BD09E4EF6E_skimjec_2.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/193BD7AD-DE6B-B646-AF61-A7BD09E4EF6E_skimjec_3.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/193BD7AD-DE6B-B646-AF61-A7BD09E4EF6E_skimjec_4.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/193BD7AD-DE6B-B646-AF61-A7BD09E4EF6E_skimjec_5.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/28577F67-BC98-EC42-A25A-CDEBFBC8AAF2_skimjec_0.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/28577F67-BC98-EC42-A25A-CDEBFBC8AAF2_skimjec_1.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/28577F67-BC98-EC42-A25A-CDEBFBC8AAF2_skimjec_2.root",
+      eosdir+"UL2016_postVFP/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM/28577F67-BC98-EC42-A25A-CDEBFBC8AAF2_skimjec_3.root",
+    ],nfilemax=nfilemax,verb=verbosity),
+    Sample("W2J_16_postVFP_20","Summer20, UL2016 post-VFP",[
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/38AE733B-278C-454F-AB21-5A9E63FA032F.root",
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/232F9586-F716-6C4A-945C-75316EC35178.root",
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/60705AE8-592C-E043-B552-A12EEC59CC78.root",
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/1E5654F6-A826-E848-8722-9E094ACE6007.root",
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/11855910-CB02-2446-8DB9-9C955942DA79.root",
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/B9F25DED-3809-594C-9C0C-B9C4011AAB21.root",
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/CC93739C-A64D-0D4A-BFBB-E6901F91EA1C.root",
+      t3dir+"W2JetsToLNu_Summer20UL16NanoAODv2/89E72512-E55F-AD44-B138-1EAE20C4741F.root",
+    ],nfilemax=nfilemax,verb=verbosity),
+    Sample("W2J_17","Summer19, UL2017",[
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/088EFCB6-BF93-0C44-A25F-5998744D4A98_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/088EFCB6-BF93-0C44-A25F-5998744D4A98_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/088EFCB6-BF93-0C44-A25F-5998744D4A98_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/088EFCB6-BF93-0C44-A25F-5998744D4A98_skimjec_3.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/088EFCB6-BF93-0C44-A25F-5998744D4A98_skimjec_4.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/23FD219A-8346-7645-A1A1-467BF8CFA609_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/23FD219A-8346-7645-A1A1-467BF8CFA609_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/23FD219A-8346-7645-A1A1-467BF8CFA609_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/23FD219A-8346-7645-A1A1-467BF8CFA609_skimjec_3.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/3CE99273-8DB2-D146-9DEF-B3E3134ED87C_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/3CE99273-8DB2-D146-9DEF-B3E3134ED87C_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/3CE99273-8DB2-D146-9DEF-B3E3134ED87C_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/3CE99273-8DB2-D146-9DEF-B3E3134ED87C_skimjec_3.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/3CE99273-8DB2-D146-9DEF-B3E3134ED87C_skimjec_4.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/44DA9175-C14B-6441-9B34-5DE70D3770C3_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/44DA9175-C14B-6441-9B34-5DE70D3770C3_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/44DA9175-C14B-6441-9B34-5DE70D3770C3_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/44DA9175-C14B-6441-9B34-5DE70D3770C3_skimjec_3.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/44DA9175-C14B-6441-9B34-5DE70D3770C3_skimjec_4.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/4D2BA697-F093-A44B-ACD5-7C135ABC86CB_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/4D2BA697-F093-A44B-ACD5-7C135ABC86CB_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/4D2BA697-F093-A44B-ACD5-7C135ABC86CB_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/4D2BA697-F093-A44B-ACD5-7C135ABC86CB_skimjec_3.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/4D2BA697-F093-A44B-ACD5-7C135ABC86CB_skimjec_4.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/4D2BA697-F093-A44B-ACD5-7C135ABC86CB_skimjec_5.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/50FE6439-6FAF-1E4F-9BD9-2BE03B3768E5_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/50FE6439-6FAF-1E4F-9BD9-2BE03B3768E5_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/50FE6439-6FAF-1E4F-9BD9-2BE03B3768E5_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/50FE6439-6FAF-1E4F-9BD9-2BE03B3768E5_skimjec_3.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/50FE6439-6FAF-1E4F-9BD9-2BE03B3768E5_skimjec_4.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/50FE6439-6FAF-1E4F-9BD9-2BE03B3768E5_skimjec_5.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5530F7A0-D588-7647-91C2-CF648525DAA6_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5530F7A0-D588-7647-91C2-CF648525DAA6_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5530F7A0-D588-7647-91C2-CF648525DAA6_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5D853EF5-176A-1849-A3AB-A97C303D2FF5_skimjec_0.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5D853EF5-176A-1849-A3AB-A97C303D2FF5_skimjec_1.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5D853EF5-176A-1849-A3AB-A97C303D2FF5_skimjec_2.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5D853EF5-176A-1849-A3AB-A97C303D2FF5_skimjec_3.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5D853EF5-176A-1849-A3AB-A97C303D2FF5_skimjec_4.root",
+      eosdir+"UL2017/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17NanoAODv2-106X_mc2017_realistic_v8-v1/NANOAODSIM/5D853EF5-176A-1849-A3AB-A97C303D2FF5_skimjec_5.root",
+    ],nfilemax=nfilemax,verb=verbosity),
+    Sample("W2J_18","Summer19, UL2018",[
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/07E64BB3-44FB-AC4C-921C-F3D31CD4A848_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/07E64BB3-44FB-AC4C-921C-F3D31CD4A848_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/07E64BB3-44FB-AC4C-921C-F3D31CD4A848_skimjec_2.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/07E64BB3-44FB-AC4C-921C-F3D31CD4A848_skimjec_3.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/07E64BB3-44FB-AC4C-921C-F3D31CD4A848_skimjec_4.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/0AAE1402-C549-2544-ABDD-FCB68EB47F0C_skimjec.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1A156DE8-1277-5446-9B04-D5B8E2B0210C_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1A156DE8-1277-5446-9B04-D5B8E2B0210C_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1A156DE8-1277-5446-9B04-D5B8E2B0210C_skimjec_2.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1A156DE8-1277-5446-9B04-D5B8E2B0210C_skimjec_3.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1A156DE8-1277-5446-9B04-D5B8E2B0210C_skimjec_4.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1A156DE8-1277-5446-9B04-D5B8E2B0210C_skimjec_5.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1BA69C89-A31E-1142-9772-2CCCBB5B7F86_skimjec.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1CB1C6DD-4553-1545-9308-9E775F264B5B_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1CB1C6DD-4553-1545-9308-9E775F264B5B_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/1CB1C6DD-4553-1545-9308-9E775F264B5B_skimjec_2.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/373A1398-238B-1547-B73A-BEF2C563730D_skimjec.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/388CF9CF-9055-A44A-A280-F11330E31197_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/388CF9CF-9055-A44A-A280-F11330E31197_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/3AFA3337-9AB8-EC49-AEDC-757A8365FA89_skimjec.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4057C551-EEE0-124E-BFBF-08044AF7B98F_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4057C551-EEE0-124E-BFBF-08044AF7B98F_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4057C551-EEE0-124E-BFBF-08044AF7B98F_skimjec_2.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4057C551-EEE0-124E-BFBF-08044AF7B98F_skimjec_3.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4057C551-EEE0-124E-BFBF-08044AF7B98F_skimjec_4.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4057C551-EEE0-124E-BFBF-08044AF7B98F_skimjec_5.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4B141D6E-3EE4-D747-A64B-6A99D98F2ED0_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4B141D6E-3EE4-D747-A64B-6A99D98F2ED0_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4B141D6E-3EE4-D747-A64B-6A99D98F2ED0_skimjec_2.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4B141D6E-3EE4-D747-A64B-6A99D98F2ED0_skimjec_3.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/4C73E361-3378-5349-B68C-1A50A0E7A11F_skimjec.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5464D4D6-8DB7-B84C-93BC-C924E06EACB9_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5464D4D6-8DB7-B84C-93BC-C924E06EACB9_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5464D4D6-8DB7-B84C-93BC-C924E06EACB9_skimjec_2.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5464D4D6-8DB7-B84C-93BC-C924E06EACB9_skimjec_3.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5464D4D6-8DB7-B84C-93BC-C924E06EACB9_skimjec_4.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5A9FFE18-5D1D-4F4E-A93F-2A86F589C88C_skimjec_0.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5A9FFE18-5D1D-4F4E-A93F-2A86F589C88C_skimjec_1.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5A9FFE18-5D1D-4F4E-A93F-2A86F589C88C_skimjec_2.root",
+      eosdir+"UL2018/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/5A9FFE18-5D1D-4F4E-A93F-2A86F589C88C_skimjec_3.root",
+    ],nfilemax=nfilemax,verb=verbosity),
+  ]
+  
+  # FILTER
   for sample in samplesets.keys():
-    if filters and sample not in filters:
+    if filters and not any(f in sample for f in filters):
       samplesets.pop(sample)
-    if vetoes and sample in vetoes:
+    if vetoes and any(f in sample for f in vetoes):
       samplesets.pop(sample)
   
+  # COLORS
+  colors = _lcolors[:]
+  if filters==['W2JetsToLNu']: # for easy comparison to DYJetsPlots
+    print colors
+    colors.remove(colors[1])
+    print colors
+  
   # COMPARE
-  compare_nano(samplesets,tag=tag,outdir="plots",parallel=parallel,verb=verbosity)
+  compare_nano(samplesets,tag=tag,outdir="plots",parallel=parallel,verb=verbosity,colors=colors)
 
 
 if __name__ == "__main__":
@@ -638,9 +853,9 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="plot_compare_nano",description=description,epilog="Good luck!")
   #parser.add_argument('files',           nargs='*', default=[ ], action='store',
   #                                       help="input file(s) (multiple files are added in TChain)" )
-  parser.add_argument('-s', '--samples',  action='store',
+  parser.add_argument('-s', '--samples',  nargs='+',action='store',
                                           help="only run these samples" )
-  parser.add_argument('-x', '--veto',     dest='vetoes', action='store',
+  parser.add_argument('-x', '--veto',     nargs='+',dest='vetoes', action='store',
                                           help="do not run these samples" )
   parser.add_argument('-m', '--nfilemax', type=int, default=-1, action='store',
                                           help="maximum number of file" )

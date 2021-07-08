@@ -118,9 +118,10 @@ class Plot(object):
     self.ratio        = kwargs.get('ratio',      False                )
     self.append       = kwargs.get('append',     ""                   )
     self.norm         = kwargs.get('norm',       False                )
-    self.lcolors      = kwargs.get('lcolors',    _lcolors             )
-    self.fcolors      = kwargs.get('fcolors',    _fcolors             )
-    self.lstyles      = kwargs.get('lstyles',    _lstyles             )
+    self.lcolors      = kwargs.get('colors',     None                 ) or _lcolors
+    self.lcolors      = kwargs.get('lcolors',    None                 ) or self.lcolors
+    self.fcolors      = kwargs.get('fcolors',    None                 ) or _fcolors
+    self.lstyles      = kwargs.get('lstyles',    None                 ) or _lstyles
     self.canvas       = None
     self.legends      = [ ]
     self.texts        = [ ] # to save TLatex objects made by drawtext
