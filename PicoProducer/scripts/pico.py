@@ -108,7 +108,8 @@ def main_get(args):
           print ">>> Getting file list for era %r, channel %r"%(era,channel)
         else:
           print ">>> Getting file list for era %r"%(era)
-        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,verb=verbosity)
+        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,
+                             dasfilter=dasfilters,dasveto=dasvetoes,verb=verbosity)
         if not samples:
           LOG.warning("No samples found for era %r."%(era))
         for sample in samples:
@@ -133,7 +134,8 @@ def main_get(args):
         
         # GET SAMPLES
         LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,split=split,verb=verbosity)
+        samples = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,
+                             dasfilter=dasfilters,dasveto=dasvetoes,split=split,verb=verbosity)
         
         # LOOP over SAMPLES
         for sample in samples:
@@ -213,7 +215,8 @@ def main_write(args):
       print ">>> "
       
       LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-      samples0 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,split=split,verb=verbosity)
+      samples0 = getsamples(era,channel=channel,dtype=dtypes,filter=filters,veto=vetoes,
+                            dasfilter=dasfilters,dasveto=dasvetoes,split=split,verb=verbosity)
       sampleset = [samples0]
       for retry in range(retries):
         sampleset.append([ ]) # list for retries
@@ -457,7 +460,8 @@ def main_run(args):
         # GET SAMPLES
         if not userfiles and (filters_ or vetoes or dtypes):
           LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-          samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters_,veto=vetoes,dasfilter=dasfilters,dasveto=dasvetoes,moddict=moddict,verb=verbosity)
+          samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters_,veto=vetoes,
+                               dasfilter=dasfilters,dasveto=dasvetoes,moddict=moddict,verb=verbosity)
           if nsamples>0:
             samples = samples[:nsamples]
           if not samples:
@@ -651,7 +655,8 @@ def preparejobs(args):
         samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       else: # get samples from sample list
         LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
-        samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,moddict=moddict,verb=verbosity)
+        samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,
+                             dasfilter=dasfilters,dasveto=dasvetoes,moddict=moddict,verb=verbosity)
       if verbosity>=2:
         print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
       if testrun:
@@ -752,7 +757,7 @@ def preparejobs(args):
           cfgpattern = re.sub(r"(?<=try)\d+(?=.json$)",r"*",cfgname)
           cfgnames   = [f for f in glob.glob(cfgpattern) if not f.endswith("_try1.json")]
           if cfgnames:
-            LOG.warning("Job configurations for resubmission already exists! This can cause conflicting job output!"+
+            LOG.warning("Job configurations for resubmission already exists! This can cause conflicting job output! "+
               "If you are sure you want to submit from scratch, please remove these files:\n>>>   "+"\n>>>   ".join(cfgnames))
         storage = getstorage(outdir,verb=verbosity,ensure=True)
         
