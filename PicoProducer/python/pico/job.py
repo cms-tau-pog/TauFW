@@ -471,7 +471,8 @@ def checkchunks(sample,**kwargs):
     goodfiles = [ ]
     bar       = None # loading bar
     if verbosity<=1 and len(outfiles)>=15:
-      bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",counter=True,remove=True)
+      bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",
+                       message="files, 0/%d (0%%)"%(ndasevents),counter=True,remove=True)
     elif verbosity>=2:
       print ">>> %-12s = %s"%('pendchunks',pendchunks)
       print ">>> %-12s = %s"%('outfiles',outfiles)
@@ -608,7 +609,8 @@ def checkchunks(sample,**kwargs):
     outfiles = storage.getfiles(filter=fpattern,verb=verbosity-1) # get output files
     bar      = None # loading bar
     if verbosity<=1 and len(outfiles)>=15:
-      bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",counter=True,remove=True)
+      bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",
+                       message="files, 0/%d (0%%)"%(ndasevents),counter=True,remove=True)
     elif verbosity>=2:
       print ">>> %-12s = %s"%('pendchunks',pendchunks)
       print ">>> %-12s = %s"%('outfiles',outfiles)
