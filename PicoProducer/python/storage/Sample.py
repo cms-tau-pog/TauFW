@@ -251,7 +251,7 @@ class Sample(object):
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         if verb<=0 and len(files)>=5:
-          bar = LoadingBar(len(fnames),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
+          bar = LoadingBar(len(files),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
         for fname in files:
           if refresh or fname not in filenevts:
             nevts = getnevents(fname,treename)
