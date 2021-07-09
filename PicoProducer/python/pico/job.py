@@ -906,7 +906,7 @@ def main_status(args):
       found = False
       for sample in samples:
         channel_ = channel
-        if channel='*': # grab channel from job config name
+        if channel=='*': # grab channel from job config name
           matches = re.findall(r"config/jobconfig_(\w+)%s_try\d+.json"%(tag),sample.jobcfg['config'])
           if matches:
             channel_ = matches[0]
