@@ -886,7 +886,7 @@ def main_status(args):
       # GET SAMPLES
       jobdir_ = repkey(jobdirformat,ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag)
       jobcfgs = repkey(os.path.join(jobdir_,"config/jobconfig_$CHANNEL$TAG_try[0-9]*.json"),
-                       ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag)
+                       ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag) # get ALL job configs
       if verbosity>=1:
         print ">>> %-12s = %s"%('cwd',os.getcwd())
         print ">>> %-12s = %s"%('jobdir',jobdir_)
@@ -906,12 +906,12 @@ def main_status(args):
       found = False
       for sample in samples:
         channel_ = channel
-        if channel='*':
+        if channel='*': # grab channel from job config name
           matches = re.findall(r"config/jobconfig_(\w+)%s_try\d+.json"%(tag),sample.jobcfg['config'])
           if matches:
             channel_ = matches[0]
         elif sample.channels and channel_ not in sample.channels:
-            continue
+          continue
         found = True
         print ">>> %s"%(bold(sample.name))
         for path in sample.paths:
