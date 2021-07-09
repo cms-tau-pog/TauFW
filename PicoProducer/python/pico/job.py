@@ -905,7 +905,13 @@ def main_status(args):
       # SAMPLE over SAMPLES
       found = False
       for sample in samples:
-        if channel!='*' and sample.channels and channel not in sample.channels: continue
+        channel_ = channel
+        if channel='*':
+          matches = re.findall(r"config/jobconfig_(\w+)%s_try\d+.json"%(tag),sample.jobcfg['config'])
+          if matches:
+            channel_ = matches[0]
+        elif sample.channels and channel_ not in sample.channels:
+            continue
         found = True
         print ">>> %s"%(bold(sample.name))
         for path in sample.paths:
@@ -924,10 +930,10 @@ def main_status(args):
           logdir   = sample.jobcfg['logdir'] # job log directory
           outdir   = sample.jobcfg['outdir'] # job output directory
           postfix  = sample.jobcfg['postfix']
-          storedir = repkey(storedirformat,ERA=era,CHANNEL=channel,TAG=tag,SAMPLE=sample.name,
+          storedir = repkey(storedirformat,ERA=era,CHANNEL=channel_,TAG=tag,SAMPLE=sample.name,
                                            DAS=sample.paths[0].strip('/'),GROUP=sample.group)
           storage  = getstorage(storedir,ensure=True,verb=verbosity)
-          outfile  = '%s_%s%s.root'%(sample.name,channel,tag)
+          outfile  = '%s_%s%s.root'%(sample.name,channel_,tag)
           infiles  = os.path.join(outdir,'*%s_[0-9]*.root'%(postfix))
           cfgfiles = os.path.join(cfgdir,'job*%s_try[0-9]*.*'%(postfix))
           logfiles = os.path.join(logdir,'*%s*.*.log'%(postfix))
@@ -941,7 +947,7 @@ def main_status(args):
             print ">>> %-12s = %s"%('infiles',infiles)
             if subcmd=='hadd':
               print ">>> %-12s = %r"%('outfile',outfile)
-          resubfiles, chunkdict, npend = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
+          resubfiles, chunkdict, npend = checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
                                                      das=checkdas,checkexpevts=checkexpevts,ncores=ncores,verb=verbosity)
           if (len(resubfiles)>0 or npend>0) and not force: # only clean or hadd if all jobs were successful
             LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
@@ -993,7 +999,7 @@ def main_status(args):
             print ">>> %-12s = %r"%('jobdir',jobdir)
             print ">>> %-12s = %r"%('outdir',outdir)
             print ">>> %-12s = %r"%('logdir',logdir)
-          checkchunks(sample,channel=channel,tag=tag,jobs=jobs,showlogs=showlogs,checkqueue=checkqueue,
+          checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,showlogs=showlogs,checkqueue=checkqueue,
                       checkevts=checkevts,das=checkdas,ncores=ncores,verb=verbosity)
         
         print
