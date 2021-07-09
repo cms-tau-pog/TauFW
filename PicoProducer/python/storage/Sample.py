@@ -261,7 +261,7 @@ class Sample(object):
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
           if bar:
-            bar.count("files")
+            bar.count("files, %d events"%(nevents))
       else: # get total number of events from DAS
         for daspath in self.paths:
           nevents += getdasnevents(daspath,instance=self.instance,verb=verb-1)
