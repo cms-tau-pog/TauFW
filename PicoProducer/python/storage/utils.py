@@ -150,7 +150,7 @@ def itervalid(fnames,checkevts=True,ncores=4,verb=0,**kwargs):
     processor = MultiProcessor()
     def loopvalid(fnames_,**kwargs):
       return [(isvalid(f,**kwargs),f) for f in fnames_]
-    for i, subset in partition(fnames,ncores):
+    for i, subset in partition(fnames,ncores): # process in ncores chunks
       name = "itervalid_%d"%(i)
       nevts = isvalid(fname) # get number of events processed & check for corruption
       processor.start(loopvalid,subset,kwargs,name=name)

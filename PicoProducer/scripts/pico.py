@@ -430,7 +430,7 @@ if __name__ == "__main__":
   parser_sam.add_argument('-E', '--opts',       dest='extraopts', type=str, nargs='+', default=[ ],
                           metavar='KEY=VALUE',  help="extra options for the skim or analysis module, "
                                                      "passed as list of 'KEY=VALUE', separated by spaces")
-  parser_sam.add_argument('-C','--ncores',      dest='ncores', type=int, default=GLOB.ncores, action='store_true',
+  parser_sam.add_argument('-C','--ncores',      dest='ncores', type=int, default=CONFIG.ncores, action='store_true',
                                                 help="number of cores to run event checks or validation in parallel")
   parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
