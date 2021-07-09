@@ -142,7 +142,7 @@ def isvalid(fname,hname='cutflow',bin=1):
 
 def itervalid(fnames,checkevts=True,ncores=4,verb=0,**kwargs):
   """Iterate over file names."""
-  if checkevts: # just skip validation step and return 0
+  if not checkevts: # just skip validation step and return 0
     for fname in fnames:
       yield 0, fname
   elif ncores>0:

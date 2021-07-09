@@ -54,7 +54,7 @@ def preparejobs(args):
   tmpdir       = args.tmpdir or CONFIG.get('tmpskimdir',None) # temporary dir for creating skimmed file before copying to outdir
   ncores       = args.ncores       # number of cores; validate output files in parallel
   verbosity    = args.verbosity
-  jobs         = [ ]
+  jobs         = None
   
   # LOOP over ERAS
   for era in eras:
@@ -203,7 +203,7 @@ def preparejobs(args):
         # GET FILES
         nevents = 0
         if resubmit: # resubmission
-          if checkqueue==1 and not jobs: # check jobs only once to speed up performance
+          if checkqueue==1 and jobs!=None: # check jobs only once to speed up performance
             batch = getbatch(CONFIG,verb=verbosity)
             jobs  = batch.jobs(verb=verbosity-1)
           infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
@@ -399,8 +399,8 @@ def checkchunks(sample,**kwargs):
   
   # CHECK PENDING JOBS
   if checkqueue<0 or pendjobs:
-    batch = getbatch(CONFIG,verb=verbosity)
     if checkqueue!=1 or not pendjobs:
+      batch = getbatch(CONFIG,verb=verbosity)
       pendjobs = batch.jobs(jobids,verb=verbosity-1) # refresh job list
     else:
       pendjobs = [j for j in pendjobs if j.jobid in jobids] # get new job list with right job id
@@ -859,7 +859,7 @@ def main_status(args):
   outdirformat   = CONFIG.outdir
   jobdirformat   = CONFIG.jobdir
   storedirformat = CONFIG.picodir
-  jobs           = [ ]
+  jobs           = None
   if subcmd not in ['hadd','clean']:
     if not channels:
       channels = ['*']
@@ -902,7 +902,7 @@ def main_status(args):
           print ">>> %s"%(bold(path))
         
         # CHECK JOBS ONLY ONCE
-        if checkqueue==1 and not jobs:
+        if checkqueue==1 and jobs!=None:
           batch = getbatch(CONFIG,verb=verbosity)
           jobs  = batch.jobs(verb=verbosity-1)
         
