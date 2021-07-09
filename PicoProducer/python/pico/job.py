@@ -529,7 +529,7 @@ def checkchunks(sample,**kwargs):
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
       if bar:
-        status = "%s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else ""
+        status = "files, %s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else ""
         bar.count(status)
     
     # GET FILES for RESUBMISSION + sanity checks
@@ -649,7 +649,7 @@ def checkchunks(sample,**kwargs):
         nprocevents += nevents
         goodchunks.append(ichunk)
       if bar:
-        status = "%s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else ""
+        status = "files, %s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else ""
         bar.count(status)
     
     # GET FILES for RESUBMISSION + sanity checks
