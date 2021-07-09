@@ -353,7 +353,7 @@ def checkchunks(sample,**kwargs):
   checkqueue   = kwargs.get('checkqueue',   -1    ) # check queue of batch system for pending jobs
   checkevts    = kwargs.get('checkevts',    True  ) # validate output file & count events (slow, default)
   checkexpevts = kwargs.get('checkexpevts', False ) # compare actual to expected number of processed events
-  pendjobs     = kwargs.get('jobs',         [ ]   )
+  pendjobs     = kwargs.get('jobs',         None  )
   checkdas     = kwargs.get('das',          True  ) # check number of events from DAS
   showlogs     = kwargs.get('showlogs',     False ) # print log files of failed jobs
   ncores       = kwargs.get('ncores',       4     ) # validate files in parallel
@@ -402,7 +402,7 @@ def checkchunks(sample,**kwargs):
     if checkqueue!=1 or not pendjobs:
       batch = getbatch(CONFIG,verb=verbosity)
       pendjobs = batch.jobs(jobids,verb=verbosity-1) # refresh job list
-    else:
+    elif pendjobs:
       pendjobs = [j for j in pendjobs if j.jobid in jobids] # get new job list with right job id
   
   ###########################################################################
@@ -425,44 +425,45 @@ def checkchunks(sample,**kwargs):
     
     # CHECK PENDING JOBS
     pendfiles = [ ]
-    for job in pendjobs:
-      if verbosity>=3:
-        print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
-      if job.getstatus() in ['q','r']:
-        if 'HTCondor' in CONFIG.batch:
-          jobarg   = str(job.args)
-          matches  = flagexp.findall(jobarg)
-          matches2 = flagexp2.findall(jobarg)
-        else:
-          jobarg   = getline(joblist,job.taskid-1)
-          matches  = flagexp.findall(jobarg)
-          matches2 = flagexp2.findall(jobarg)
+    if pendjobs:
+      for job in pendjobs:
         if verbosity>=3:
-          print ">>>   jobarg   =",jobarg.replace('\n','')
-          print ">>>   matches  =",matches
-          print ">>>   matches2 =",matches2
-        if not matches:
-          continue
-        infiles = [ ]
-        for file in matches[0].split():
-          if not file.endswith('.root'):
-            break
-          if matches2:
-            file += ":%s"%(matches2[0][0]) #,matches2[0][1])
-          infiles.append(file)
-        LOG.insist(infiles,"Did not find any ROOT files in job arguments %r, matches=%r"%(jobarg,matches))
-        ichunk = -1
-        for i in chunkdict:
-          if all(any(f in c for c in chunkdict[i]) for f in infiles):
-            ichunk = i
-            break
-        LOG.insist(ichunk>=0,
-                   "Did not find to which the input files of jobids %s belong! "%(jobids)+
-                   "\nichunk=%s,\ninfiles=%s,\nchunkdict=%s"%(ichunk,infiles,chunkdict))
-        LOG.insist(len(chunkdict[i])==len(infiles),
-                   "Mismatch between input files of jobids %s and chunkdict! "%(jobids)+
-                   "\nichunk=%s,\ninfiles=%s,\nchunkdict[%s]=%s"%(ichunk,infiles,ichunk,chunkdict[ichunk]))
-        pendchunks.append(ichunk)
+          print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
+        if job.getstatus() in ['q','r']:
+          if 'HTCondor' in CONFIG.batch:
+            jobarg   = str(job.args)
+            matches  = flagexp.findall(jobarg)
+            matches2 = flagexp2.findall(jobarg)
+          else:
+            jobarg   = getline(joblist,job.taskid-1)
+            matches  = flagexp.findall(jobarg)
+            matches2 = flagexp2.findall(jobarg)
+          if verbosity>=3:
+            print ">>>   jobarg   =",jobarg.replace('\n','')
+            print ">>>   matches  =",matches
+            print ">>>   matches2 =",matches2
+          if not matches:
+            continue
+          infiles = [ ]
+          for file in matches[0].split():
+            if not file.endswith('.root'):
+              break
+            if matches2:
+              file += ":%s"%(matches2[0][0]) #,matches2[0][1])
+            infiles.append(file)
+          LOG.insist(infiles,"Did not find any ROOT files in job arguments %r, matches=%r"%(jobarg,matches))
+          ichunk = -1
+          for i in chunkdict:
+            if all(any(f in c for c in chunkdict[i]) for f in infiles):
+              ichunk = i
+              break
+          LOG.insist(ichunk>=0,
+                     "Did not find to which the input files of jobids %s belong! "%(jobids)+
+                     "\nichunk=%s,\ninfiles=%s,\nchunkdict=%s"%(ichunk,infiles,chunkdict))
+          LOG.insist(len(chunkdict[i])==len(infiles),
+                     "Mismatch between input files of jobids %s and chunkdict! "%(jobids)+
+                     "\nichunk=%s,\ninfiles=%s,\nchunkdict[%s]=%s"%(ichunk,infiles,ichunk,chunkdict[ichunk]))
+          pendchunks.append(ichunk)
     
     # CHECK OUTPUT FILES
     outfiles  = storage.getfiles(filter=fpatterns,verb=verbosity-1) # get output files
@@ -574,25 +575,26 @@ def checkchunks(sample,**kwargs):
       print ">>> %-12s = %s"%('jobids',jobids)
     
     # CHECK PENDING JOBS
-    for job in pendjobs:
-      if verbosity>=3:
-        print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
-      if job.getstatus() in ['q','r']:
-        if 'HTCondor' in CONFIG.batch:
-          jobarg  = str(job.args)
-          matches = flagexp.findall(jobarg)
-        else:
-          jobarg  = getline(joblist,job.taskid-1)
-          matches = flagexp.findall(jobarg)
+    if pendjobs:
+      for job in pendjobs:
         if verbosity>=3:
-          print ">>> jobarg = %r"%(jobarg)
-          print ">>> matches = %s"%(matches)
-        if not matches:
-          continue
-        ichunk = int(matches[0])
-        LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for job %s.%s! "%(ichunk,job.jobid,job.taskid)+
-                                       "Possible overcounting!")
-        pendchunks.append(ichunk)
+          print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
+        if job.getstatus() in ['q','r']:
+          if 'HTCondor' in CONFIG.batch:
+            jobarg  = str(job.args)
+            matches = flagexp.findall(jobarg)
+          else:
+            jobarg  = getline(joblist,job.taskid-1)
+            matches = flagexp.findall(jobarg)
+          if verbosity>=3:
+            print ">>> jobarg = %r"%(jobarg)
+            print ">>> matches = %s"%(matches)
+          if not matches:
+            continue
+          ichunk = int(matches[0])
+          LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for job %s.%s! "%(ichunk,job.jobid,job.taskid)+
+                                         "Possible overcounting!")
+          pendchunks.append(ichunk)
     
     # CHECK OUTPUT FILES
     outfiles = storage.getfiles(filter=fpattern,verb=verbosity-1) # get output files
