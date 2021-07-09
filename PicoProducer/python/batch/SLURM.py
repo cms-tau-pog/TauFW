@@ -38,7 +38,7 @@ class SLURM(BatchSystem):
       else:
         subcmd += " -a %s"%(array)
     if short:
-      if not queue: queue = "quick" # shortest partition name might vary per system (check sinfo)
+      if not queue: queue = "short" # shortest partition name might vary per system (check sinfo)
       if not time:  time  = "00:06:00" # 6 minutes
     if queue:
       subcmd += " --partition %s"%(queue)

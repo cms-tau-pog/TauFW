@@ -2,6 +2,7 @@
 import os, sys
 from math import sqrt, sin, cos, pi, log10, floor
 from itertools import combinations
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import TH1D, TLorentzVector
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
