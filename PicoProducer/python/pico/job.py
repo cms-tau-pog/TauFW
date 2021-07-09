@@ -530,7 +530,10 @@ def checkchunks(sample,**kwargs):
             goodfiles.append(chunkfile)
       if verbosity>=2:
         if ichunk<0:
-          print ">>>   => No match with input file (found in %d chunks; %s)..."%(len(matches),matches)
+          if matches:
+            print ">>>   => No match with input file (ipart=%d, but found in %d chunks; %s)..."%(ipart,len(matches),matches)
+          else:
+            print ">>>   => No match with input file..."
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
       if bar:
