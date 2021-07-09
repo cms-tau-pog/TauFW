@@ -120,7 +120,7 @@ class Sample(object):
   @staticmethod
   def loadjson(cfgname):
     """Initialize sample from job config JSON file."""
-    if fname.endswith(".json.gz"):
+    if cfgname.endswith(".json.gz"):
       with gzip.open(cfgname,'rt') as file:
         data = file.read().strip()
         jobcfg = json.loads(data)
