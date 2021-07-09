@@ -9,7 +9,7 @@ from TauFW.common.tools.utils import execute, chunkify, repkey, alphanum_key, lr
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.common.tools.LoadingBar import LoadingBar
 from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples, chunkify_by_evts, evtsplitexp
-from TauFW.PicoProducer.storage.utils import getstorage, getsamples, isvalid, print_no_samples
+from TauFW.PicoProducer.storage.utils import getstorage, getsamples, isvalid, itervalid, print_no_samples
 from TauFW.PicoProducer.pico.run import getmodule
 os.chdir(GLOB.basedir)
 CONFIG = GLOB.getconfig(verb=0)
@@ -52,6 +52,7 @@ def preparejobs(args):
   force        = args.force        # force submission, even if old job output exists
   prompt       = args.prompt       # ask user for confirmation
   tmpdir       = args.tmpdir or CONFIG.get('tmpskimdir',None) # temporary dir for creating skimmed file before copying to outdir
+  ncores       = args.ncores       # number of cores; validate output files in parallel
   verbosity    = args.verbosity
   jobs         = [ ]
   
@@ -205,8 +206,8 @@ def preparejobs(args):
           if checkqueue==1 and not jobs: # check jobs only once to speed up performance
             batch = getbatch(CONFIG,verb=verbosity)
             jobs  = batch.jobs(verb=verbosity-1)
-          infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,checkqueue=checkqueue,
-                                           checkevts=checkevts,checkexpevts=checkexpevts,das=checkdas,verb=verbosity)[:2]
+          infiles, chunkdict = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
+                                           checkexpevts=checkexpevts,das=checkdas,ncores=ncores,verb=verbosity)[:2]
           nevents = sample.jobcfg['nevents'] # updated in checkchunks
         else: # first-time submission
           infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
@@ -355,6 +356,7 @@ def checkchunks(sample,**kwargs):
   pendjobs     = kwargs.get('jobs',         [ ]   )
   checkdas     = kwargs.get('das',          True  ) # check number of events from DAS
   showlogs     = kwargs.get('showlogs',     False ) # print log files of failed jobs
+  ncores       = kwargs.get('ncores',       4     ) # validate files in parallel
   verbosity    = kwargs.get('verb',         0     )
   oldjobcfg    = sample.jobcfg # job config from last job
   oldcfgname   = oldjobcfg['config']
@@ -365,7 +367,6 @@ def checkchunks(sample,**kwargs):
   logdir       = oldjobcfg['logdir']
   nfilesperjob = oldjobcfg['nfilesperjob']
   filenevts    = sample.filenevts
-  bar          = None # loading bar
   if outdir==None:
     outdir     = oldjobcfg['outdir']
   storage      = getstorage(outdir,ensure=True) # StorageElement instance of output directory
@@ -464,22 +465,23 @@ def checkchunks(sample,**kwargs):
         pendchunks.append(ichunk)
     
     # CHECK OUTPUT FILES
+    outfiles  = storage.getfiles(filter=fpatterns,verb=verbosity-1) # get output files
     badfiles  = [ ]
     goodfiles = [ ]
-    outfiles  = storage.getfiles(filter=fpatterns,verb=verbosity-1) # get output files
-    if verbosity<=0:
+    bar       = None # loading bar
+    if verbosity<=1 and len(outfiles)>=15:
       bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",counter=True,remove=True)
     elif verbosity>=2:
       print ">>> %-12s = %s"%('pendchunks',pendchunks)
       print ">>> %-12s = %s"%('outfiles',outfiles)
-    for fname in outfiles:
+    validated = itervalid(outfiles,checkevts=checkevts,ncores=ncores) # get number of events processed & check for corruption
+    for nevents, fname in validated: # use validator for parallel processing
       if verbosity>=2:
         print ">>>   Checking job output '%s'..."%(fname)
       basename = os.path.basename(fname)
       infile   = chunkexp.sub(r"\1.root",basename) # reconstruct input file without path or postfix
       outmatch = chunkexp.match(basename)
       ipart    = int(outmatch.group(2) or -1) if outmatch else -1 # >0 if input file split by events
-      nevents  = isvalid(fname) if checkevts else 0 # get number of events processed & check for corruption
       ichunk   = -1
       for i in chunkdict:
         if ichunk>-1: # found corresponding input file
@@ -500,7 +502,7 @@ def checkchunks(sample,**kwargs):
               nevtsexp = min(maxevts,filentot-firstevt) if filentot>-1 else maxevts # = maxevts; roughly expected nevts (some loss due to cuts)
           elif checkexpevts or verbosity>=2:
             nevtsexp = filenevts.get(chunkfile,-1) # expected number of processed events
-          ichunk  = i
+          ichunk = i
           if ichunk in pendchunks:
             if verbosity>=2:
               print ">>>   => Pending..."
@@ -526,7 +528,8 @@ def checkchunks(sample,**kwargs):
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
       if bar:
-        bar.count()
+        status = "%s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else ""
+        bar.count(status)
     
     # GET FILES for RESUBMISSION + sanity checks
     for ichunk in chunkdict.keys(): # chuckdict length might be changed (popped)
@@ -593,7 +596,8 @@ def checkchunks(sample,**kwargs):
     
     # CHECK OUTPUT FILES
     outfiles = storage.getfiles(filter=fpattern,verb=verbosity-1) # get output files
-    if verbosity<=0:
+    bar      = None # loading bar
+    if verbosity<=1 and len(outfiles)>=15:
       bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",counter=True,remove=True)
     elif verbosity>=2:
       print ">>> %-12s = %s"%('pendchunks',pendchunks)
@@ -643,7 +647,8 @@ def checkchunks(sample,**kwargs):
         nprocevents += nevents
         goodchunks.append(ichunk)
       if bar:
-        bar.count()
+        status = "%s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else ""
+        bar.count(status)
     
     # GET FILES for RESUBMISSION + sanity checks
     if verbosity>=2:
@@ -847,7 +852,8 @@ def main_status(args):
   subcmd         = args.subcommand
   cleanup        = subcmd=='clean' or (subcmd=='hadd' and args.cleanup)
   maxopenfiles   = args.maxopenfiles if subcmd=='hadd' else 0 # maximum number of files opened during hadd, via -n option
-  dryrun         = args.dryrun
+  dryrun         = args.dryrun       # run through routine without actually executing hadd, rm, ...
+  ncores         = args.ncores       # number of cores; validate output files in parallel
   verbosity      = args.verbosity
   cmdverb        = max(1,verbosity)
   outdirformat   = CONFIG.outdir
@@ -925,8 +931,8 @@ def main_status(args):
             print ">>> %-12s = %s"%('infiles',infiles)
             if subcmd=='hadd':
               print ">>> %-12s = %r"%('outfile',outfile)
-          resubfiles, chunkdict, npend = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,checkqueue=checkqueue,
-                                                     checkevts=checkevts,das=checkdas,checkexpevts=checkexpevts,verb=verbosity)
+          resubfiles, chunkdict, npend = checkchunks(sample,channel=channel,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
+                                                     das=checkdas,checkexpevts=checkexpevts,ncores=ncores,verb=verbosity)
           if (len(resubfiles)>0 or npend>0) and not force: # only clean or hadd if all jobs were successful
             LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
                         " Please use -f or --force to %s anyway.\n"%(subcmd))
@@ -977,8 +983,8 @@ def main_status(args):
             print ">>> %-12s = %r"%('jobdir',jobdir)
             print ">>> %-12s = %r"%('outdir',outdir)
             print ">>> %-12s = %r"%('logdir',logdir)
-          checkchunks(sample,channel=channel,tag=tag,jobs=jobs,showlogs=showlogs,
-                      checkqueue=checkqueue,checkevts=checkevts,das=checkdas,verb=verbosity)
+          checkchunks(sample,channel=channel,tag=tag,jobs=jobs,showlogs=showlogs,checkqueue=checkqueue,
+                      checkevts=checkevts,das=checkdas,ncores=ncores,verb=verbosity)
         
         print
       

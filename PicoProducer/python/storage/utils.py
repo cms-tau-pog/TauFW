@@ -7,6 +7,7 @@ from TauFW.PicoProducer import basedir
 from TauFW.common.tools.log import Logger
 from TauFW.common.tools.file import ensurefile, ensureTFile
 from TauFW.common.tools.utils import repkey, isglob
+from TauFW.common.tools.math import partition
 from ROOT import TFile
 LOG  = Logger('Storage')
 host = platform.node()
@@ -128,15 +129,41 @@ def isvalid(fname,hname='cutflow',bin=1):
   nevts = -1
   file  = TFile.Open(fname,'READ')
   if file and not file.IsZombie():
-    if file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains(hname):
-      nevts = file.Get(hname).GetBinContent(bin)
-      if nevts<=0:
-        LOG.warning("Cutflow of file %r has nevts=%s<=0..."%(fname,nevts))
-    if file.GetListOfKeys().Contains('Events'):
+    if file.GetListOfKeys().Contains('Events'): # NANOAOD
       nevts = file.Get('Events').GetEntries()
       if nevts<=0:
         LOG.warning("'Events' tree of file %r has nevts=%s<=0..."%(fname,nevts))
+    elif file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains(hname): # pico
+      nevts = file.Get(hname).GetBinContent(bin)
+      if nevts<=0:
+        LOG.warning("Cutflow of file %r has nevts=%s<=0..."%(fname,nevts))
   return nevts
+  
+
+def itervalid(fnames,checkevts=True,ncores=4,verb=0,**kwargs):
+  """Iterate over file names."""
+  if checkevts: # just skip validation step and return 0
+    for fname in fnames:
+      yield 0, fname
+  elif ncores>0:
+    from TauFW.Plotter.plot.MultiThread import MultiProcessor
+    processor = MultiProcessor()
+    def loopvalid(fnames_,**kwargs):
+      return [(isvalid(f,**kwargs),f) for f in fnames_]
+    for i, subset in partition(fnames,ncores):
+      name = "itervalid_%d"%(i)
+      nevts = isvalid(fname) # get number of events processed & check for corruption
+      processor.start(loopvalid,subset,kwargs,name=name)
+    for process in processor:
+      if verb>=2:
+        print ">>> joining process %r..."%(process.name)
+      nevtfiles = process.join()
+      for nevts, fname in nevtfiles:
+        yield nevts, fname
+  else:
+    for fname in fnames:
+      nevts = isvalid(fname) # get number of events processed & check for corruption
+      yield nevts, fname
   
 
 def print_no_samples(dtype=[],filter=[],veto=[],jobdir="",jobcfgs=""):

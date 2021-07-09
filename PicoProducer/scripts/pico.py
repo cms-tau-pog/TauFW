@@ -400,64 +400,66 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog='pico.py',description=description,epilog="Good luck!")
   parser_cmn = ArgumentParser(add_help=False)
   parser_cmn.add_argument('-v', '--verbose',    dest='verbosity', type=int, nargs='?', const=1, default=0,
-                                                help="set verbosity" )
+                                                help="set verbosity")
   parser_sam = ArgumentParser(add_help=False,parents=[parser_cmn])
   parser_lnk = ArgumentParser(add_help=False,parents=[parser_cmn])
   parser_sam.add_argument('-c','--channel',     dest='channels', choices=CONFIG.channels.keys(), default=[ ], nargs='+',
-                                                help='skimming or analysis channel to run')
+                                                help="skimming or analysis channel to run")
   parser_sam.add_argument('-y','-e','--era',    dest='eras', choices=CONFIG.eras.keys(), default=[ ], nargs='+',
-                                                help='year or era to specify the sample list')
+                                                help="year or era to specify the sample list")
   parser_sam.add_argument('-s', '--sample',     dest='samples', type=str, nargs='+', default=[ ],
-                          metavar='PATTERN',    help="filter these samples; glob patterns like '*' and '?' wildcards are allowed" )
+                          metavar='PATTERN',    help="filter these samples; glob patterns like '*' and '?' wildcards are allowed")
   parser_sam.add_argument('-Z', '--dasfilter',  dest='dasfilters', type=str, nargs='+', default=[ ],
-                          metavar='PATTERN',    help="filter these DAS paths; glob patterns like '*' and '?' wildcards are allowed" )
+                          metavar='PATTERN',    help="filter these DAS paths; glob patterns like '*' and '?' wildcards are allowed")
   parser_sam.add_argument('-x', '--veto',       dest='vetoes', nargs='+', default=[ ],
-                          metavar='PATTERN',    help="exclude/veto these samples; glob patterns are allowed" )
+                          metavar='PATTERN',    help="exclude/veto these samples; glob patterns are allowed")
   parser_sam.add_argument('-X', '--dasveto',    dest='dasvetoes', nargs='+', default=[ ],
-                          metavar='PATTERN',    help="exclude/veto these DAS paths; glob patterns are allowed" )
+                          metavar='PATTERN',    help="exclude/veto these DAS paths; glob patterns are allowed")
   parser_sam.add_argument('--dtype',            dest='dtypes', choices=GLOB._dtypes, default=GLOB._dtypes, nargs='+',
-                                                help='filter these data type(s)')
+                                                help="filter these data type(s)")
   parser_sam.add_argument('-D','--das',         dest='checkdas', action='store_true',
-                                                help="check DAS for total number of events" )
+                                                help="check DAS for total number of events")
   parser_sam.add_argument('--dasfiles',         dest='dasfiles', action='store_true',
-                                                help="get files from DAS (instead of local storage, if predefined)" )
+                                                help="get files from DAS (instead of local storage, if predefined)")
   parser_sam.add_argument('-t','--tag',         dest='tag', default="",
-                                                help='tag for output file name')
+                                                help="tag for output file name")
   parser_sam.add_argument('-f','--force',       dest='force', action='store_true',
-                                                help='force overwrite')
+                                                help="force overwrite")
   parser_sam.add_argument('-d','--dry',         dest='dryrun', action='store_true',
-                                                help='dry run: prepare job without submitting for debugging purposes')
+                                                help="dry run: prepare job without submitting for debugging purposes")
   parser_sam.add_argument('-E', '--opts',       dest='extraopts', type=str, nargs='+', default=[ ],
                           metavar='KEY=VALUE',  help="extra options for the skim or analysis module, "
                                                      "passed as list of 'KEY=VALUE', separated by spaces")
+  parser_sam.add_argument('-C','--ncores',      dest='ncores', type=int, default=GLOB.ncores, action='store_true',
+                                                help="number of cores to run event checks or validation in parallel")
   parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
-                                                help="copy remote file during job to increase processing speed and ensure stability" )
+                                                help="copy remote file during job to increase processing speed and ensure stability")
   parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
-                          metavar='NEVTS',      help='run a test with limited nummer of jobs and events, default nevts=%(const)d' )
+                          metavar='NEVTS',      help="run a test with limited nummer of jobs and events, default nevts=%(const)d")
   parser_job.add_argument('--checkqueue',       dest='checkqueue', type=int, nargs='?', const=1, default=-1,
-                          metavar='N',          help="check job status: 0 (no check), 1 (check once, fast), -1 (check every job, slow, default)" ) # speed up if batch is slow
+                          metavar='N',          help="check job status: 0 (no check), 1 (check once, fast), -1 (check every job, slow, default)") # speed up if batch is slow
   parser_job.add_argument('--skipevts',         dest='checkevts', action='store_false',
-                                                help="skip validation and counting of events in output files (faster)" )
+                                                help="skip validation and counting of events in output files (faster)")
   parser_job.add_argument('--checkexpevts',     dest='checkexpevts', action='store_true', default=None,
-                                                help="check if the actual number of processed events is the same as the expected number" )
+                                                help="check if the actual number of processed events is the same as the expected number")
   parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
   parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
-                                                help='extra options for the batch system')
+                                                help="extra options for the batch system")
   parser_job.add_argument('-M','--time',        dest='time', default=None,
-                                                help='maximum run time of job')
+                                                help="maximum run time of job")
   parser_job.add_argument('-q','--queue',       dest='queue', default=str(CONFIG.queue),
-                                                help='queue of batch system (job flavor on HTCondor)')
+                                                help="queue of batch system (job flavor on HTCondor)")
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
-                                                help='ask user permission before submitting a sample')
+                                                help="ask user permission before submitting a sample")
   parser_job.add_argument('--preselect',        dest='preselect', type=str, default=None,
-                                                help='preselection to be shipped to skimjob.py during run command')
+                                                help="preselection to be shipped to skimjob.py during run command")
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,
-                                                help='number of files per job, default=%d'%(CONFIG.nfilesperjob))
+                                                help="number of files per job, default=%d"%(CONFIG.nfilesperjob))
   parser_job.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=-1,
-                          metavar='NEVTS',      help='maximum number of events per job to process (split large files), default=%d"'%(CONFIG.maxevtsperjob))
+                          metavar='NEVTS',      help="maximum number of events per job to process (split large files), default=%d"%(CONFIG.maxevtsperjob))
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1,
-                          metavar='NFILES',     help="divide default number of files per job, default=%(const)d" )
+                          metavar='NFILES',     help="divide default number of files per job, default=%(const)d")
   parser_job.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
                                                 help="for skimming only: temporary output directory befor copying to outdir")
   
@@ -492,39 +494,39 @@ if __name__ == "__main__":
   parser_hdd = subparsers.add_parser('hadd',     parents=[parser_chk], help=help_hdd, description=help_hdd)
   parser_cln = subparsers.add_parser('clean',    parents=[parser_chk], help=help_cln, description=help_cln)
   #parser_get.add_argument('variable',           help='variable to change in the config file')
-  parser_get.add_argument('variable',           help='variable to get information on',choices=['samples','files','nevents','nevts',]+CONFIG.keys())
-  parser_set.add_argument('variable',           help='variable to set or change in the config file')
-  parser_set.add_argument('key',                help='channel or era key name', nargs='?', default=None)
-  parser_set.add_argument('value',              help='value for given value')
-  parser_wrt.add_argument('listname',           help='file name of text file for file list, default=%(default)r', nargs='?', default=str(CONFIG.filelistdir))
-  parser_rmv.add_argument('variable',           help='variable to remove from the config file')
-  parser_rmv.add_argument('key',                help='channel or era key name to remove', nargs='?', default=None)
-  parser_chl.add_argument('key',                metavar='channel', help='channel key name')
-  parser_chl.add_argument('value',              metavar='module',  help='module linked to by given channel')
-  parser_era.add_argument('key',                metavar='era',     help='era key name')
-  parser_era.add_argument('value',              metavar='samples', help='samplelist linked to by given era')
+  parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+CONFIG.keys())
+  parser_set.add_argument('variable',           help="variable to set or change in the config file")
+  parser_set.add_argument('key',                help="channel or era key name", nargs='?', default=None)
+  parser_set.add_argument('value',              help="value for given value")
+  parser_wrt.add_argument('listname',           help="file name of text file for file list, default=%(default)r", nargs='?', default=str(CONFIG.filelistdir))
+  parser_rmv.add_argument('variable',           help="variable to remove from the config file")
+  parser_rmv.add_argument('key',                help="channel or era key name to remove", nargs='?', default=None)
+  parser_chl.add_argument('key',                metavar='channel', help="channel key name")
+  parser_chl.add_argument('value',              metavar='module',  help="module linked to by given channel")
+  parser_era.add_argument('key',                metavar='era',     help="era key name")
+  parser_era.add_argument('value',              metavar='samples', help="samplelist linked to by given era")
   parser_ins.add_argument('type',               choices=['standalone','cmmsw'], #default=None,
-                                                help='type of installation: standalone or compiled in CMSSW')
+                                                help="type of installation: standalone or compiled in CMSSW")
   parser_get.add_argument('-U','--url',         dest='inclurl', action='store_true',
-                                                help="include XRootD url in filename for 'get files'" )
+                                                help="include XRootD url in filename for 'get files'")
   parser_get.add_argument('-L','--limit',       dest='limit', type=int, default=-1,
-                          metavar='NFILES',     help="limit number files in list for 'get files'" )
+                          metavar='NFILES',     help="limit number files in list for 'get files'")
   parser_get.add_argument('-l','--local',       dest='checklocal', action='store_true',
-                                                help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'" )
+                                                help="compute total number of events in storage system (not DAS) for 'get files' or 'get nevents'")
   parser_get.add_argument('-w','--write',       dest='write', type=str, nargs='?', const=str(CONFIG.filelistdir), default="",
-                          metavar='FILE',       help="write file list, default=%(const)r" )
+                          metavar='FILE',       help="write file list, default=%(const)r")
   parser_get.add_argument('-S','--split',       dest='split', action='store_true',
-                                                help="split samples with multiple datasets (extensions)" )
+                                                help="split samples with multiple datasets (extensions)")
   parser_wrt.add_argument('-n','--nevts',       dest='getnevts', action='store_true',
-                                                help="get nevents per file" )
+                                                help="get nevents per file")
   parser_wrt.add_argument('-S','--split',       dest='split', action='store_true',
-                                                help="split samples with multiple datasets (extensions)" )
+                                                help="split samples with multiple datasets (extensions)")
   parser_wrt.add_argument('-T','--try',         dest='retries', type=int, default=1, action='store',
-                                                help="number of retries if file is not found" )
+                                                help="number of retries if file is not found")
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
-                          metavar='NEVTS',      help='maximum number of events (per file) to process')
+                          metavar='NEVTS',      help="maximum number of events (per file) to process")
   parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
-                                                help='preselection to be shipped to skimjob.py during run command')
+                                                help="preselection to be shipped to skimjob.py during run command")
   parser_run.add_argument('-n','--nfiles',      dest='nfiles', type=int, default=1,
                                                 help="maximum number of input files to process (per sample), default=%(default)d")
   parser_run.add_argument('-S', '--nsamples',   dest='nsamples', type=int, default=1,
@@ -534,15 +536,15 @@ if __name__ == "__main__":
   parser_run.add_argument('-o', '--outdir',     dest='outdir', type=str, default='output',
                                                 help="output directory, default=%(default)r")
   parser_run.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
-                                                help="copy remote file during run to increase processing speed and ensure stability" )
+                                                help="copy remote file during run to increase processing speed and ensure stability")
   parser_sts.add_argument('-l','--log',         dest='showlogs', type=int, nargs='?', const=-1, default=0,
-                          metavar='NLOGS',      help="show log files of failed jobs: 0 (show none), -1 (show all), n (show max n)" )
+                          metavar='NLOGS',      help="show log files of failed jobs: 0 (show none), -1 (show all), n (show max n)")
   #parser_hdd.add_argument('--keep',             dest='cleanup', action='store_false',
-  #                                              help="do not remove job output after hadd'ing" )
+  #                                              help="do not remove job output after hadd'ing")
   parser_hdd.add_argument('-m','--maxopenfiles',dest='maxopenfiles', type=int, default=CONFIG.maxopenfiles,
-                          metavar='NFILES',     help="maximum numbers to be opened during hadd, default=%(default)d" )
+                          metavar='NFILES',     help="maximum numbers to be opened during hadd, default=%(default)d")
   parser_hdd.add_argument('-r','--clean',       dest='cleanup', action='store_true',
-                                                help="remove job output (to be used after hadd'ing)" )
+                                                help="remove job output (to be used after hadd'ing)")
   
   # SUBCOMMAND ABBREVIATIONS, e.g. 'pico.py s' or 'pico.py sub'
   args = sys.argv[1:]

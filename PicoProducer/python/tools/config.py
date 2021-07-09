@@ -41,6 +41,7 @@ _queue         = ""                               # batch queue / job flavor
 _nfilesperjob  = 1                                # group files per job
 _maxevtsperjob = -1                               # maximum number of events per job (split large files)
 _maxopenfiles  = -1                               # maximum number of open files during hadd
+_ncores        = 4                                # number of cores for parallel event counting & validating of files
 _cfgdefaults   = OrderedDict([                    # ordered dictionary with defaults
   ('channels',_channels), ('eras',_eras),
   ('basedir',basedir),
@@ -50,6 +51,7 @@ _cfgdefaults   = OrderedDict([                    # ordered dictionary with defa
   ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
   ('filelistdir',_filelistdir),
   ('maxopenfiles',_maxopenfiles),
+  ('ncores',_ncores),
 ])
 sys.path.append(basedir)
 
