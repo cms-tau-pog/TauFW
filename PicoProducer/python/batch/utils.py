@@ -57,7 +57,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
       fnames.remove(fname)
     ntot += nevts
     if bar:
-      bar.count()
+      bar.count("files")
   if verb>=1:
     print ">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%(
       len(nsmall),maxevts,len(nlarge),maxevts)

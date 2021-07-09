@@ -12,6 +12,7 @@ from copy import deepcopy
 from fnmatch import fnmatch
 from TauFW.common.tools.utils import repkey, ensurelist, isglob
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureTFile
+from TauFW.common.tools.LoadingBar import LoadingBar
 from TauFW.PicoProducer.tools.config import _user
 from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents
 from TauFW.PicoProducer.storage.das import dasgoclient, getdasnevents, getdasfiles
@@ -245,9 +246,12 @@ class Sample(object):
     nevents   = self.nevents
     filenevts = self.filenevts
     treename  = tree
+    bar       = None
     if nevents<=0 or refresh:
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
+        if verb<=0 and len(files)>=5:
+          bar = LoadingBar(len(fnames),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
         for fname in files:
           if refresh or fname not in filenevts:
             nevts = getnevents(fname,treename)
@@ -256,6 +260,8 @@ class Sample(object):
             nevts = filenevts[fname]
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
+          if bar:
+            bar.count("files")
       else: # get total number of events from DAS
         for daspath in self.paths:
           nevents += getdasnevents(daspath,instance=self.instance,verb=verb-1)
