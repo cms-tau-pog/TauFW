@@ -496,7 +496,7 @@ def checkchunks(sample,**kwargs):
           if inmatch: # chunk was split by events
             firstevt = int(inmatch.group(2))
             maxevts  = int(inmatch.group(3))
-            if firstevt/nevtsexp!=ipart: # right file, wrong chunk
+            if firstevt/maxevts!=ipart: # right file, wrong chunk
               if verbosity>=3:
                 print ">>>   Not in chunk %d, %r"%(i,chunkfile)
               continue
