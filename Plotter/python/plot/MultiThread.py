@@ -32,14 +32,21 @@ class Thread(Process):
 class MultiProcessor:
     """Class to get manage multiple processes and their return."""
     
-    def __init__(self,name='nameless'):
+    def __init__(self,name='nameless',max=-1):
       self.name    = name
       self.procs   = [ ]
+      self.waiting = [ ]
+      self.max     = max
       
     def __iter__(self):
       """To loop over processes, and do process.join()."""
       for process, endin, endout in self.procs:
         yield ReturnProcess(process,endin,endout)
+        if self.max>=1 and self.waiting:
+          #print "MultiProcessor.__iter__: starting new process (i=%d, max=%d, waiting=%d)"%(i,self.max,len(self.waiting))
+          proc_wait = self.waiting[0]
+          proc_wait.start()
+          self.waiting.remove(proc_wait)
       
     def start(self, target, args=(), kwargs={}, group=None, name=None, verbose=False, parallel=True, kwret=None):
       """Start and save process. Create a pipe to return output."""
@@ -55,7 +62,10 @@ class MultiProcessor:
           mptarget    = self.target
         process       = Process(group,mptarget,name,newargs,kwargs)
         process.kwret = kwret
-        process.start() # start running process in parallel now (or add to queue)
+        if self.max<1 or len(self.procs)<self.max:
+          process.start() # start running process in parallel now (or add to queue)
+        else:
+          self.waiting.append(process) # start later
       else: # execute jobs sequentially
         process = SimpleProcess(target,name,args,kwargs,kwret=kwret)
         endin   = None
