@@ -141,18 +141,17 @@ def isvalid(fname,hname='cutflow',bin=1):
   
 
 def itervalid(fnames,checkevts=True,ncores=4,verb=0,**kwargs):
-  """Iterate over file names."""
+  """Iterate over file names and get number of events processed & check for corruption."""
   if not checkevts: # just skip validation step and return 0
     for fname in fnames:
       yield 0, fname
   elif ncores>0:
     from TauFW.Plotter.plot.MultiThread import MultiProcessor
     processor = MultiProcessor()
-    def loopvalid(fnames_,**kwargs):
+    def loopvalid(fnames_,**kwargs): # help function for parallel running on subsets
       return [(isvalid(f,**kwargs),f) for f in fnames_]
     for i, subset in enumerate(partition(fnames,ncores)): # process in ncores chunks
       name = "itervalid_%d"%(i)
-      nevts = isvalid(fname) # get number of events processed & check for corruption
       processor.start(loopvalid,subset,kwargs,name=name)
     for process in processor:
       if verb>=2:
@@ -162,7 +161,7 @@ def itervalid(fnames,checkevts=True,ncores=4,verb=0,**kwargs):
         yield nevts, fname
   else:
     for fname in fnames:
-      nevts = isvalid(fname) # get number of events processed & check for corruption
+      nevts = isvalid(fname)
       yield nevts, fname
   
 
