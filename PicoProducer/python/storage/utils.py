@@ -140,17 +140,22 @@ def isvalid(fname,hname='cutflow',bin=1):
   return nevts
   
 
-def itervalid(fnames,checkevts=True,ncores=4,verb=0,**kwargs):
+def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
   """Iterate over file names and get number of events processed & check for corruption."""
   if not checkevts: # just skip validation step and return 0
     for fname in fnames:
       yield 0, fname
-  elif ncores>0:
+  elif ncores>=2 and len(fnames)>5: # run validation in parallel
     from TauFW.Plotter.plot.MultiThread import MultiProcessor
-    processor = MultiProcessor()
+    processor = MultiProcessor(max=ncores)
     def loopvalid(fnames_,**kwargs): # help function for parallel running on subsets
       return [(isvalid(f,**kwargs),f) for f in fnames_]
-    for i, subset in enumerate(partition(fnames,ncores)): # process in ncores chunks
+    if not nchunks:
+      nchunks = max(10,2*ncores)
+    if nchunks>=len(fnames):
+      nchunks = len(fnames)-1
+    for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
+      if not subset: break
       name = "itervalid_%d"%(i)
       processor.start(loopvalid,subset,kwargs,name=name)
     for process in processor:
@@ -159,8 +164,10 @@ def itervalid(fnames,checkevts=True,ncores=4,verb=0,**kwargs):
       nevtfiles = process.join()
       for nevts, fname in nevtfiles:
         yield nevts, fname
-  else:
+  else:  # run validation in series
     for fname in fnames:
+      if verb>=2:
+        print ">>>   Validating job output '%s'..."%(fname)
       nevts = isvalid(fname)
       yield nevts, fname
   
