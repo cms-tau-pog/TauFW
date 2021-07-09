@@ -484,13 +484,13 @@ def checkchunks(sample,**kwargs):
       outmatch = chunkexp.match(basename)
       ipart    = int(outmatch.group(2) or -1) if outmatch else -1 # >0 if input file split by events
       ichunk   = -1
-      nmatches = 0 # count how many times matched to chunk (if split by events)
+      matches  = [ ] # count how many times matched to chunk (if split by events)
       for i in chunkdict:
         if ichunk>-1: # already found corresponding input file in the previous iteration
           break
         for chunkfile in chunkdict[i]: # find chunk output file belongs to
           if infile not in chunkfile: continue
-          nmatches += 1
+          matches.append(i)
           nevtsexp  = -1
           inmatch   = evtsplitexp.match(chunkfile) # filename:firstevt:maxevts
           if inmatch: # chunk was split by events
@@ -530,7 +530,7 @@ def checkchunks(sample,**kwargs):
             goodfiles.append(chunkfile)
       if verbosity>=2:
         if ichunk<0:
-          print ">>>   => No match with input file (found in %d chunks)..."%(nmatches)
+          print ">>>   => No match with input file (found in %d chunks; %s)..."%(len(matches),matches)
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
       if bar:
