@@ -151,7 +151,8 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
     def loopvalid(fnames_,**kwargs): # help function for parallel running on subsets
       return [(isvalid(f,**kwargs),f) for f in fnames_]
     if not nchunks:
-      nchunks = max(10,2*ncores)
+      nchunks = 10 if len(files)<100 else 50 if len(files)<500 else 100
+      nchunks = max(nchunks,2*ncores)
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
