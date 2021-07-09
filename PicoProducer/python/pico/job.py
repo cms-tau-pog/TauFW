@@ -193,7 +193,7 @@ def preparejobs(args):
             print ""
             continue
         if not resubmit: # check for existing jobss
-          cfgpattern = re.sub(r"(?<=try)\d+(?=.json$)",r"*",cfgname)
+          cfgpattern = re.sub(r"(?<=try)\d+(?=.json(?:\.gz)?$)",r"*",cfgname)
           cfgnames   = [f for f in glob.glob(cfgpattern) if not f.endswith("_try1.json")]
           if cfgnames:
             LOG.warning("Job configurations for resubmission already exists! This can cause conflicting job output! "+
@@ -831,8 +831,12 @@ def main_submit(args):
       jobcfg['jobids'].append(jobid)
       if verbosity>=1:
         print ">>> Creating config file '%s'..."%(cfgname)
-      with open(cfgname,'w') as file:
-        json.dump(jobcfg,file,indent=2)
+      if cfgname.endswith(".json.gz"):
+        with gzip.open(cfgname,'wt') as file:
+          file.write(json.dump(jobcfg),indent=2)
+      else:
+        with open(cfgname,'w') as file:
+          json.dump(jobcfg,file,indent=2)
   
 
 
@@ -907,7 +911,7 @@ def main_status(args):
       for sample in samples:
         channel_ = channel
         if channel=='*': # grab channel from job config name
-          matches = re.findall(r"config/jobconfig_(\w+)%s_try\d+.json"%(tag),sample.jobcfg['config'])
+          matches = re.findall(r"config/jobconfig_(\w+)%s_try\d+.json(?:\.gz)?"%(tag),sample.jobcfg['config'])
           if matches:
             channel_ = matches[0]
         elif sample.channels and channel_ not in sample.channels:

@@ -7,6 +7,7 @@
 #   root://storage01.lcg.cscs.ch/  # PSI T2
 #   root://cmseos.fnal.gov/        # Fermi lab
 import os, re, json
+import gzip
 import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
@@ -119,8 +120,13 @@ class Sample(object):
   @staticmethod
   def loadjson(cfgname):
     """Initialize sample from job config JSON file."""
-    with open(cfgname,'r') as file:
-      jobcfg = json.load(file)
+    if fname.endswith(".json.gz"):
+      with gzip.open(cfgname,'rt') as file:
+        data = file.read().strip()
+        jobcfg = json.loads(data)
+    else:
+      with open(cfgname,'r') as file:
+        jobcfg = json.load(file)
     for key, value in jobcfg.items():
       if isinstance(value,unicode):
         jobcfg[key] = str(value)

@@ -40,7 +40,7 @@ _batchsystem   = 'HTCondor'                       # batch system (HTCondor, SLUR
 _queue         = ""                               # batch queue / job flavor
 _nfilesperjob  = 1                                # group files per job
 _maxevtsperjob = -1                               # maximum number of events per job (split large files)
-_maxopenfiles  = -1                               # maximum number of open files during hadd
+_maxopenfiles  = 500                              # maximum number of open files during hadd
 _ncores        = 4                                # number of cores for parallel event counting & validating of files
 _cfgdefaults   = OrderedDict([                    # ordered dictionary with defaults
   ('channels',_channels), ('eras',_eras),
