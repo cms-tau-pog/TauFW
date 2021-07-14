@@ -18,13 +18,13 @@ class EOS(StorageSystem):
         os.environ["EOS_MGM_URL"] = "root://eosuser.cern.ch"
         self.lscmd = "eos ls" # first do export EOS_MGM_URL=root://eosuser.cern.ch
         self.lscmd = "eos rm" # first do export EOS_MGM_URL=root://eosuser.cern.ch
-      else: # use uberftp
+      else: # use uberftp; NOTE: doest not work for /eos/user/...
         self.lscmd = "uberftp -ls"
         self.lsurl = "gsiftp://eoscmsftp.cern.ch/"
         self.lscol = -1 # take last column
         self.rmcmd = 'uberftp -rm'
         self.rmurl = 'gsiftp://eoscmsftp.cern.ch/'
-        self.mkdir = self._mkdir
+        self.mkdir = self._mkdir # override default StorageSystem.mkdir
       self.cpcmd   = 'xrdcp -f'
       self.chmdprm = '2777'
       self.cpurl   = "root://eoscms.cern.ch/"

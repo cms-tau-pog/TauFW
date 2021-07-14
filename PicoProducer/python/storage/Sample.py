@@ -22,6 +22,48 @@ dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root:
 fevtsexp = re.compile(r"(.+\.root)(?::(\d+))?$") # input file stored in lis in text file
 
 
+def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
+  """Help function to iterate over file names and get number of events processed."""
+  if ncores>=2 and len(fnames)>5: # run events check in parallel
+    from TauFW.Plotter.plot.MultiThread import MultiProcessor
+    from TauFW.common.tools.math import partition
+    def loopevts(fnames_):
+      """Help function for parallel running on subsets."""
+      return [(getnevents(f,tree),f) for f in fnames_]
+    processor = MultiProcessor(max=ncores)
+    if not nchunks:
+      nchunks = 10 if len(fnames)<100 else 20 if len(fnames)<500 else 50 if len(fnames)<1000 else 100
+      nchunks = max(nchunks,2*ncores)
+    if nchunks>=len(fnames):
+      nchunks = len(fnames)-1
+    if verb>=2:
+      print ">>> iterevts: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
+    for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
+      for fname in subset[:]: # check cache
+        if not refresh and fname in filenevts:
+          nevts = filenevts[fname]
+          subset.remove(fname) # don't run again
+          yield nevts, fname
+      if not subset:
+        break
+      name = "iterevts_%d"%(i)
+      processor.start(loopevts,subset,name=name)
+    for process in processor: # collect output from parallel processes
+      if verb>=2:
+        print ">>> iterevts: joining process %r..."%(process.name)
+      nevtfiles = process.join()
+      for nevts, fname in nevtfiles:
+        yield nevts, fname
+  else: # run events check in series
+    for fname in fnames:
+      if refresh or fname not in filenevts:
+        nevts = getnevents(fname,tree)
+      else: # get from cache or efficiency
+        nevts = filenevts[fname]
+      yield nevts, fname
+
+
+
 class Sample(object):
   
   def __init__(self,group,name,*paths,**kwargs):
@@ -246,33 +288,31 @@ class Sample(object):
       files = [f.replace(url_,"") for f in files]
     return files[:] # pass copy to protect private self.files
   
-  def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,verb=0):
+  def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,ncores=0,verb=0):
     """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist)
     nevents   = self.nevents
     filenevts = self.filenevts
-    treename  = tree
     bar       = None
     if nevents<=0 or refresh:
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         if verb<=0 and len(files)>=5:
           bar = LoadingBar(len(files),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
-        for fname in files:
-          if refresh or fname not in filenevts:
-            nevts = getnevents(fname,treename)
-            filenevts[fname] = nevts # cache
-          else: # get from cache or efficiency
-            nevts = filenevts[fname]
+        for nevts, fname in iterevts(files,tree,filenevts,refresh,ncores=ncores,verb=verb):
+          filenevts[fname] = nevts # cache
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
           if bar:
-            bar.count("files, %d events"%(nevents))
+             if self.nevents>0:
+               bar.count("files, %d/%d events (%d%%)"%(nevents,self.nevents,100.0*nevents/self.nevents))
+             else:
+               bar.count("files, %d events"%(nevents))
       else: # get total number of events from DAS
         for daspath in self.paths:
           nevents += getdasnevents(daspath,instance=self.instance,verb=verb-1)
-      if limit<0:
+      if limit<=0:
         self.nevents = nevents
     return nevents, filenevts
   
@@ -287,12 +327,15 @@ class Sample(object):
   def writefiles(self,listname,**kwargs):
     """Write filenames to text file for fast look up in future.
     If there is more than one DAS dataset path, write lists separately for each path."""
+    kwargs    = kwargs.copy() # do not edit given dictionary
     writeevts = kwargs.pop('nevts',False) # also write nevents to file
     listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
     ensuredir(os.path.dirname(listname))
     filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
-    treename  = kwargs.pop('tree','Events')
-    files     = self.getfiles(**kwargs)
+    treename  = kwargs.pop('tree','Events') # do not pass to Sample.getfiles
+    kwargs.pop('ncores') # do not pass to Sample.getfiles
+    kwargs['refresh'] = False # already got file list in Sample.filenevts
+    files     = self.getfiles(**kwargs) # get right URL
     if not files:
       LOG.warning("writefiles: Did not find any files!")
     def _writefile(ofile,fname,prefix=""):
@@ -313,12 +356,19 @@ class Sample(object):
           for infile in self.pathfiles[path]:
             _writefile(lfile,infile)
         elif len(self.paths)<=1: # write file list for the only path
-          print ">>> Write %s files to list %r..."%(len(files),listname_)
+          if self.nevents>0:
+            print ">>> Write %s files to list %r..."%(len(files),listname_)
+          else:
+            print ">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_)
           for infile in files:
             _writefile(lfile,infile)
         else: # divide up list per DAS dataset path
-          print ">>> Write %s files to list %r..."%(len(files),listname_)
+          if self.nevents>0:
+            print ">>> Write %s files to list %r..."%(len(files),listname_)
+          else:
+            print ">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_)
           for i, path in enumerate(self.paths):
+            print ">>>   %3s files for %s..."%(len(self.pathfiles[path]),path)
             lfile.write("DASPATH=%s\n"%(path)) # write special line to text file, which loadfiles() can parse
             for infile in self.pathfiles[path]: # loop over this list (general list is sorted)
               LOG.insist(infile in files,"Did not find file %s in general list! %s"%(infile,files))

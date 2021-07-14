@@ -82,6 +82,7 @@ def main_get(args):
   limit      = args.limit
   writedir   = args.write      # write sample file list to text file
   tag        = args.tag
+  ncores     = args.ncores     # number of cores to get nevents in parallel
   verbosity  = args.verbosity
   getnevts   = variable in ['nevents','nevts']
   cfgname    = CONFIG._path
@@ -156,7 +157,7 @@ def main_get(args):
           if writedir: # write files to text files
             flistname = repkey(writedir,ERA=era,GROUP=sample.group,SAMPLE=sample.name,TAG=tag)
             print ">>> Write list to %r..."%(flistname)
-            sample.writefiles(flistname,nevts=getnevts)
+            sample.writefiles(flistname,nevts=getnevts,ncores=ncores)
   
   # CONFIGURATION
   else:
@@ -187,6 +188,7 @@ def main_write(args):
   split      = args.split      # split samples with multiple DAS dataset paths
   retries    = args.retries    # retry if error is thrown
   getnevts   = args.getnevts   # check nevents in local files
+  ncores     = args.ncores   # number of cores to get nevents in parallel
   verbosity  = args.verbosity
   cfgname    = CONFIG._path
   if verbosity>=1:
@@ -234,7 +236,7 @@ def main_write(args):
           #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
           flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
           try:
-            sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,verb=verbosity)
+            sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,ncores=ncores,verb=verbosity)
           except IOError as err: # one of the ROOT file could not be opened
             print "IOError: "+err.message
             if retry<retries and sample not in sampleset[retry+1]: # try again after the others

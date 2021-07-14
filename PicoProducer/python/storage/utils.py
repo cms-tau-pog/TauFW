@@ -7,7 +7,6 @@ from TauFW.PicoProducer import basedir
 from TauFW.common.tools.log import Logger
 from TauFW.common.tools.file import ensurefile, ensureTFile
 from TauFW.common.tools.utils import repkey, isglob
-from TauFW.common.tools.math import partition
 from ROOT import TFile
 LOG  = Logger('Storage')
 host = platform.node()
@@ -147,14 +146,18 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
       yield 0, fname
   elif ncores>=2 and len(fnames)>5: # run validation in parallel
     from TauFW.Plotter.plot.MultiThread import MultiProcessor
+    from TauFW.common.tools.math import partition
     processor = MultiProcessor(max=ncores)
-    def loopvalid(fnames_,**kwargs): # help function for parallel running on subsets
+    def loopvalid(fnames_,**kwargs):
+      """Help function for parallel running on subsets."""
       return [(isvalid(f,**kwargs),f) for f in fnames_]
     if not nchunks:
       nchunks = 10 if len(fnames)<100 else 20 if len(fnames)<500 else 50 if len(fnames)<1000 else 100
       nchunks = max(nchunks,2*ncores)
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
+    if verb>=2:
+      print ">>> itervalid: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
       if not subset: break
       name = "itervalid_%d"%(i)
