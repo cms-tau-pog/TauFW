@@ -36,7 +36,7 @@ class MultiProcessor:
       self.name    = name
       self.procs   = [ ]
       self.waiting = [ ]
-      self.max     = max
+      self.max     = max # maximum number of parallel jobs (ncores)
       
     def __iter__(self):
       """To loop over processes, and do process.join()."""
