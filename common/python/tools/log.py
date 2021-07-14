@@ -67,7 +67,9 @@ class Logger(object):
     """Decide verbosity level based on maximum of own verbosity and given arguments."""
     verbs = [ self.verbosity ]
     for arg in args:
-      if isinstance(arg,dict):
+      if isinstance(arg,(int,float,long)):
+        verbosity = int(arg)
+      elif isinstance(arg,dict):
         verbosity = arg.get('verb',0) + arg.get('verbosity',0)
       elif hasattr(arg,'verbosity'):
         verbosity = arg.verbosity

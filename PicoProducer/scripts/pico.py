@@ -8,6 +8,7 @@ from TauFW.common.tools.utils import repkey, rreplace
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import ensuremodule
 from TauFW.PicoProducer.storage.utils import getsamples
+from TauFW.PicoProducer.storage.utils import LOG as SLOG
 os.chdir(GLOB.basedir)
 CONFIG = GLOB.getconfig(verb=0)
 LOG    = Logger()
@@ -93,6 +94,12 @@ def main_get(args):
     print ">>> %-14s = %s"%('channels',channels)
     print ">>> %-14s = %s"%('cfgname',cfgname)
     print ">>> %-14s = %s"%('config',CONFIG)
+    print ">>> %-14s = %s"%('checkdas',checkdas)
+    print ">>> %-14s = %s"%('checklocal',checklocal)
+    print ">>> %-14s = %s"%('split',split)
+    print ">>> %-14s = %s"%('limit',limit)
+    print ">>> %-14s = %s"%('writedir',writedir)
+    print ">>> %-14s = %s"%('ncores',ncores)
     print '-'*80
   
   # LIST SAMPLES
@@ -140,9 +147,11 @@ def main_get(args):
           for path in sample.paths:
             print ">>> %s"%(bold(path))
           if getnevts or checkdas or checklocal:
-            nevents = sample.getnevents(das=(not checklocal),verb=verbosity+1)
-            storage = sample.storage.__class__.__name__ if checklocal else "DAS"
-            print ">>>   %-7s = %s (%s)"%('nevents',nevents,storage)
+            das     = checkdas and not checklocal # checklocal overrides checkdas
+            refresh = das # not sample.storage
+            nevents = sample.getnevents(das=das,refresh=refresh,verb=verbosity+1)
+            storage = "(%s)"%sample.storage.__class__.__name__ if checklocal else "(DAS)" if checkdas else ""
+            print ">>>   %-7s = %s %s"%('nevents',nevents,storage)
           if variable=='files':
             infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
             print ">>>   %-7s = %r"%('channel',channel)
@@ -563,6 +572,10 @@ if __name__ == "__main__":
   args = parser.parse_args(args)
   if hasattr(args,'tag') and len(args.tag)>=1 and args.tag[0]!='_':
     args.tag = '_'+args.tag
+    
+  # VERBOSITY
+  if args.verbosity>=2:
+    SLOG.setverbosity(args.verbosity-1)
   
   # SUBCOMMAND MAINs
   os.chdir(CONFIG.basedir)

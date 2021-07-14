@@ -522,7 +522,7 @@ def checkchunks(sample,**kwargs):
             if checkexpevts and nevtsexp>-1 and nevents!=nevtsexp:
               LOG.warning("checkchunks: Found %s processed events, but expected %s for %s..."%(nevents,nevtsexp,fname))
             if verbosity>=2:
-              if nevtsexp>-1:
+              if nevtsexp>0:
                 frac = "%.1f%%"%(100.0*nevents/nevtsexp) if nevtsexp!=0 else ""
                 print ">>>   => Good, nevents=%s/%s %s"%(nevents,nevtsexp,frac)
               else:
@@ -636,7 +636,7 @@ def checkchunks(sample,**kwargs):
       else:
         nevtsexp = 0 # expected number of processed events
         if checkexpevts or verbosity>=2:
-          for chunkfile in chunkdict[ichunk]:
+          for chunkfile in chunkdict[ichunk]: # count events for each input file in this chunk
             inmatch = evtsplitexp.match(chunkfile) # look for filename:firstevt:maxevts
             if inmatch: # chunk was split by events
               firstevt  = int(inmatch.group(2))
@@ -647,13 +647,13 @@ def checkchunks(sample,**kwargs):
                   ichunk,firstevt,filentot,chunkfile))
               nevtsexp += min(maxevts,filentot-firstevt) if filentot>-1 else maxevts
             else:
-              nevtsexp += filenevts.get(chunkfile,-1)
+              nevtsexp += filenevts.get(chunkfile,0)
           if checkexpevts and nevtsexp>0 and nevents!=nevtsexp:
             LOG.warning("checkchunks: Found %s processed events, but expected %s for %s..."%(nevents,nevtsexp,fname))
         if verbosity>=2:
-          if nevtsexp>-1:
+          if nevtsexp>0:
             frac = "%.1f%%"%(100.0*nevents/nevtsexp) if nevtsexp!=0 else ""
-            print ">>>   => Good, nevents=%s/%s %s"%(nevents,nevtsexp,frac)
+            print ">>>   => Good, nevents=%d/%d %s"%(nevents,nevtsexp,frac)
           else:
             print ">>>   => Good, nevents=%s"%(nevents)
         nprocevents += nevents

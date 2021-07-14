@@ -297,6 +297,7 @@ class Sample(object):
     bar       = None
     if nevents<=0 or refresh:
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
+        LOG.verb("_getnevents: Get events per file (storage=%r, das=%r)..."%(storage,das),verb,2)
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         if verb<=0 and len(files)>=5:
           bar = LoadingBar(len(files),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
@@ -310,10 +311,15 @@ class Sample(object):
              else:
                bar.count("files, %d events"%(nevents))
       else: # get total number of events from DAS
+        LOG.verb("_getnevents: Get total number of events per path (storage=%r, das=%r)..."%(self.storage,das),verb,2)
         for daspath in self.paths:
-          nevents += getdasnevents(daspath,instance=self.instance,verb=verb-1)
+          nevts = getdasnevents(daspath,instance=self.instance,verb=verb-1)
+          LOG.verb("_getnevents: %10d events for %s..."%(nevts,daspath),verb,2)
+          nevents += nevts
       if limit<=0:
         self.nevents = nevents
+    else:
+      LOG.verb("_getnevents: Reusing old number of events (nevents=%r, refresh=%r)..."%(nevents,refresh),verb,2)
     return nevents, filenevts
   
   def getfilenevts(self,*args,**kwargs):
@@ -420,6 +426,8 @@ class Sample(object):
                 nevents += nevts
               filelist.append(infile)
               self.pathfiles[path].append(infile)
+              if self.verbosity>=3:
+                print ">>> %7d events for %s"%(nevts,infile)
         if not filelist:
           LOG.warning("loadfiles: Did not find any files in %s!"%(listname_))
           self.refreshable = True
