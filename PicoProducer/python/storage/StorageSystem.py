@@ -12,9 +12,10 @@ import getpass, platform
 class StorageSystem(object):
   
   def __init__(self,path,verb=0,ensure=False):
-    self.path    = path
+    self.path    = path.rstrip('/')
     self.lscmd   = 'ls'
     self.lsurl   = ''
+    self.lscol   = None # column of contents
     self.cdcmd   = 'cd'
     self.cdurl   = ''
     self.cpcmd   = 'cp'
@@ -35,6 +36,18 @@ class StorageSystem(object):
     else:
       self.parent = '/'+'/'.join(path.split('/')[:3])
     self.mounted  = os.path.exists(self.parent)
+    if verb>=3:
+      print ">>> EOS.__init__:"
+      print ">>> %-10s = %r"%('path',self.path)
+      print ">>> %-10s = %r"%('parent',self.parent)
+      print ">>> %-10s = %r"%('tmpdir',self.tmpdir)
+      print ">>> %-10s = %r"%('mounted',self.mounted)
+      print ">>> %-10s = %r"%('lscmd',self.lscmd)
+      print ">>> %-10s = %r"%('lsurl',self.lsurl)
+      print ">>> %-10s = %r"%('rmcmd',self.rmcmd)
+      print ">>> %-10s = %r"%('rmurl',self.rmurl)
+      print ">>> %-10s = %r"%('mkdrcmd',self.mkdrcmd)
+      print ">>> %-10s = %r"%('mkdrurl',self.mkdrurl)
   
   def __str__(self):
     return self.path
@@ -101,11 +114,17 @@ class StorageSystem(object):
   
   def ls(self,*paths,**kwargs):
     """List contents of given directory."""
-    verb    = kwargs.get('verb',self.verbosity)
-    dryrun  = kwargs.get('dry', False)
+    verb    = kwargs.get('verb',  self.verbosity)
+    dryrun  = kwargs.get('dry',   False)
+    here    = kwargs.get('here',  False)
+    lscol   = kwargs.get('lscol', self.lscol)
     filters = ensurelist(kwargs.get('filter',[ ]))  # inclusive filters with glob pattern, like '*' or '[0-9]' wildcards
-    path    = self.expandpath(*paths)
-    retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),fatal=False,dry=dryrun,verb=verb).split('\n')
+    path    = self.expandpath(*paths,here=here)
+    retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),fatal=False,dry=dryrun,verb=verb)
+    delim   = '\r\n' if '\r\n' in retlist else '\n'
+    retlist = retlist.split(delim)
+    if isinstance(lscol,int):
+      retlist = [l.split(' ')[lscol] for l in retlist]
     if retlist and 'No such file or directory' in retlist[0]:
       LOG.warning(retlist[0])
       retlist = [ ]
