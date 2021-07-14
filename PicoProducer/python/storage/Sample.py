@@ -14,7 +14,8 @@ from fnmatch import fnmatch
 from TauFW.common.tools.utils import repkey, ensurelist, isglob
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureTFile
 from TauFW.common.tools.LoadingBar import LoadingBar
-from TauFW.PicoProducer.tools.config import _user
+import TauFW.PicoProducer.tools.config as GLOB
+#from TauFW.PicoProducer.tools.config import user
 from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents
 from TauFW.PicoProducer.storage.das import dasgoclient, getdasnevents, getdasfiles
 dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
@@ -98,7 +99,7 @@ class Sample(object):
     
     # STORAGE & URL DEFAULTS
     if self.storepath:
-      self.storepath = repkey(self.storepath,USER=_user,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+      self.storepath = repkey(self.storepath,USER=GLOB.user,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
       self.storage = getstorage(repkey(self.storepath,PATH=self.paths[0],DAS=self.paths[0]),ensure=False)
     if not self.dasurl:
       self.dasurl = self.url if (self.url in dasurls) else dasurls[0]
