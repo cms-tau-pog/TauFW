@@ -14,9 +14,10 @@ from TauFW.PicoProducer.storage.utils import getsedir, gettmpdirs
 # DEFAULTS
 LOG            = Logger('GLOB')
 CONFIG         = None
-_user          = getpass.getuser()
-_host          = platform.node()
+user           = getpass.getuser()
+host           = platform.node()
 #basedir       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+dtypes         = ['mc','data','embed']
 _eras          = OrderedDict([
   ('2016','samples_2016.py'),
   ('2017','samples_2017.py'),
@@ -27,7 +28,6 @@ _channels      = OrderedDict([
   ('test','test.py'),
   ('mutau','ModuleMuTauSimple')
 ])
-_dtypes        = ['mc','data','embed']
 _sedir         = getsedir()                       # guess storage element on current host
 _tmpskimdir, _tmphadddir = gettmpdirs()           # _tmphadddir: temporary dir for creating intermediate hadd files
                                                   # _tmpskimdir: temporary dir for creating skimmed file before copying to outdir

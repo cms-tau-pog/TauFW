@@ -790,7 +790,7 @@ def main_submit(args):
       continue
     if batch.system=='HTCondor':
       # use specific settings for KIT condor
-      if 'etp' in GLOB._host:
+      if 'etp' in GLOB.host:
         script = "python/batch/submit_HTCondor_KIT.sub"
       else:
         script = "python/batch/submit_HTCondor.sub"
