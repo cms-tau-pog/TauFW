@@ -297,7 +297,7 @@ class Sample(object):
     bar       = None
     if nevents<=0 or refresh:
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
-        LOG.verb("_getnevents: Get events per file (storage=%r, das=%r)..."%(storage,das),verb,2)
+        LOG.verb("_getnevents: Get events per file (storage=%r, das=%r)..."%(self.storage,das),verb,2)
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         if verb<=0 and len(files)>=5:
           bar = LoadingBar(len(files),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
