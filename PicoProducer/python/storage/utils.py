@@ -176,6 +176,47 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
       yield nevts, fname
   
 
+def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
+  """Help function for Sample._getnevents to iterate over file names and get number of events processed."""
+  if ncores>=2 and len(fnames)>5: # run events check in parallel
+    from TauFW.Plotter.plot.MultiThread import MultiProcessor
+    from TauFW.common.tools.math import partition
+    def loopevts(fnames_):
+      """Help function for parallel running on subsets."""
+      return [(getnevents(f,tree),f) for f in fnames_]
+    processor = MultiProcessor(max=ncores)
+    if not nchunks:
+      nchunks = 10 if len(fnames)<100 else 20 if len(fnames)<500 else 50 if len(fnames)<1000 else 100
+      nchunks = max(nchunks,2*ncores)
+    if nchunks>=len(fnames):
+      nchunks = len(fnames)-1
+    if verb>=2:
+      print ">>> iterevts: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
+    for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
+      for fname in subset[:]: # check cache
+        if not refresh and fname in filenevts:
+          nevts = filenevts[fname]
+          subset.remove(fname) # don't run again
+          yield nevts, fname
+      if not subset:
+        break
+      name = "iterevts_%d"%(i)
+      processor.start(loopevts,subset,name=name)
+    for process in processor: # collect output from parallel processes
+      if verb>=2:
+        print ">>> iterevts: joining process %r..."%(process.name)
+      nevtfiles = process.join()
+      for nevts, fname in nevtfiles:
+        yield nevts, fname
+  else: # run events check in series
+    for fname in fnames:
+      if refresh or fname not in filenevts:
+        nevts = getnevents(fname,tree)
+      else: # get from cache or efficiency
+        nevts = filenevts[fname]
+      yield nevts, fname
+  
+
 def print_no_samples(dtype=[],filter=[],veto=[],jobdir="",jobcfgs=""):
   """Help function to print that no samples were found."""
   if jobdir and not glob.glob(jobdir): #os.path.exists(jobdir):

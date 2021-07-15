@@ -148,7 +148,7 @@ def main_get(args):
             print ">>> %s"%(bold(path))
           if getnevts or checkdas or checklocal:
             das     = checkdas and not checklocal # checklocal overrides checkdas
-            refresh = das # not sample.storage
+            refresh = das # (not sample.storage and all('/store' in f for f in sample.files)
             nevents = sample.getnevents(das=das,refresh=refresh,verb=verbosity+1)
             storage = "(%s)"%sample.storage.__class__.__name__ if checklocal else "(DAS)" if checkdas else ""
             print ">>>   %-7s = %s %s"%('nevents',nevents,storage)
@@ -239,7 +239,7 @@ def main_write(args):
             print ">>> Trying again %d/%d samples...\n>>>"%(len(samples),len(samples0))
         for sample in samples:
           print ">>> %s"%(bold(sample.name))
-          sample.filelist = None # do not load from existing text file
+          sample.filelist = None # do not load from existing text file; overwrite existing ones
           for path in sample.paths:
             print ">>> %s"%(bold(path))
           #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)

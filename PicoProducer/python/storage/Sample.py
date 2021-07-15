@@ -16,51 +16,10 @@ from TauFW.common.tools.file import ensuredir, ensurefile, ensureTFile
 from TauFW.common.tools.LoadingBar import LoadingBar
 import TauFW.PicoProducer.tools.config as GLOB
 #from TauFW.PicoProducer.tools.config import user
-from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents
+from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents, iterevts
 from TauFW.PicoProducer.storage.das import dasgoclient, getdasnevents, getdasfiles
 dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
 fevtsexp = re.compile(r"(.+\.root)(?::(\d+))?$") # input file stored in lis in text file
-
-
-def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
-  """Help function to iterate over file names and get number of events processed."""
-  if ncores>=2 and len(fnames)>5: # run events check in parallel
-    from TauFW.Plotter.plot.MultiThread import MultiProcessor
-    from TauFW.common.tools.math import partition
-    def loopevts(fnames_):
-      """Help function for parallel running on subsets."""
-      return [(getnevents(f,tree),f) for f in fnames_]
-    processor = MultiProcessor(max=ncores)
-    if not nchunks:
-      nchunks = 10 if len(fnames)<100 else 20 if len(fnames)<500 else 50 if len(fnames)<1000 else 100
-      nchunks = max(nchunks,2*ncores)
-    if nchunks>=len(fnames):
-      nchunks = len(fnames)-1
-    if verb>=2:
-      print ">>> iterevts: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
-    for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
-      for fname in subset[:]: # check cache
-        if not refresh and fname in filenevts:
-          nevts = filenevts[fname]
-          subset.remove(fname) # don't run again
-          yield nevts, fname
-      if not subset:
-        break
-      name = "iterevts_%d"%(i)
-      processor.start(loopevts,subset,name=name)
-    for process in processor: # collect output from parallel processes
-      if verb>=2:
-        print ">>> iterevts: joining process %r..."%(process.name)
-      nevtfiles = process.join()
-      for nevts, fname in nevtfiles:
-        yield nevts, fname
-  else: # run events check in series
-    for fname in fnames:
-      if refresh or fname not in filenevts:
-        nevts = getnevents(fname,tree)
-      else: # get from cache or efficiency
-        nevts = filenevts[fname]
-      yield nevts, fname
 
 
 
@@ -153,6 +112,17 @@ class Sample(object):
           self.url = self.storage.fileurl
       else:
         self.url = self.dasurl
+    
+    # VERBOSITY
+    if self.verbosity>=3:
+      print ">>> Sample.__init__: %r from group %r and type %r"%(self.name,self.group,self.dtype)
+      print ">>>   %-11s = %s"%('paths',self.paths)
+      print ">>>   %-11s = %r"%('storage',self.storage)
+      print ">>>   %-11s = %r, %r"%('url, dasurl',self.url,self.dasurl)
+      print ">>>   %-11s = %r"%('filelist',self.filelist)
+      print ">>>   %-11s = %s"%('filenevts',self.filenevts)
+      print ">>>   %-11s = %s"%('nevents',self.nevents)
+      print ">>>   %-11s = %r"%('extraopts',self.extraopts)
   
   def __str__(self):
     return self.name
@@ -247,7 +217,8 @@ class Sample(object):
   
   def getfiles(self,das=False,refresh=False,url=True,limit=-1,verb=0):
     """Get list of files from storage system (default), or DAS (if no storage system of das=True)."""
-    LOG.verb("getfiles: das=%r, refresh=%r, url=%r, limit=%r"%(das,refresh,url,limit),verb,1)
+    LOG.verb("getfiles: das=%r, refresh=%r, url=%r, limit=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
+      das,refresh,url,limit,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist)
     files = self.files # cache for efficiency
@@ -290,6 +261,8 @@ class Sample(object):
   
   def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,ncores=0,verb=0):
     """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
+    LOG.verb("_getnevents: das=%r, refresh=%r, tree=%r, limit=%r, checkfiles=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
+      das,refresh,tree,limit,checkfiles,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist)
     nevents   = self.nevents
@@ -382,9 +355,12 @@ class Sample(object):
             if i+1<len(self.paths): # add extra white line between blocks
               lfile.write("\n")
   
-  def loadfiles(self,listname,**kwargs):
+  def loadfiles(self,listname_,**kwargs):
+    verbosity = LOG.getverbosity(self,kwargs)
     """Load filenames from text file for fast look up in future."""
-    listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    listname  = repkey(listname_,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    LOG.verb("loadfiles: listname=%r -> %r, len(files)=%d, len(filenevts)=%d"%(
+      listname_,listname,len(self.files),len(self.filenevts)),verbosity,1)
     filenevts = self.filenevts
     nevents   = 0
     #listname = ensurefile(listname,fatal=False)
