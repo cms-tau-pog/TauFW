@@ -528,6 +528,12 @@ def getxsec_nlo(*searchterms,**kwargs):
   return xsec_nlo
   
 
+def loadmacro(macro,verb=0):
+  line = ".L %s+O"%(macro)
+  LOG.verb("loadmacro: Loading macro %r..."%(macro),level=1)
+  gROOT.ProcessLine(line)
+  
+
 from TauFW.Plotter.sample.Sample import *
 from TauFW.Plotter.sample.MergedSample import MergedSample
 from TauFW.Plotter.sample.SampleSet import SampleSet

@@ -1,7 +1,7 @@
 # Description: Common configuration file for creating pico sample set plotting scripts
 import re
 from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, ensurelist,\
-                                       setera, getyear, Sel, Var
+                                       setera, getyear, loadmacro, Sel, Var
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):
@@ -19,7 +19,7 @@ def getsampleset(channel,era,**kwargs):
   if 'UL' in era: # UltraLegacy
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      #( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0  ),
+      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0  ),
       ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': 'zptweight'} ), # apply k-factor in stitching
       ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': 'zptweight'} ),
       ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': 'zptweight'} ),

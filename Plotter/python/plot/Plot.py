@@ -448,7 +448,7 @@ class Plot(object):
     ymax          = kwargs.get('ymax',         None             )
     ratiorange    = kwargs.get('rrange',       None             )
     binlabels     = kwargs.get('binlabels',    None             ) # alphanumerical bin labels
-    intbins       = kwargs.get('intbins',      True             ) # allow integer binning
+    intbins       = kwargs.get('intbins',      not binlabels    ) # allow integer binning
     labeloption   = kwargs.get('labeloption',  None             ) # 'h'=horizontal, 'v'=vertical
     logx          = kwargs.get('logx',         False            )
     logy          = kwargs.get('logy',         False            )
@@ -495,6 +495,9 @@ class Plot(object):
       LOG.verb("Plot.setaxes: Setting integer binning for (%r,%s,%d,%d)!"%(xtitle,nbins,xmin,xmax),verbosity,1)
       binlabels   = [str(i) for i in range(int(xmin),int(xmax)+1)]
       xlabelsize   *= 1.6
+      xlabeloffset *= 0.88*scale
+    elif binlabels:
+      xlabelsize   *= 1.6 if nbins<=5 else 1.1
       xlabeloffset *= 0.88*scale
     if logy:
       ylabelsize   *= 1.08

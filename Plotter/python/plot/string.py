@@ -256,7 +256,7 @@ def estimatelen(*strings):
 def match(terms, labels, **kwargs):
   """Match given search terms (strings) to some given list of labels."""
   verbosity = LOG.getverbosity(kwargs)
-  terms     = ensurelist(terms, nonzero=True) # search terms
+  terms     = ensurelist(terms, nonzero=True) # search terms / filters
   labels    = ensurelist(labels,nonzero=True) # labels to match to
   found     = True
   regex     = kwargs.get('regex', False ) # use regexpr patterns (instead of glob)
@@ -580,5 +580,19 @@ def getselstr(string,**kwargs):
     return string.selection
   return string
   
+
+def filtervars(vars,filters,**kwargs):
+  """Filter list of variables. Allow glob patterns."""
+  verbosity = LOG.getverbosity(kwargs)
+  newvars   = [ ]
+  if not filters:
+    return vars[:]
+  for var in vars:
+    if any(match(f,[var.name,var.filename]) for f in filters):
+      newvars.append(var)
+      LOG.verb("filtervars: Matched %r, including..."%(var),verbosity,2)
+    else:
+      LOG.verb("filtervars: No match to %r, ignoring..."%(var),verbosity,2)
+  return newvars
 
 #from TauFW.Plotter.plot.Selection import Selection
