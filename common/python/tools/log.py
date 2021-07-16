@@ -106,6 +106,7 @@ class Logger(object):
     return False
   
   def verb(self,*args,**kwargs):
+    """Alias for Logger.verbose."""
     return self.verbose(*args,**kwargs)
   
   def getcolor(self,*args,**kwargs):
@@ -130,6 +131,10 @@ class Logger(object):
       exclam  = color(kwargs.get('exclam',"Warning! "),'yellow',b=True,pre=self.pre+kwargs.get('pre',""))
       message = color(string,'yellow',pre="")
       print exclam+message
+  
+  def warn(self,*args,**kwargs):
+    """Alias for Logger.warn."""
+    return self.warning(*args,**kwargs)
   
   def title(self,*args,**kwargs):
     print header(*args,**kwargs)

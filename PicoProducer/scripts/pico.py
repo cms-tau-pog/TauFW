@@ -4,7 +4,7 @@ import os, sys, glob, json
 #import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.common.tools.file import ensurefile, ensureinit
-from TauFW.common.tools.utils import repkey, rreplace
+from TauFW.common.tools.string import repkey, rreplace
 from TauFW.common.tools.log import Logger, color, bold
 from TauFW.PicoProducer.analysis.utils import ensuremodule
 from TauFW.PicoProducer.storage.utils import getsamples

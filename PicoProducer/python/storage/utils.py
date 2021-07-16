@@ -85,7 +85,7 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],das
   LOG.verb("getsamples: sampfile=%r"%(sampfile),verb,1)
   LOG.verb("getsamples: samppath=%r"%(samppath),verb,3)
   if samppath not in moddict:
-    moddict[samppath] = importlib.import_module(samppath) # save time by loading once
+    moddict[samppath] = importlib.import_module(samppath) # cache; save time by loading once
   if not hasattr(moddict[samppath],'samples'):
     LOG.throw(IOError,"Module '%s' must have a list of Sample objects called 'samples'!"%(samppath))
   samplelist = moddict[samppath].samples
