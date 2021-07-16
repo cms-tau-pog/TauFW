@@ -156,10 +156,12 @@ def getsampleset(channel,era,**kwargs):
   datasample = ('Data',dataset) # GROUP, NAME
   
   # SAMPLE SET
-  if 'mutau' in channel:
+  if channel in ['mutau','etau']:
     weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
-  else:
+  elif channel in ['tautau','ditau']:
     weight = "genweight*trigweight*puweight*idweight_1*idweight_2*ltfweight_1*ltfweight_2"
+  else: # mumu, emu, ...
+    weight = "genweight*trigweight*puweight*idisoweight_1*idisoweight_2"
   for sf in rmsfs: # remove (old) SFs, e.g. for SF measurement
     weight = weight.replace(sf,"").replace("**","*").strip('*')
   kwargs.setdefault('weight',weight) # common weight for MC

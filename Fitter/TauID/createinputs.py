@@ -40,7 +40,10 @@ def main(args):
       if channel=='mumu':
         
         # RENAME (HTT convention)
-        sampleset.rename('DY_M50','ZLL')
+        if sampleset.has('DY_M50',verb=10):
+          sampleset.rename('DY_M50','ZLL')
+        else:
+          sampleset.rename('DY','ZLL')
         sampleset.rename('WJ','W')
         sampleset.datasample.name = 'data_obs'
         

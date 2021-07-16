@@ -121,7 +121,7 @@ def setera(era_,lumi_=None,**kwargs):
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   if not lumi or lumi<0:
-    LOG.warning("setera: Could not set luminosity for era %r... Returning %s"%(era,lumi))
+    LOG.warn("setera: Could not set luminosity for era %r... Returning %s"%(era,lumi))
   return lumi
   
 
@@ -252,12 +252,12 @@ def unwrap_gethist2D_args(*args,**kwargs):
 
 def getsample(samples,*searchterms,**kwargs):
   """Help function to get all samples corresponding to some name and optional label."""
-  verbosity   = LOG.getverbosity(kwargs)
-  filename    = kwargs.get('fname',    ""    )
-  unique      = kwargs.get('unique',   False )
-  warning     = kwargs.get('warn',     True  )
-  split       = kwargs.get('split',    False )
-  matches     = [ ]
+  verbosity = LOG.getverbosity(kwargs)
+  filename  = kwargs.get('fname',    ""    )
+  unique    = kwargs.get('unique',   False )
+  warn      = kwargs.get('warn',     True  )
+  split     = kwargs.get('split',    False )
+  matches   = [ ]
   if split:
     newsamples = [ ]
     for sample in samples:
@@ -270,11 +270,12 @@ def getsample(samples,*searchterms,**kwargs):
   for sample in samples:
     if sample.match(*searchterms,**kwargs) and filename in sample.filename:
       matches.append(sample)
-  if not matches and warning:
-    LOG.warning("getsample: Could not find a sample with search terms %s..."%(quotestrs(searchterms+(filename,))))
+  if not matches:
+    if warn:
+      LOG.warn("getsample: Could not find a sample with search terms %s..."%(quotestrs(searchterms+(filename,))))
   elif unique:
     if len(matches)>1:
-      LOG.warning("getsample: Found more than one match to %s. Using first match only: %s"%(
+      LOG.warn("getsample: Found more than one match to %s. Using first match only: %s"%(
                   quotestrs(searchterms),quotestrs(matches)))
     return matches[0]
   return matches
@@ -289,10 +290,10 @@ def getsample_with_flag(samples,flag,*searchterms,**kwargs):
        (not searchterms or sample.match(*searchterms,**kwargs)):
       matches.append(sample)
   if not matches:
-    LOG.warning("Could not find a sample with %r=True..."%flag)
+    LOG.warn("Could not find a sample with %r=True..."%flag)
   elif unique:
     if len(matches)>1:
-      LOG.warning("Found more than one signal sample. Using first match only: %s"%(quotestrs(s.name for s in matches)))
+      LOG.warn("Found more than one signal sample. Using first match only: %s"%(quotestrs(s.name for s in matches)))
     return matches[0]
   return matches
   
@@ -304,12 +305,12 @@ def join(samplelist,*searchterms,**kwargs):
   name      = kwargs.get('name',  searchterms[0] ) # name of new merged sample
   title     = kwargs.get('title', None           ) # title of new merged sample
   color     = kwargs.get('color', None           ) # color of new merged sample
-  LOG.verbose("join: merging '%s' into %r"%("', '".join(searchterms),name),verbosity,level=1)
+  LOG.verb("join: merging '%s' into %r"%("', '".join(searchterms),name),verbosity,level=1)
   
   # GET samples containing names and searchterm
   mergelist = [s for s in samplelist if s.match(*searchterms,incl=True)]
   if len(mergelist)<=1:
-    LOG.warning("Could not merge %r: fewer than two %r samples (%d)"%(name,name,len(mergelist)))
+    LOG.warn("Could not merge %r: fewer than two %r samples (%d)"%(name,name,len(mergelist)))
     return samplelist
   padding = max([len(s.name) for s in mergelist])+2 # number of spaces
   
@@ -317,7 +318,7 @@ def join(samplelist,*searchterms,**kwargs):
   mergedsample = MergedSample(name,title,color=color)
   for sample in mergelist:
     samplestr = repr(sample.name).ljust(padding)
-    LOG.verbose("  adding %s to %r (%s)"%(samplestr,name,sample.fnameshort),verbosity,level=2)
+    LOG.verb("  adding %s to %r (%s)"%(samplestr,name,sample.fnameshort),verbosity,level=2)
     mergedsample.add(sample)
   
   # REPLACE matched samples with merged sample in samplelist, preserving the order
@@ -346,13 +347,13 @@ def stitch(samplelist,*searchterms,**kwargs):
   eff_mutau = kwargs.get('eff_mutau', 0.008009       ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToLL_M-50
   eff_mutau_excl = kwargs.get('eff_mutau', 0.701     ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToTauTauToMuTauh_M-50
   npartvar  = kwargs.get('npart',     'NUP'          ) # variable name of number of partons in tree; 'NUP', 'LHE_Njets', ...
-  LOG.verbose("stitch: rescale, reweight and merge %r samples"%(name),verbosity,level=1)
+  LOG.verb("stitch: rescale, reweight and merge %r samples"%(name),verbosity,level=1)
   
   # GET list samples to-be-stitched
   stitchlist = samplelist.samples if isinstance(samplelist,SampleSet) else samplelist
   stitchlist = [s for s in stitchlist if s.match(*searchterms,incl=True)]
   if len(stitchlist)<2:
-    LOG.warning("stitch: Could not stitch %r: fewer than two %s samples (%d) match '%s'"%(
+    LOG.warn("stitch: Could not stitch %r: fewer than two %s samples (%d) match '%s'"%(
                  name,name,len(stitchlist),"', '".join(searchterms)))
     for s in stitchlist:
       print ">>>   %s"%s.name
@@ -373,10 +374,10 @@ def stitch(samplelist,*searchterms,**kwargs):
         stitchlist.remove(sample) # stitch in parallel
         sample_incls.remove(sample)
   if len(sample_incls)==0:
-    LOG.warning('stitch: Could not find inclusive sample "%s"! Just joining...'%(name))
+    LOG.warn('stitch: Could not find inclusive sample "%s"! Just joining...'%(name))
     return join(samplelist,*searchterms,**kwargs)
   elif len(sample_incls)>1:
-    LOG.warning("stitch: Found more than one inclusive sample %r with '%s' searchterms: %s"%(
+    LOG.warn("stitch: Found more than one inclusive sample %r with '%s' searchterms: %s"%(
                 name,"', '".join(searchterms),sample_incls))
   
   # (N)NLO/LO k-factor
@@ -388,7 +389,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   else:
     xsec_incl_NLO = xsec_incl or getxsec_nlo(name,*searchterms) or xsec_incl_LO
     kfactor       = xsec_incl_NLO / xsec_incl_LO
-  LOG.verbose("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
+  LOG.verb("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
   
   # GET effective number of events per jet bin
   neffs = [ ]
@@ -434,7 +435,7 @@ def stitch(samplelist,*searchterms,**kwargs):
       if len(matches)==0:
         LOG.throw(IOError,'stitch: Could not stitch %r: no "\\d+Jets" pattern found in %r!'%(name,sample.name))
       elif len(matches)>1:
-        LOG.warning('stitch: More than one "\\d+Jets" match found in %r! matches = %s'%(sample.name,matches))
+        LOG.warn('stitch: More than one "\\d+Jets" match found in %r! matches = %s'%(sample.name,matches))
       npart = int(matches[0])
     xsec = sample.xsec # LO inclusive or jet-binned xsec
     norm = sample.lumi * kfactor * xsec * 1000 / neff # normalization for NUP==npart component in jet-incl. sample
@@ -483,7 +484,7 @@ def stitch(samplelist,*searchterms,**kwargs):
         if "==0" in weight:
           weights_mutau.append(weight.replace("==0",">%d"%(npart_max))); break
     else:
-      LOG.warning("   found no maximum %s (%d)..."%(npartvar,npartvar,npart_max))
+      LOG.warn("   found no maximum %s (%d)..."%(npartvar,npartvar,npart_max))
     
     # SET stich weight of inclusive sample
     if sample_mutau:
@@ -491,10 +492,10 @@ def stitch(samplelist,*searchterms,**kwargs):
       weight_mutau = "(mutaufilter?(%s):0)"%('*'.join(weights_mutau))
       sample_mutau.norm = 1.0
       sample_mutau.addweight(weight_mutau)
-      LOG.verbose("  Mutau stitch weight:\n>>>     %r"%(weight_mutau),verbosity,2)
+      LOG.verb("  Mutau stitch weight:\n>>>     %r"%(weight_mutau),verbosity,2)
     else:
       stitchweights = '*'.join(weights_incl)
-    LOG.verbose("  Inclusive stitch weight:\n>>>     %r"%(stitchweights),verbosity,2)
+    LOG.verb("  Inclusive stitch weight:\n>>>     %r"%(stitchweights),verbosity,2)
     sample_incl.addweight(stitchweights)
   
   # JOIN
@@ -524,7 +525,7 @@ def getxsec_nlo(*searchterms,**kwargs):
       xsec_nlo = xsecs_nlo[key]
       break
   else:
-    LOG.warning("getxsec_nlo: Did not find a DY or WJ match in '%s'!"%("', '".join(searchterms)))
+    LOG.warn("getxsec_nlo: Did not find a DY or WJ match in '%s'!"%("', '".join(searchterms)))
   return xsec_nlo
   
 
