@@ -71,6 +71,7 @@ class TreeProducer(object):
     """Write and close files after the job ends."""
     if self.display:
       self.cutflow.display()
+      print ">>> Write %s..."%(self.outfile.GetName())
     self.outfile.Write()
     self.outfile.Close()
   
