@@ -33,8 +33,9 @@ def main(args):
       # GET SAMPLESET
       join      = ['VV','TT','ST']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+      rmsf      = [ ] if channel=='mumu' else ['idweight_2','ltfweight_2']
       sampleset = getsampleset(channel,era,fname=sname,join=join,split=None,table=False,
-                               rmsf=['idweight_2','ltfweight_2'])
+                               rmsf=rmsf)
       
       if channel=='mumu':
         
@@ -44,12 +45,12 @@ def main(args):
         sampleset.datasample.name = 'data_obs'
         
         # SYSTEMATIC VARIATIONS
-        varprocs = { # processes to be varied
-          'Nom': ['ZLL','W','VV','ST','TT','QCD','data_obs'],
-        }
         samplesets = { # sets of samples per variation
           'Nom': sampleset, # nominal
         }
+        systs = preparesysts( # prepare systematic variations: syskey, systag, procs
+          ('Nom',"",  ['ZLL','W','VV','ST','TT','QCD','data_obs']),
+        )
         samplesets['Nom'].printtable(merged=True,split=True)
         if verbosity>=2:
           samplesets['Nom'].printobjs(file=True)
@@ -119,10 +120,10 @@ def main(args):
       
       else:
         
-        mvis = Var('m_vis', 30, 50, 200, fname='mvis')
+        mvis = Var('m_vis', 30, 50, 200, fname='mvis', cbins={'pt_2>70':(15, 50, 200)})
         observables = [
           #Var('dm_2==0 ? 0.13957 : m_2', "m_tau", 18, 0, 1.8, fname='mtau'),
-          Var('m_vis', 30, 50, 200, fname='mvis', cbins={'pt_2>70':(15, 50, 200)}),
+          Var('m_vis', 30, 50, 200, fname='mvis'),
           #Var('m_vis', 38, 10, 200, fname='mvis'), # broad range
           #Var('m_vis', 15, 50, 200, tag="_10"), # coarser binning
         ]
@@ -163,16 +164,16 @@ def main(args):
       
       if channel=='mumu':
         
-        baseline  = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter"
+        baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter && m_ll>50"
         bins = [
-          Sel('ZMM', baseline),
+          Sel('ZMM', "Z -> mumu", baseline),
         ]
       
       else:
         
         tauwps    = ['VVVLoose','VVLoose','VLoose','Loose','Medium','Tight','VTight','VVTight']
-        tauwpbits = { wp: 2**i for i, wp in enumerate(tauwps)}
-        tauwps    = ['Tight'] # only do Tight
+        tauwpbits = { wp: 2**i for i, wp in enumerate(tauwps)} # WP bits, starting from VVVLoose (bit=2^0=1)
+        #tauwps    = ['Tight'] # only do Tight
         iso_1     = "iso_1<0.15"
         iso_2     = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=$WP && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8"
         baseline  = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(iso_1,iso_2)
