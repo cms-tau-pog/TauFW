@@ -7,7 +7,7 @@ from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
 
 
-def plot(sampleset,channel,parallel=True,tag="",outdir="plots",era="",varfilter=None,pdf=False):
+def plot(sampleset,channel,parallel=True,tag="",outdir="plots",era="",varfilter=None,selfilter=None,pdf=False):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plot")
   
@@ -16,9 +16,10 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",era="",varfilter=
   zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline)
   selections = [
     #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16","")),
-    Sel('baseline',baseline),
-    #Sel('zttregion',repkey(zttregion,WP=16)),
+    Sel("baseline",baseline),
+    Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"), #repkey(zttregion,WP=16)
   ]
+  selections = filtervars(selections,selfilter) # filter variable list with -V flag
   
   # VARIABLES
   loadmacro("python/macros/mapDecayModes.C") # for mapRecoDM
@@ -40,7 +41,7 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",era="",varfilter=
     Var('met',    50,  0, 150),
     Var('pt_ll',   "p_{T}(mutau_h)", 25, 0, 200, ctitle={'etau':"p_{T}(etau_h)",'tautau':"p_{T}(tau_htau_h)",'emu':"p_{T}(emu)"}),
     Var('dR_ll',   "DR(mutau_h)",    30, 0, 6.0, ctitle={'etau':"DR(etau_h)",'tautau':"DR(tau_htau_h)",'emu':"DR(emu)"}),
-    Var('deta_ll', "deta(mutau_h)",  20, 0, 6.0, ctitle={'etau':"deta(etau_h)",'tautau':"deta(tautau)",'emu':"deta(emu)"},logy=True,pos='TRR'), #, ymargin=8, logyrange=2.6
+    Var('deta_ll', "deta(mutau_h)",  20, 0, 6.0, ctitle={'etau':"deta(etau_h)",'tautau':"deta(tautau)",'emu':"deta(emu)"},logy=True,pos='TRR',cbins={"abs(deta_ll)<":(10,0,3)}), #, ymargin=8, logyrange=2.6
     Var('dzeta',  56, -180, 100, pos='L;y=0.88',units='GeV'),
     #Var("pzetavis", 50,    0, 200 ),
     Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5,cbins={"VSjet_2>":(60,0.4,1)}),
@@ -72,6 +73,7 @@ def main(args):
   eras      = args.eras
   parallel  = args.parallel
   varfilter = args.varfilter
+  selfilter = args.selfilter
   tag       = args.tag
   pdf       = args.pdf
   outdir    = "plots/$ERA"
@@ -80,7 +82,8 @@ def main(args):
     for channel in channels:
       setera(era) # set era for plot style and lumi-xsec normalization
       sampleset = getsampleset(channel,era,fname=fname)
-      plot(sampleset,channel,parallel=parallel,tag=tag,outdir=outdir,era=era,varfilter=varfilter,pdf=pdf)
+      plot(sampleset,channel,parallel=parallel,tag=tag,outdir=outdir,era=era,
+           varfilter=varfilter,selfilter=selfilter,pdf=pdf)
       sampleset.close()
   
 
@@ -96,7 +99,9 @@ if __name__ == "__main__":
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau'], default=['mutau'],
                                          help="set channel" )
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
-                                         help="filter variables: only plot these variables (glob patterns allowed)" )
+                                         help="only plot the variables passing this filter (glob patterns allowed)" )
+  parser.add_argument('-S', '--sel',     dest='selfilter', nargs='+',
+                                         help="only plot the selection passing this filter (glob patterns allowed)" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',
