@@ -161,7 +161,7 @@ def getsampleset(channel,era,**kwargs):
   else:
     weight = "genweight*trigweight*puweight*idweight_1*idweight_2*ltfweight_1*ltfweight_2"
   for sf in rmsfs: # remove (old) SFs, e.g. for SF measurement
-    weight = weight.replace(sf,"").replace("**","").strip('*')
+    weight = weight.replace(sf,"").replace("**","*").strip('*')
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)
