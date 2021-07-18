@@ -35,12 +35,12 @@ def main(args):
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
       rmsf      = [ ] if channel=='mumu' else ['idweight_2','ltfweight_2']
       sampleset = getsampleset(channel,era,fname=sname,join=join,split=None,table=False,
-                               rmsf=rmsf)
+                               rmsf=rmsf,dyweight='zptweight')
       
       if channel=='mumu':
         
         # RENAME (HTT convention)
-        if sampleset.has('DY_M50',verb=10):
+        if sampleset.has('DY_M50'):
           sampleset.rename('DY_M50','ZLL')
         else:
           sampleset.rename('DY','ZLL')
@@ -118,12 +118,13 @@ def main(args):
       if channel=='mumu':
       
         observables = [
-          Var('m_vis', 1, 60, 120, fname='mvis', ymargin=1.6, rrange=0.08),
+          Var('m_vis', "m_mumu", 1, 60, 120, fname='mvis', ymargin=1.6, rrange=0.16),
         ]
       
       else:
         
         mvis = Var('m_vis', 30, 50, 200, fname='mvis', cbins={'pt_2>70':(15, 50, 200)})
+        #bins = range(50,120,5)+[120,140,160,200]
         observables = [
           #Var('dm_2==0 ? 0.13957 : m_2', "m_tau", 18, 0, 1.8, fname='mtau'),
           Var('m_vis', 30, 50, 200, fname='mvis'),

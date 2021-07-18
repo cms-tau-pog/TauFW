@@ -73,8 +73,8 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
     #Var('dzeta',  56, -180, 100, pos='L;y=0.88',units='GeV'),
     #Var("pzetavis", 50,    0, 200 ),
     #Var('npv',    40,    0,  80 ),
-    Var('Unroll::GetBin(pt_ll,m_ll,0,1)',"Reconstructed ptmumu bin",*urbins0,fname="pt_mumu_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels1), # unroll bin number
-    Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed m_mumu bin",*urbins0,fname="m_mumu_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels2), # unroll bin number, transposed
+    Var('Unroll::GetBin(pt_ll,m_ll,0,1)',"Reconstructed ptmumu bin",*urbins0,fname="pt_ll_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels1), # unroll bin number
+    Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed m_mumu bin",*urbins0,fname="m_ll_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels2), # unroll bin number, transposed
   ]
   
   # UNROLL

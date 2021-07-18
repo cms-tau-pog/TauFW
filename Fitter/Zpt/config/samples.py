@@ -30,12 +30,13 @@ def getsampleset(channel,era,**kwargs):
   xsec_dy_lo   = 4963.0    # MadGraph (LO)
   xsec_dy_nlo  = 6529.0    # aMC@NLO
   xsec_dy_nnlo = 3*2025.74 # FEWZ (NNLO)
+  #xsec_dy_nnlo_10to50 = (18610.0/15890.0) # NLO/LO for DYJetsToLL_M-10to50
   k_lo         = xsec_dy_nnlo/xsec_dy_lo
   k_nlo        = 1. #xsec_dy_nnlo/xsec_dy_nlo
   if 'UL' in era:
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      #( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0  ),
+      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0 ),
       ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ),
       ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight} ),
       ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight} ),

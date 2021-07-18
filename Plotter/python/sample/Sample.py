@@ -293,10 +293,10 @@ class Sample(object):
         self.setnevents(self.binnevts,self.binsumw,cutflow=self.cutflow)
         #self.normalize(lumi=self.lumi) # can affect scale computed by stitching
       if reldiff(sumw_old,self.sumweights)>0.02 or reldiff(sumw_old,self.sumweights)>0.02:
-        LOG.warning('Sample.appendfilename: file %s has a different number of events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
+        LOG.warn('Sample.appendfilename: file %s has a different number of events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
           (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,sumw_old,nevts_old,norm_old))
     elif ':' not in self.filename and not os.path.isfile(self.filename):
-      LOG.warning('Sample.appendfilename: file %s does not exist!'%(self.filename))
+      LOG.warn('Sample.appendfilename: file %s does not exist!'%(self.filename))
     if isinstance(self,MergedSample):
       for sample in self.samples:
         sample.appendfilename(filetag,nametag,titletag,**kwargs)
@@ -371,7 +371,7 @@ class Sample(object):
     if hist:
       hist.SetDirectory(0)
     else:
-      LOG.warning("Sample.getcutflow: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
+      LOG.warn("Sample.getcutflow: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     file.Close()
     return hist
   
@@ -387,20 +387,20 @@ class Sample(object):
       if self.nevents>0:
         if self.sumweights<=0:
           self.sumweights = self.nevents
-        LOG.warning("Sample.setnevents: Could not find cutflow histogram %r in %s! nevents=%.1f, sumweights=%.1f"%(cutflow,self.filename,self.nevents,self.sumweights))
+        LOG.warn("Sample.setnevents: Could not find cutflow histogram %r in %s! nevents=%.1f, sumweights=%.1f"%(cutflow,self.filename,self.nevents,self.sumweights))
       else:
         LOG.throw(IOError,"Sample.setnevents: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     self.nevents    = cfhist.GetBinContent(binnevts)
     self.sumweights = cfhist.GetBinContent(binsumw)
     if self.nevents<=0:
-      LOG.warning("Sample.setnevents: Bin %d of %r to retrieve nevents is %s<=0!"
+      LOG.warn("Sample.setnevents: Bin %d of %r to retrieve nevents is %s<=0!"
                   "In initialization, please specify the keyword 'binnevts' to select the right bin, or directly set the number of events with 'nevts'."%(binnevts,self.nevents,cutflow))
     if self.sumweights<=0:
-      LOG.warning("Sample.setnevents: Bin %d of %r to retrieve sumweights is %s<=0!"
+      LOG.warn("Sample.setnevents: Bin %d of %r to retrieve sumweights is %s<=0!"
                   "In initialization, please specify the keyword 'binsumw' to select the right bin, or directly set the number of events with 'sumw'."%(binsumw,self.sumweights,cutflow))
       self.sumweights = self.nevents
     if 0<self.nevents<self.nexpevts*0.97: # check for missing events
-      LOG.warning('Sample.setnevents: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
+      LOG.warn('Sample.setnevents: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
     return self.nevents
   
   def normalize(self,lumi=None,xsec=None,sumw=None,**kwargs):
@@ -411,14 +411,14 @@ class Sample(object):
     if xsec==None: xsec = self.xsec
     if sumw==None: sumw = self.sumweights or self.nevents
     if self.isdata:
-      LOG.warning('Sample.normalize: Ignoring data sample %r'%(self.name))
+      LOG.warn('Sample.normalize: Ignoring data sample %r'%(self.name))
     elif lumi<=0 or xsec<=0 or sumw<=0:
-      LOG.warning('Sample.normalize: Cannot normalize %r: lumi=%s, xsec=%s, sumw=%s'%(self.name,lumi,xsec,sumw))
+      LOG.warn('Sample.normalize: Cannot normalize %r: lumi=%s, xsec=%s, sumw=%s'%(self.name,lumi,xsec,sumw))
     else:
       norm = lumi*xsec*1000/sumw # 1000 to convert pb -> fb
       LOG.verb('Sample.normalize: Normalize %r sample to lumi*xsec*1000/sumw = %.5g*%.5g*1000/%.5g = %.5g!'%(self.name,lumi,xsec,sumw,norm),level=2)
     if norm<=0:
-      LOG.warning('Sample.normalize: Calculated normalization for %r sample is %.5g <= 0 (lumi=%.5g,xsec=%.5g,nevts=%.5g)!'%(self.name,norm,lumi,xsec,N_events))
+      LOG.warn('Sample.normalize: Calculated normalization for %r sample is %.5g <= 0 (lumi=%.5g,xsec=%.5g,nevts=%.5g)!'%(self.name,norm,lumi,xsec,N_events))
     self.norm = norm
     return norm
   
@@ -674,7 +674,7 @@ class Sample(object):
     integral = 0
     for variable, hist in zip(variables,hists):
       if scale!=1.0:   hist.Scale(scale)
-      if scale==0.0:   LOG.warning("Scale of %s is 0!"%self.name)
+      if scale==0.0:   LOG.warn("Scale of %s is 0!"%self.name)
       hist.SetLineColor(lcolor)
       hist.SetFillColor(kWhite if self.isdata or self.issignal else fcolor)
       hist.SetMarkerColor(lcolor)
@@ -758,7 +758,7 @@ class Sample(object):
     integral = 0
     for variable, hist in zip(variables,hists):
       if scale!=1.0:   hist.Scale(scale)
-      if scale==0.0:   LOG.warning("Scale of %s is 0!"%self.name)
+      if scale==0.0:   LOG.warn("Scale of %s is 0!"%self.name)
       if hist.GetEntries()>nentries:
         nentries = hist.GetEntries()
         integral = hist.Integral()
