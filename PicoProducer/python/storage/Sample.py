@@ -77,7 +77,7 @@ class Sample(object):
     self.nevents      = kwargs.get('nevts',         0      ) # number of nanoAOD events that can be processed
     self.nevents      = kwargs.get('nevents', self.nevents ) # cache of number of events
     self.filelist     = None # text file
-    self.files        = kwargs.get('files',         [ ]    ) # list of ROOT files, OR text file with list of files
+    self.files        = kwargs.get('files',         [ ]    ) or [ ] # list of ROOT files, OR text file with list of files
     if isinstance(self.files,str):
       self.filelist = self.files.replace("$SAMPLE",name) # text file
       self.files    = [ ] # list of ROOT files
