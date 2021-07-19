@@ -590,6 +590,7 @@ class Sample(object):
     norm       = self.norm if norm else 1
     scale      = kwargs.get('scale',    1.0            ) * self.scale * norm
     name       = kwargs.get('name',     self.name      ) # hist name
+    dots       = kwargs.get('dots',     False          ) # allow dots in histogram name
     name      += kwargs.get('tag',      ""             ) # tag for hist name
     title      = kwargs.get('title',    self.title     ) # hist title
     blind      = kwargs.get('blind',    self.isdata    ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
@@ -633,7 +634,7 @@ class Sample(object):
     for variable in variables:
       
       # VAREXP
-      hname  = makehistname(variable,name) # $VAR_$NAME
+      hname  = makehistname(variable,name,dots=dots) # $VAR_$NAME
       varcut = ""
       if self.isdata and (blind or variable.blindcuts or variable.cut or variable.dataweight):
         blindcuts = ""

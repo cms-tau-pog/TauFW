@@ -176,11 +176,12 @@ class MergedSample(Sample):
   def gethist(self, *args, **kwargs):
     """Create and fill histgram for multiple samples. Overrides Sample.gethist."""
     variables, selection, issingle = unwrap_gethist_args(*args)
-    verbosity        = LOG.getverbosity(kwargs)
-    name             = kwargs.get('name',           self.name            )
-    name            += kwargs.get('tag',            ""                   )
-    title            = kwargs.get('title',          self.title           )
-    parallel         = kwargs.get('parallel',       False                )
+    verbosity  = LOG.getverbosity(kwargs)
+    name       = kwargs.get('name',     self.name  )
+    name      += kwargs.get('tag',      ""         )
+    title      = kwargs.get('title',    self.title )
+    dots       = kwargs.get('dots',     False      ) # allow dots in histogram name
+    parallel   = kwargs.get('parallel', False      )
     kwargs['cuts']   = joincuts(kwargs.get('cuts'), self.cuts            )
     kwargs['weight'] = joinweights(kwargs.get('weight', ""), self.weight ) # pass weight down
     kwargs['scale']  = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
@@ -199,7 +200,7 @@ class MergedSample(Sample):
     else:
       for sample in self.samples:
         if 'name' in kwargs: # prevent memory leaks
-          hkwargs['name']  = makehistname(kwargs.get('name',""),sample.name)
+          hkwargs['name']  = makehistname(kwargs.get('name',""),sample.name,dots=dots)
         allhists.append(sample.gethist(*hargs,**hkwargs))
     
     # SUM

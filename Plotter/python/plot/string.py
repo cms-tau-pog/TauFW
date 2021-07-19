@@ -202,11 +202,10 @@ def maketitle(title,**kwargs):
 
 
 def makehistname(*strings,**kwargs):
-  """Use label and var to make an unique and valid histogram name."""
-  hname = '_'.join(getfilename(s).strip('_') for s in strings)
-  hname = hname.replace('+','-').replace(' - ','-').replace('.','p').replace(',','-').replace(' ','_').replace(
-                        '(','-').replace(')','').replace('[','-').replace(']','-').replace('||','OR').replace('&&','AND').replace(
-                        '/','_').replace('<','lt').replace('>','gt').replace('=','e').replace('*','x')
+  """Use given strings to make an unique and valid histogram name that is filename safe."""
+  kwargs.setdefault('dots',False)
+  hname = getfilename(*strings,**kwargs)
+  hname = hname.replace('[','').replace(']','').replace('*','x')
   return hname
   
 
@@ -219,13 +218,15 @@ def makefilename(*strings,**kwargs):
     fname = re.sub(r"abs\(([^\)]*)\)",r"\1",fname).replace('eta_2','eta')
   if 'm_t' in fname:
     fname = re.sub(r"(?<!zoo)m_t(?!au)",r"mt",fname)
-  fname = fname.replace(" and ",'-').replace(',','-').replace(',','-').replace('+','-').replace('::','-').replace(':','-').replace(
+  fname = fname.replace(" and ",'-').replace(',','-').replace('+','-').replace('::','-').replace(':','-').replace(
                         '(','-').replace(')','').replace('{','').replace('}','').replace(
                         '\n','-').replace('\\','').replace('/','-').replace(
-                        '|','').replace('&','').replace('#','').replace('!','not').replace(
+                        '||','OR').replace('&&','AND').replace('|','').replace('&','').replace('#','').replace('!','not').replace(
                         'pt_mu','pt').replace('m_T','mt').replace(
-                        '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace("=","eq").replace(
+                        '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace('==','eq').replace("=","eq").replace(
                         ' ','').replace('GeV','').replace('anti-iso',"antiIso")
+  if not kwargs.get('dots',True): # replace periods
+    hname = hname.replace('.','p')
   #if 'm_t' in string.lower:
   #  string = re.sub(r"(?<!u)(m)_([^{}\(\)<>=\ ]+)",r"\1_{\2}",string,re.IGNORECASE).replace('{t}','{T}')
   #if "m_" in string.lower():
