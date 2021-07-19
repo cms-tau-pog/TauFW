@@ -621,7 +621,7 @@ def checkchunks(sample,**kwargs):
       match = chunkexp.search(fname)
       if match:
         ichunk = int(match.group(1))
-        LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for file %s! "%(ichunk,fname)+
+        LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for file %s! Chunkdict has %s"%(ichunk,fname,sorted(chunkdict.keys()))+
                                        "Possible overcounting or conflicting job output file format!")
         if ichunk in pendchunks:
           continue
@@ -644,7 +644,7 @@ def checkchunks(sample,**kwargs):
               maxevts   = int(inmatch.group(3))
               filentot  = filenevts.get(inmatch.group(1),-1)
               if firstevt>=filentot: # sanity check
-                LOG.warning("checkchunks: chunk %d has firstevt=%s>=%s=filentot, which indicates a bug or changed input file %s."%(
+                LOG.warning("checkchunks: Chunk %d has firstevt=%s>=%s=filentot, which indicates a bug or changed input file %s."%(
                   ichunk,firstevt,filentot,chunkfile))
               nevtsexp += min(maxevts,filentot-firstevt) if filentot>-1 else maxevts
             else:
