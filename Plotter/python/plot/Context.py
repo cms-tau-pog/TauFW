@@ -32,7 +32,7 @@ class Context(object):
   
   def getcontext(self,*args,**kwargs):
     """Get the contextual object for a set of ordered arguments. If it is not available, return Default."""
-    
+    verbosity = LOG.getverbosity(self,kwargs)
     regex = kwargs.get('regex', self.regex)
     
     # CHECK
@@ -50,12 +50,13 @@ class Context(object):
     result = None
     if regex:
       for key in sorted(self.context,key=lambda x: len(x) if isinstance(x,str) else 1,reverse=True):
-        #LOG.verbose('Context.getcontext: Matching "%s" to "%s"'%(key,ckey),True)
         if key==ckey or (isinstance(key,str) and isinstance(ckey,str) and re.search(key,ckey)):
-          #LOG.verbose('Context.getcontext: Regex match of key "%s" to "%s"'%(key,ckey),True)
+          LOG.verbose('Context.getcontext: Regex matched of key "%s" to "%s"'%(key,ckey),verbosity,4)
           ckey = key
           result = self.context[ckey]
           break
+        else:
+          LOG.verbose('Context.getcontext: No match of key "%s" to "%s"'%(key,ckey),verbosity,4)
       else:
         result = self.default # TODO: check for multiple args !
     elif ckey not in self.context:

@@ -213,15 +213,26 @@ class Variable(object):
   
   def changecontext(self,*args,**kwargs):
     """Change the contextual title, binning or position for a set of arguments, if it is available"""
+    verbosity = LOG.getverbosity(self,kwargs)
     if self.ctxtitle:
       title = self.ctxtitle.getcontext(*args)
       if title!=None:
+        if verbosity>=3:
+          print ">>> Variable.changecontext: ctxtitle=%s, args=%r"%(self.ctxtitle.context,args)
+          print ">>> Variable.changecontext: title=%r -> %r"%(self.title,title)
         self.title = title
+      elif verbosity>=3:
+        print ">>> Variable.changecontext: ctxtitle=%s, args=%r, title=%r (no change)"%(self.ctxtitle.context,args,self.title)
     if self.ctxbins:
       bins = self.ctxbins.getcontext(*args)
       if isinstance(bins,list):
         bins = (bins,)
       if bins!=None:
+        if verbosity>=3:
+          print ">>> Variable.changecontext: ctxbins=%s, args=%r"%(self.ctxbins.context,args)
+          print ">>> Variable.changecontext: bins=%r -> %r"%(self.bins,bins)
+        elif verbosity>=3:
+          print ">>> Variable.changecontext: ctxbins=%s, args=%r, bins=%r (no change)"%(self.ctxbins.context,args,self.bins)
         self.setbins(*bins)
       if self._addoverflow:
         self.addoverflow() # in case the last bin changed
@@ -237,7 +248,12 @@ class Variable(object):
     if self.ctxcut:
       cut = self.ctxcut.getcontext(*args)
       if cut!=None:
+        if verbosity>=3:
+          print ">>> Variable.changecontext: ctxcut=%s, args=%r"%(self.ctxcut.context,args)
+          print ">>> Variable.changecontext: cut=%r -> %r"%(self.cut,cut)
         self.cut = cut
+      elif verbosity>=3:
+        print ">>> Variable.changecontext: ctxcut=%s, args=%r, cut=%r (no change)"%(self.ctxcut.context,args,self.cut)
     if self.ctxweight:
       weight = self.ctxweight.getcontext(*args)
       if weight!=None:

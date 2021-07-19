@@ -274,7 +274,7 @@ def match(terms, labels, **kwargs):
       #fnmatch.translate( '*.foo' )
       #searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm)   # replace + with \+
       #searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
-      searchterm = re.escape(searchterm).replace(r'\?','.').replace(r'\*','.*?').replace(r'\^','^')
+      searchterm = re.escape(searchterm).replace(r'\?','.').replace(r'\*','.*?').replace(r'\^','^') #.replace(r'\_','_')
     if start and not searchterm.startswith('^'):
       searchterm = '^'+searchterm
     terms[i] = searchterm
@@ -591,11 +591,12 @@ def filtervars(vars,filters,**kwargs):
   if not filters:
     return vars[:]
   for var in vars:
-    if any(match(f,[var.name,var.filename]) for f in filters):
+    strs = [var] if isinstance(var,str) else [var.name,var.filename]
+    if any(match(f,strs) for f in filters):
       newvars.append(var)
-      LOG.verb("filtervars: Matched %r, including..."%(var),verbosity,2)
+      LOG.verb("filtervars: Matched %r to %r, including..."%(var,filters),verbosity,2)
     else:
-      LOG.verb("filtervars: No match to %r, ignoring..."%(var),verbosity,2)
+      LOG.verb("filtervars: %r NOT matched to %r, ignoring..."%(var,filters),verbosity,2)
   return newvars
 
 #from TauFW.Plotter.plot.Selection import Selection
