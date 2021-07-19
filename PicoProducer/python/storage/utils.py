@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.log import Logger
 from TauFW.common.tools.file import ensurefile, ensureTFile
-from TauFW.common.tools.utils import repkey, isglob
+from TauFW.common.tools.string import repkey, isglob, quotestrs
 from ROOT import TFile
 LOG  = Logger('Storage')
 host = platform.node()
@@ -217,7 +217,7 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
       yield nevts, fname
   
 
-def print_no_samples(dtype=[],filter=[],veto=[],jobdir="",jobcfgs=""):
+def print_no_samples(dtype=[],filter=[],veto=[],channel=[],jobdir="",jobcfgs=""):
   """Help function to print that no samples were found."""
   if jobdir and not glob.glob(jobdir): #os.path.exists(jobdir):
     print ">>> Job output directory %s does not exist!"%(jobdir)
@@ -228,11 +228,13 @@ def print_no_samples(dtype=[],filter=[],veto=[],jobdir="",jobcfgs=""):
     if filter or veto or (dtype and len(dtype)<3):
       strings = [ ]
       if filter:
-        strings.append("filters '%s'"%("', '".join(filter)))
+        strings.append("filter%s %s"%('s' if len(filter)>1 else "",quotestrs(filter)))
       if veto:
-        strings.append("vetoes '%s'"%("', '".join(veto)))
+        strings.append("veto%s %s"%('es' if len(veto)>1 else "",quotestrs(veto)))
       if dtype and len(dtype)<3:
-        strings.append("data types '%s'"%("', '".join(dtype)))
+        strings.append("data type%s %s"%('s' if len(dtype)>1 else "",quotestrs(dtype)))
+      if channel:
+        strings.append("channel%s %s"%('s' if len(channel)>1 else "",quotestrs(channel)))
       string += " with "+', '.join(strings)
     print string
   print

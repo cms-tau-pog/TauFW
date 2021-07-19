@@ -335,7 +335,7 @@ def preparejobs(args):
         print
       
       if not found:
-        print_no_samples(dtypes,filters,vetoes,jobdir_,jobcfgs)
+        print_no_samples(dtypes,filters,vetoes,[channel],jobdir_,jobcfgs)
       elif failed and len(failed)!=len(samples):
         print ">>> %d/%d samples failed: %s\n"%(len(failed),len(samples),', '.join(s.name for s in failed))
     
@@ -1012,6 +1012,6 @@ def main_status(args):
         print
       
       if not found:
-        print_no_samples(dtypes,filters,vetoes,jobdir_,jobcfgs)
+        print_no_samples(dtypes,filters,vetoes,[channel],jobdir_,jobcfgs)
   
 

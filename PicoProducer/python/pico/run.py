@@ -93,10 +93,10 @@ def main_run(args):
           if nsamples>0: # limit number of samples to maximum nsamples
             samples_ = samples_[:nsamples]
           samples.extend(samples_)
-      if not sample:
+      if not samples:
         samples = [None]
         if not userfiles and (filters_ or vetoes or dtypes):
-          print_no_samples(dtypes,filters_,vetoes)
+          print_no_samples(dtypes,filters_,vetoes,[channel])
       if verbosity>=1:
         print ">>> %-12s = %r"%('samples',samples)
         print '-'*80
