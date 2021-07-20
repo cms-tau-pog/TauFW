@@ -76,6 +76,7 @@ class TreeProducer(object):
       return self.tree.Fill()
   
   def addHist(self,name,*args):
+    """Add a histogram."""
     if len(args)==1 and isinstance(args[0],list): # list of binedges
       bins = np.array(args[0],'f')
       hist = TH1D(name,name,len(bins)-1,bins)
