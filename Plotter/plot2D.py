@@ -33,7 +33,7 @@ def plot2D(samples,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   pt_2 = Var('pt_2', "tau_h pt", 40, 0, 120, ctitle={'tautau':"Subleading tau_h pt",'mumu':"Subleading muon pt",'emu':"Muon pt"})
   vars2D = [
    (pt_1,pt_2),
-   (Var('met',"PF MET",50,0,200,opts={'prof':True}),Var('met-genmet',"PF MET - gen. MET",50,-50,150)),
+   (Var('met',"PF MET",50,0,200,opts={'prof':True}),Var('met-genmet',"PF MET - gen. MET",55,-60,160)),
   ]
   #vars2D = filtervars(variables,varfilter) # filter variable list with -V flag
   
@@ -50,14 +50,17 @@ def plot2D(samples,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       fname = "%s/plot2D_$VAR_%s_%s-%s%s$TAG"%(outdir,sname,chshort,selection.filename,tag)
       hists = sample.gethist2D(vars2D,selection,parallel=parallel)
       for (xvar, yvar), hist in zip(vars2D,hists):
+        text_ = text
         rho = hist.GetCorrelationFactor()
-        text_ = "%s\n#rho = %.2f"%(text,rho)
         print ">>> rho = %.2f for %s vs. %s"%(rho,yvar.name,xvar.name,)
+        if xvar.opts.get('rho',True) and yvar.opts.get('rho',True):
+          text_ += "\n#rho = %.2f"%(rho)
         plot = Plot2D(xvar,yvar,hist)
         plot.draw(ztitle=ztitle,logz=True,verb=verb) #zmin=1e-2,zmax=4e1
         plot.drawtext(text_,size=0.052)
         if xvar.opts.get('prof',False) or yvar.opts.get('prof',False):
-          plot.drawprofile('x')
+          opt = xvar.opts.get('profopt',"")+yvar.opts.get('profopt',"")
+          plot.drawprofile('x',opt=opt)
         plot.saveas(fname,ext=['png'],tag=tag) #,'pdf'
         plot.close()
   

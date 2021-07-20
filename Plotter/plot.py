@@ -42,7 +42,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     Var('npv',    40,  0,  80 ),
     Var('njets',   8,  0,   8),
     Var('met',    50,  0, 150),
-    Var('genmet', 50,  0, 150, data=False),
+    Var('genmet', 50,  0, 150, fname="$VAR_log", logyrange=5, data=False, logy=True),
     Var('pt_ll',   "p_{T}(mutau_h)", 25, 0, 200, ctitle={'etau':"p_{T}(etau_h)",'tautau':"p_{T}(tau_htau_h)",'emu':"p_{T}(emu)"}),
     Var('dR_ll',   "DR(mutau_h)",    30, 0, 6.0, ctitle={'etau':"DR(etau_h)",'tautau':"DR(tau_htau_h)",'emu':"DR(emu)"}),
     Var('deta_ll', "deta(mutau_h)",  20, 0, 6.0, ctitle={'etau':"deta(etau_h)",'tautau':"deta(tautau)",'emu':"deta(emu)"},logy=True,pos='TRR',cbins={"abs(deta_ll)<":(10,0,3)}), #, ymargin=8, logyrange=2.6

@@ -237,15 +237,15 @@ class Plot2D(Plot):
     if CMSStyle.lumiText:
       CMSStyle.setCMSLumiStyle(gPad,0)
   
-  def drawprofile(self,axes='x',entries=[ ],**kwargs):
+  def drawprofile(self,axes='x',opt="",entries=[ ],**kwargs):
     """Draw profile on canvas."""
     self.profiles = [ ]
     # MAKE PROFILE
     for i, axis in enumerate(axes):
-      profile = self.hist.ProfileX() if "x"==axis.lower() else self.hist.ProfileY()
+      profile = self.hist.ProfileX(opt) if "x"==axis.lower() else self.hist.ProfileY(opt)
       color   = kRed
       if i<len(entries):
-        profile.SetTitle(entries[i])
+        profile.SetTitle(entries[i]) # for legend
       profile.SetLineColor(color)
       profile.SetMarkerColor(color)
       profile.SetLineWidth(3)
