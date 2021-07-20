@@ -252,12 +252,13 @@ def unwrap_gethist2D_args(*args,**kwargs):
 
 def getsample(samples,*searchterms,**kwargs):
   """Help function to get all samples corresponding to some name and optional label."""
-  verbosity = LOG.getverbosity(kwargs)
-  filename  = kwargs.get('fname',    ""    )
-  unique    = kwargs.get('unique',   False )
-  warn      = kwargs.get('warn',     True  )
-  split     = kwargs.get('split',    False )
-  matches   = [ ]
+  verbosity   = LOG.getverbosity(kwargs)
+  filename    = kwargs.get('fname',    ""    )
+  unique      = kwargs.get('unique',   False )
+  warn        = kwargs.get('warn',     True  )
+  split       = kwargs.get('split',    False )
+  searchterms = unwraplistargs(searchterms)
+  matches     = [ ]
   if split:
     newsamples = [ ]
     for sample in samples:

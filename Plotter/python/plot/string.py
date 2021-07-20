@@ -216,7 +216,7 @@ def makefilename(*strings,**kwargs):
   fname = '_'.join(getfilename(s).strip('_') for s in strings)
   fname = re.sub(r"(\d+)\.(\d+)",r"\1p\2",fname)
   if 'abs(' in fname:
-    fname = re.sub(r"abs\(([^\)]*)\)",r"\1",fname).replace('eta_2','eta')
+    fname = re.sub(r"abs\(([^\)]*)\)",r"abs\1",fname).replace('eta_2','eta')
   if 'm_t' in fname.lower():
     fname = re.sub(r"(?<![a-zA-Z])m_[tT](?!au)",r"mt",fname)
   if 'GeV' in fname:
@@ -291,7 +291,9 @@ def match(terms, labels, **kwargs):
       #fnmatch.translate( '*.foo' )
       #searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm)   # replace + with \+
       #searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
-      searchterm = re.escape(searchterm).replace(r'\?','.').replace(r'\*','.*?').replace(r'\^','^') #.replace(r'\_','_')
+      searchterm = re.escape(searchterm)
+      searchterm = searchterm.replace(r'\?','.').replace(r'\*','.*?').replace(r'\^','^'
+                            ).replace(r'\[','[').replace(r'\]',']') #.replace(r'\_','_')
     if start and not searchterm.startswith('^'):
       searchterm = '^'+searchterm
     terms[i] = searchterm
@@ -595,7 +597,7 @@ def filtervars(vars,filters,**kwargs):
   if not filters:
     return vars[:]
   for var in vars:
-    strs = [var] if isinstance(var,str) else [var.name,var.filename]
+    strs = [var] if isinstance(var,str) else set([var.name,var.filename])
     if any(match(f,strs) for f in filters):
       newvars.append(var)
       LOG.verb("filtervars: Matched %r to %r, including..."%(var,filters),verbosity,2)

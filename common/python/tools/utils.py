@@ -43,16 +43,18 @@ def execute(command,dry=False,fatal=True,verb=0):
 
 def isnumber(obj):
   """Check if object is float or int."""
-  return isinstance(obj,float) or isinstance(obj,int)
+  return isinstance(obj,(float,int))
   
 
 def islist(arg):
   """Check if argument is a list or tuple."""
-  return isinstance(arg,list) or isinstance(arg,tuple)
+  return isinstance(arg,(list,tuple))
   
 
 def ensurelist(arg,nonzero=False):
   """Ensure argument is a list, if it is not already a tuple or list."""
+  if isinstance(arg,set):
+    arg = list(arg)
   if not islist(arg):
     arg = [ ] if (nonzero and not arg) else [arg]
   elif nonzero:

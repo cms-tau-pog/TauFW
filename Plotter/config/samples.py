@@ -6,13 +6,14 @@ from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
-  year  = getyear(era) # get integer year
-  fname = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
-  split = kwargs.get('split',  ['DY']       ) # split samples (e.g. DY) into genmatch components
-  join  = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
-  rmsfs = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
-  tag   = kwargs.get('tag',    ""           )
-  table = kwargs.get('table',  True         ) # print sample set table
+  year   = getyear(era) # get integer year
+  fname  = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
+  split  = kwargs.get('split',  ['DY']       ) # split samples (e.g. DY) into genmatch components
+  join   = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
+  rmsfs  = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
+  weight = kwargs.get('weight', None         ) # weight for all MC samples
+  tag    = kwargs.get('tag',    ""           )
+  table  = kwargs.get('table',  True         ) # print sample set table
   setera(era) # set era for plot style and lumi-xsec normalization
   
   # SM BACKGROUND MC SAMPLES
@@ -156,7 +157,9 @@ def getsampleset(channel,era,**kwargs):
   datasample = ('Data',dataset) # GROUP, NAME
   
   # SAMPLE SET
-  if channel in ['mutau','etau']:
+  if weight=="":
+    weight = ""
+  elif channel in ['mutau','etau']:
     weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
   elif channel in ['tautau','ditau']:
     weight = "genweight*trigweight*puweight*idweight_1*idweight_2*ltfweight_1*ltfweight_2"

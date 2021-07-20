@@ -91,6 +91,7 @@ class Plot2D(Plot):
     xtitle       = kwargs.get('xtitle',       self.xtitle                 )
     ytitle       = kwargs.get('ytitle',       self.ytitle                 )
     ztitle       = kwargs.get('ztitle',       ""                          )
+    zcenter      = kwargs.get('zcenter',      "Events" not in ztitle      )
     xmin         = kwargs.get('xmin',         self.xmin                   )
     xmax         = kwargs.get('xmax',         self.xmax                   )
     ymin         = kwargs.get('ymin',         self.ymin                   )
@@ -194,7 +195,7 @@ class Plot2D(Plot):
     frame.GetXaxis().SetTitleOffset(xoffset)
     frame.GetYaxis().SetTitleOffset(yoffset)
     frame.GetZaxis().SetTitleOffset(zoffset)
-    frame.GetZaxis().CenterTitle(True)
+    frame.GetZaxis().CenterTitle(zcenter)
     frame.GetXaxis().SetTitle(makelatex(xtitle))
     frame.GetYaxis().SetTitle(makelatex(ytitle))
     frame.GetZaxis().SetTitle(makelatex(ztitle))
@@ -236,7 +237,7 @@ class Plot2D(Plot):
     if CMSStyle.lumiText:
       CMSStyle.setCMSLumiStyle(gPad,0)
   
-  def drawprofile(self,axes,entries=[ ],**kwargs):
+  def drawprofile(self,axes='x',entries=[ ],**kwargs):
     """Draw profile on canvas."""
     self.profiles = [ ]
     # MAKE PROFILE

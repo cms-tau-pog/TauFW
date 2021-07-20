@@ -59,6 +59,7 @@ class Variable(object):
     self.ncols        = kwargs.get('ncol',        None          ) # number of legend columns
     self.ncols        = kwargs.get('ncols',       self.ncols    ) # number of legend columns
     #self.plot         = kwargs.get('plots',       True          )
+    self.opts         = kwargs.get('opts',        { }           ) # general dictionary of extra user options
     self.only         = kwargs.get('only',        [ ]           ) # only plot for these patterns
     self.veto         = kwargs.get('veto',        [ ]           ) # do not plot for these patterns
     self.blindcuts    = kwargs.get('blind',       ""            ) # string for blind cuts to blind data

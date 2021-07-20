@@ -262,7 +262,7 @@ class MergedSample(Sample):
       hkwargs['parallel'] = False
       processor = MultiProcessor()
       for sample in self.samples:
-        processor.start(sample.gethist2D,hargs,hkwargs,name=sample.title)        
+        processor.start(sample.gethist2D,hargs,hkwargs,name=sample.title)
       for process in processor:
         allhists.append(process.join())
     else:

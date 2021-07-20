@@ -7,7 +7,8 @@ from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
 
 
-def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era="",varfilter=None,selfilter=None,pdf=False):
+def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era="",
+         varfilter=None,selfilter=None,pdf=False):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plot")
   
@@ -17,13 +18,13 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   elif 'etau' in channel:
     baseline  = "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
   else:
-    baseline  = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !extraelec_veto && !extramuon_veto && m_ll>20 && metfilter"
+    baseline  = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20 && metfilter"
   zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline)
   selections = [
     #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16","")),
     Sel("baseline",baseline),
     #Sel("baseline, pt > 29 GeV",baseline+" && pt_1>29 GeV && pt_1>20 GeV"),
-    #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"), #repkey(zttregion,WP=16)
+    #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
   ]
   selections = filtervars(selections,selfilter) # filter variable list with -V flag
   
@@ -59,11 +60,12 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  20, 0.80, 1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=5,pos='L;y=0.85'),
       Var('m_vis',  40,  0, 200, ctitle={'mumu':"m_mumu",'emu':"m_emu"}),
     ]
-  elif channel=='mumu':
+  elif 'mumu' in channel:
     variables += [
       Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
       Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
       Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
+      Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
     ]
   variables = filtervars(variables,varfilter) # filter variable list with -V flag
   
@@ -91,7 +93,6 @@ def main(args):
   parallel  = args.parallel
   varfilter = args.varfilter
   selfilter = args.selfilter
-  notauidsf = args.notauidsf
   tag       = args.tag
   extratext = args.text
   pdf       = args.pdf
@@ -100,10 +101,9 @@ def main(args):
   for era in eras:
     for channel in channels:
       setera(era) # set era for plot style and lumi-xsec normalization
-      rmsfs = [ ] if (channel=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
       sampleset = getsampleset(channel,era,fname=fname,rmsf=rmsfs)
       plot(sampleset,channel,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
-           varfilter=varfilter,selfilter=selfilter,pdf=pdf) #,dyweight="")
+           varfilter=varfilter,selfilter=selfilter,pdf=pdf)
       sampleset.close()
   
 
@@ -125,8 +125,6 @@ if __name__ == "__main__":
                                          help="only plot the selection passing this filter (glob patterns allowed)" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
-  parser.add_argument('-r', '--nosf',    dest='notauidsf', action='store_true',
-                                         help="remove DeepTau ID SF" )
   parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',
                                          help="create pdf version of each plot" )
   parser.add_argument('-t', '--tag',     default="", help="extra tag for output" )
