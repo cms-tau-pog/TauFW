@@ -204,7 +204,8 @@ def maketitle(title,**kwargs):
 def makehistname(*strings,**kwargs):
   """Use given strings to make an unique and valid histogram name that is filename safe."""
   kwargs.setdefault('dots',False)
-  hname = getfilename(*strings,**kwargs)
+  #hname = '_'.join(getfilename(s).strip('_') for s in strings) #.replace(' ','_')
+  hname = makefilename(*strings,**kwargs)
   hname = hname.replace('[','').replace(']','').replace('*','x')
   return hname
   
@@ -216,23 +217,38 @@ def makefilename(*strings,**kwargs):
   fname = re.sub(r"(\d+)\.(\d+)",r"\1p\2",fname)
   if 'abs(' in fname:
     fname = re.sub(r"abs\(([^\)]*)\)",r"\1",fname).replace('eta_2','eta')
-  if 'm_t' in fname:
-    fname = re.sub(r"(?<!zoo)m_t(?!au)",r"mt",fname)
+  if 'm_t' in fname.lower():
+    fname = re.sub(r"(?<![a-zA-Z])m_[tT](?!au)",r"mt",fname)
+  if 'GeV' in fname:
+    fname = re.sub(r"(?<![a-zA-Z])GeV","",fname)
   fname = fname.replace(" and ",'-').replace(',','-').replace('+','-').replace('::','-').replace(':','-').replace(
                         '(','-').replace(')','').replace('{','').replace('}','').replace(
-                        '\n','-').replace('\\','').replace('/','-').replace(
+                        '\n','-').replace('\\','').replace('/','-').replace(' ','').replace('__','_').replace('--','-').replace(
                         '||','OR').replace('&&','AND').replace('|','').replace('&','').replace('#','').replace('!','not').replace(
-                        'pt_mu','pt').replace('m_T','mt').replace(
-                        '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace('==','eq').replace("=","eq").replace(
-                        ' ','').replace('GeV','').replace('anti-iso',"antiIso")
+                        #'pt_mu','pt').replace('m_T','mt').replace('GeV','').replace('anti-iso',"antiIso").replace(
+                        '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace('==','eq').replace("=","eq")
   if not kwargs.get('dots',True): # replace periods
-    hname = hname.replace('.','p')
+    fname = fname.replace('.','p')
   #if 'm_t' in string.lower:
   #  string = re.sub(r"(?<!u)(m)_([^{}\(\)<>=\ ]+)",r"\1_{\2}",string,re.IGNORECASE).replace('{t}','{T}')
   #if "m_" in string.lower():
   #    string = re.sub(r"(?<!u)(m)_([^{}\(\)<>=\ ]+)",r"\1_{\2}",string,re.IGNORECASE).replace('{t}','{T}')
   #if not (".png" in name or ".pdf" in name or ".jpg" in name): name += kwargs.get('ext',".png")
   return fname
+
+  
+def getfilename(string,**kwargs):
+  """Make sure returned object is a string."""
+  if hasattr(string,"filename"):
+    return string.filename
+  return string
+  
+
+def getselstr(string,**kwargs):
+  """Make sure returned object is a string."""
+  if hasattr(string,"selection"): #isinstance(selection,Selection):
+    return string.selection
+  return string
   
 
 symregx = re.compile(r"#[a-zA-Z]+")
@@ -570,19 +586,6 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###  
 ###  #LOG.verbose('  %r\n>>>   -> %r\n>>>'%(cuts0,cuts),verbosity,level=2)
 ###  return cuts
-
-  
-def getfilename(string,**kwargs):
-  """Make sure returned object is a string."""
-  if hasattr(string,"filename"):
-    return string.filename
-  return string
-  
-def getselstr(string,**kwargs):
-  """Make sure returned object is a string."""
-  if hasattr(string,"selection"): #isinstance(selection,Selection):
-    return string.selection
-  return string
   
 
 def filtervars(vars,filters,**kwargs):
