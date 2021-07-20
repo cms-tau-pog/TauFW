@@ -3,7 +3,7 @@
 import re
 from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist, islist
 
-var_dict = {
+var_dict = { # predefined variable titles
     'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",          'njets50':  "Number of jets (pt>50 GeV)",
     'nfjets':    "Number of forward jets",  'nfjets20': "Number of forward jets (pt>20 GeV)",
     'ncjets':    "Number of central jets",  'ncjets20': "Number of central jets (pt>20 GeV)",
@@ -14,8 +14,8 @@ var_dict = {
     'beta_1':    "Leading b jet eta",       'beta_2':   "Subleading b jet eta",
     'jphi_1':    "Leading jet phi",         'bphi_1':   "Subleading jet phi",
     'jphi_2':    "Leading b jet phi",       'bphi_2':   "Subleading b jet phi",
-    'met':       "p_{T}^{miss}",
-    'metphi':    "MET phi",
+    'met':       "p_{T}^{miss}",            'genmet':   "Gen. p_{T}^{miss}",
+    'metphi':    "MET phi",                 'genmetphi':"Gen. MET phi",
     'pt_1':      "Lepton pt",               'pt_2':     "tau_h pt",
     'eta_1':     "Lepton eta",              'eta_2':    "tau_h eta",
     'mt_1':      "m_t(l,MET)",              'mt_2':     "m_t(tau,MET)",

@@ -29,11 +29,11 @@ def plot2D(samples,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   ]
   selections = filtervars(selections,selfilter) # filter variable list with -V flag
   
-  pt_1 = Var('pt_1',  "Muon pt",    40,  0, 120, ctitle={'etau':"Electron pt",'tautau':"Leading tau_h pt",'mumu':"Leading muon pt",'emu':"Electron pt"})
-  pt_2 = Var('pt_2',  "tau_h pt",   40,  0, 120, ctitle={'tautau':"Subleading tau_h pt",'mumu':"Subleading muon pt",'emu':"Muon pt"})
+  pt_1 = Var('pt_1', "Muon pt",  40, 0, 120, ctitle={'etau':"Electron pt",'tautau':"Leading tau_h pt",'mumu':"Leading muon pt",'emu':"Electron pt"})
+  pt_2 = Var('pt_2', "tau_h pt", 40, 0, 120, ctitle={'tautau':"Subleading tau_h pt",'mumu':"Subleading muon pt",'emu':"Muon pt"})
   vars2D = [
    (pt_1,pt_2),
-   (Var('met',"PF MET",50,0,200,opts={'prof':True}),Var('met-genmet',"PF MET - gen. MET",40,-30,90)),
+   (Var('met',"PF MET",50,0,200,opts={'prof':True}),Var('met-genmet',"PF MET - gen. MET",50,-50,150)),
   ]
   #vars2D = filtervars(variables,varfilter) # filter variable list with -V flag
   

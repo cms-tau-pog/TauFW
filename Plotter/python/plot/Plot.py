@@ -63,7 +63,7 @@ class Plot(object):
       hists    = ensurelist(args[1]) # list of histograms
     else:
       LOG.throw(IOError,"Plot: Wrong input %s"%(args,))
-    for hist in hists:
+    for i, hist in enumerate(hists):
       if not hist or not isinstance(hist,TH1):
         LOG.throw(IOError,"Plot: Did not recognize histogram in input: %s"%(args,))
     if kwargs.get('clone',False):
