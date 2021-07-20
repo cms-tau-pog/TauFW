@@ -137,9 +137,11 @@ class ModuleTauPair(Module):
       branches += [
         ('HLT_IsoMu22_eta2p1',   False ),
         ('HLT_IsoTkMu22_eta2p1', False ),
+        ('HLT_IsoMu24',          False ),
+        ('HLT_IsoTkMu24',        False ),
       ]
-    ensurebranches(inputTree,branches)
-    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug
+    ensurebranches(inputTree,branches) # make sure Event object has these branches
+    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
       redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
   
@@ -308,21 +310,30 @@ class ModuleTauPair(Module):
     #
     if self.dozpt:
       zboson = getzboson(event)
-      self.out.m_moth[0]           = zboson.M()
-      self.out.pt_moth[0]          = zboson.Pt()
-      self.out.zptweight[0]        = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
+      self.out.m_moth[0]     = zboson.M()
+      self.out.pt_moth[0]    = zboson.Pt()
+      self.out.zptweight[0]  = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
     
     elif self.dotoppt:
-      toppt1, toppt2               = gettoppt(event)
-      self.out.pt_moth[0]          = toppt1
-      self.out.ttptweight[0]       = getTopPtWeight(toppt1,toppt2)
+      toppt1, toppt2         = gettoppt(event)
+      self.out.pt_moth1[0]   = max(toppt1,toppt2)
+      self.out.pt_moth2[0]   = min(toppt1,toppt2)
+      self.out.ttptweight[0] = getTopPtWeight(toppt1,toppt2)
     
-    self.out.genweight[0]          = event.genWeight
-    self.out.puweight[0]           = self.puTool.getWeight(event.Pileup_nTrueInt)
-    self.out.btagweight[0]         = self.btagTool.getWeight(jets)
+    self.out.genweight[0]    = event.genWeight
+    self.out.puweight[0]     = self.puTool.getWeight(event.Pileup_nTrueInt)
+    self.out.btagweight[0]   = self.btagTool.getWeight(jets)
     #if not self.dotight:
-    #  self.out.btagweightUp[0]   = self.btagTool.getWeight(jets,unc='Up')
-    #  self.out.btagweightDown[0] = self.btagTool.getWeight(jets,unc='Down')
+    #  #self.out.pdfweight[0]        = event.LHEPdfWeight[...]
+    #  self.out.qweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, Qren=1.0, Qfact=1.0
+    #  self.out.qweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, Qren=0.5, Qfact=0.5 (rel.)
+    #  self.out.qweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, Qren=0.5, Qfact=1.0 (rel.)
+    #  self.out.qweight_1p0_0p5[0]  = event.LHEScaleWeight[3] # scale weight, Qren=1.0, Qfact=0.5 (rel.)
+    #  self.out.qweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, Qren=1.0, Qfact=2.0 (rel.)
+    #  self.out.qweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, Qren=2.0, Qfact=1.0 (rel.)
+    #  self.out.qweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, Qren=2.0, Qfact=2.0 (rel.)
+    #  self.out.btagweightUp[0]     = self.btagTool.getWeight(jets,unc='Up')
+    #  self.out.btagweightDown[0]   = self.btagTool.getWeight(jets,unc='Down')
     #if self.year in [2016,2017]:
     #  self.out.prefireweightDown[0], self.out.prefireweight[0], self.out.prefireweightUp[0] = self.prefireTool.getWeight(event)
     

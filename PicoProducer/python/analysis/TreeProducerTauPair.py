@@ -42,20 +42,28 @@ class TreeProducerTauPair(TreeProducer):
     
     if module.ismc:
       self.addBranch('weight',            'f', 1., title="weight combining others (to reduce selection string length)")
-      self.addBranch('genweight',         'f', 1.)
-      self.addBranch('trigweight',        'f', 1.)
+      self.addBranch('genweight',         'f', 1., title="generator weight")
+      self.addBranch('trigweight',        'f', 1., title="trigger SF")
       if not module.dotight:
+        ##self.addBranch('pdfweight',       'f', 1., title="PDF weight")
+        #self.addBranch('qweight',         'f', 1., title="scale weight (Qren=1.0, Qfact=1.0)")
+        #self.addBranch('qweight_0p5_0p5', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=0.5")
+        #self.addBranch('qweight_0p5_1p0', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=1.0")
+        #self.addBranch('qweight_1p0_0p5', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=0.5")
+        #self.addBranch('qweight_1p0_2p0', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=2.0")
+        #self.addBranch('qweight_2p0_1p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=1.0")
+        #self.addBranch('qweight_2p0_2p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=2.0")
         self.addBranch('trigweightUp',    'f', 1.)
         self.addBranch('trigweightDown',  'f', 1.)
       self.addBranch('puweight',          'f', 1., title="pileup up reweighting")
       self.addBranch('zptweight',         'f', 1., title="Z pT reweighting")
       self.addBranch('ttptweight',        'f', 1., title="top pT reweighting")
-      self.addBranch('btagweight',        'f', 1.)
+      self.addBranch('btagweight',        'f', 1., title="b tagging SF")
       self.addBranch('prefireweight',     'f', 1.)
       self.addBranch('prefireweightUp',   'f', 1.)
       self.addBranch('prefireweightDown', 'f', 1.)
     elif module.isembed:
-      self.addBranch('genweight',         'f', 1.)
+      self.addBranch('genweight',         'f', 1., title="generator weight")
       self.addBranch('trackweight',       'f', 1.)
     
     
@@ -68,6 +76,8 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('ncjets',              'i', title="number of central jets (|eta| < 2.4)")
     self.addBranch('nfjets',              'i', title="number of forward jets (2.4 < |eta| < 4.7)")
     self.addBranch('nbtag',               'i', title="number of b tagged jets (pT > 30 GeV, |eta| < 2.7)")
+    self.setAlias("njets30","njets")
+    self.setAlias("nbtag30","nbtag")
     
     self.addBranch('jpt_1',               'f', title="pT of leading jet")
     self.addBranch('jeta_1',              'f', title="eta of leading jet")
@@ -102,8 +112,8 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('dR_ll',               'f', title="DeltaR of visibile ditau system")
     self.addBranch('dphi_ll',             'f', title="DeltaPhi of visibile ditau system")
     self.addBranch('deta_ll',             'f', title="DeltaEta of visibile ditau system")
-    self.tree.SetAlias("m_ll","m_vis")
-    self.tree.SetAlias("mvis","m_vis")
+    self.setAlias("m_ll","m_vis")
+    self.setAlias("mvis","m_vis")
     
     self.addBranch('pzetavis',            'f', title="projection of visible ditau momentums onto bisector (zeta)")
     self.addBranch('pzetamiss',           'f', title="projection of MET onto zeta axis")
@@ -117,7 +127,11 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('lepton_vetoes_notau', '?')
     
     if module.ismc:
-      self.addBranch('m_moth',            'f', -1, title="generator mother mass (Z boson, W boson, top quark, ...)")
-      self.addBranch('pt_moth',           'f', -1, title="generator mother pT (Z boson, W boson, top quark, ...)")
+      if module.dotoppt:
+        self.addBranch('pt_moth1',        'f', -1, title="leading top pT")
+        self.addBranch('pt_moth2',        'f', -1, title="subleading top pT")
+      else:
+        self.addBranch('m_moth',          'f', -1, title="generator mother mass (Z boson, W boson, top quark, ...)")
+        self.addBranch('pt_moth',         'f', -1, title="generator mother pT (Z boson, W boson, top quark, ...)")
     
 

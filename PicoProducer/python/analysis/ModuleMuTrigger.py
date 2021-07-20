@@ -22,7 +22,7 @@ class ModuleMuTrigger(Module):
       self.trig1       = "IsoMu22"
       self.trig2       = "IsoMu24"
       self.trigger1    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
-      self.trigger2    = lambda e: e.HLT_IsoMu24 or e.IsoTkMu24
+      self.trigger2    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
       self.muonCutPt1  = lambda e: 24
       self.muonCutPt1  = lambda e: 26
       self.muonCutEta1 = lambda e: 2.4 if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
@@ -56,6 +56,11 @@ class ModuleMuTrigger(Module):
     self.out.cutflow.addcut('trig1/trig2', "%s && !%s"%(self.trig1,self.trig2) )
     self.out.cutflow.addcut('trig2/trig1', "%s && !%s"%(self.trig2,self.trig1) )
     self.out.cutflow.addcut('muon',        "muon"                              )
+    
+    # EXTRA HISTOGRAMS
+    xbins = [0,20,25,30,35,40,50,70,100,140,200,300,500,1000]
+    self.out.addHist('pt_%s'%(self.trig1),xbins)
+    self.out.addHist('pt_%s'%(self.trig2),xbins)
   
   def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
     """Before processing a new file."""
@@ -64,10 +69,10 @@ class ModuleMuTrigger(Module):
       branches = [
         ('HLT_IsoMu22_eta2p1',   False ),
         ('HLT_IsoTkMu22_eta2p1', False ),
-        ('IsoMu24',              False ),
-        ('IsoTkMu24',            False ),
+        ('HLT_IsoMu24',          False ),
+        ('HLT_IsoTkMu24',        False ),
       ]
-      ensurebranches(inputTree,branches)
+      ensurebranches(inputTree,branches) # make sure Event object has these branches
   
   def endJob(self):
     """Wrap up after running on all events and files"""
@@ -79,20 +84,22 @@ class ModuleMuTrigger(Module):
     sys.stdout.flush()
     
     self.out.cutflow.fill('none')
-    if not (self.trigger1(event) or self.trigger2(event)):
+    triggered1 = self.trigger1(event)
+    triggered2 = self.trigger2(event)
+    if not (triggered1 or triggered2):
       return False
     
     # TRIGGER
     self.out.cutflow.fill('trig1+trig1') # inclusive
-    if self.trigger1(event):
+    if triggered1:
       self.out.cutflow.fill('trig1')
-      if self.trigger2(event):
+      if triggered2:
         self.out.cutflow.fill('trig1*trig2') # trig2 && trig1
       else:
         self.out.cutflow.fill('trig1/trig2') # trig1 && !trig2
-    if self.trigger2(event):
+    if triggered2:
       self.out.cutflow.fill('trig2')
-      if not self.trigger1(event):
+      if not triggered1:
         self.out.cutflow.fill('trig2/trig1') # trig2 && !trig1
     
     # MUON
@@ -107,8 +114,8 @@ class ModuleMuTrigger(Module):
       muons.append(muon)
     
     # FILL BRANCHES
-    getattr(self.out,self.trig1)[0] = self.trigger1(event)
-    getattr(self.out,self.trig2)[0] = self.trigger2(event)
+    getattr(self.out,self.trig1)[0] = triggered1
+    getattr(self.out,self.trig2)[0] = triggered2
     self.out.trigsf[0]              = 1.0 # TODO
     if len(muons)>0:
       self.out.cutflow.fill('muon')
@@ -118,6 +125,10 @@ class ModuleMuTrigger(Module):
       self.out.iso_1[0]      = muon.pfRelIso04_all # relative isolation
       self.out.idMedium_1[0] = muon.mediumId
       self.out.idTight_1[0]  = muon.tightId
+      if triggered1:
+        self.out.fill('pt_%s'%(self.trig1),muon.pt)
+      if triggered2:
+        self.out.fill('pt_%s'%(self.trig2),muon.pt)
     else:
       self.out.pt_1[0]       = -1.
       self.out.eta_1[0]      = -9.

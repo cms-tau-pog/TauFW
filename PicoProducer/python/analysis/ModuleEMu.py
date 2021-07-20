@@ -19,16 +19,17 @@ class ModuleEMu(ModuleTauPair):
     
     # TRIGGERS
     if self.year==2016:
-      self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
-      self.muonCutPt  = lambda e: 23
-      self.muonCutEta = lambda e: 2.4 if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
+      #self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
+      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
+      self.muonCutPt  = lambda e: 26
+      self.muonCutEta = lambda e: 2.4 #if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25 if e.HLT_IsoMu24 else 28
+      self.muonCutPt  = lambda e: 26 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
     else:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25
+      self.muonCutPt  = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     self.eleCutPt     = 15
     self.eleCutEta    = 2.3
@@ -169,15 +170,19 @@ class ModuleEMu(ModuleTauPair):
     
     
     # MUON 2
-    self.out.pt_2[0]  = muon.pt
-    self.out.eta_2[0] = muon.eta
-    self.out.phi_2[0] = muon.phi
-    self.out.m_2[0]   = muon.mass
-    self.out.y_2[0]   = muon.tlv.Rapidity()
-    self.out.dxy_2[0] = muon.dxy
-    self.out.dz_2[0]  = muon.dz
-    self.out.q_2[0]   = muon.charge
-    self.out.iso_2[0] = muon.pfRelIso04_all
+    self.out.pt_2[0]       = muon.pt
+    self.out.eta_2[0]      = muon.eta
+    self.out.phi_2[0]      = muon.phi
+    self.out.m_2[0]        = muon.mass
+    self.out.y_2[0]        = muon.tlv.Rapidity()
+    self.out.dxy_2[0]      = muon.dxy
+    self.out.dz_2[0]       = muon.dz
+    self.out.q_2[0]        = muon.charge
+    self.out.iso_2[0]      = muon.pfRelIso04_all # relative isolation
+    self.out.tkRelIso_2[0] = muon.tkRelIso
+    self.out.idMedium_2[0] = muon.mediumId
+    self.out.idTight_2[0]  = muon.tightId
+    self.out.idHighPt_2[0] = muon.highPtId
     
     
     # TAU for jet -> tau fake rate measurement in emu+tau events

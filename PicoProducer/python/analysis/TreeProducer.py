@@ -42,6 +42,7 @@ class TreeProducer(object):
     self.display  = kwargs.get('display_cutflow',True)
     self.pileup   = TH1D('pileup', 'pileup', 100, 0, 100)
     self.tree     = TTree('tree','tree')
+    self.hists    = { } #OrderedDict() # extra histograms to be drawn
   
   def addBranch(self, name, dtype='f', default=None, title=None, arrname=None):
     """Add branch with a given name, and create an array of the same name as address."""
@@ -63,9 +64,32 @@ class TreeProducer(object):
       branch.SetTitle(title)
     return branch
   
-  def fill(self):
+  def setAlias(self,newbranch,oldbranch):
+    self.tree.SetAlias(newbranch,oldbranch)
+    return newbranch
+  
+  def fill(self,hname=None,*args):
     """Fill tree."""
-    return self.tree.Fill()
+    if hname: # fill histograms
+      return self.hists[hname].Fill(*args)
+    else: # fill trees
+      return self.tree.Fill()
+  
+  def addHist(self,name,*args):
+    if len(args)==1 and isinstance(args[0],list): # list of binedges
+      bins = np.array(args[0],'f')
+      hist = TH1D(name,name,len(bins)-1,bins)
+    elif len(args)==2 and isinstance(args[1],list): # title, list of binedges
+      bins = np.array(args[1],'f')
+      hist = TH1D(name,args[0],len(bins)-1,bins)
+    elif len(args)==3: # nbins, xmin, xmax
+      hist = TH1D(name,name,*args)
+    elif len(args)==4: # title, nbins, xmin, xmax
+      hist = TH1D(name,*args)
+    else:
+      raise IOError("TreeProducer.addHist: Could not parse histogram arguments: %r, args=%r"%(name,args))
+    self.hists[name] = hist
+    return hist
   
   def endJob(self):
     """Write and close files after the job ends."""
