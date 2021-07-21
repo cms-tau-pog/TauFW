@@ -5,10 +5,11 @@
 * [Basic plots](#Basic-plots)<br>
   * [Histogram comparison](#Histogram-comparison)<br>
   * [Data-MC comparison](#Data-MC-comparison)<br>
-  * [2D histograms](#2D-histograms)<br>
+  * [Single 2D histograms](#Single-2D-histograms)<br>
   * [Examples](#Examples)<br>
   * [CMS style](#CMS-style)<br>
 * [Variable](#Variable)<br>
+  * [Context](#Context)<br>
 * [Sample](#Sample)<br>
   * [Creating histograms](#Creating-histograms)<br>
   * [Sample style](#Sample-style)<br>
@@ -66,7 +67,7 @@ plot.saveas("stack.pdf")
 plots.close()
 ```
 
-### 2D histograms
+### Single 2D histograms
 You can create 2D histograms using the [`Plot2D`](python/plot/Plot2D.py) class, e.g.
 ```
 from TauFW.Plotter.plot.Plot2D import Plot2D

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
-# Description: Test Variable initiation
+# Description: Test Variable initiation and contextual behavior
 #   test/testVariables.py
+#   test/testVariables.py -v -V mtau -S dm_2
 from TauFW.common.tools.log import color
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG, gDirectory
