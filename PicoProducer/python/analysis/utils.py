@@ -362,11 +362,11 @@ class Cutflow(object):
     #padcut = 3+max(len(c) for c in self.cuts)
     values = [self.hist.GetBinContent(1+i) for k, i in self.cuts.items() if self.hist.GetBinContent(1+i)>0] # all values > 0
     padevt = 4+(int(floor(log10(max(values)))) if values else 0)
-    denstr = str(ntot).rjust(int(floor(log10(ntot)))+2)
+    denstr = str(ntot).rjust(int(floor(log10(ntot)))+2) if ntot else " 0"
     for cut, index in sorted(self.cuts.items(),key=lambda x: x[1]):
       nevts = self.hist.GetBinContent(1+index)
       title = self.hist.GetXaxis().GetBinLabel(1+index) or cut
-      frac  = "= %6.2f%%"%(100.0*nevts/ntot) if ntot!=0. else " "
+      frac  = "= %6.2f%%"%(100.0*nevts/ntot) if ntot else " "
       nomstr = str(nevts).rjust(padevt)
       print ">>> %4d: %s / %s %s   %s"%(index,nomstr,denstr,frac,title) #.rjust(padcut)
     
