@@ -5,6 +5,8 @@
 * [Basic plots](#Basic-plots)<br>
   * [Histogram comparison](#Histogram-comparison)<br>
   * [Data-MC comparison](#Data-MC-comparison)<br>
+  * [2D histograms](#2D-histograms)<br>
+  * [Examples](#Examples)<br>
   * [CMS style](#CMS-style)<br>
 * [Variable](#Variable)<br>
 * [Sample](#Sample)<br>
@@ -16,9 +18,11 @@
   * [Joining samples](#Joining-samples)<br>
   * [Stitching samples](#Stitching-samples)<br>
   * [Splitting samples](#Splitting-samples)<br>
-  * [Data/MC plots](#DataMC-plots)<br>
+  * [Data-MC plots](#DataMC-plots)<br>
   * [Data-driven methods](#Data-driven-methods)<br>
 * [Plotting script](#Plotting-script)<br>
+  * [Stacked data/MC](#Stacked-data-MC)<br>
+  * [2D histograms](#2D-histograms)<br>
 
 
 ## Installation
@@ -62,7 +66,23 @@ plot.saveas("stack.pdf")
 plots.close()
 ```
 
-More examples of usage of `Plot` and `Stack` are provided in [`test/`](test/), run as
+### 2D histograms
+You can create 2D histograms using the [`Plot2D`](python/plot/Plot2D.py) class, e.g.
+```
+from TauFW.Plotter.plot.Plot2D import Plot2D
+CMSStyle.setCMSEra(2018)
+plot = Plot2D("x","y",hist)
+plot.draw(logz=True,ztitle="Events")
+plot.drawlegend()
+plot.drawtext("#mu#tau_{h} baseline")
+plot.drawprofile('x')
+plot.saveas("plot2D.png")
+plots.close()
+```
+
+
+### Examples
+Simple examples of usage of `Plot` and `Stack` are provided in [`test/`](test/), run as
 ```
 test/testPlot.py -v2
 test/testStack.py -v2
@@ -116,16 +136,47 @@ hist = var.gethist()
 and `Variable.drawcmd` can parse a draw command for [`TTree::Draw`](https://root.cern.ch/doc/master/classTTree.html#a73450649dc6e54b5b94516c468523e45):
 ```
 var  = Variable('pt_1',40,0,200)
-hist = var.gethist('hist') # returns a TH1D
+hist = var.gethist('hist') # returns a TH1D with name 'hist'
 dcmd = var.drawcmd('hist') # returns a string, e.g. "pt_1 >> hist"
 tree.Draw(dcmd)            # loops over tree events and fills the histogram 'hist'
 ```
-It can also be used to initialize a `Plot` or `Stack` object, e.g.
+It can also be used to initialize a `Plot`, `Plot2D`, or `Stack` object, e.g.
 ```
-var  = Variable('pt_1',40,0,200,logy=True,ymargin=1.4)
-plot = Plot(var,hists)
+xvar = Variable('pt_1',40,0,200,logy=True,ymargin=1.4)
+yvar = Variable('pt_1',40,0,200,logy=True,ymargin=1.4)
+plot = Plot(xvar,hists)
+plot2D = Plot2D(xvar,yvar,hist2D)
 ```
 Examples are provided in [`test/testVariables.py`](test/testVariables.py).
+
+### Context
+Often, plots need to be adjusted for different selections.
+You might need a larger range at higher energies, or a wider binning for fewer events.
+To avoid cluttering code with a bunch of if statements. the `Variable` class offers a way
+to change things like the binning, title, extra cuts, etc. on the context.
+The context can be triggered by a set of strings.
+To change the binning, specify the context for example the `cbin` option:
+```
+var = Variable('pt_1',"pt",40,0,200,cbin={'nbtag>=1':(50,0,500)}),
+for sel in ["pt_1>30","pt_1>50 && nbtag>=1"]:
+  var.changecontext(sel)  # check if string matches a predefined context
+  hist = var.gethist()    # binning will depend on the context
+```
+Here, `cbin` is a dictionary whose keys are regular expression that are matched to strings passed
+to `Variable.changecontext`. If the string matches a predefined key (`'nbtag>=1'` in the case above),
+the associated binning is used.
+If there are multiple keys, they are ordered by length, from most to least number of characters.
+The longest strings that matches will be used.
+
+Similarly, one can change the title using `ctitle`, e.g.
+```
+var = Variable('pt_1',"Muon pt",40,0,200,ctitle={'etau':"Electron pt",'tautau':"Tau pt"}),
+for channel in channels:
+  for sel in selections:
+     var.changecontext(channel,sel)
+```
+
+To see how this works in action, please play around with [`test/testVariables.py`](test/testVariables.py).
 
 
 ## Sample
@@ -429,12 +480,21 @@ where `0` means on the top, and `-1` means on the bottom.
 
 
 ## Plotting script
-An example of a plotting script is given by [`plot.py`](plot.py).
+
+### Stacked data-MC
+An example of a plotting script for data/MC comparisions is given by [`plot.py`](plot.py).
 It can be run for a given channel and era as
 ```
 ./plot.py -c mutau -y 2018
 ```
-It will load a `SampleSet` from `config/samples.py`, which by default will look for pico samples in `$PICODIR`.
-You can edit the scripts and this config file to your specifications and liking.
+It will load a `SampleSet` from `config/samples.py` as a function of a channel and era.
+By default the script will look for pico samples in `$PICODIR`, specified in the `PicoProducer` config.
+You can edit the scripts  and this config file to your specifications and liking.
 
+### 2D histograms
+An example of a 2D plotting script is given by [`plot2D.py`](plot2D.py).
+It creates 2D histograms for given samples. You can use it example as
+```
+./plot2D.py -c mutau -y 2018 -s DY
+```
 

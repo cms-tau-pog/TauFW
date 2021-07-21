@@ -239,6 +239,7 @@ class Plot2D(Plot):
   
   def drawprofile(self,axes='x',opt="",entries=[ ],**kwargs):
     """Draw profile on canvas."""
+    # Options: https://root.cern.ch/doc/master/classTProfile.html#a1ff9340284c73ce8762ab6e7dc0e6725
     self.profiles = [ ]
     # MAKE PROFILE
     for i, axis in enumerate(axes):

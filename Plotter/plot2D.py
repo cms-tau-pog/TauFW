@@ -68,7 +68,7 @@ def plot2D(samples,channel,parallel=True,tag="",extratext="",outdir="plots",era=
 def main(args):
   channels  = args.channels
   eras      = args.eras
-  parallel  = args.parallel and False
+  parallel  = args.parallel #and False
   varfilter = args.varfilter
   selfilter = args.selfilter
   samfilter = args.samfilter or ["DY"]
