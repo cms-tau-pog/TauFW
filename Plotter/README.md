@@ -494,7 +494,8 @@ You can edit the scripts  and this config file to your specifications and liking
 
 ### 2D histograms
 An example of a 2D plotting script is given by [`plot2D.py`](plot2D.py).
-It creates 2D histograms for given samples. You can use it example as
+It creates 2D histograms for a specified samples. The samples are defined in `config/samples.py`.
+Edit the desired variable pairs and selections in the script, and run for example as
 ```
 ./plot2D.py -c mutau -y 2018 -s DY
 ```
