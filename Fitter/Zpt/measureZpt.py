@@ -12,7 +12,7 @@ ptitle   = "p_{T}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
 pgtitle  = "Z p_{T}"
 mgtitle  = "m_{#mu#mu}" #"m_{Z}"
-baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !extraelec_veto && !extramuon_veto && m_ll>20"
+baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
 Zmbins0  = [20,30,40,50,60,70,80,85,88,89,89.5,90,90.5,91,91.5,92,93,94,95,100,110,120,180,500,1000]
 Zmbins1  = [10,50,70,91,110,150,200,400,800,1500]
 ptbins0  = [0,3,6,8,10,12,15,20,25,30,35,40,45,50,60,70,100,140,200,300,500,1000]
@@ -27,27 +27,28 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   from ROOT import Unroll
   
   # SETTINGS
-  niter     = 4 # number of iterations in RooUnfoldBayes
-  kterm     = (len(Zmbins1)-1)*(len(ptbins1)-1)/2. # kterm in RooUnfoldSvd
-  hname     = 'zptmass'
-  fname     = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
-  pname     = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
-  outdir    = ensuredir(outdir) #repkey(outdir,CHANNEL=channel,ERA=era))
-  stitle    = "Z boson unfolding weight"
+  niter       = 4 # number of iterations in RooUnfoldBayes
+  kterm       = (len(Zmbins1)-1)*(len(ptbins1)-1)/2. # kterm in RooUnfoldSvd
+  hname       = 'zptmass'
+  fname       = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
+  pname       = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
+  outdir      = ensuredir(outdir) #repkey(outdir,CHANNEL=channel,ERA=era))
+  stitle      = "Z boson unfolding weight"
   stitle_reco = "Z boson reco. weight"
-  width     = 1200 # canvas width for 1D unrolled plots
-  bsize     = 0.039 # size of bin text in 1D unrolled plots
-  position  = 'RR;y=0.91' # legend position in 1D unrolled plots
-  logx      = True #and False
-  logy      = True #and False
-  logz      = True #and False
-  addof     = True #and False # add overflow
-  method    = None #'QCD'
-  dysample  = samples.get('DY',unique=True)
+  width       = 1200 # canvas width for 1D unrolled plots
+  bsize       = 0.039 # size of bin text in 1D unrolled plots
+  position    = 'RR;y=0.91' # legend position in 1D unrolled plots
+  logx        = True #and False
+  logy        = True #and False
+  logz        = True #and False
+  addof       = True #and False # add overflow
+  method      = None #'QCD'
+  dysample    = samples.get('DY',unique=True)
   
   # SELECTIONS
   selections = [
-    Sel('Baseline #mu#mu', baseline, fname="baseline"),
+    Sel('Baseline #mu#mu',             baseline,              fname="baseline"),
+    Sel('Baseline #mu#mu, met<50 GeV', baseline+" && met<50", fname="baseline-metlt50"),
   ]
   
   # VARIABLES
@@ -586,17 +587,17 @@ def main(args):
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   tag       = ""
   for era in eras:
-    if 'UL' in era: # UL has no DY*JetsToLL_M-10to50
-      global Zmbins0, Zmbins1, baseline
-      print ">>> Editing Zmbins0, Zmbins1, and baseline!"
-      if 10 in Zmbins0: Zmbins0.remove(10)
-      if 10 in Zmbins1: Zmbins1.remove(10)
-      baseline = baseline.replace("m_ll>20","m_ll>50")
-      print ">>> Zmbins0 = %s"%(Zmbins0)
-      print ">>> Zmbins1 = %s"%(Zmbins1)
-      print ">>> baseline = %r"%(baseline)
-    tag_   = tag+'_'+era
+    ###if 'UL' in era: # Summer19UL has no DY*JetsToLL_M-10to50
+    ###  global Zmbins0, Zmbins1, baseline
+    ###  print ">>> Editing Zmbins0, Zmbins1, and baseline!"
+    ###  if 10 in Zmbins0: Zmbins0.remove(10)
+    ###  if 10 in Zmbins1: Zmbins1.remove(10)
+    ###  baseline = baseline.replace("m_ll>20","m_ll>50")
+    ###  print ">>> Zmbins0 = %s"%(Zmbins0)
+    ###  print ">>> Zmbins1 = %s"%(Zmbins1)
+    ###  print ">>> baseline = %r"%(baseline)
     setera(era) # set era for plot style and lumi-xsec normalization
+    tag_     = tag+'_'+era
     outdir_  = ensuredir(repkey(outdir,ERA=era))
     plotdir_ = ensuredir(repkey(plotdir,ERA=era))
     samples  = getsampleset(channel,era,fname=fname,dyweight="",dy="")
