@@ -32,16 +32,19 @@ class Thread(Process):
 class MultiProcessor:
     """Class to get manage multiple processes and their return."""
     
-    def __init__(self,name='nameless',max=-1):
+    def __init__(self,name='nameless',max=-1, verbose=False):
       self.name    = name
       self.procs   = [ ]
       self.waiting = [ ]
       self.max     = max # maximum number of parallel jobs (ncores)
+      self.verbose = verbose
       
     def __iter__(self):
       """To loop over processes, and do process.join()."""
-      for process, endin, endout in self.procs:
-        yield ReturnProcess(process,endin,endout)
+      for i, (process, endin, endout) in enumerate(self.procs):
+        if self.verbose:
+          print ">>> MultiProcessor.__iter__: i=%s, process=%r, endin=%r, endout=%s, "%(i,process,endin,endout)
+        yield ReturnProcess(process,endin,endout,verbose=self.verbose)
         if self.max>=1 and self.waiting:
           #print "MultiProcessor.__iter__: starting new process (i=%d, max=%d, waiting=%d)"%(i,self.max,len(self.waiting))
           proc_wait = self.waiting[0]
@@ -50,6 +53,7 @@ class MultiProcessor:
       
     def start(self, target, args=(), kwargs={}, group=None, name=None, verbose=False, parallel=True, kwret=None):
       """Start and save process. Create a pipe to return output."""
+      verbose = self.verbose or verbose
       if not isinstance(args,tuple):
         args = (args,)
       if parallel: # execute jobs in parallel (main functionality)
@@ -62,6 +66,9 @@ class MultiProcessor:
           mptarget    = self.target
         process       = Process(group,mptarget,name,newargs,kwargs)
         process.kwret = kwret
+        if verbose:
+          print ">>> MultiProcessor.start: endin=%r, target=%r, args=%r, kwargs=%r, kwret=%r, max=%s"%(
+                                           endin,target,args,kwargs,kwret,self.max)
         if self.max<1 or len(self.procs)<self.max:
           process.start() # start running process in parallel now (or add to queue)
         else:
@@ -101,16 +108,20 @@ class SimpleProcess:
 class ReturnProcess:
     """Class contain a process and its return value passed through a pipe."""
     
-    def __init__(self,process,endin,endout):
+    def __init__(self,process,endin,endout,verbose=False):
       self.name    = process.name
       self.process = process
       self.endin   = endin
       self.endout  = endout
+      self.verbose = verbose
       
     def join(self,*args,**kwargs):
       """Join process, and return output."""
-      kwret = self.process.kwret
-      if isinstance(self.process,Process):
+      kwret   = self.process.kwret
+      verbose = kwargs.get('verbose',self.verbose)
+      if isinstance(self.process,Process): # parallel process
+        if verbose:
+          print ">>> ReturnProcess.join: name=%r, args=%s"%(self.name,args)
         self.process.join(*args) # wait for process to finish
         #if self.endin:
         #  self.endin.close()
@@ -124,7 +135,9 @@ class ReturnProcess:
             print "Warning! MultiThread.ReturnProcess.join: No implementation for keyword return value '%s' of type %s..."%(kwret,type(kwretval))
           return out
         return self.endout.recv()
-      else:
+      else: # serial process
+        if verbose:
+          print ">>> ReturnProcess.join: name=%r (serial), args=%s"%(self.name,args)
         if kwret in kwargs:
           kwretval = self.process.kwargs[kwret]
           if isinstance(kwretval,dict):
