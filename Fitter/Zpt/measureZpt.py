@@ -6,13 +6,13 @@ from utils import *
 from TauFW.Plotter.plot.Plot2D import Plot2D, addoverflow, capoff
 from TauFW.common.tools.math import scalevec
 gSystem.Load('RooUnfold/libRooUnfold.so')
-from ROOT import RooUnfoldResponse, RooUnfoldBinByBin, RooUnfoldBayes
+from ROOT import TNamed, RooUnfoldResponse, RooUnfoldBinByBin, RooUnfoldBayes
 
 ptitle   = "p_{T}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
 pgtitle  = "Z p_{T}"
 mgtitle  = "m_{#mu#mu}" #"m_{Z}"
-baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
+baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
 Zmbins0  = [20,30,40,50,60,70,80,85,88,89,89.5,90,90.5,91,91.5,92,93,94,95,100,110,120,180,500,1000]
 Zmbins1  = [10,50,70,91,110,150,200,400,800,1500]
 ptbins0  = [0,3,6,8,10,12,15,20,25,30,35,40,45,50,60,70,100,140,200,300,500,1000]
@@ -48,7 +48,8 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   # SELECTIONS
   selections = [
     Sel('Baseline #mu#mu',             baseline,              fname="baseline"),
-    Sel('Baseline #mu#mu, met<50 GeV', baseline+" && met<50", fname="baseline-metlt50"),
+    #Sel('Baseline #mu#mu, met<50 GeV', baseline+" && met<50", fname="metlt50"),
+    #Sel('Baseline #mu#mu, met<40 GeV', baseline+" && met<40", fname="metlt40"),
   ]
   
   # VARIABLES
@@ -149,6 +150,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     writehist(sfhist2D,     hname+"_weight",      "Unfolded Z boson weight",xvar_gen.title,yvar_gen.title,stitle,verb=1)
     writehist(sfhist2D_reco,hname+"_recoweight",  "Reco. Z boson weight",xvar_reco.title,yvar_reco.title,stitle_reco,verb=1)
     ctrldir.cd()
+    TNamed("selection",selection.selection).Write() # write exact selection string to ROOT file for the record / debugging
     writehist(obshist,      hname+"_obs_reco",    "Observed",           bvar_reco.title,"Events")
     writehist(exphist,      hname+"_exp_reco",    "Expected",           bvar_reco.title,"Events")
     writehist(bkghist,      hname+"_bkg_reco",    "Exp. background",    bvar_reco.title,"Events")

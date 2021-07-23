@@ -10,7 +10,7 @@ from ROOT import gROOT, gSystem
 gROOT.Macro('weights/zptweight.C+')
 from ROOT import loadZptWeights
 
-baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
+baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
 ptitle   = "p_{T}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
 pgtitle  = "Z p_{T}"
@@ -41,7 +41,7 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
   # SELECTIONS
   selections = [
     Sel('baseline',                  baseline),
-    Sel('baseline, met<50 GeV',      baseline+" && met<50", fname="baseline-metlt50"),
+    #Sel('baseline, met<50 GeV',      baseline+" && met<50", fname="baseline-metlt50"),
     #Sel('m_{mumu} > 200 GeV',        baseline+" && m_vis>200", fname="mgt200"),
     #Sel('0j, m_{mumu} > 200 GeV',    baseline+" && m_vis>200 && njets50==0", fname="0j-mgt200"),
     #Sel('0j, 200 GeV < m_{mumu} < 400 GeV', baseline+" && m_vis>200 && m_vis<400 && njets50==0", fname="0j-mgt200-400"),
