@@ -1,7 +1,7 @@
 # Author: Izaak Neutelings (July 2021)
 # Description: Study muon triggers overlap via nanoAOD
 # Instructions:
-#   pico.py channel mutrig ModuleMuTrigger
+#   pico.py channel mutrig CheckMuTrigger
 #   pico.py run -c mutrig -y UL2016_preVFP UL2016_postVFP -s SingleMuon DYJ*M-50 -m 10000
 #   pico.py submit -c mutrig -y UL2016_preVFP UL2016_postVFP --maxevts -1 --filesperjob 2 --queue short --time '0:50:00' -s SingleMuon DYJ*M-50
 import sys
@@ -12,7 +12,7 @@ from TauFW.PicoProducer.analysis.utils import ensurebranches
 from TauFW.PicoProducer.corrections.MuonSFs import *
 
 
-class ModuleMuTrigger(Module):
+class CheckMuTrigger(Module):
   
   def __init__(self, fname, **kwargs):
     self.year = kwargs.get('year', 2017   ) # integer, e.g. 2017, 2018
