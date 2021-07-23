@@ -187,7 +187,31 @@ class ModuleMuTau(Module):
     self.out.fill()
     return True
 ```
+To add vector branches, use
+```
+class TreeProducerMuMu(TreeProducer):
+  def __init__(self, filename, module, **kwargs):
+    super(TreeProducer,self).__init__(filename,module,**kwargs)
+    self.addBranch('pt',   'f',len=2) # vector of fixed length
+    self.addBranch('njets','i')
+    self.addBranch('jpt',  'f',len='njets',max=20) # vector of variable length
 
+class ModuleMuMu(Module):
+  def __init__(self, fname, **kwargs):
+    self.out = TreeProducerMuMu(fname,self)
+  def analyze(self, event):
+    # select two muons
+    for i, muon in enumerate(muons):
+      self.out.pt[i] = muon.pt
+    # prepare jet collection (variable length)
+    jets = jets[:20] # store maximum 20 jets
+    self.out.njets[0] = len(jets)
+    for i, jet in enumerate(jets):
+      self.out.jpt[i] = jet.pt
+    self.out.fill()
+    return True
+```
+A full example of usage is shown the executable [`testTreeProducer`](testTreeProducer).
 
 ## Cutflow
 To keep track of the total number of processed events,
