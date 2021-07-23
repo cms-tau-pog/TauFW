@@ -41,7 +41,7 @@ class ModuleTauPair(Module):
     self.tauwp      = kwargs.get('tauwp',    0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
-    self.doqscale   = kwargs.get('doqscale', False          ) and self.ismc # store PDF & scale weights
+    self.dopdf      = kwargs.get('dopdf',    False          ) and self.ismc # store PDF & scale weights
     self.dorecoil   = kwargs.get('recoil',   False          ) and self.ismc # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
     self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None]
     self.dotight    = kwargs.get('tight',    self.dotight   ) # save memory
@@ -104,7 +104,7 @@ class ModuleTauPair(Module):
     #if self.channel.count('ele')>0:
     #  print ">>> %-12s = %s"%('ees',     self.ees)
     print ">>> %-12s = %s"%('dotoppt',   self.dotoppt)
-    print ">>> %-12s = %s"%('doqscale',  self.doqscale)
+    print ">>> %-12s = %s"%('dopdf',     self.dopdf)
     print ">>> %-12s = %s"%('dozpt',     self.dozpt)
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
     print ">>> %-12s = %s"%('dojec',     self.dojec)
@@ -325,7 +325,7 @@ class ModuleTauPair(Module):
     self.out.genweight[0]     = event.genWeight
     self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
     self.out.btagweight[0]    = self.btagTool.getWeight(jets)
-    if not self.dotight and self.doqscale:
+    if not self.dotight and self.dopdf:
       self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
       for i in range(self.out.npdfweight[0]):
         self.out.pdfweight[i] = event.LHEPdfWeight[i]

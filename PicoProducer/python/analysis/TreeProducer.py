@@ -33,18 +33,18 @@ class TreeProducer(object):
   """Base class to create and prepare a custom output file & tree for analysis modules."""
   
   def __init__(self, filename, module, **kwargs):
-    self.verbose  = kwargs.get('verbose',getattr(module,'verbose',False))
-    if self.verbose:
+    self.verbosity = kwargs.get('verb',getattr(module,'verbosity',False) or getattr(module,'verb',False))
+    if self.verbosity>=1:
       print ">>> TreeProducer.__init__: %r, %r, kwargs=%s..."%(filename,module,kwargs)
-    self.filename = filename
-    self.module   = module
-    self.outfile  = TFile(filename,'RECREATE')
-    ncuts         = kwargs.get('ncuts',25)
-    self.cutflow  = Cutflow('cutflow',ncuts) if ncuts>0 else None
-    self.display  = kwargs.get('display',True) # display cutflow at the end
-    self.pileup   = TH1D('pileup', 'pileup', 100, 0, 100)
-    self.tree     = TTree('tree','tree')
-    self.hists    = { } #OrderedDict() # extra histograms to be drawn
+    self.filename  = filename
+    self.module    = module
+    self.outfile   = TFile(filename,'RECREATE')
+    ncuts          = kwargs.get('ncuts',25)
+    self.cutflow   = Cutflow('cutflow',ncuts) if ncuts>0 else None
+    self.display   = kwargs.get('display',True) # display cutflow at the end
+    self.pileup    = TH1D('pileup', 'pileup', 100, 0, 100)
+    self.tree      = TTree('tree','tree')
+    self.hists     = { } #OrderedDict() # extra histograms to be drawn
   
   def addHist(self,name,*args):
     """Add a histogram."""
@@ -61,7 +61,7 @@ class TreeProducer(object):
       hist = TH1D(name,*args)
     else:
       raise IOError("TreeProducer.addHist: Could not parse histogram arguments: %r, args=%r"%(name,args))
-    if self.verbose:
+    if self.verbosity>=1:
       print ">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(name,bins)
     self.hists[name] = hist
     return hist
@@ -92,25 +92,29 @@ class TreeProducer(object):
     address = np.zeros(maxlen,dtype=dtype) # array address to be filled during event loop
     setattr(self,arrname,address)
     leaflist = "%s%s/%s"%(name,arrstr,root_dtype[dtype])
-    if self.verbose:
-      print ">>> TreeProducer.addBranch: tree.Branch(%r,%s,%r), %s=%r"%(name,arrname,leaflist,arrname,address)
+    if self.verbosity>=1:
+      print ">>> TreeProducer.addBranch: tree.Branch(%r,%s,%r), %s=%r, maxlen=%s, default=%s"%(name,arrname,leaflist,arrname,address,maxlen,default)
     branch = self.tree.Branch(name,address,leaflist)
     if default!=None:
       if hasattr(default,'__getitem__'): # vector/array/list/tuple
         assert arrlen, "default=%r, but arrlen=%r for branch %r (dtype=%f)!"%(default,arrlen,name,dtype)
         assert len(default)<=len(address), "len(default)=%r > len(address)=%s for branch %r (dtype=%f)!"%(
                                             len(default),len(address),name,dtype)
-        for i in range(len(address)):
+        for i in range(len(default)):
           address[i] = default[i]
+        if self.verbosity>=2:
+          print ">>> TreeProducer.addBranch: Set default value %s to list %r: %r"%(arrname,default,address)
       else: # single value, like float or int
         for i in range(len(address)):
           address[i] = default
+        if self.verbosity>=2:
+          print ">>> TreeProducer.addBranch: Set default value %s to single value %r: %r"%(arrname,default,address)
     if title:
       branch.SetTitle(title)
     return branch
   
   def setAlias(self,newbranch,oldbranch):
-    if self.verbose:
+    if self.verbosity>=1:
       print ">>> TreeProducer.setAlias: %r -> %r..."%(oldbranch,newbranch)
     self.tree.SetAlias(newbranch,oldbranch)
     return newbranch

@@ -80,6 +80,7 @@ if dtype=='data':
 # EXTRA OPTIONS
 kwargs = { 'era': era, 'year': year, 'dtype': dtype, 'verb': verbosity }
 for option in args.extraopts:
+  #for option in options.strip().split(' '):
   assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)
   split       = option.split('=')
   key, val    = split[0], ''.join(split[1:])

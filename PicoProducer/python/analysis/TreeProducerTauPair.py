@@ -45,8 +45,8 @@ class TreeProducerTauPair(TreeProducer):
       self.addBranch('genweight',           'f', 1., title="generator weight")
       self.addBranch('trigweight',          'f', 1., title="trigger SF")
       if not module.dotight:
-        if module.doqscale:
-          self.addBranch('npdfweight',      'f', 1., title="number of PDF weights")
+        if module.dopdf:
+          self.addBranch('npdfweight',      'i', 1., title="number of PDF weights")
           self.addBranch('pdfweight',       'f', 1., len='npdfweight', max=110, title="vector of PDF weights")
           #self.addBranch('qweight',         'f', 1., title="scale weight (Qren=1.0, Qfact=1.0)")
           #self.addBranch('qweight_0p5_0p5', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=0.5")
