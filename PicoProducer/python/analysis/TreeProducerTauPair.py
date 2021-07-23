@@ -41,30 +41,33 @@ class TreeProducerTauPair(TreeProducer):
     ##############
     
     if module.ismc:
-      self.addBranch('weight',            'f', 1., title="weight combining others (to reduce selection string length)")
-      self.addBranch('genweight',         'f', 1., title="generator weight")
-      self.addBranch('trigweight',        'f', 1., title="trigger SF")
+      self.addBranch('weight',              'f', 1., title="weight combining others (to reduce selection string length)")
+      self.addBranch('genweight',           'f', 1., title="generator weight")
+      self.addBranch('trigweight',          'f', 1., title="trigger SF")
       if not module.dotight:
-        ##self.addBranch('pdfweight',       'f', 1., title="PDF weight")
-        #self.addBranch('qweight',         'f', 1., title="scale weight (Qren=1.0, Qfact=1.0)")
-        #self.addBranch('qweight_0p5_0p5', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=0.5")
-        #self.addBranch('qweight_0p5_1p0', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=1.0")
-        #self.addBranch('qweight_1p0_0p5', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=0.5")
-        #self.addBranch('qweight_1p0_2p0', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=2.0")
-        #self.addBranch('qweight_2p0_1p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=1.0")
-        #self.addBranch('qweight_2p0_2p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=2.0")
-        self.addBranch('trigweightUp',    'f', 1.)
-        self.addBranch('trigweightDown',  'f', 1.)
-      self.addBranch('puweight',          'f', 1., title="pileup up reweighting")
-      self.addBranch('zptweight',         'f', 1., title="Z pT reweighting")
-      self.addBranch('ttptweight',        'f', 1., title="top pT reweighting")
-      self.addBranch('btagweight',        'f', 1., title="b tagging SF")
-      self.addBranch('prefireweight',     'f', 1.)
-      self.addBranch('prefireweightUp',   'f', 1.)
-      self.addBranch('prefireweightDown', 'f', 1.)
+        if module.doqscale:
+          self.addBranch('npdfweight',      'f', 1., title="number of PDF weights")
+          self.addBranch('pdfweight',       'f', 1., len='npdfweight', max=110, title="vector of PDF weights")
+          #self.addBranch('qweight',         'f', 1., title="scale weight (Qren=1.0, Qfact=1.0)")
+          #self.addBranch('qweight_0p5_0p5', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=0.5")
+          #self.addBranch('qweight_0p5_1p0', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=1.0")
+          #self.addBranch('qweight_1p0_0p5', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=0.5")
+          #self.addBranch('qweight_1p0_2p0', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=2.0")
+          #self.addBranch('qweight_2p0_1p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=1.0")
+          #self.addBranch('qweight_2p0_2p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=2.0")
+        self.addBranch('trigweightUp',      'f', 1.)
+        self.addBranch('trigweightDown',    'f', 1.)
+      self.addBranch('puweight',            'f', 1., title="pileup up reweighting")
+      self.addBranch('zptweight',           'f', 1., title="Z pT reweighting")
+      self.addBranch('ttptweight',          'f', 1., title="top pT reweighting")
+      self.addBranch('btagweight',          'f', 1., title="b tagging SF")
+      self.addBranch('prefireweight',       'f', 1.)
+      if not module.dotight:
+        self.addBranch('prefireweightUp',   'f', 1.)
+        self.addBranch('prefireweightDown', 'f', 1.)
     elif module.isembed:
-      self.addBranch('genweight',         'f', 1., title="generator weight")
-      self.addBranch('trackweight',       'f', 1.)
+      self.addBranch('genweight',           'f', 1., title="generator weight")
+      self.addBranch('trackweight',         'f', 1.)
     
     
     ############

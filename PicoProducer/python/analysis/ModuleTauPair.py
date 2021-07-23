@@ -41,8 +41,8 @@ class ModuleTauPair(Module):
     self.tauwp      = kwargs.get('tauwp',    0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
-    self.doqscale   = kwargs.get('doqscale', any(s in fname for s in ["WW_Tune","WZ_Tune","ZZ_Tune"] ) # store PDF & scale weights
-    self.dorecoil   = kwargs.get('recoil',   False          ) # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
+    self.doqscale   = kwargs.get('doqscale', False          ) and self.ismc # store PDF & scale weights
+    self.dorecoil   = kwargs.get('recoil',   False          ) and self.ismc # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
     self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None]
     self.dotight    = kwargs.get('tight',    self.dotight   ) # save memory
     self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
@@ -312,22 +312,23 @@ class ModuleTauPair(Module):
     #
     if self.dozpt:
       zboson = getzboson(event)
-      self.out.m_moth[0]     = zboson.M()
-      self.out.pt_moth[0]    = zboson.Pt()
-      self.out.zptweight[0]  = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
+      self.out.m_moth[0]      = zboson.M()
+      self.out.pt_moth[0]     = zboson.Pt()
+      self.out.zptweight[0]   = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
     
     elif self.dotoppt:
-      toppt1, toppt2         = gettoppt(event)
-      self.out.pt_moth1[0]   = max(toppt1,toppt2)
-      self.out.pt_moth2[0]   = min(toppt1,toppt2)
-      self.out.ttptweight[0] = getTopPtWeight(toppt1,toppt2)
+      toppt1, toppt2          = gettoppt(event)
+      self.out.pt_moth1[0]    = max(toppt1,toppt2)
+      self.out.pt_moth2[0]    = min(toppt1,toppt2)
+      self.out.ttptweight[0]  = getTopPtWeight(toppt1,toppt2)
     
-    self.out.genweight[0]    = event.genWeight
-    self.out.puweight[0]     = self.puTool.getWeight(event.Pileup_nTrueInt)
-    self.out.btagweight[0]   = self.btagTool.getWeight(jets)
-    #if not self.dotight and self.doqscale:
-    #  self.out.pdfweight[0]  = event.LHEPdfWeight
-    #  self.out.pdfweight[0]  = event.LHEPdfWeight
+    self.out.genweight[0]     = event.genWeight
+    self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+    self.out.btagweight[0]    = self.btagTool.getWeight(jets)
+    if not self.dotight and self.doqscale:
+      self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
+      for i in range(self.out.npdfweight[0]):
+        self.out.pdfweight[i] = event.LHEPdfWeight[i]
     #  self.out.qweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, Qren=1.0, Qfact=1.0
     #  self.out.qweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, Qren=0.5, Qfact=0.5 (rel.)
     #  self.out.qweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, Qren=0.5, Qfact=1.0 (rel.)

@@ -39,7 +39,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     Var("jpt_2",  29,   10,  300, veto=[r"njets\w*==0"]),
     Var("jeta_1", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
     Var("jeta_2", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
-    Var('npv',    40,  0,  80 ),
+    Var('npv',    40,  0,  80),
     Var('njets',   8,  0,   8),
     Var('met',    50,  0, 150),
     Var('genmet', 50,  0, 150, fname="$VAR_log", logyrange=5, data=False, logy=True),

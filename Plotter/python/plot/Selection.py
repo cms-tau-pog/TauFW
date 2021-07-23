@@ -49,7 +49,7 @@ class Selection(object):
       self.weight      = args[3]
     self.title         = kwargs.get('title',    maketitle(self.title) )
     self.filename      = makefilename(self.name)
-    self.filename      = kwargs.get('fname',    self.filename )
+    self.filename      = kwargs.get('fname',    self.filename ) # alias
     self.filename      = kwargs.get('filename', self.filename ) # name for files, histograms
     self.weight        = kwargs.get('weight',   self.weight   )
     #if self.selection=="":
