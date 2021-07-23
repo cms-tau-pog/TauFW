@@ -60,11 +60,17 @@ class TreeProducerTauPair(TreeProducer):
       self.addBranch('puweight',            'f', 1., title="pileup up reweighting")
       self.addBranch('zptweight',           'f', 1., title="Z pT reweighting")
       self.addBranch('ttptweight',          'f', 1., title="top pT reweighting")
-      self.addBranch('btagweight',          'f', 1., title="b tagging SF")
+      self.addBranch('btagweight',          'f', 1., title="b tagging weight")
+      #if not module.dotight:
+      #  self.addBranch('btagweight_bc',      'f', 1., title="b tagging weight, heavy flavor")
+      #  self.addBranch('btagweight_bcUp',    'f', 1., title="b tagging weight, heavy flavor up")
+      #  self.addBranch('btagweight_bcDown',  'f', 1., title="b tagging weight, heavy flavor down")
+      #  self.addBranch('btagweight_usdg',    'f', 1., title="b tagging weight, light flavor")
+      #  self.addBranch('btagweight_usdgUp',  'f', 1., title="b tagging weight, light flavor up")
+      #  self.addBranch('btagweight_usdgDown','f', 1., title="b tagging weight, light flavor down")
       self.addBranch('prefireweight',       'f', 1.)
-      if not module.dotight:
-        self.addBranch('prefireweightUp',   'f', 1.)
-        self.addBranch('prefireweightDown', 'f', 1.)
+      self.addBranch('prefireweightUp',     'f', 1.)
+      self.addBranch('prefireweightDown',   'f', 1.)
     elif module.isembed:
       self.addBranch('genweight',           'f', 1., title="generator weight")
       self.addBranch('trackweight',         'f', 1.)

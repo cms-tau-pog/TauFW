@@ -325,19 +325,21 @@ class ModuleTauPair(Module):
     self.out.genweight[0]     = event.genWeight
     self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
     self.out.btagweight[0]    = self.btagTool.getWeight(jets)
-    if not self.dotight and self.dopdf:
-      self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
-      for i in range(self.out.npdfweight[0]):
-        self.out.pdfweight[i] = event.LHEPdfWeight[i]
-    #  self.out.qweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, Qren=1.0, Qfact=1.0
-    #  self.out.qweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, Qren=0.5, Qfact=0.5 (rel.)
-    #  self.out.qweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, Qren=0.5, Qfact=1.0 (rel.)
-    #  self.out.qweight_1p0_0p5[0]  = event.LHEScaleWeight[3] # scale weight, Qren=1.0, Qfact=0.5 (rel.)
-    #  self.out.qweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, Qren=1.0, Qfact=2.0 (rel.)
-    #  self.out.qweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, Qren=2.0, Qfact=1.0 (rel.)
-    #  self.out.qweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, Qren=2.0, Qfact=2.0 (rel.)
-    #  self.out.btagweightUp[0]     = self.btagTool.getWeight(jets,unc='Up')
-    #  self.out.btagweightDown[0]   = self.btagTool.getWeight(jets,unc='Down')
+    if not self.dotight:
+      if self.dopdf:
+        self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
+        for i in range(self.out.npdfweight[0]):
+          self.out.pdfweight[i] = event.LHEPdfWeight[i]
+        #self.out.qweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, Qren=1.0, Qfact=1.0
+        #self.out.qweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, Qren=0.5, Qfact=0.5 (rel.)
+        #self.out.qweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, Qren=0.5, Qfact=1.0 (rel.)
+        #self.out.qweight_1p0_0p5[0]  = event.LHEScaleWeight[3] # scale weight, Qren=1.0, Qfact=0.5 (rel.)
+        #self.out.qweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, Qren=1.0, Qfact=2.0 (rel.)
+        #self.out.qweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, Qren=2.0, Qfact=1.0 (rel.)
+        #self.out.qweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, Qren=2.0, Qfact=2.0 (rel.)
+      #self.out.btagweight_bc[0],     self.out.btagweight_usdg[0]     = self.btagTool.getFlavorWeight(jets)
+      #self.out.btagweight_bcUp[0],   self.out.btagweight_usdgUp[0]   = self.btagTool.getFlavorWeight(jets,unc='Up')
+      #self.out.btagweight_bcDown[0], self.out.btagweight_usdgDown[0] = self.btagTool.getFlavorWeight(jets,unc='Down')
     #if self.year in [2016,2017]:
     #  self.out.prefireweightDown[0], self.out.prefireweight[0], self.out.prefireweightUp[0] = self.prefireTool.getWeight(event)
     

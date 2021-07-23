@@ -16,8 +16,8 @@ from TauFW.PicoProducer import datadir
 from TauFW.common.tools.file import ensureTFile
 from TauFW.common.tools.log import Logger
 from ROOT import TH2F, BTagCalibration, BTagCalibrationReader
-from ROOT.BTagEntry import OP_LOOSE, OP_MEDIUM, OP_TIGHT, OP_RESHAPING
-from ROOT.BTagEntry import FLAV_B, FLAV_C, FLAV_UDSG
+from ROOT.BTagEntry import OP_LOOSE, OP_MEDIUM, OP_TIGHT, OP_RESHAPING # enum 0, 1, 2, 3
+from ROOT.BTagEntry import FLAV_B, FLAV_C, FLAV_UDSG # enum: 0, 1, 2
 datadir = os.path.join(datadir,"btag")
 LOG     = Logger('BTagTool',showname=True)
 
@@ -158,6 +158,18 @@ class BTagWeightTool:
       if abs(jet.eta)<self.maxeta:
         weight *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
     return weight
+  
+  def getFlavorWeight(self,jets,unc='Nom'):
+    """Get b tagging event weight for a given set of jets per flavor."""
+    weight_bc   = 1. # heavy flavor
+    weight_usdg = 1. # light flavor
+    for jet in jets:
+      if abs(jet.eta)<self.maxeta:
+        if abs(jet.partonFlavour) in [4,5]: # heavy flavor: b (5), c (4)
+          weight_bc *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
+        else: # light flavor: usdg (0-3)
+          weight_usdg *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
+    return weight_bc, weight_usdg
   
   def getSF(self,pt,eta,flavor,tagged,unc='Nom'):
     """Get b tag SF for a single jet."""
