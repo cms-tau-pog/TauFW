@@ -24,30 +24,31 @@ class ModuleTauPair(Module):
     print header(self.__class__.__name__)
     
     # SETTINGS
-    self.filename   = fname
-    self.dtype      = kwargs.get('dtype',   'data'         )
+    self.filename   = fname # output file name
+    self.dtype      = kwargs.get('dtype',    'data'         )
     self.ismc       = self.dtype=='mc'
     self.isdata     = self.dtype=='data' or self.dtype=='embed'
     self.isembed    = self.dtype=='embed'
-    self.channel    = kwargs.get('channel', 'none'         ) # channel name
-    self.year       = kwargs.get('year',    2017           ) # integer, e.g. 2017, 2018
-    self.era        = kwargs.get('era',     '2017'         ) # string, e.g. '2017', 'UL2017'
-    self.ees        = kwargs.get('ees',     1.0            ) # electron energy scale
-    self.tes        = kwargs.get('tes',     None           ) # tau energy scale; if None, recommended values are applied
-    self.tessys     = kwargs.get('tessys',  None           ) # vary TES: 'Up' or 'Down'
-    self.fes        = kwargs.get('fes',     None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
-    self.ltf        = kwargs.get('ltf',     None           ) # lepton-tau-fake energy scale
-    self.jtf        = kwargs.get('jtf',     1.0            ) or 1.0 # jet-tau-fake energy scale
-    self.tauwp      = kwargs.get('tauwp',   0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
-    self.dotoppt    = kwargs.get('toppt',   'TT' in fname  ) # top pT reweighting
-    self.dozpt      = kwargs.get('zpt',     'DY' in fname  ) # Z pT reweighting
-    self.dorecoil   = kwargs.get('recoil',  False          ) # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
+    self.channel    = kwargs.get('channel',  'none'         ) # channel name
+    self.year       = kwargs.get('year',     2017           ) # integer, e.g. 2017, 2018
+    self.era        = kwargs.get('era',      '2017'         ) # string, e.g. '2017', 'UL2017'
+    self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
+    self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
+    self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
+    self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
+    self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
+    self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
+    self.tauwp      = kwargs.get('tauwp',    0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
+    self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
+    self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
+    self.doqscale   = kwargs.get('doqscale', any(s in fname for s in ["WW_Tune","WZ_Tune","ZZ_Tune"] ) # store PDF & scale weights
+    self.dorecoil   = kwargs.get('recoil',   False          ) # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
     self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None]
-    self.dotight    = kwargs.get('tight',   self.dotight   ) # save memory
-    self.dojec      = kwargs.get('jec',     True           ) and self.ismc #and self.year==2016 #False
-    self.dojecsys   = kwargs.get('jecsys',  self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
-    self.useT1      = kwargs.get('useT1',   False          ) # MET T1
-    self.verbosity  = kwargs.get('verb',    0              ) # verbosity
+    self.dotight    = kwargs.get('tight',    self.dotight   ) # save memory
+    self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
+    self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
+    self.useT1      = kwargs.get('useT1',    False          ) # MET T1
+    self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = 30
     self.bjetCutEta = 2.7
     self.isUL       = 'UL' in self.era
@@ -102,7 +103,8 @@ class ModuleTauPair(Module):
       print ">>> %-12s = %s"%('jtf',     self.jtf)
     #if self.channel.count('ele')>0:
     #  print ">>> %-12s = %s"%('ees',     self.ees)
-    print ">>> %-12s = %s"%('dotoppt',    self.dotoppt)
+    print ">>> %-12s = %s"%('dotoppt',   self.dotoppt)
+    print ">>> %-12s = %s"%('doqscale',  self.doqscale)
     print ">>> %-12s = %s"%('dozpt',     self.dozpt)
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
     print ">>> %-12s = %s"%('dojec',     self.dojec)
@@ -323,8 +325,9 @@ class ModuleTauPair(Module):
     self.out.genweight[0]    = event.genWeight
     self.out.puweight[0]     = self.puTool.getWeight(event.Pileup_nTrueInt)
     self.out.btagweight[0]   = self.btagTool.getWeight(jets)
-    #if not self.dotight:
-    #  #self.out.pdfweight[0]        = event.LHEPdfWeight[...]
+    #if not self.dotight and self.doqscale:
+    #  self.out.pdfweight[0]  = event.LHEPdfWeight
+    #  self.out.pdfweight[0]  = event.LHEPdfWeight
     #  self.out.qweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, Qren=1.0, Qfact=1.0
     #  self.out.qweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, Qren=0.5, Qfact=0.5 (rel.)
     #  self.out.qweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, Qren=0.5, Qfact=1.0 (rel.)
