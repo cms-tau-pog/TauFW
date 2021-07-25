@@ -867,7 +867,7 @@ def main_status(args):
   dasvetoes      = args.dasvetoes    # exclude these DAS paths (glob patterns)
   force          = args.force
   subcmd         = args.subcommand
-  cleanup        = subcmd=='clean' or (subcmd=='hadd' and args.cleanup)
+  cleanup        = subcmd=='clean' or (subcmd=='hadd' and args.cleanup) or subcmd=='haddclean'
   maxopenfiles   = args.maxopenfiles if subcmd=='hadd' else 0 # maximum number of files opened during hadd, via -n option
   dryrun         = args.dryrun       # run through routine without actually executing hadd, rm, ...
   ncores         = args.ncores       # number of cores; validate output files in parallel
@@ -877,7 +877,7 @@ def main_status(args):
   jobdirformat   = CONFIG.jobdir
   storedirformat = CONFIG.picodir
   jobs           = None
-  if subcmd not in ['hadd','clean']:
+  if subcmd not in ['hadd','clean','haddclean']:
     if not channels:
       channels = ['*']
     if not eras:
@@ -904,7 +904,7 @@ def main_status(args):
       samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       if verbosity>=2:
         print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
-      if subcmd=='hadd' and 'skim' in channel.lower():
+      if subcmd in ['hadd','haddclean'] and 'skim' in channel.lower():
         LOG.warning("Hadding into one file not available for skimming...")
         print
         continue
@@ -930,7 +930,7 @@ def main_status(args):
           jobs  = batch.jobs(verb=verbosity-1)
         
         # HADD or CLEAN
-        if subcmd in ['hadd','clean']:
+        if subcmd in ['hadd','haddclean','clean']:
           cfgname  = sample.jobcfg['config'] # config file
           jobdir   = sample.jobcfg['jobdir'] # job directory
           cfgdir   = sample.jobcfg['cfgdir'] # job configuration directory
@@ -952,7 +952,7 @@ def main_status(args):
             print ">>> %-12s = %r"%('outdir',outdir)
             print ">>> %-12s = %r"%('storedir',storedir)
             print ">>> %-12s = %s"%('infiles',infiles)
-            if subcmd=='hadd':
+            if subcmd in ['hadd','haddclean']:
               print ">>> %-12s = %r"%('outfile',outfile)
           resubfiles, chunkdict, npend = checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
                                                      das=checkdas,checkexpevts=checkexpevts,ncores=ncores,verb=verbosity)
@@ -961,7 +961,7 @@ def main_status(args):
                         " Please use -f or --force to %s anyway.\n"%(subcmd))
             continue
           
-          if subcmd=='hadd':
+          if subcmd in ['hadd','haddclean']:
             #haddcmd = 'hadd -f %s %s'%(outfile,infiles)
             #haddout = execute(haddcmd,dry=dryrun,verb=max(1,verbosity))
             haddout = storage.hadd(infiles,outfile,dry=dryrun,verb=cmdverb,maxopenfiles=maxopenfiles)

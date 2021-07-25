@@ -443,18 +443,19 @@ if __name__ == "__main__":
                                                      "passed as list of 'KEY=VALUE', separated by spaces")
   parser_sam.add_argument('-C','--ncores',      dest='ncores', type=int, default=CONFIG.ncores,
                                                 help="number of cores to run event checks or validation in parallel")
-  parser_job = ArgumentParser(add_help=False,parents=[parser_sam])
-  parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
-                                                help="copy remote file during job to increase processing speed and ensure stability")
-  parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
-                          metavar='NEVTS',      help="run a test with limited nummer of jobs and events, default nevts=%(const)d")
+  parser_job = ArgumentParser(add_help=False,parents=[parser_sam]) # common for submit, resubmit, status, ...
   parser_job.add_argument('--checkqueue',       dest='checkqueue', type=int, nargs='?', const=1, default=-1,
                           metavar='N',          help="check job status: 0 (no check), 1 (check once, fast), -1 (check every job, slow, default)") # speed up if batch is slow
   parser_job.add_argument('--skipevts',         dest='checkevts', action='store_false',
                                                 help="skip validation and counting of events in output files (faster)")
   parser_job.add_argument('--checkexpevts',     dest='checkexpevts', action='store_true', default=None,
                                                 help="check if the actual number of processed events is the same as the expected number")
-  parser_chk = ArgumentParser(add_help=False,parents=[parser_job])
+  parser_chk = ArgumentParser(add_help=False,parents=[parser_job]) # common for status, hadd, haddclean, clean
+  parser_hdd_ = ArgumentParser(add_help=False,parents=[parser_chk]) # common for hadd and haddclean
+  parser_job.add_argument('--preselect',        dest='preselect', type=str, default=None,
+                                                help="preselection to be shipped to skimjob.py during run command")
+  parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
+                                                help="copy remote file during job to increase processing speed and ensure stability")
   parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
                                                 help="extra options for the batch system")
   parser_job.add_argument('-M','--time',        dest='time', default=None,
@@ -463,8 +464,8 @@ if __name__ == "__main__":
                                                 help="queue of batch system (job flavor on HTCondor)")
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
                                                 help="ask user permission before submitting a sample")
-  parser_job.add_argument('--preselect',        dest='preselect', type=str, default=None,
-                                                help="preselection to be shipped to skimjob.py during run command")
+  parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=10000, default=0,
+                          metavar='NEVTS',      help="run a test with limited nummer of jobs and events, default nevts=%(const)d")
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,
                                                 help="number of files per job, default=%d"%(CONFIG.nfilesperjob))
   parser_job.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=-1,
@@ -473,6 +474,8 @@ if __name__ == "__main__":
                           metavar='NFILES',     help="divide default number of files per job, default=%(const)d")
   parser_job.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
                                                 help="for skimming only: temporary output directory befor copying to outdir")
+  parser_hdd_.add_argument('-m','--maxopenfiles',dest='maxopenfiles', type=int, default=CONFIG.maxopenfiles,
+                           metavar='NFILES',     help="maximum numbers to be opened during hadd, default=%(default)d")
   
   # SUBCOMMANDS
   subparsers = parser.add_subparsers(title="sub-commands",dest='subcommand',help="sub-command help")
@@ -489,21 +492,23 @@ if __name__ == "__main__":
   help_res = "resubmit failed processing jobs"
   help_sts = "status of processing jobs"
   help_hdd = "hadd processing job output"
+  help_hdc = "hadd processing job output & remove job output"
   help_cln = "remove job output"
-  parser_ins = subparsers.add_parser('install',  parents=[parser_cmn], help=help_ins, description=help_ins)
-  parser_lst = subparsers.add_parser('list',     parents=[parser_cmn], help=help_lst, description=help_lst)
-  parser_get = subparsers.add_parser('get',      parents=[parser_sam], help=help_get, description=help_get)
-  parser_set = subparsers.add_parser('set',      parents=[parser_cmn], help=help_set, description=help_set)
-  parser_rmv = subparsers.add_parser('rm',       parents=[parser_cmn], help=help_rmv, description=help_rmv)
-  parser_wrt = subparsers.add_parser('write',    parents=[parser_sam], help=help_wrt, description=help_wrt)
-  parser_chl = subparsers.add_parser('channel',  parents=[parser_lnk], help=help_chl, description=help_chl)
-  parser_era = subparsers.add_parser('era',      parents=[parser_lnk], help=help_era, description=help_era)
-  parser_run = subparsers.add_parser('run',      parents=[parser_sam], help=help_run, description=help_run)
-  parser_sub = subparsers.add_parser('submit',   parents=[parser_job], help=help_sub, description=help_sub)
-  parser_res = subparsers.add_parser('resubmit', parents=[parser_job], help=help_res, description=help_res)
-  parser_sts = subparsers.add_parser('status',   parents=[parser_chk], help=help_sts, description=help_sts)
-  parser_hdd = subparsers.add_parser('hadd',     parents=[parser_chk], help=help_hdd, description=help_hdd)
-  parser_cln = subparsers.add_parser('clean',    parents=[parser_chk], help=help_cln, description=help_cln)
+  parser_ins = subparsers.add_parser('install',  parents=[parser_cmn],  help=help_ins, description=help_ins)
+  parser_lst = subparsers.add_parser('list',     parents=[parser_cmn],  help=help_lst, description=help_lst)
+  parser_get = subparsers.add_parser('get',      parents=[parser_sam],  help=help_get, description=help_get)
+  parser_set = subparsers.add_parser('set',      parents=[parser_cmn],  help=help_set, description=help_set)
+  parser_rmv = subparsers.add_parser('rm',       parents=[parser_cmn],  help=help_rmv, description=help_rmv)
+  parser_wrt = subparsers.add_parser('write',    parents=[parser_sam],  help=help_wrt, description=help_wrt)
+  parser_chl = subparsers.add_parser('channel',  parents=[parser_lnk],  help=help_chl, description=help_chl)
+  parser_era = subparsers.add_parser('era',      parents=[parser_lnk],  help=help_era, description=help_era)
+  parser_run = subparsers.add_parser('run',      parents=[parser_sam],  help=help_run, description=help_run)
+  parser_sub = subparsers.add_parser('submit',   parents=[parser_job],  help=help_sub, description=help_sub)
+  parser_res = subparsers.add_parser('resubmit', parents=[parser_job],  help=help_res, description=help_res)
+  parser_sts = subparsers.add_parser('status',   parents=[parser_chk],  help=help_sts, description=help_sts)
+  parser_hdd = subparsers.add_parser('hadd',     parents=[parser_hdd_], help=help_hdd, description=help_hdd)
+  parser_hdc = subparsers.add_parser('haddclean',parents=[parser_hdd_], help=help_hdc, description=help_hdc)
+  parser_cln = subparsers.add_parser('clean',    parents=[parser_chk],  help=help_cln, description=help_cln)
   #parser_get.add_argument('variable',           help='variable to change in the config file')
   parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+CONFIG.keys())
   parser_set.add_argument('variable',           help="variable to set or change in the config file")
@@ -552,8 +557,6 @@ if __name__ == "__main__":
                           metavar='NLOGS',      help="show log files of failed jobs: 0 (show none), -1 (show all), n (show max n)")
   #parser_hdd.add_argument('--keep',             dest='cleanup', action='store_false',
   #                                              help="do not remove job output after hadd'ing")
-  parser_hdd.add_argument('-m','--maxopenfiles',dest='maxopenfiles', type=int, default=CONFIG.maxopenfiles,
-                          metavar='NFILES',     help="maximum numbers to be opened during hadd, default=%(default)d")
   parser_hdd.add_argument('-r','--clean',       dest='cleanup', action='store_true',
                                                 help="remove job output (to be used after hadd'ing)")
   
@@ -562,7 +565,7 @@ if __name__ == "__main__":
   if args:
     subcmds = [ # fix order for abbreviations
       'channel','era',
-      'run','submit','resubmit','status','hadd','clean',
+      'run','submit','resubmit','status','hadd','haddclean','clean',
       'install','list','set','rm','write',
     ]
     for subcmd in subcmds:
@@ -599,7 +602,7 @@ if __name__ == "__main__":
   elif args.subcommand in ['submit','resubmit']:
     from TauFW.PicoProducer.pico.job import main_submit
     main_submit(args)
-  elif args.subcommand in ['status','hadd','clean']:
+  elif args.subcommand in ['status','hadd','haddclean','clean']:
     from TauFW.PicoProducer.pico.job import main_status
     main_status(args)
   else:
