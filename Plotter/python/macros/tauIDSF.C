@@ -7,11 +7,11 @@
  *   
  *   fname = "TauID_SF_dm_DeepTau2017v2p1VSjet_2016Legacy_ptgt20.root"
  *   ROOT.loadHist(fname,"Medium") # load histogram from file
- *   tree.Draw("m_vis >> h","(pt_1>20 && pt_2>20 && idDeepTau2017v2p1VSjet_2>=16)*getTauIDSF(dm)")
+ *   tree.Draw("m_vis >> h","(pt_1>20 && pt_2>20 && idDeepTau2017v2p1VSjet_2>=16)*getTauIDSF(dm,genmatch)")
  *   
- *   tree.SetAlias("sf","getTauIDSF(dm_2,+0)")
- *   tree.SetAlias("sfDown","getTauIDSF(dm_2,-1)")
- *   tree.SetAlias("sfUp","getTauIDSF(dm_2,+1)")
+ *   tree.SetAlias("sf","getTauIDSF(dm_2,genmatch,+0)")
+ *   tree.SetAlias("sfDown","getTauIDSF(dm_2,genmatch,-1)")
+ *   tree.SetAlias("sfUp","getTauIDSF(dm_2,genmatch,+1)")
  *   tree.Draw("m_vis >> h","(pt_1>20 && pt_2>20 && idDeepTau2017v2p1VSjet_2>=16)*sf")
  *   
  */
@@ -55,9 +55,10 @@ void closeTauIDSF(TString hname=""){
   else closeTauIDSF(_tid_hist);
 }
 
-Float_t getTauIDSF(Int_t dm, Int_t stddev=0){
+Float_t getTauIDSF(Int_t dm, Int_t gm, Int_t stddev=0){
   // Get SF from given histogram
   // @param stddev Standard deviation: -1 (down), 0 (nominal), +1 (up)
+  if(gm!=5) return 1.0; // only apply to genmatch==5 (real tau)
   Int_t xbin = _tid_hist->GetXaxis()->FindBin(dm);
   Float_t sf = _tid_hist->GetBinContent(xbin);
   if(stddev!=0) sf += stddev*_tid_hist->GetBinError(xbin);
