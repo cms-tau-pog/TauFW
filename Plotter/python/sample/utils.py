@@ -530,10 +530,18 @@ def getxsec_nlo(*searchterms,**kwargs):
   return xsec_nlo
   
 
+def setaliases(tree,aliases):
+  if not tree or not aliases:
+    return None
+  for alias, formula in aliases.items():
+    tree.SetAlias(alias,formula)
+  return tree
+  
+
 def loadmacro(macro,verb=0):
   line = ".L %s+O"%(macro)
   LOG.verb("loadmacro: Loading macro %r..."%(macro),level=1)
-  gROOT.ProcessLine(line)
+  return gROOT.ProcessLine(line)
   
 
 from TauFW.Plotter.sample.Sample import *

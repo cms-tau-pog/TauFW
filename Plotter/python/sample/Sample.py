@@ -80,7 +80,9 @@ class Sample(object):
     self.fillcolor    = kwargs.get('color',        None         ) or (kBlack if self.isdata else self.setcolor()) # fill color
     self.linecolor    = kwargs.get('lcolor',       kBlack       ) # line color
     self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search termsMergedSample
-    self.aliases      = ensurelist(kwargs.get('alias', [ ]      )) # aliases to be added to tree
+    self.aliases      = kwargs.get('alias',        { }          ) # aliases to be added to tree
+    if not isinstance(self.aliases,dict):
+      self.aliases[self.aliases[0]] = self.aliases[1] # assume tuple, e.g. alias=('sf',"0.95")
     if not isinstance(self,MergedSample):
       file = ensureTFile(self.filename) # check file
       file.Close()
@@ -185,10 +187,10 @@ class Sample(object):
     self._file = value
   
   def getfile(self,refresh=False):
-    if not self._file:
+    if not self._file: # file does not exist
       LOG.verb("Sample.getfile: Opening file %s..."%(self.filename),level=3)
       self._file = ensureTFile(self.filename)
-    elif refresh:
+    elif refresh: # file exists but refresh anyway
       LOG.verb("Sample.getfile: Closing and opening file %s..."%(self.filename),level=3)
       self._file.Close()
       self._file = ensureTFile(self.filename)
@@ -200,18 +202,20 @@ class Sample(object):
     tree = file.Get(self.treename)
     if not tree or not isinstance(tree,TTree):
       LOG.throw(IOError,'Sample.get_newfile_and_tree: Could not find tree %r for %r in %s!'%(self.treename,self.name,self.filename))
+    setaliases(tree,self.aliases)
     return file, tree
   
   @property
   def tree(self):
-    if not self.file:
+    if not self.file: # file does not exist: open & get tree
       LOG.verb("Sample.tree: Opening file %s to get tree %r..."%(self.filename,self.treename),level=3)
-      self._tree = self.file.Get(self.treename)
-    elif self._tree and isinstance(self._tree,TTree):
+      self._tree = self.getfile()
+    elif self._tree and isinstance(self._tree,TTree): # file & tree do exist
       LOG.verb("Sample.tree: Getting existing tree %s..."%(self._tree),level=3)
-    else:
+    else: # file does exist, but tree does not: get tree
       LOG.verb("Sample.tree: No valid tree (%s). Retrieving tree %r from file %s..."%(self._tree,self.treename,self.filename),level=3)
       self._tree = self.file.Get(self.treename)
+    setaliases(self._tree,self.aliases)
     return self._tree
   
   @tree.setter
@@ -526,6 +530,11 @@ class Sample(object):
         LOG.verb('Sample.replaceweight: before %r'%(self.extraweight),verbosity,2)
         self.extraweight = self.extraweight.replace(oldweight,newweight)
         LOG.verb('                      after  %r'%(self.extraweight),verbosity,2)
+  
+  def addalias(self, alias, formula, **kwargs):
+    """Add alias for TTree."""
+    #verbosity = LOG.getverbosity(kwargs)
+    self.aliases[alias] = formula
   
   def split(self,*splitlist,**kwargs):
     """Split sample into different components with some cuts, e.g.

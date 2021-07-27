@@ -103,10 +103,11 @@ def main(args):
   for era in eras:
     for channel in channels:
       setera(era) # set era for plot style and lumi-xsec normalization
-      rmsfs = [ ] if (channel=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
-      sampleset = getsampleset(channel,era,fname=fname,rmsf=rmsfs)
+      addsfs = [ ] #"getTauIDSF(dm_2,genmatch_2)"]
+      rmsfs  = [ ] if (channel=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
+      sampleset = getsampleset(channel,era,fname=fname,rmsf=rmsfs,addsf=addsfs) #,dyweight="")
       plot(sampleset,channel,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
-           varfilter=varfilter,selfilter=selfilter,pdf=pdf) #,dyweight="")
+           varfilter=varfilter,selfilter=selfilter,pdf=pdf)
       sampleset.close()
   
 

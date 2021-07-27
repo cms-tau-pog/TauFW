@@ -1,6 +1,6 @@
 # Description: Common configuration file for creating pico sample set plotting scripts
 import re
-from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, ensurelist,\
+from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, joinweights, ensurelist,\
                                        setera, getyear, loadmacro, Sel, Var
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
@@ -11,6 +11,7 @@ def getsampleset(channel,era,**kwargs):
   split  = kwargs.get('split',  ['DY']       ) # split samples (e.g. DY) into genmatch components
   join   = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
   rmsfs  = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
+  addsfs = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
   weight = kwargs.get('weight', None         ) # weight for all MC samples
   tag    = kwargs.get('tag',    ""           )
   table  = kwargs.get('table',  True         ) # print sample set table
@@ -167,6 +168,8 @@ def getsampleset(channel,era,**kwargs):
     weight = "genweight*trigweight*puweight*idisoweight_1*idisoweight_2"
   for sf in rmsfs: # remove (old) SFs, e.g. for SF measurement
     weight = weight.replace(sf,"").replace("**","*").strip('*')
+  for sf in addsfs:  # add extra SFs, e.g. for SF measurement
+    weight = joinweights(weight,sf)
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)

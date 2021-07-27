@@ -15,7 +15,7 @@ def testTauIDSF():
   
   # LOAD MACRO
   gROOT.ProcessLine(".L python/macros/tauIDSF.C+O")
-  #loadmacro("python/macros/tauIDSF.C+O")
+  #loadmacro("python/macros/tauIDSF.C")
   from ROOT import loadTauIDSF, getTauIDSF
   #from ROOT import TIDNom, TIDUp, TIDDown # enum
   
@@ -44,6 +44,7 @@ def testTauIDSF():
   aliases = [
     #("sf_dm","getTauIDSF(dm_2,genmatch_2)"), # does not work !?
     #("sf_dm","getTauIDSF(dm_2,genmatch_2,0)"), # does not work !?
+    ("sf_dm","getTauIDSF(dm_2,5,+0)"), # works
     ("sf_dm","getTauIDSF(dm_2,genmatch_2,+0)"), # works
     ("sf_dmUp","getTauIDSF(dm_2,genmatch_2,+1)"),
     ("sf_dmDown","getTauIDSF(dm_2,genmatch_2,-1)"),
@@ -55,15 +56,15 @@ def testTauIDSF():
   # DRAW HISTOGRAMS
   cut = "q_1*q_2<0 && iso_1<0.15 && idMedium_1 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8"
   sfs = [
-    "getTauIDSF(dm_2,genmatch_2)",
-    #"getTauIDSF(dm_2,genmatch_2,0)",
-    "getTauIDSF(dm_2,genmatch_2,1)",
-    "getTauIDSF(dm_2,genmatch_2,-1)",
-    #"getTauIDSF(dm_2,genmatch_2,%d)"%(TIDUp),
-    #"getTauIDSF(dm_2,genmatch_2,TIDUp)",
-    #"sf_dm",     # alias
-    #"sf_dmUp",   # alias
-    #"sf_dmDown", # alias
+    #"getTauIDSF(dm_2)",
+    ##"getTauIDSF(dm_2,genmatch_2,0)",
+    #"getTauIDSF(dm_2,genmatch_2,1)",
+    #"getTauIDSF(dm_2,genmatch_2,-1)",
+    ##"getTauIDSF(dm_2,genmatch_2,%d)"%(TIDUp),
+    ##"getTauIDSF(dm_2,genmatch_2,TIDUp)",
+    "sf_dm",     # alias
+    "sf_dmUp",   # alias
+    "sf_dmDown", # alias
   ]
   hists = [ ]
   for sf in sfs:
@@ -89,7 +90,7 @@ def testLoadHist():
   
   # LOAD MACRO
   gROOT.ProcessLine(".L python/macros/loadHist.C+O")
-  #loadmacro("python/macros/loadHist.C+O")
+  #loadmacro("python/macros/loadHist.C")
   from ROOT import loadHist, getBin
   
   # LOAD SF
