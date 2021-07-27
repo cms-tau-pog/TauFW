@@ -22,13 +22,15 @@ CLEAN=0
 SHIFTS="" #`seq $TES_FIRST $STEP_SIZE $TES_LAST`
 
 OPTIND=2
-while getopts ":c:JLm:rs:Tvx:y:" option; do case "${option}" in
+while getopts ":c:JLm:n:rq:s:Tvx:y:" option; do case "${option}" in
   c) CHANNELS="${OPTARG//,/ }";;
   J) SHIFTS+="JTF0p900 JTF1p100 ";;
   L) SHIFTS+="LTF0p970 LTF1p030 ";;
   m) OPTIONS+="-m $OPTARG ";;
+  n) OPTIONS="-n $OPTARG";;
   T) SHIFTS+="TES0p970 TES1p030 ";;
   r) OPTIONS+="-r "; CLEAN=1;;
+  q) OPTIONS="-q $OPTARG";;
   s) SAMPLES="${OPTARG//,/ }";;
   v) OPTIONS+="-v ";;
   x) OPTIONS+="-x ${OPTARG//,/ } ";;
@@ -50,6 +52,7 @@ for era in $ERAS; do
         [[ $shft = 'JTF'* ]] && SAMPLES_="DY TT W*J"
       fi
       OPTIONS_="-s $SAMPLES_ $OPTIONS"
+      
       CHANNEL_="${channel}_${shft}"
       peval "pico.py $CMD -c $CHANNEL_ -y $era $OPTIONS_"
       ###elif [ $CLEAN -gt 0 ]; then
