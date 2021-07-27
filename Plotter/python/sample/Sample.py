@@ -79,7 +79,8 @@ class Sample(object):
     self.blinddict    = kwargs.get('blind',        { }          ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
     self.fillcolor    = kwargs.get('color',        None         ) or (kBlack if self.isdata else self.setcolor()) # fill color
     self.linecolor    = kwargs.get('lcolor',       kBlack       ) # line color
-    self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search terms
+    self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search termsMergedSample
+    self.aliases      = ensurelist(kwargs.get('alias', [ ]      )) # aliases to be added to tree
     if not isinstance(self,MergedSample):
       file = ensureTFile(self.filename) # check file
       file.Close()
@@ -293,8 +294,8 @@ class Sample(object):
         self.setnevents(self.binnevts,self.binsumw,cutflow=self.cutflow)
         #self.normalize(lumi=self.lumi) # can affect scale computed by stitching
       if reldiff(sumw_old,self.sumweights)>0.02 or reldiff(sumw_old,self.sumweights)>0.02:
-        LOG.warn('Sample.appendfilename: file %s has a different number of events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
-          (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,sumw_old,nevts_old,norm_old))
+        LOG.warn("Sample.appendfilename: file %s has a different number of processed events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (sumw=%s, nevts=%s, norm=%s)!"%\
+                 (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,sumw_old,nevts_old,norm_old))
     elif ':' not in self.filename and not os.path.isfile(self.filename):
       LOG.warn('Sample.appendfilename: file %s does not exist!'%(self.filename))
     if isinstance(self,MergedSample):

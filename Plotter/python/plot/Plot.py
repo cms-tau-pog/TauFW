@@ -490,7 +490,7 @@ class Plot(object):
       print "Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
     
     if ratiorange:
-      ymin, ymax  = 1-ratiorange, 1+ratiorange
+      ymin, ymax  = 1.-ratiorange, 1.+ratiorange
     if intbins and nbins<15 and int(xmin)==xmin and int(xmax)==xmax and binwidth==1:
       LOG.verb("Plot.setaxes: Setting integer binning for (%r,%s,%d,%d)!"%(xtitle,nbins,xmin,xmax),verbosity,1)
       binlabels   = [str(i) for i in range(int(xmin),int(xmax)+1)]
