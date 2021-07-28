@@ -93,13 +93,20 @@ class Ratio(object):
     """Draw all objects."""
     verbosity   = LOG.getverbosity(kwargs,self)
     ratios      = self.ratios
-    xmin        = kwargs.get('xmin', self.histden.GetXaxis().GetXmin() )
-    xmax        = kwargs.get('xmax', self.histden.GetXaxis().GetXmax() )
-    ymin        = kwargs.get('ymin',    0.5     )
-    ymax        = kwargs.get('ymax',    1.5     )
-    data        = kwargs.get('data',    False   )
+    if isinstance(self.histden,TH1):
+      xmin      = self.histden.GetXaxis().GetXmin()
+      xmax      = self.histden.GetXaxis().GetXmax()
+    else: # assume TGraph(Asymm)(Errors)
+      xvals     = self.histden.GetX()
+      xmin      = min(xvals)
+      xmax      = max(xvals)
+    xmin        = kwargs.get('xmin',   xmin  )
+    xmax        = kwargs.get('xmax',   xmax  )
+    ymin        = kwargs.get('ymin',   0.5   )
+    ymax        = kwargs.get('ymax',   1.5   )
+    data        = kwargs.get('data',   False )
+    xtitle      = kwargs.get('xtitle', ""    )
     ytitle      = kwargs.get('ytitle', "Obs. / Exp." if data else "Ratio" )
-    xtitle      = kwargs.get('xtitle', ""      )
     size        = 1.0 if data else 0.0 #0.9
     #self.frame  = gPad.DrawFrame(xmin,ymin,xmax,ymax)
     frame       = getframe(gPad,self.histden,xmin=xmin,xmax=xmax)

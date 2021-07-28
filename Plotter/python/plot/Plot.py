@@ -215,7 +215,7 @@ class Plot(object):
     # DIVIDE BY BINSIZE
     if dividebins:
       for i, oldhist in enumerate(self.hists):
-        newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False)
+        newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,poisson=False)
         if oldhist!=newhist: # new hist is actually a TGraph
           LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
           self.hists[i] = newhist
