@@ -9,6 +9,60 @@ from TauFW.Plotter.plot.Plot import Plot
 from ROOT import gROOT, TFile, TH1D
 
 
+def testUtils():
+  """Test utils.C macro."""
+  print header("testUtils")
+  
+  # LOAD MACRO
+  gROOT.ProcessLine(".L python/macros/utils.C+O")
+  #loadmacro("python/macros/pileup.C")
+  from ROOT import TLorentzVector, TVector3
+  from ROOT import DeltaPhi, DeltaPhi2Pi, DeltaR, Mom, InvMass
+  
+  # CHECK InvMass
+  ptvals  = [ 10, 30, 100 ]
+  mvals   = [ 0, 10, 30, 100 ]
+  phivals = [ 0.0, 1.5, ] #3.0 ]
+  etavals = [ 0.0, 1.5, ] #3.0 ]
+  tlvs    = [(pt,e,p,m) for pt in ptvals for m in mvals for e in etavals for p in phivals if pt>m]
+  print ">>> %7s %5s %5s %6s %8s %8s %8s | %6s %5s %5s %6s %8s %8s %8s | %10s %10s %10s %9s"%(
+    'pt1','eta1','phi1','m1','p1','tlv1.P','tlv1.E','pt2','eta2','phi2','m2','p2','tlv2.P','tlv2.E','InvMass','tlv.M','diff [%]','tlv.E')
+  for pt1, eta1, phi1, m1 in tlvs:
+    for pt2, eta2, phi2, m2 in tlvs:
+      tlv1  = TLorentzVector()
+      tlv2  = TLorentzVector()
+      tlv1.SetPtEtaPhiM(pt1,eta1,phi1,m1)
+      tlv2.SetPtEtaPhiM(pt2,eta2,phi2,m2)
+      tlv   = tlv1+tlv2
+      invm1 = InvMass(pt1,eta1,phi1,m1,pt2,eta2,phi2,m2)
+      invm2 = tlv.M() # compare to ROOT
+      mdiff = 100.0*(invm1-invm2)
+      p1    = Mom(pt1,eta1)
+      p2    = Mom(pt2,eta2)
+      print ">>> %7.2f %5.2f %5.2f %6.2f %8.2f %8.2f %8.2f | %6.2f %5.2f %5.2f %6.2f %8.2f %8.2f %8.2f | %10.5f %10.5f %10.7f %9.3f"%(
+                 pt1,eta1,phi1,m1,p1,tlv1.P(),tlv1.E(),pt2,eta2,phi2,m2,p2,tlv2.P(),tlv2.E(),invm1,tlv.M(),mdiff,tlv.E())
+  print ">>> "
+  
+  # CHECK DeltaPhi, DeltaR
+  phivals = [ 0.0, 1.5, 2.5, ] #3.0 ]
+  etavals = [ 0.0, 1.5, 2.5, ] #3.0 ]
+  vecs    = [(e,p) for e in etavals for p in phivals]
+  print ">>> %7s %5s %5s %5s | %8s %11s %11s | %8s %9s"%(
+    'eta1','phi1','eta2','phi2','DeltaPhi','V3.DeltaPhi','DeltaPhi2Pi','DeltaR','V3.DeltaR')
+  for eta1, phi1 in vecs:
+    for eta2, phi2 in vecs:
+      dphi1 = DeltaPhi(phi1,phi2)
+      dphi2 = DeltaPhi2Pi(phi1,phi2)
+      dR    = DeltaR(eta1,phi1,eta2,phi2)
+      vec1  = TVector3()
+      vec2  = TVector3()
+      vec1.SetPtEtaPhi(10.,eta1,phi1)
+      vec2.SetPtEtaPhi(10.,eta2,phi2)
+      print ">>> %7.2f %5.2f %5.2f %5.2f | %8.4f %11.4f %11.4f | %8.4f %9.4f"%(
+                 eta1,phi1,eta2,phi2,dphi1,vec1.DeltaPhi(vec2),dphi2,dR,vec1.DeltaR(vec2))
+  print ">>> "
+  
+
 def testPileup():
   """Test pileup.C macro."""
   print header("testPileup")
@@ -221,6 +275,7 @@ def testLoadHist():
   
 
 def main():
+  testUtils()
   testPileup()
   testTopPtWeight()
   testTauIDSF()

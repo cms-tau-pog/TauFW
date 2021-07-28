@@ -1,5 +1,5 @@
 /*
- * @short: provide pileup weights at drawing level
+ * @short: Provide pileup weights at drawing level
  * @author: Izaak Neutelings (October 2018)
  *
  */
