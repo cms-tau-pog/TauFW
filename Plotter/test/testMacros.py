@@ -6,8 +6,74 @@ from TauFW.common.tools.log import header
 from TauFW.Plotter.sample.utils import loadmacro, setera
 from TauFW.Plotter.plot.string import makehistname
 from TauFW.Plotter.plot.Plot import Plot
-from ROOT import gROOT, gDirectory, TFile, TCanvas, TTree, TH1D
+from ROOT import gROOT, TFile, TH1D
 
+
+def testPileup():
+  """Test pileup.C macro."""
+  print header("testPileup")
+  
+  # LOAD MACRO
+  gROOT.ProcessLine(".L python/macros/pileup.C+O")
+  #loadmacro("python/macros/pileup.C")
+  from ROOT import loadPU, getPUWeight
+  
+  # LOAD SF
+  npvs = [ # must be integers
+    10, 20, 25, 28, 30, 35, 40, 45, 50, 60, 70,
+  ]
+  indir = "../PicoProducer/data/pileup/"
+  fnamesets = [
+    ("",""),
+    (indir+"Data_PileUp_UL2016_preVFP_69p2.root",indir+"MC_PileUp_UL2016_preVFP_Summer19.root"),
+  ]
+  for fname_data, fname_mc in fnamesets:
+    if fname_data or fname_mc:
+      loadPU(fname_data,fname_mc)
+    else:
+      loadPU()
+    print ">>> data=%r, mc=%r"%(fname_data,fname_mc)
+    print ">>> %7s %9s"%('npv','data/mc')
+    for npv in npvs:
+      weight = getPUWeight(npv)
+      print ">>> %7d %9.4f"%(npv,weight)
+    print ">>> "
+  
+
+def testTopPtWeight():
+  """Test topptweight.C macro."""
+  print header("testTopPtWeight")
+  
+  # LOAD MACRO
+  gROOT.ProcessLine(".L python/macros/topptweight.C+O")
+  #loadmacro("python/macros/topptweight.C")
+  from ROOT import getTopPtSF, getTopPtWeight
+  from ROOT import getTopPtSF_NNLO, getTopPtWeight_NNLO
+  
+  # LOAD SF
+  pts1 = [
+    10, 20, 50, 100, 200, 500, 1000
+  ]
+  pts2 = [
+    0, 10, 50, 100, 300
+  ]
+  funcs = [
+    ('Data/MC', getTopPtSF,      getTopPtWeight     ),
+    ('NNLO/NLO',getTopPtSF_NNLO, getTopPtWeight_NNLO),
+  ]
+  for title, sffunc, weightfunc in funcs:
+    print ">>> "+title
+    print ">>> %11s %9s %9s %9s %15s %10s"%('pt1','pt2','sf(pt1)','sf(pt2)','sf(pt1)*sf(pt2)','weight')
+    for pt1 in pts1:
+      sf1 = sffunc(pt1)
+      for pt2 in pts2:
+        if pt1>pt2: continue
+        sf2 = sffunc(pt2)
+        weight1 = sf1*sf2
+        weight2 = weightfunc(pt1,pt2)
+        print ">>> %11.1f %9.1f %9.4f %9.4f %15.4f %10.4f"%(pt1,pt2,sf1,sf2,weight1,weight2)
+    print ">>> "
+    
 
 def testTauIDSF():
   """Test tauIDSF.C macro."""
@@ -42,6 +108,7 @@ def testTauIDSF():
   
   # SET ALIASES
   aliases = [
+    # bug: https://github.com/root-project/root/pull/3797
     #("sf_dm","getTauIDSF(dm_2,genmatch_2)"), # does not work !?
     #("sf_dm","getTauIDSF(dm_2,genmatch_2,0)"), # does not work !?
     ("sf_dm","getTauIDSF(dm_2,5,+0)"), # works
@@ -151,8 +218,11 @@ def testLoadHist():
   plot.drawlegend()
   plot.saveas("plots/testMacros_loadHist.png")
   plot.close()
+  
 
 def main():
+  testPileup()
+  testTopPtWeight()
   testTauIDSF()
   testLoadHist()
   

@@ -330,8 +330,8 @@ sampleset.printtable()
 >>> ├─ SingleMuon_Run2016F     Observed                       -1.00   65047318.0   65047318.00     1.000  
 >>> ├─ SingleMuon_Run2016G     Observed                       -1.00  147941144.0  147941144.00     1.000  
 >>> └─ SingleMuon_Run2016H     Observed                       -1.00  171137991.0  171137991.00     1.000  
->>> DYJetsToLL_M-50            Drell-Yan 50                 4963.00  146280395.0  146277764.00     1.000  zptweight
->>> WJetsToLNu                 W + jets                    50260.00   86413370.0   86411825.00     1.000  
+>>> DYJetsToLL_M-50            Drell-Yan 50                 4963.00  146280395.0  146277764.00     1.218  zptweight
+>>> WJetsToLNu                 W + jets                    50260.00   86413370.0   86411825.00    20.880  
 >>> TT                         ttbar                         831.76   76915549.0   76914152.00     0.388  ttptweight
 ```
 The luminosity-cross section normalization is given by the `norm` column, which is [described above](#Sample).
@@ -500,3 +500,19 @@ Edit the desired variable pairs and selections in the script, and run for exampl
 ./plot2D.py -c mutau -y 2018 -s DY
 ```
 
+
+## Macros
+
+Several macros are provided in [`python/macros/`](python/macros).
+Their functions can be loaded using `ROOT` directly, e.g.
+```
+from ROOT import gROOT
+gROOT.ProcessLine(".L python/macros/tauIDSF.C+O")
+```
+or the help function
+```
+from TauFW.Plotter.sample.utils import loadmacro
+loadmacro("python/macros/tauIDSF.C")
+```
+After that, it can be used as in variable, selection or weight expressions
+in `TTree::Draw` or `TTree::MultiDraw` (including via `Sample.gethist`).
