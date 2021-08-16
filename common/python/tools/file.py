@@ -81,6 +81,19 @@ def ensuremodule(modname,package):
   return module
   
 
+def expandfiles(files,verb=0):
+  """Expend glob patterns in file list."""
+  files = files[:] # create new list
+  for fname in files[:]:
+    if isglob(fname):
+      fnames = glob.glob(fname) # expand glob pattern
+      if verb>=1:
+        print ">>> expandfiles: %r -> %s"%(fname,fnames)
+      index = files.index(fname)
+      files = files[:index] + fnames + files[index+1:] # insert expanded list
+  return files
+  
+
 def rmfile(filepaths,verb=0):
   """Remove (list of) files."""
   if isinstance(filepaths,basestring):
