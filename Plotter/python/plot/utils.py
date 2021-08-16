@@ -349,12 +349,12 @@ def getgraphratio(graphnum,histden,**kwargs):
   rgraph    = graphnum.__class__() # assume TGraphErrors or TGraphAsymmErrors
   rgraph.SetName(hname)
   copystyle(rgraph,graphnum)
-  ir        = 0 # index ratio graph
+  irat      = 0 # index ratio graph
   LOG.verb("getgraphratio: Making ratio of %s w.r.t. %s"%(graphnum,histden),verbosity,2)
   TAB = LOG.table("%4s %9s %9s  %4s %9s %9s  %4s %8s %-14s",
                   "%4d %9.5g %9.2f  %4d %9.5g %9.2f  %4d %8.2f +%5.2f  -%5.2f",verb=verbosity,level=3)
   if isinstance(histden,TH1): # ratio = TGraph graphnum / TH1 histden
-    TAB.printheader("inum","xval","yval","ibin","xval","yden","ir","ratio","error")
+    TAB.printheader("inum","xval","yval","ibin","xval","yden","irat","ratio","error")
     nbins = histden.GetXaxis().GetNbins()
     for ibin in range(0,nbins+2):
       xval = histden.GetXaxis().GetBinCenter(ibin)
@@ -379,15 +379,15 @@ def getgraphratio(graphnum,histden,**kwargs):
         rerrlow = yerrlow/yden
       elif zero:
         ratio = 1.0 if ynum==0 else yinf if ynum>0 else -yinf
-      rgraph.SetPoint(ir,xval,ratio)
+      rgraph.SetPoint(irat,xval,ratio)
       if isinstance(rgraph,TGraphErrors):
-        rgraph.SetPointError(ir,xerr,max(rerrupp,rerrlow))
+        rgraph.SetPointError(irat,xerr,max(rerrupp,rerrlow))
       elif isinstance(rgraph,TGraphAsymmErrors):
-        rgraph.SetPointError(ir,xerr,xerr,rerrlow,rerrupp)
-      TAB.printrow(inum,xval,ynum,iden,xval,yden,ir,ratio,rerrupp,rerrlow)
-      ir += 1
+        rgraph.SetPointError(irat,xerr,xerr,rerrlow,rerrupp)
+      TAB.printrow(inum,xval,ynum,ibin,xval,yden,irat,ratio,rerrupp,rerrlow)
+      irat += 1
   else: # ratio = TGraph graphnum / TGraph graphden
-    TAB.printheader("inum","xval","yval","iden","xval","yden","ir","ratio","error")
+    TAB.printheader("inum","xval","yval","iden","xval","yden","irat","ratio","error")
     #LOG.throw(IOError,"getgraphratio: Ratio between %s and %s not implemented..."%(graphnum,histden))
     graphden = histden # rename for readability
     nbins = graphden.GetN()
@@ -417,13 +417,13 @@ def getgraphratio(graphnum,histden,**kwargs):
         rerrlow = yerrlow/yden
       elif zero:
         ratio = 1.0 if ynum==0 else yinf if ynum>0 else -yinf
-      rgraph.SetPoint(ir,xval,ratio)
+      rgraph.SetPoint(irat,xval,ratio)
       if isinstance(rgraph,TGraphErrors):
-        rgraph.SetPointError(ir,xerrupp,max(rerrupp,rerrlow))
+        rgraph.SetPointError(irat,xerrupp,max(rerrupp,rerrlow))
       elif isinstance(rgraph,TGraphAsymmErrors):
-        rgraph.SetPointError(ir,xerrlow,xerrupp,rerrlow,rerrupp)
-      TAB.printrow(inum,xval,ynum,iden,xval,yden,ir,ratio,rerrupp,rerrlow)
-      ir += 1
+        rgraph.SetPointError(irat,xerrlow,xerrupp,rerrlow,rerrupp)
+      TAB.printrow(inum,xval,ynum,iden,xval,yden,irat,ratio,rerrupp,rerrlow)
+      irat += 1
   return rgraph
   
 
