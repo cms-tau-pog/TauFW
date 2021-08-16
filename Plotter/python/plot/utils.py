@@ -365,7 +365,7 @@ def getgraphratio(graphnum,histden,**kwargs):
         ynum = graphnum.Eval(xval)
       elif xval in xnums: # assume points coincide with histogram bin centers
         inum = xnums.index(xval)
-        ynum = ynums[ig]
+        ynum = ynums[inum]
       else:
         continue
       yerrupp = graphnum.GetErrorYhigh(inum) # -1 if graphnum is not TGraph(Asymm)Errors
