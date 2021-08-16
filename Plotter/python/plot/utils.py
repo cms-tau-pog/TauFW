@@ -344,9 +344,8 @@ def getgraphratio(graphnum,histden,**kwargs):
   #color     = kwargs.get('color',    None  )
   if tag:
     hname  += tag
-  if eval:
-    xnums = list(graphnum.GetX())
-    ynums = list(graphnum.GetY())
+  xnums     = list(graphnum.GetX())
+  ynums     = list(graphnum.GetY())
   rgraph    = graphnum.__class__() # assume TGraphErrors or TGraphAsymmErrors
   rgraph.SetName(hname)
   copystyle(rgraph,graphnum)
@@ -354,7 +353,7 @@ def getgraphratio(graphnum,histden,**kwargs):
   LOG.verb("getgraphratio: Making ratio of %s w.r.t. %s"%(graphnum,histden),verbosity,2)
   TAB = LOG.table("%4s %9s %9s  %4s %9s %9s  %4s %8s %-14s",
                   "%4d %9.5g %9.2f  %4d %9.5g %9.2f  %4d %8.2f +%5.2f  -%5.2f",verb=verbosity,level=3)
-  if isinstance(histden,TH1):
+  if isinstance(histden,TH1): # ratio = TGraph graphnum / TH1 histden
     TAB.printheader("inum","xval","yval","ibin","xval","yden","ir","ratio","error")
     nbins = histden.GetXaxis().GetNbins()
     for ibin in range(0,nbins+2):
@@ -387,7 +386,7 @@ def getgraphratio(graphnum,histden,**kwargs):
         rgraph.SetPointError(ir,xerr,xerr,rerrlow,rerrupp)
       TAB.printrow(inum,xval,ynum,iden,xval,yden,ir,ratio,rerrupp,rerrlow)
       ir += 1
-  else:
+  else: # ratio = TGraph graphnum / TGraph graphden
     TAB.printheader("inum","xval","yval","iden","xval","yden","ir","ratio","error")
     #LOG.throw(IOError,"getgraphratio: Ratio between %s and %s not implemented..."%(graphnum,histden))
     graphden = histden # rename for readability
@@ -398,15 +397,13 @@ def getgraphratio(graphnum,histden,**kwargs):
       xval = xdens[iden]
       yden = xdens[iden]
       xerrupp = graphden.GetErrorXhigh(iden) if errorX else 0
-      xerrlow = graphden.GetErrorXhigh(iden
-      ) if errorX else 0
+      xerrlow = graphden.GetErrorXhigh(iden) if errorX else 0
       inum = -1
       if eval:
-      
         ynum = graphnum.Eval(xval)
-      elif xval in xdens: # assume points coincide with denominator graph
-        inum = xdens.index(xval)
-        ynum = ydens[inum]
+      elif xval in xnums: # assume points coincide with denominator graph
+        inum = xnums.index(xval)
+        ynum = ynums[inum]
       else:
         continue
       yerrupp = graphnum.GetErrorYhigh(inum) # -1 if graphnum is not TGraph(Asymm)Errors
