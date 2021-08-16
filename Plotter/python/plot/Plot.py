@@ -191,6 +191,7 @@ class Plot(object):
     lcolors      = ensurelist(lcolors)
     fcolors      = ensurelist(fcolors)
     lstyles      = ensurelist(lstyles)
+    self.norm    = norm
     self.ratio   = ratio
     self.lcolors = lcolors
     self.fcolors = fcolors
@@ -202,7 +203,7 @@ class Plot(object):
     denom        = kwargs.get('den',   denom ) # alias
     denom        = kwargs.get('denom', denom ) # denominator histogram in ratio plot
     if verbosity>=1:
-      print ">>> Plot.draw: hists=%s"%(self.hists)
+      print ">>> Plot.draw: hists=%s, norm=%r"%(self.hists,norm)
       print ">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
     
     # NORMALIZE
@@ -557,7 +558,7 @@ class Plot(object):
     
     if ytitle==None:
       #ytitle = "Events"
-      if "multiplicity" in xtitle.lower():
+      if any(s in xtitle.lower() for s in ["multiplicity","number"]):
         ytitle = "Events"
       elif hmax<1.:
         ytitle = "A.U."
@@ -569,7 +570,7 @@ class Plot(object):
           hist0 = frame
         binwidth  = hist0.GetXaxis().GetBinWidth(0)
         binwidstr = ("%.3f"%binwidth).rstrip('0').rstrip('.')
-        units     = re.findall(r' [\[(](.+)[)\]]',xtitle) #+ re.findall(r' (.+)',xtitle)
+        units     = re.findall(r' [\[(]([^,><]+)[)\]]',xtitle) #+ re.findall(r' (.+)',xtitle)
         if hist0.GetXaxis().IsVariableBinSize():
           if units:
             ytitle = "Events / "+units[-1]

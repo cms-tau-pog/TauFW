@@ -9,13 +9,35 @@ from TauFW.Plotter.plot.Plot import LOG as PLOG
 from TauFW.Plotter.sample.utils import MC
 
 
+def getbaseline(channel):
+  if 'tautau' in channel:
+    cuts_iso  = "idDeepTau2017v2p1VSjet_1>=16 && idDeepTau2017v2p1VSjet_2>=16"
+    antilep   = "idDeepTau2017v2p1VSe_1>=2 && idDeepTau2017v2p1VSmu_1>=1 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=1"
+    baseline  = "q_1*q_2<0 && idDecayModeNewDMs_1 && idDecayModeNewDMs_2 && %s && %s && !lepton_vetos_noTau && metfilter"%(antilep,cuts_iso)
+  elif 'mutau' in channel:
+    idiso1   = "iso_1<0.15 && idMedium_1"
+    idiso2   = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8"
+    baseline = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(idiso1,idiso2)
+  return baseline
+
+
 def getmcsample(group,sample,title,xsec,channel,era,tag="",verb=0,**kwargs):
   """Simplified version of Plotter/config/samples.py:getsampleset"""
   #LOG.header("getmcsamples")
-  fname = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
+  fname   = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
+  user    = kwargs.get('user',  "" )
+  picodir = kwargs.get('pico',  "" )
   if 'e' in channel:
     channel = channel.replace('e','ele')
-  fname_ = repkey(fname,USER=user,ERA=era,GROUP=group,SAMPLE=sample,CHANNEL=channel,TAG=tag)
+  picodir = ""
+  if '$USER' in fname and not user:
+    import getpass
+    user = getpass.getuser()
+  if '$PICODIR' in fname and not picodir:
+    import TauFW.PicoProducer.tools.config as GLOB
+    CONFIG   = GLOB.getconfig(verb=0)
+    picodir  = CONFIG['picodir']
+  fname_ = repkey(fname,PICODIR=picodir,USER=user,ERA=era,GROUP=group,SAMPLE=sample,CHANNEL=channel,TAG=tag)
   if not os.path.isfile(fname_):
     print ">>> Did not find %r"%(fname_)
   name   = sample+tag
@@ -136,16 +158,16 @@ def compare_cuts(sampleset,channel,tag="",outdir="plots"):
   """Compare different selections."""
   LOG.header("compare_eras")
   
-  # SELECTIONS & VARIABLES
-  if 'tautau' in channel:
-    cuts_iso  = "idDeepTau2017v2VSjet_1>=16 && idDeepTau2017v2VSjet_2>=16"
-    antilep   = "idDeepTau2017v2VSe_1>=2 && idDeepTau2017v2VSmu_1>=1 && idDeepTau2017v2VSe_2>=2 && idDeepTau2017v2VSmu_2>=1"
-    baseline  = "q_1*q_2<0 && idDecayModeNewDMs_1 && idDecayModeNewDMs_2 && %s && %s && !lepton_vetos_noTau && metfilter"%(antilep,cuts_iso)
-  else:
-    cuts_iso  = "idDeepTau2017v2VSjet_2>=16"
-    antilep   = "idDeepTau2017v2VSe_2>=2 && idDeepTau2017v2VSmu_2>=8"
-    baseline  = "q_1*q_2<0 && idMedium_1 && pfRelIso04_all_1<0.15 && idDecayModeNewDMs_2 && %s && %s && !lepton_vetos && metfilter"%(antilep,cuts_iso)
-  selections  = [
+  # SELECTIONS & VARIABLESif 'tautau' in channel:
+  ###if 'tautau' in channel:
+  ###  cuts_iso  = "idDeepTau2017v2p1VSjet_1>=16 && idDeepTau2017v2p1VSjet_2>=16"
+  ###  antilep   = "idDeepTau2017v2p1VSe_1>=2 && idDeepTau2017v2p1VSmu_1>=1 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=1"
+  ###  baseline  = "q_1*q_2<0 && idDecayModeNewDMs_1 && idDecayModeNewDMs_2 && %s && %s && !lepton_vetos_noTau && metfilter"%(antilep,cuts_iso)
+  ###else:
+  ###  cuts_iso  = "idDeepTau2017v2p1VSjet_2>=16"
+  ###  antilep   = "idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8"
+  baseline   = getbaseline(channel)
+  selections = [
     ('baseline-medium-tight-muon','Baseline, Medium vs. Tight muon ID',
       Sel('Medium', baseline),
       Sel('Tight',  baseline.replace('idMedium_1','idTight_1')),
@@ -206,7 +228,7 @@ def compare_cuts(sampleset,channel,tag="",outdir="plots"):
   
 
 def compare_eras(eras,samplesets,channel,tag="",**kwargs):
-  """Test plotting of SampleSet class for data/MC comparison."""
+  """Compare different eras."""
   LOG.header("compare_eras",pre=">>>")
   if 'mu' in channel:
     snames = ['TT','DY','WJ','SingleMuon']
@@ -222,14 +244,15 @@ def compare_eras(eras,samplesets,channel,tag="",**kwargs):
   norms    = ensurelist(norms)
   
   # SELECTIONS
-  if 'mutau' in channel:
-    idiso1   = "iso_1<0.15"
-    idiso2   = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8"
-    baseline = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(idiso1,idiso2)
-  else:
-    cuts_iso = "idDeepTau2017v2VSjet_1>=16 && idDeepTau2017v2VSjet_2>=16"
-    antilep  = "idDeepTau2017v2VSe_1>=2 && idDeepTau2017v2VSmu_1>=1 && idDeepTau2017v2VSe_2>=2 && idDeepTau2017v2VSmu_2>=1"
-    baseline = "q_1*q_2<0 && idDecayModeNewDMs_1 && idDecayModeNewDMs_2 && %s && %s && !lepton_vetos_notau && metfilter"%(antilep,cuts_iso)
+  ###if 'mutau' in channel:
+  ###  idiso1   = "iso_1<0.15"
+  ###  idiso2   = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8"
+  ###  baseline = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(idiso1,idiso2)
+  ###else:
+  ###  cuts_iso = "idDeepTau2017v2p1VSjet_1>=16 && idDeepTau2017v2p1VSjet_2>=16"
+  ###  antilep  = "idDeepTau2017v2p1VSe_1>=2 && idDeepTau2017v2p1VSmu_1>=1 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=1"
+  ###  baseline = "q_1*q_2<0 && idDecayModeNewDMs_1 && idDecayModeNewDMs_2 && %s && %s && !lepton_vetos_notau && metfilter"%(antilep,cuts_iso)
+  baseline   = getbaseline(channel)
   selections = [
     Sel('baseline', baseline),
     Sel('baseline, muon pt > 24 GeV', baseline+" && pt_1>24", fname="baseline-ptgt24"),
@@ -278,6 +301,63 @@ def compare_eras(eras,samplesets,channel,tag="",**kwargs):
     print ">>> "
   
 
+def compare_samples(sname,samples,channel,tag="",**kwargs):
+  """Compare list of samples."""
+  LOG.header("compare_samples",pre=">>>")
+  outdir   = kwargs.get('outdir',   "plots" )
+  parallel = kwargs.get('parallel', True    ) #and False
+  norms    = kwargs.get('norm',     [True]  )
+  #entries  = kwargs.get('entries', [str(e) for e in eras] ) # for legend
+  exts     = kwargs.get('exts',     ['png'] ) # figure file extensions
+  ensuredir(outdir)
+  norms    = ensurelist(norms)
+  
+  # SELECTIONS
+  baseline   = getbaseline(channel)
+  selections = [
+    Sel('baseline', baseline),
+    Sel('baseline, muon pt > 24 GeV', baseline+" && pt_1>24", fname="baseline-ptgt24"),
+  ]
+  
+  # VARIABLES
+  variables = [
+    Var('m_vis',  23, 0, 460),
+    Var('pt_1',   "Leading tau_h pt",    18, 0, 270),
+    Var('pt_2',   "Subleading tau_h pt", 18, 0, 270),
+    #Var('jpt_1',  18, 0, 270),
+    #Var('jpt_2',  18, 0, 270),
+    #Var('met',    20, 0, 300),
+    Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   30, 0.70, 1, fname="$VAR_zoom",logy=True,pos='L;y=0.85'),
+    Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  20, 0.80, 1, fname="$VAR_zoom",logy=True,logyrange=4,pos='L;y=0.85'),
+    Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, pos='L;y=0.85',logy=True,ymargin=2.5),
+    Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 20, 0.80, 1, fname="$VAR_zoom",pos='L;y=0.85'),
+  ]
+  
+  # PLOT
+  header = samples[0].title
+  for selection in selections:
+    print ">>> %s: %r"%(selection,selection.selection)
+    hdict = { }
+    text  = "%s: %s"%(channel.replace("tau","tau_{h}"),selection.title)
+    fname = "%s/compare_samples_$VAR_%s_%s%s$TAG"%(outdir,sname,selection.filename,tag)
+    for sample in samples:
+      vars  = [v for v in variables if v.data or not sample.isdata]
+      hists = sample.gethist(vars,selection,parallel=parallel)
+      for variable, hist in zip(variables,hists):
+        hdict.setdefault(variable,[ ]).append(hist)
+    for variable, hists in hdict.iteritems():
+      for norm in norms:
+        ntag = '_norm' if norm else "" #_lumi"
+        plot = Plot(variable,hists,norm=norm)
+        plot.draw(ratio=True,lstyle=1)
+        plot.drawlegend(header=header) #,entries=entries)
+        plot.drawtext(text)
+        plot.saveas(fname,ext=['png'],tag=ntag) #,'pdf'
+        plot.close(keep=True)
+      deletehist(hists)
+  print ">>> "
+  
+
 def main(args):
   fname    = None #"$PICODIR/$SAMPLE_$CHANNEL.root" # fname pattern
   eras     = ['UL2018']
@@ -292,16 +372,31 @@ def main(args):
   ###    compare_cuts(sampleset,channel,tag="",outdir="plots")
   ###    sampleset.close()
   
-  # COMPARE ERAS
-  eras = ['UL2016_preVFP','UL2016_postVFP'] # eras to compare
-  for channel in channels:
-    samplesets = { }
-    for era in eras:
-      #samplesets[era] = getsampleset(channel,era,fname=fname,weight="")
-      samplesets[era] = getsampleset_simple(channel,era,fname=fname,weight="")
-    compare_eras(eras,samplesets,channel=channel,tag=tag,outdir="plots")
-    for era in eras:
-      samplesets[era].close()
+  ## COMPARE ERAS
+  #eras = ['UL2016_preVFP','UL2016_postVFP'] # eras to compare
+  #for channel in channels:
+  #  samplesets = { }
+  #  for era in eras:
+  #    #samplesets[era] = getsampleset(channel,era,fname=fname,weight="")
+  #    samplesets[era] = getsampleset_simple(channel,era,fname=fname,weight="")
+  #  compare_eras(eras,samplesets,channel=channel,tag=tag,outdir="plots")
+  #  for era in eras:
+  #    samplesets[era].close()
+  
+  # COMPARE SAMPLES
+  eras = ['UL2016_preVFP']
+  
+  channels = ['mutau',] #'tautau'
+  for era in eras:
+    setera(era) # set era for plot style and lumi-xsec normalization
+    for channel in channels:
+      samplesets = {
+        'DY': (getmcsample('DY',"DYJetsToLL_M-50","DYJetsToLL, Summer19",1.,channel,era,tag="_Summer19",verb=1),
+               getmcsample('DY',"DYJetsToLL_M-50","DYJetsToLL, Summer20",1.,channel,era,tag="_Summer20",verb=1),),
+      }
+      for sname, sampleset in samplesets.items():
+        compare_samples(sname,sampleset,channel
+        ,tag=tag,outdir="plots")
   
 
 if __name__ == "__main__":

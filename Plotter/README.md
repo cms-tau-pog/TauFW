@@ -24,6 +24,7 @@
 * [Plotting script](#Plotting-script)<br>
   * [Stacked data/MC](#Stacked-data-MC)<br>
   * [2D histograms](#2D-histograms)<br>
+* [Macros](#Macros)<br>
 
 
 ## Installation
@@ -503,16 +504,23 @@ Edit the desired variable pairs and selections in the script, and run for exampl
 
 ## Macros
 
-Several macros are provided in [`python/macros/`](python/macros).
+Several macros with help functions are provided in [`python/macros/`](python/macros).
 Their functions can be loaded using `ROOT` directly, e.g.
 ```
 from ROOT import gROOT
 gROOT.ProcessLine(".L python/macros/tauIDSF.C+O")
 ```
-or the help function
+or via the help function `loadmacro` as
 ```
 from TauFW.Plotter.sample.utils import loadmacro
 loadmacro("python/macros/tauIDSF.C")
 ```
-After that, it can be used as in variable, selection or weight expressions
+After that, it can be imported from ROOT
+```
+from ROOT import loadTauIDSF, getTauIDSF
+loadTauIDSF("sfs.root",'Medium')
+sf = getTauIDSF(dm,genmatch)
+```
+or used as in variable, selection or weight expressions
 in `TTree::Draw` or `TTree::MultiDraw` (including via `Sample.gethist`).
+Some examples of usage are shown in [`test/testMacros.py`](test/testMacros.py).
