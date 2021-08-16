@@ -551,7 +551,7 @@ def checkchunks(sample,**kwargs):
       bad        = False # count each chunk only once: bad, else missing
       for fname in chunkfiles: # check bad (corrupted) or missing
         LOG.insist(fname not in resubfiles,"Found file for chunk '%d' more than once: %s "%(ichunk,fname)+
-                                           "Possible overcounting or conflicting job output file format!")
+                                           " Possible overcounting or conflicting job output file format! Check %s"%(oldcfgname))
         if fname in goodfiles: # good file, do not resubmit
           keepfiles.append(fname)
         else:
@@ -622,7 +622,7 @@ def checkchunks(sample,**kwargs):
       if match:
         ichunk = int(match.group(1))
         LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for file %s! Chunkdict has %s"%(ichunk,fname,sorted(chunkdict.keys()))+
-                                       "Possible overcounting or conflicting job output file format!")
+                                       " Possible overcounting or conflicting job output file format! Check %s"%(oldcfgname))
         if ichunk in pendchunks:
           continue
       else:
