@@ -210,7 +210,7 @@ Other optional keyword arguments are
 To get a file list for a particular sample in the sample list, you can use the `get files` subcommand.
 If you include `--write`, the list will be written to a text file as defined by `filelistdir` in the [configuration](#Configuration):
 ```
-pico.py get files -y 2016 -s DYJets --write
+pico.py get files -y 2016 -s DYJets --write --url
 ```
 Pass the full path of this text file to the sample via `files`.
 It may contain variables, e.g. `samples/files/$ERA/$SAMPLE.txt`.

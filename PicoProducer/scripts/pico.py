@@ -164,9 +164,10 @@ def main_get(args):
             print ">>>   ]"
           print ">>> "
           if writedir: # write files to text files
+            sample.filelist = None # do not load from existing text file; overwrite existing ones
             flistname = repkey(writedir,ERA=era,GROUP=sample.group,SAMPLE=sample.name,TAG=tag)
             print ">>> Write list to %r..."%(flistname)
-            sample.writefiles(flistname,nevts=getnevts,ncores=ncores)
+            sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,ncores=ncores,verb=verbosity)
   
   # CONFIGURATION
   else:

@@ -217,7 +217,7 @@ class Sample(object):
   
   def getfiles(self,das=False,refresh=False,url=True,limit=-1,verb=0):
     """Get list of files from storage system (default), or DAS (if no storage system of das=True)."""
-    LOG.verb("getfiles: das=%r, refresh=%r, url=%r, limit=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
+    LOG.verb("Sample.getfiles: das=%r, refresh=%r, url=%r, limit=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
       das,refresh,url,limit,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist)
@@ -229,8 +229,9 @@ class Sample(object):
       else:
         LOG.verb("getfiles: Refreshing file list...",verb,2)
       files = [ ]
+      pathfiles = { }
       for daspath in self.paths: # loop over DAS dataset paths
-        self.pathfiles[daspath] = [ ]
+        pathfiles[daspath] = [ ]
         if (self.storage and not das) or (not self.instance): # get files from storage system
           postfix = self.postfix+'.root'
           sepath  = repkey(self.storepath,PATH=daspath,DAS=daspath).replace('//','/')
@@ -246,17 +247,23 @@ class Sample(object):
             if url and url_ not in line and 'root://' not in line:
               line = url_+line
             files.append(line)
-            self.pathfiles[daspath].append(line)
-        self.pathfiles[daspath].sort()
-        if not self.pathfiles[daspath]:
+            pathfiles[daspath].append(line)
+        if not pathfiles[daspath]:
           LOG.warning("getfiles: Did not find any files for %s"%(daspath))
       files.sort() # for consistent list order
       if not das or not self.storage:
         self.files = files # store cache for efficiency
+        for daspath in pathfiles:
+          pathfiles[daspath].sort()
+          self.pathfiles = pathfiles
     elif url and any(url_ not in f for f in files): # add url if missing
       files = [(url_+f if url_ not in f else f) for f in files]
+      for daspath in self.pathfiles:
+        self.pathfiles[daspath] = [(url_+f if url_ not in f else f) for f in self.pathfiles[daspath]]
     elif not url and any(url_ in f for f in files): # remove url
       files = [f.replace(url_,"") for f in files]
+      for daspath in self.pathfiles:
+        self.pathfiles[daspath] = [f.replace(url_,"") for f in self.pathfiles[daspath]]
     return files[:] # pass copy to protect private self.files
   
   def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,ncores=0,verb=0):
@@ -343,9 +350,9 @@ class Sample(object):
             _writefile(lfile,infile)
         else: # divide up list per DAS dataset path
           if self.nevents>0:
-            print ">>> Write %s files to list %r..."%(len(files),listname_)
-          else:
             print ">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_)
+          else:
+            print ">>> Write %s files to list %r..."%(len(files),listname_)
           for i, path in enumerate(self.paths):
             print ">>>   %3s files for %s..."%(len(self.pathfiles[path]),path)
             lfile.write("DASPATH=%s\n"%(path)) # write special line to text file, which loadfiles() can parse
