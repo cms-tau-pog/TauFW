@@ -43,14 +43,14 @@ class ModuleTauPair(Module):
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
     self.dopdf      = kwargs.get('dopdf',    False          ) and self.ismc # store PDF & scale weights
     self.dorecoil   = kwargs.get('recoil',   False          ) and self.ismc # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
-    self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None]
+    self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None] # store fewer branches and events
     self.dotight    = kwargs.get('tight',    self.dotight   ) # save memory
     self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = 30
-    self.bjetCutEta = 2.7
+    self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
     assert self.year in [2016,2017,2018], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
@@ -61,14 +61,14 @@ class ModuleTauPair(Module):
     self.filter     = getmetfilters(self.era,self.isdata,verb=self.verbosity)
     
     # CORRECTIONS
-    self.ptnom            = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
-    self.jecUncLabels     = [ ]
-    self.metUncLabels     = [ ]
+    self.ptnom        = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
+    self.jecUncLabels = [ ]
+    self.metUncLabels = [ ]
     if self.ismc:
-      self.puTool         = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
-      self.btagTool       = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+      self.puTool     = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+      self.btagTool   = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
-        self.zptTool      = ZptCorrectionTool(era=self.era)
+        self.zptTool  = ZptCorrectionTool(era=self.era)
       #if self.dorecoil:
       #  self.recoilTool   = RecoilCorrectionTool(year=self.year)
       #if self.year in [2016,2017]:
@@ -82,7 +82,7 @@ class ModuleTauPair(Module):
       if self.isUL and self.tes==None:
         self.tes = 1.0 # placeholder
     
-    self.deepcsv_wp       = BTagWPs('DeepCSV',year=self.year)
+    self.deepcsv_wp = BTagWPs('DeepCSV',year=self.year)
     
   
   def beginJob(self):
@@ -337,9 +337,9 @@ class ModuleTauPair(Module):
         #self.out.qweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, Qren=1.0, Qfact=2.0 (rel.)
         #self.out.qweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, Qren=2.0, Qfact=1.0 (rel.)
         #self.out.qweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, Qren=2.0, Qfact=2.0 (rel.)
-      #self.out.btagweight_bc[0],     self.out.btagweight_usdg[0]     = self.btagTool.getFlavorWeight(jets)
-      #self.out.btagweight_bcUp[0],   self.out.btagweight_usdgUp[0]   = self.btagTool.getFlavorWeight(jets,unc='Up')
-      #self.out.btagweight_bcDown[0], self.out.btagweight_usdgDown[0] = self.btagTool.getFlavorWeight(jets,unc='Down')
+      #self.out.btagweight_bc[0],     self.out.btagweight_udsg[0]     = self.btagTool.getFlavorWeight(jets)
+      #self.out.btagweight_bcUp[0],   self.out.btagweight_udsgUp[0]   = self.btagTool.getFlavorWeight(jets,unc='Up')
+      #self.out.btagweight_bcDown[0], self.out.btagweight_udsgDown[0] = self.btagTool.getFlavorWeight(jets,unc='Down')
     #if self.year in [2016,2017]:
     #  self.out.prefireweightDown[0], self.out.prefireweight[0], self.out.prefireweightUp[0] = self.prefireTool.getWeight(event)
     

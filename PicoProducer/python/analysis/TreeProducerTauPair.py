@@ -23,6 +23,7 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('lumi',                'i')
     self.addBranch('evt',                 'i')
     self.addBranch('data',                '?', module.isdata)
+    self.setAlias("year",str(module.year)) # save as alias to storage space
     
     self.addBranch('npv',                 'i', title="number of offline primary vertices")
     self.addBranch('npv_good',            'i')
@@ -65,9 +66,9 @@ class TreeProducerTauPair(TreeProducer):
       #  self.addBranch('btagweight_bc',      'f', 1., title="b tagging weight, heavy flavor")
       #  self.addBranch('btagweight_bcUp',    'f', 1., title="b tagging weight, heavy flavor up")
       #  self.addBranch('btagweight_bcDown',  'f', 1., title="b tagging weight, heavy flavor down")
-      #  self.addBranch('btagweight_usdg',    'f', 1., title="b tagging weight, light flavor")
-      #  self.addBranch('btagweight_usdgUp',  'f', 1., title="b tagging weight, light flavor up")
-      #  self.addBranch('btagweight_usdgDown','f', 1., title="b tagging weight, light flavor down")
+      #  self.addBranch('btagweight_udsg',    'f', 1., title="b tagging weight, light flavor")
+      #  self.addBranch('btagweight_udsgUp',  'f', 1., title="b tagging weight, light flavor up")
+      #  self.addBranch('btagweight_udsgDown','f', 1., title="b tagging weight, light flavor down")
       self.addBranch('prefireweight',       'f', 1.)
       self.addBranch('prefireweightUp',     'f', 1.)
       self.addBranch('prefireweightDown',   'f', 1.)
@@ -128,6 +129,10 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('pzetamiss',           'f', title="projection of MET onto zeta axis")
     self.addBranch('dzeta',               'f', title="pzetamiss-0.85*pzetavis")
     self.addBranch('chi',                 'f', title="exp|y_2-y_1|")
+    #self.setAlias("dzeta","pzetamiss-0.85*pzetavis")
+    #self.setAlias("chi","exp(abs(eta_1-eta_2))")
+    self.setAlias("st","pt_1+pt_2+jpt_1")
+    self.setAlias("stmet","pt_1+pt_2+jpt_1+met")
     
     self.addBranch('dilepton_veto',       '?')
     self.addBranch('extraelec_veto',      '?')
