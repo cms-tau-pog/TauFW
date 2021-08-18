@@ -1,7 +1,8 @@
 # Author: Izaak Neutelings (December 2018)
 # HTT: https://github.com/CMS-HTT/LeptonEfficiencies
 # MuonPOG: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2
-# https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2017
+# https://twiki.cern.ch/twiki/bin/view/CMS/MuonPOG#User_Recommendations
+# https://twiki.cern.ch/twiki/bin/view/CMS/MuonLegacy2016
 import os
 from TauFW.PicoProducer import datadir
 from ScaleFactorTool import ScaleFactor, ScaleFactorHTT
@@ -51,6 +52,7 @@ class MuonSFs:
         self.sftool_idiso = sftool_id*sftool_iso
     else:
       if era=='2016':
+        # https://gitlab.cern.ch/cms-muonPOG/MuonReferenceEfficiencies/-/tree/master/EfficienciesStudies/2016_trigger
         #self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb)
         self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu24.root",'ZMass','mu_trig',verb=verb)
         self.sftool_idiso = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IdIso.root",'ZMass','mu_idiso',verb=verb)
