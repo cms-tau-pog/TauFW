@@ -103,7 +103,7 @@ def getBTagEfficiencies(tagger,wp,outfilename,samples,year,channel,tag="",plot=F
       hist_all.Write(hname_all,TH2F.kOverwrite)
       hist_eff.Write(hname_eff,TH2F.kOverwrite)
       if plot:
-        plot1D(hname_eff+"_vs_pt",hist,hist_all,year,channel,title=hist_eff.GetTitle(),log=True)
+        plot1D(hname_eff+"_vs_pt",hist,hist_all,year,channel,title=hist_eff.GetTitle(),log=True,write=True)
         plot2D(hname_eff,hist_eff,year,channel,log=True)
         plot2D(hname_eff,hist_eff,year,channel,log=False)
     file.Close()
@@ -118,7 +118,7 @@ def plot2D(hname,hist,year,channel,log=False):
       name += "_log"
     xtitle = "Jet p_{T} [GeV]"
     ytitle = "Jet #eta"
-    ztitle = 'b tag efficiencies' if '_b_' in hname else 'b mistag rate'
+    ztitle = 'B tag efficiencies' if '_b_' in hname else 'B mistag rate'
     xmin, xmax = 20, hist.GetXaxis().GetXmax()
     zmin, zmax = 5e-3 if log else 0.0, 1.0
     angle  = 22 if log else 77
@@ -175,15 +175,15 @@ def plot2D(hname,hist,year,channel,log=False):
     canvas.Close()
     
 
-def plot1D(hname,histnum2D,histden2D,year,channel,title="",log=False):
+def plot1D(hname,histnum2D,histden2D,year,channel,title="",log=False,write=True):
     """Plot efficiency."""
     dir      = ensureDirectory('plots/%d'%year)
     name     = "%s/%s_%s"%(dir,hname,channel)
     if log:
       name  += "_log"
     header   = ""
-    xtitle   = 'jet p_{T} [GeV]'
-    ytitle   = 'b tag efficiencies' if '_b_' in hname else 'b mistag rate'
+    xtitle   = 'Jet p_{T} [GeV]'
+    ytitle   = 'B tag efficiencies' if '_b_' in hname else 'B mistag rate'
     xmin, xmax = 20 if log else 10, histnum2D.GetXaxis().GetXmax()
     ymin, ymax = 5e-3 if log else 0.0, 2.0
     colors   = [kBlue, kRed, kOrange]
@@ -249,6 +249,8 @@ def plot1D(hname,histnum2D,histden2D,year,channel,title="",log=False):
       legend.AddEntry(hist,hist.GetTitle(),'lep')
     legend.Draw()
     
+    if write:
+      canvas.Write(os.path.basename(name))
     canvas.SaveAs(name+'.pdf')
     canvas.SaveAs(name+'.png')
     canvas.Close()
@@ -290,7 +292,8 @@ def makeTitle(tagger,wp,flavor,channel,year):
     flavor = 'c quark'
   else:
     flavor = 'light-flavor'
-  string = "%s, %s %s WP (%s, %d)"%(flavor,tagger,wp,channel.replace('tau',"#tau_{h}").replace('mu',"#mu").replace('ele',"e"),year)
+  channel = channel.replace('tau',"#tau_{h}").replace('mu',"#mu").replace('ele',"e")
+  string = "%s, %s %s WP (%s, %d)"%(flavor,tagger,wp,channel,year)
   return string
   
 
