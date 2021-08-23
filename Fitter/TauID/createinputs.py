@@ -141,7 +141,7 @@ def main(args):
         ptbins = [20,25,30,35,40,50,70,2000] #500,1000]
         print ">>> DM cuts:"
         for dm in dmbins:
-          dmcut = "pt_2>40 && dm_2==%d"%(dm)
+          dmcut = "pt_2>40 && dm_2==%d"%(dm) # tau pt > 40 for ditau triggers
           fname = "$FILE_dm%s"%(dm)
           mvis_cut = mvis.clone(fname=fname,cut=dmcut) # create observable with extra cut for dm bin
           print ">>>   %r (%r)"%(dmcut,fname)
