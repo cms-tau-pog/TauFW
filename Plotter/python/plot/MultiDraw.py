@@ -182,6 +182,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     manager = TTreeFormulaManager()
     for formula in xformulae + yformulae + weights + [commonFormula]:
       if isinstance(formula,TTreeFormula):
+        formula.GetNdata() # https://sft.its.cern.ch/jira/browse/ROOT-7465
         manager.Add(formula)
     
     manager.Sync()
