@@ -533,8 +533,14 @@ class Sample(object):
   
   def addalias(self, alias, formula, **kwargs):
     """Add alias for TTree."""
-    #verbosity = LOG.getverbosity(kwargs)
-    self.aliases[alias] = formula
+    verbosity = LOG.getverbosity(kwargs)
+    if isinstance(self,MergedSample):
+      for sample in self.samples:
+        sample.addalias(alias,formula,**kwargs)
+    else:
+      LOG.verb('Sample.addalias: %r: %r -> %r'%(self,alias,formula),verbosity,2)
+      self.aliases[alias] = formula
+      LOG.verb('Sample.addalias: %r: aliases = %s'%(self,self.aliases),verbosity,4)
   
   def split(self,*splitlist,**kwargs):
     """Split sample into different components with some cuts, e.g.
