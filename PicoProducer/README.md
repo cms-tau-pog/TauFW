@@ -90,6 +90,8 @@ The configurable variables include:
 * `maxevtsperjob`: Default limit on events processed per job. This is overrides `nfilesperjob` and can be set per sample (see below).
 * `queue`: batch system queue ("job flavor" for HTCondor, "partition" for SLURM). For default setting look in the [`.sub` files](https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer/python/batch).
 * `filelistdir`: Directory to save list of nanoAOD files to run on (e.g. `samples/files/$ERA/$SAMPLE.txt`).
+* `maxopenfiles`: Maximum number of open files during hadd step.
+* `ncores`: Number of cores for counting events & validating of files in parallel.
 
 Defaults are given in [`config/config.json`](config/config.json).
 Note the directories can contain variables with `$` like
@@ -199,7 +201,8 @@ Other optional keyword arguments are
   and allow for short resubmission in case of failure.
   Small files will still be combined on one job as long as the sum of their events is below this maximum.
   This overrides the default `maxevtsperjob` in the configuration and any `nfilesperjob` settings.
-  A good choice is between `20000` and `400000` depends on the queuing of the batch system, and how many samples you want to run.
+  A good choice is between `50000` and `500000`, depending on the queuing of the batch system, and how many large samples you want to run.
+  Too many jobs may cause a large number of log files taking up space.
 * `blacklist`: A list of files that you do not want to run on. This is useful if some files are corrupted.
 * `opts`: Extra key-worded options (`key=value`) to be passed to the analysis modules.
   Can be a comma-separated string (`'opt1=val1,opt2=val2'`) or a list of strings (`['opt1=val1','opt2=val2']`).
@@ -207,7 +210,7 @@ Other optional keyword arguments are
 To get a file list for a particular sample in the sample list, you can use the `get files` subcommand.
 If you include `--write`, the list will be written to a text file as defined by `filelistdir` in the [configuration](#Configuration):
 ```
-pico.py get files -y 2016 -s DYJets --write
+pico.py get files -y 2016 -s DYJets --write --url
 ```
 Pass the full path of this text file to the sample via `files`.
 It may contain variables, e.g. `samples/files/$ERA/$SAMPLE.txt`.
@@ -310,12 +313,13 @@ If jobs failed, you can resubmit with
 ```
 pico.py resubmit -y 2016 -c mutau
 ```
-This will resubmit files that are missing or corrupted (unless they are associated with a running job).
+This will resubmit files that are missing or corrupted, unless they are associated with a pending or running job.
 In case the jobs take too long, you can specify a smaller number of files per job with `--filesperjob` on the fly,
 or use `--split` to split the previous number.
 Otherwise you can limit the number of events per job with `--maxevts` if it was not already set in the first submission.
 
-Use `--skipevts` to speed up the resubmission by checking for missing files. 
+Use `--skipevts` to speed up the resubmission by checking for missing files without opening,
+and `--checkqueue 1` to only check the batch system for pending or running jobs once.
 
 
 ### Finalize
@@ -329,6 +333,7 @@ as it is preferred to keep skimmed nanoAOD files split for further batch submiss
 
 
 ### Clean
+After a while, many small job configuration and log files can accumulate.
 Remove leftover job output files and directories with the `clean` subcommand
 (or use `-r` with `hadd`):
 ```
@@ -374,7 +379,7 @@ etc.
 
 This framework might not work for your computing system... yet.
 It was created with a modular design in mind, meaning that users can add their own
-"plug-in" modules to make it work with their own batch system and storage system.
+"plug-in" modules to make the scripts work with their own batch system and storage system.
 If you like to contribute, please make sure the changes run as expected,
 and then push the changes to a fork to make a pull request.
 
@@ -386,7 +391,7 @@ and the module's filename should be the same as the class.
 See for example [`HTCondor.py`](python/batch/HTCondor.py).
 If you need extra (shell) scripts, leave them in `python/batch` as well.
 Then you need to implement your `submit` command to the `main_submit` function in
-[`pico.py`](https://github.com/cms-tau-pog/TauFW/blob/b4d14574226b095d020936eb54c3d8bb995624d3/PicoProducer/scripts/pico.py#L1007-L1030),
+[`python/pico/job.py`](https://github.com/cms-tau-pog/TauFW/blob/5d35595d5c0e669ed2922b8b3c6678cefaf52427/PicoProducer/python/pico/job.py#L782-L805),
 where you define the script and some extra keyword options via `jkwargs`, for example:
 ```
 def main_submit(args):

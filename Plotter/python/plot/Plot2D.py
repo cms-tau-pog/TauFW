@@ -60,6 +60,7 @@ class Plot2D(Plot):
       self.ybinlabels = kwargs.get('ybinlabels', yvariable.binlabels )
       self.logz       = kwargs.get('logz',       xvariable.logy      )
       self.position   = kwargs.get('position',   xvariable.position  )
+      self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable.filename,xvariable.filename))
     else:
       self.xvariable  = xvariable or hist.GetXaxis().GetTitle()
       self.yvariable  = yvariable or hist.GetYaxis().GetTitle()
@@ -75,10 +76,10 @@ class Plot2D(Plot):
       self.ybinlabels = kwargs.get('ybinlabels', None                      )
       self.logz       = kwargs.get('logz',       False                     )
       self.position   = kwargs.get('position',   ""                        )
+      self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable,xvariable))
     self.zmin = kwargs.get('zmin', hist.GetMinimum() )
     self.zmax = kwargs.get('zmax', hist.GetMaximum() )
     self.hist = hist
-    self.name = kwargs.get('name',"%s_vs_%s"%(yvariable,xvariable))
     
   def draw(self,*args,**kwargs):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
@@ -90,6 +91,7 @@ class Plot2D(Plot):
     xtitle       = kwargs.get('xtitle',       self.xtitle                 )
     ytitle       = kwargs.get('ytitle',       self.ytitle                 )
     ztitle       = kwargs.get('ztitle',       ""                          )
+    zcenter      = kwargs.get('zcenter',      "Events" not in ztitle      )
     xmin         = kwargs.get('xmin',         self.xmin                   )
     xmax         = kwargs.get('xmax',         self.xmax                   )
     ymin         = kwargs.get('ymin',         self.ymin                   )
@@ -193,7 +195,7 @@ class Plot2D(Plot):
     frame.GetXaxis().SetTitleOffset(xoffset)
     frame.GetYaxis().SetTitleOffset(yoffset)
     frame.GetZaxis().SetTitleOffset(zoffset)
-    frame.GetZaxis().CenterTitle(True)
+    frame.GetZaxis().CenterTitle(zcenter)
     frame.GetXaxis().SetTitle(makelatex(xtitle))
     frame.GetYaxis().SetTitle(makelatex(ytitle))
     frame.GetZaxis().SetTitle(makelatex(ztitle))
@@ -235,15 +237,16 @@ class Plot2D(Plot):
     if CMSStyle.lumiText:
       CMSStyle.setCMSLumiStyle(gPad,0)
   
-  def drawprofile(self,axes,entries=[ ],**kwargs):
+  def drawprofile(self,axes='x',opt="",entries=[ ],**kwargs):
     """Draw profile on canvas."""
+    # Options: https://root.cern.ch/doc/master/classTProfile.html#a1ff9340284c73ce8762ab6e7dc0e6725
     self.profiles = [ ]
     # MAKE PROFILE
     for i, axis in enumerate(axes):
-      profile = self.hist.ProfileX() if "x"==axis.lower() else self.hist.ProfileY()
+      profile = self.hist.ProfileX(opt) if "x"==axis.lower() else self.hist.ProfileY(opt)
       color   = kRed
       if i<len(entries):
-        profile.SetTitle(entries[i])
+        profile.SetTitle(entries[i]) # for legend
       profile.SetLineColor(color)
       profile.SetMarkerColor(color)
       profile.SetLineWidth(3)

@@ -35,6 +35,7 @@ def QCD_OSSS(self, variables, selection, **kwargs):
   #relax          = kwargs.get('relax',           relax          ) #and not vetoRelax
   #file           = kwargs.get('saveto',          None           )
   parallel       = kwargs.get('parallel',        False          )
+  negthres       = kwargs.get('negthres',        0.25           ) # threshold for warning about negative QCD bins
   
   # SCALE
   if "q_1*q_2>0" in cuts_OS.replace(' ',''):
@@ -110,13 +111,15 @@ def QCD_OSSS(self, variables, selection, **kwargs):
     
     # ENSURE positive bins
     nneg = 0
-    for i, bin in enumerate(qcdhist):
+    nbins = qcdhist.GetXaxis().GetNbins()+2 # include under-/overflow
+    for i in range(0,nbins):
+      bin = qcdhist.GetBinContent(i)
       if bin<0:
         qcdhist.SetBinContent(i,0)
         qcdhist.SetBinError(i,1)
         nneg += 1
-    if nneg>0:
-      LOG.warning("SampleSet.QCD_OSSS: %r has %d/%d negative bins! Set to 0 +- 1."%(variable.name,nneg,variable.nbins),pre="  ")
+    if nbins and nneg/nbins>negthres:
+      LOG.warning("SampleSet.QCD_OSSS: %r has %d/%d>%.1f%% negative bins! Set to 0 +- 1."%(variable.name,nneg,nbins,100.0*negthres),pre="  ")
     
     # YIELDS
     #if relax:

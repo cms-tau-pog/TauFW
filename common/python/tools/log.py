@@ -39,13 +39,14 @@ def underlined(string,**kwargs):
   
 
 #_headeri = 0
-def header(*strings):
+def header(*strings,**kwargs):
   #global _headeri
+  prefix = kwargs.get('pre',"")
   title  = ', '.join([str(s) for s in strings if s]) #.lstrip('_')
-  string = "\n" +\
-           "   ###%s\n"    % ('#'*(len(title)+3)) +\
-           "   #  %s  #\n" % (title) +\
-           "   ###%s\n"    % ('#'*(len(title)+3))
+  string = prefix+"\n" +\
+           prefix+"   ###%s\n"    % ('#'*(len(title)+3)) +\
+           prefix+"   #  %s  #\n" % (title) +\
+           prefix+"   ###%s\n"    % ('#'*(len(title)+3)) + prefix
   #_headeri += 1
   return string
   
@@ -66,7 +67,9 @@ class Logger(object):
     """Decide verbosity level based on maximum of own verbosity and given arguments."""
     verbs = [ self.verbosity ]
     for arg in args:
-      if isinstance(arg,dict):
+      if isinstance(arg,(int,float,long)):
+        verbosity = int(arg)
+      elif isinstance(arg,dict):
         verbosity = arg.get('verb',0) + arg.get('verbosity',0)
       elif hasattr(arg,'verbosity'):
         verbosity = arg.verbosity
@@ -103,6 +106,7 @@ class Logger(object):
     return False
   
   def verb(self,*args,**kwargs):
+    """Alias for Logger.verbose."""
     return self.verbose(*args,**kwargs)
   
   def getcolor(self,*args,**kwargs):
@@ -127,6 +131,10 @@ class Logger(object):
       exclam  = color(kwargs.get('exclam',"Warning! "),'yellow',b=True,pre=self.pre+kwargs.get('pre',""))
       message = color(string,'yellow',pre="")
       print exclam+message
+  
+  def warn(self,*args,**kwargs):
+    """Alias for Logger.warn."""
+    return self.warning(*args,**kwargs)
   
   def title(self,*args,**kwargs):
     print header(*args,**kwargs)

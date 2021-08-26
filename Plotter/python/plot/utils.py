@@ -38,7 +38,9 @@ def getframe(pad,hist,xmin=None,xmax=None,**kwargs):
   if isinstance(hist,THStack):
     hist = hist.GetStack().Last()
   elif isinstance(hist,TGraph):
-    hist = hist.GetHistogram()
+    #xmin_ = min(hist.GetX()) if not xmin and xmin!=0 else xmin
+    #xmax_ = max(hist.GetX()) if not xmax and xmax!=0 else xmax
+    hist = hist.GetHistogram() # can break
     garbage.append(hist)
   xmin_ = hist.GetXaxis().GetXmin() if not xmin and xmin!=0 else xmin
   xmax_ = hist.GetXaxis().GetXmax() if not xmax and xmax!=0 else xmax
@@ -331,7 +333,7 @@ def gethistratio(histnum,histden,**kwargs):
 
 def getgraphratio(graphnum,histden,**kwargs):
   """Make the ratio of a TGraph with a TH1 object on a bin-by-bin basis."""
-  verbosity = LOG.getverbosity(kwargs)
+  verbosity = LOG.getverbosity(kwargs)+3
   hname     = "ratio_%s-%s"%(graphnum.GetName() or 'graph',histden.GetName())
   hname     = kwargs.get('name',     hname )
   tag       = kwargs.get('tag',      ""    )
@@ -340,34 +342,34 @@ def getgraphratio(graphnum,histden,**kwargs):
   zero      = kwargs.get('zero',     True  ) # ratio=1 if both num and den bins are zero
   errorX    = kwargs.get('errorX',   gStyle.GetErrorX()  ) # horizontal error bars
   #color     = kwargs.get('color',    None  )
-  nbins     = histden.GetXaxis().GetNbins()
   if tag:
     hname  += tag
-  rgraph    = graphnum.__class__()
+  xnums     = list(graphnum.GetX())
+  ynums     = list(graphnum.GetY())
+  rgraph    = graphnum.__class__() # assume TGraphErrors or TGraphAsymmErrors
   rgraph.SetName(hname)
   copystyle(rgraph,graphnum)
-  xpoints   = list(graphnum.GetX())
-  ypoints   = list(graphnum.GetY())
-  ir        = 0 # index ratio graph
+  irat      = 0 # index ratio graph
   LOG.verb("getgraphratio: Making ratio of %s w.r.t. %s"%(graphnum,histden),verbosity,2)
   TAB = LOG.table("%4s %9s %9s  %4s %9s %9s  %4s %8s %-14s",
                   "%4d %9.5g %9.2f  %4d %9.5g %9.2f  %4d %8.2f +%5.2f  -%5.2f",verb=verbosity,level=3)
-  TAB.printheader("ig","xval","yval","ibin","xval","yden","ig","ratio","error")
-  if isinstance(histden,TH1):
+  if isinstance(histden,TH1): # ratio = TGraph graphnum / TH1 histden
+    TAB.printheader("inum","xval","yval","ibin","xval","yden","irat","ratio","error")
+    nbins = histden.GetXaxis().GetNbins()
     for ibin in range(0,nbins+2):
       xval = histden.GetXaxis().GetBinCenter(ibin)
       xerr = histden.GetXaxis().GetBinWidth(ibin)/2 if errorX else 0
       yden = histden.GetBinContent(ibin)
-      ig   = -1
+      inum = -1
       if eval:
         ynum = graphnum.Eval(xval)
-      elif xval in xpoints: # assume points coincide with histogram bin centers
-        ig   = xpoints.index(xval)
-        ynum = ypoints[ig]
+      elif xval in xnums: # assume points coincide with histogram bin centers
+        inum = xnums.index(xval)
+        ynum = ynums[inum]
       else:
         continue
-      yerrupp = graphnum.GetErrorYhigh(ig) # -1 if graphnum is not TGraph(Asymm)Errors
-      yerrlow = graphnum.GetErrorYlow(ig)  # -1 if graphnum is not TGraph(Asymm)Errors
+      yerrupp = graphnum.GetErrorYhigh(inum) # -1 if graphnum is not TGraph(Asymm)Errors
+      yerrlow = graphnum.GetErrorYlow(inum)  # -1 if graphnum is not TGraph(Asymm)Errors
       ratio   = 0.0
       rerrupp = 0.0
       rerrlow = 0.0
@@ -377,15 +379,51 @@ def getgraphratio(graphnum,histden,**kwargs):
         rerrlow = yerrlow/yden
       elif zero:
         ratio = 1.0 if ynum==0 else yinf if ynum>0 else -yinf
-      rgraph.SetPoint(ir,xval,ratio)
+      rgraph.SetPoint(irat,xval,ratio)
       if isinstance(rgraph,TGraphErrors):
-        rgraph.SetPointError(ir,xerr,max(rerrupp,rerrlow))
+        rgraph.SetPointError(irat,xerr,max(rerrupp,rerrlow))
       elif isinstance(rgraph,TGraphAsymmErrors):
-        rgraph.SetPointError(ir,xerr,xerr,rerrlow,rerrupp)
-      TAB.printrow(ig,xval,ynum,ibin,xval,yden,ir,ratio,rerrupp,rerrlow)
-      ir += 1
-  else:
-    LOG.throw(IOError,"getgraphratio: Ratio between %s and %s not implemented..."%(graphnum,histden))
+        rgraph.SetPointError(irat,xerr,xerr,rerrlow,rerrupp)
+      TAB.printrow(inum,xval,ynum,ibin,xval,yden,irat,ratio,rerrupp,rerrlow)
+      irat += 1
+  else: # ratio = TGraph graphnum / TGraph graphden
+    TAB.printheader("inum","xval","yval","iden","xval","yden","irat","ratio","error")
+    #LOG.throw(IOError,"getgraphratio: Ratio between %s and %s not implemented..."%(graphnum,histden))
+    graphden = histden # rename for readability
+    nbins = graphden.GetN()
+    xdens = list(graphden.GetX())
+    ydens = list(graphden.GetY())
+    for iden in range(0,nbins):
+      xval = xdens[iden]
+      yden = xdens[iden]
+      xerrupp = graphden.GetErrorXhigh(iden) if errorX else 0
+      xerrlow = graphden.GetErrorXhigh(iden) if errorX else 0
+      inum = -1
+      if eval:
+        ynum = graphnum.Eval(xval)
+      elif xval in xnums: # assume points coincide with denominator graph
+        inum = xnums.index(xval)
+        ynum = ynums[inum]
+      else:
+        continue
+      yerrupp = graphnum.GetErrorYhigh(inum) # -1 if graphnum is not TGraph(Asymm)Errors
+      yerrlow = graphnum.GetErrorYlow(inum)  # -1 if graphnum is not TGraph(Asymm)Errors
+      ratio   = 0.0
+      rerrupp = 0.0
+      rerrlow = 0.0
+      if yden!=0:
+        ratio   = ynum/yden
+        rerrupp = yerrupp/yden
+        rerrlow = yerrlow/yden
+      elif zero:
+        ratio = 1.0 if ynum==0 else yinf if ynum>0 else -yinf
+      rgraph.SetPoint(irat,xval,ratio)
+      if isinstance(rgraph,TGraphErrors):
+        rgraph.SetPointError(irat,xerrupp,max(rerrupp,rerrlow))
+      elif isinstance(rgraph,TGraphAsymmErrors):
+        rgraph.SetPointError(irat,xerrlow,xerrupp,rerrlow,rerrupp)
+      TAB.printrow(inum,xval,ynum,iden,xval,yden,irat,ratio,rerrupp,rerrlow)
+      irat += 1
   return rgraph
   
 
@@ -443,10 +481,11 @@ def dividebybinsize(hist,**kwargs):
   zero     = kwargs.get('zero',     True ) # include bins that are zero in TGraph
   zeroerrs = kwargs.get('zeroerrs', True ) # include errors for zero bins
   errorX   = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
+  poisson  = kwargs.get('poisson',  True ) # treat poisson errors differently
   nbins    = hist.GetXaxis().GetNbins()
   TAB = LOG.table("%5s %8.6g %8.6g %10.3f %9.4f %8.4f %8.4f %10.4f",verb=verbosity,level=3)
   TAB.printheader("ibin","xval","width","yval","yerr","yupp","ylow","yerr/width")
-  if hist.GetBinErrorOption()==TH1.kPoisson: # make asymmetric Poisson errors (like for data)
+  if poisson and hist.GetBinErrorOption()==TH1.kPoisson: # make asymmetric Poisson errors (like for data)
     graph  = TGraphAsymmErrors()
     graph.SetName(hist.GetName()+"_graph")
     graph.SetTitle(hist.GetTitle())
@@ -589,6 +628,8 @@ def resetedges(oldedges,xmin=None,xmax=None,**kwargs):
 def resetbinning(axis,xmin=None,xmax=None,variable=False,**kwargs):
   """Reset the range a list of bin edges for a given TAxis."""
   verbosity = LOG.getverbosity(kwargs)
+  if isinstance(axis,TH1):
+    axis = axis.GetXaxis()
   if axis.IsVariableBinSize():
     oldbins = (axis.GetNbins(),list(axis.GetXbins()))
     edges = resetedges(axis.GetXbins(),xmin,xmax)

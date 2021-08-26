@@ -74,8 +74,8 @@ class LoadingBar(object):
     """Append the counter with some progress message."""
     end_ = ""
     if "\n" in newmessage:
-        end_ = newmessage[newmessage.index("\n"):]
-        newmessage = newmessage[:newmessage.index("\n")]
+      end_ = newmessage[newmessage.index("\n"):]
+      newmessage = newmessage[:newmessage.index("\n")]
     self.message_ = newmessage.ljust(len(self.message_))+end_
     sys.stdout.write("%s]%s %s" % (' '*(self.width-self.position), self.counter, self.message_))
     sys.stdout.flush()

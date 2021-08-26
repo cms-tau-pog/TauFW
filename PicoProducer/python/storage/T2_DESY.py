@@ -27,7 +27,7 @@ class T2_DESY(StorageSystem):
     # uberftp -rm  gsiftp://t3se01.psi.ch/pnfs/psi.ch/cms//trivcat/store/user/username/directory
     # gfal-rm -r --force root://t3dcachedb03.psi.ch//pnfs/psi.ch/cms/trivcat/store/username/directory
     # uberftp storage01.lcg.cscs.ch 'rm -r /pnfs/lcg.cscs.ch/cms/trivcat/store/user/...'
-
+  
   def rm(self,paths,**kwargs):
     verb = kwargs.get('verb',self.verbosity)
     paths=glob.glob(paths)
@@ -40,8 +40,7 @@ class T2_DESY(StorageSystem):
       else:
         self.execute('srmrmdir -recursive "srm://dcache-se-cms.desy.de:8443/srm/managerv2?SFN=%s"'%(pathname),verb=verb)
     return
-      
-  
+    
   def mkdir(self,dirname='$PATH',**kwargs):
     verb    = kwargs.get('verb',self.verbosity)
     dirname = self.expandpath(dirname,here=True)
@@ -68,8 +67,7 @@ class T2_DESY(StorageSystem):
       target = self.expandpath(target,url=self.cpurl)
       self.rm('%s/%s'%(os.path.abspath(target),source))
       return self.execute('srmcp -2 "file:%s srm://dcache-se-cms.desy.de:8443/%s/%s"'%(os.path.abspath(source),os.path.abspath(target),source),dry=dryrun,verb=verb)
-      
-
+    
   def hadd(self,sources,target,**kwargs):
     """Hadd files. Create intermediate target file if needed."""
     htarget = self.expandpath(target,here=False)

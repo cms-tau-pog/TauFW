@@ -14,9 +14,10 @@ from TauFW.PicoProducer.storage.utils import getsedir, gettmpdirs
 # DEFAULTS
 LOG            = Logger('GLOB')
 CONFIG         = None
-_user          = getpass.getuser()
-_host          = platform.node()
+user           = getpass.getuser()
+host           = platform.node()
 #basedir       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+dtypes         = ['mc','data','embed']
 _eras          = OrderedDict([
   ('2016','samples_2016.py'),
   ('2017','samples_2017.py'),
@@ -27,7 +28,6 @@ _channels      = OrderedDict([
   ('test','test.py'),
   ('mutau','ModuleMuTauSimple')
 ])
-_dtypes        = ['mc','data','embed']
 _sedir         = getsedir()                       # guess storage element on current host
 _tmpskimdir, _tmphadddir = gettmpdirs()           # _tmphadddir: temporary dir for creating intermediate hadd files
                                                   # _tmpskimdir: temporary dir for creating skimmed file before copying to outdir
@@ -40,7 +40,8 @@ _batchsystem   = 'HTCondor'                       # batch system (HTCondor, SLUR
 _queue         = ""                               # batch queue / job flavor
 _nfilesperjob  = 1                                # group files per job
 _maxevtsperjob = -1                               # maximum number of events per job (split large files)
-_maxopenfiles  = -1                               # maximum number of open files during hadd
+_maxopenfiles  = 500                              # maximum number of open files during hadd
+_ncores        = 4                                # number of cores for parallel event counting & validating of files
 _cfgdefaults   = OrderedDict([                    # ordered dictionary with defaults
   ('channels',_channels), ('eras',_eras),
   ('basedir',basedir),
@@ -50,6 +51,7 @@ _cfgdefaults   = OrderedDict([                    # ordered dictionary with defa
   ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
   ('filelistdir',_filelistdir),
   ('maxopenfiles',_maxopenfiles),
+  ('ncores',_ncores),
 ])
 sys.path.append(basedir)
 

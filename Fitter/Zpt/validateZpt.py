@@ -10,12 +10,11 @@ from ROOT import gROOT, gSystem
 gROOT.Macro('weights/zptweight.C+')
 from ROOT import loadZptWeights
 
-baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !extraelec_veto && !extramuon_veto && m_ll>20"
+baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
 ptitle   = "p_{T}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
 pgtitle  = "Z p_{T}"
 mgtitle  = "m_{Z}"
-baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !extraelec_veto && !extramuon_veto && m_ll>20"
 Zmbins0  = [20,30,40,50,60,70,80,85,88,89,89.5,90,90.5,91,91.5,92,93,94,95,100,110,120,180,500,1000]
 Zmbins1  = [0,50,70,91,110,150,200,400,800,1500]
 ptbins0  = [0,5,10,15,20,25,30,35,40,45,50,60,70,100,140,200,300,500,1000]
@@ -41,9 +40,10 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
   
   # SELECTIONS
   selections = [
-    Sel('baseline',                         baseline),
-    #Sel('m_{mumu} > 200 GeV',               baseline+" && m_vis>200", fname="mgt200"),
-    #Sel('0j, m_{mumu} > 200 GeV',           baseline+" && m_vis>200 && njets50==0", fname="0j-mgt200"),
+    Sel('baseline',                  baseline),
+    #Sel('baseline, met<50 GeV',      baseline+" && met<50", fname="baseline-metlt50"),
+    #Sel('m_{mumu} > 200 GeV',        baseline+" && m_vis>200", fname="mgt200"),
+    #Sel('0j, m_{mumu} > 200 GeV',    baseline+" && m_vis>200 && njets50==0", fname="0j-mgt200"),
     #Sel('0j, 200 GeV < m_{mumu} < 400 GeV', baseline+" && m_vis>200 && m_vis<400 && njets50==0", fname="0j-mgt200-400"),
   ]
   
@@ -73,8 +73,8 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
     #Var('dzeta',  56, -180, 100, pos='L;y=0.88',units='GeV'),
     #Var("pzetavis", 50,    0, 200 ),
     #Var('npv',    40,    0,  80 ),
-    Var('Unroll::GetBin(pt_ll,m_ll,0,1)',"Reconstructed ptmumu bin",*urbins0,fname="pt_mumu_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels1), # unroll bin number
-    Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed m_mumu bin",*urbins0,fname="m_mumu_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels2), # unroll bin number, transposed
+    Var('Unroll::GetBin(pt_ll,m_ll,0,1)',"Reconstructed ptmumu bin",*urbins0,fname="pt_ll_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels1), # unroll bin number
+    Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed m_mumu bin",*urbins0,fname="m_ll_unrolled",units=False,logy=True,ymin=1e-2,labels=urlabels2), # unroll bin number, transposed
   ]
   
   # UNROLL

@@ -7,16 +7,20 @@
 #   root://storage01.lcg.cscs.ch/  # PSI T2
 #   root://cmseos.fnal.gov/        # Fermi lab
 import os, re, json
+import gzip
 import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
 from TauFW.common.tools.utils import repkey, ensurelist, isglob
 from TauFW.common.tools.file import ensuredir, ensurefile, ensureTFile
-from TauFW.PicoProducer.tools.config import _user
-from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents
+from TauFW.common.tools.LoadingBar import LoadingBar
+import TauFW.PicoProducer.tools.config as GLOB
+#from TauFW.PicoProducer.tools.config import user
+from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents, iterevts
 from TauFW.PicoProducer.storage.das import dasgoclient, getdasnevents, getdasfiles
 dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
 fevtsexp = re.compile(r"(.+\.root)(?::(\d+))?$") # input file stored in lis in text file
+
 
 
 class Sample(object):
@@ -73,7 +77,7 @@ class Sample(object):
     self.nevents      = kwargs.get('nevts',         0      ) # number of nanoAOD events that can be processed
     self.nevents      = kwargs.get('nevents', self.nevents ) # cache of number of events
     self.filelist     = None # text file
-    self.files        = kwargs.get('files',         [ ]    ) # list of ROOT files, OR text file with list of files
+    self.files        = kwargs.get('files',         [ ]    ) or [ ] # list of ROOT files, OR text file with list of files
     if isinstance(self.files,str):
       self.filelist = self.files.replace("$SAMPLE",name) # text file
       self.files    = [ ] # list of ROOT files
@@ -96,7 +100,7 @@ class Sample(object):
     
     # STORAGE & URL DEFAULTS
     if self.storepath:
-      self.storepath = repkey(self.storepath,USER=_user,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+      self.storepath = repkey(self.storepath,USER=GLOB.user,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
       self.storage = getstorage(repkey(self.storepath,PATH=self.paths[0],DAS=self.paths[0]),ensure=False)
     if not self.dasurl:
       self.dasurl = self.url if (self.url in dasurls) else dasurls[0]
@@ -108,6 +112,17 @@ class Sample(object):
           self.url = self.storage.fileurl
       else:
         self.url = self.dasurl
+    
+    # VERBOSITY
+    if self.verbosity>=3:
+      print ">>> Sample.__init__: %r from group %r and type %r"%(self.name,self.group,self.dtype)
+      print ">>>   %-11s = %s"%('paths',self.paths)
+      print ">>>   %-11s = %r"%('storage',self.storage)
+      print ">>>   %-11s = %r, %r"%('url, dasurl',self.url,self.dasurl)
+      print ">>>   %-11s = %r"%('filelist',self.filelist)
+      print ">>>   %-11s = %s"%('filenevts',self.filenevts)
+      print ">>>   %-11s = %s"%('nevents',self.nevents)
+      print ">>>   %-11s = %r"%('extraopts',self.extraopts)
   
   def __str__(self):
     return self.name
@@ -118,8 +133,13 @@ class Sample(object):
   @staticmethod
   def loadjson(cfgname):
     """Initialize sample from job config JSON file."""
-    with open(cfgname,'r') as file:
-      jobcfg = json.load(file)
+    if cfgname.endswith(".json.gz"):
+      with gzip.open(cfgname,'rt') as file:
+        data = file.read().strip()
+        jobcfg = json.loads(data)
+    else:
+      with open(cfgname,'r') as file:
+        jobcfg = json.load(file)
     for key, value in jobcfg.items():
       if isinstance(value,unicode):
         jobcfg[key] = str(value)
@@ -174,9 +194,31 @@ class Sample(object):
         print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
     return match_
   
+  def filterpath(self,filter=[],veto=[],copy=False,verb=0):
+    """Filter DAS paths by matching to (glob) pattern. Update this sample, or create copy"""
+    paths = [ ]
+    sample = self
+    for path in self.paths:
+      keep = not filter or any(fnmatch(path,'*'+f+'*') for f in filter)
+      if veto:
+        keep = not any(fnmatch(path,'*'+f+'*') for f in veto)
+      if keep:
+        paths.append(path)
+    if verb>=1:
+      print ">>> Sample.filterpath: filters=%s, vetoes=%s, %s -> %s"%(filter,veto,self.paths,paths)
+    if len(paths)!=len(self.paths):
+      if copy:
+        sample = deepcopy(self)
+      sample.paths = paths
+      for path in sample.pathfiles.keys():
+        if path not in paths:
+          sample.pathfiles.pop(path)
+    return sample
+  
   def getfiles(self,das=False,refresh=False,url=True,limit=-1,verb=0):
     """Get list of files from storage system (default), or DAS (if no storage system of das=True)."""
-    LOG.verb("getfiles: das=%r, refresh=%r, url=%r, limit=%r"%(das,refresh,url,limit),verb,1)
+    LOG.verb("Sample.getfiles: das=%r, refresh=%r, url=%r, limit=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
+      das,refresh,url,limit,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist)
     files = self.files # cache for efficiency
@@ -187,8 +229,9 @@ class Sample(object):
       else:
         LOG.verb("getfiles: Refreshing file list...",verb,2)
       files = [ ]
+      pathfiles = { }
       for daspath in self.paths: # loop over DAS dataset paths
-        self.pathfiles[daspath] = [ ]
+        pathfiles[daspath] = [ ]
         if (self.storage and not das) or (not self.instance): # get files from storage system
           postfix = self.postfix+'.root'
           sepath  = repkey(self.storepath,PATH=daspath,DAS=daspath).replace('//','/')
@@ -204,42 +247,59 @@ class Sample(object):
             if url and url_ not in line and 'root://' not in line:
               line = url_+line
             files.append(line)
-            self.pathfiles[daspath].append(line)
-        self.pathfiles[daspath].sort()
-        if not self.pathfiles[daspath]:
+            pathfiles[daspath].append(line)
+        if not pathfiles[daspath]:
           LOG.warning("getfiles: Did not find any files for %s"%(daspath))
       files.sort() # for consistent list order
       if not das or not self.storage:
         self.files = files # store cache for efficiency
+        for daspath in pathfiles:
+          pathfiles[daspath].sort()
+          self.pathfiles = pathfiles
     elif url and any(url_ not in f for f in files): # add url if missing
       files = [(url_+f if url_ not in f else f) for f in files]
+      for daspath in self.pathfiles:
+        self.pathfiles[daspath] = [(url_+f if url_ not in f else f) for f in self.pathfiles[daspath]]
     elif not url and any(url_ in f for f in files): # remove url
       files = [f.replace(url_,"") for f in files]
+      for daspath in self.pathfiles:
+        self.pathfiles[daspath] = [f.replace(url_,"") for f in self.pathfiles[daspath]]
     return files[:] # pass copy to protect private self.files
   
-  def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,verb=0):
+  def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,ncores=0,verb=0):
     """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
+    LOG.verb("_getnevents: das=%r, refresh=%r, tree=%r, limit=%r, checkfiles=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
+      das,refresh,tree,limit,checkfiles,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist)
     nevents   = self.nevents
     filenevts = self.filenevts
-    treename  = tree
+    bar       = None
     if nevents<=0 or refresh:
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
+        LOG.verb("_getnevents: Get events per file (storage=%r, das=%r)..."%(self.storage,das),verb,2)
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
-        for fname in files:
-          if refresh or fname not in filenevts:
-            nevts = getnevents(fname,treename)
-            filenevts[fname] = nevts # cache
-          else: # get from cache or efficiency
-            nevts = filenevts[fname]
+        if verb<=0 and len(files)>=5:
+          bar = LoadingBar(len(files),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
+        for nevts, fname in iterevts(files,tree,filenevts,refresh,ncores=ncores,verb=verb):
+          filenevts[fname] = nevts # cache
           nevents += nevts
           LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
+          if bar:
+             if self.nevents>0:
+               bar.count("files, %d/%d events (%d%%)"%(nevents,self.nevents,100.0*nevents/self.nevents))
+             else:
+               bar.count("files, %d events"%(nevents))
       else: # get total number of events from DAS
+        LOG.verb("_getnevents: Get total number of events per path (storage=%r, das=%r)..."%(self.storage,das),verb,2)
         for daspath in self.paths:
-          nevents += getdasnevents(daspath,instance=self.instance,verb=verb-1)
-      if limit<0:
+          nevts = getdasnevents(daspath,instance=self.instance,verb=verb-1)
+          LOG.verb("_getnevents: %10d events for %s..."%(nevts,daspath),verb,2)
+          nevents += nevts
+      if limit<=0:
         self.nevents = nevents
+    else:
+      LOG.verb("_getnevents: Reusing old number of events (nevents=%r, refresh=%r)..."%(nevents,refresh),verb,2)
     return nevents, filenevts
   
   def getfilenevts(self,*args,**kwargs):
@@ -253,12 +313,15 @@ class Sample(object):
   def writefiles(self,listname,**kwargs):
     """Write filenames to text file for fast look up in future.
     If there is more than one DAS dataset path, write lists separately for each path."""
+    kwargs    = kwargs.copy() # do not edit given dictionary
     writeevts = kwargs.pop('nevts',False) # also write nevents to file
     listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
     ensuredir(os.path.dirname(listname))
     filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
-    treename  = kwargs.pop('tree','Events')
-    files     = self.getfiles(**kwargs)
+    treename  = kwargs.pop('tree','Events') # do not pass to Sample.getfiles
+    kwargs.pop('ncores') # do not pass to Sample.getfiles
+    kwargs['refresh'] = False # already got file list in Sample.filenevts
+    files     = self.getfiles(**kwargs) # get right URL
     if not files:
       LOG.warning("writefiles: Did not find any files!")
     def _writefile(ofile,fname,prefix=""):
@@ -279,12 +342,19 @@ class Sample(object):
           for infile in self.pathfiles[path]:
             _writefile(lfile,infile)
         elif len(self.paths)<=1: # write file list for the only path
-          print ">>> Write %s files to list %r..."%(len(files),listname_)
+          if self.nevents>0:
+            print ">>> Write %s files to list %r..."%(len(files),listname_)
+          else:
+            print ">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_)
           for infile in files:
             _writefile(lfile,infile)
         else: # divide up list per DAS dataset path
-          print ">>> Write %s files to list %r..."%(len(files),listname_)
+          if self.nevents>0:
+            print ">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_)
+          else:
+            print ">>> Write %s files to list %r..."%(len(files),listname_)
           for i, path in enumerate(self.paths):
+            print ">>>   %3s files for %s..."%(len(self.pathfiles[path]),path)
             lfile.write("DASPATH=%s\n"%(path)) # write special line to text file, which loadfiles() can parse
             for infile in self.pathfiles[path]: # loop over this list (general list is sorted)
               LOG.insist(infile in files,"Did not find file %s in general list! %s"%(infile,files))
@@ -292,9 +362,12 @@ class Sample(object):
             if i+1<len(self.paths): # add extra white line between blocks
               lfile.write("\n")
   
-  def loadfiles(self,listname,**kwargs):
+  def loadfiles(self,listname_,**kwargs):
+    verbosity = LOG.getverbosity(self,kwargs)
     """Load filenames from text file for fast look up in future."""
-    listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    listname  = repkey(listname_,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
+    LOG.verb("loadfiles: listname=%r -> %r, len(files)=%d, len(filenevts)=%d"%(
+      listname_,listname,len(self.files),len(self.filenevts)),verbosity,1)
     filenevts = self.filenevts
     nevents   = 0
     #listname = ensurefile(listname,fatal=False)
@@ -336,6 +409,8 @@ class Sample(object):
                 nevents += nevts
               filelist.append(infile)
               self.pathfiles[path].append(infile)
+              if self.verbosity>=3:
+                print ">>> %7d events for %s"%(nevts,infile)
         if not filelist:
           LOG.warning("loadfiles: Did not find any files in %s!"%(listname_))
           self.refreshable = True

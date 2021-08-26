@@ -75,7 +75,7 @@ class SampleSet(object):
             splitsamples = osample.splitsamples
           break
       else:
-        LOG.warning("SampleSet.__add__: Could not match sample %r to %s"%(sample,osamples))
+        LOG.warn("SampleSet.__add__: Could not match sample %r to %s"%(sample,osamples))
       newsample = MergedSample(sample.name,sample.title,subsamples,
                                isdata=False,isexp=sample.isexp,isembed=sample.isembed,lumi=lumi)
       if splitsamples: # split again
@@ -84,7 +84,7 @@ class SampleSet(object):
           newsample.splitsamples.append(newssample)
       newexpsamples.append(newsample)
     if osamples:
-      LOG.warning("SampleSet.__add__: Not all samples were matched:"%(osamples))
+      LOG.warn("SampleSet.__add__: Not all samples were matched:"%(osamples))
       newexpsamples.extend(osamples)
     newset = SampleSet(newdatasample,newexpsamples,name=self.name,
                        label=self.label,loadingbar=self.loadingbar)
@@ -133,7 +133,7 @@ class SampleSet(object):
   #    elif sample.issignal: sigsamples.append(sample)
   #    else:                 expsamples.append(sample)
   #  self.datasample, self.expsamples, self.sigsamples = datasample, expsamples, sigsamples
-  #  LOG.warning("SampleSet.samples: No setter for \"samples\" attribute available!")
+  #  LOG.warn("SampleSet.samples: No setter for \"samples\" attribute available!")
   
   @property
   def mcsamples(self):
@@ -156,7 +156,7 @@ class SampleSet(object):
   def replace(self,oldsample,*newsamples,**kwargs):
     """Replace sample with one or more samples."""
     if not newsamples:
-      LOG.warning("SampleSet.replace: No samples given to replace %r!"%oldsample.title)
+      LOG.warn("SampleSet.replace: No samples given to replace %r!"%oldsample.title)
       return
     newsamples = unwraplistargs(newsamples)
     samples = self.samples #getattr(self,"samples"+kwargs.get('type','B'))
@@ -169,7 +169,7 @@ class SampleSet(object):
         samples.insert(index,newsample)
         index += 1
     else:
-      LOG.warning("SampleSet.replace: Sample %r not in the list!"%oldsample.title)
+      LOG.warn("SampleSet.replace: Sample %r not in the list!"%oldsample.title)
       for newsample in newsamples:
         self.samples.append(newsample)
   
@@ -185,11 +185,11 @@ class SampleSet(object):
   #  # CHECK SPLIT
   #  for sample in self.samples:
   #    if sample.color is kBlack:
-  #      LOG.warning("SamplesSet.setcolors: %s"%sample.name)
+  #      LOG.warn("SamplesSet.setcolors: %s"%sample.name)
   #    if sample.color in usedcols:
   #      # TODO: check other color
   #      sample.setcolor()
-  #      LOG.warning("SamplesSet.setcolors: Color used twice!")
+  #      LOG.warn("SamplesSet.setcolors: Color used twice!")
   #    else:
   #      usedcols.append(sample.color)
   #
@@ -228,7 +228,7 @@ class SampleSet(object):
     gROOT.cd()
     if now or (self.nplots>step and self.nplots>0):
       if verbosity>=1:
-        LOG.warning('SampleSet.refresh: refreshing memory (nplots=%d, gDirectory=%r)'%(self.nplots,gDirectory.GetName()))
+        LOG.warn('SampleSet.refresh: refreshing memory (nplots=%d, gDirectory=%r)'%(self.nplots,gDirectory.GetName()))
         gDirectory.ls()
       self.reload(**kwargs)
       self.nplots = 0
@@ -411,7 +411,7 @@ class SampleSet(object):
     datakwargs = { 'tag':tag, 'weight': dataweight, 'verbosity': verbosity, 'blind': blind, 'parallel': parallel }
     result     = HistSet(variables,dodata,doexp,dosignal) # container for dictionaries of histogram (list): data, exp, signal
     if not variables:
-      LOG.warning("Sample.gethists: No variables to make histograms for...")
+      LOG.warn("Sample.gethists: No variables to make histograms for...")
       return result
     
     # PRINT
@@ -419,7 +419,7 @@ class SampleSet(object):
     if verbosity>=2:
       if not ('QCD' in task or 'JFR' in task):
         LOG.header("Creating histograms for %s"%selection) #.title
-      print ">>> variables: '%s'"%("', '".join(v.filename for v in variables))
+      print ">>> variables: %s"%(quotestrs([v.filename for v in variables]))
       #print ">>> split=%s, makeQCD=%s, makeJTF=%s, nojtf=%s, keepWJ=%s"%(split,makeQCD,makeJTF,nojtf,keepWJ)
       print '>>>   with extra weights "%s" for MC and "%s" for data'%(weight,dataweight)
     elif self.loadingbar and verbosity<=1:
@@ -537,7 +537,7 @@ class SampleSet(object):
     datakwargs = { 'tag':tag, 'weight': dataweight, 'verbosity': verbosity }
     result     = HistSet(variables,dodata,doexp,dosignal)
     if not variables:
-      LOG.warning("Sample.gethists: No variables to make histograms for...")
+      LOG.warn("Sample.gethists: No variables to make histograms for...")
       return result
     
     # FILTER
@@ -599,7 +599,7 @@ class SampleSet(object):
   
   def has(self,*searchterms,**kwargs):
     """Return true if sample set contains a sample corresponding to given searchterms."""
-    kwargs.set_default('warning',False)
+    kwargs.setdefault('warn',False)
     result = self.get(*searchterms,**kwargs)
     found = isinstance(result,Sample) or len(result)!=0
     return found
@@ -639,16 +639,21 @@ class SampleSet(object):
   
   def rename(self,*args,**kwargs):
     """Rename sample, e.g. sampleset.rename('WJ','W')"""
+    verbosity        = LOG.getverbosity(kwargs)
     LOG.insist(len(args)>=2,"SampleSet.rename: need more than two strings! Got %s"%(args,))
     strings          = [arg for arg in args if isinstance(arg,str)]
     searchterms      = strings[:-1]
     name             = strings[-1]
+    warn             = kwargs.setdefault('warn',False)
     kwargs['unique'] = True
     sample           = self.get(*searchterms,**kwargs)
     if sample:
+      LOG.verb("SampleSet.rename: %r -> %r"%(sample.name,name),verbosity,2)
       sample.name    = name
+    elif warn:
+      LOG.warn("SampleSet.rename: Could not find sample with searchterms '%s' to rename to %r"%(quotestrs(searchterms),name))
     else:
-      LOG.warning("SampleSet.rename: Could not find sample with searchterms '%s'"%("', '").join(searchterms))
+      LOG.verb("SampleSet.rename: Could not find sample with searchterms '%s' to rename to %r"%(quotestrs(searchterms),name),verbosity,2)
   
   def split(self,*args,**kwargs):
     """Split sample into different components with some cuts, e.g.
@@ -658,7 +663,7 @@ class SampleSet(object):
       ])
     """
     verbosity        = LOG.getverbosity(kwargs)
-    LOG.verbose("split: splitting %s"%(self.name),verbosity,1)
+    LOG.verb("SampleSet.split: splitting %s"%(self.name),verbosity,1)
     searchterms      = [arg for arg in args if isinstance(arg,str)]
     splitlist        = [arg for arg in args if islist(arg)        ][0]
     kwargs['unique'] = True
@@ -666,7 +671,7 @@ class SampleSet(object):
     if sample:
       sample.split(splitlist,**kwargs)
     else:
-      LOG.warning("SampleSet.split: Could not find sample with searchterms '%s'"%("', '").join(searchterms))
+      LOG.warn("SampleSet.split: Could not find sample with searchterms '%s'"%(quotestrs(searchterms)))
   
   def shift(self,searchterms,filetag,nametag=None,titletag=None,**kwargs):
     """Shift samples in samples set by creating new samples with new filename/titlename."""
@@ -733,12 +738,12 @@ class SampleSet(object):
     for sample in self.expsamples:
       if sample.match(*searchterms,incl=False):
         newsample = sample.clone(samename=True,deep=True)
-        #LOG.verbose('SampleSet.shiftweight: "%s" - weight "%s", extra weight "%s"'%(newsample.name,newsample.weight,newsample.extraweight),1)
+        #LOG.verb('SampleSet.shiftweight: "%s" - weight "%s", extra weight "%s"'%(newsample.name,newsample.weight,newsample.extraweight),1)
         if extra:
           newsample.setextraweight(newweight)
         else:
           newsample.addweight(newweight)
-        #LOG.verbose('SampleSet.shiftweight: "%s" - weight "%s", extra weight "%s"'%(newsample.name,newsample.weight,newsample.extraweight),1)
+        #LOG.verb('SampleSet.shiftweight: "%s" - weight "%s", extra weight "%s"'%(newsample.name,newsample.weight,newsample.extraweight),1)
         expsamples.append(newsample)
       elif not filter:
         newsample = sample if share else sample.clone(samename=True,deep=True)

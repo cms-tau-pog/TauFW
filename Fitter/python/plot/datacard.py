@@ -54,14 +54,17 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   parallel      = kwargs.get('parallel',      True   ) # MultiDraw histograms in parallel
   recreate      = kwargs.get('recreate',      False  ) # recreate ROOT file
   replaceweight = kwargs.get('replaceweight', None   ) # replace weight (e.g. for syst. variations)
+  replacenames  = kwargs.get('replacename',   [ ]    ) # replace name (regular expressions)
   extraweight   = kwargs.get('weight',        ""     ) # extraweight
   shift         = kwargs.get('shift',         ""     ) # shift variable (e.g. for syst. variations)
   shiftjme      = kwargs.get('shiftjme',      ""     ) # shift jet/MET variable (e.g. 'jer', 'jec')
   shiftQCD      = kwargs.get('shiftQCD',      0      ) # e.g 0.30 for 30%
+  dots          = kwargs.get('dots',          False  ) # replace 'p' with '.' in histogram names with floats
   verbosity     = kwargs.get('verb',          0      )
   option        = 'RECREATE' if recreate else 'UPDATE'
   method        = 'QCD_OSSS' if filters==None or 'QCD' in filters else None
   method        = kwargs.get('method',        method )
+  replacenames  = ensurelist(replacenames)
   
   # FILE LOGISTICS: prepare file and directories
   files = { }
@@ -85,7 +88,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       print ">>> created file %s"%(fname_)
     for selection in bins:
       if not obs.plotfor(selection): continue
-      obs.changecontext(selection)
+      obs.changecontext(selection) # update contextual cuts, binning, name, title, ...
       ensureTDirectory(file,selection.filename,cd=True,verb=verbosity)
       if recreate:
         string = joincuts(selection.selection,obs.cut)
@@ -102,6 +105,8 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       print ">>> systematic uncertainty: %s"%(color(htag.lstrip('_'),'grey'))
     if recreate or verbosity>=1:
       print ">>> %r"%(selection.selection)
+    for obs in obsset: # update contextual cuts, binning, name, title, ...
+      obs.changecontext(selection)
     hists = sampleset.gethists(obsset,selection,method=method,split=True,
                                parallel=parallel,filter=filters,veto=vetoes,replaceweight=replaceweight)
     
@@ -114,6 +119,10 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       if not name.endswith(htag):
         name += htag # HIST = $PROCESS_$SYSTEMATIC
       name    = repkey(name,BIN=bin)
+      if dots and 'p' in name: # replace 'p' with '.' in float
+        name = re.sub(r"(\d+)p(\d+)",r"\1.\2",name)
+      for exp, sub in replacenames: # replace regular expressions
+        name = re.sub(exp,sub,name)
       drawopt = 'E1' if 'data' in name else 'EHIST'
       lcolor  = kBlack if any(s in name for s in ['data','ST','VV']) else hist.GetFillColor()
       hist.SetOption(drawopt)

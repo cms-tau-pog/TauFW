@@ -3,19 +3,19 @@
 import re
 from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist, islist
 
-var_dict = {
-    'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",
+var_dict = { # predefined variable titles
+    'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",          'njets50':  "Number of jets (pt>50 GeV)",
     'nfjets':    "Number of forward jets",  'nfjets20': "Number of forward jets (pt>20 GeV)",
     'ncjets':    "Number of central jets",  'ncjets20': "Number of central jets (pt>20 GeV)",
-    'nbtag':     "Number of b tagged jets", 'nbtag20':  "Number of b tagged jets (pt>20 GeV)",
+    'nbtag':     "Number of b tagged jets", 'nbtag20':  "Number of b tagged jets (pt>20 GeV)", 'nbtag50':  "Number of b tagged jets (pt>50 GeV)",
     'jpt_1':     "Leading jet pt",          'jpt_2':    "Subleading jet pt",
     'bpt_1':     "Leading b jet pt",        'bpt_2':    "Subleading b jet pt",
     'jeta_1':    "Leading jet eta",         'jeta_2':   "Subleading jet eta",
     'beta_1':    "Leading b jet eta",       'beta_2':   "Subleading b jet eta",
     'jphi_1':    "Leading jet phi",         'bphi_1':   "Subleading jet phi",
     'jphi_2':    "Leading b jet phi",       'bphi_2':   "Subleading b jet phi",
-    'met':       "p_{T}^{miss}",
-    'metphi':    "MET phi",
+    'met':       "p_{T}^{miss}",            'genmet':   "Gen. p_{T}^{miss}",
+    'metphi':    "MET phi",                 'genmetphi':"Gen. MET phi",
     'pt_1':      "Lepton pt",               'pt_2':     "tau_h pt",
     'eta_1':     "Lepton eta",              'eta_2':    "tau_h eta",
     'mt_1':      "m_t(l,MET)",              'mt_2':     "m_t(tau,MET)",
@@ -101,8 +101,11 @@ def makelatex(string,**kwargs):
     elif "m_" in strlow:
       string = re.sub(r"(?<!u)(m)_([^{}()|<>=\ \^]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
       GeV    = True
-    elif "mt_" in strlow:
-      string = re.sub(r"(m)t_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
+    elif "mt" in strlow:
+      if "mt_" in strlow:
+        string = re.sub(r"(m)t_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
+      else: # "naked" mt
+        string = re.sub(r"(?<!\w)(m)t(?!\w)",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow): # HT
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
@@ -199,11 +202,11 @@ def maketitle(title,**kwargs):
 
 
 def makehistname(*strings,**kwargs):
-  """Use label and var to make an unique and valid histogram name."""
-  hname = '_'.join(getfilename(s).strip('_') for s in strings)
-  hname = hname.replace('+','-').replace(' - ','-').replace('.','p').replace(',','-').replace(' ','_').replace(
-                        '(','-').replace(')','').replace('[','-').replace(']','-').replace('||','OR').replace('&&','AND').replace(
-                        '/','_').replace('<','lt').replace('>','gt').replace('=','e').replace('*','x')
+  """Use given strings to make an unique and valid histogram name that is filename safe."""
+  kwargs.setdefault('dots',False)
+  #hname = '_'.join(getfilename(s).strip('_') for s in strings) #.replace(' ','_')
+  hname = makefilename(*strings,**kwargs)
+  hname = hname.replace('[','').replace(']','').replace('*','x')
   return hname
   
 
@@ -213,21 +216,39 @@ def makefilename(*strings,**kwargs):
   fname = '_'.join(getfilename(s).strip('_') for s in strings)
   fname = re.sub(r"(\d+)\.(\d+)",r"\1p\2",fname)
   if 'abs(' in fname:
-    fname = re.sub(r"abs\(([^\)]*)\)",r"\1",fname).replace('eta_2','eta')
-  if 'm_t' in fname:
-    fname = re.sub(r"(?<!zoo)m_t(?!au)",r"mt",fname)
-  fname = fname.replace(" and ",'-').replace(',','-').replace(',','-').replace('+','-').replace('::','-').replace(':','-').replace(
+    fname = re.sub(r"abs\(([^\)]*)\)",r"abs\1",fname).replace('eta_2','eta')
+  if 'm_t' in fname.lower():
+    fname = re.sub(r"(?<![a-zA-Z])m_[tT](?!au)",r"mt",fname)
+  if 'GeV' in fname:
+    fname = re.sub(r"(?<![a-zA-Z])GeV","",fname)
+  fname = fname.replace(" and ",'-').replace(',','-').replace('+','-').replace('::','-').replace(':','-').replace(
                         '(','-').replace(')','').replace('{','').replace('}','').replace(
-                        '|','').replace('&','').replace('#','').replace('!','not').replace(
-                        'pt_mu','pt').replace('m_T','mt').replace(
-                        '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace("=","eq").replace(
-                        ' ','').replace('GeV','').replace('anti-iso',"antiIso")
+                        '\n','-').replace('\\','').replace('/','-').replace(' ','').replace('__','_').replace('--','-').replace(
+                        '||','OR').replace('&&','AND').replace('|','').replace('&','').replace('#','').replace('!','not').replace(
+                        #'pt_mu','pt').replace('m_T','mt').replace('GeV','').replace('anti-iso',"antiIso").replace(
+                        '>=',"geq").replace('<=',"leq").replace('>',"gt").replace('<',"lt").replace('==','eq').replace("=","eq")
+  if not kwargs.get('dots',True): # replace periods
+    fname = fname.replace('.','p')
   #if 'm_t' in string.lower:
   #  string = re.sub(r"(?<!u)(m)_([^{}\(\)<>=\ ]+)",r"\1_{\2}",string,re.IGNORECASE).replace('{t}','{T}')
   #if "m_" in string.lower():
   #    string = re.sub(r"(?<!u)(m)_([^{}\(\)<>=\ ]+)",r"\1_{\2}",string,re.IGNORECASE).replace('{t}','{T}')
   #if not (".png" in name or ".pdf" in name or ".jpg" in name): name += kwargs.get('ext',".png")
   return fname
+
+  
+def getfilename(string,**kwargs):
+  """Make sure returned object is a string."""
+  if hasattr(string,"filename"):
+    return string.filename
+  return string
+  
+
+def getselstr(string,**kwargs):
+  """Make sure returned object is a string."""
+  if hasattr(string,"selection"): #isinstance(selection,Selection):
+    return string.selection
+  return string
   
 
 symregx = re.compile(r"#[a-zA-Z]+")
@@ -255,7 +276,7 @@ def estimatelen(*strings):
 def match(terms, labels, **kwargs):
   """Match given search terms (strings) to some given list of labels."""
   verbosity = LOG.getverbosity(kwargs)
-  terms     = ensurelist(terms, nonzero=True) # search terms
+  terms     = ensurelist(terms, nonzero=True) # search terms / filters
   labels    = ensurelist(labels,nonzero=True) # labels to match to
   found     = True
   regex     = kwargs.get('regex', False ) # use regexpr patterns (instead of glob)
@@ -270,7 +291,9 @@ def match(terms, labels, **kwargs):
       #fnmatch.translate( '*.foo' )
       #searchterm = re.sub(r"(?<!\\)\+",r"\+",searchterm)   # replace + with \+
       #searchterm = re.sub(r"([^\.])\*",r"\1.*",searchterm) # replace * with .*
-      searchterm = re.escape(searchterm).replace(r'\?','.').replace(r'\*','.*?').replace(r'\^','^')
+      searchterm = re.escape(searchterm)
+      searchterm = searchterm.replace(r'\?','.').replace(r'\*','.*?').replace(r'\^','^'
+                            ).replace(r'\[','[').replace(r'\]',']') #.replace(r'\_','_')
     if start and not searchterm.startswith('^'):
       searchterm = '^'+searchterm
     terms[i] = searchterm
@@ -565,19 +588,21 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###  
 ###  #LOG.verbose('  %r\n>>>   -> %r\n>>>'%(cuts0,cuts),verbosity,level=2)
 ###  return cuts
+  
 
-  
-def getfilename(string,**kwargs):
-  """Make sure returned object is a string."""
-  if hasattr(string,"filename"):
-    return string.filename
-  return string
-  
-def getselstr(string,**kwargs):
-  """Make sure returned object is a string."""
-  if hasattr(string,"selection"): #isinstance(selection,Selection):
-    return string.selection
-  return string
-  
+def filtervars(vars,filters,**kwargs):
+  """Filter list of variables. Allow glob patterns."""
+  verbosity = LOG.getverbosity(kwargs)
+  newvars   = [ ]
+  if not filters:
+    return vars[:]
+  for var in vars:
+    strs = [var] if isinstance(var,str) else set([var.name,var.filename])
+    if any(match(f,strs) for f in filters):
+      newvars.append(var)
+      LOG.verb("filtervars: Matched %r to %r, including..."%(var,filters),verbosity,2)
+    else:
+      LOG.verb("filtervars: %r NOT matched to %r, ignoring..."%(var,filters),verbosity,2)
+  return newvars
 
 #from TauFW.Plotter.plot.Selection import Selection

@@ -21,8 +21,8 @@ for era in $ERAS; do
   TARGET="/t3home/ineuteli/eos/www/Zpt/${era}/"
   [ ! -d $TARGET ] && echo "ERROR! $TARGET does not exist! Ignoring..." && continue
   peval "cp -v *py /t3home/ineuteli/eos/www/Zpt/${era}/"
-  peval "cp -v weights/zpt*weight_${era}.root /t3home/ineuteli/eos/www/Zpt/${era}/"
-  peval "cp -v weights/${era}/zpt*[^0]_${era}.p* /t3home/ineuteli/eos/www/Zpt/${era}/"
+  peval "cp -v weights/zpt*weight*${era}.root /t3home/ineuteli/eos/www/Zpt/${era}/"
+  peval "cp -v weights/${era}/zpt*_${era}.p* /t3home/ineuteli/eos/www/Zpt/${era}/"
   peval "cp -v plots/${era}/*baseline*.p* /t3home/ineuteli/eos/www/Zpt/${era}/"
   echo " "
 done

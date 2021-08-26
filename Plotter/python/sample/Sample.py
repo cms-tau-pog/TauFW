@@ -79,7 +79,10 @@ class Sample(object):
     self.blinddict    = kwargs.get('blind',        { }          ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
     self.fillcolor    = kwargs.get('color',        None         ) or (kBlack if self.isdata else self.setcolor()) # fill color
     self.linecolor    = kwargs.get('lcolor',       kBlack       ) # line color
-    self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search terms
+    self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search termsMergedSample
+    self.aliases      = kwargs.get('alias',        { }          ) # aliases to be added to tree
+    if not isinstance(self.aliases,dict):
+      self.aliases[self.aliases[0]] = self.aliases[1] # assume tuple, e.g. alias=('sf',"0.95")
     if not isinstance(self,MergedSample):
       file = ensureTFile(self.filename) # check file
       file.Close()
@@ -184,10 +187,10 @@ class Sample(object):
     self._file = value
   
   def getfile(self,refresh=False):
-    if not self._file:
+    if not self._file: # file does not exist
       LOG.verb("Sample.getfile: Opening file %s..."%(self.filename),level=3)
       self._file = ensureTFile(self.filename)
-    elif refresh:
+    elif refresh: # file exists but refresh anyway
       LOG.verb("Sample.getfile: Closing and opening file %s..."%(self.filename),level=3)
       self._file.Close()
       self._file = ensureTFile(self.filename)
@@ -199,18 +202,20 @@ class Sample(object):
     tree = file.Get(self.treename)
     if not tree or not isinstance(tree,TTree):
       LOG.throw(IOError,'Sample.get_newfile_and_tree: Could not find tree %r for %r in %s!'%(self.treename,self.name,self.filename))
+    setaliases(tree,self.aliases)
     return file, tree
   
   @property
   def tree(self):
-    if not self.file:
+    if not self.file: # file does not exist: open & get tree
       LOG.verb("Sample.tree: Opening file %s to get tree %r..."%(self.filename,self.treename),level=3)
-      self._tree = self.file.Get(self.treename)
-    elif self._tree and isinstance(self._tree,TTree):
+      self._tree = self.getfile()
+    elif self._tree and isinstance(self._tree,TTree): # file & tree do exist
       LOG.verb("Sample.tree: Getting existing tree %s..."%(self._tree),level=3)
-    else:
+    else: # file does exist, but tree does not: get tree
       LOG.verb("Sample.tree: No valid tree (%s). Retrieving tree %r from file %s..."%(self._tree,self.treename,self.filename),level=3)
       self._tree = self.file.Get(self.treename)
+    setaliases(self._tree,self.aliases)
     return self._tree
   
   @tree.setter
@@ -293,10 +298,10 @@ class Sample(object):
         self.setnevents(self.binnevts,self.binsumw,cutflow=self.cutflow)
         #self.normalize(lumi=self.lumi) # can affect scale computed by stitching
       if reldiff(sumw_old,self.sumweights)>0.02 or reldiff(sumw_old,self.sumweights)>0.02:
-        LOG.warning('Sample.appendfilename: file %s has a different number of events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (N=%s, N_unw=%s, norm=%s)! '%\
-          (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,sumw_old,nevts_old,norm_old))
+        LOG.warn("Sample.appendfilename: file %s has a different number of processed events (sumw=%s, nevts=%s, norm=%s, xsec=%s, lumi=%s) than %s (sumw=%s, nevts=%s, norm=%s)!"%\
+                 (self.filename,self.sumweights,self.nevents,self.norm,self.xsec,self.lumi,oldfilename,sumw_old,nevts_old,norm_old))
     elif ':' not in self.filename and not os.path.isfile(self.filename):
-      LOG.warning('Sample.appendfilename: file %s does not exist!'%(self.filename))
+      LOG.warn('Sample.appendfilename: file %s does not exist!'%(self.filename))
     if isinstance(self,MergedSample):
       for sample in self.samples:
         sample.appendfilename(filetag,nametag,titletag,**kwargs)
@@ -371,7 +376,7 @@ class Sample(object):
     if hist:
       hist.SetDirectory(0)
     else:
-      LOG.warning("Sample.getcutflow: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
+      LOG.warn("Sample.getcutflow: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     file.Close()
     return hist
   
@@ -387,20 +392,20 @@ class Sample(object):
       if self.nevents>0:
         if self.sumweights<=0:
           self.sumweights = self.nevents
-        LOG.warning("Sample.setnevents: Could not find cutflow histogram %r in %s! nevents=%.1f, sumweights=%.1f"%(cutflow,self.filename,self.nevents,self.sumweights))
+        LOG.warn("Sample.setnevents: Could not find cutflow histogram %r in %s! nevents=%.1f, sumweights=%.1f"%(cutflow,self.filename,self.nevents,self.sumweights))
       else:
         LOG.throw(IOError,"Sample.setnevents: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     self.nevents    = cfhist.GetBinContent(binnevts)
     self.sumweights = cfhist.GetBinContent(binsumw)
     if self.nevents<=0:
-      LOG.warning("Sample.setnevents: Bin %d of %r to retrieve nevents is %s<=0!"
+      LOG.warn("Sample.setnevents: Bin %d of %r to retrieve nevents is %s<=0!"
                   "In initialization, please specify the keyword 'binnevts' to select the right bin, or directly set the number of events with 'nevts'."%(binnevts,self.nevents,cutflow))
     if self.sumweights<=0:
-      LOG.warning("Sample.setnevents: Bin %d of %r to retrieve sumweights is %s<=0!"
+      LOG.warn("Sample.setnevents: Bin %d of %r to retrieve sumweights is %s<=0!"
                   "In initialization, please specify the keyword 'binsumw' to select the right bin, or directly set the number of events with 'sumw'."%(binsumw,self.sumweights,cutflow))
       self.sumweights = self.nevents
     if 0<self.nevents<self.nexpevts*0.97: # check for missing events
-      LOG.warning('Sample.setnevents: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
+      LOG.warn('Sample.setnevents: Sample %r has significantly fewer events (%d) than expected (%d).'%(self.name,self.nevents,self.nexpevts))
     return self.nevents
   
   def normalize(self,lumi=None,xsec=None,sumw=None,**kwargs):
@@ -411,14 +416,14 @@ class Sample(object):
     if xsec==None: xsec = self.xsec
     if sumw==None: sumw = self.sumweights or self.nevents
     if self.isdata:
-      LOG.warning('Sample.normalize: Ignoring data sample %r'%(self.name))
+      LOG.warn('Sample.normalize: Ignoring data sample %r'%(self.name))
     elif lumi<=0 or xsec<=0 or sumw<=0:
-      LOG.warning('Sample.normalize: Cannot normalize %r: lumi=%s, xsec=%s, sumw=%s'%(self.name,lumi,xsec,sumw))
+      LOG.warn('Sample.normalize: Cannot normalize %r: lumi=%s, xsec=%s, sumw=%s'%(self.name,lumi,xsec,sumw))
     else:
       norm = lumi*xsec*1000/sumw # 1000 to convert pb -> fb
       LOG.verb('Sample.normalize: Normalize %r sample to lumi*xsec*1000/sumw = %.5g*%.5g*1000/%.5g = %.5g!'%(self.name,lumi,xsec,sumw,norm),level=2)
     if norm<=0:
-      LOG.warning('Sample.normalize: Calculated normalization for %r sample is %.5g <= 0 (lumi=%.5g,xsec=%.5g,nevts=%.5g)!'%(self.name,norm,lumi,xsec,N_events))
+      LOG.warn('Sample.normalize: Calculated normalization for %r sample is %.5g <= 0 (lumi=%.5g,xsec=%.5g,nevts=%.5g)!'%(self.name,norm,lumi,xsec,N_events))
     self.norm = norm
     return norm
   
@@ -526,6 +531,17 @@ class Sample(object):
         self.extraweight = self.extraweight.replace(oldweight,newweight)
         LOG.verb('                      after  %r'%(self.extraweight),verbosity,2)
   
+  def addalias(self, alias, formula, **kwargs):
+    """Add alias for TTree."""
+    verbosity = LOG.getverbosity(kwargs)
+    if isinstance(self,MergedSample):
+      for sample in self.samples:
+        sample.addalias(alias,formula,**kwargs)
+    else:
+      LOG.verb('Sample.addalias: %r: %r -> %r'%(self,alias,formula),verbosity,2)
+      self.aliases[alias] = formula
+      LOG.verb('Sample.addalias: %r: aliases = %s'%(self,self.aliases),verbosity,4)
+  
   def split(self,*splitlist,**kwargs):
     """Split sample into different components with some cuts, e.g.
       sample.split(('ZTT',"Real tau","genmatch_2==5"),
@@ -590,6 +606,7 @@ class Sample(object):
     norm       = self.norm if norm else 1
     scale      = kwargs.get('scale',    1.0            ) * self.scale * norm
     name       = kwargs.get('name',     self.name      ) # hist name
+    dots       = kwargs.get('dots',     False          ) # allow dots in histogram name
     name      += kwargs.get('tag',      ""             ) # tag for hist name
     title      = kwargs.get('title',    self.title     ) # hist title
     blind      = kwargs.get('blind',    self.isdata    ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
@@ -633,7 +650,7 @@ class Sample(object):
     for variable in variables:
       
       # VAREXP
-      hname  = makehistname(variable,name) # $VAR_$NAME
+      hname  = makehistname(variable,name,dots=dots) # $VAR_$NAME
       varcut = ""
       if self.isdata and (blind or variable.blindcuts or variable.cut or variable.dataweight):
         blindcuts = ""
@@ -674,7 +691,7 @@ class Sample(object):
     integral = 0
     for variable, hist in zip(variables,hists):
       if scale!=1.0:   hist.Scale(scale)
-      if scale==0.0:   LOG.warning("Scale of %s is 0!"%self.name)
+      if scale==0.0:   LOG.warn("Scale of %s is 0!"%self.name)
       hist.SetLineColor(lcolor)
       hist.SetFillColor(kWhite if self.isdata or self.issignal else fcolor)
       hist.SetMarkerColor(lcolor)
@@ -758,7 +775,7 @@ class Sample(object):
     integral = 0
     for variable, hist in zip(variables,hists):
       if scale!=1.0:   hist.Scale(scale)
-      if scale==0.0:   LOG.warning("Scale of %s is 0!"%self.name)
+      if scale==0.0:   LOG.warn("Scale of %s is 0!"%self.name)
       if hist.GetEntries()>nentries:
         nentries = hist.GetEntries()
         integral = hist.Integral()
