@@ -3,13 +3,15 @@
 import os, sys, re
 #sys.path.append('../plots')
 from argparse import ArgumentParser
-import PlotTools.PlotTools
-from PlotTools.SampleTools import getColor, sample_dict
-from PlotTools.SettingTools import isList, ensureList, ensureTFile
-from PlotTools.PlotTools import Plot, ceilToSignificantDigit, groupHistsInList, getHist
-from PlotTools.PrintTools import color, warning, error
-import PlotTools.CMS_lumi as CMS_lumi, PlotTools.tdrstyle as tdrstyle
-import PlotTools.SettingTools as GLOB
+from TauFW.Plotter.sample.utils import CMSStyle, setera
+from TauFW.Plotter.plot.utils import LOG, grouphists
+from TauFW.Plotter.plot.Stack import Stack
+from TauFW.Plotter.plot.Plot import Plot
+from TauFW.common.tools.utils import islist, ensurelist, repkey
+from TauFW.common.tools.file import ensuredir, ensureTFile
+from TauFW.common.tools.log import color, warning, error
+from TauFW.Fitter.plot.datacard import plotinputs
+import TauFW.Plotter.sample.SampleStyle as STYLE
 import ROOT
 from ROOT import TFile, TTree, kAzure, kRed, kGreen, kOrange, kMagenta, kYellow
 ROOT.gROOT.SetBatch(ROOT.kTRUE)
@@ -19,7 +21,7 @@ description = '''This script makes shape variations from input root files for da
 parser = ArgumentParser(prog="checkshapes_TES",description=description,epilog="Succes!")
 parser.add_argument(      'filename',      type=str, nargs='?', action='store',
                     metavar='FILENAME',    help="file with shapes" ),
-parser.add_argument('-y', '--year',        dest='year', choices=[2016,2017,2018], type=int, default=2018, action='store',
+parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2018', action='store',
                                            help="select year")
 parser.add_argument('-c', '--channel',     dest='channels', choices=['mt','et'], type=str, nargs='+', default=['mt'], action='store',
                                            help="select channels")
@@ -43,6 +45,9 @@ parser.add_argument('-v', '--verbose',     dest='verbose', default=False, action
                                            help="set verbose" )
 args = parser.parse_args()
 
+# CMS style
+CMSStyle.setTDRStyle()
+
 category_dict  = {
   'DM0':  "h^{#pm}",
   'DM1':  "h^{#pm}#pi^{0}",
@@ -55,83 +60,98 @@ colors = [ kAzure+5, kRed+1, kGreen+2, kOrange+1, kMagenta-4, kYellow+1 ]
 
 
 
-def drawStacks(filename,dirname,samples,shifts=[ "" ],**kwargs):
-  """Compare shapes."""
-  print '>>>\n>>> drawStacks("%s","%s")'%(filename,dirname)
+def drawpostfit(fname,bin,procs,**kwargs):
+  """Plot pre- and post-fit plots PostFitShapesFromWorkspace."""
+  print '>>>\n>>> drawpostfit("%s","%s")'%(fname,bin)
+  outdir    = kwargs.get('outdir',  ""         )
+  #dirnametag= kwargs.get('dirnametag',     dirname   )
+  pname     = kwargs.get('pname',   "$FIT.png" ) # replace $FIT = 'prefit', 'postfit'
+  ratio     = kwargs.get('ratio',   True       )
+  tag       = kwargs.get('tag',     ""         )
+  xtitle    = kwargs.get('xtitle',  None       )
+  var       = kwargs.get('var',     None       )
+  title     = kwargs.get('title',   None       )
+  text      = kwargs.get('text',    ""         )
+  tsize     = kwargs.get('tsize',   0.045      )
+  xmin      = kwargs.get('xmin',    None       )
+  xmax      = kwargs.get('xmax',    None       )
+  ymargin   = kwargs.get('ymargin', 1.22       )
+  groups    = kwargs.get('group',   [ ]        )
+  position  = kwargs.get('pos',     None       ) # legend position
+  ncol      = kwargs.get('ncol',    None       ) # legend columns
+  square    = kwargs.get('square',  False      )
+  era       = kwargs.get('era',     ""         )
+  ymax      = None
+  fits      = ['prefit','postfit']
+  file      = ensureTFile(fname,'READ')
+  if outdir:
+    ensuredir(outdir)
+  if era:
+    setera(era)
   
-  file    = TFile(filename,'READ')
-  dir     = file.Get(dirname)
-  channel = kwargs.get('channel', ""        )
-  tag     = kwargs.get('tag',     ""        )
-  var0    = kwargs.get('var',     None      )
-  xmin    = kwargs.get('xmin',    None      )
-  xmax    = kwargs.get('xmax',    None      )
-  outdir  = kwargs.get('outdir',  "control" )
-  blind   = kwargs.get('blind',   [ ]       )
-  group   = kwargs.get('group',   [ ]       )
-  ensureDirectory(outdir)
-  if not isList(samples): samples = [samples]
-  if not dir: print warning('drawStacks: did not find dir "%s"'%(dirname),pre="   ")
-  if channel: channel += '-'
-  ensureDirectory(outdir)
-  
-  for shift in shifts:
-    if '$' in shift:
-      shift = shift.replace('$CAT',dirname).replace('$CHANNEL',channel)
-    variations = [ 'Up', 'Down' ] if shift else [""]
-    for variation in variations:
-      histsB   = [ ]
-      histsD   = [ ]
-      samplesS = [ ]
-      nShifted = 0
-      for sample in reversed(samples):
-        hist = None
-        if shift: # SHIFTED
-          sample1 = "%s_%s%s"%(sample,shift,variation)
-          hist    = dir.Get(sample1)
-          nShifted+=1
-          if not hist:
-            hist = dir.Get(sample)
-        else: # NOMINAL
-          hist = dir.Get(sample)
-        if not hist:
-          print warning('drawStacks: could not find "%s" template in directory "%s"'%(sample,dir.GetName()),pre="   ")
-          continue
-        hist.SetName(hist.GetName().replace('_ttbar','').replace('_ztt',''))
-        hist.SetTitle(sample_dict[sample])
-        if 'data_obs' in sample:
-          histsD.append(hist)
-          hist.SetLineColor(1)
-          if blind:
-            for bin in range(hist.FindBin(blind[0]),hist.FindBin(blind[1]+2)):
-              hist.SetBinContent(bin,0)
-        else:
-          histsB.append(hist)
-      
-      if len(histsB)==0 or (shift and nShifted==0):
-        print warning('drawStacks: could not find any "%s" templates in directory "%s"'%(shift,dir.GetName()),pre="   ")
+  # DRAW PRE-/POST-FIT
+  for fit in fits:
+    fitdirname = "%s_%s"%(bin,fit)
+    dir = file.Get(fitdirname)
+    if not dir:
+      LOG.warning('drawpostfit: Did not find dir "%s"'%(fitdirname),pre="   ")
+      return
+    obshist = None
+    exphists = [ ]
+    
+    # GET HIST
+    for proc in procs: #reversed(samples):
+      hname = "%s/%s"%(fitdirname,proc)
+      hist  = file.Get(hname)
+      if not hist:
+        LOG.warning('drawpostfit: Could not find "%s" template in directory "%s_%s"'%(proc,bin,fit),pre="   ")
         continue
-      
-      for groupargs in group:
-        histsB = groupHistsInList(histsB,*groupargs)
-      
-      var      = var0 or histsB[0].GetXaxis().GetTitle()
-      varname  = formatVariable(var)
-      vartitle = variable_dict.get(var,var)
-      tshift   = formatFilename(shift)
-      nshift   = ('_'+tshift+variation) if tshift else ""
-      title    = formatCategory(dirname,tshift,variation,channel=channel.rstrip('-'))
-      canvasname = "%s/%s_%s%s%s%s.png"%(outdir,var,channel,dirname,tag,nshift)
-      exts       = ['pdf','png'] if args.pdf else ['png']
-      
-      plot = Plot(histsD,histsB,stack=True)
-      plot.plot(vartitle,title=title,ratio=True,staterror=True,xmin=xmin,xmax=xmax)
-      plot.saveAs(canvasname,ext=exts)
-      plot.close()
+      if 'data_obs' in proc:
+        obshist = hist
+        hist.SetLineColor(1)
+        ymax = hist.GetMaximum()*ymargin
+      else:
+        exphists.append(hist)
+      if proc in STYLE.sample_titles:
+        hist.SetTitle(STYLE.sample_titles[proc])
+      if proc in STYLE.sample_colors:
+        hist.SetFillStyle(1001)
+        hist.SetFillColor(STYLE.sample_colors[proc])
+    if len(exphists)==0:
+      LOG.warning('drawpostfit: Could not find any templates in directory "%s"'%(bin),pre="   ")
+      continue
+    if not obshist:
+      LOG.warning('drawpostfit: Could not find a data template in directory "%s"'%(bin),pre="   ")
+      continue
+    for groupargs in groups:
+      grouphists(exphists,*groupargs,replace=True)
+    
+    # PLOT
+    xtitle     = (xtitle or exphists[0].GetXaxis().GetTitle()) #.replace('[GeV]','(GeV)')
+    varname    = formatVariable(var)
+    position   = position if position else "x=0.67" if 'post' in fit else "x=0.66"
+    title          = formatCategory(bin) if title==None else title
+    xmax       = xmax or exphists[0].GetXaxis().GetXmax()
+    xmin       = xmin or exphists[0].GetXaxis().GetXmin()
+    errtitle   = "Pre-fit stat. + syst. unc." if fit=='prefit' else "Post-fit unc."
+    canvasname = "%s_%s%s_%s.png"%(varname,bin,tag,fit)
+    #canvasname = "%s_%s%s_%s.png"%(varname,dirnametag,tag,fit)
+    exts       = ['pdf','png'] if args.pdf else ['png']
+    pname_     = repkey(pname,FIT=fit,ERA=era)
+    rmin, rmax = (0.28,1.52)
+    plot = Stack(xtitle,obshist,exphists)
+    plot.draw(xmin=xmin,xmax=xmax,ymax=ymax,square=square,ratio=ratio,rmin=rmin,rmax=rmax,
+              staterror=True,errtitle=errtitle)
+    plot.drawlegend(position,tsize=tsize,text=text,ncol=ncol)
+    if title:
+      plot.drawtext(title,bold=False)
+    plot.saveas(canvasname,outdir=outdir,ext=exts)
+    #plot.saveas(pname_,outdir=outdir,ext=exts)
+    plot.close()
   
   file.Close()
-  
 
+ 
 
 def drawPrePostFit(filename,dirname,samples,**kwargs):
     """Create pre- and post-fit plots from histograms and data."""
@@ -161,9 +181,9 @@ def drawPrePostFit(filename,dirname,samples,**kwargs):
     ymax            = None
     #signalPostScale = 1.0
     ensureDirectory(outdir)
-    signals         = ensureList(signals)
-    signaltitles    = ensureList(signaltitles)
-    signalstrengths = ensureList(signalstrengths)
+    signals         = ensurelist(signals)
+    signaltitles    = ensurelist(signaltitles)
+    signalstrengths = ensurelist(signalstrengths)
     fits            = ['prefit','postfit']
     file            = ensureTFile(filename,'READ')
     if not file:
@@ -174,7 +194,7 @@ def drawPrePostFit(filename,dirname,samples,**kwargs):
     signalfiles = [ ]
     signallist  = [ ]
     if len(signals)>0 and len(signaltitles)==0:
-      signaltitles = [sample_dict[s]+append_dict.get(s,"") for s in signals]
+      signaltitles = [STYLE.sample_titles[s]+append_dict.get(s,"") for s in signals]
     elif len(signals)==1 and len(signals)<len(signaltitles):
       signals = signals*len(signaltitles)
     if len(signals)>0 and len(signalstrengths)==0:
@@ -209,7 +229,7 @@ def drawPrePostFit(filename,dirname,samples,**kwargs):
       # DATA & BACKGROUNDS
       for sample in reversed(samples):
         histname = "%s/%s"%(fitdirname,sample)
-        stitle   = sample_dict[sample]+append_dict.get(sample,"")
+        stitle   = STYLE.sample_titles[sample]+append_dict.get(sample,"")
         hist     = file.Get(histname)
         if not hist:
           print warning('drawPrePostFit: could not find "%s" template in directory "%s_%s"'%(sample,dirname,fit),pre="   ")
@@ -242,7 +262,8 @@ def drawPrePostFit(filename,dirname,samples,**kwargs):
         continue
       
       for groupargs in group:
-        histsB = groupHistsInList(histsB,*groupargs)
+        histsB = grouphists(histsB,*groupargs)
+        #histsB = groupHistsInList(histsB,*groupargs)
       
       var            = var0 or histsB[0].GetXaxis().GetTitle()
       varname        = formatVariable(var)
@@ -278,7 +299,7 @@ def drawVariations(filename,dirname,samples,variations,**kwargs):
   outdir   = kwargs.get('outdir',   "shapes" )
   position = kwargs.get('position', 'right'  )
   text     = kwargs.get('text',     ""       )
-  if not isList(samples): samples = [samples]
+  if not islist(samples): samples = [samples]
   if not dir: print warning('drawVariations: did not find dir "%s"'%(dirname))
   ensureDirectory(outdir)
   ratio = True
@@ -344,7 +365,7 @@ def drawUpDownVariation(filename,dirname,samples,shifts,**kwargs):
   channel = kwargs.get('channel', "mutau"  )
   text    = kwargs.get('text',    ""       )
   ensureDirectory(outdir)
-  if not isList(samples): samples = [samples]
+  if not islist(samples): samples = [samples]
   if not dir: print warning('drawUpDownVariation: did not find dir "%s"'%(dirname))
   
   for sample in samples:
@@ -498,7 +519,7 @@ def xlimits(var,DM):
 def main():
     print ""
     
-    global sample_dict
+    #global sample_titles
     
     (minshift,maxshift,steps) = ( -0.060, 0.060, 0.01 )
     tesshifts = [ s*steps for s in xrange(int(minshift/steps),int(maxshift/steps)+1) ]
@@ -508,22 +529,22 @@ def main():
     for tes in tesshifts:
       nametag  = "_TES%.3f"%(1+tes)
       shifttag = getShiftTitle(nametag) #"" if tes==0 else " %s%% TES"%(("%+.2f"%(100.0*tes)).rstrip('0').rstrip('.'))
-      sample_dict["ZTT"+nametag] = sample_dict['ZTT']+shifttag
-      sample_dict["QCD"+nametag] = sample_dict['QCD']+shifttag
+      STYLE.sample_titles["ZTT"+nametag] = STYLE.sample_titles['ZTT']+shifttag
+      STYLE.sample_titles["QCD"+nametag] = STYLE.sample_titles['QCD']+shifttag
       variation_dict[nametag.replace('_','')] = shifttag
       if (tes*100)%1==0 and -0.04<tes<0.03: testags.append(nametag)
       if (tes*100)%3==0 and -0.04<tes<0.04: tesvars.append(nametag.replace('_',''))
     for nametag in ['_TES0.997','_TES0.998','_TES1.001','_TES1.003','_TES1.007']:
       shifttag = getShiftTitle(nametag)
-      sample_dict["ZTT"+nametag] = sample_dict['ZTT']+shifttag
-      sample_dict["QCD"+nametag] = sample_dict['QCD']+shifttag
+      STYLE.sample_titles["ZTT"+nametag] = STYLE.sample_titles['ZTT']+shifttag
+      STYLE.sample_titles["QCD"+nametag] = STYLE.sample_titles['QCD']+shifttag
     
     year        = args.year
-    lumi        = 36.5 if year==2016 else 41.4 if year==2017 else 59.5
-    era         = '%d-13TeV'%year
-    indir       = "input_%d"%year
-    outdir      = "shapes_%d"%year
-    stackoutdir = "control_%d"%year
+    lumi        = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
+    era         = '%s-13TeV'%year
+    indir       = "input_%s"%year
+    outdir      = "shapes_%s"%year
+    stackoutdir = "control_%s"%year
     tags        = args.tags
     analysis    = 'ztt'
     channels    = args.channels
@@ -532,9 +553,7 @@ def main():
     if args.observables: vars = args.observables
     if args.DMs:         DMs  = args.DMs
     doFR        = True and False
-    
-    GLOB.luminosity = lumi
-    GLOB.era = year
+    CMSStyle.setCMSEra(year)   
     
     # SAMPLES
     shapesamples  = [
@@ -577,11 +596,14 @@ def main():
         app_dict   = {'ZTT':getShiftTitle(tag)}
         DM         = getDM(args.filename) #dirname
         var        = 'm_vis' if 'm_vis' in args.filename else 'm_2'
-        position   = 'x=0.58' if var=='m_vis' else 'x=0.63' if DM=='DM10' else 'x=0.06' if DM=='DM11' else 'x=0.60'
-        outdir     = args.outdirname if args.outdirname else "postfit_%d"%year
-        drawPrePostFit(args.filename,dirname,stacksamples2,year=year,xmin=xmin,xmax=xmax,position=position,
+        position   = 'x=0.58' if var=='m_vis' else 'x=0.63' if (DM=='DM10' or DM=='DM1') else 'x=0.06' if DM=='DM11' else 'x=0.60'
+        outdir     = args.outdirname if args.outdirname else "postfit_%s"%year
+        drawpostfit(args.filename,dirname,stacksamples2,year=year,xmin=xmin,xmax=xmax,pos=position,
                        var=var,
                        apptitle=app_dict,tag=tag,outdir=outdir,group=grouplist)
+        #drawPrePostFit(args.filename,dirname,stacksamples2,year=year,xmin=xmin,xmax=xmax,position=position,
+        #               var=var,
+        #               apptitle=app_dict,tag=tag,outdir=outdir,group=grouplist)
     else:
       for tag in tags:
         for channel in channels:
@@ -600,12 +622,9 @@ def main():
               xmin, xmax = xlimits(var+tag,DM)
               position = 'x=0.08' if DM=='DM11' and var=='m_2' else 'x=0.68'
               drawUpDownVariation(filename,DM,shapesamples,shifts,outdir=outdir,xmin=xmin,xmax=xmax,tag=tag,text=DM,position=position)
-              #for extratag, stacklist in extrastacksamples:
-              #  drawStacks(filename,DM,stacklist,[""],xmin=xmin,xmax=xmax,tag=tag+extratag,group=grouplist)
               for nametag in testags:
                 samples = [ re.sub('ZTT_TES.*','ZTT%s'%nametag,s) for s in stacksamples ]
                 testag = tag+nametag.replace('.','p')
-                drawStacks(filename,DM,samples,outdir=stackoutdir,xmin=xmin,xmax=xmax,tag=testag,group=grouplist)
               drawVariations(filename,DM,'ZTT',tesvars,outdir=outdir,xmin=xmin,xmax=xmax,tag=tag,position=position)
               drawVariations(filename,DM,'ZTT',tesvarssmall,outdir=outdir,xmin=xmin,xmax=xmax,rmin=0.92,rmax=1.08,tag=tag,position=position)      
     

@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gROOT, gPad, gStyle, Double, TFile, TCanvas, TLegend, TLatex, TF1, TGraph, TGraph2D, TPolyMarker3D, TGraphAsymmErrors, TLine,\
                  kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, TMath
-import PlotTools.CMS_lumi as CMS_lumi, PlotTools.tdrstyle as tdrstyle
+from TauFW.Plotter.sample.utils import CMSStyle
 from itertools import combinations
 from math import sqrt, log, ceil, floor
 
@@ -17,13 +17,7 @@ gROOT.SetBatch(True)
 gStyle.SetOptTitle(0)
 
 # CMS style
-CMS_lumi.cmsText      = "CMS"
-CMS_lumi.extraText    = "Preliminary"
-CMS_lumi.cmsTextSize  = 0.85
-CMS_lumi.lumiTextSize = 0.80
-CMS_lumi.relPosX      = 0.13
-CMS_lumi.outOfFrame   = True
-tdrstyle.setTDRStyle()
+CMSStyle.setTDRStyle()
 
 DM_label    = { 'DM0':      "h^{#pm} decay mode",
                 'DM1':      "h^{#pm}#pi^{0} decay mode",
@@ -49,8 +43,8 @@ def plotParabola(channel,var,DM,year,**kwargs):
     if DM=='DM0' and 'm_2' in var: return
     print green("plot parabola for %s, %s"%(DM, var),pre="\n>>> ")
     
-    indir        = kwargs.get('indir',       "output_%d"%year )
-    outdir       = kwargs.get('outdir',      "plots_%d"%year  )
+    indir        = kwargs.get('indir',       "output_%s"%year )
+    outdir       = kwargs.get('outdir',      "plots_%s"%year  )
     tag          = kwargs.get('tag',         ""               )
     plottag      = kwargs.get('plottag',     ""               )
     MDFslices    = kwargs.get('MDFslices',   None             )
@@ -58,7 +52,7 @@ def plotParabola(channel,var,DM,year,**kwargs):
     asymmetric   = kwargs.get('asymm',       args.asymm       )
     fit          = kwargs.get('fit',         False            ) and not breakdown
     ctext        = kwargs.get('ctext',       [ ]              )
-    era          = "%d-13TeV"%year
+    era          = "%s-13TeV"%year
     results      = [ ]
     results_up   = [ ]
     results_down = [ ]
@@ -197,8 +191,8 @@ def plotParabola(channel,var,DM,year,**kwargs):
       tesf = para.GetParameter(1)
       if asymmetric:
         yline = 1+para.GetParameter(2)
-        tesf_errUp   = tesf-para.GetX(yline,tesf-0.02,tesf)
-        tesf_errDown = para.GetX(yline,tesf,tesf+0.02)-tesf
+        tesf_errDown = tesf-para.GetX(yline,tesf-0.02,tesf)
+        tesf_errUp   = para.GetX(yline,tesf,tesf+0.02)-tesf
       else:
         tesf_errUp   = round( sqrt( 1./(1000.*para.GetParameter(0)) )*10000)/10000 # TODO: propagate fit uncertainties with GetParError(i) !
         tesf_errDown = round( sqrt( 1./(1000.*para.GetParameter(0)) )*10000)/10000        
@@ -266,8 +260,7 @@ def plotParabola(channel,var,DM,year,**kwargs):
       text.SetTextColor(graph_bd.GetLineColor())
       text.DrawLatex(xtext,ytext-(i+3.5)*lineheight, "%7.3f"%(tes_bd))
     
-    CMS_lumi.relPosX = 0.13
-    CMS_lumi.CMS_lumi(canvas,13,0)
+    CMSStyle.setCMSLumiStyle(canvas,0)
     #canvas.SetTicks(1,1)
     canvas.Modified()
     canvas.Update()
@@ -283,12 +276,12 @@ def plotParabolaMDF(channel,var,year,**kwargs):
     """Plot multidimensional parabola."""
     print green("plot multidimensional parabola for %s"%(var),pre="\n>>> ")
     
-    indir      = kwargs.get('indir',      "output_%d"%year )
-    outdir     = kwargs.get('outdir',     "plots_%d"%year  )
+    indir      = kwargs.get('indir',      "output_%s"%year )
+    outdir     = kwargs.get('outdir',     "plots_%s"%year  )
     tag        = kwargs.get('tag',        ""               )
     nnlmin     = kwargs.get('nnlmin',     0                )
     MDFslices  = kwargs.get('MDFslices', { }               )
-    era        = "%d-13TeV"%year
+    era        = "%s-13TeV"%year
     ensureDirectory(outdir)
     
     canvasname = "%s/parabola_tes_%s_%s-%s%s"%(outdir,channel,var,"MDF",tag)
@@ -382,8 +375,7 @@ def plotParabolaMDF(channel,var,year,**kwargs):
       latex.SetTextAngle(90)
       latex.DrawLatex(pmax+0.19*(pmax-pmin),pmax,ztitle)
       
-      CMS_lumi.relPosX = 0.14
-      CMS_lumi.CMS_lumi(canvas,13,0)
+      CMSStyle.setCMSLumiStyle(canvas,0)
       gPad.Modified()
       gPad.Update()
       gPad.RedrawAxis()
@@ -635,8 +627,8 @@ def measureTES_fit(filename,asymmetric=True,unc=False):
     if unc:
       if asymmetric:
         yline = 1+para.GetParameter(2)
-        tesf_errUp   = tesf-para.GetX(yline,tesf-0.02,tesf)
-        tesf_errDown = para.GetX(yline,tesf,tesf+0.02)-tesf
+        tesf_errDown = tesf-para.GetX(yline,tesf-0.02,tesf)
+        tesf_errUp   = para.GetX(yline,tesf,tesf+0.02)-tesf
       else:
         tesf_errUp   = round( sqrt( 1./(1000.*para.GetParameter(0)) )*10000)/10000 # TODO: propagate fit uncertainties with GetParError(i) !
         tesf_errDown = round( sqrt( 1./(1000.*para.GetParameter(0)) )*10000)/10000  
@@ -806,10 +798,10 @@ def plotMeasurements(categories,measurements,**kwargs):
       ytext = i+0.5
       latex.DrawLatex(xtext,ytext,name)
     
-    CMS_lumi.cmsTextSize  = 0.85
-    CMS_lumi.lumiTextSize = 0.80
-    CMS_lumi.relPosX      = 0.13*800*0.76/(1.-canvasL-canvasR)/canvasW
-    CMS_lumi.CMS_lumi(canvas,13,0)
+    CMSStyle.setCMSLumiStyle(canvas,0)
+    CMSStyle.cmsTextSize  = 0.85
+    CMSStyle.lumiTextSize = 0.80
+    CMSStyle.relPosX      = 0.13*800*0.76/(1.-canvasL-canvasR)/canvasW
     
     # SAVE
     if exts:
@@ -1068,28 +1060,56 @@ def ensureList(arg):
 
 
 def finalCalculation(year,**kwargs):
-  outdir = kwargs.get('outdir', "plots_%d"%year)
+  outdir = kwargs.get('outdir', "plots_%s"%year)
   DMs    = ['DM0','DM1','DM10','DM11']
-  if year==2016:
+  if year=='2016':
     measurements = [
       [ None,                  (0.9950,0.0063,0.0063)],
       [(1.0021,0.0036,0.0023), (1.0013,0.0033,0.0036)],
       [(0.9985,0.0027,0.0027), (1.0024,0.0045,0.0045)],
       [(1.0199,0.0060,0.0067), (0.9977,0.0099,0.0089)],
     ]
-  elif year==2017:
+  elif year=='2017':
     measurements = [
       [ None,                  (1.0012,0.0090,0.0084)],
       [(0.9933,0.0036,0.0036), (1.0043,0.0036,0.0036)],
       [(1.0017,0.0036,0.0036), (1.0034,0.0054,0.0054)],
       [(1.0229,0.0061,0.0063), (0.9885,0.0105,0.0105)],
     ]
-  elif year==2018:
+  elif year=='2018':
     measurements = [
       [ None,                  (0.9844,0.0086,0.0058)],
       [(0.9961,0.0045,0.0034), (0.9964,0.0036,0.0036)],
       [(0.9963,0.0045,0.0045), (0.9865,0.0053,0.0036)],
       [(1.0014,0.0081,0.0052), (0.9939,0.0109,0.0121)],
+    ]
+  elif year=='UL2016_preVFP':
+    measurements = [
+      [ None,                  (0.9873,0.0078,0.0082)],
+      [(0.9935,0.0035,0.0036), (0.9980,0.0036,0.0036)],
+      [(0.9935,0.0072,0.0070), (0.9844,0.0063,0.0061)],
+      [(1.0034,0.0125,0.0036), (0.9991,0.0099,0.0088)],
+    ]
+  elif year=='UL2016_postVFP':
+    measurements = [
+      [ None,                  (0.9930,0.0056,0.0078)],
+      [(0.9945,0.0027,0.0027), (0.9913,0.0040,0.0045)],
+      [(0.9936,0.0045,0.0045), (1.0006,0.0054,0.0054)],
+      [(1.0137,0.0104,0.0118), (0.9969,0.0116,0.0153)],
+    ]
+  elif year=='UL2017':
+    measurements = [
+      [ None,                  (0.9860,0.0067,0.0081)],
+      [(0.9828,0.0063,0.0046), (0.9994,0.0036,0.0036)],
+      [(1.0028,0.0045,0.0045), (0.9985,0.0031,0.0054)],
+      [(1.0318,0.0105,0.0198), (0.9963,0.0098,0.0068)],
+    ]
+  elif year=='UL2018':
+    measurements = [
+      [ None,                  (0.9914,0.0063,0.0060)],
+      [(0.9940,0.0027,0.0027), (1.0037,0.0027,0.0027)],
+      [(1.0015,0.0054,0.0039), (0.9976,0.0045,0.0040)],
+      [(1.0186,0.0067,0.0050), (1.0036,0.0072,0.0072)],
     ]
   channel = 'mt'
   ctext = "" #tagToSelection("_mtlt50_0p10_100-7")
@@ -1113,7 +1133,7 @@ def finalCalculation(year,**kwargs):
   print string
   
   cats = [varlabel[d] for d in DMs]
-  plotMeasurements(cats,measurements,xtitle="tau energy scale [%]",xmin=-3,xmax=+4,L=0.20,
+  plotMeasurements(cats,measurements,xtitle="tau energy scale [%]",xmin=-3,xmax=+6,L=0.20,
                    position="out",entries=entries,emargin=0.14,ctext=ctext,ctextsize=0.035,cposition='topright',canvas=name,exts=['png','pdf'])
   
 
@@ -1123,13 +1143,13 @@ def main(args):
     
     verbosity     = args.verbose
     year          = args.year
-    lumi          = 36.5 if year==2016 else 41.4 if year==2017 else 59.5
+    lumi          = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
     channels      = args.channels
     newDM         = any("newDM" in t or "DeepTau" in t for t in args.tags)
     DMs           = [ 'DM0', 'DM1', 'DM10', 'DM11' ] if newDM else [ 'DM0', 'DM1', 'DM10' ]
     vars          = [ 'm_2', 'm_vis' ]
     indir         = "output_%s"%year
-    outdir        = "plots_%d"%year
+    outdir        = "plots_%s"%year
     tags          = args.tags
     breakdown     = args.breakdown
     multiDimFit   = args.multiDimFit
@@ -1142,7 +1162,7 @@ def main(args):
     if args.observables: vars = [o for o in args.observables if '#' not in o]
     ensureDirectory(outdir)
     
-    CMS_lumi.lumi_13TeV = "%s, %s fb^{-1}"%(year,lumi)
+    CMSStyle.setCMSEra(year)
     
     cats    = [varlabel[d] for d in DMs]
     entries = [varlabel[v] for v in vars]
@@ -1329,7 +1349,7 @@ if __name__ == '__main__':
     argv = sys.argv
     description = '''Plot parabolas.'''
     parser = ArgumentParser(prog="plotParabola",description=description,epilog="Succes!")
-    parser.add_argument('-y', '--year',        dest='year', choices=[2016,2017,2018], type=int, default=2017, action='store',
+    parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store',
                                                help="select year")
     parser.add_argument('-c', '--channel',     dest='channels', choices=['mt','et'], type=str, default=['mt'], action='store',
                                                help="select channel")

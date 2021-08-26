@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from plotParabola_TES import measureTES, ensureDirectory, ensureTFile
 from ROOT import gROOT, gPad, gStyle, Double, TFile, TCanvas, TLegend, TLatex, TF1, TH2F, TGraph, TLine, TColor,\
                  kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, kBlackBody, kTemperatureMap
-import PlotTools.CMS_lumi as CMS_lumi, PlotTools.tdrstyle as tdrstyle
+from TauFW.Plotter.sample.utils import CMSStyle
 from math import sqrt, log, ceil, floor
 from itertools import combinations
 
@@ -19,7 +19,7 @@ gStyle.SetOptTitle(0)
 argv = sys.argv
 description = '''This script makes datacards with CombineHarvester.'''
 parser = ArgumentParser(prog="LowMassDiTau_Harvester",description=description,epilog="Succes!")
-parser.add_argument('-y', '--year',        dest='year', choices=[2016,2017,2018], type=int, default=2017, action='store',
+parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store',
                                            help="select year")
 parser.add_argument('-c', '--channel',     dest='channels', choices=['mt','et'], type=str, nargs='+', default=['mt'], action='store',
                                            help="select channels")
@@ -44,13 +44,7 @@ verbosity   = args.verbose
 observables = [o for o in args.observables if '#' not in o]
 
 # CMS style
-CMS_lumi.cmsText      = "CMS"
-CMS_lumi.extraText    = "Preliminary"
-CMS_lumi.cmsTextSize  = 0.80
-CMS_lumi.lumiTextSize = 0.75
-CMS_lumi.relPosX      = 0.12
-CMS_lumi.outOfFrame   = True
-tdrstyle.setTDRStyle()
+CMSStyle.setTDRStyle()
 
 # COLOR palette, see core/base/src/TColor.cxx
 red   = array('d',[ 0.80, 0.90, 1.00, 0.60, 0.02, ])
@@ -105,12 +99,12 @@ def plotCorrelation(channel,var,DM,year,*parameters,**kwargs):
     
     title       = kwargs.get('title',     ""                )
     name        = kwargs.get('name',      ""                )
-    indir       = kwargs.get('indir',     "output_%d"%year  )
-    outdir      = kwargs.get('outdir',    "postfit_%d"%year )
+    indir       = kwargs.get('indir',     "output_%s"%year  )
+    outdir      = kwargs.get('outdir',    "postfit_%s"%year )
     tag         = kwargs.get('tag',       ""                )
     plotlabel   = kwargs.get('plotlabel', ""                )
     order       = kwargs.get('order',     False             )
-    era         = "%d-13TeV"%year
+    era         = "%s-13TeV"%year
     filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,DM,tag,era)
     ensureDirectory(outdir)
     print '>>>   file "%s"'%(filename)
@@ -180,8 +174,7 @@ def plotCorrelation(channel,var,DM,year,*parameters,**kwargs):
       latex.SetTextFont(42)
       latex.DrawLatexNDC(0.96*lmargin,0.80*bmargin,title)
     
-    CMS_lumi.relPosX = 0.14
-    CMS_lumi.CMS_lumi(canvas,13,0)
+    CMSStyle.setCMSLumiStyle(canvas,0)
     gPad.SetTicks(1,1)
     gPad.Modified()
     frame.Draw('SAMEAXIS')
@@ -255,12 +248,12 @@ def plotPostFitValues(channel,var,DM,year,*parameters,**kwargs):
     parameters  = [p.replace('$CAT',DM).replace('$CHANNEL',channel) for p in list(parameters)]
     title       = kwargs.get('title',     ""    )
     name        = kwargs.get('name',      ""    )
-    indir       = kwargs.get('indir',     "output_%d"%year  )
-    outdir      = kwargs.get('outdir',    "postfit_%d"%year )
+    indir       = kwargs.get('indir',     "output_%s"%year  )
+    outdir      = kwargs.get('outdir',    "postfit_%s"%year )
     tag         = kwargs.get('tag',       ""    )
     plotlabel   = kwargs.get('plotlabel', ""    )
     compareFD   = kwargs.get('compareFD', False ) and N==1
-    era         = "%d-13TeV"%year
+    era         = "%s-13TeV"%year
     isBBB       = any("_bin_" in p for p in parameters)
     filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,DM,tag,era)
     filenamesFD = '%s/fitDiagnostics.%s_%s-%s%s-%s_TES*p*.root'%(indir,channel,var,DM,tag,era)
@@ -389,8 +382,7 @@ def plotPostFitValues(channel,var,DM,year,*parameters,**kwargs):
     
     legend.Draw()
     
-    CMS_lumi.relPosX = 0.12
-    CMS_lumi.CMS_lumi(canvas,13,0)
+    CMSStyle.setCMSLumiStyle(canvas,0)	
     gPad.SetTicks(1,1)
     gPad.Modified()
     frame.Draw('SAMEAXIS')
@@ -550,8 +542,8 @@ def chunkify(list,nmax,overlap=0,complete=False):
 def getBBBList(channel,var,DM,year,process,**kwargs):
     """Get list of all BBB nuisance parameter for a proces."""
     if DM=='DM0' and 'm_2' in var: return [ ]
-    indir    = kwargs.get('indir', "output_%d"%year)
-    era      = "%d-13TeV"%year
+    indir    = kwargs.get('indir', "output_%s"%year)
+    era      = "%s-13TeV"%year
     tag      = kwargs.get('tag', "" )
     filename = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,DM,tag,era)
     bbblist  = findBranches(filename,process) #[int(re.findall(r"\d+",b)[-1]) for b in findBranches(filename,process)]
@@ -569,14 +561,14 @@ def main():
     
     ensureDirectory(PLOTS_DIR)
     year      = args.year
-    lumi      = 36.5 if year==2016 else 41.4 if year==2017 else 59.5
+    lumi      = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
     channels  = args.channels
     vars      = [ 'm_2', 'm_vis' ]
     DMs       = [ 'DM0', 'DM1', 'DM10', 'DM11' ] #3 ]
     tags      = args.tags
     if args.DMs: DMs = args.DMs
     if args.observables: vars = observables
-    CMS_lumi.lumi_13TeV   = "%s, %s fb^{-1}"%(year,lumi)
+    CMSStyle.setCMSEra(year)
     nuisances = [ #"eff_t_$CAT",
                   "shape_tid", "xsec_dy", "norm_wj",
                   "shape_jTauFake", "rate_jTauFake", "xsec_tt", ]

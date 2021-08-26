@@ -13,7 +13,7 @@ from ROOT import RooWorkspace, TFile, RooRealVar
 argv = sys.argv
 description = '''This script makes datacards with CombineHarvester.'''
 parser = ArgumentParser(prog="harvesterDatacards_TES",description=description,epilog="Succes!")
-parser.add_argument('-y', '--year',        dest='year', choices=[2016,2017,2018], type=int, default=2018, action='store',
+parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default=2018, action='store',
                                            help="select year")
 parser.add_argument('-c', '--channel',     dest='channels', choices=['mt','et'], type=str, nargs='+', default='mt', action='store',
                                            help="channels to submit")
@@ -48,12 +48,13 @@ observables     = [o for o in args.observables if '#' not in o]
 filterDM10      = [ 'STL', 'TTL', 'ZL' ] # 'ZL', 'ZJ' ] #'ZJ',
 scaleDM0        = 1. #0.99/0.90
 WNFs            = {
-   2016:          { 'DM0': 0.846,  'DM1': 0.925,  'DM10': 1.163,  'DM11': 1.105  },
-   2017:          { 'DM0': 0.941,  'DM1': 0.955,  'DM10': 1.009,  'DM11': 0.957  },
-   2018:          { 'DM0': 1.070,  'DM1': 1.045,  'DM10': 1.300,  'DM11': 1.075  },
-#   2016:          { 'DM0': 0.796,  'DM1': 0.913,  'DM10': 1.075,  'DM11': 1.025  },
-#   2017:          { 'DM0': 0.962,  'DM1': 0.970,  'DM10': 1.006,  'DM11': 0.919  },
-#   2018:          { 'DM0': 1.045,  'DM1': 1.033,  'DM10': 1.193,  'DM11': 1.033  },
+ 'UL2016_preVFP':   { 'DM0': 0.939,  'DM1': 1.031,  'DM10': 1.065,  'DM11': 1.021  },
+ 'UL2016_postVFP':  { 'DM0': 0.919,  'DM1': 0.972,  'DM10': 1.112,  'DM11': 1.074  },
+ 'UL2017':          { 'DM0': 0.971,  'DM1': 0.995,  'DM10': 1.109,  'DM11': 1.075  },
+ 'UL2018':          { 'DM0': 1.007,  'DM1': 0.968,  'DM10': 1.079,  'DM11': 1.044  },
+   '2016':          { 'DM0': 0.796,  'DM1': 0.913,  'DM10': 1.075,  'DM11': 1.025  },
+   '2017':          { 'DM0': 0.962,  'DM1': 0.970,  'DM10': 1.006,  'DM11': 0.919  },
+   '2018':          { 'DM0': 1.045,  'DM1': 1.033,  'DM10': 1.193,  'DM11': 1.033  },
 }
 TIDSFs          = {
 #   2016: { 'Medium': { 'DM0': 0.9599, 'DM1': 0.9191, 'DM10': 0.8733, 'DM11': 0.8547 },
@@ -287,7 +288,7 @@ def harvest(channel,var,DMs,year,**kwargs):
     # MORPHING
     print green(">>> morphing...")
     debugdir  = ensureDirectory("debug")
-    debugfile = TFile("%s/morph_debug_%d_%s_%s%s.root"%(debugdir,year,channel,var,outtag), 'RECREATE')
+    debugfile = TFile("%s/morph_debug_%s_%s_%s%s.root"%(debugdir,year,channel,var,outtag), 'RECREATE')
     verboseMorph = verbosity>0
     for bin, poi in zip(bins,pois):
       print '>>>   bin "%s"...'%(bin)
