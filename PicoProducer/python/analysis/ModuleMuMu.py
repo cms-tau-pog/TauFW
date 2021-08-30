@@ -20,16 +20,17 @@ class ModuleMuMu(ModuleTauPair):
     
     # TRIGGERS
     if self.year==2016:
-      self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
-      self.muon1CutPt = lambda e: 23
-      self.muonCutEta = lambda e: 2.4 if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
+      #self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
+      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
+      self.muon1CutPt = lambda e: 26
+      self.muonCutEta = lambda e: 2.4 #if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 25 if e.HLT_IsoMu24 else 28
+      self.muon1CutPt = lambda e: 26 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
     else:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 25
+      self.muon1CutPt = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     self.muon2CutPt   = 15
     self.tauCutPt     = 20
@@ -134,27 +135,35 @@ class ModuleMuMu(ModuleTauPair):
     
     
     # MUON 1
-    self.out.pt_1[0]  = muon1.pt
-    self.out.eta_1[0] = muon1.eta
-    self.out.phi_1[0] = muon1.phi
-    self.out.m_1[0]   = muon1.mass
-    self.out.y_1[0]   = muon1.tlv.Rapidity()
-    self.out.dxy_1[0] = muon1.dxy
-    self.out.dz_1[0]  = muon1.dz
-    self.out.q_1[0]   = muon1.charge
-    self.out.iso_1[0] = muon1.pfRelIso04_all
+    self.out.pt_1[0]       = muon1.pt
+    self.out.eta_1[0]      = muon1.eta
+    self.out.phi_1[0]      = muon1.phi
+    self.out.m_1[0]        = muon1.mass
+    self.out.y_1[0]        = muon1.tlv.Rapidity()
+    self.out.dxy_1[0]      = muon1.dxy
+    self.out.dz_1[0]       = muon1.dz
+    self.out.q_1[0]        = muon1.charge
+    self.out.iso_1[0]      = muon1.pfRelIso04_all # relative isolation
+    self.out.tkRelIso_1[0] = muon1.tkRelIso
+    self.out.idMedium_1[0] = muon1.mediumId
+    self.out.idTight_1[0]  = muon1.tightId
+    self.out.idHighPt_1[0] = muon1.highPtId
     
     
     # MUON 2
-    self.out.pt_2[0]  = muon2.pt
-    self.out.eta_2[0] = muon2.eta
-    self.out.phi_2[0] = muon2.phi
-    self.out.m_2[0]   = muon2.mass
-    self.out.y_2[0]   = muon2.tlv.Rapidity()
-    self.out.dxy_2[0] = muon2.dxy
-    self.out.dz_2[0]  = muon2.dz
-    self.out.q_2[0]   = muon2.charge
-    self.out.iso_2[0] = muon2.pfRelIso04_all
+    self.out.pt_2[0]       = muon2.pt
+    self.out.eta_2[0]      = muon2.eta
+    self.out.phi_2[0]      = muon2.phi
+    self.out.m_2[0]        = muon2.mass
+    self.out.y_2[0]        = muon2.tlv.Rapidity()
+    self.out.dxy_2[0]      = muon2.dxy
+    self.out.dz_2[0]       = muon2.dz
+    self.out.q_2[0]        = muon2.charge
+    self.out.iso_2[0]      = muon2.pfRelIso04_all # relative isolation
+    self.out.tkRelIso_2[0] = muon2.tkRelIso
+    self.out.idMedium_2[0] = muon2.mediumId
+    self.out.idTight_2[0]  = muon2.tightId
+    self.out.idHighPt_2[0] = muon2.highPtId
     
     
     # TAU for jet -> tau fake rate measurement in mumu+tau events
@@ -228,9 +237,9 @@ class ModuleMuMu(ModuleTauPair):
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
       # MUON WEIGHTS
-      self.out.trigweight[0]        = self.muSFs.getTriggerSF(muon1.pt,muon1.eta)
-      self.out.idisoweight_1[0]     = self.muSFs.getIdIsoSF(muon1.pt,muon1.eta)
-      self.out.idisoweight_2[0]     = self.muSFs.getIdIsoSF(muon2.pt,muon2.eta)
+      self.out.trigweight[0]    = self.muSFs.getTriggerSF(muon1.pt,muon1.eta) # assume leading muon was triggered on
+      self.out.idisoweight_1[0] = self.muSFs.getIdIsoSF(muon1.pt,muon1.eta)
+      self.out.idisoweight_2[0] = self.muSFs.getIdIsoSF(muon2.pt,muon2.eta)
     
     
     # MET & DILEPTON VARIABLES

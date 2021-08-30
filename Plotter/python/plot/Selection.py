@@ -49,7 +49,7 @@ class Selection(object):
       self.weight      = args[3]
     self.title         = kwargs.get('title',    maketitle(self.title) )
     self.filename      = makefilename(self.name)
-    self.filename      = kwargs.get('fname',    self.filename )
+    self.filename      = kwargs.get('fname',    self.filename ) # alias
     self.filename      = kwargs.get('filename', self.filename ) # name for files, histograms
     self.weight        = kwargs.get('weight',   self.weight   )
     #if self.selection=="":
@@ -94,7 +94,12 @@ class Selection(object):
       result = Selection("%s (%s)"(self.name,weight.title),joincuts(self.selection,weight=weight))
     return result
   
+  def contains(self, string, **kwargs):
+    """Return if selection string contains given substring."""
+    return string in self.selections
+  
   def replace(self, old, new, **kwargs):
+    """Replace given substring in selection string."""
     if kwargs.get('regex',False):
       self.selection = self.selection.replace(old,new)
     else:

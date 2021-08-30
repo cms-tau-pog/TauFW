@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-# Description: Simple module to nanoAOD post-processing
+# Description: Simple module to test nanoAOD-tools Module class
 import time; time0 = time.time()
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
@@ -60,3 +59,30 @@ class TestModule(Module):
         self.out.fillBranch('iso_1', muon.pfRelIso04_all)
         
         return True
+
+
+if __name__ == '__main__':
+  import time; time0 = time.time()
+  from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
+  from argparse import ArgumentParser
+  parser = ArgumentParser()
+  parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
+  parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
+  parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=1000)
+  parser.add_argument('-v', '--verbose',  dest='verbosity', type=int, default=1)
+  args = parser.parse_args()
+  outdir  = args.outdir
+  maxevts = args.maxevts
+  postfix = "_TestModule"
+  infiles = args.infiles or [
+    #url+"/store/mc/RunIISummer20UL18NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/50000/C9EAE9C3-7392-6B48-8FD2-A2DCA1C6B2C7.root",
+    #url+"/store/mc/RunIISummer20UL18NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/50000/04BBC240-E6D5-824C-9688-835C8D1D9C12.root",
+    "root://eosuser.cern.ch//eos/cms/store/group/phys_tau/TauFW/nano/UL2018/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/C9EAE9C3-7392-6B48-8FD2-A2DCA1C6B2C7_skimjec_0.root",
+    "root://eosuser.cern.ch//eos/cms/store/group/phys_tau/TauFW/nano/UL2018/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM/C9EAE9C3-7392-6B48-8FD2-A2DCA1C6B2C7_skimjec_1.root",
+  ]
+  modules = [TestModule()]
+  p = PostProcessor(outdir,infiles,cut=None,branchsel=None,maxEntries=maxevts,
+                    modules=modules,postfix=postfix,noOut=False)
+  p.run()
+  print(">>> TestModule.py done after %.1f seconds"%(time.time()-time0))
+  

@@ -25,7 +25,7 @@ class TreeProducerEMu(TreeProducerTauPair):
     self.addBranch('dxy_1',                    'f')
     self.addBranch('dz_1',                     'f')
     self.addBranch('q_1',                      'i')
-    self.addBranch('iso_1',                    'f', title="pfRelIso03_all")
+    self.addBranch('iso_1',                    'f', title="relative isolation, pfRelIso03_all")
     self.addBranch('cutBased_1',               '?')
     ###self.addBranch('mvaFall17Iso_1',           'f')
     self.addBranch('mvaFall17Iso_WP80_1',      '?')
@@ -46,7 +46,11 @@ class TreeProducerEMu(TreeProducerTauPair):
     self.addBranch('dxy_2',                    'f')
     self.addBranch('dz_2',                     'f')
     self.addBranch('q_2',                      'i')
-    self.addBranch('iso_2',                    'f', title="pfRelIso04_all")
+    self.addBranch('iso_2',                    'f', title="relative isolation, pfRelIso04_all")
+    self.addBranch('tkRelIso_2',               'f')
+    self.addBranch('idMedium_2',               '?')
+    self.addBranch('idTight_2',                '?')
+    self.addBranch('idHighPt_2',               'i')
     
     
     ###########

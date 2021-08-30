@@ -1,23 +1,27 @@
 # Description: Common configuration file for creating pico sample set plotting scripts
 import re
-from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, ensurelist,\
-                                       setera, getyear, Sel, Var
+from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, joinweights, ensurelist,\
+                                       setera, getyear, loadmacro, Sel, Var
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
-  year  = getyear(era) # get integer year
-  split = kwargs.get('split',  ['DY']       ) # split samples (e.g. DY) into genmatch components
-  join  = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
-  rmsfs = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
-  tag   = kwargs.get('tag',    ""           )
-  table = kwargs.get('table',  True         ) # print sample set table
+  year   = getyear(era) # get integer year
+  fname  = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
+  split  = kwargs.get('split',  ['DY']       ) # split samples (e.g. DY) into genmatch components
+  join   = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
+  rmsfs  = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
+  addsfs = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
+  weight = kwargs.get('weight', None         ) # weight for all MC samples
+  tag    = kwargs.get('tag',    ""           )
+  table  = kwargs.get('table',  True         ) # print sample set table
   setera(era) # set era for plot style and lumi-xsec normalization
   
   # SM BACKGROUND MC SAMPLES
-  if 'UL' in era:
+  if 'UL' in era: # UltraLegacy
     expsamples = [ # table of MC samples to be converted to Sample objects
-      # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS      #( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0  ),
+      # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
+      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0  ),
       ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': 'zptweight'} ), # apply k-factor in stitching
       ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': 'zptweight'} ),
       ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': 'zptweight'} ),
@@ -41,7 +45,7 @@ def getsampleset(channel,era,**kwargs):
     ]
     #if 'mutau' in channel:
     #  expsamples.append(('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh_M-50",5343.0,{'extraweight': dyweight})) # apply correct normalization in stitching
-  elif era=='2016':
+  elif era=='2016': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ),
@@ -64,7 +68,7 @@ def getsampleset(channel,era,**kwargs):
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
       ( 'TT', "TT",                    "ttbar",                831.76, {'extraweight': 'ttptweight'} ),
     ]
-  elif era=='2017':
+  elif era=='2017': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ), # apply k-factor in stitching
@@ -89,7 +93,7 @@ def getsampleset(channel,era,**kwargs):
       ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
       ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
     ]
-  elif era=='UL2017':
+  elif era=='UL2017': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       #( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ),
@@ -114,7 +118,7 @@ def getsampleset(channel,era,**kwargs):
       ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
       ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
     ]
-  elif era=='2018':
+  elif era=='2018': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ),
@@ -154,10 +158,18 @@ def getsampleset(channel,era,**kwargs):
   datasample = ('Data',dataset) # GROUP, NAME
   
   # SAMPLE SET
-  weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
+  if weight=="":
+    weight = ""
+  elif channel in ['mutau','etau']:
+    weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
+  elif channel in ['tautau','ditau']:
+    weight = "genweight*trigweight*puweight*idweight_1*idweight_2*ltfweight_1*ltfweight_2"
+  else: # mumu, emu, ...
+    weight = "genweight*trigweight*puweight*idisoweight_1*idisoweight_2"
   for sf in rmsfs: # remove (old) SFs, e.g. for SF measurement
-    weight = weight.replace(sf,"").replace("**","")
-  fname  = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+    weight = weight.replace(sf,"").replace("**","*").strip('*')
+  for sf in addsfs:  # add extra SFs, e.g. for SF measurement
+    weight = joinweights(weight,sf)
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)

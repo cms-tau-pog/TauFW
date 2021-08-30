@@ -6,8 +6,9 @@ import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.PicoProducer.batch import moddir
 from TauFW.common.tools.log import Logger
 from TauFW.common.tools.file import ensurefile, ensureTFile
-from TauFW.common.tools.utils import repkey
+from TauFW.common.tools.string import repkey
 from TauFW.common.tools.math import partition_by_max, ceil, floor
+from TauFW.common.tools.LoadingBar import LoadingBar
 from TauFW.PicoProducer.storage.Sample import Sample
 LOG = Logger('Storage')
 evtsplitexp = re.compile(r"(.+\.root):(\d+):(\d+)$") # input file split by events
@@ -24,7 +25,10 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
   nlarge   = { }
   nsmall   = { }
   ntot     = 0
-  if verb>=4:
+  bar      = None # loading bar
+  if verb<=0 and len(fnames)>=5:
+    bar = LoadingBar(len(fnames),width=20,pre=">>> Checking number of events: ",counter=True,remove=True)
+  elif verb>=4:
     print ">>> chunkify_by_evts: events per file:"
   for fname in fnames[:]:
     if evtsplitexp.match(fname): # already split; cannot be split again
@@ -52,6 +56,8 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
       nlarge.setdefault(nevts,[ ]).append(fname)
       fnames.remove(fname)
     ntot += nevts
+    if bar:
+      bar.count("files")
   if verb>=1:
     print ">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%(
       len(nsmall),maxevts,len(nlarge),maxevts)

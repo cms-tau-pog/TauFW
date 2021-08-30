@@ -17,30 +17,38 @@ class TreeProducerMuMu(TreeProducerTauPair):
     #   MUON 1   #
     ##############
     
-    self.addBranch('pt_1',            'f')
-    self.addBranch('eta_1',           'f')
-    self.addBranch('phi_1',           'f')
-    self.addBranch('m_1',             'f')
-    self.addBranch('y_1',             'f')
-    self.addBranch('dxy_1',           'f')
-    self.addBranch('dz_1',            'f')
-    self.addBranch('q_1',             'i')
-    self.addBranch('iso_1',           'f', title="pfRelIso04_all")
+    self.addBranch('pt_1',       'f')
+    self.addBranch('eta_1',      'f')
+    self.addBranch('phi_1',      'f')
+    self.addBranch('m_1',        'f')
+    self.addBranch('y_1',        'f')
+    self.addBranch('dxy_1',      'f')
+    self.addBranch('dz_1',       'f')
+    self.addBranch('q_1',        'i')
+    self.addBranch('iso_1',      'f', title="relative isolation, pfRelIso04_all")
+    self.addBranch('tkRelIso_1', 'f')
+    self.addBranch('idMedium_1', '?')
+    self.addBranch('idTight_1',  '?')
+    self.addBranch('idHighPt_1', 'i')
     
     
     ##############
     #   MUON 2   #
     ##############
     
-    self.addBranch('pt_2',            'f')
-    self.addBranch('eta_2',           'f')
-    self.addBranch('phi_2',           'f')
-    self.addBranch('m_2',             'f')
-    self.addBranch('y_2',             'f')
-    self.addBranch('dxy_2',           'f')
-    self.addBranch('dz_2',            'f')
-    self.addBranch('q_2',             'i')
-    self.addBranch('iso_2',           'f', title="pfRelIso04_all")
+    self.addBranch('pt_2',       'f')
+    self.addBranch('eta_2',      'f')
+    self.addBranch('phi_2',      'f')
+    self.addBranch('m_2',        'f')
+    self.addBranch('y_2',        'f')
+    self.addBranch('dxy_2',      'f')
+    self.addBranch('dz_2',       'f')
+    self.addBranch('q_2',        'i')
+    self.addBranch('iso_2',      'f', title="relative isolation, pfRelIso04_all")
+    self.addBranch('tkRelIso_2', 'f')
+    self.addBranch('idMedium_2', '?')
+    self.addBranch('idTight_2',  '?')
+    self.addBranch('idHighPt_2', 'i')
     
     
     ###########

@@ -24,32 +24,33 @@ class ModuleTauPair(Module):
     print header(self.__class__.__name__)
     
     # SETTINGS
-    self.filename   = fname
-    self.dtype      = kwargs.get('dtype',   'data'         )
+    self.filename   = fname # output file name
+    self.dtype      = kwargs.get('dtype',    'data'         )
     self.ismc       = self.dtype=='mc'
     self.isdata     = self.dtype=='data' or self.dtype=='embed'
     self.isembed    = self.dtype=='embed'
-    self.channel    = kwargs.get('channel', 'none'         ) # channel name
-    self.year       = kwargs.get('year',    2017           ) # integer, e.g. 2017, 2018
-    self.era        = kwargs.get('era',     '2017'         ) # string, e.g. '2017', 'UL2017'
-    self.ees        = kwargs.get('ees',     1.0            ) # electron energy scale
-    self.tes        = kwargs.get('tes',     None           ) # tau energy scale; if None, recommended values are applied
-    self.tessys     = kwargs.get('tessys',  None           ) # vary TES: 'Up' or 'Down'
-    self.fes        = kwargs.get('fes',     None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
-    self.ltf        = kwargs.get('ltf',     None           ) # lepton-tau-fake energy scale
-    self.jtf        = kwargs.get('jtf',     1.0            ) or 1.0 # jet-tau-fake energy scale
-    self.tauwp      = kwargs.get('tauwp',   0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
-    self.dotoppt    = kwargs.get('toppt',   'TT' in fname  ) # top pT reweighting
-    self.dozpt      = kwargs.get('zpt',     'DY' in fname  ) # Z pT reweighting
-    self.dorecoil   = kwargs.get('recoil',  False          ) # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
-    self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None]
-    self.dotight    = kwargs.get('tight',   self.dotight   ) # save memory
-    self.dojec      = kwargs.get('jec',     True           ) and self.ismc #and self.year==2016 #False
-    self.dojecsys   = kwargs.get('jecsys',  self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
-    self.useT1      = kwargs.get('useT1',   False          ) # MET T1
-    self.verbosity  = kwargs.get('verb',    0              ) # verbosity
+    self.channel    = kwargs.get('channel',  'none'         ) # channel name
+    self.year       = kwargs.get('year',     2017           ) # integer, e.g. 2017, 2018
+    self.era        = kwargs.get('era',      '2017'         ) # string, e.g. '2017', 'UL2017'
+    self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
+    self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
+    self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
+    self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
+    self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
+    self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
+    self.tauwp      = kwargs.get('tauwp',    0              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
+    self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
+    self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
+    self.dopdf      = kwargs.get('dopdf',    False          ) and self.ismc # store PDF & scale weights
+    self.dorecoil   = kwargs.get('recoil',   False          ) and self.ismc # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
+    self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None] # store fewer branches and events
+    self.dotight    = kwargs.get('tight',    self.dotight   ) # save memory
+    self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
+    self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
+    self.useT1      = kwargs.get('useT1',    False          ) # MET T1
+    self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = 30
-    self.bjetCutEta = 2.7
+    self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
     assert self.year in [2016,2017,2018], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
@@ -60,14 +61,14 @@ class ModuleTauPair(Module):
     self.filter     = getmetfilters(self.era,self.isdata,verb=self.verbosity)
     
     # CORRECTIONS
-    self.ptnom            = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
-    self.jecUncLabels     = [ ]
-    self.metUncLabels     = [ ]
+    self.ptnom        = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
+    self.jecUncLabels = [ ]
+    self.metUncLabels = [ ]
     if self.ismc:
-      self.puTool         = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
-      self.btagTool       = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+      self.puTool     = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+      self.btagTool   = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
-        self.zptTool      = ZptCorrectionTool(era=self.era)
+        self.zptTool  = ZptCorrectionTool(era=self.era)
       #if self.dorecoil:
       #  self.recoilTool   = RecoilCorrectionTool(year=self.year)
       #if self.year in [2016,2017]:
@@ -81,7 +82,7 @@ class ModuleTauPair(Module):
       if self.isUL and self.tes==None:
         self.tes = 1.0 # placeholder
     
-    self.deepcsv_wp       = BTagWPs('DeepCSV',year=self.year)
+    self.deepcsv_wp = BTagWPs('DeepCSV',year=self.year)
     
   
   def beginJob(self):
@@ -102,7 +103,8 @@ class ModuleTauPair(Module):
       print ">>> %-12s = %s"%('jtf',     self.jtf)
     #if self.channel.count('ele')>0:
     #  print ">>> %-12s = %s"%('ees',     self.ees)
-    print ">>> %-12s = %s"%('dotoppt',    self.dotoppt)
+    print ">>> %-12s = %s"%('dotoppt',   self.dotoppt)
+    print ">>> %-12s = %s"%('dopdf',     self.dopdf)
     print ">>> %-12s = %s"%('dozpt',     self.dozpt)
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
     print ">>> %-12s = %s"%('dojec',     self.dojec)
@@ -137,9 +139,11 @@ class ModuleTauPair(Module):
       branches += [
         ('HLT_IsoMu22_eta2p1',   False ),
         ('HLT_IsoTkMu22_eta2p1', False ),
+        ('HLT_IsoMu24',          False ),
+        ('HLT_IsoTkMu24',        False ),
       ]
-    ensurebranches(inputTree,branches)
-    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug
+    ensurebranches(inputTree,branches) # make sure Event object has these branches
+    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
       redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
   
@@ -308,21 +312,34 @@ class ModuleTauPair(Module):
     #
     if self.dozpt:
       zboson = getzboson(event)
-      self.out.m_moth[0]           = zboson.M()
-      self.out.pt_moth[0]          = zboson.Pt()
-      self.out.zptweight[0]        = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
+      self.out.m_moth[0]      = zboson.M()
+      self.out.pt_moth[0]     = zboson.Pt()
+      self.out.zptweight[0]   = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
     
     elif self.dotoppt:
-      toppt1, toppt2               = gettoppt(event)
-      self.out.pt_moth[0]          = toppt1
-      self.out.ttptweight[0]       = getTopPtWeight(toppt1,toppt2)
+      toppt1, toppt2          = gettoppt(event)
+      self.out.pt_moth1[0]    = max(toppt1,toppt2)
+      self.out.pt_moth2[0]    = min(toppt1,toppt2)
+      self.out.ttptweight[0]  = getTopPtWeight(toppt1,toppt2)
     
-    self.out.genweight[0]          = event.genWeight
-    self.out.puweight[0]           = self.puTool.getWeight(event.Pileup_nTrueInt)
-    self.out.btagweight[0]         = self.btagTool.getWeight(jets)
-    #if not self.dotight:
-    #  self.out.btagweightUp[0]   = self.btagTool.getWeight(jets,unc='Up')
-    #  self.out.btagweightDown[0] = self.btagTool.getWeight(jets,unc='Down')
+    self.out.genweight[0]     = event.genWeight
+    self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+    self.out.btagweight[0]    = self.btagTool.getWeight(jets)
+    if not self.dotight:
+      if self.dopdf:
+        self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
+        for i in range(self.out.npdfweight[0]):
+          self.out.pdfweight[i] = event.LHEPdfWeight[i]
+        #self.out.qweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, Qren=1.0, Qfact=1.0
+        #self.out.qweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, Qren=0.5, Qfact=0.5 (rel.)
+        #self.out.qweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, Qren=0.5, Qfact=1.0 (rel.)
+        #self.out.qweight_1p0_0p5[0]  = event.LHEScaleWeight[3] # scale weight, Qren=1.0, Qfact=0.5 (rel.)
+        #self.out.qweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, Qren=1.0, Qfact=2.0 (rel.)
+        #self.out.qweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, Qren=2.0, Qfact=1.0 (rel.)
+        #self.out.qweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, Qren=2.0, Qfact=2.0 (rel.)
+      #self.out.btagweight_bc[0],     self.out.btagweight_udsg[0]     = self.btagTool.getFlavorWeight(jets)
+      #self.out.btagweight_bcUp[0],   self.out.btagweight_udsgUp[0]   = self.btagTool.getFlavorWeight(jets,unc='Up')
+      #self.out.btagweight_bcDown[0], self.out.btagweight_udsgDown[0] = self.btagTool.getFlavorWeight(jets,unc='Down')
     #if self.year in [2016,2017]:
     #  self.out.prefireweightDown[0], self.out.prefireweight[0], self.out.prefireweightUp[0] = self.prefireTool.getWeight(event)
     

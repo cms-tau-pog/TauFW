@@ -173,12 +173,10 @@ class ModuleETau(ModuleTauPair):
     # TIGHTEN PRE-SELECTION
     if self.dotight: # do not save all events to reduce disk space
       fail = (self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]) or\
-             (tau.idMVAoldDM2017v2<2 and tau.idDeepTau2017v2p1VSjet<1) or\
-             (tau.idAntiMu<2  and tau.idDeepTau2017v2p1VSmu<1) or\
-             (tau.idAntiEle<2 and tau.idDeepTau2017v2p1VSe<2)
+             tau.idDeepTau2017v2p1VSjet<1 or tau.idDeepTau2017v2p1VSmu<1 or tau.idDeepTau2017v2p1VSe<2
       if (self.tes not in [1,None] or self.tessys!=None) and (fail or tau.genPartFlav!=5):
         return False
-      if (self.ltf!=1 or self.fes!=None) and tau.genPartFlav<1 and tau.genPartFlav>4:
+      if (self.ltf!=1 or self.fes!=None) and (tau.genPartFlav<1 or tau.genPartFlav>4):
         return False
       ###if self.jtf!=1 and tau.genPartFlav!=0:
       ###  return False

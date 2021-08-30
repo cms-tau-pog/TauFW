@@ -11,3 +11,6 @@ PicoProducer/config
 PicoProducer/samples/files
 PicoProducer/output
 Plotter/plots
+Fitter/*/*plots*
+Fitter/*/log
+Fitter/Zpt/weights

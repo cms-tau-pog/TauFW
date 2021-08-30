@@ -1,7 +1,8 @@
 # Author: Izaak Neutelings (December 2018)
 # HTT: https://github.com/CMS-HTT/LeptonEfficiencies
 # MuonPOG: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2
-# https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2017
+# https://twiki.cern.ch/twiki/bin/view/CMS/MuonPOG#User_Recommendations
+# https://twiki.cern.ch/twiki/bin/view/CMS/MuonLegacy2016
 import os
 from TauFW.PicoProducer import datadir
 from ScaleFactorTool import ScaleFactor, ScaleFactorHTT
@@ -21,7 +22,6 @@ class MuonSFs:
     if 'UL' in era:
       if '2016' in era and 'preVFP' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2016
-        ###self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb) # placeholder
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2016UL_preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root",
                                            'NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt','mu_trig',verb=verb)
         sftool_id         = ScaleFactor(pathPOG+"Run2016UL_preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
@@ -29,7 +29,6 @@ class MuonSFs:
         self.sftool_idiso = sftool_id*sftool_iso
       elif '2016' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2016
-        ###self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb) # placeholder
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2016UL_postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root",
                                            'NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt','mu_trig',verb=verb)
         sftool_id         = ScaleFactor(pathPOG+"Run2016UL_postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
@@ -53,7 +52,9 @@ class MuonSFs:
         self.sftool_idiso = sftool_id*sftool_iso
     else:
       if era=='2016':
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb)
+        # https://gitlab.cern.ch/cms-muonPOG/MuonReferenceEfficiencies/-/tree/master/EfficienciesStudies/2016_trigger
+        #self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb)
+        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu24.root",'ZMass','mu_trig',verb=verb)
         self.sftool_idiso = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IdIso.root",'ZMass','mu_idiso',verb=verb)
         ###self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2017/Muon_IsoMu24orIsoMu27.root",'ZMass','mu_idiso',verb=verb) # placeholder
         ###sftool_id         = ScaleFactor(pathPOG+"Run2017UL/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)

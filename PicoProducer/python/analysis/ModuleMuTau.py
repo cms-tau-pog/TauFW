@@ -19,16 +19,17 @@ class ModuleMuTau(ModuleTauPair):
     
     # TRIGGERS
     if self.year==2016:
-      self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
-      self.muonCutPt  = lambda e: 23
-      self.muonCutEta = lambda e: 2.4 if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
+      #self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
+      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
+      self.muonCutPt  = lambda e: 26
+      self.muonCutEta = lambda e: 2.4 #if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25 if e.HLT_IsoMu24 else 28
+      self.muonCutPt  = lambda e: 26 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
     else:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25
+      self.muonCutPt  = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     self.tauCutPt     = 20
     self.tauCutEta    = 2.3
@@ -176,12 +177,10 @@ class ModuleMuTau(ModuleTauPair):
     # TIGHTEN PRE-SELECTION
     if self.dotight: # do not save all events to reduce disk space
       fail = (self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]) or\
-             (tau.idMVAoldDM2017v2<1 and tau.idDeepTau2017v2p1VSjet<1) or\
-             (tau.idAntiMu<2  and tau.idDeepTau2017v2p1VSmu<2) or\
-             (tau.idAntiEle<2 and tau.idDeepTau2017v2p1VSe<1)
+             tau.idDeepTau2017v2p1VSjet<1 or tau.idDeepTau2017v2p1VSmu<2 or tau.idDeepTau2017v2p1VSe<1
       if (self.tes not in [1,None] or self.tessys!=None) and (fail or tau.genPartFlav!=5):
         return False
-      if (self.ltf!=1 or self.fes!=None) and tau.genPartFlav<1 and tau.genPartFlav>4:
+      if (self.ltf!=1 or self.fes!=None) and (tau.genPartFlav<1 or tau.genPartFlav>4):
         return False
       ###if self.jtf!=1 and tau.genPartFlav!=0:
       ###  return False
@@ -199,7 +198,11 @@ class ModuleMuTau(ModuleTauPair):
     self.out.dxy_1[0]                      = muon.dxy
     self.out.dz_1[0]                       = muon.dz
     self.out.q_1[0]                        = muon.charge
-    self.out.iso_1[0]                      = muon.pfRelIso04_all
+    self.out.iso_1[0]                      = muon.pfRelIso04_all # relative isolation
+    self.out.tkRelIso_1[0]                 = muon.tkRelIso
+    self.out.idMedium_1[0]                 = muon.mediumId
+    self.out.idTight_1[0]                  = muon.tightId
+    self.out.idHighPt_1[0]                 = muon.highPtId
     
     
     # TAU
@@ -264,7 +267,7 @@ class ModuleMuTau(ModuleTauPair):
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
       # MUON WEIGHTS
-      self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta)
+      self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta) # assume leading muon was triggered on
       self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
       
       # DEFAULTS

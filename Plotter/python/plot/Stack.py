@@ -39,9 +39,12 @@ class Stack(Plot):
       self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
       self.exphists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.exphists]
       self.sighists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.sighists]
-    self.hists      = [self.datahist]+self.exphists+self.sighists
+    if self.datahist:
+      self.hists    = [self.datahist]+self.exphists+self.sighists
+    else:
+      self.hists    = self.exphists+self.sighists
     kwargs['clone'] = False
-    self.ratio      = kwargs.setdefault('ratio', True )
+    self.ratio      = kwargs.setdefault('ratio', bool(self.datahist) )
     super(Stack,self).__init__(variable,self.hists,**kwargs)
     
   
@@ -125,8 +128,11 @@ class Stack(Plot):
             #if oldhist in self.hists:
             #  self.hists[self.hists.index(oldhist)] = newhist
             self.garbage.append(oldhist)
-      self.datahist = datahists[0]
-      self.hists    = [self.datahist]+self.exphists+self.sighists
+      if self.datahist:
+        self.datahist = datahists[0]
+        self.hists    = [self.datahist]+self.exphists+self.sighists
+      else:
+        self.hists    = self.exphists+self.sighists
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
