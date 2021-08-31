@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# Author: Yiwen Wen (Feb 2021)
+# Authors: Andrea Cardini, Lorenzo Vigilante and Yiwen Wen (Feb 2021)
 # Description: Create datacards for combine
 import sys
 from CombineHarvester.CombineTools import ch
@@ -10,6 +10,8 @@ import math
 eta = ['0to1.46','1.56to2.3']#'0.8to1.2','1.2to1.7','1.7to3.0']
 wp = ['VVVLoose','VVLoose','VLoose','Loose','Medium','Tight','VTight','VVTight']
 
+#### IMPORTANT: change era HERE #####
+era='UL2016_postVFP'
 for ieta in eta :
     print '<<<<<<< eta range: ', ieta
     for iwp in wp :
@@ -26,11 +28,11 @@ for ieta in eta :
             'et' : [( 1, '%s_pass'%(iwp) ),( 2, '%s_fail'%(iwp) )],
         }
 
-        cb.AddObservations(['*'], ['ETauFR'], ['2016'], ['et'],              categories['et']) # adding observed data
-        cb.AddProcesses(   ['*'], ['ETauFR'], ['2016'], ['et'], backgrounds, categories['et'], False) # adding backgrounds
-        cb.AddProcesses(   ['90'], ['ETauFR'], ['2016'], ['et'], signals,     categories['et'], True) # adding signals
+        cb.AddObservations(['*'], ['ETauFR'], ['%s'%(era)], ['et'],              categories['et']) # adding observed data
+        cb.AddProcesses(   ['*'], ['ETauFR'], ['%s'%(era)], ['et'], backgrounds, categories['et'], False) # adding backgrounds
+        cb.AddProcesses(   ['90'], ['ETauFR'], ['%s'%(era)], ['et'], signals,     categories['et'], True) # adding signals
 
-        cb.cp().process(mc_backgrounds).AddSyst(cb,'lumi_2016', 'lnN', ch.SystMap()(1.026))
+        cb.cp().process(mc_backgrounds).AddSyst(cb,'lumi_%s'%(era), 'lnN', ch.SystMap()(1.026))
         cb.cp().process(mc_backgrounds).AddSyst(cb,'muon_eff', 'lnN', ch.SystMap()(1.02))
 
         cb.cp().process(['TTT','TTL','TTJ','ST']).AddSyst(cb, 'xsec_top', 'lnN', ch.SystMap()(1.10))
@@ -47,7 +49,7 @@ for ieta in eta :
         cb.cp().process(['ZTT','ZL','ZJ','VV','ST','TTT','TTL','TTJ']).AddSyst(cb, 'CMS_eff_e', 'lnN', ch.SystMap()(1.05))
         cb.cp().process(['ZTT','ZL','VV','ST','TTT','TTL','TTJ']).AddSyst(cb, 'CMS_eff_t', 'lnN', ch.SystMap()(1.05))
 
-        filepath = os.path.join(os.environ['CMSSW_BASE'],'src/TauFW/Fitter/ETauFR/input', "zee_fr_m_vis_eta%s_et-2016.inputs.root")%(ieta)
+        filepath = os.path.join(os.environ['CMSSW_BASE'],'src/TauFW/Fitter/ETauFR/input', "zee_fr_m_vis_eta%s_et-%s.inputs.root")%(ieta,era)
         processName = '$BIN/$PROCESS'
         systematicName = '$BIN/$PROCESS_$SYSTEMATIC'
         cb.cp().backgrounds().ExtractShapes(filepath, processName, systematicName)
@@ -60,8 +62,8 @@ for ieta in eta :
         bbb.MergeBinErrors(cb.cp().backgrounds())
         bbb.AddBinByBin(cb.cp().backgrounds(), cb)
         
-        datacardPath = 'input/2016/ETauFR/%s_eta%s.txt'%(iwp,ieta)
-        shapePath = 'input/2016/ETauFR/common/%s_eta%s.root'%(iwp,ieta)
+        datacardPath = 'input/%s/ETauFR/%s_eta%s.txt'%(era,iwp,ieta)
+        shapePath = 'input/%s/ETauFR/common/%s_eta%s.root'%(era,iwp,ieta)
         writer = ch.CardWriter(datacardPath,shapePath)
         writer.SetWildcardMasses([])
         writer.WriteCards('cmb', cb) # writing all datacards into one folder for combination
