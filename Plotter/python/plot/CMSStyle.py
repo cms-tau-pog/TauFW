@@ -1,9 +1,10 @@
-# CMS_lumi
 #  Initiated by: Gautier Hamel de Monchenault (Saclay)
 #  Translated in Python by: Joshua Hardenbrook (Princeton)
 #  Edited: Izaak Neutelings (July 2018)
 #  Sources:
 #    https://ghm.web.cern.ch/ghm/plots/
+#    https://twiki.cern.ch/twiki/bin/view/CMS/Internal/FigGuidelines
+#    https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
 #    https://twiki.cern.ch/twiki/bin/view/CMSPublic/LumiPublicResults#Multi_year_plots
 from ROOT import TStyle, TPad, TLatex, TASImage, kBlack, kWhite, TGaxis
 import re

@@ -156,7 +156,9 @@ class Plot(object):
     xmax         = kwargs.get('xmax',         self.xmax       )
     ymin         = kwargs.get('ymin',         self.ymin       )
     ymax         = kwargs.get('ymax',         self.ymax       )
-    rmin         = kwargs.get('rmin',         self.rmin       ) or 0.45 # ratio ymin
+    rmin         = kwargs.get('rmin',         self.rmin       ) # ratio ymin
+    if not rmin and rmin!=0:
+      rmin = 0.45 # default
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
@@ -205,6 +207,8 @@ class Plot(object):
     if verbosity>=1:
       print ">>> Plot.draw: hists=%s, norm=%r"%(self.hists,norm)
       print ">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
+    if verbosity>=3:
+      print ">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax)
     
     # NORMALIZE
     if norm:
@@ -349,17 +353,25 @@ class Plot(object):
     """Close canvas and delete the histograms."""
     verbosity = LOG.getverbosity(self,kwargs)
     if self.canvas:
+      LOG.verb("Plot.close: Closing canvas...",verbosity,3)
       self.canvas.Close()
     if not keep: # do not keep histograms
+      if verbosity>=3:
+        hlist = ', '.join(repr(h) for h in self.hists)
+        print ">>> Plot.close: Deleting histograms: %s..."%(hlist)
       for hist in self.hists:
-        deletehist(hist)
+        deletehist(hist,**kwargs)
     if self.errband:
+      LOG.verb("Plot.close: Deleting error band...",verbosity,3)
       deletehist(self.errband)
     for line in self.lines:
-      deletehist(line)
+      LOG.verb("Plot.close: Deleting line...",verbosity,3)
+      deletehist(line,**kwargs)
     for hist in self.garbage:
-      deletehist(hist)
+      LOG.verb("Plot.close: Deleting garbage...",verbosity,3)
+      deletehist(hist,**kwargs)
     if isinstance(self.ratio,Ratio):
+      LOG.verb("Plot.close: Deleting ratio...",verbosity,3)
       self.ratio.close()
     LOG.verb("closed\n>>>",verbosity,2)
     
@@ -1049,9 +1061,12 @@ class Plot(object):
         hist.SetMarkerSize(0.6)
         hist.SetMarkerColor(hist.GetLineColor()+1)
       elif pair:
+        color = colors[(i//2)%len(colors)]
+        if color>300 and i%2==1:
+          color += 1 # make darker
         hist.SetLineColor(colors[(i//2)%len(colors)])
         hist.SetLineStyle(styles[i%2])
-        hist.SetMarkerColor(hist.GetLineColor()+1)
+        hist.SetMarkerColor(color)
         if i%2==1: hist.SetMarkerSize(0.6)
         else:      hist.SetMarkerSize(0.0)
       else:

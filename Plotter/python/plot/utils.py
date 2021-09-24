@@ -90,6 +90,7 @@ def gethist(hists,*searchterms,**kwargs):
 def deletehist(*hists,**kwargs):
   """Completely remove histograms from memory."""
   verbosity = LOG.getverbosity(kwargs)
+  warn      = kwargs.get('warn', True)
   hists     = unwraplistargs(hists)
   for hist in hists:
     hclass  = hist.__class__.__name__
@@ -103,7 +104,7 @@ def deletehist(*hists,**kwargs):
         gDirectory.Delete(hist.GetName())
       else:
         LOG.warning("deletehist: %s %s has no name!"%(hclass,hist))
-    else:
+    elif warn:
       LOG.warning("deletehist: %s is already %s"%(hclass,hist))
     #except AttributeError:
     #  print ">>> AttributeError: "
@@ -460,8 +461,16 @@ def geterrorband(*hists,**kwargs):
       statlow2 += hist.GetBinErrorLow(ibin)**2
       statupp2 += hist.GetBinErrorUp(ibin)**2
     for histup, hist, histdown in sysvars: # SYSTEMATIC VARIATIONS
-      syslow2  += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
-      sysupp2  += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
+      if histdown.GetBinContent(ibin)>hist.GetBinContent(ibin):
+        sysupp2 += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
+      else:
+        syslow2 += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
+      if histup.GetBinContent(ibin)>hist.GetBinContent(ibin):
+        sysupp2 += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
+      else:
+        syslow2 += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
+      syslow2 += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
+      sysupp2 += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
     ylow2, yupp2 = statlow2+syslow2, statupp2+sysupp2,
     error.SetPoint(ip,xval,yval)
     error.SetPointError(ip,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
