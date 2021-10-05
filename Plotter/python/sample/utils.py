@@ -23,13 +23,13 @@ xsecs_nlo = { # NLO cross sections to compute k-factor for stitching
 
 def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
   """Create sample set from a table of data and MC samples."""
-  channel    = kwargs.get('channel',    ""   )
-  era        = kwargs.get('era',        ""   )
-  fpattern   = kwargs.get('file',       None ) # file name pattern, e.g. $PICODIR/$SAMPLE_$CHANNEL$TAG.root
-  weight     = kwargs.pop('weight',     ""   ) # common weight for MC samples
-  dataweight = kwargs.pop('dataweight', ""   ) # weight for data samples
-  url        = kwargs.pop('url',        ""   ) # XRootD url
-  tag        = kwargs.pop('tag',        ""   ) # extra tag for file name
+  channel    = kwargs.get('channel',    ""    )
+  era        = kwargs.get('era',        ""    )
+  fpattern   = kwargs.get('file',       None  ) # file name pattern, e.g. $PICODIR/$SAMPLE_$CHANNEL$TAG.root
+  weight     = kwargs.pop('weight',     ""    ) # common weight for MC samples
+  dataweight = kwargs.pop('dataweight', ""    ) # weight for data samples
+  url        = kwargs.pop('url',        ""    ) # XRootD url
+  tag        = kwargs.pop('tag',        ""    ) # extra tag for file name
   
   if not fpattern:
     fpattern = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
@@ -63,42 +63,45 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
   title = 'Observed'
   datakwargs = kwargs.copy()
   datakwargs['weight'] = dataweight
-  if isinstance(datasample,dict) and channel:
+  if not datasample:
+    datasample==None
+  elif isinstance(datasample,dict) and channel:
     datasample = datasample[channel]
   if isinstance(datasample,str):
-    name = datasample
+    dname = datasample
   elif len(datasample)==2:
     if isinstance(datasample[1],dict): # dictionary
-      name = datasample[0]
+      dname = datasample[0]
       datakwargs.update(datasample[1])
     else: # string
-      group, name = datasample
+      group, dname = datasample
   elif len(datasample)==3:
-    group, name = datasample[:2]
+    group, dname = datasample[:2]
     if isinstance(datasample[2],dict): # dictionary
       datakwargs.update(datasample[2])
     else: # string
       title = datasample[2]
   elif len(datasample)==4 and isinstance(datasample[3],dict):
-    group, name, title, newkwargs = datasample
+    group, dname, title, newkwargs = datasample
     datakwargs.update(newkwargs)
-  else:
+  elif datasample:
     LOG.throw(IOError,"Did not recognize data row %s"%(datasample))
-  fpattern = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel,TAG=tag)
-  fnames   = glob.glob(fpattern)
   #print fnames
-  if len(fnames)==1:
-    datasample = Data(name,title,fnames[0])
-  elif len(fnames)>1:
-    namerexp = re.compile(name.replace('?','.').replace('*','.*'))
-    name     = name.replace('?','').replace('*','')
-    datasample = MergedSample(name,'Observed',data=True)
-    for fname in fnames:
-      setname = namerexp.findall(fname)[0]
-      #print setname
-      datasample.add(Data(setname,'Observed',fname,**datakwargs))
-  else:
-    LOG.throw(IOError,"Did not find data file %r"%(fpattern))
+  if datasample:
+    fpattern = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=dname,CHANNEL=channel,TAG=tag)
+    fnames   = glob.glob(fpattern)
+    if len(fnames)==1:
+      datasample = Data(dname,title,fnames[0])
+    elif len(fnames)>1:
+      namerexp = re.compile(dname.replace('?','.').replace('*','.*'))
+      dname    = dname.replace('?','').replace('*','')
+      datasample = MergedSample(dname,'Observed',data=True)
+      for fname in fnames:
+        setname = namerexp.findall(fname)[0]
+        #print setname
+        datasample.add(Data(setname,'Observed',fname,**datakwargs))
+    else:
+      LOG.throw(IOError,"Did not find data file %r"%(fpattern))
   
   # SAMPLE SET
   sampleset = SampleSet(datasample,expsamples,sigsamples,**kwargs)
@@ -501,6 +504,9 @@ def stitch(samplelist,*searchterms,**kwargs):
   
   # JOIN
   join(samplelist,*searchterms,name=name,title=title,verbosity=verbosity)
+  newsample = getsample(samplelist,name,unique=True)
+  newsample.sample_incl = sample_incl
+  print newsample, sample_incl
   return samplelist
   
 
