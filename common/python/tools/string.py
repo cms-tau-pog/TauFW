@@ -71,3 +71,12 @@ def getyear(string):
         year += 2000
   return year
   
+
+def tryint(x):
+  """Convert to integer, if it is possible."""
+  try:
+    return int(x)
+  except ValueError:
+    return x
+  
+
