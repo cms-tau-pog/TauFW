@@ -17,7 +17,8 @@ class MergedSample(Sample):
   def __init__(self, *args, **kwargs):
     name, title, samples = unwrap_MergedSamples_args(*args,**kwargs)
     Sample.__init__(self,name,title,"",**kwargs)
-    self.samples = samples
+    self.samples = samples  # list of merged samples
+    self.sample_incl = None # keep track of inclusive sample in stitching
     if self.samples:
       self.init(samples[0],**kwargs)
   

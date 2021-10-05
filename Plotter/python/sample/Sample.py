@@ -58,7 +58,7 @@ class Sample(object):
     self.splitsamples = [ ]                             # samples when splitting into subsamples
     self.treename     = kwargs.get('tree',         None         ) or 'tree'
     self.nevents      = kwargs.get('nevts',        nevts        ) # "raw" number of events
-    self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed for check for missing events
+    self.nexpevts     = kwargs.get('nexp',         -1           ) # number of events you expect to be processed (to check for missing events)
     self.sumweights   = kwargs.get('sumw',         self.nevents ) # sum (generator) weights
     self.binnevts     = kwargs.get('binnevts',     None         ) or 1  # cutflow bin with total number of (unweighted) events
     self.binsumw      = kwargs.get('binsumw',      None         ) or 17 # cutflow bin with total sum of weight
@@ -190,7 +190,7 @@ class Sample(object):
     if not self._file: # file does not exist
       LOG.verb("Sample.getfile: Opening file %s..."%(self.filename),level=3)
       self._file = ensureTFile(self.filename)
-    elif refresh: # file exists but refresh anyway
+    elif not self._file.IsOpen() or self._file.IsZombie() or refresh: # file exists but refresh anyway
       LOG.verb("Sample.getfile: Closing and opening file %s..."%(self.filename),level=3)
       self._file.Close()
       self._file = ensureTFile(self.filename)
@@ -204,6 +204,58 @@ class Sample(object):
       LOG.throw(IOError,'Sample.get_newfile_and_tree: Could not find tree %r for %r in %s!'%(self.treename,self.name,self.filename))
     setaliases(tree,self.aliases)
     return file, tree
+    
+  def gethist_from_file(self,hname,tag="",close=True,**kwargs):
+    """Get histogram from file. Add histograms together if merged sample."""
+    verbosity = LOG.getverbosity(kwargs)
+    indent = kwargs.get('indent', ''     )
+    incl   = kwargs.get('incl',   True   ) # use inclusive sample (if stitched and available)
+    scale  = kwargs.get('scale',  1.0    ) # extra scale factor
+    mode   = kwargs.get('mode',   None   ) # if mode=='sumw': add samples together with normalized weights
+    hist   = None
+    print ">>> Sample.gethist_from_file: %s%r, %r"%(indent,self.name,hname)
+    if isinstance(self,MergedSample):
+      #print ">>> Sample.getHistFromFile: %sincl=%r, sample_incl=%r"%(indent,incl,self.sample_incl)
+      if incl and self.sample_incl: # only get histogram from inclusive sample
+        print ">>> Sample.gethist_from_file: %sOnly use inclusive sample %r!"%(indent,self.sample_incl.name)
+        samples = [self.sample_incl]
+      else:
+        samples = self.samples[:]
+      sumw = 0
+      for i, sample in enumerate(samples):
+        if sample.xsec>0 and sample.nevents>0:
+          sumw += sample.xsec/sample.nevents
+      scale_ = 1./sumw if sumw>0 and mode=='sumw' else 1.0 # normalize
+      for sample in samples:
+        tag_  = "%s_tmp_%d"%(tag,i)
+        hist_ = sample.gethist_from_file(hname,tag=tag_,indent=indent+"  ",mode=mode,incl=incl,scale=scale_)
+        if hist==None:
+          hist = hist_.Clone(hname+tag)
+          hist.SetDirectory(0)
+        elif hist_:
+          hist.Add(hist_)
+          deletehist(hist_)
+    else:
+      file  = self.getfile()
+      fname = file.GetPath()
+      hist  = file.Get(hname)
+      norm  = 1.0
+      if self.xsec>0 and self.nevents>0:
+        norm = self.xsec/self.nevents
+      if hist:
+        hist.SetName(hname+tag)
+        hist.SetDirectory(0)
+      else:
+        #print file, hist
+        LOG.warning("Sample.gethist_from_file: Could not find %r in %s!"%(hname,self.filename))
+      if file and close:
+        file.Close()
+      if hist and mode=='sumw' and norm>0:
+        print ">>> Sample.gethist_from_file:   %s%r: scale=%s, norm=%s, fname=%s"%(indent,self.name,scale,norm,fname) #,hist)
+        print ">>> Sample.gethist_from_file:   %sbin 5 = %s, xsec=%s, Nunw=%s"%(indent,hist.GetBinContent(5),self.xsec,self.nevents)
+        hist.Scale(scale*norm)
+        print ">>> Sample.gethist_from_file:   %sbin 5 = %s"%(indent,hist.GetBinContent(5))
+    return hist
   
   @property
   def tree(self):
@@ -340,13 +392,13 @@ class Sample(object):
   def close(self,**kwargs):
     """Close file. Use it to free up and clean memory."""
     verbosity = LOG.getverbosity(kwargs)
-    if self.file:
+    if self._file:
       if verbosity>=4:
-        print "Sample.close: closing and deleting %s with content:"%(self.file.GetName())
-        self.file.ls()
-      self.file.Close()
+        print "Sample.close: closing and deleting %s with content:"%(self._file.GetName())
+        self._file.ls()
+      self._file.Close()
       del self._file
-      self.file = None
+      self._file = None
     for sample in self.splitsamples:
       sample.close(**kwargs)
     if isinstance(self,MergedSample):
@@ -703,11 +755,13 @@ class Sample(object):
     if verbosity>=3:
       print ">>>\n>>> Sample.gethist: %s, %s"%(color(self.name,color="grey"),self.fnameshort)
       print ">>>   entries: %d (%.2f integral)"%(nentries,integral)
-      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
+      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights)
+      if verbosity>=4:
+        print ">>>   self.weight=%r, self.extraweight=%r, kwargs.get('weight','')=%r, "%(self.weight,self.extraweight,kwargs.get('weight',""))
       print ">>>   %r"%(cuts)
       if verbosity>=4:
         for var, varexp, hist in zip(variables,varexps,hists):
-          print '>>>   Variable %r: varexp=%r, entries=%d, integral=%d'%(var.name,varexp,hist.GetEntries(),hist.Integral())
+          print '>>>   Variable %r: varexp=%r, entries=%d, integral=%.1f'%(var.name,varexp,hist.GetEntries(),hist.Integral())
           #print '>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp)
           if verbosity>=5:
             printhist(hist,pre=">>>   ")
