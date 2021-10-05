@@ -28,33 +28,45 @@ class BTagWPs:
     assert( year in [2016,2017,2018] ), "You must choose a year from: 2016, 2017, or 2018."
     if year==2016:
       # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
-      if 'deep' in tagger.lower():
+      if 'deepjet' in tagger.lower():
+        self.loose    = 0.0614
+        self.medium   = 0.3093
+        self.tight    = 0.7221
+      elif 'deep' in tagger.lower():
         self.loose    = 0.2217 # 0.2219 for 2016ReReco vs. 2016Legacy
         self.medium   = 0.6321 # 0.6324
         self.tight    = 0.8953 # 0.8958
-      else:
+      else: # CSV
         self.loose    = 0.5426 # for 80X ReReco
         self.medium   = 0.8484
         self.tight    = 0.9535
     elif year==2017:
       # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
       # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17
-      if 'deep' in tagger.lower():
+      if 'deepjet' in tagger.lower():
+        self.loose    = 0.0532
+        self.medium   = 0.3040
+        self.tight    = 0.7476
+      elif 'deep' in tagger.lower():
         self.loose    = 0.1522 # for 94X
         self.medium   = 0.4941
         self.tight    = 0.8001
-      else:
+      else: # CSV
         self.loose    = 0.5803 # for 94X
         self.medium   = 0.8838
         self.tight    = 0.9693
     elif year==2018:
       # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
       # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
-      if 'deep' in tagger.lower():
+      if 'deepjet' in tagger.lower():
+        self.loose    = 0.0494
+        self.medium   = 0.2770
+        self.tight    = 0.7264
+      elif 'deep' in tagger.lower():
         self.loose    = 0.1241 # for 102X
         self.medium   = 0.4184
         self.tight    = 0.7527
-      else:
+      else: # CSV
         self.loose    = 0.5803 # for 94X
         self.medium   = 0.8838
         self.tight    = 0.9693
