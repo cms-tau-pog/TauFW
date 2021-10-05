@@ -2,7 +2,7 @@ from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = "/eos/cms/store/group/phys_tau/TauFW/nano/UL2016_preVFP/$DAS"
 url      = None #"root://eosuser.cern.ch/"
-filelist = "samples/files/UL2016_preVFP/$SAMPLE.txt"
+filelist = "" #samples/files/UL2016_preVFP/$SAMPLE.txt"
 samples  = [
   
   # DRELL-YAN
@@ -10,7 +10,8 @@ samples  = [
     "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DYJetsToLL_M-50',
-    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM",
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # BUGGY Summer19
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # Summer20
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DY1JetsToLL_M-50',
     "/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # BUGGY Summer19
