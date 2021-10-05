@@ -14,7 +14,7 @@ class ModuleMuTau(ModuleTauPair):
   
   def __init__(self, fname, **kwargs):
     kwargs['channel'] = 'mutau'
-	kwargs['tight'] = False  # need id/ltf weight syst for TES study
+    kwargs['tight'] = False  # need id/ltf weight syst for TES study
     super(ModuleMuTau,self).__init__(fname,**kwargs)
     self.out = TreeProducerMuTau(fname,self)
     
