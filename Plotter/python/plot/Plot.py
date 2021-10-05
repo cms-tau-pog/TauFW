@@ -188,7 +188,7 @@ class Plot(object):
     options      = kwargs.get('options',      [ ]             ) # draw option list per histogram
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
-    errorX       = kwargs.get('errorX',       True            ) # horizontal error bars
+    errorX       = kwargs.get('errorX',       False           ) # horizontal error bars
     dividebins   = kwargs.get('dividebins',   self.dividebins )
     lcolors      = ensurelist(lcolors)
     fcolors      = ensurelist(fcolors)
@@ -235,9 +235,9 @@ class Plot(object):
     
     # DRAW OPTIONS
     if errbars:
-      option = 'E0 '+option #E01
+      option = 'E1 '+option #E01
       if not roption:
-        roption = 'HISTE'
+        roption = 'E1 HIST'
     if len(options)==0:
       options = [ option ]*len(hists)
       if staterr:
@@ -248,11 +248,9 @@ class Plot(object):
     #if not self.histsD and staterr and errbars:
     #  i = denominator-1 if denominator>0 else 0
     #  options[i] = options[i].replace('E0','')
-    gStyle.SetEndErrorSize(enderrorsize)
-    if errorX:
-      gStyle.SetErrorX(0.5)
-    else:
-      gStyle.SetErrorX(0)
+    gStyle.SetEndErrorSize(enderrorsize) # extra line at end of error bars
+    gStyle.SetErrorX(0.5*errorX) # horizontal error bars
+    LOG.verb("Plot.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
     
     # CANVAS
     self.canvas = self.setcanvas(square=square,lower=ratio,width=cwidth,height=cheight,
@@ -264,7 +262,7 @@ class Plot(object):
       if 'H' in opt: lhists.append(hist)
       else:          mhists.append(hist)
     self.setlinestyle(lhists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
-    self.setmarkerstyle(*mhists,colors=lcolors)
+    #self.setmarkerstyle(*mhists,colors=lcolors)
     
     # DRAW FRAME
     self.canvas.cd(1)
@@ -280,13 +278,14 @@ class Plot(object):
         line.Draw("LSAME")
     
     # DRAW HISTS
-    for i, (hist, option1) in enumerate(zip(hists,options)):
+    LOG.verb("Plot.draw: options=%r"%(options),verbosity,2)
+    for i, (hist, option_) in enumerate(zip(hists,options)):
       if triple and i%3==2:
-        option1 = 'E1'
-      if 'SAME' not in option1: #i>0:
-        option1 += " SAME"
-      hist.Draw(option1)
-      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option1),verbosity,2)
+        option_ = 'E1'
+      if 'SAME' not in option_: #i>0:
+        option_ += " SAME"
+      hist.Draw(option_)
+      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option_),verbosity,2)
     
     # CMS STYLE
     if CMSStyle.lumiText:
@@ -1084,8 +1083,9 @@ class Plot(object):
         #hist.SetLineWidth(0)
         hist.SetLineStyle(kSolid)
         hist.SetLineColor(hist.GetMarkerColor())
-      elif not mstyle:
-        hist.SetMarkerSize(0)
+      elif not mstyle: # no markers
+        hist.SetMarkerStyle(8)    # marker needed to allow line through end of error bars
+        hist.SetMarkerSize(0.01) # make invisible
     
   
   def setmarkerstyle(self, *hists, **kwargs):
