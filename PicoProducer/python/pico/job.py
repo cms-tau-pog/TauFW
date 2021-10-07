@@ -211,9 +211,9 @@ def preparejobs(args):
                                            checkexpevts=checkexpevts,das=checkdas,ncores=ncores,verb=verbosity)[:2]
           nevents = sample.jobcfg['nevents'] # updated in checkchunks
         else: # first-time submission
-          infiles   = sample.getfiles(das=dasfiles,verb=verbosity-1)
+          infiles = sample.getfiles(das=dasfiles,verb=verbosity-1)
           if checkdas:
-            nevents = sample.getnevents()
+            nevents = sample.getnevents(verb=verbosity-1)
           chunkdict = { }
         if testrun:
           infiles = infiles[:4] # only run four files per sample
@@ -236,7 +236,6 @@ def preparejobs(args):
         if maxevts_>1:
           if verbosity>=1:
             print ">>> Preparing jobs with chunks split by number of events..."
-            
           try:
             ntot, fchunks = chunkify_by_evts(infiles,maxevts_,evtdict=sample.filenevts,verb=verbosity) # list of file chunks split by events
             if nevents<=0 and not resubmit:
@@ -477,7 +476,7 @@ def checkchunks(sample,**kwargs):
     elif verbosity>=2:
       print ">>> %-12s = %s"%('pendchunks',pendchunks)
       print ">>> %-12s = %s"%('outfiles',outfiles)
-    validated = itervalid(outfiles,checkevts=checkevts,ncores=ncores) # get number of events processed & check for corruption
+    validated = itervalid(outfiles,checkevts=checkevts,ncores=ncores,verb=verbosity) # get number of events processed & check for corruption
     for nevents, fname in validated: # use validator for parallel processing
       if verbosity>=2:
         print ">>>   Checking job output '%s'..."%(fname)

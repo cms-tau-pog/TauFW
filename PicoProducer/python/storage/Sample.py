@@ -220,7 +220,7 @@ class Sample(object):
     LOG.verb("Sample.getfiles: das=%r, refresh=%r, url=%r, limit=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
       das,refresh,url,limit,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
-      self.loadfiles(self.filelist)
+      self.loadfiles(self.filelist,verb=verb)
     files = self.files # cache for efficiency
     url_  = self.dasurl if (das and self.storage) else self.url
     if self.refreshable and (not files or das or refresh): # (re)derive file list
@@ -271,7 +271,7 @@ class Sample(object):
     LOG.verb("_getnevents: das=%r, refresh=%r, tree=%r, limit=%r, checkfiles=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
       das,refresh,tree,limit,checkfiles,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
-      self.loadfiles(self.filelist)
+      self.loadfiles(self.filelist,verb=verb)
     nevents   = self.nevents
     filenevts = self.filenevts
     bar       = None
