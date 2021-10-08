@@ -35,7 +35,7 @@ args = parser.parse_args()
 
 def getBTagEfficiencies(tagger,wp,outfilename,samples,year,channel,tag="",plot=False):
     """Get pileup profile in MC by adding Pileup_nTrueInt histograms from a given list of samples."""
-    print '>>> getBTagEfficiencies("%s")'%(outfilename)
+    print '>>> getBTagEfficiencies("%s","%s","%s")'%(outfilename,wp,year)
     
     # PREPARE numerator and denominator histograms per flavor
     nhists  = { }
