@@ -69,8 +69,8 @@ class Sample(object):
     self.blacklist    = kwargs.get('blacklist',     [ ]    ) # black list for ROOT files
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global') # if None, does not exist in DAS
     self.nfilesperjob = kwargs.get('nfilesperjob',  -1     ) # number of nanoAOD files per job
-    self.maxevts      = kwargs.get('maxevtsperjob', -1     ) # maximum number of events processed per job
-    self.maxevts      = kwargs.get('maxevts', self.maxevts ) # maximum number of events processed per job
+    self.maxevts      = kwargs.get('maxevtsperjob', None   ) # maximum number of events processed per job (-1: split by number of files)
+    self.maxevts      = kwargs.get('maxevts', self.maxevts ) # maximum number of events processed per job (-1: split by number of files)
     self.extraopts    = kwargs.get('opts',          [ ]    ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
     self.subtry       = kwargs.get('subtry',        0      ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',        { }    ) # to help keep track of resubmission

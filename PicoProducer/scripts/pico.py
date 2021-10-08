@@ -469,8 +469,8 @@ if __name__ == "__main__":
                           metavar='NEVTS',      help="run a test with limited nummer of jobs and events, default nevts=%(const)d")
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,
                                                 help="number of files per job, default=%d"%(CONFIG.nfilesperjob))
-  parser_job.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=-1,
-                          metavar='NEVTS',      help="maximum number of events per job to process (split large files), default=%d"%(CONFIG.maxevtsperjob))
+  parser_job.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
+                          metavar='NEVTS',      help="maximum number of events per job to process (split large files, group small ones), default=%d"%(CONFIG.maxevtsperjob))
   parser_job.add_argument('--split',            dest='split_nfpj', type=int, nargs='?', const=2, default=1,
                           metavar='NFILES',     help="divide default number of files per job, default=%(const)d")
   parser_job.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
