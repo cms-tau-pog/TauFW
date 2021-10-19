@@ -189,6 +189,7 @@ class ModuleTauPair(Module):
     njets_vars     = { }
     jets,   bjets  = [ ], [ ]
     nfjets, ncjets = 0, 0
+    ncjets50       = 0
     nbtag          = 0
     
     # SELECT JET, remove overlap with selected objects
@@ -216,6 +217,8 @@ class ModuleTauPair(Module):
         nfjets += 1
       else:
         ncjets += 1
+        if jetpt>50:
+          ncjets50 += 1
       
       # B TAGGING
       if jet.btagDeepB>self.deepcsv_wp.medium and abs(jet.eta)<self.bjetCutEta:
@@ -238,6 +241,7 @@ class ModuleTauPair(Module):
     self.out.njets50[0]       = len([j for j in jets if self.ptnom(j)>50])
     self.out.nfjets[0]        = nfjets
     self.out.ncjets[0]        = ncjets
+    self.out.ncjets50[0]      = ncjets50
     self.out.nbtag[0]         = nbtag
     
     # LEADING JET

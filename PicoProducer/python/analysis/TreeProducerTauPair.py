@@ -83,8 +83,9 @@ class TreeProducerTauPair(TreeProducer):
     
     self.addBranch('njets',               'i', title="number of jets (pT > 30 GeV, |eta| < 4.7)")
     self.addBranch('njets50',             'i', title="number of jets (pT > 50 GeV, |eta| < 4.7)")
-    self.addBranch('ncjets',              'i', title="number of central jets (|eta| < 2.4)")
-    self.addBranch('nfjets',              'i', title="number of forward jets (2.4 < |eta| < 4.7)")
+    self.addBranch('ncjets',              'i', title="number of central jets (pT > 30 GeV, |eta| < 2.4)")
+    self.addBranch('ncjets50',            'i', title="number of central jets (pT > 50 GeV, |eta| < 2.4)")
+    self.addBranch('nfjets',              'i', title="number of forward jets (pT > 30 GeV, 2.4 < |eta| < 4.7)")
     self.addBranch('nbtag',               'i', title="number of b tagged jets (pT > 30 GeV, |eta| < 2.7)")
     self.setAlias("njets30","njets")
     self.setAlias("nbtag30","nbtag")
