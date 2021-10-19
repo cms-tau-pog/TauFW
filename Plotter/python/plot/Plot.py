@@ -200,10 +200,18 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
+    if logx and xmin==0.0: xmin = 0.25*self.frame.GetXaxis().GetBinWidth(1)
     hists        = self.hists
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else False
     denom        = kwargs.get('den',   denom ) # alias
     denom        = kwargs.get('denom', denom ) # denominator histogram in ratio plot
+    if logx and xmin==0: # reset xmin in binning
+      frame = self.frame or hists[0]
+      xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
+      xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      LOG.verb("Plot.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
+      for hist in hists:
+        if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if verbosity>=1:
       print ">>> Plot.draw: hists=%s, norm=%r"%(self.hists,norm)
       print ">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
@@ -220,7 +228,7 @@ class Plot(object):
     # DIVIDE BY BINSIZE
     if dividebins:
       for i, oldhist in enumerate(self.hists):
-        newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,poisson=False)
+        newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,poisson=False,verb=verbosity)
         if oldhist!=newhist: # new hist is actually a TGraph
           LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
           self.hists[i] = newhist
@@ -228,10 +236,10 @@ class Plot(object):
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
-      #    dividebybinsize(histup,  zero=True,zeroerrs=False)
-      #    dividebybinsize(histdown,zero=True,zeroerrs=False)
+      #    dividebybinsize(histup,  zero=True,zeroerrs=False,verb=verbosity-2)
+      #    dividebybinsize(histdown,zero=True,zeroerrs=False,verb=verbosity-2)
       #    if hist not in self.hists:
-      #      dividebybinsize(hist,zero=True,zeroerrs=False)
+      #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
     # DRAW OPTIONS
     if errbars:
@@ -398,9 +406,9 @@ class Plot(object):
       #rmargin *= 3.6
       #CMSStyle.relPosX = 0.15
     if verbosity>=2:
-      print "Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
-      print "Plot.setcanvas: width=%s, height=%s"%(width,height)
-      print "Plot.setcanvas: lmargin=%.5g, rmargin=%.5g, tmargin=%.5g, bmargin=%.5g"%(lmargin,rmargin,tmargin,bmargin)
+      print ">>> Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
+      print ">>> Plot.setcanvas: width=%s, height=%s"%(width,height)
+      print ">>> Plot.setcanvas: lmargin=%.5g, rmargin=%.5g, tmargin=%.5g, bmargin=%.5g"%(lmargin,rmargin,tmargin,bmargin)
     canvas = TCanvas('canvas','canvas',100,100,int(width),int(height))
     canvas.SetFillColor(0)
     #canvas.SetFillStyle(0)
@@ -490,16 +498,13 @@ class Plot(object):
       xlabelsize  = 0.0
     if latex:
       xtitle      = makelatex(xtitle)
-    LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f)"%(nbins,xmin,xmax),verbosity,2)
+    LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f), frame=%s"%(nbins,xmin,xmax,frame),verbosity,2)
     if verbosity>=3:
-      print "Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex)
-      print "Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r"%(logx,logy,ycenter,intbins)
-      print "Plot.setaxes: nxdiv=%s, nydiv=%s"%(nxdivisions,nydivisions)
-      print "Plot.setaxes: lmargin=%.5g, _lmargin=%.5g"%(gPad.GetLeftMargin(),_lmargin)
-      print "Plot.setaxes: scale=%s, yscale=%s"%(scale,yscale)
-      print "Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g"%(xtitlesize,ytitlesize)
-      print "Plot.setaxes: xlabelsize=%.5g, ylabelsize=%.5g"%(xlabelsize,ylabelsize)
-      print "Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
+      print ">>> Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex)
+      print ">>> Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r, nxdiv=%s, nydiv=%s"%(logx,logy,ycenter,intbins,nxdivisions,nydivisions)
+      print ">>> Plot.setaxes: lmargin=%.5g, _lmargin=%.5g, scale=%s, yscale=%s"%(gPad.GetLeftMargin(),_lmargin,scale,yscale)
+      print ">>> Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g, xlabelsize=%.5g, ylabelsize=%.5g"%(xtitlesize,ytitlesize,xlabelsize,ylabelsize)
+      print ">>> Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
     
     if ratiorange:
       ymin, ymax  = 1.-ratiorange, 1.+ratiorange
@@ -557,7 +562,7 @@ class Plot(object):
     elif ymax==None:
       ymax = hmax*ymargin
     if logx:
-      if not xmin: xmin = 0.1
+      if not xmin: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
       xmax *= 0.9999999999999
       gPad.Update(); gPad.SetLogx()
     if grid:

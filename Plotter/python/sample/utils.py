@@ -276,7 +276,7 @@ def getsample(samples,*searchterms,**kwargs):
       matches.append(sample)
   if not matches:
     if warn:
-      LOG.warn("getsample: Could not find a sample with search terms %s..."%(quotestrs(searchterms+(filename,))))
+      LOG.warn("getsample: Could not find a sample with search terms %s..."%(quotestrs(list(searchterms)+[filename])))
   elif unique:
     if len(matches)>1:
       LOG.warn("getsample: Found more than one match to %s. Using first match only: %s"%(
@@ -506,7 +506,6 @@ def stitch(samplelist,*searchterms,**kwargs):
   join(samplelist,*searchterms,name=name,title=title,verbosity=verbosity)
   newsample = getsample(samplelist,name,unique=True)
   newsample.sample_incl = sample_incl
-  print newsample, sample_incl
   return samplelist
   
 
