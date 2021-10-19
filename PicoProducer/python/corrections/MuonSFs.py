@@ -59,7 +59,7 @@ class MuonSFs:
         ###self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2017/Muon_IsoMu24orIsoMu27.root",'ZMass','mu_idiso',verb=verb) # placeholder
         ###sftool_id         = ScaleFactor(pathPOG+"Run2017UL/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
         ###sftool_iso        = ScaleFactor(pathPOG+"Run2017UL/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root","NUM_TightRelIso_DEN_MediumID_abseta_pt",'mu_iso',ptvseta=False,verb=verb)
-        self.sftool_idiso = sftool_id*sftool_iso
+        ###self.sftool_idiso = sftool_id*sftool_iso
       elif era=='2017':
         #self.sftool_trig  = ScaleFactor(pathPOG+"Run2017/EfficienciesAndSF_RunBtoF_Nov17Nov2017.root","IsoMu27_PtEtaBins/abseta_pt_ratio",'mu_trig')
         self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2017/Muon_IsoMu24orIsoMu27.root",'ZMass','mu_idiso',verb=verb)
