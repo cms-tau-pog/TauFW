@@ -74,7 +74,7 @@ class BTagWPs:
 
 class BTagWeightTool:
   
-  def __init__(self, tagger, wp='medium', channel='mutau', year=2017, maxeta=None, loadsys=False, type_bc='comb', filltags=[""]):
+  def __init__(self, tagger, wp='medium', channel='mutau', year=2017, maxeta=None, loadsys=False, type_bc='comb', yearsplit=False, filltags=[""]):
     """Load b tag weights from CSV file."""
     
     assert(year in [2016,2017,2018]), "You must choose a year from: 2016, 2017, or 2018."
@@ -84,6 +84,7 @@ class BTagWeightTool:
     #assert(channel in ['mutau','eletau','tautau','mumu']), "BTagWeightTool: You must choose a channel from: mutau, eletau, tautau, mumu!"
     
     # FILE
+    csvname_bc = None
     if year==2016:
       if 'deep' in tagger.lower():
         # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
@@ -110,6 +111,8 @@ class BTagWeightTool:
       else:
         csvname = os.path.join(datadir,"CSVv2_94XSF_V2_B_F.csv")
         effname = os.path.join(datadir,"CSVv2_2018_Autumn18_eff.root")
+    if not csvname_bc:
+      csvname_bc = csvname
     
     # MAX ETA
     if maxeta==None:
@@ -123,20 +126,33 @@ class BTagWeightTool:
     else:
       tagged = lambda j: j.btagCSVV2>self.wp
     
-    # CSV READER
+    # LOAD CALIBRATION TOOL
     print "Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname) #,(", "+sigma) if sigma!='central' else ""
+    calib = BTagCalibration(tagger, csvname)
+    if csvname_bc and csvname_bc!=csvname:
+      print "  and from %s..."%(csvname_bc)
+      calib_bc = BTagCalibration(tagger,csvname_bc)
+    else:
+      calib_bc = calib # use same calibrator
+    print "  with efficiencies from %s..."%(effname)
+    
+    # CSV READER
     readers   = { }
     opnum     = OP_LOOSE if wp=='loose' else OP_MEDIUM if wp=='medium' else OP_TIGHT if wp=='tight' else OP_RESHAPING
     type_udsg = 'incl'
     type_bc   = type_bc # 'mujets' for QCD; 'comb' for QCD+TT
-    calib     = BTagCalibration(tagger, csvname)
     readers['Nom'] = BTagCalibrationReader(opnum,'central')
     if loadsys:
       readers['Up']   = BTagCalibrationReader(opnum,'up')
       readers['Down'] = BTagCalibrationReader(opnum,'down')
+    if yearsplit: # split uncertainties by year
+      readers['UpCorr']     = BTagCalibrationReader(op,'up_correlated')
+      readers['DownCorr']   = BTagCalibrationReader(op,'down_correlated')
+      readers['UpUncorr']   = BTagCalibrationReader(op,'up_uncorrelated')
+      readers['DownUncorr'] = BTagCalibrationReader(op,'down_uncorrelated')
     for reader in readers.values():
-      reader.load(calib,FLAV_B,   type_bc)
-      reader.load(calib,FLAV_C,   type_bc)
+      reader.load(calib_bc,FLAV_B,type_bc)
+      reader.load(calib_bc,FLAV_C,type_bc)
       reader.load(calib,FLAV_UDSG,type_udsg)
     
     # EFFICIENCIES
@@ -170,13 +186,14 @@ class BTagWeightTool:
                   "and should NOT be used for analyses. B (mis)tag efficiencies in MC are analysis dependent. Please create your own\n"+\
                   "efficiency histogram with data/btag/getBTagEfficiencies.py after running all MC samples with BTagWeightTool.")
     
-    self.tagged  = tagged
-    self.calib   = calib
-    self.readers = readers
-    self.loadsys = loadsys
-    self.jetmaps = jetmaps
-    self.effmaps = effmaps
-    self.maxeta  = maxeta
+    self.tagged   = tagged
+    self.calib    = calib
+    self.calib_bc = calib_bc
+    self.readers  = readers
+    self.loadsys  = loadsys
+    self.jetmaps  = jetmaps
+    self.effmaps  = effmaps
+    self.maxeta   = maxeta
   
   def getWeight(self,jets,unc='Nom'):
     """Get b tagging event weight for a given set of jets."""
@@ -185,6 +202,15 @@ class BTagWeightTool:
       if abs(jet.eta)<self.maxeta:
         weight *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
     return weight
+  
+  def getHeavyFlavorWeight(self,jets,unc='Nom'):
+    """Get b tagging event weight for a given set of jets for heavy flavors only."""
+    weight_bc = 1. # heavy flavor
+    for jet in jets:
+      if abs(jet.eta)<self.maxeta:
+        if abs(jet.partonFlavour) in [4,5]: # heavy flavor: b (5), c (4)
+          weight_bc *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
+    return weight_bc
   
   def getFlavorWeight(self,jets,unc='Nom'):
     """Get b tagging event weight for a given set of jets per flavor."""
