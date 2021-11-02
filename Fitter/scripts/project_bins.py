@@ -1,5 +1,11 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (October 2021)
+# Description: Convert histograms to vectors and project onto a 2D plane to study systematics
+#              in a new physics search. The plane is spanned by the observed, B-only and S+B vectors.
+# Usage:
+#  ./project_bins.py -w work.root -o plane.png -p lumi shape_jes -T nuisdict.json --show
+#
+# Inspired by Kyle Cormier: https://gitlab.cern.ch/kcormier/fit-scripts/-/tree/tool_development
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plot
@@ -361,7 +367,8 @@ def main(args):
 
 if __name__ == '__main__':
   from argparse import ArgumentParser
-  description = '''This script makes projects histograms into a 2D plane to study systematics. Example of use:
+  description = '''Convert histograms to vectors and project onto a 2D plane to study systematics in a new physics search.
+  The plane is spanned by the observed, B-only and S+B vectors. Example of use:
   ./project_bins.py -w work.root -o plane.png -p lumi shape_jes -T nuisdict.json --show'''
   parser = ArgumentParser(prog="checkshapes",description=description,epilog="Good luck!")
   parser.add_argument('-b', "--bonly",        action='store_true',
