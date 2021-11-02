@@ -29,8 +29,8 @@ class Plane:
     if verb>=3:
       print(">>> Plane.__init__: e1=%s"%(e1))
       print(">>> Plane.__init__: e2=%s"%(e2))
-    self.e1 = e1
-    self.e2 = e2
+    self.e1 = e1 # orthonormal vector (along B-only)
+    self.e2 = e2 # orthonormal vector (along S+B, perpendicular to e1)
   
   def project(self,vec,verb=2):
     """Project vector onto plane, and return 2D vector in orthonormal basis."""
@@ -54,7 +54,7 @@ def project_on_vec(vec1,vec2,verb=0):
   
 
 def getbins_pdf(pdf,xvar,channel,obsset,verb=0):
-  """Help function to get bins for pdf."""
+  """Help function to get bin content from RooAbsPdf."""
   bins = [ ]
   nchans = channel.numTypes()
   for ichan in range(nchans):
@@ -76,6 +76,7 @@ def getbins_pdf(pdf,xvar,channel,obsset,verb=0):
   
 
 def parseworkspace(wsname,pnames,parvals=None,bonly=False,verb=0):
+  """Parse CMS CombineTool workspace: obeserved data, B-only, S+B, systematic variations."""
   if verb>=1:
     print(">>> parseworkspace(%r)"%wsname)
   from ROOT import TFile
@@ -107,7 +108,7 @@ def parseworkspace(wsname,pnames,parvals=None,bonly=False,verb=0):
   
   # GET OBSERVED DATA VECTOR
   if verb>=1:
-    print(">>> parseworkspace: get observed data")
+    print(">>> parseworkspace: get observed data...")
   xvar_    = data.get().find('CMS_th1x')
   channel_ = data.get().find('CMS_channel') # same order as model's channels ?
   assert channel_.numTypes()==nchans, "Data set has different number of channels than model!"
@@ -128,13 +129,15 @@ def parseworkspace(wsname,pnames,parvals=None,bonly=False,verb=0):
       if verb>=2:
         print(">>> parseworkspace:     bin %2d -> (x,y) = (%.1f,%5.1f)"%(ibin,xvar_.getVal(),yval))
       bins_obs.append(yval)
-  print(">>> parseworkspace: nbins=%d"%(len(bins_obs)))
+  vec_obs = np.array(bins_obs)
+  nnonzero = np.count_nonzero(vec_obs) #==0)
+  print(">>> parseworkspace:   observed nbins=%d (non zero=%d)"%(len(bins_obs),nnonzero))
   
   # GET EXPECTED VECTOR
   for mc, bins, systs in [(mc_b,bins_b,systs_b),(mc_sb,bins_sb,systs_sb)]:
     title = "B-only" if mc==mc_b else "S + B"
     if verb>=1:
-      print(">>> parseworkspace: %s"%(title))
+      print(">>> parseworkspace: getting %s..."%(title))
     
     # NOMINAL VALUE
     pdf  = mc.GetPdf()
@@ -167,14 +170,18 @@ def parseworkspace(wsname,pnames,parvals=None,bonly=False,verb=0):
       par1.setVal(pnom1) # reset
       par2.setVal(pnom2) # reset
       systs[pname1] = (np.array(bins_up),np.array(bins_dn))
+  vec_sb = np.array(bins_sb)
+  vec_b  = np.array(bins_b)
+  if verb>=1:
+    nnonzero_b = np.count_nonzero(bins_b) #==0)
+    nnonzero_sb = np.count_nonzero(bins_sb) #==0)
+    print(">>> parseworkspace:   B-only nbins=%d (non zero=%d)"%(len(bins_b),nnonzero_b))
+    print(">>> parseworkspace:   S+B nbins=%d (non zero=%d)"%(len(bins_sb),nnonzero_sb))
   
   assert len(bins_b)==len(bins_obs) and len(bins_sb)==len(bins_obs),\
     "Different number of bins: obs=%d, bonly=%d, sb=%d"%(len(bins_obs),len(bins_b),len(bins_sb))
   
   file.Close()
-  vec_obs = np.array(bins_obs)
-  vec_sb  = np.array(bins_sb)
-  vec_b   = np.array(bins_b)
   return vec_obs, vec_b, vec_sb, systs_b, systs_sb
   
 
@@ -198,7 +205,7 @@ def plotplane(outnames,vec_b,vec_sb,systs_b,systs_sb,show=False,pardict=None,ver
     outnames = [outnames]
   title_obs = "Observed"
   title_b   = "B-only (prefit)"
-  title_sb  = "S+B (postfit)"
+  title_sb  = "S+B (prefit)"
   msize     = 11.
   lwidth    = 0.003 # line width of arrow
   xmin = min(0,vec_b[0],vec_sb[0])
@@ -287,10 +294,10 @@ def project_and_plot(outname,vec_obs,vec_b,vec_sb,systs_b,systs_sb,show=False,pa
   plotplane(outname,proj_b,proj_sb,proj_systs_b,proj_systs_sb,show=show,pardict=pardict,verb=verb)
   
 
-def test():
+def test(verb=4):
   print(">>> test")
   """For quick testing of main routines."""
-  verb = 4 # verbosity
+  verb = max(verb,1) # verbosity
   vec_obs = np.array([100,35, 9]) # data
   vec_b   = np.array([ 99,33, 6]) # B-only
   vec_sb  = np.array([101,34,10]) # S+B
@@ -310,7 +317,8 @@ def test():
   
 
 def main(args):
-  print(">>> main")
+  if verb>=1:
+    print(">>> main")
   
   verb     = args.verbosity
   outnames = args.outnames or ["plane.png"]
@@ -376,6 +384,6 @@ if __name__ == '__main__':
   if args.workspace:
     main(args)
   else: # Run quick test
-    test()
+    test(verb=args.verbosity)
   print(">>> Done")
   
