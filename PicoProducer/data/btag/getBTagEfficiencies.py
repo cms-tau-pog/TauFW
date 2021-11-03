@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (January 2019)
-#   ./getBTagEfficiencies.py -c mutau - y 2016 -w loose -t DeepCSV
+#   ./getBTagEfficiencies.py -c mutau - y 2016 -w loose -t DeepJet
 
 import os, sys
 from collections import OrderedDict
@@ -11,15 +11,17 @@ gStyle.SetOptStat(False)
 gROOT.SetBatch(True)
 
 argv = sys.argv
-description = '''This script extracts histograms from the analysis framework output run on MC samples to create b tag efficiencies.'''
+description = '''Extract histograms from the analysis framework output run on MC samples to create b tag efficiencies.'''
 parser = ArgumentParser(prog="pileup",description=description,epilog="Succes!")
-parser.add_argument('-y', '--year',     dest='years', choices=[2016,2017,2018], type=int, nargs='+', default=[2017], action='store',
-                                        help="year to run" )
-parser.add_argument('-c', '--channel',  dest='channels', choices=['eletau','mutau','tautau','elemu','mumu','eleele'], type=str, nargs='+', default=['mutau'], action='store',
+parser.add_argument('-i', '--inputdir', dest='indir',
+                                        help="eras to run" )
+parser.add_argument('-y', '--era',      dest='eras', nargs='+', default=[],
+                                        help="eras to run" )
+parser.add_argument('-c', '--channel',  dest='channels', choices=['eletau','mutau','tautau','elemu','mumu','eleele'], type=str, nargs='+', default=['mutau'],
                                         help="channels to run" )
-parser.add_argument('-t', '--tagger',   dest='taggers', choices=['CSVv2','DeepCSV'], type=str, nargs='+', default=['DeepCSV'], action='store',
+parser.add_argument('-t', '--tagger',   dest='taggers', choices=['DeepCSV','DeepJet'], type=str, nargs='+', default=['DeepJet'],
                                         help="tagger to run" )
-parser.add_argument('-w', '--wp',       dest='wps', choices=['loose','medium','tight'], type=str, nargs='+', default=['medium'], action='store',
+parser.add_argument('-w', '--wp',       dest='wps', choices=['loose','medium','tight'], type=str, nargs='+', default=['medium'],
                                         help="working point to run" )
 parser.add_argument('-t', '--tag',      default="",
                                         help="extra tag for histograms" )
@@ -32,229 +34,228 @@ parser.add_argument('-v', '--verbose',  action='store_true',
 args = parser.parse_args()
 
 
-
-def getBTagEfficiencies(tagger,wp,outfilename,samples,year,channel,tag="",plot=False):
-    """Get pileup profile in MC by adding Pileup_nTrueInt histograms from a given list of samples."""
-    print '>>> getBTagEfficiencies("%s","%s","%s")'%(outfilename,wp,year)
-    
-    # PREPARE numerator and denominator histograms per flavor
-    nhists  = { }
-    hists   = OrderedDict()
-    histdir = 'btag'
-    effdir  = channel+tag
-    for flavor in ['b','c','udsg']:
-      hname = '%s_%s_%s'%(tagger,flavor,wp)
-      hists[hname] = None        # numerator
-      hists[hname+'_all'] = None # denominator
-    
-    # ADD numerator and denominator histograms
-    for filename in samples:
-      print ">>>   %s"%(filename)
-      file = TFile(filename,'READ')
-      if not file or file.IsZombie():
-        print ">>>   Warning! getBTagEfficiencies: Could not open %s. Ignoring..."%(filename)
+def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",plot=False):
+  """Get pileup profile in MC by adding Pileup_nTrueInt histograms from a given list of samples."""
+  print '>>> getBTagEfficiencies("%s","%s","%s")'%(outfname,wp,era)
+  
+  # PREPARE numerator and denominator histograms per flavor
+  nhists  = { }
+  hists   = OrderedDict()
+  histdir = 'btag'
+  effdir  = channel+tag
+  for flavor in ['b','c','udsg']:
+    hname = "%s_%s_%s%s"%(tagger,flavor,wp,tag)
+    hists[hname] = None        # numerator
+    hists[hname+'_all'] = None # denominator
+  
+  # ADD numerator and denominator histograms
+  for fname in samples:
+    print ">>>   %s"%(fname)
+    file = TFile(fname,'READ')
+    if not file or file.IsZombie():
+      print ">>>   Warning! getBTagEfficiencies: Could not open %s. Ignoring..."%(fname)
+      continue
+    for hname in hists:
+      histpath = "%s/%s"%(histdir,hname)
+      hist = file.Get(histpath)
+      if not hist:
+        print ">>>   Warning! getBTagEfficiencies: Could not open histogram '%s' in %s. Ignoring..."%(histpath,fname)        
+        dir = file.Get(histdir)
+        if dir: dir.ls()
         continue
-      for hname in hists:
-        histpath = "%s/%s"%(histdir,hname)
-        hist = file.Get(histpath)
-        if not hist:
-          print ">>>   Warning! getBTagEfficiencies: Could not open histogram '%s' in %s. Ignoring..."%(histpath,filename)        
-          dir = file.Get(histdir)
-          if dir: dir.ls()
-          continue
-        if hists[hname]==None:
-          hists[hname] = hist.Clone(hname)
-          hists[hname].SetDirectory(0)
-          nhists[hname] = 1
-        else:
-          hists[hname].Add(hist)
-          nhists[hname] += 1
-      file.Close()
-    
-    # CHECK
-    if len(nhists)>0:
-      print ">>>   added %d MC hists:"%(sum(nhists[n] for n in nhists))
-      for hname, nhist in sorted(nhists.items()):
-        info = "%4.3e jets"%(hists[hname].GetEntries())
-        if '_all' not in hname:
-          info += " (%4.1f%%)"%(100.0*hists[hname].GetEntries()/hists[hname+"_all"].GetEntries())
-        print ">>>     %-26s%4d histograms, %s"%(hname+':',nhist,info)
-    else:
-      print ">>>   no histograms added !"
-      return
-    
-    # DIVIDE and SAVE histograms
-    print ">>>   writing to %s..."%(outfilename)
-    file = TFile(outfilename,'UPDATE') #RECREATE
-    ensureTDirectory(file,channel)
-    for hname, hist in hists.iteritems():
-      if 'all' in hname:
-        continue
-      hname_all = hname+'_all'
-      hname_eff = 'eff_'+hname
-      print ">>>     writing %s..."%(hname)
-      print ">>>     writing %s..."%(hname_all)
-      print ">>>     writing %s..."%(hname_eff)
-      hist_all = hists[hname_all]
-      hist_eff = hist.Clone(hname_eff)
-      hist_eff.SetTitle(makeTitle(tagger,wp,hname_eff,channel,year))
-      hist_eff.Divide(hist_all)
-      hist.Write(hname,TH2F.kOverwrite)
-      hist_all.Write(hname_all,TH2F.kOverwrite)
-      hist_eff.Write(hname_eff,TH2F.kOverwrite)
-      if plot:
-        plot1D(hname_eff+"_vs_pt",hist,hist_all,year,channel,title=hist_eff.GetTitle(),log=True,write=True)
-        plot2D(hname_eff,hist_eff,year,channel,log=True)
-        plot2D(hname_eff,hist_eff,year,channel,log=False)
+      if hists[hname]==None:
+        hists[hname] = hist.Clone(hname)
+        hists[hname].SetDirectory(0)
+        nhists[hname] = 1
+      else:
+        hists[hname].Add(hist)
+        nhists[hname] += 1
     file.Close()
-    print ">>> "
+  
+  # CHECK
+  if len(nhists)>0:
+    print ">>>   added %d MC hists:"%(sum(nhists[n] for n in nhists))
+    for hname, nhist in sorted(nhists.items()):
+      info = "%4.3e jets"%(hists[hname].GetEntries())
+      if '_all' not in hname:
+        info += " (%4.1f%%)"%(100.0*hists[hname].GetEntries()/hists[hname+"_all"].GetEntries())
+      print ">>>     %-26s%4d histograms, %s"%(hname+':',nhist,info)
+  else:
+    print ">>>   no histograms added !"
+    return
+  
+  # DIVIDE and SAVE histograms
+  print ">>>   writing to %s..."%(outfname)
+  file = TFile(outfname,'UPDATE') #RECREATE
+  ensureTDirectory(file,channel)
+  for hname, hist in hists.iteritems():
+    if 'all' in hname:
+      continue
+    hname_all = hname+'_all'
+    hname_eff = 'eff_'+hname
+    print ">>>     writing %s..."%(hname)
+    print ">>>     writing %s..."%(hname_all)
+    print ">>>     writing %s..."%(hname_eff)
+    hist_all = hists[hname_all]
+    hist_eff = hist.Clone(hname_eff)
+    hist_eff.SetTitle(makeTitle(tagger,wp,hname_eff,channel,era))
+    hist_eff.Divide(hist_all)
+    hist.Write(hname,TH2F.kOverwrite)
+    hist_all.Write(hname_all,TH2F.kOverwrite)
+    hist_eff.Write(hname_eff,TH2F.kOverwrite)
+    if plot:
+      plot1D(hname_eff+"_vs_pt",hist,hist_all,era,channel,title=hist_eff.GetTitle(),log=True,write=True)
+      plot2D(hname_eff,hist_eff,era,channel,log=True)
+      plot2D(hname_eff,hist_eff,era,channel,log=False)
+  file.Close()
+  print ">>> "
   
 
-def plot2D(hname,hist,year,channel,log=False):
-    """Plot 2D efficiency."""
-    dir    = ensureDirectory('plots/%d'%year)
-    name   = "%s/%s_%s"%(dir,hname,channel)
-    if log:
-      name += "_log"
-    xtitle = "Jet p_{T} [GeV]"
-    ytitle = "Jet #eta"
-    ztitle = 'B tag efficiencies' if '_b_' in hname else 'B mistag rate'
-    xmin, xmax = 20, hist.GetXaxis().GetXmax()
-    zmin, zmax = 5e-3 if log else 0.0, 1.0
-    angle  = 22 if log else 77
-    
-    canvas = TCanvas('canvas','canvas',100,100,800,700)
-    canvas.SetFillColor(0)
-    canvas.SetBorderMode(0)
-    canvas.SetFrameFillStyle(0)
-    canvas.SetFrameBorderMode(0)
-    canvas.SetTopMargin(  0.07 ); canvas.SetBottomMargin( 0.13 )
-    canvas.SetLeftMargin( 0.12 ); canvas.SetRightMargin(  0.17 )
-    canvas.SetTickx(0); canvas.SetTicky(0)
-    canvas.SetGrid()
-    gStyle.SetOptTitle(0) #FontSize(0.04)
-    if log:
-      canvas.SetLogx()
-      canvas.SetLogz()
-    canvas.cd()
-    
-    hist.GetXaxis().SetTitle(xtitle)
-    hist.GetYaxis().SetTitle(ytitle)
-    hist.GetZaxis().SetTitle(ztitle)
-    hist.GetXaxis().SetLabelSize(0.048)
-    hist.GetYaxis().SetLabelSize(0.048)
-    hist.GetZaxis().SetLabelSize(0.048)
-    hist.GetXaxis().SetTitleSize(0.058)
-    hist.GetYaxis().SetTitleSize(0.058)
-    hist.GetZaxis().SetTitleSize(0.056)
-    hist.GetXaxis().SetTitleOffset(1.03)
-    hist.GetYaxis().SetTitleOffset(1.04)
-    hist.GetZaxis().SetTitleOffset(1.03)
-    hist.GetXaxis().SetLabelOffset(-0.004 if log else 0.005)
-    hist.GetZaxis().SetLabelOffset(-0.005 if log else 0.005)
-    hist.GetXaxis().SetRangeUser(xmin,xmax)
-    hist.SetMinimum(zmin)
-    hist.SetMaximum(zmax)
-    hist.Draw('COLZTEXT%d'%angle)
-    
-    gStyle.SetPaintTextFormat('.2f')
-    hist.SetMarkerColor(kRed)
-    hist.SetMarkerSize(1.8 if log else 1)
-    #gPad.Update()
-    #gPad.RedrawAxis()
-    
-    latex = TLatex()
-    latex.SetTextSize(0.048)
-    latex.SetTextAlign(23)
-    latex.SetTextFont(42)
-    latex.SetNDC(True)
-    latex.DrawLatex(0.475,0.99,hist.GetTitle()) # to prevent typesetting issues
-    
-    canvas.SaveAs(name+'.pdf')
-    canvas.SaveAs(name+'.png')
-    canvas.Close()
-    
+def plot2D(hname,hist,era,channel,log=False):
+  """Plot 2D efficiency."""
+  dir    = ensureDirectory('plots/%d'%era)
+  name   = "%s/%s_%s"%(dir,hname,channel)
+  if log:
+    name += "_log"
+  xtitle = "Jet p_{T} [GeV]"
+  ytitle = "Jet #eta"
+  ztitle = 'B tag efficiencies' if '_b_' in hname else 'B mistag rate'
+  xmin, xmax = 20, hist.GetXaxis().GetXmax()
+  zmin, zmax = 5e-3 if log else 0.0, 1.0
+  angle  = 22 if log else 77
+  
+  canvas = TCanvas('canvas','canvas',100,100,800,700)
+  canvas.SetFillColor(0)
+  canvas.SetBorderMode(0)
+  canvas.SetFrameFillStyle(0)
+  canvas.SetFrameBorderMode(0)
+  canvas.SetTopMargin(  0.07 ); canvas.SetBottomMargin( 0.13 )
+  canvas.SetLeftMargin( 0.12 ); canvas.SetRightMargin(  0.17 )
+  canvas.SetTickx(0); canvas.SetTicky(0)
+  canvas.SetGrid()
+  gStyle.SetOptTitle(0) #FontSize(0.04)
+  if log:
+    canvas.SetLogx()
+    canvas.SetLogz()
+  canvas.cd()
+  
+  hist.GetXaxis().SetTitle(xtitle)
+  hist.GetYaxis().SetTitle(ytitle)
+  hist.GetZaxis().SetTitle(ztitle)
+  hist.GetXaxis().SetLabelSize(0.048)
+  hist.GetYaxis().SetLabelSize(0.048)
+  hist.GetZaxis().SetLabelSize(0.048)
+  hist.GetXaxis().SetTitleSize(0.058)
+  hist.GetYaxis().SetTitleSize(0.058)
+  hist.GetZaxis().SetTitleSize(0.056)
+  hist.GetXaxis().SetTitleOffset(1.03)
+  hist.GetYaxis().SetTitleOffset(1.04)
+  hist.GetZaxis().SetTitleOffset(1.03)
+  hist.GetXaxis().SetLabelOffset(-0.004 if log else 0.005)
+  hist.GetZaxis().SetLabelOffset(-0.005 if log else 0.005)
+  hist.GetXaxis().SetRangeUser(xmin,xmax)
+  hist.SetMinimum(zmin)
+  hist.SetMaximum(zmax)
+  hist.Draw('COLZTEXT%d'%angle)
+  
+  gStyle.SetPaintTextFormat('.2f')
+  hist.SetMarkerColor(kRed)
+  hist.SetMarkerSize(1.8 if log else 1)
+  #gPad.Update()
+  #gPad.RedrawAxis()
+  
+  latex = TLatex()
+  latex.SetTextSize(0.048)
+  latex.SetTextAlign(23)
+  latex.SetTextFont(42)
+  latex.SetNDC(True)
+  latex.DrawLatex(0.475,0.99,hist.GetTitle()) # to prevent typesetting issues
+  
+  canvas.SaveAs(name+'.pdf')
+  canvas.SaveAs(name+'.png')
+  canvas.Close()
+  
 
-def plot1D(hname,histnum2D,histden2D,year,channel,title="",log=False,write=True):
-    """Plot efficiency."""
-    dir      = ensureDirectory('plots/%d'%year)
-    name     = "%s/%s_%s"%(dir,hname,channel)
-    if log:
-      name  += "_log"
-    header   = ""
-    xtitle   = 'Jet p_{T} [GeV]'
-    ytitle   = 'B tag efficiencies' if '_b_' in hname else 'B mistag rate'
-    xmin, xmax = 20 if log else 10, histnum2D.GetXaxis().GetXmax()
-    ymin, ymax = 5e-3 if log else 0.0, 2.0
-    colors   = [kBlue, kRed, kOrange]
-    x1, y1   = (0.27, 0.44) if '_b_' in hname else (0.55, 0.80)
-    width, height = 0.3, 0.16
-    x2, y2   = x1 + width, y1 - height
-    hists    = createEff1D(histnum2D,histden2D)
-    
-    canvas = TCanvas('canvas','canvas',100,100,800,700)
-    canvas.SetFillColor(0)
-    canvas.SetBorderMode(0)
-    canvas.SetFrameFillStyle(0)
-    canvas.SetFrameBorderMode(0)
-    canvas.SetTopMargin(  0.04 ); canvas.SetBottomMargin( 0.13 )
-    canvas.SetLeftMargin( 0.12 ); canvas.SetRightMargin(  0.05 )
-    canvas.SetTickx(0); canvas.SetTicky(0)
-    canvas.SetGrid()
-    gStyle.SetOptTitle(0)
-    if log:
-      canvas.SetLogx()
-      canvas.SetLogy()
-    canvas.cd()
-    
-    frame = hists[0]
-    for i, hist in enumerate(hists):
-      hist.SetLineColor(colors[i%len(colors)])
-      hist.SetMarkerColor(colors[i%len(colors)])
-      hist.SetLineWidth(2)
-      hist.SetMarkerSize(2)
-      hist.SetMarkerStyle(1)
-      hist.Draw('PE0SAME')
-    frame.GetXaxis().SetTitle(xtitle)
-    frame.GetYaxis().SetTitle(ytitle)
-    frame.GetXaxis().SetLabelSize(0.048)
-    frame.GetYaxis().SetLabelSize(0.048)
-    frame.GetXaxis().SetTitleSize(0.058)
-    frame.GetYaxis().SetTitleSize(0.058)
-    frame.GetXaxis().SetTitleOffset(1.03)
-    frame.GetYaxis().SetTitleOffset(1.04)
-    frame.GetXaxis().SetLabelOffset(-0.004 if log else 0.005)
-    frame.GetXaxis().SetRangeUser(xmin,xmax)
-    frame.SetMinimum(ymin)
-    frame.SetMaximum(ymax)
-    
-    if title:    
-      latex = TLatex()
-      latex.SetTextSize(0.04)
-      latex.SetTextAlign(13)
-      latex.SetTextFont(62)
-      latex.SetNDC(True)
-      latex.DrawLatex(0.15,0.94,title)
-    
-    legend = TLegend(x1,y1,x2,y2)
-    legend.SetTextSize(0.04)
-    legend.SetBorderSize(0)
-    legend.SetFillStyle(0)
-    legend.SetFillColor(0)
-    if header:
-      legend.SetTextFont(62)
-      legend.SetHeader(header)
-    legend.SetTextFont(42)
-    for hist in hists:
-      legend.AddEntry(hist,hist.GetTitle(),'lep')
-    legend.Draw()
-    
-    if write:
-      canvas.Write(os.path.basename(name))
-    canvas.SaveAs(name+'.pdf')
-    canvas.SaveAs(name+'.png')
-    canvas.Close()
-    
+def plot1D(hname,histnum2D,histden2D,era,channel,title="",log=False,write=True):
+  """Plot efficiency."""
+  dir      = ensureDirectory('plots/%d'%era)
+  name     = "%s/%s_%s"%(dir,hname,channel)
+  if log:
+    name  += "_log"
+  header   = ""
+  xtitle   = 'Jet p_{T} [GeV]'
+  ytitle   = 'B tag efficiencies' if '_b_' in hname else 'B mistag rate'
+  xmin, xmax = 20 if log else 10, histnum2D.GetXaxis().GetXmax()
+  ymin, ymax = 5e-3 if log else 0.0, 2.0
+  colors   = [kBlue, kRed, kOrange]
+  x1, y1   = (0.27, 0.44) if '_b_' in hname else (0.55, 0.80)
+  width, height = 0.3, 0.16
+  x2, y2   = x1 + width, y1 - height
+  hists    = createEff1D(histnum2D,histden2D)
+  
+  canvas = TCanvas('canvas','canvas',100,100,800,700)
+  canvas.SetFillColor(0)
+  canvas.SetBorderMode(0)
+  canvas.SetFrameFillStyle(0)
+  canvas.SetFrameBorderMode(0)
+  canvas.SetTopMargin(  0.04 ); canvas.SetBottomMargin( 0.13 )
+  canvas.SetLeftMargin( 0.12 ); canvas.SetRightMargin(  0.05 )
+  canvas.SetTickx(0); canvas.SetTicky(0)
+  canvas.SetGrid()
+  gStyle.SetOptTitle(0)
+  if log:
+    canvas.SetLogx()
+    canvas.SetLogy()
+  canvas.cd()
+  
+  frame = hists[0]
+  for i, hist in enumerate(hists):
+    hist.SetLineColor(colors[i%len(colors)])
+    hist.SetMarkerColor(colors[i%len(colors)])
+    hist.SetLineWidth(2)
+    hist.SetMarkerSize(2)
+    hist.SetMarkerStyle(1)
+    hist.Draw('PE0SAME')
+  frame.GetXaxis().SetTitle(xtitle)
+  frame.GetYaxis().SetTitle(ytitle)
+  frame.GetXaxis().SetLabelSize(0.048)
+  frame.GetYaxis().SetLabelSize(0.048)
+  frame.GetXaxis().SetTitleSize(0.058)
+  frame.GetYaxis().SetTitleSize(0.058)
+  frame.GetXaxis().SetTitleOffset(1.03)
+  frame.GetYaxis().SetTitleOffset(1.04)
+  frame.GetXaxis().SetLabelOffset(-0.004 if log else 0.005)
+  frame.GetXaxis().SetRangeUser(xmin,xmax)
+  frame.SetMinimum(ymin)
+  frame.SetMaximum(ymax)
+  
+  if title:    
+    latex = TLatex()
+    latex.SetTextSize(0.04)
+    latex.SetTextAlign(13)
+    latex.SetTextFont(62)
+    latex.SetNDC(True)
+    latex.DrawLatex(0.15,0.94,title)
+  
+  legend = TLegend(x1,y1,x2,y2)
+  legend.SetTextSize(0.04)
+  legend.SetBorderSize(0)
+  legend.SetFillStyle(0)
+  legend.SetFillColor(0)
+  if header:
+    legend.SetTextFont(62)
+    legend.SetHeader(header)
+  legend.SetTextFont(42)
+  for hist in hists:
+    legend.AddEntry(hist,hist.GetTitle(),'lep')
+  legend.Draw()
+  
+  if write:
+    canvas.Write(os.path.basename(name))
+  canvas.SaveAs(name+'.pdf')
+  canvas.SaveAs(name+'.png')
+  canvas.Close()
+  
 
 def createEff1D(histnum2D,histden2D):
   """Create 1D histogram of efficiency vs. pT for central and forward eta bins."""
@@ -284,7 +285,7 @@ def createEff1D(histnum2D,histden2D):
   return hists
   
 
-def makeTitle(tagger,wp,flavor,channel,year):
+def makeTitle(tagger,wp,flavor,channel,era):
   flavor = flavor.replace('_',' ')
   if ' b ' in flavor:
     flavor = 'b quark'
@@ -292,8 +293,8 @@ def makeTitle(tagger,wp,flavor,channel,year):
     flavor = 'c quark'
   else:
     flavor = 'light-flavor'
-  channel = channel.replace('tau',"#tau_{h}").replace('mu',"#mu").replace('ele',"e")
-  string = "%s, %s %s WP (%s, %d)"%(flavor,tagger,wp,channel,year)
+  channel = channel.replace('_',' ').replace('tau',"#tau_{h}").replace('mu',"#mu").replace('ele',"e")
+  string = "%s, %s %s WP (%s, %d)"%(flavor,tagger,wp,channel,era)
   return string
   
 
@@ -317,115 +318,121 @@ def ensureDirectory(dirname):
   
 
 def main():
+  
+  indir    = args.indir
+  eras     = args.era
+  channels = args.channels
+  outdir   = 'effs'
+  
+  for era in eras:
     
-    years    = args.years
-    channels = args.channels
+    # SAMPLES: list of analysis framework output run on MC samples
+    #          that is used to add together and compute the efficiency
+    if '2016' in era:
+      samples = [
+        ( "TT/TT"                    ),
+        ( "DY/DYJetsToLL_M-10to50"   ),
+        ( "DY/DYJetsToLL_M-50_reg"   ),
+        ( "DY/DY1JetsToLL_M-50"      ),
+        ( "DY/DY2JetsToLL_M-50"      ),
+        ( "DY/DY3JetsToLL_M-50"      ),
+        ( "WJ/WJetsToLNu"            ),
+        ( "WJ/W1JetsToLNu"           ),
+        ( "WJ/W2JetsToLNu"           ),
+        ( "WJ/W3JetsToLNu"           ),
+        ( "WJ/W4JetsToLNu"           ),
+        ( "ST/ST_tW_top"             ),
+        ( "ST/ST_tW_antitop"         ),
+        ( "ST/ST_t-channel_top"      ),
+        ( "ST/ST_t-channel_antitop"  ),
+        #( "ST/ST_s-channel"          ),
+        ( "VV/WW"                    ),
+        ( "VV/WZ"                    ),
+        ( "VV/ZZ"                    ),
+      ]
+    elif '2017' in era:
+      samples = [ 
+        ( "TT/TTTo2L2Nu"             ),
+        ( "TT/TTToHadronic"          ),
+        ( "TT/TTToSemiLeptonic"      ),
+        ( "DY/DYJetsToLL_M-10to50"   ),
+        ( "DY/DYJetsToLL_M-50"       ),
+        ( "DY/DY1JetsToLL_M-50"      ),
+        ( "DY/DY2JetsToLL_M-50"      ),
+        ( "DY/DY3JetsToLL_M-50"      ),
+        ( "DY/DY4JetsToLL_M-50"      ),
+        ( "WJ/WJetsToLNu"            ),
+        ( "WJ/W1JetsToLNu"           ),
+        ( "WJ/W2JetsToLNu"           ),
+        ( "WJ/W3JetsToLNu"           ),
+        ( "WJ/W4JetsToLNu"           ),
+        ( "ST/ST_tW_top"             ),
+        ( "ST/ST_tW_antitop"         ),
+        ( "ST/ST_t-channel_top"      ),
+        ( "ST/ST_t-channel_antitop"  ),
+        #( "ST/ST_s-channel"          ),
+        ( "VV/WW"                    ),
+        ( "VV/WZ"                    ),
+        ( "VV/ZZ"                    ),
+      ]
+    elif '2018' in era:
+      samples = [
+        ( "TT/TTTo2L2Nu"             ),
+        ( "TT/TTToHadronic"          ),
+        ( "TT/TTToSemiLeptonic"      ),
+        ( "DY/DYJetsToLL_M-10to50"   ),
+        ( "DY/DYJetsToLL_M-50"       ),
+        ( "DY/DY1JetsToLL_M-50"      ),
+        ( "DY/DY2JetsToLL_M-50"      ),
+        ( "DY/DY3JetsToLL_M-50"      ),
+        ( "DY/DY4JetsToLL_M-50"      ),
+        #( "WJ/WJetsToLNu"            ),
+        ( "WJ/W1JetsToLNu"           ),
+        ( "WJ/W2JetsToLNu"           ),
+        ( "WJ/W3JetsToLNu"           ),
+        ( "WJ/W4JetsToLNu"           ),
+        ( "ST/ST_tW_top"             ),
+        ( "ST/ST_tW_antitop"         ),
+        ( "ST/ST_t-channel_top"      ),
+        ( "ST/ST_t-channel_antitop"  ),
+        #( "ST/ST_s-channel"          ),
+        ( "VV/WW"                    ),
+        ( "VV/WZ"                    ),
+        ( "VV/ZZ"                    ),
+      ]
+    else:
+      print "Warning! Did not recognize era %r"%(era)
+      continue
     
+    # MC CAMPAIGN NAMES of each era 
+    campaigns = { 
+       '2016': "2016Legacy",  'UL2016_preVFP': "Summer20UL16APV",
+                              'UL2016_postVFP': "Summer20UL16",
+       '2017': "12Apr2017",   'UL2017': "Summer20UL17",
+       '2018': "Autumn18",    'UL2018': "Summer20UL18",
+    }
     
-    for year in args.years:
+    # LOOP over channels
+    for channel in args.channels:
       
-      # SAMPLES: list of analysis framework output run on MC samples
-      #          that is used to add together and compute the efficiency
-      if year==2016:
-        samples = [
-          ( "TT/TT"                    ),
-          ( "DY/DYJetsToLL_M-10to50"   ),
-          ( "DY/DYJetsToLL_M-50_reg"   ),
-          ( "DY/DY1JetsToLL_M-50"      ),
-          ( "DY/DY2JetsToLL_M-50"      ),
-          ( "DY/DY3JetsToLL_M-50"      ),
-          ( "WJ/WJetsToLNu"            ),
-          ( "WJ/W1JetsToLNu"           ),
-          ( "WJ/W2JetsToLNu"           ),
-          ( "WJ/W3JetsToLNu"           ),
-          ( "WJ/W4JetsToLNu"           ),
-          ( "ST/ST_tW_top"             ),
-          ( "ST/ST_tW_antitop"         ),
-          ( "ST/ST_t-channel_top"      ),
-          ( "ST/ST_t-channel_antitop"  ),
-          #( "ST/ST_s-channel"          ),
-          ( "VV/WW"                    ),
-          ( "VV/WZ"                    ),
-          ( "VV/ZZ"                    ),
-        ]
-      elif year==2017:
-        samples = [ 
-          ( "TT/TTTo2L2Nu"             ),
-          ( "TT/TTToHadronic"          ),
-          ( "TT/TTToSemiLeptonic"      ),
-          ( "DY/DYJetsToLL_M-10to50"   ),
-          ( "DY/DYJetsToLL_M-50"       ),
-          ( "DY/DY1JetsToLL_M-50"      ),
-          ( "DY/DY2JetsToLL_M-50"      ),
-          ( "DY/DY3JetsToLL_M-50"      ),
-          ( "DY/DY4JetsToLL_M-50"      ),
-          ( "WJ/WJetsToLNu"            ),
-          ( "WJ/W1JetsToLNu"           ),
-          ( "WJ/W2JetsToLNu"           ),
-          ( "WJ/W3JetsToLNu"           ),
-          ( "WJ/W4JetsToLNu"           ),
-          ( "ST/ST_tW_top"             ),
-          ( "ST/ST_tW_antitop"         ),
-          ( "ST/ST_t-channel_top"      ),
-          ( "ST/ST_t-channel_antitop"  ),
-          #( "ST/ST_s-channel"          ),
-          ( "VV/WW"                    ),
-          ( "VV/WZ"                    ),
-          ( "VV/ZZ"                    ),
-        ]
-      else:
-        samples = [
-          ( "TT/TTTo2L2Nu"             ),
-          ( "TT/TTToHadronic"          ),
-          ( "TT/TTToSemiLeptonic"      ),
-          ( "DY/DYJetsToLL_M-10to50"   ),
-          ( "DY/DYJetsToLL_M-50"       ),
-          ( "DY/DY1JetsToLL_M-50"      ),
-          ( "DY/DY2JetsToLL_M-50"      ),
-          ( "DY/DY3JetsToLL_M-50"      ),
-          ( "DY/DY4JetsToLL_M-50"      ),
-          #( "WJ/WJetsToLNu"            ),
-          ( "WJ/W1JetsToLNu"           ),
-          ( "WJ/W2JetsToLNu"           ),
-          ( "WJ/W3JetsToLNu"           ),
-          ( "WJ/W4JetsToLNu"           ),
-          ( "ST/ST_tW_top"             ),
-          ( "ST/ST_tW_antitop"         ),
-          ( "ST/ST_t-channel_top"      ),
-          ( "ST/ST_t-channel_antitop"  ),
-          #( "ST/ST_s-channel"          ),
-          ( "VV/WW"                    ),
-          ( "VV/WZ"                    ),
-          ( "VV/ZZ"                    ),
-        ]
+      # SAMPLE FILE NAMES
+      samplefiles = ["%s/%s_%s.root"%(indir,s,channel) for s in samples]
+      for fname in samplefiles[:]:
+        if '*' in fname:
+          fnames = glob.glob(fname)
+          index = samplefiles.index(fname)
+          samplefiles = samplefiles[:index] + fnames + samplefiles[index+1:]
       
-      # MC CAMPAIGN NAMES of each year 
-      campaigns = { 2016: "2016Legacy", 2017: "12Apr2017", 2018: "Autumn18" }
-      
-      # LOOP over channels
-      for channel in args.channels:
-        
-        # SAMPLE FILE NAMES
-        indir = "/scratch/ineuteli/analysis/LQ_%d"%(year)
-        samplefiles = ["%s/%s_%s.root"%(indir,s,channel) for s in samples]
-        for fname in samplefiles[:]:
-          if '*' in fname:
-            fnames = glob.glob(fname)
-            index = samplefiles.index(fname)
-            samplefiles = samplefiles[:index] + fnames + samplefiles[index+1:]
-        
-        # COMPUTE and SAVE b tag efficiencies
-        for tagger in args.taggers:
-          for wp in args.wps:
-            campaign = args.campaign or campaigns[year]
-            outfilename = "%s_%d_%s_eff.root"%(tagger,year,campaigns[year])
-            getBTagEfficiencies(tagger,wp,outfilename,samplefiles,year,channel,tag=args.tag,plot=args.plot)
-    
-
+      # COMPUTE and SAVE b tag efficiencies
+      for tagger in args.taggers:
+        for wp in args.wps:
+          campaign = args.campaign or campaigns[era]
+          outfname = "%s/%s_%d_%s_eff.root"%(outdir,tagger,era,campaigns[era])
+          getBTagEfficiencies(tagger,wp,outfname,samplefiles,era,channel,tag=args.tag,plot=args.plot)
+  
 
 if __name__ == '__main__':
-    print
-    main()
-    print ">>> done\n"
-    
-
+  print
+  main()
+  print ">>> done\n"
+  

@@ -66,7 +66,7 @@ class ModuleTauPair(Module):
     self.metUncLabels = [ ]
     if self.ismc:
       self.puTool     = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
-      self.btagTool   = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+      self.btagTool   = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
       #if self.dorecoil:
@@ -82,7 +82,7 @@ class ModuleTauPair(Module):
       if self.isUL and self.tes==None:
         self.tes = 1.0 # placeholder
     
-    self.deepcsv_wp = BTagWPs('DeepCSV',year=self.year)
+    self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
   
   def beginJob(self):
@@ -221,7 +221,7 @@ class ModuleTauPair(Module):
           ncjets50 += 1
       
       # B TAGGING
-      if jet.btagDeepB>self.deepcsv_wp.medium and abs(jet.eta)<self.bjetCutEta:
+      if jet.btagDeepB>self.deepjet_wp.medium and abs(jet.eta)<self.bjetCutEta:
         nbtag += 1
         bjets.append(jet)
     
@@ -290,7 +290,7 @@ class ModuleTauPair(Module):
     #    ptvar = 'pt_'+unc
     #    jets_var.sort(key=lambda j: getattr(j,ptvar),reverse=True)
     #    njets_vars[unc] = len(jets_var)
-    #    bjets_vars      = [j for j in jets_vars if j.btagDeepB > self.deepcsv_wp.medium and abs(j.eta)<self.bjetCutEta]
+    #    bjets_vars      = [j for j in jets_vars if j.btagDeepB > self.deepjet_wp.medium and abs(j.eta)<self.bjetCutEta]
     #    getattr(self.out,"njets_"+unc)[0] = njets_vars[unc]
     #    getattr(self.out,"nbtag_"+unc)[0] = len(bjets_vars)
     #    getattr(self.out,"jpt_1_"+unc)[0] = getattr(jets_var[0],ptvar) if len(jets_var)>=1 else -1
