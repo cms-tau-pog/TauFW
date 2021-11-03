@@ -179,10 +179,12 @@ class BTagWeightTool:
     # TAGGING WP
     self.wpname = wp
     self.wp     = getattr(BTagWPs(tagger,era),wp)
-    if 'deep' in tagger.lower():
+    if 'deepjet' in tagger.lower():
+      tagged = lambda j: j.btagDeepFlavB>self.wp
+    elif 'deepcsv' in tagger.lower():
       tagged = lambda j: j.btagDeepB>self.wp
     else:
-      tagged = lambda j: j.btagCSVV2>self.wp
+      raise IOError("Did not recognize %r tagger..."%(tagger))
     
     # LOAD CALIBRATION TOOL
     print "Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname) #,(", "+sigma) if sigma!='central' else ""
