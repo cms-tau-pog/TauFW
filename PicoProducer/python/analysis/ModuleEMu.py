@@ -70,20 +70,8 @@ class ModuleEMu(ModuleTauPair):
     
     
     ##### NO CUT #####################################
-    self.out.cutflow.fill('none')
-    if self.isdata:
-      self.out.cutflow.fill('weight',1.)
-      if event.PV_npvs>0:
-        self.out.cutflow.fill('weight_no0PU',1.)
-      else:
-        return False
-    else:
-      self.out.cutflow.fill('weight',event.genWeight)
-      self.out.pileup.Fill(event.Pileup_nTrueInt)
-      if event.Pileup_nTrueInt>0:
-        self.out.cutflow.fill('weight_no0PU',event.genWeight)
-      else:
-        return False
+    if not self.fillhists(event):
+      return False
     
     
     ##### TRIGGER ####################################

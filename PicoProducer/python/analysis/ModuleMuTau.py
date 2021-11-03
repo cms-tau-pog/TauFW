@@ -52,7 +52,7 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.addcut('tau',          "tau"                        )
     self.out.cutflow.addcut('pair',         "pair"                       )
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
-    self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
+    self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization; bug in pre-UL 2017 caused small fraction of events with nPU<=0
     
   
   def beginJob(self):
@@ -73,20 +73,8 @@ class ModuleMuTau(ModuleTauPair):
     
     
     ##### NO CUT #####################################
-    self.out.cutflow.fill('none')
-    if self.isdata:
-      self.out.cutflow.fill('weight',1.)
-      if event.PV_npvs>0:
-        self.out.cutflow.fill('weight_no0PU',1.)
-      else:
-        return False
-    else:
-      self.out.cutflow.fill('weight',event.genWeight)
-      self.out.pileup.Fill(event.Pileup_nTrueInt)
-      if event.Pileup_nTrueInt>0:
-        self.out.cutflow.fill('weight_no0PU',event.genWeight)
-      else:
-        return False
+    if not self.fillhists(event):
+      return False
     
     
     ##### TRIGGER ####################################
