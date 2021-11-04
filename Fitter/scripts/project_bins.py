@@ -15,6 +15,7 @@ from ROOT import TFile
 ###from matplotlib.legend_handler import HandlerPatch
 ###import matplotlib.patches as mpatches
 rexp_fname = re.compile(r"(.+\.root):(.+)")
+np.seterr(divide='ignore',invalid='ignore')
 
 
 def parsefname(fname,oname='',verb=0):
@@ -27,7 +28,8 @@ def parsefname(fname,oname='',verb=0):
 
 def getrootobj(fname,oname='',verb=0):
   """Help function to retrive object from ROOT file."""
-  if not fname: return None
+  if not fname:
+    return None
   if verb>=2:
     print(">>> getrootobj: opening %s..."%(fname))
   fname, oname = parsefname(fname,oname)
@@ -36,6 +38,14 @@ def getrootobj(fname,oname='',verb=0):
   if verb>=2:
     print(">>> getrootobj:   found %s"%(obj))
   return file, obj
+  
+
+def divsqrt(arr_den,arr_num=None):
+  """Help function to scale numpy array by sqrt(N), except when 0."""
+  # TODO: use Poisson error instead ?
+  if arr_num is None:
+    arr_num = arr_den
+  return np.where(arr_num!=0,arr_den/np.sqrt(arr_num),arr_den)
   
 
 class Plane:
@@ -90,7 +100,8 @@ def updatepars(oldpars,fitres,verb=2):
   """Help function to load post-fit values from fitres into workspace."""
   # Inspiration:
   #  https://github.com/cms-analysis/CombineHarvester/blob/653c523ebe6e67e7a8214366bfe6bd99f7d87d99/CombineTools/src/CombineHarvester_Evaluate.cc#L560-L577
-  if not fitres: return
+  if not fitres:
+    return
   #fitres.constPars().Print('V')
   #fitres.floatParsFinal().Print('V')
   
@@ -208,8 +219,8 @@ def getbins_pdf(pdf,xvar,channel,obsset,verb=0):
     channel.setIndex(ichan)
     chname = channel.getLabel()
     nbins = xvar.numBins()
-    pdf_ = pdf.getPdf(chname)
-    intg = pdf_.getNormIntegral(obsset).getVal()
+    pdf_ = pdf.getPdf(chname) # get PFD component for just this category
+    intg = pdf_.getNormIntegral(obsset).getVal() # check how PDF is normalized (slow first time, cached afterwards)
     norm = pdf_.expectedEvents(obsset) if abs(intg-1.)<0.01 else 1. # nchans==1 faster?
     if verb>=2:
       print(">>> getbins_pdf:      channel %d -> %r (norm=%.1f)"%(ichan,chname,pdf_.expectedEvents(obsset)))
@@ -313,7 +324,7 @@ def makelatex(string):
   return string
   
 
-def plotplane(outnames,vec_b,vec_s,systs_b,systs_s,show=False,pardict=None,fit_b=False,fit_s=False,verb=0):
+def plotplane(outnames,vec_b,vec_s,systs_b,systs_s,show=False,pardict=None,fit_b=False,fit_s=False,pois=False,verb=0):
   """Plot 2D vectors."""
   # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html
   if verb>=1:
@@ -327,6 +338,12 @@ def plotplane(outnames,vec_b,vec_s,systs_b,systs_s,show=False,pardict=None,fit_b
   title_obs = "Observed"
   title_b   = "B-only (%s)"%('postfit' if fit_b else 'prefit')
   title_s   = "S+B (%s)"%('postfit' if fit_s else 'prefit')
+  if pois:
+    xtitle  = r"Projection on $(\vec{N}_{Bonly}-\vec{N}_{obs}) / \vec{N}_{obs}$"
+    ytitle  = r"Projection on $(\vec{N}_{S+B}^{\perp}-\vec{N}_{obs}) / \vec{N}_{obs}$"
+  else:
+    xtitle  = r"Projection on $\vec{N}_{Bonly}-\vec{N}_{obs}$"
+    ytitle  = r"Projection on $\vec{N}_{S+B}^{\perp}-\vec{N}_{obs}$"
   msize     = 11.
   lwidth    = 0.003 # line width of arrow
   xmin = min(0,vec_b[0],vec_s[0])
@@ -365,8 +382,8 @@ def plotplane(outnames,vec_b,vec_s,systs_b,systs_s,show=False,pardict=None,fit_b
   axis.plot(vec_b[0], vec_b[1], 'bo',label=title_b, ms=msize)
   axis.plot(vec_s[0],vec_s[1],'r*',label=title_s,ms=1.8*msize)
   axis.axis([xmin-dx,xmax+dx,ymin-dy,ymax+dy])
-  axis.set_xlabel(r"$|\vec{N}_{Bonly}-\vec{N}_{obs}|$",size=23)
-  axis.set_ylabel(r"$|\vec{N}_{S+B}^{\perp}-\vec{N}_{obs}|$",size=23)
+  axis.set_xlabel(xtitle,size=23)
+  axis.set_ylabel(ytitle,size=23)
   axis.xaxis.set_tick_params(labelsize='large')
   axis.yaxis.set_tick_params(labelsize='large')
   axis.grid()
@@ -394,10 +411,19 @@ def plotplane(outnames,vec_b,vec_s,systs_b,systs_s,show=False,pardict=None,fit_b
   plot.close()
   
 
-def project_and_plot(outname,vec_obs,vec_b,vec_s,systs_b,systs_s,show=False,pardict=None,fit_b=False,fit_s=False,verb=0):
+def project_and_plot(outname,vec_obs,vec_b,vec_s,systs_b,systs_s,show=False,pardict=None,fit_b=False,fit_s=False,pois=False,verb=0):
   """Project given set of vectors onto 2D plane, and plot."""
   if verb>=1:
     print(">>> project_and_plot")
+  if pois: # scale coordinates N_i by 1/sqrt(N_i^obs)
+    for systs in [systs_b,systs_s]:
+      if not systs: continue
+      for syst in systs.keys():
+        vecup, vecdn  = systs[syst]
+        systs[syst] = (divsqrt(vecup,vec_obs),divsqrt(vecdn,vec_obs))
+    vec_b   = divsqrt(vec_b,vec_obs)
+    vec_s   = divsqrt(vec_s,vec_obs)
+    vec_obs = divsqrt(vec_obs,vec_obs) # do last
   plane  = Plane(vec_obs,vec_b,vec_s,verb=verb) # 2D plane
   proj_b = plane.project(vec_b-vec_obs)  # B-only in plane
   proj_s = plane.project(vec_s-vec_obs) # SB in plane
@@ -405,8 +431,6 @@ def project_and_plot(outname,vec_obs,vec_b,vec_s,systs_b,systs_s,show=False,pard
   proj_systs_s = { }
   if systs_b:
     for syst, (vecup,vecdn) in systs_b.items():
-      print(vecup)
-      print(vec_b)
       dvec_up = vecup - vec_b
       dvec_dn = vecdn - vec_b
       proj_systs_b[syst] = (plane.project(dvec_up),plane.project(dvec_dn))
@@ -415,7 +439,8 @@ def project_and_plot(outname,vec_obs,vec_b,vec_s,systs_b,systs_s,show=False,pard
       dvec_up = vecup - vec_s
       dvec_dn = vecdn - vec_s
       proj_systs_s[syst] = (plane.project(dvec_up),plane.project(dvec_dn))
-  plotplane(outname,proj_b,proj_s,proj_systs_b,proj_systs_s,show=show,pardict=pardict,fit_b=fit_b,fit_s=fit_s,verb=verb)
+  plotplane(outname,proj_b,proj_s,proj_systs_b,proj_systs_s,show=show,
+            pardict=pardict,fit_b=fit_b,fit_s=fit_s,pois=pois,verb=verb)
   
 
 def test(verb=4):
@@ -454,6 +479,7 @@ def main(args):
   params    = args.params
   parvals   = args.parvals
   pardict   = args.pardict
+  pois      = args.pois
   
   # PARAMETER VALUES
   if parvals:
@@ -483,7 +509,7 @@ def main(args):
                                 parvals=parvals,bonly=bonly,verb=verb)
   
   # PROJECT & PLOT
-  project_and_plot(outnames,*vargs,show=show,pardict=pardict,
+  project_and_plot(outnames,*vargs,show=show,pardict=pardict,pois=pois,
                             fit_b=bool(fitres_b),fit_s=bool(fitres_s),verb=verb)
   
 
@@ -513,6 +539,8 @@ if __name__ == '__main__':
                       metavar="PARAM",        help="project the changes due to these parameters" )
   parser.add_argument('-T', "--translate",    dest='pardict',
                       metavar="JSON",         help="dictionary of nuisance parameters" )
+  parser.add_argument(      "--pois",         action='store_true',
+                                              help="scale coordinates N_i by 1/sqrt(N_i^obs)" )
   parser.add_argument('-v', '--verbose',      dest='verbosity',type=int,nargs='?',const=1,default=0,
                       metavar="LEVEL",        help="set verbosity level")
   args = parser.parse_args()
