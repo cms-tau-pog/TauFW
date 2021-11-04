@@ -18,9 +18,10 @@ var_dict = { # predefined variable titles
     'metphi':    "MET phi",                 'genmetphi':"Gen. MET phi",
     'pt_1':      "Lepton pt",               'pt_2':     "tau_h pt",
     'eta_1':     "Lepton eta",              'eta_2':    "tau_h eta",
+    'm_vis':     "m_{#lower[-0.1]{vis}}",   'mvis':     "m_{#lower[-0.1]{vis}}",
     'mt_1':      "m_t(l,MET)",              'mt_2':     "m_t(tau,MET)",
-    'dzeta':     "D_{zeta}",                'pt_1+pt_2+jpt_1':     "S_{T}^{MET}",
-    'pzetavis':  "p_{zeta}^{vis}",          'pt_1+pt_2+jpt_1+met': "S_{T}^{MET}",
+    'dzeta':     "D_{zeta}",                'pt_1+pt_2+jpt_1':     "S_{#lower[-0.1]{T}}^{#lower[0.1]{MET}}",
+    'pzetavis':  "p_{zeta}^{vis}",          'pt_1+pt_2+jpt_1+met': "S_{#lower[-0.1]{T}}^{#lower[0.1]{MET}}",
     'pzetamiss': "p_{zeta}^{miss}",         'stmet':    "S_{T}^{MET}",
     'DM0':       "h^{#pm}",                 'STMET':    "S_{T}^{MET}",
     'DM1':       "h^{#pm}h^{0}",
@@ -33,7 +34,7 @@ funcexpr = re.compile(r"(\w+)\(([^,]+),([^,]+)\)")
 def makelatex(string,**kwargs):
   """Convert patterns in a string to LaTeX format."""
   global var_dict_sorted
-  verbosity = LOG.getverbosity(kwargs)
+  verbosity = LOG.getverbosity(kwargs)#+4
   if not isinstance(string,str) or not string:
     return string
   if string and string[0]=='{' and string[-1]=='}':

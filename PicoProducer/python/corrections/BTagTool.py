@@ -16,7 +16,7 @@ from ROOT import TH2F, BTagCalibration, BTagCalibrationReader
 from ROOT.BTagEntry import OP_LOOSE, OP_MEDIUM, OP_TIGHT, OP_RESHAPING # enum 0, 1, 2, 3
 from ROOT.BTagEntry import FLAV_B, FLAV_C, FLAV_UDSG # enum: 0, 1, 2
 datadir = os.path.join(datadir,"btag/")
-effdir  = os.path.join(datadir,"effs/")
+effsdir = os.path.join(datadir,"effs/")
 LOG     = Logger('BTagTool',showname=True)
 
 
@@ -115,7 +115,7 @@ class BTagWeightTool:
         if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
           csvname    = datadir+"DeepJet_2016LegacySF_WP_V1.csv"
           csvname_bc = datadir+"DeepJet_106XUL16SF.csv"
-          effname    = effdir+"DeepCSV_2016_2016Legacy_eff.root"
+          effname    = effsdir+"DeepJet_2016_2016Legacy_eff.root"
           LOG.warning("Using pre-UL place holder %r for light flavor SFs !"%(csvname))
       elif '2017' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17
@@ -124,7 +124,7 @@ class BTagWeightTool:
           #csvname    = datadir+"DeepJet_106XUL17SF.csv"
           csvname    = datadir+"wp_deepJet_106XUL17_v3_reformatted.csv" # TODO: update BTagCalibration to read correct file !!!
           csvname_bc = datadir+"DeepJet_106XUL17SF_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2017_12Apr2017_eff.root"
+          effname    = effsdir+"DeepJet_2017_12Apr2017_eff.root"
       elif '2018' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
         # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
@@ -132,7 +132,9 @@ class BTagWeightTool:
           #csvname    = datadir+"DeepJet_106XUL18SF.csv"
           csvname    = datadir+"wp_deepJet_106XUL18_v2_reformatted.csv" # TODO: update BTagCalibration to read correct file !!!
           csvname_bc = datadir+"DeepJet_106XUL18SF_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2018_Autumn18_eff.root"
+          effname    = effsdir+"DeepJet_2018_Autumn18_eff.root"
+      if 'UL' not in effname:
+        LOG.warning("Using pre-UL place holder %r for efficiencies! Please update."%(effname))
     else: # pre-UL
       if '2016' in era:
         # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
@@ -140,33 +142,33 @@ class BTagWeightTool:
         if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
           csvname    = datadir+"DeepJet_2016LegacySF_WP_V1.csv"
           csvname_bc = datadir+"DeepJet_2016LegacySF_V1_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2016_2016Legacy_eff.root"
+          effname    = effsdir+"DeepJet_2016_2016Legacy_eff.root"
         elif 'deepcsv' in tagger.lower():
           csvname    = datadir+"DeepCSV_2016LegacySF_V1.csv" #"DeepCSV_Moriond17_B_H.csv"
           csvname_bc = datadir+"DeepCSV_2016LegacySF_V1_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2016_2016Legacy_eff.root"
+          effname    = effsdir+"DeepCSV_2016_2016Legacy_eff.root"
       elif '2017' in era:
         # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
         # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
         if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
           csvname    = datadir+"DeepFlavour_94XSF_WP_V3_B_F.csv"
           csvname_bc = datadir+"DeepFlavour_94XSF_V3_B_F_comb_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2017_12Apr2017_eff.root"
+          effname    = effsdir+"DeepJet_2017_12Apr2017_eff.root"
         elif 'deepcsv' in tagger.lower(): # DeepCSV b+bb
           csvname    = datadir+"DeepCSV_94XSF_V5_B_F.csv"
           csvname_bc = datadir+"DeepCSV_94XSF_V4_B_F_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2017_12Apr2017_eff.root"
+          effname    = effsdir+"DeepCSV_2017_12Apr2017_eff.root"
       elif '2018' in era:
         # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
         # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
         if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
           csvname    = datadir+"DeepJet_102XSF_WP_V1.csv"
           csvname_bc = datadir+"DeepJet_102XSF_V1_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2018_Autumn18_eff.root"
+          effname    = effsdir+"DeepJet_2018_Autumn18_eff.root"
         elif 'deepcsv' in tagger.lower(): # DeepCSV b+bb
           csvname    = datadir+"DeepCSV_102XSF_WP_V1.csv"
           csvname_bc = datadir+"DeepCSV_102XSF_V1_YearCorrelation-V1.csv"
-          effname    = effdir+"DeepCSV_2018_Autumn18_eff.root"
+          effname    = effsdir+"DeepCSV_2018_Autumn18_eff.root"
     if not csvname or not effname:
       raise IOError("BTagWeightTool: Did not recognize tagger %s for era %s"%(tagger,era))
     if not spliteras or not csvname_bc:

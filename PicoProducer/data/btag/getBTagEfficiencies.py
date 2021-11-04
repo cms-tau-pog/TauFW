@@ -13,8 +13,7 @@ gROOT.SetBatch(True)
 argv = sys.argv
 description = '''Extract histograms from the analysis framework output run on MC samples to create b tag efficiencies.'''
 parser = ArgumentParser(prog="pileup",description=description,epilog="Succes!")
-parser.add_argument('-i', '--inputdir', dest='indir',
-                                        help="eras to run" )
+parser.add_argument('-i', '--inputdir', dest='indir', help="eras to run" )
 parser.add_argument('-y', '--era',      dest='eras', nargs='+', default=[],
                                         help="eras to run" )
 parser.add_argument('-c', '--channel',  dest='channels', choices=['eletau','mutau','tautau','elemu','mumu','eleele'], type=str, nargs='+', default=['mutau'],
@@ -23,18 +22,15 @@ parser.add_argument('-t', '--tagger',   dest='taggers', choices=['DeepCSV','Deep
                                         help="tagger to run" )
 parser.add_argument('-w', '--wp',       dest='wps', choices=['loose','medium','tight'], type=str, nargs='+', default=['medium'],
                                         help="working point to run" )
-parser.add_argument('-t', '--tag',      default="",
-                                        help="extra tag for histograms" )
-parser.add_argument('-C', '--campaign', default="",
-                                        help="MC campaign name for output file" )
-parser.add_argument('-p', '--plot',     action='store_true', 
-                                        help="plot efficiencies" )
-parser.add_argument('-v', '--verbose',  action='store_true', 
-                                        help="print verbose" )
+parser.add_argument('-d', '--chdir',    help="name of target directory in output file" )
+parser.add_argument('-t', '--tag',      default="", help="extra tag for histograms" )
+parser.add_argument('-C', '--campaign', default="", help="MC campaign name for output file" )
+parser.add_argument('-p', '--plot',     action='store_true',  help="plot efficiencies" )
+parser.add_argument('-v', '--verbose',  action='store_true',  help="print verbose" )
 args = parser.parse_args()
 
 
-def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",plot=False):
+def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",effdir=None,plot=False):
   """Get pileup profile in MC by adding Pileup_nTrueInt histograms from a given list of samples."""
   print '>>> getBTagEfficiencies("%s","%s","%s")'%(outfname,wp,era)
   
@@ -42,7 +38,10 @@ def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",plot=False
   nhists  = { }
   hists   = OrderedDict()
   histdir = 'btag'
-  effdir  = channel+tag
+  if effdir==None:
+    effdir = channel+tag
+  elif '$CHANNEL' in effdir:
+    effdir = effdir.replace('$CHANNEL',channel)
   for flavor in ['b','c','udsg']:
     hname = "%s_%s_%s%s"%(tagger,flavor,wp,tag)
     hists[hname] = None        # numerator
@@ -322,6 +321,7 @@ def main():
   indir    = args.indir
   eras     = args.era
   channels = args.channels
+  chdir    = args.chdir
   outdir   = 'effs'
   
   for era in eras:
@@ -428,7 +428,7 @@ def main():
         for wp in args.wps:
           campaign = args.campaign or campaigns[era]
           outfname = "%s/%s_%d_%s_eff.root"%(outdir,tagger,era,campaigns[era])
-          getBTagEfficiencies(tagger,wp,outfname,samplefiles,era,channel,tag=args.tag,plot=args.plot)
+          getBTagEfficiencies(tagger,wp,outfname,samplefiles,era,channel,tag=args.tag,effdir=chdir,plot=args.plot)
   
 
 if __name__ == '__main__':
