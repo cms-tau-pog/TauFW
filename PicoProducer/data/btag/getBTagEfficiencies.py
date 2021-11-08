@@ -291,7 +291,7 @@ def makeTitle(tagger,wp,flavor,channel,era):
   elif ' c ' in flavor:
     flavor = 'c quark'
   else:
-    flavor = 'light-flavor'
+    flavor = 'Light-flavor'
   channel = channel.replace('_',' ').replace('tau',"#tau_{h}").replace('mu',"#mu").replace('ele',"e")
   string = "%s, %s %s WP (%s, %d)"%(flavor,tagger,wp,channel,era)
   return string

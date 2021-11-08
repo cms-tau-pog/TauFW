@@ -177,6 +177,7 @@ class BTagWeightTool:
     # MAX ETA
     if maxeta==None:
       maxeta = 2.4 if '2016' in era else 2.5
+    maxpt = 1000.0
     
     # TAGGING WP
     self.wpname = wp
@@ -256,6 +257,7 @@ class BTagWeightTool:
     self.jetmaps  = jetmaps
     self.effmaps  = effmaps
     self.maxeta   = maxeta
+    self.maxpt    = maxpt
   
   def getWeight(self,jets,unc='Nom'):
     """Get b tagging event weight for a given set of jets."""
@@ -263,6 +265,9 @@ class BTagWeightTool:
     for jet in jets:
       if abs(jet.eta)<self.maxeta:
         weight *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
+        ###print ">>> BTagWeightTool.getWeight: sf=%8.5f pt=%8.3f eta=%6.3f flavor=%2d tagged=%5r score=%8.5f wp=%8.4f"%(
+        ###  sf,jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),jet.btagDeepFlavB,self.wp)
+    ###print ">>> BTagWeightTool.getWeight: weight=%.6f"%(weight)
     return weight
   
   def getHeavyFlavorWeight(self,jets,unc='Nom'):
@@ -291,7 +296,14 @@ class BTagWeightTool:
     FLAV = flavorToFLAV(flavor)
     if   eta>=+self.maxeta: eta = self.maxeta-0.001 # BTagCalibrationReader returns zero if |eta| > 2.4
     elif eta<=-self.maxeta: eta = 0.001-self.maxeta
-    sf = self.readers[unc].eval(FLAV,abs(eta),pt) #eval_auto_bounds
+    if pt>=self.maxpt:
+      sf = self.readers[unc].eval(FLAV,abs(eta),self.maxpt)
+      if unc!='Nom': # double uncertainty
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X#AK4_jets
+        sfnom = self.readers['Nom'].eval(FLAV,abs(eta),self.maxpt)
+        sf = 2*sf - sfnom # = sfnom + 2*(sf-sfnom) = 2*sf - sfnom
+    else:
+      sf = self.readers[unc].eval(FLAV,abs(eta),pt) # newer versions: use eval_auto_bounds instead !
     if not tagged:
       eff = self.getEff(pt,eta,flavor)
       if eff>=1. or eff<0.:
