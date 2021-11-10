@@ -59,8 +59,10 @@ class GenDumper(Module):
       eta       = max(-9999,min(9999,particle.eta))
       prompt    = hasbit(particle.statusFlags,0)
       lastcopy  = hasbit(particle.statusFlags,13)
+      #bothflags = (particle.statusFlags & 8193)==8193 # test both bits simultaneously: 2^0 + 2^13 = 8193
+      #assert (prompt and lastcopy)==bothflags
       print " %7d %8d %8d %8d %8.2f %8.2f %8.2f %8d %9s %10s"%(
-        i,particle.pdgId,mothidx,mothpid,mothdR,particle.pt,eta,particle.status,prompt,lastcopy)
+        i,particle.pdgId,mothidx,mothpid,mothdR,particle.pt,eta,particle.status,prompt,lastcopy)#,bothflags
       if abs(particle.pdgId) in [11,13,15]:
         leptonic = True
       if mothidx in chain: # add to decay chain
