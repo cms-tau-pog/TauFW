@@ -98,7 +98,7 @@ To access them in `python`, you may need the [built-in function `ord`](https://d
     if event.Tau_pt[itau]>20 and ord(event.Tau_idDeepTau2017v2p1VSjet[itau])>=16:
       tau_idx.append(itau)
 ```
-If you use `Collections`, you do not need `ord` anymore:
+If you use `Collections`, you [do not need `ord` anymore](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/555b3075892c38b63a98f84527685fa042ffcf59/python/postprocessing/framework/datamodel.py#L73):
 ```
     taus = [ ]
     for tau in Collection(event,'Tau'):
