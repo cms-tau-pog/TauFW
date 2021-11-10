@@ -90,7 +90,10 @@ Triggers are saved as booleans, e.g.
 To reduce the nanoAOD file size, some identification working points (WPs) are saved in nanoAOD as `UChar_t`, which is 1 byte (8 bits),
 instead of 4 bytes (32 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
 you see in the [documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau)
-that it corresponds to the fifth bit, i.e. `16`.
+that it corresponds to the fifth bit, i.e. `2**(5-1)=16`.
+Note that if a tau object passes the Medium WP, it also passes all looser ones.
+The value of `Tau_idDeepTau2017v2p1VSjet` will therefore be "cumulative", e.g. `1+2+4+8+16=31` for Medium, and not just `16`.
+
 To access them in `python`, you may need the [built-in function `ord`](https://docs.python.org/3/library/functions.html#ord), e.g.
 ```
     tau_idx = [ ]
