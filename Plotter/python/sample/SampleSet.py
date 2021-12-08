@@ -289,15 +289,14 @@ class SampleSet(object):
     newset.closed = close
     return newset
   
-  def changecontext(self,*args):
+  def changecontext(self,*args,**kwargs):
     """Help function to change context of variable object."""
-    #variables  = [a for a in args if isinstance(a,Variable)]
-    #selections = [a for a in args if isinstance(a,Selection) or isSelectionString(a)]
     variables, selection, issingle = unwrap_gethist_args(*args)
+    verbosity = LOG.getverbosity(kwargs)
     invariables = variables[:]
     for var in variables:
-      if not var.plotfor(selection,self.channel): # or not selection.plotfor(var)
-         print ">>> plotstack: ignoring %s for %s"%(var.printbins(),selection) #.title
+      if not var.plotfor(selection,self.channel) or not selection.plotfor(var):
+         LOG.verb("plotstack: ignoring %s for %s..."%(var.printbins(),selection),verbosity,1) #.title
          invariables.remove(var)
          continue
       var.changecontext(selection.selection,self.channel)
@@ -307,7 +306,7 @@ class SampleSet(object):
     """Create and fill histograms for each given variable,
     and create a Plot object to plot a stack."""
     self.refresh()
-    variables, selection, issingle = self.changecontext(*args)
+    variables, selection, issingle = self.changecontext(*args,**kwargs)
     result = self.gethists(variables,selection,**kwargs)
     stacks = { }
     self.nplots += len(result.vars)
@@ -323,7 +322,7 @@ class SampleSet(object):
     """Get stack of backgrounds histogram."""
     name   = kwargs.get('name',"stack")
     kwargs.update({'data':False, 'signal':False, 'exp':True})
-    variables, selection, issingle = self.changecontext(*args)
+    variables, selection, issingle = self.changecontext(*args,**kwargs)
     result = self.gethists(variables,selection,**kwargs)
     stacks = { }
     self.nplots += len(result.vars)
@@ -341,7 +340,7 @@ class SampleSet(object):
     """Create and fill histograms of background simulations and make a stack."""
     name   = kwargs.get('name',"data")
     kwargs.update({'data':True, 'mc':False, 'signal':False, 'exp':False})
-    var    = self.changecontext(*args)
+    var    = self.changecontext(*args,**kwargs)
     result = self.gethists(*args,**kwargs)
     return result.data
   

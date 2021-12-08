@@ -81,13 +81,13 @@ class Variable(object):
     if islist(self.blindcuts):
       LOG.insist(len(self.blindcuts)==2,"Variable.init: blind cuts must be a string, or a pair of floats! Got: %s"%(self.blindcuts,))
       self.blindcuts = self.blind(*self.blindcuts)
-    self.ctxtitle    = getcontext(kwargs, self.title,     key='ctitle',    regex=True ) # context-dependent title
-    self.ctxbins     = getcontext(kwargs, args,           key='cbins',     regex=True ) # context-dependent binning
-    self.ctxposition = getcontext(kwargs, self.position,  key='cposition', regex=True ) # context-dependent position
-    self.ctxblind    = getcontext(kwargs, self.blindcuts, key='cblind',    regex=True ) # context-dependent blind limits
-    self.ctxymargin  = getcontext(kwargs, self.ymargin,   key='cymargin',  regex=True ) # context-dependent ymargin
-    self.ctxcut      = getcontext(kwargs, self.cut,       key='ccut',      regex=True ) # context-dependent cuts
-    self.ctxweight   = getcontext(kwargs, self.weight,    key='cweight',   regex=True ) # context-dependent cuts
+    self.ctxtitle    = getcontext(kwargs, self.title,     key='ctitle',   regex=True ) # context-dependent title
+    self.ctxbins     = getcontext(kwargs, args,           key='cbins',    regex=True ) # context-dependent binning
+    self.ctxposition = getcontext(kwargs, self.position,  key='cpos',     regex=True ) # context-dependent position
+    self.ctxblind    = getcontext(kwargs, self.blindcuts, key='cblind',   regex=True ) # context-dependent blind limits
+    self.ctxymargin  = getcontext(kwargs, self.ymargin,   key='cymargin', regex=True ) # context-dependent ymargin
+    self.ctxcut      = getcontext(kwargs, self.cut,       key='ccut',     regex=True ) # context-dependent cuts
+    self.ctxweight   = getcontext(kwargs, self.weight,    key='cweight',  regex=True ) # context-dependent cuts
       
   
   @property
