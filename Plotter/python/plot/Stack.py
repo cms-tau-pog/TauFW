@@ -79,7 +79,6 @@ class Stack(Plot):
     rmin         = kwargs.get('rmin',         self.rmin       ) or (0.0 if fraction else 0.45) # ratio ymin
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
-    print rmin, rmax, ratiorange
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
     labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             )

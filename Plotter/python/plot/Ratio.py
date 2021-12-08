@@ -83,7 +83,6 @@ class Ratio(object):
       copystyle(self.errband,errband)
       #seterrorbandstyle(self.errband,style='hatched',color=errband.GetFillColor())
     
-    print 0,fraction
     self.histden  = histden
     self.fraction = fraction
     #self.frame   = self.histden.Clone("frame_ratio_%s"%(self.histden.GetName()))
@@ -132,7 +131,6 @@ class Ratio(object):
     #frame.SetNdivisions(505)
     frame.Draw('HIST') # 'AXIS' breaks grid
     
-    print 1, self.fraction
     if self.fraction:
       self.fraction.Draw('HIST SAME')
     
