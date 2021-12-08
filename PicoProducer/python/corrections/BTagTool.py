@@ -2,10 +2,7 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/view/CMS/BTagSFMethods
 #   https://twiki.cern.ch/twiki/bin/view/CMSPublic/BTagCalibration
-#   https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation#Recommendation_for_13_TeV_Data
-#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
-#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
-#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
+#   https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation
 #   nanoAOD-tools/python/postprocessing/modules/btv/btagSFProducer.py
 #   https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/btv/btagSFProducer.py
 import os
@@ -18,113 +15,207 @@ from TauFW.common.tools.log import Logger
 from ROOT import TH2F, BTagCalibration, BTagCalibrationReader
 from ROOT.BTagEntry import OP_LOOSE, OP_MEDIUM, OP_TIGHT, OP_RESHAPING # enum 0, 1, 2, 3
 from ROOT.BTagEntry import FLAV_B, FLAV_C, FLAV_UDSG # enum: 0, 1, 2
-datadir = os.path.join(datadir,"btag")
+datadir = os.path.join(datadir,"btag/")
+effsdir = os.path.join(datadir,"effs/")
 LOG     = Logger('BTagTool',showname=True)
 
 
 class BTagWPs:
   """Contain b tagging working points."""
-  def __init__( self, tagger, year=2017 ):
-    assert( year in [2016,2017,2018] ), "You must choose a year from: 2016, 2017, or 2018."
-    if year==2016:
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
-      if 'deep' in tagger.lower():
-        self.loose    = 0.2217 # 0.2219 for 2016ReReco vs. 2016Legacy
-        self.medium   = 0.6321 # 0.6324
-        self.tight    = 0.8953 # 0.8958
-      else:
-        self.loose    = 0.5426 # for 80X ReReco
-        self.medium   = 0.8484
-        self.tight    = 0.9535
-    elif year==2017:
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
-      # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17
-      if 'deep' in tagger.lower():
-        self.loose    = 0.1522 # for 94X
-        self.medium   = 0.4941
-        self.tight    = 0.8001
-      else:
-        self.loose    = 0.5803 # for 94X
-        self.medium   = 0.8838
-        self.tight    = 0.9693
-    elif year==2018:
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
-      # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
-      if 'deep' in tagger.lower():
-        self.loose    = 0.1241 # for 102X
-        self.medium   = 0.4184
-        self.tight    = 0.7527
-      else:
-        self.loose    = 0.5803 # for 94X
-        self.medium   = 0.8838
-        self.tight    = 0.9693
+  def __init__(self,tagger,era):
+    #assert( year in [2016,2017,2018] ), "You must choose a year from: 2016, 2017, or 2018."
+    self.loose  = None
+    self.medium = None
+    self.tight  = None
+    if 'UL' in era:
+      if '2016' in era:
+        # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL16postVFP
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          self.loose    = 0.0480 # WORK IN PROGRESS
+          self.medium   = 0.2489 # WORK IN PROGRESS
+          self.tight    = 0.6377 # WORK IN PROGRESS
+      elif '2017' in era:
+        # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          self.loose    = 0.0532
+          self.medium   = 0.3040
+          self.tight    = 0.7476
+      elif '2018' in era:
+        # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          self.loose    = 0.0490
+          self.medium   = 0.2783
+          self.tight    = 0.7100
+    else: # pre-UL
+      if '2016' in era:
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          self.loose    = 0.0614
+          self.medium   = 0.3093
+          self.tight    = 0.7221
+        elif 'deepcsv' in tagger.lower(): # DeepCSV b+bb
+          self.loose    = 0.2217 # 0.2219 for 2016ReReco vs. 2016Legacy
+          self.medium   = 0.6321 # 0.6324
+          self.tight    = 0.8953 # 0.8958
+        else: # CSV
+          self.loose    = 0.5426 # for 80X ReReco
+          self.medium   = 0.8484
+          self.tight    = 0.9535
+      elif '2017' in era:
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          self.loose    = 0.0521
+          self.medium   = 0.3033
+          self.tight    = 0.7489
+        elif 'deepcsv' in tagger.lower(): # DeepCSV b+bb
+          self.loose    = 0.1522 # for 94X
+          self.medium   = 0.4941
+          self.tight    = 0.8001
+        else: # CSV
+          self.loose    = 0.5803 # for 94X
+          self.medium   = 0.8838
+          self.tight    = 0.9693
+      elif '2018' in era:
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          self.loose    = 0.0494
+          self.medium   = 0.2770
+          self.tight    = 0.7264
+        elif 'deepcsv' in tagger.lower(): # DeepCSV b+bb
+          self.loose    = 0.1241 # for 102X
+          self.medium   = 0.4184
+          self.tight    = 0.7527
+        else: # CSV
+          self.loose    = 0.5803 # for 94X
+          self.medium   = 0.8838
+          self.tight    = 0.9693
+    if self.loose==None or self.medium==None or self.tight==None:
+      raise IOError("BTagWPs: Did not recognize tagger %s for era %s"%(tagger,era))
     
 
 class BTagWeightTool:
   
-  def __init__(self, tagger, wp='medium', channel='mutau', year=2017, maxeta=None, loadsys=False, type_bc='comb', filltags=[""]):
+  def __init__(self,tagger,wp,era,channel,maxeta=None,loadsys=False,type_bc='comb',spliteras=False,filltags=[""]):
     """Load b tag weights from CSV file."""
     
-    assert(year in [2016,2017,2018]), "You must choose a year from: 2016, 2017, or 2018."
-    assert(tagger in ['CSVv2','DeepCSV']), "BTagWeightTool: You must choose a tagger from: CSVv2, DeepCSV!"
+    #assert(year in [2016,2017,2018]), "You must choose a year from: 2016, 2017, or 2018."
+    assert(tagger in ['DeepCSV','DeepJet']), "BTagWeightTool: You must choose a tagger from: DeepCSV, DeepJet!"
     assert(wp in ['loose','medium','tight']), "BTagWeightTool: You must choose a WP from: loose, medium, tight!"
     #assert(sigma in ['central','up','down']), "BTagWeightTool: You must choose a WP from: central, up, down!"
     #assert(channel in ['mutau','eletau','tautau','mumu']), "BTagWeightTool: You must choose a channel from: mutau, eletau, tautau, mumu!"
     
     # FILE
-    if year==2016:
-      if 'deep' in tagger.lower():
-        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
-        csvname = os.path.join(datadir,"DeepCSV_2016LegacySF_V1.csv")
-        effname = os.path.join(datadir,"DeepCSV_2016_Moriond17_eff.root")
-      else:
-        csvname = os.path.join(datadir,"CSVv2_Moriond17_B_H.csv")
-        effname = os.path.join(datadir,"CSVv2_2016_Moriond17_eff.root")
-    elif year==2017:
-      if 'deep' in tagger.lower():
-        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+    effname    = None
+    csvname    = None
+    csvname_bc = None
+    if 'UL' in era:
+      if '2016' in era:
+        # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL16postVFP
+        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          csvname    = datadir+"DeepJet_2016LegacySF_WP_V1.csv"
+          csvname_bc = datadir+"DeepJet_106XUL16SF.csv"
+          effname    = effsdir+"DeepJet_2016_2016Legacy_eff.root"
+          LOG.warning("Using pre-UL place holder %r for light flavor SFs !"%(csvname))
+      elif '2017' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17
-        csvname = os.path.join(datadir,"DeepCSV_94XSF_V5_B_F.csv")
-        effname = os.path.join(datadir,"DeepCSV_2017_12Apr2017_eff.root")
-      else:
-        csvname = os.path.join(datadir,"CSVv2_94XSF_V2_B_F.csv")
-        effname = os.path.join(datadir,"CSVv2_2017_12Apr2017_eff.root")
-    elif year==2018:
-      if 'deep' in tagger.lower():
-        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
+        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          #csvname    = datadir+"DeepJet_106XUL17SF.csv"
+          csvname    = datadir+"wp_deepJet_106XUL17_v3_reformatted.csv" # TODO: update BTagCalibration to read correct file !!!
+          csvname_bc = datadir+"DeepJet_106XUL17SF_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepJet_2017_12Apr2017_eff.root"
+      elif '2018' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
-        csvname = os.path.join(datadir,"DeepCSV_102XSF_V2.csv")
-        effname = os.path.join(datadir,"DeepCSV_2018_Autumn18_eff.root")
-      else:
-        csvname = os.path.join(datadir,"CSVv2_94XSF_V2_B_F.csv")
-        effname = os.path.join(datadir,"CSVv2_2018_Autumn18_eff.root")
+        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          #csvname    = datadir+"DeepJet_106XUL18SF.csv"
+          csvname    = datadir+"wp_deepJet_106XUL18_v2_reformatted.csv" # TODO: update BTagCalibration to read correct file !!!
+          csvname_bc = datadir+"DeepJet_106XUL18SF_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepJet_2018_Autumn18_eff.root"
+      if 'UL' not in effname:
+        LOG.warning("Using pre-UL place holder %r for efficiencies! Please update."%(effname))
+    else: # pre-UL
+      if '2016' in era:
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
+        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          csvname    = datadir+"DeepJet_2016LegacySF_WP_V1.csv"
+          csvname_bc = datadir+"DeepJet_2016LegacySF_V1_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepJet_2016_2016Legacy_eff.root"
+        elif 'deepcsv' in tagger.lower():
+          csvname    = datadir+"DeepCSV_2016LegacySF_V1.csv" #"DeepCSV_Moriond17_B_H.csv"
+          csvname_bc = datadir+"DeepCSV_2016LegacySF_V1_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepCSV_2016_2016Legacy_eff.root"
+      elif '2017' in era:
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          csvname    = datadir+"DeepFlavour_94XSF_WP_V3_B_F.csv"
+          csvname_bc = datadir+"DeepFlavour_94XSF_V3_B_F_comb_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepJet_2017_12Apr2017_eff.root"
+        elif 'deepcsv' in tagger.lower(): # DeepCSV b+bb
+          csvname    = datadir+"DeepCSV_94XSF_V5_B_F.csv"
+          csvname_bc = datadir+"DeepCSV_94XSF_V4_B_F_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepCSV_2017_12Apr2017_eff.root"
+      elif '2018' in era:
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
+        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          csvname    = datadir+"DeepJet_102XSF_WP_V1.csv"
+          csvname_bc = datadir+"DeepJet_102XSF_V1_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepJet_2018_Autumn18_eff.root"
+        elif 'deepcsv' in tagger.lower(): # DeepCSV b+bb
+          csvname    = datadir+"DeepCSV_102XSF_WP_V1.csv"
+          csvname_bc = datadir+"DeepCSV_102XSF_V1_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepCSV_2018_Autumn18_eff.root"
+    if not csvname or not effname:
+      raise IOError("BTagWeightTool: Did not recognize tagger %s for era %s"%(tagger,era))
+    if not spliteras or not csvname_bc:
+      csvname_bc = csvname # use the same SF file
     
     # MAX ETA
     if maxeta==None:
-      maxeta = 2.4 if year==2016 else 2.5
+      maxeta = 2.4 if '2016' in era else 2.5
+    maxpt = 1000.0
     
     # TAGGING WP
     self.wpname = wp
-    self.wp     = getattr(BTagWPs(tagger,year),wp)
-    if 'deep' in tagger.lower():
+    self.wp     = getattr(BTagWPs(tagger,era),wp)
+    if 'deepjet' in tagger.lower():
+      tagged = lambda j: j.btagDeepFlavB>self.wp
+    elif 'deepcsv' in tagger.lower():
       tagged = lambda j: j.btagDeepB>self.wp
     else:
-      tagged = lambda j: j.btagCSVV2>self.wp
+      raise IOError("Did not recognize %r tagger..."%(tagger))
+    
+    # LOAD CALIBRATION TOOL
+    print "Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname) #,(", "+sigma) if sigma!='central' else ""
+    calib = BTagCalibration(tagger,csvname)
+    if csvname_bc and csvname_bc!=csvname:
+      print "  and from %s..."%(csvname_bc)
+      calib_bc = BTagCalibration(tagger,csvname_bc)
+    else:
+      calib_bc = calib # use same calibrator
+    print "  with efficiencies from %s..."%(effname)
     
     # CSV READER
-    print "Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname) #,(", "+sigma) if sigma!='central' else ""
     readers   = { }
     opnum     = OP_LOOSE if wp=='loose' else OP_MEDIUM if wp=='medium' else OP_TIGHT if wp=='tight' else OP_RESHAPING
     type_udsg = 'incl'
     type_bc   = type_bc # 'mujets' for QCD; 'comb' for QCD+TT
-    calib     = BTagCalibration(tagger, csvname)
     readers['Nom'] = BTagCalibrationReader(opnum,'central')
     if loadsys:
       readers['Up']   = BTagCalibrationReader(opnum,'up')
       readers['Down'] = BTagCalibrationReader(opnum,'down')
+    if spliteras: # split uncertainties by year
+      readers['UpCorr']     = BTagCalibrationReader(op,'up_correlated')
+      readers['DownCorr']   = BTagCalibrationReader(op,'down_correlated')
+      readers['UpUncorr']   = BTagCalibrationReader(op,'up_uncorrelated')
+      readers['DownUncorr'] = BTagCalibrationReader(op,'down_uncorrelated')
     for reader in readers.values():
-      reader.load(calib,FLAV_B,   type_bc)
-      reader.load(calib,FLAV_C,   type_bc)
+      reader.load(calib_bc,FLAV_B,type_bc)
+      reader.load(calib_bc,FLAV_C,type_bc)
       reader.load(calib,FLAV_UDSG,type_udsg)
     
     # EFFICIENCIES
@@ -158,13 +249,15 @@ class BTagWeightTool:
                   "and should NOT be used for analyses. B (mis)tag efficiencies in MC are analysis dependent. Please create your own\n"+\
                   "efficiency histogram with data/btag/getBTagEfficiencies.py after running all MC samples with BTagWeightTool.")
     
-    self.tagged  = tagged
-    self.calib   = calib
-    self.readers = readers
-    self.loadsys = loadsys
-    self.jetmaps = jetmaps
-    self.effmaps = effmaps
-    self.maxeta  = maxeta
+    self.tagged   = tagged
+    self.calib    = calib
+    self.calib_bc = calib_bc
+    self.readers  = readers
+    self.loadsys  = loadsys
+    self.jetmaps  = jetmaps
+    self.effmaps  = effmaps
+    self.maxeta   = maxeta
+    self.maxpt    = maxpt
   
   def getWeight(self,jets,unc='Nom'):
     """Get b tagging event weight for a given set of jets."""
@@ -172,7 +265,19 @@ class BTagWeightTool:
     for jet in jets:
       if abs(jet.eta)<self.maxeta:
         weight *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
+        ###print ">>> BTagWeightTool.getWeight: sf=%8.5f pt=%8.3f eta=%6.3f flavor=%2d tagged=%5r score=%8.5f wp=%8.4f"%(
+        ###  sf,jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),jet.btagDeepFlavB,self.wp)
+    ###print ">>> BTagWeightTool.getWeight: weight=%.6f"%(weight)
     return weight
+  
+  def getHeavyFlavorWeight(self,jets,unc='Nom'):
+    """Get b tagging event weight for a given set of jets for heavy flavors only."""
+    weight_bc = 1. # heavy flavor
+    for jet in jets:
+      if abs(jet.eta)<self.maxeta:
+        if abs(jet.partonFlavour) in [4,5]: # heavy flavor: b (5), c (4)
+          weight_bc *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
+    return weight_bc
   
   def getFlavorWeight(self,jets,unc='Nom'):
     """Get b tagging event weight for a given set of jets per flavor."""
@@ -189,9 +294,16 @@ class BTagWeightTool:
   def getSF(self,pt,eta,flavor,tagged,unc='Nom'):
     """Get b tag SF for a single jet."""
     FLAV = flavorToFLAV(flavor)
-    if   self.maxeta>=+2.4: eta = self.maxeta-0.001 # BTagCalibrationReader returns zero if |eta| > 2.4
-    elif self.maxeta<=-2.4: eta = 0.001-self.maxeta
-    sf = self.readers[unc].eval(FLAV,abs(eta),pt) #eval_auto_bounds
+    if   eta>=+self.maxeta: eta = self.maxeta-0.001 # BTagCalibrationReader returns zero if |eta| > 2.4
+    elif eta<=-self.maxeta: eta = 0.001-self.maxeta
+    if pt>=self.maxpt:
+      sf = self.readers[unc].eval(FLAV,abs(eta),self.maxpt)
+      if unc!='Nom': # double uncertainty
+        # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X#AK4_jets
+        sfnom = self.readers['Nom'].eval(FLAV,abs(eta),self.maxpt)
+        sf = 2*sf - sfnom # = sfnom + 2*(sf-sfnom) = 2*sf - sfnom
+    else:
+      sf = self.readers[unc].eval(FLAV,abs(eta),pt) # newer versions: use eval_auto_bounds instead !
     if not tagged:
       eff = self.getEff(pt,eta,flavor)
       if eff>=1. or eff<0.:

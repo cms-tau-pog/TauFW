@@ -7,7 +7,7 @@
 #   https://github.com/cms-tau-pog/TauIDSFs/blob/master/utils/createSFFiles.py
 #   https://github.com/cms-nanoAOD/correctionlib/blob/master/tests/test_core.py
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html#Tau
-import sys; sys.path.append('scripts')
+import sys; #sys.path.append('scripts')
 from utils import *
 from collections import namedtuple
 #TES = namedtuple('TES',['nom','up','dn_lowpt','nom_highpt','up_highpt','dn_highpt']) # helper class
@@ -229,7 +229,7 @@ def makecorr_tes(tesvals=None,**kwargs):
       {'name': "id",       'type': "string", 'description': f"Tau ID: {', '.join(ids)}"},
       {'name': "syst",     'type': "string", 'description': getsystinfo()},
     ],
-    'output': {'name': "tes", 'type': "real", 'description': "tau energy scale"},
+    'output': {'name': "tes", 'type': "real", 'description': "Tau energy scale"},
     'data': { # category:id -> key:id -> transform:genmatch -> category:genmatch -> key:genmatch
       'nodetype': 'category', # category:genmatch
       'input': "id",

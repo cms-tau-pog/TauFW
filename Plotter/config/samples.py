@@ -13,6 +13,8 @@ def getsampleset(channel,era,**kwargs):
   rmsfs  = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
   addsfs = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
   weight = kwargs.get('weight', None         ) # weight for all MC samples
+  filter = kwargs.get('filter', None         ) # only include these MC samples
+  vetoes = kwargs.get('vetoes', None         ) # veto these MC samples
   tag    = kwargs.get('tag',    ""           )
   table  = kwargs.get('table',  True         ) # print sample set table
   setera(era) # set era for plot style and lumi-xsec normalization
@@ -157,6 +159,12 @@ def getsampleset(channel,era,**kwargs):
     LOG.throw(IOError,"Did not recognize channel %r!"%(channel))
   datasample = ('Data',dataset) # GROUP, NAME
   
+  # FILTER
+  if filter:
+    expsamples = [s for s in expsamples if any(f in s[0] for f in filter)]
+  if vetoes:
+    expsamples = [s for s in expsamples if not any(v in s[0] for v in vetoes)]
+  
   # SAMPLE SET
   if weight=="":
     weight = ""
@@ -175,11 +183,13 @@ def getsampleset(channel,era,**kwargs):
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)
   LOG.verb("weight = %r"%(weight),verbosity,1)
   
-  # JOIN
+  # STITCH
   # Note: titles are set via STYLE.sample_titles
   sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'     ) # W + jets
   sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50" ) # Drell-Yan, M > 50 GeV
   #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M10to50" )
+  
+  # JOIN
   sampleset.join('DY', name='DY'  ) # Drell-Yan, M < 50 GeV + M > 50 GeV
   if 'VV' in join:
     sampleset.join('VV','WZ','WW','ZZ', name='VV'  ) # Diboson

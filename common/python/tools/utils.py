@@ -83,10 +83,3 @@ def chunkify(iterable,chunksize):
   return chunks
   
 
-def tryint(x):
-  """Convert to integer, if it is possible."""
-  try:
-    return int(x)
-  except ValueError:
-    return x
-  

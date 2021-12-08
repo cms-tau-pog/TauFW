@@ -90,6 +90,7 @@ def gethist(hists,*searchterms,**kwargs):
 def deletehist(*hists,**kwargs):
   """Completely remove histograms from memory."""
   verbosity = LOG.getverbosity(kwargs)
+  warn      = kwargs.get('warn', True)
   hists     = unwraplistargs(hists)
   for hist in hists:
     hclass  = hist.__class__.__name__
@@ -103,7 +104,7 @@ def deletehist(*hists,**kwargs):
         gDirectory.Delete(hist.GetName())
       else:
         LOG.warning("deletehist: %s %s has no name!"%(hclass,hist))
-    else:
+    elif warn:
       LOG.warning("deletehist: %s is already %s"%(hclass,hist))
     #except AttributeError:
     #  print ">>> AttributeError: "
@@ -287,13 +288,13 @@ def gethistratio(histnum,histden,**kwargs):
   if isinstance(histnum,THStack):
     histnum = histnum.GetStack().Last()
   rhist = histnum.Clone(hname)
-  nbins = rhist.GetNcells() # GetNcells = GetNbinsX for TH1
-  LOG.verb("gethistratio: Making ratio of %s w.r.t. %s"%(histnum,histden),verbosity,2)
+  ncells = rhist.GetNcells() # GetNcells = GetNbinsX for TH1
+  LOG.verb("gethistratio: Making ratio of num=%s w.r.t. den=%s in ncells=%s"%(histnum,histden,ncells),verbosity,2)
   if havesamebins(histden,histnum,errorX=errorX): # sanity check binning is the same; works for TH1 and TH2
     #rhist.Divide(histden)
     TAB = LOG.table("%5d %9.3f %9.3f %9.3f %9.3f +- %7.3f",verb=verbosity,level=3)
     TAB.printheader("ibin","xval","yden","ynum","ratio","error")
-    for ibin in xrange(0,nbins+2):
+    for ibin in xrange(0,ncells+1):
       yden    = histden.GetBinContent(ibin)
       ynum    = histnum.GetBinContent(ibin)
       enum    = histnum.GetBinError(ibin) #max(histnum.GetBinErrorLow(ibin),histnum.GetBinErrorUp(ibin))
@@ -305,13 +306,14 @@ def gethistratio(histnum,histden,**kwargs):
       elif zero:
         ratio = 1. if ynum==0 else yinf if ynum>0 else -yinf
       TAB.printrow(ibin,rhist.GetXaxis().GetBinCenter(ibin),yden,ynum,ratio,erat)
+      #print histden.GetXaxis().GetBinLowEdge(ibin), histden.GetXaxis().GetBinUpEdge(ibin)
       rhist.SetBinContent(ibin,ratio)
       rhist.SetBinError(ibin,erat)
   else: # works only for TH1
     LOG.warning("gethistratio: %r and %r do not have the same bins..."%(histnum,histden))
     TAB = LOG.table("%5d %9.3f %9.3f %5d %9.3f %9.3f %5d %8.3f +- %7.3f",verb=verbosity,level=3)
     TAB.printheader("iden","xval","yden","inum","xval","ynum","ratio","error")
-    for iden in range(0,nbins+2):
+    for iden in range(0,ncells+1):
       xval    = histden.GetXaxis().GetBinCenter(iden)
       yden    = histden.GetBinContent(iden)
       inum    = histnum.GetXaxis().FindBin(xval)
@@ -333,7 +335,7 @@ def gethistratio(histnum,histden,**kwargs):
 
 def getgraphratio(graphnum,histden,**kwargs):
   """Make the ratio of a TGraph with a TH1 object on a bin-by-bin basis."""
-  verbosity = LOG.getverbosity(kwargs)+3
+  verbosity = LOG.getverbosity(kwargs) #+3
   hname     = "ratio_%s-%s"%(graphnum.GetName() or 'graph',histden.GetName())
   hname     = kwargs.get('name',     hname )
   tag       = kwargs.get('tag',      ""    )
@@ -350,9 +352,9 @@ def getgraphratio(graphnum,histden,**kwargs):
   rgraph.SetName(hname)
   copystyle(rgraph,graphnum)
   irat      = 0 # index ratio graph
-  LOG.verb("getgraphratio: Making ratio of %s w.r.t. %s"%(graphnum,histden),verbosity,2)
-  TAB = LOG.table("%4s %9s %9s  %4s %9s %9s  %4s %8s %-14s",
-                  "%4d %9.5g %9.2f  %4d %9.5g %9.2f  %4d %8.2f +%5.2f  -%5.2f",verb=verbosity,level=3)
+  LOG.verb("getgraphratio: Making ratio of num=%s w.r.t. den=%s"%(graphnum,histden),verbosity,2)
+  TAB = LOG.table("%4s %9s %11s  %4s %9s %11s  %4s %8s %-14s",
+                  "%4d %9.5g %11.2f  %4d %9.5g %11.2f  %4d %8.2f +%5.2f  -%5.2f",verb=verbosity,level=3)
   if isinstance(histden,TH1): # ratio = TGraph graphnum / TH1 histden
     TAB.printheader("inum","xval","yval","ibin","xval","yden","irat","ratio","error")
     nbins = histden.GetXaxis().GetNbins()
@@ -460,8 +462,16 @@ def geterrorband(*hists,**kwargs):
       statlow2 += hist.GetBinErrorLow(ibin)**2
       statupp2 += hist.GetBinErrorUp(ibin)**2
     for histup, hist, histdown in sysvars: # SYSTEMATIC VARIATIONS
-      syslow2  += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
-      sysupp2  += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
+      if histdown.GetBinContent(ibin)>hist.GetBinContent(ibin):
+        sysupp2 += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
+      else:
+        syslow2 += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
+      if histup.GetBinContent(ibin)>hist.GetBinContent(ibin):
+        sysupp2 += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
+      else:
+        syslow2 += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
+      syslow2 += (hist.GetBinContent(ibin)-histdown.GetBinContent(ibin))**2
+      sysupp2 += (hist.GetBinContent(ibin)-histup.GetBinContent(ibin))**2
     ylow2, yupp2 = statlow2+syslow2, statupp2+sysupp2,
     error.SetPoint(ip,xval,yval)
     error.SetPointError(ip,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
@@ -641,20 +651,24 @@ def resetbinning(axis,xmin=None,xmax=None,variable=False,**kwargs):
     width = (xmax_-xmin_)/nbins # original width
     xmin = xmin_ if xmin==None else xmin
     xmax = xmax_ if xmax==None else xmax
+    LOG.verb("resetbinning: width=%s, xmin=%s -> %s, xmax=%s -> %s"%(width,xmin_,xmin,xmax_,xmax),verbosity,3)
     if not variable and (xmax_-xmin)%width==0 and (xmax-xmin_)%width==0: # bin edges align
+      print 1
       nbins = (xmax-xmin)/width # new number of bins
       xbins = (nbins,xmin,xmax)
     else: # bin edges do not align; create a variable binning
-      edges = [xmin_+width*i for i in range(0,nbins+1)] # original bin edges
-      edges = resetedges(edges,xmin,xmax) # reset range
+      oldedges = [xmin_+width*i for i in range(0,nbins+1)] # original bin edges
+      edges = resetedges(oldedges,xmin,xmax) # reset range
       xbins = (len(edges)-1,array('d',edges))
+      LOG.verb("resetbinning: edges: %s -> %s"%(oldedges,edges),verbosity,3)
+      LOG.verb("resetbinning: axis=%r, xbins=%r -> %r"%(axis,oldbins,xbins),verbosity,2)
   LOG.verb("resetbinning: axis=%r, xbins=%r -> %r"%(axis,oldbins,xbins),verbosity,2)
   return xbins
   
 
 def resetrange(oldhist,xmin=None,xmax=None,ymin=None,ymax=None,**kwargs):
   """Reset the range of a TH1 histogram and return new histogram. Useful to to draw a logarithmic
-  plot, if lowest edge is 0, and xmin does not align with a bin edge."""
+  plot: If lowest edge is 0, and xmin does not align with a bin edge."""
   verbosity = LOG.getverbosity(kwargs)
   LOG.verbose("setrange: xmin=%s, xmax=%s, %r"%(xmin,xmax,oldhist),verbosity,2)
   hname = "%s_resetrange"%(oldhist.GetName())
@@ -694,7 +708,7 @@ def resetrange(oldhist,xmin=None,xmax=None,ymin=None,ymax=None,**kwargs):
         LOG.verb("resetrange: (x,y)=(%7.2f,%7.2f), (ix,iy)=(%2s,%2s) -> (%2s,%2s): %8.2f +- %7.2f"%(
           xval,yval,ixold,iyold,ixnew,iynew,zval,zerr),verbosity,2)
   else:
-    xbins = resetbinning(oldhist.GetYaxis(),xmin,xmax,verb=verbosity)
+    xbins = resetbinning(oldhist.GetXaxis(),xmin,xmax,verb=verbosity)
     newhist = TH1D(hname,hname,*xbins)
     LOG.verb("resetrange: (nxbins,xmin,xmax) = (%s,%s,%s) -> (%s,%s,%s)"%(
       oldhist.GetXaxis().GetNbins(),oldhist.GetXaxis().GetXmin(),oldhist.GetXaxis().GetXmax(),

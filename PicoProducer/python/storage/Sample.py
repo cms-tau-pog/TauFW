@@ -69,8 +69,8 @@ class Sample(object):
     self.blacklist    = kwargs.get('blacklist',     [ ]    ) # black list for ROOT files
     self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global') # if None, does not exist in DAS
     self.nfilesperjob = kwargs.get('nfilesperjob',  -1     ) # number of nanoAOD files per job
-    self.maxevts      = kwargs.get('maxevtsperjob', -1     ) # maximum number of events processed per job
-    self.maxevts      = kwargs.get('maxevts', self.maxevts ) # maximum number of events processed per job
+    self.maxevts      = kwargs.get('maxevtsperjob', None   ) # maximum number of events processed per job (-1: split by number of files)
+    self.maxevts      = kwargs.get('maxevts', self.maxevts ) # maximum number of events processed per job (-1: split by number of files)
     self.extraopts    = kwargs.get('opts',          [ ]    ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
     self.subtry       = kwargs.get('subtry',        0      ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',        { }    ) # to help keep track of resubmission
@@ -220,7 +220,7 @@ class Sample(object):
     LOG.verb("Sample.getfiles: das=%r, refresh=%r, url=%r, limit=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
       das,refresh,url,limit,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
-      self.loadfiles(self.filelist)
+      self.loadfiles(self.filelist,verb=verb)
     files = self.files # cache for efficiency
     url_  = self.dasurl if (das and self.storage) else self.url
     if self.refreshable and (not files or das or refresh): # (re)derive file list
@@ -271,7 +271,7 @@ class Sample(object):
     LOG.verb("_getnevents: das=%r, refresh=%r, tree=%r, limit=%r, checkfiles=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
       das,refresh,tree,limit,checkfiles,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
-      self.loadfiles(self.filelist)
+      self.loadfiles(self.filelist,verb=verb)
     nevents   = self.nevents
     filenevts = self.filenevts
     bar       = None
@@ -315,6 +315,7 @@ class Sample(object):
     If there is more than one DAS dataset path, write lists separately for each path."""
     kwargs    = kwargs.copy() # do not edit given dictionary
     writeevts = kwargs.pop('nevts',False) # also write nevents to file
+    skipempty = kwargs.pop('skipempty',False) # do not write files with zero events
     listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
     ensuredir(os.path.dirname(listname))
     filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
@@ -322,8 +323,9 @@ class Sample(object):
     kwargs.pop('ncores') # do not pass to Sample.getfiles
     kwargs['refresh'] = False # already got file list in Sample.filenevts
     files     = self.getfiles(**kwargs) # get right URL
+    self.nempty = 0 # number of files with zero events
     if not files:
-      LOG.warning("writefiles: Did not find any files!")
+      LOG.warning("Sample.writefiles: Did not find any files!")
     def _writefile(ofile,fname,prefix=""):
       """Help function to write individual files."""
       if writeevts: # add nevents at end of infile string
@@ -331,6 +333,11 @@ class Sample(object):
         if nevts<0:
           LOG.warning("Did not find nevents of %s. Trying again..."%(fname))
           nevts = getnevents(fname,treename) # get nevents from file
+        if nevts<1:
+          self.nempty += 1
+          if skipempty:
+            print ">>> Sample.writefiles: Skip %s with %s events..."%(fname,nevts)
+            return
         fname = "%s:%d"%(fname,nevts) # write $FILENAM(:NEVTS)
       ofile.write(prefix+fname+'\n')
     paths = self.paths if '$PATH' in listname else [self.paths[0]]
@@ -361,6 +368,8 @@ class Sample(object):
               _writefile(lfile,infile,prefix="  ")
             if i+1<len(self.paths): # add extra white line between blocks
               lfile.write("\n")
+    if self.nempty>0:
+      LOG.warning("Sample.writefiles: Written %d files with zero events. Use --skipempty to exclude."%(self.nempty))
   
   def loadfiles(self,listname_,**kwargs):
     verbosity = LOG.getverbosity(self,kwargs)
@@ -407,10 +416,10 @@ class Sample(object):
                 nevts  = int(match.group(2))
                 filenevts[infile] = nevts # store/cache in dictionary
                 nevents += nevts
+                if self.verbosity>=3:
+                  print ">>> %7d events for %s"%(nevts,infile)
               filelist.append(infile)
               self.pathfiles[path].append(infile)
-              if self.verbosity>=3:
-                print ">>> %7d events for %s"%(nevts,infile)
         if not filelist:
           LOG.warning("loadfiles: Did not find any files in %s!"%(listname_))
           self.refreshable = True

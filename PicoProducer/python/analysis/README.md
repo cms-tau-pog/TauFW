@@ -90,7 +90,10 @@ Triggers are saved as booleans, e.g.
 To reduce the nanoAOD file size, some identification working points (WPs) are saved in nanoAOD as `UChar_t`, which is 1 byte (8 bits),
 instead of 4 bytes (32 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
 you see in the [documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau)
-that it corresponds to the fifth bit, i.e. `16`.
+that it corresponds to the fifth bit, i.e. `2**(5-1)=16`.
+Note that if a tau object passes the Medium WP, it also passes all looser ones.
+The actual value of `Tau_idDeepTau2017v2p1VSjet` will therefore be "cumulative", e.g. `1+2+4+8+16=31` for Medium, and not just `16`.
+
 To access them in `python`, you may need the [built-in function `ord`](https://docs.python.org/3/library/functions.html#ord), e.g.
 ```
     tau_idx = [ ]
@@ -98,7 +101,7 @@ To access them in `python`, you may need the [built-in function `ord`](https://d
     if event.Tau_pt[itau]>20 and ord(event.Tau_idDeepTau2017v2p1VSjet[itau])>=16:
       tau_idx.append(itau)
 ```
-If you use `Collections`, you do not need `ord` anymore:
+If you use `Collections`, you [do not need `ord` anymore](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/555b3075892c38b63a98f84527685fa042ffcf59/python/postprocessing/framework/datamodel.py#L73):
 ```
     taus = [ ]
     for tau in Collection(event,'Tau'):
@@ -109,10 +112,11 @@ Beside WPs, status flags like the integer [`GenPart_statusFlags` of generator pa
 are also encoded bitwise. If you want to know if some flag like `isPrompt` (0th bit, `1`) or `isHardProcess` (7th bit, `128`) is triggered,
 use [bitwise operators](https://www.tutorialspoint.com/python/bitwise_operators_example.htm) as
 ```
-isPrompt    = GenPart_statusFlags[i] & 1
-hardProcess = GenPart_statusFlags[i] & 128
+isPrompt    = (GenPart_statusFlags[i] & 1)>0       # bit 0: 2^0 = 1<<0 = 1
+hardProcess = (GenPart_statusFlags[i] & 128)>0     # bit 7: 2^7 = 1<<7 = 128
+isBoth      = (GenPart_statusFlags[i] & 129)==129  # both simultaneously: 2^0 + 2^7 = 129
 ```
-which has values `0` or `1`. Here, `128` is computed as a power of 2, `2**7`, or a bitwise left shift, `1<<7`.
+which has values `True` or `False`. Here, `128` is computed as a power of 2, `2**7`, or a bitwise left shift, `1<<7`.
 The help function `hasbit` in [`utils.py`](utils.py) can be used:
 ```
 isPrompt    = hasbit(GenPart_statusFlags[i],0)

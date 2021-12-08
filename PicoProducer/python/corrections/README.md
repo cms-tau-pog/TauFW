@@ -6,7 +6,7 @@ Several tools to get corrections, efficiencies, scale factors (SFs), event weigh
 * [Tau scale factors](#Tau-scale-factors)<br>
 * [B tagging tools](#b-tagging-tools)<br>
 * [Z pT reweighting](#Z-pT-reweighting)<br>
-* [Test SFs](test-sfs)
+* [Test SFs](#test-sfs)
 
 Data for corrections is saved in in [`../../data/`](../../data)
 

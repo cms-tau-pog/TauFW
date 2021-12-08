@@ -66,7 +66,7 @@ class ModuleTauPair(Module):
     self.metUncLabels = [ ]
     if self.ismc:
       self.puTool     = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
-      self.btagTool   = BTagWeightTool('DeepCSV','medium',channel=self.channel,year=self.year,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+      self.btagTool   = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
       #if self.dorecoil:
@@ -82,7 +82,7 @@ class ModuleTauPair(Module):
       if self.isUL and self.tes==None:
         self.tes = 1.0 # placeholder
     
-    self.deepcsv_wp = BTagWPs('DeepCSV',year=self.year)
+    self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
   
   def beginJob(self):
@@ -146,6 +146,35 @@ class ModuleTauPair(Module):
     if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
       redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
+  def fillhists(self,event):
+    """Help function to fill common histograms (cutflow etc.) before any cuts."""
+    self.out.cutflow.fill('none')
+    if self.isdata:
+      self.out.cutflow.fill('weight',1.)
+      if event.PV_npvs>0:
+        self.out.cutflow.fill('weight_no0PU',1.)
+      else:
+        return False
+    else:
+      self.out.cutflow.fill('weight',event.genWeight)
+      self.out.pileup.Fill(event.Pileup_nTrueInt)
+      #if not self.doTight and event.nLHEScaleWeight>0:
+      #idxs = [(0,0),(1,5),(2,10),(3,15),(4,20),(5,24),(6,29),(7,34),(8,39)] if event.nLHEScaleWeight>40 else\
+      #       [(0,0),(1,1),(2,2),(3,3),(5,4),(6,5),(7,6),(8,7)] if event.nLHEScaleWeight==8 else\
+      #       [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8)]
+      #if event.nLHEScaleWeight==8:
+      #  self.out.h_qweight.Fill(4,event.LHEWeight_originalXWGTUP)
+      #  self.out.h_qweight_genw.Fill(4,event.LHEWeight_originalXWGTUP*event.genWeight)
+      #for ibin, idx in idxs: # Ren. & fact. scale
+      #  if idx>=event.nLHEScaleWeight: break
+      #  self.out.h_qweight.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx])
+      #  self.out.h_qweight_genw.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx]*event.genWeight)
+      if event.Pileup_nTrueInt>0:
+        self.out.cutflow.fill('weight_no0PU',event.genWeight)
+      else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
+        return False
+    return True
+    
   
   def fillEventBranches(self,event):
     """Help function to fill branches of common event variables."""
@@ -189,6 +218,7 @@ class ModuleTauPair(Module):
     njets_vars     = { }
     jets,   bjets  = [ ], [ ]
     nfjets, ncjets = 0, 0
+    ncjets50       = 0
     nbtag          = 0
     
     # SELECT JET, remove overlap with selected objects
@@ -216,9 +246,11 @@ class ModuleTauPair(Module):
         nfjets += 1
       else:
         ncjets += 1
+        if jetpt>50:
+          ncjets50 += 1
       
       # B TAGGING
-      if jet.btagDeepB>self.deepcsv_wp.medium and abs(jet.eta)<self.bjetCutEta:
+      if jet.btagDeepFlavB>self.deepjet_wp.medium and abs(jet.eta)<self.bjetCutEta:
         nbtag += 1
         bjets.append(jet)
     
@@ -238,6 +270,7 @@ class ModuleTauPair(Module):
     self.out.njets50[0]       = len([j for j in jets if self.ptnom(j)>50])
     self.out.nfjets[0]        = nfjets
     self.out.ncjets[0]        = ncjets
+    self.out.ncjets50[0]      = ncjets50
     self.out.nbtag[0]         = nbtag
     
     # LEADING JET
@@ -245,24 +278,24 @@ class ModuleTauPair(Module):
       self.out.jpt_1[0]       = self.ptnom(jets[0])
       self.out.jeta_1[0]      = jets[0].eta
       self.out.jphi_1[0]      = jets[0].phi
-      self.out.jdeepb_1[0]    = jets[0].btagDeepB
+      self.out.jdeepjet_1[0]  = jets[0].btagDeepFlavB
     else:
       self.out.jpt_1[0]       = -1.
       self.out.jeta_1[0]      = -9.
       self.out.jphi_1[0]      = -9.
-      self.out.jdeepb_1[0]    = -9.
+      self.out.jdeepjet_1[0]  = -9.
     
     # SUBLEADING JET
     if len(jets)>1:
       self.out.jpt_2[0]       = self.ptnom(jets[1])
       self.out.jeta_2[0]      = jets[1].eta
       self.out.jphi_2[0]      = jets[1].phi
-      self.out.jdeepb_2[0]    = jets[1].btagDeepB
+      self.out.jdeepjet_2[0]  = jets[1].btagDeepFlavB
     else:
       self.out.jpt_2[0]       = -1.
       self.out.jeta_2[0]      = -9.
       self.out.jphi_2[0]      = -9.
-      self.out.jdeepb_2[0]    = -9.
+      self.out.jdeepjet_2[0]  = -9.
     
     # LEADING B JETS
     if len(bjets)>0:
@@ -286,7 +319,7 @@ class ModuleTauPair(Module):
     #    ptvar = 'pt_'+unc
     #    jets_var.sort(key=lambda j: getattr(j,ptvar),reverse=True)
     #    njets_vars[unc] = len(jets_var)
-    #    bjets_vars      = [j for j in jets_vars if j.btagDeepB > self.deepcsv_wp.medium and abs(j.eta)<self.bjetCutEta]
+    #    bjets_vars      = [j for j in jets_vars if j.btagDeepFlavB>self.deepjet_wp.medium and abs(j.eta)<self.bjetCutEta]
     #    getattr(self.out,"njets_"+unc)[0] = njets_vars[unc]
     #    getattr(self.out,"nbtag_"+unc)[0] = len(bjets_vars)
     #    getattr(self.out,"jpt_1_"+unc)[0] = getattr(jets_var[0],ptvar) if len(jets_var)>=1 else -1

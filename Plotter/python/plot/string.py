@@ -5,8 +5,8 @@ from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist, islist
 
 var_dict = { # predefined variable titles
     'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",          'njets50':  "Number of jets (pt>50 GeV)",
-    'nfjets':    "Number of forward jets",  'nfjets20': "Number of forward jets (pt>20 GeV)",
-    'ncjets':    "Number of central jets",  'ncjets20': "Number of central jets (pt>20 GeV)",
+    'nfjets':    "Number of forward jets",  'nfjets20': "Number of forward jets (pt>20 GeV)",  'nfjets50': "Number of forward jets (pt>50 GeV)",
+    'ncjets':    "Number of central jets",  'ncjets20': "Number of central jets (pt>20 GeV)",  'ncjets50': "Number of central jets (pt>50 GeV)",
     'nbtag':     "Number of b tagged jets", 'nbtag20':  "Number of b tagged jets (pt>20 GeV)", 'nbtag50':  "Number of b tagged jets (pt>50 GeV)",
     'jpt_1':     "Leading jet pt",          'jpt_2':    "Subleading jet pt",
     'bpt_1':     "Leading b jet pt",        'bpt_2':    "Subleading b jet pt",
@@ -18,23 +18,23 @@ var_dict = { # predefined variable titles
     'metphi':    "MET phi",                 'genmetphi':"Gen. MET phi",
     'pt_1':      "Lepton pt",               'pt_2':     "tau_h pt",
     'eta_1':     "Lepton eta",              'eta_2':    "tau_h eta",
+    'm_vis':     "m_{#lower[-0.1]{vis}}",   'mvis':     "m_{#lower[-0.1]{vis}}",
     'mt_1':      "m_t(l,MET)",              'mt_2':     "m_t(tau,MET)",
-    'dzeta':     "D_{zeta}",                'pt_1+pt_2+jpt_1':     "S_{T}^{MET}",
-    'pzetavis':  "p_{zeta}^{vis}",          'pt_1+pt_2+jpt_1+met': "S_{T}^{MET}",
+    'dzeta':     "D_{zeta}",                'pt_1+pt_2+jpt_1':     "S_{#lower[-0.1]{T}}^{#lower[0.1]{MET}}",
+    'pzetavis':  "p_{zeta}^{vis}",          'pt_1+pt_2+jpt_1+met': "S_{#lower[-0.1]{T}}^{#lower[0.1]{MET}}",
     'pzetamiss': "p_{zeta}^{miss}",         'stmet':    "S_{T}^{MET}",
     'DM0':       "h^{#pm}",                 'STMET':    "S_{T}^{MET}",
     'DM1':       "h^{#pm}h^{0}",
     'DM10':      "h^{#pm}h^{#mp}h^{#pm}",
     'DM11':      "h^{#pm}h^{#mp}h^{#pm}h^{0}",
 }
-var_dict_sorted = sorted(var_dict,key=lambda x: len(x),reverse=True)
-
+var_dict_sorted = sorted(var_dict,key=lambda x: len(x),reverse=True) # sort keys by length once
 
 funcexpr = re.compile(r"(\w+)\(([^,]+),([^,]+)\)")
 def makelatex(string,**kwargs):
   """Convert patterns in a string to LaTeX format."""
   global var_dict_sorted
-  verbosity = LOG.getverbosity(kwargs)
+  verbosity = LOG.getverbosity(kwargs)#+4
   if not isinstance(string,str) or not string:
     return string
   if string and string[0]=='{' and string[-1]=='}':
@@ -46,10 +46,11 @@ def makelatex(string,**kwargs):
   oldstr = string
   
   # PREDEFINED
-  if len(var_dict_sorted)!=len(var_dict):
+  if len(var_dict_sorted)!=len(var_dict): # sort again
     var_dict_sorted = sorted(var_dict,key=lambda x: len(x),reverse=True)
   for var in var_dict_sorted:
     if var in string:
+      LOG.verb("makelatex: Found var %r in string %r => replace with %r"%(var,string,var_dict[var]),verbosity,2)
       string = string.replace(var,var_dict[var])
       #string = re.sub(r"\b%s\b"%var,var_dict[var],string,re.IGNORECASE)
       break

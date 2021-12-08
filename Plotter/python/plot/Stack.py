@@ -115,15 +115,27 @@ class Stack(Plot):
     self.fcolors = fcolors
     self.lstyles = lstyles
     hists        = self.hists
+    if not xmin and xmin!=0: xmin = self.xmin
+    if not xmax and xmax!=0: xmax = self.xmax
+    if logx and xmin==0: # reset xmin in binning
+      frame = self.frame or self.exphists[0] or self.datahist
+      xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
+      xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      LOG.verb("Stack.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
+      for hist in self.exphists+[self.datahist]:
+        if hist: hist.SetBins(*xbins) # set binning with xmin>0
+    if verbosity>=2:
+      print ">>> Stack.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
+      print ">>> Stack.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax)
     
     # DIVIDE BY BINSIZE
     if dividebins:
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
-          newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,errorX=errorX)
+          newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,errorX=errorX,verb=verbosity)
           if oldhist!=newhist:
-            LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
+            LOG.verb("Stack.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
             hlist[i] = newhist
             #if oldhist in self.hists:
             #  self.hists[self.hists.index(oldhist)] = newhist
@@ -136,10 +148,10 @@ class Stack(Plot):
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
-      #    dividebybinsize(histup,  zero=True,zeroerrs=False)
-      #    dividebybinsize(histdown,zero=True,zeroerrs=False)
+      #    dividebybinsize(histup,  zero=True,zeroerrs=False,verb=verbosity-2)
+      #    dividebybinsize(histdown,zero=True,zeroerrs=False,verb=verbosity-2)
       #    if hist not in self.hists:
-      #      dividebybinsize(hist,zero=True,zeroerrs=False)
+      #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
     # DRAW OPTIONS
     gStyle.SetEndErrorSize(enderrorsize)

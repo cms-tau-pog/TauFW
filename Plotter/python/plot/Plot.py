@@ -156,7 +156,9 @@ class Plot(object):
     xmax         = kwargs.get('xmax',         self.xmax       )
     ymin         = kwargs.get('ymin',         self.ymin       )
     ymax         = kwargs.get('ymax',         self.ymax       )
-    rmin         = kwargs.get('rmin',         self.rmin       ) or 0.45 # ratio ymin
+    rmin         = kwargs.get('rmin',         self.rmin       ) # ratio ymin
+    if not rmin and rmin!=0:
+      rmin = 0.45 # default
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
@@ -186,7 +188,7 @@ class Plot(object):
     options      = kwargs.get('options',      [ ]             ) # draw option list per histogram
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
-    errorX       = kwargs.get('errorX',       True            ) # horizontal error bars
+    errorX       = kwargs.get('errorX',       False           ) # horizontal error bars
     dividebins   = kwargs.get('dividebins',   self.dividebins )
     lcolors      = ensurelist(lcolors)
     fcolors      = ensurelist(fcolors)
@@ -198,13 +200,23 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
+    if logx and xmin==0.0: xmin = 0.25*self.frame.GetXaxis().GetBinWidth(1)
     hists        = self.hists
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else False
     denom        = kwargs.get('den',   denom ) # alias
     denom        = kwargs.get('denom', denom ) # denominator histogram in ratio plot
+    if logx and xmin==0: # reset xmin in binning
+      frame = self.frame or hists[0]
+      xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
+      xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      LOG.verb("Plot.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
+      for hist in hists:
+        if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if verbosity>=1:
       print ">>> Plot.draw: hists=%s, norm=%r"%(self.hists,norm)
       print ">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
+    if verbosity>=3:
+      print ">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax)
     
     # NORMALIZE
     if norm:
@@ -216,7 +228,7 @@ class Plot(object):
     # DIVIDE BY BINSIZE
     if dividebins:
       for i, oldhist in enumerate(self.hists):
-        newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,poisson=False)
+        newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,poisson=False,verb=verbosity)
         if oldhist!=newhist: # new hist is actually a TGraph
           LOG.verb("Plot.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
           self.hists[i] = newhist
@@ -224,16 +236,16 @@ class Plot(object):
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
-      #    dividebybinsize(histup,  zero=True,zeroerrs=False)
-      #    dividebybinsize(histdown,zero=True,zeroerrs=False)
+      #    dividebybinsize(histup,  zero=True,zeroerrs=False,verb=verbosity-2)
+      #    dividebybinsize(histdown,zero=True,zeroerrs=False,verb=verbosity-2)
       #    if hist not in self.hists:
-      #      dividebybinsize(hist,zero=True,zeroerrs=False)
+      #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
     # DRAW OPTIONS
     if errbars:
-      option = 'E0 '+option #E01
+      option = 'E1 '+option #E01
       if not roption:
-        roption = 'HISTE'
+        roption = 'E1 HIST'
     if len(options)==0:
       options = [ option ]*len(hists)
       if staterr:
@@ -244,11 +256,9 @@ class Plot(object):
     #if not self.histsD and staterr and errbars:
     #  i = denominator-1 if denominator>0 else 0
     #  options[i] = options[i].replace('E0','')
-    gStyle.SetEndErrorSize(enderrorsize)
-    if errorX:
-      gStyle.SetErrorX(0.5)
-    else:
-      gStyle.SetErrorX(0)
+    gStyle.SetEndErrorSize(enderrorsize) # extra line at end of error bars
+    gStyle.SetErrorX(0.5*errorX) # horizontal error bars
+    LOG.verb("Plot.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
     
     # CANVAS
     self.canvas = self.setcanvas(square=square,lower=ratio,width=cwidth,height=cheight,
@@ -260,7 +270,7 @@ class Plot(object):
       if 'H' in opt: lhists.append(hist)
       else:          mhists.append(hist)
     self.setlinestyle(lhists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
-    self.setmarkerstyle(*mhists,colors=lcolors)
+    #self.setmarkerstyle(*mhists,colors=lcolors)
     
     # DRAW FRAME
     self.canvas.cd(1)
@@ -276,13 +286,14 @@ class Plot(object):
         line.Draw("LSAME")
     
     # DRAW HISTS
-    for i, (hist, option1) in enumerate(zip(hists,options)):
+    LOG.verb("Plot.draw: options=%r"%(options),verbosity,2)
+    for i, (hist, option_) in enumerate(zip(hists,options)):
       if triple and i%3==2:
-        option1 = 'E1'
-      if 'SAME' not in option1: #i>0:
-        option1 += " SAME"
-      hist.Draw(option1)
-      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option1),verbosity,2)
+        option_ = 'E1'
+      if 'SAME' not in option_: #i>0:
+        option_ += " SAME"
+      hist.Draw(option_)
+      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option_),verbosity,2)
     
     # CMS STYLE
     if CMSStyle.lumiText:
@@ -349,17 +360,25 @@ class Plot(object):
     """Close canvas and delete the histograms."""
     verbosity = LOG.getverbosity(self,kwargs)
     if self.canvas:
+      LOG.verb("Plot.close: Closing canvas...",verbosity,3)
       self.canvas.Close()
     if not keep: # do not keep histograms
+      if verbosity>=3:
+        hlist = ', '.join(repr(h) for h in self.hists)
+        print ">>> Plot.close: Deleting histograms: %s..."%(hlist)
       for hist in self.hists:
-        deletehist(hist)
+        deletehist(hist,**kwargs)
     if self.errband:
+      LOG.verb("Plot.close: Deleting error band...",verbosity,3)
       deletehist(self.errband)
     for line in self.lines:
-      deletehist(line)
+      LOG.verb("Plot.close: Deleting line...",verbosity,3)
+      deletehist(line,**kwargs)
     for hist in self.garbage:
-      deletehist(hist)
+      LOG.verb("Plot.close: Deleting garbage...",verbosity,3)
+      deletehist(hist,**kwargs)
     if isinstance(self.ratio,Ratio):
+      LOG.verb("Plot.close: Deleting ratio...",verbosity,3)
       self.ratio.close()
     LOG.verb("closed\n>>>",verbosity,2)
     
@@ -387,9 +406,9 @@ class Plot(object):
       #rmargin *= 3.6
       #CMSStyle.relPosX = 0.15
     if verbosity>=2:
-      print "Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
-      print "Plot.setcanvas: width=%s, height=%s"%(width,height)
-      print "Plot.setcanvas: lmargin=%.5g, rmargin=%.5g, tmargin=%.5g, bmargin=%.5g"%(lmargin,rmargin,tmargin,bmargin)
+      print ">>> Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
+      print ">>> Plot.setcanvas: width=%s, height=%s"%(width,height)
+      print ">>> Plot.setcanvas: lmargin=%.5g, rmargin=%.5g, tmargin=%.5g, bmargin=%.5g"%(lmargin,rmargin,tmargin,bmargin)
     canvas = TCanvas('canvas','canvas',100,100,int(width),int(height))
     canvas.SetFillColor(0)
     #canvas.SetFillStyle(0)
@@ -479,16 +498,13 @@ class Plot(object):
       xlabelsize  = 0.0
     if latex:
       xtitle      = makelatex(xtitle)
-    LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f)"%(nbins,xmin,xmax),verbosity,2)
+    LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f), frame=%s"%(nbins,xmin,xmax,frame),verbosity,2)
     if verbosity>=3:
-      print "Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex)
-      print "Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r"%(logx,logy,ycenter,intbins)
-      print "Plot.setaxes: nxdiv=%s, nydiv=%s"%(nxdivisions,nydivisions)
-      print "Plot.setaxes: lmargin=%.5g, _lmargin=%.5g"%(gPad.GetLeftMargin(),_lmargin)
-      print "Plot.setaxes: scale=%s, yscale=%s"%(scale,yscale)
-      print "Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g"%(xtitlesize,ytitlesize)
-      print "Plot.setaxes: xlabelsize=%.5g, ylabelsize=%.5g"%(xlabelsize,ylabelsize)
-      print "Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
+      print ">>> Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex)
+      print ">>> Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r, nxdiv=%s, nydiv=%s"%(logx,logy,ycenter,intbins,nxdivisions,nydivisions)
+      print ">>> Plot.setaxes: lmargin=%.5g, _lmargin=%.5g, scale=%s, yscale=%s"%(gPad.GetLeftMargin(),_lmargin,scale,yscale)
+      print ">>> Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g, xlabelsize=%.5g, ylabelsize=%.5g"%(xtitlesize,ytitlesize,xlabelsize,ylabelsize)
+      print ">>> Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
     
     if ratiorange:
       ymin, ymax  = 1.-ratiorange, 1.+ratiorange
@@ -546,7 +562,7 @@ class Plot(object):
     elif ymax==None:
       ymax = hmax*ymargin
     if logx:
-      if not xmin: xmin = 0.1
+      if not xmin: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
       xmax *= 0.9999999999999
       gPad.Update(); gPad.SetLogx()
     if grid:
@@ -1049,9 +1065,12 @@ class Plot(object):
         hist.SetMarkerSize(0.6)
         hist.SetMarkerColor(hist.GetLineColor()+1)
       elif pair:
+        color = colors[(i//2)%len(colors)]
+        if color>300 and i%2==1:
+          color += 1 # make darker
         hist.SetLineColor(colors[(i//2)%len(colors)])
         hist.SetLineStyle(styles[i%2])
-        hist.SetMarkerColor(hist.GetLineColor()+1)
+        hist.SetMarkerColor(color)
         if i%2==1: hist.SetMarkerSize(0.6)
         else:      hist.SetMarkerSize(0.0)
       else:
@@ -1069,8 +1088,9 @@ class Plot(object):
         #hist.SetLineWidth(0)
         hist.SetLineStyle(kSolid)
         hist.SetLineColor(hist.GetMarkerColor())
-      elif not mstyle:
-        hist.SetMarkerSize(0)
+      elif not mstyle: # no markers
+        hist.SetMarkerStyle(8)    # marker needed to allow line through end of error bars
+        hist.SetMarkerSize(0.01) # make invisible
     
   
   def setmarkerstyle(self, *hists, **kwargs):

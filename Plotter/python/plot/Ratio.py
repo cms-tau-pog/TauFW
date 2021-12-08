@@ -147,7 +147,7 @@ class Ratio(object):
       ratio.SetMaximum(ymax*1e10)
       if option:
         roption = option
-      elif (ratio.GetLineWidth()==0 or 'E' in ratio.GetOption()) and ratio.GetMarkerSize()>0:
+      elif (ratio.GetLineWidth()==0 or 'E' in ratio.GetOption()) and ratio.GetMarkerSize()>0.05:
         roption = ratio.GetOption() if 'E' in ratio.GetOption() else 'E'
       else:
         roption = 'HIST' if isinstance(ratio,TH1) else 'PE0'
