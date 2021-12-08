@@ -2,13 +2,14 @@
 # Author: Izaak Neutelings (August 2020)
 # Description: Simple plotting script for pico analysis tuples
 #   ./plot.py -c mutau -y 2018
+#   ./plot.py -c mutau -y 2018 -S baseline -V m_vis
 from config.samples import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
 
 
 def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era="",
-         varfilter=None,selfilter=None,pdf=False):
+         varfilter=None,selfilter=None,fraction=False,pdf=False):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plot")
   
@@ -30,7 +31,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
     #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
     #Sel("0b",baseline+" && nbtag==0",weight="btagweight"),
-    Sel(">=1b",baseline+" && nbtag>=1",weight="btagweight"),
+    #Sel(">=1b",baseline+" && nbtag>=1",weight="btagweight"),
   ]
   selections = filtervars(selections,selfilter) # filter variable list with -V flag
   
@@ -43,7 +44,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   ###dms = [0,1,10,11]
   ###for wp, wpcut in wps:
   ###  wpname  = wp.replace(" && !","-not")
-  ###  basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut)
+  ###  basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut) #+" && nbtag==0"
   ###  for i, ptlow in enumerate(pts):
   ###    if i<len(pts)-1: # ptlow < pt < ptup
   ###      ptup = pts[i+1]
@@ -118,7 +119,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
     for stack, variable in stacks.iteritems():
       #position = "" #variable.position or 'topright'
-      stack.draw()
+      stack.draw(fraction=fraction)
       stack.drawlegend() #position)
       stack.drawtext(text)
       stack.saveas(fname,ext=exts,tag=tag)
@@ -134,6 +135,7 @@ def main(args):
   notauidsf = args.notauidsf
   tag       = args.tag
   extratext = args.text
+  fraction  = args.fraction
   pdf       = args.pdf
   outdir    = "plots/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
@@ -142,19 +144,17 @@ def main(args):
       setera(era) # set era for plot style and lumi-xsec normalization
       addsfs = [ ] #"getTauIDSF(dm_2,genmatch_2)"]
       rmsfs  = [ ] if (channel=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
-      split  = ['DY','TT'] if 'tau' in channel else [ ] # split these backgrounds into tau components
+      split  = ['DY'] if 'tau' in channel else [ ] # split these backgrounds into tau components
       sampleset = getsampleset(channel,era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split) #,dyweight="")
       plot(sampleset,channel,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
-           varfilter=varfilter,selfilter=selfilter,pdf=pdf)
+           varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf)
       sampleset.close()
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
   channels = ['mutau','etau','mumu']
   eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018']
-  argv = sys.argv
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
@@ -167,6 +167,8 @@ if __name__ == "__main__":
                                          help="only plot the selection passing this filter (glob patterns allowed)" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
+  parser.add_argument('-F', '--fraction',dest='fraction', action='store_true',
+                                         help="include fraction stack in ratio plot" )
   parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',
                                          help="create pdf version of each plot" )
   parser.add_argument('-r', '--nosf',    dest='notauidsf', action='store_true',

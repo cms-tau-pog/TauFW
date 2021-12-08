@@ -67,6 +67,7 @@ class Stack(Plot):
     sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
     errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     norm         = kwargs.get('norm',         self.norm       ) # normalize all histograms
+    fraction     = kwargs.get('fraction',     False           ) # draw fraction stack in ratio plot
     xtitle       = kwargs.get('xtitle',       xtitle          ) # x axis title
     ytitle       = kwargs.get('ytitle',       self.ytitle     ) # y axis title (if None, automatically set by Plot.setaxis)
     rtitle       = kwargs.get('rtitle',       "Obs. / Exp."   ) # y axis title of ratio panel
@@ -75,9 +76,10 @@ class Stack(Plot):
     xmax         = kwargs.get('xmax',         self.xmax       )
     ymin         = kwargs.get('ymin',         self.ymin       )
     ymax         = kwargs.get('ymax',         self.ymax       )
-    rmin         = kwargs.get('rmin',         self.rmin       ) or 0.45 # ratio ymin
+    rmin         = kwargs.get('rmin',         self.rmin       ) or (0.0 if fraction else 0.45) # ratio ymin
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
+    print rmin, rmax, ratiorange
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
     labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
@@ -227,7 +229,7 @@ class Stack(Plot):
       self.canvas.cd(2)
       histden    = stack
       histnums   = [self.datahist]+self.sighists
-      self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,errorX=errorX,option=roption)
+      self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,errorX=errorX,option=roption,fraction=fraction)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,center=True,nydiv=506,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,

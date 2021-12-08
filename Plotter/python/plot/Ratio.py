@@ -15,18 +15,18 @@ class Ratio(object):
   
   def __init__(self, histden, *histnums, **kwargs):
     """Make a ratio of two histograms bin by bin. Second hist may be a stack, to do data / MC stack."""
-    verbosity      = LOG.getverbosity(kwargs)
-    self.ratios    = [ ]
-    self.errband   = None
-    self.title     = kwargs.get('title',       "ratio"     )
-    self.line      = kwargs.get('line',        True        )
-    self.drawzero  = kwargs.get('drawzero',    True        ) # draw ratio of two zero bins as 1
-    self.garbage   = [ ]
-    errband        = kwargs.get('errband',     None        ) # error band (e.g. stat. and/or sys. unc.)
-    option         = kwargs.get('option',      ""          )
-    denom          = kwargs.get('denom',       None        ) # histogram as denominator (count from 1)
-    errorX         = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
-    histnums       = unwraplistargs(histnums)
+    verbosity     = LOG.getverbosity(kwargs)
+    self.ratios   = [ ]
+    self.errband  = None
+    self.title    = kwargs.get('title',       "ratio"     )
+    self.line     = kwargs.get('line',        True        )
+    self.drawzero = kwargs.get('drawzero',    True        ) # draw ratio of two zero bins as 1
+    errband       = kwargs.get('errband',     None        ) # error band (e.g. stat. and/or sys. unc.)
+    option        = kwargs.get('option',      ""          )
+    denom         = kwargs.get('denom',       None        ) # histogram as denominator (count from 1)
+    errorX        = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
+    fraction      = kwargs.get('fraction',    None        ) # stack to make fraction for
+    histnums      = unwraplistargs(histnums)
     
     # SETUP NUMERATOR/DENOMINATOR
     if len(histnums)==0:
@@ -40,6 +40,8 @@ class Ratio(object):
       histden = histnums[denom]
       histnums.remove(histden)
     if isinstance(histden,THStack):
+      if fraction:
+        fraction = normalizebins(histden)
       histden = histden.GetStack().Last() # should have correct bin content and error
     #elif isinstance(histden,TGraph):
     #  LOG.error("Ratio.init: TGraph not implemented")
@@ -81,12 +83,15 @@ class Ratio(object):
       copystyle(self.errband,errband)
       #seterrorbandstyle(self.errband,style='hatched',color=errband.GetFillColor())
     
-    self.histden = histden
+    print 0,fraction
+    self.histden  = histden
+    self.fraction = fraction
     #self.frame   = self.histden.Clone("frame_ratio_%s"%(self.histden.GetName()))
     #self.frame.Reset() # make empty
     #self.frame.SetLineColor(0)
     #self.frame.SetLineWidth(0)
     #self.frame.SetMarkerSize(0)
+    self.garbage = [self.fraction,self.errband]
     
   
   def draw(self, option=None, **kwargs):
@@ -111,6 +116,7 @@ class Ratio(object):
     #self.frame  = gPad.DrawFrame(xmin,ymin,xmax,ymax)
     frame       = getframe(gPad,self.histden,xmin=xmin,xmax=xmax)
     self.frame  = frame
+    self.garbage.append(self.frame)
     
     frame.GetYaxis().SetTitle(ytitle)
     frame.GetXaxis().SetTitle(xtitle)
@@ -125,6 +131,10 @@ class Ratio(object):
     frame.GetYaxis().SetNdivisions(506)
     #frame.SetNdivisions(505)
     frame.Draw('HIST') # 'AXIS' breaks grid
+    
+    print 1, self.fraction
+    if self.fraction:
+      self.fraction.Draw('HIST SAME')
     
     if self.errband:
       self.errband.Draw('2 SAME')
@@ -142,6 +152,7 @@ class Ratio(object):
         self.line.SetLineWidth(self.histden.GetLineWidth())
         self.line.SetLineStyle(1)
       self.line.Draw('LSAME') # only draw line if a histogram has been drawn!
+      self.garbage.append(self.line)
     
     for ratio in self.ratios:
       ratio.SetMaximum(ymax*1e10)
@@ -162,13 +173,12 @@ class Ratio(object):
     """Delete the histograms."""
     for ratio in self.ratios:
       deletehist(ratio)
-    if self.frame:
-      deletehist(self.frame)
-    if self.errband:
-      deletehist(self.errband)
-    if self.line:
-      deletehist(self.line)
     for rubbish in self.garbage:
-      deletehist(rubbish)
+      if not rubbish: continue
+      if isinstance(rubbish,THStack):
+        for hist in rubbish.GetHists():
+          deletehist(hist)
+      else:
+        deletehist(rubbish)
     
   

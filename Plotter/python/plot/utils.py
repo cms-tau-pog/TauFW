@@ -59,7 +59,8 @@ def close(*hists,**kwargs):
   hists     = unwraplistargs(hists)
   for hist in hists:
     if isinstance(hist,THStack):
-      if verbosity>1: print '>>> close: Deleting histograms from stack "%s"...'%(hist.GetName())
+      if verbosity>1:
+        print '>>> close: Deleting histograms from stack "%s"...'%(hist.GetName())
       for subhist in hist.GetStack():
         deletehist(subhist,**kwargs)
       deletehist(hist,**kwargs)
@@ -532,6 +533,27 @@ def dividebybinsize(hist,**kwargs):
   return hist
   
 
+def normalizebins(oldstack,**kwargs):
+  """Normalize each bin of a stack."""
+  verbosity = LOG.getverbosity(kwargs)
+  tag   = kwargs.get('tag',  "binnorm" )
+  sname = kwargs.get('name', "%s_%s"%(oldstack.GetName(),tag) ) # treat poisson errors differently
+  LOG.verbose('normalizebins: %r -> %r'%(oldstack.GetName(),sname),verbosity,2)
+  nbins = oldstack.GetXaxis().GetNbins()
+  newstack = THStack(sname,oldstack.GetTitle())
+  #copystyle(newstack,oldstack)
+  for oldhist in oldstack.GetHists():
+    hname = "%s_%s"%(oldhist.GetName(),tag) 
+    newhist = oldhist.Clone(hname)
+    for ibin in xrange(0,nbins+2):
+      ytot = oldstack.GetStack().Last().GetBinContent(ibin)
+      if ytot>0:
+        newhist.SetBinContent(ibin,newhist.GetBinContent(ibin)/ytot)
+        #print ibin, newhist.GetBinContent(ibin), ytot
+    newstack.Add(newhist)
+  return newstack
+  
+
 def addoverflow(*hists,**kwargs):
   """Add overflow to last bin(s)."""
   verbosity = LOG.getverbosity(kwargs)
@@ -653,7 +675,6 @@ def resetbinning(axis,xmin=None,xmax=None,variable=False,**kwargs):
     xmax = xmax_ if xmax==None else xmax
     LOG.verb("resetbinning: width=%s, xmin=%s -> %s, xmax=%s -> %s"%(width,xmin_,xmin,xmax_,xmax),verbosity,3)
     if not variable and (xmax_-xmin)%width==0 and (xmax-xmin_)%width==0: # bin edges align
-      print 1
       nbins = (xmax-xmin)/width # new number of bins
       xbins = (nbins,xmin,xmax)
     else: # bin edges do not align; create a variable binning
