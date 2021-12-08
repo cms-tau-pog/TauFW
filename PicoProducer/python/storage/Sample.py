@@ -334,10 +334,11 @@ class Sample(object):
           LOG.warning("Did not find nevents of %s. Trying again..."%(fname))
           nevts = getnevents(fname,treename) # get nevents from file
         if nevts<1:
-          self.nempty += 1
           if skipempty:
             print ">>> Sample.writefiles: Skip %s with %s events..."%(fname,nevts)
             return
+          else:
+            self.nempty += 1
         fname = "%s:%d"%(fname,nevts) # write $FILENAM(:NEVTS)
       ofile.write(prefix+fname+'\n')
     paths = self.paths if '$PATH' in listname else [self.paths[0]]
