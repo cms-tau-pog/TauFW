@@ -43,11 +43,9 @@ def getsampleset(channel,era,**kwargs):
       ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight} ),
       ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight} ),
       ###( 'DY', "DYJetsToMuTauh_M-50",   "DYJetsToMuTauh_M-50", 5343.0, {'extraweight': dyweight} ),
-      ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
-      ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
-      ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
-      ( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
-      ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
@@ -55,13 +53,20 @@ def getsampleset(channel,era,**kwargs):
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+      ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
+      ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
+      ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
+      ( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
+      ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
     ]
   else:
     if era=='2016':
       expsamples = [ ] # table of MC samples to be converted to Sample objects
+      if k_nlo==1.0: # normalize 2016 to 2017/2018 NLO cross section
+        xsec16 = 235.0955656  # 235.0955656  = 226.6+7.77+0.4065+0.2334+0.03614+0.03047+0.01636+0.00218+0.0005156 2016
+        xsec17 = 257.10470838 # 257.10470838 = 247.8+8.502+0.4514+0.2558+0.04023+0.03406+0.01828+0.002367+0.0005409+3.048e-05 2017
+        k_nlo = xsec17/xsec16
+        print ">>> Using k_nlo = %.1f / %.1f = %.3f"%(xsec17,xsec16,k_nlo)
       if 'mass' in dysample:
         expsamples += [
           # GROUP NAME                       TITLE                   XSEC             EXTRA OPTIONS
@@ -87,11 +92,7 @@ def getsampleset(channel,era,**kwargs):
         ]
       expsamples += [
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-        ( 'WJ', "WJetsToLNu",            "W + jets",           50260.0  ),
-        ( 'WJ', "W1JetsToLNu",           "W + 1J",              9625.0  ),
-        ( 'WJ', "W2JetsToLNu",           "W + 2J",              3161.0  ),
-        ( 'WJ', "W3JetsToLNu",           "W + 3J",               954.8  ),
-        ( 'WJ', "W4JetsToLNu",           "W + 4J",               494.6  ),
+        ( 'TT', "TT",                    "ttbar",                831.76, {'extraweight': 'ttptweight'} ),
         ( 'VV', "WW",                    "WW",                    75.88 ),
         ( 'VV', "WZ",                    "WZ",                    27.6  ),
         ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
@@ -99,7 +100,11 @@ def getsampleset(channel,era,**kwargs):
         ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
         ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
         ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-        ( 'TT', "TT",                    "ttbar",                831.76, {'extraweight': 'ttptweight'} ),
+        ( 'WJ', "WJetsToLNu",            "W + jets",           50260.0  ),
+        ( 'WJ', "W1JetsToLNu",           "W + 1J",              9625.0  ),
+        ( 'WJ', "W2JetsToLNu",           "W + 2J",              3161.0  ),
+        ( 'WJ', "W3JetsToLNu",           "W + 3J",               954.8  ),
+        ( 'WJ', "W4JetsToLNu",           "W + 4J",               494.6  ),
       ]
     elif era=='2017':
       expsamples = [ ] # table of MC samples to be converted to Sample objects
@@ -129,11 +134,9 @@ def getsampleset(channel,era,**kwargs):
         ]
       expsamples += [
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-        ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
-        ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
-        ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
-        #( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
-        ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
+        ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
+        ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
+        ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
         ( 'VV', "WW",                    "WW",                    75.88 ),
         ( 'VV', "WZ",                    "WZ",                    27.6  ),
         ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
@@ -141,9 +144,11 @@ def getsampleset(channel,era,**kwargs):
         ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
         ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
         ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-        ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-        ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-        ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+        ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
+        ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
+        ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
+        #( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
+        ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
       ]
     elif era=='2018':
       expsamples = [ ] # table of MC samples to be converted to Sample objects
@@ -173,11 +178,9 @@ def getsampleset(channel,era,**kwargs):
         ]
       expsamples += [
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-        ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
-        ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
-        ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
-        ( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
-        ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
+        ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
+        ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
+        ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
         ( 'VV', "WW",                    "WW",                    75.88 ),
         ( 'VV', "WZ",                    "WZ",                    27.6  ),
         ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
@@ -185,9 +188,11 @@ def getsampleset(channel,era,**kwargs):
         ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
         ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
         ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-        ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-        ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-        ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+        ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
+        ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
+        ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
+        ( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
+        ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
       ]
     else:
       LOG.throw(IOError,"Did not recognize era %r!"%(era))
