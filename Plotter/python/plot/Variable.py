@@ -84,6 +84,7 @@ class Variable(object):
     self.ctxtitle    = getcontext(kwargs, self.title,     key='ctitle',   regex=True ) # context-dependent title
     self.ctxbins     = getcontext(kwargs, args,           key='cbins',    regex=True ) # context-dependent binning
     self.ctxposition = getcontext(kwargs, self.position,  key='cpos',     regex=True ) # context-dependent position
+    self.ctxncols    = getcontext(kwargs, self.ncols,     key='cncols',   regex=True ) # context-dependent ncols
     self.ctxblind    = getcontext(kwargs, self.blindcuts, key='cblind',   regex=True ) # context-dependent blind limits
     self.ctxymargin  = getcontext(kwargs, self.ymargin,   key='cymargin', regex=True ) # context-dependent ymargin
     self.ctxcut      = getcontext(kwargs, self.cut,       key='ccut',     regex=True ) # context-dependent cuts
@@ -242,6 +243,10 @@ class Variable(object):
       position = self.ctxposition.getcontext(*args)
       if position!=None:
         self.position = position
+    if self.ctxncols:
+      ncols = self.ctxncols.getcontext(*args)
+      if ncols!=None:
+        self.ncols = ncols
     if self.ctxymargin:
       ymargin = self.ctxymargin.getcontext(*args)
       if ymargin!=None:
