@@ -323,6 +323,7 @@ class Sample(object):
     kwargs.pop('ncores') # do not pass to Sample.getfiles
     kwargs['refresh'] = False # already got file list in Sample.filenevts
     files     = self.getfiles(**kwargs) # get right URL
+    self.nempty = 0 # number of files with zero events
     if not files:
       LOG.warning("Sample.writefiles: Did not find any files!")
     def _writefile(ofile,fname,prefix=""):
@@ -332,9 +333,11 @@ class Sample(object):
         if nevts<0:
           LOG.warning("Did not find nevents of %s. Trying again..."%(fname))
           nevts = getnevents(fname,treename) # get nevents from file
-        if skipempty and nevts<1:
-          print ">>> Sample.writefiles: Skip %s with %s events..."%(fname,nevts)
-          return
+        if nevts<1:
+          self.nempty += 1
+          if skipempty:
+            print ">>> Sample.writefiles: Skip %s with %s events..."%(fname,nevts)
+            return
         fname = "%s:%d"%(fname,nevts) # write $FILENAM(:NEVTS)
       ofile.write(prefix+fname+'\n')
     paths = self.paths if '$PATH' in listname else [self.paths[0]]
@@ -365,6 +368,8 @@ class Sample(object):
               _writefile(lfile,infile,prefix="  ")
             if i+1<len(self.paths): # add extra white line between blocks
               lfile.write("\n")
+    if self.nempty>0:
+      LOG.warning("Sample.writefiles: Written %d files with zero events. Use --skipempty to exclude."%(self.nempty))
   
   def loadfiles(self,listname_,**kwargs):
     verbosity = LOG.getverbosity(self,kwargs)

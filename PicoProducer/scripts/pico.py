@@ -539,7 +539,7 @@ if __name__ == "__main__":
                                                 help="get nevents per file")
   parser_wrt.add_argument('-S','--split',       dest='split', action='store_true',
                                                 help="split samples with multiple datasets (extensions)")
-  parser_wrt.add_argument('-E','--skipempty',   dest='skipempty', action='store_true',
+  parser_wrt.add_argument(     '--skipempty',   dest='skipempty', action='store_true',
                                                 help="do not write file with zero events")
   parser_wrt.add_argument('-T','--try',         dest='retries', type=int, default=1, action='store',
                                                 help="number of retries if file is not found")
