@@ -250,7 +250,7 @@ class ModuleTauPair(Module):
           ncjets50 += 1
       
       # B TAGGING
-      if jet.btagDeepB>self.deepjet_wp.medium and abs(jet.eta)<self.bjetCutEta:
+      if jet.btagDeepFlavB>self.deepjet_wp.medium and abs(jet.eta)<self.bjetCutEta:
         nbtag += 1
         bjets.append(jet)
     
@@ -278,24 +278,24 @@ class ModuleTauPair(Module):
       self.out.jpt_1[0]       = self.ptnom(jets[0])
       self.out.jeta_1[0]      = jets[0].eta
       self.out.jphi_1[0]      = jets[0].phi
-      self.out.jdeepb_1[0]    = jets[0].btagDeepB
+      self.out.jdeepjet_1[0]  = jets[0].btagDeepFlavB
     else:
       self.out.jpt_1[0]       = -1.
       self.out.jeta_1[0]      = -9.
       self.out.jphi_1[0]      = -9.
-      self.out.jdeepb_1[0]    = -9.
+      self.out.jdeepjet_1[0]  = -9.
     
     # SUBLEADING JET
     if len(jets)>1:
       self.out.jpt_2[0]       = self.ptnom(jets[1])
       self.out.jeta_2[0]      = jets[1].eta
       self.out.jphi_2[0]      = jets[1].phi
-      self.out.jdeepb_2[0]    = jets[1].btagDeepB
+      self.out.jdeepjet_2[0]  = jets[1].btagDeepFlavB
     else:
       self.out.jpt_2[0]       = -1.
       self.out.jeta_2[0]      = -9.
       self.out.jphi_2[0]      = -9.
-      self.out.jdeepb_2[0]    = -9.
+      self.out.jdeepjet_2[0]  = -9.
     
     # LEADING B JETS
     if len(bjets)>0:
@@ -319,7 +319,7 @@ class ModuleTauPair(Module):
     #    ptvar = 'pt_'+unc
     #    jets_var.sort(key=lambda j: getattr(j,ptvar),reverse=True)
     #    njets_vars[unc] = len(jets_var)
-    #    bjets_vars      = [j for j in jets_vars if j.btagDeepB > self.deepjet_wp.medium and abs(j.eta)<self.bjetCutEta]
+    #    bjets_vars      = [j for j in jets_vars if j.btagDeepFlavB>self.deepjet_wp.medium and abs(j.eta)<self.bjetCutEta]
     #    getattr(self.out,"njets_"+unc)[0] = njets_vars[unc]
     #    getattr(self.out,"nbtag_"+unc)[0] = len(bjets_vars)
     #    getattr(self.out,"jpt_1_"+unc)[0] = getattr(jets_var[0],ptvar) if len(jets_var)>=1 else -1

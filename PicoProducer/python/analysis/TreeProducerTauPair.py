@@ -93,11 +93,11 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('jpt_1',               'f', title="pT of leading jet")
     self.addBranch('jeta_1',              'f', title="eta of leading jet")
     self.addBranch('jphi_1',              'f', title="phi of leading jet")
-    self.addBranch('jdeepb_1',            'f', title="DeepCVS score of leading jet")
+    self.addBranch('jdeepjet_1',          'f', title="DeepJet score of leading jet")
     self.addBranch('jpt_2',               'f', title="pT of subleading jet")
     self.addBranch('jeta_2',              'f', title="eta of subleading jet")
     self.addBranch('jphi_2',              'f', title="phi of subleading jet")
-    self.addBranch('jdeepb_2',            'f', title="DeepCVS score of subleading jet")
+    self.addBranch('jdeepjet_2',          'f', title="DeepJet score of subleading jet")
     
     self.addBranch('bpt_1',               'f', title="pT of leading b jet")
     self.addBranch('beta_1',              'f', title="eta of leading jet")
