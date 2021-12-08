@@ -198,7 +198,8 @@ def main_write(args):
   split      = args.split      # split samples with multiple DAS dataset paths
   retries    = args.retries    # retry if error is thrown
   getnevts   = args.getnevts   # check nevents in local files
-  ncores     = args.ncores   # number of cores to get nevents in parallel
+  skipempty  = args.skipempty  # do not write empty events
+  ncores     = args.ncores     # number of cores to get nevents in parallel
   verbosity  = args.verbosity
   cfgname    = CONFIG._path
   if verbosity>=1:
@@ -246,7 +247,7 @@ def main_write(args):
           #infiles = sample.getfiles(das=checkdas,url=inclurl,limit=limit,verb=verbosity+1)
           flistname = repkey(listname,ERA=era,GROUP=sample.group,SAMPLE=sample.name) #,TAG=tag
           try:
-            sample.writefiles(flistname,nevts=getnevts,das=checkdas,refresh=checkdas,ncores=ncores,verb=verbosity)
+            sample.writefiles(flistname,nevts=getnevts,skipempty=skipempty,das=checkdas,refresh=checkdas,ncores=ncores,verb=verbosity)
           except IOError as err: # one of the ROOT file could not be opened
             print "IOError: "+err.message
             if retry<retries and sample not in sampleset[retry+1]: # try again after the others
@@ -538,6 +539,8 @@ if __name__ == "__main__":
                                                 help="get nevents per file")
   parser_wrt.add_argument('-S','--split',       dest='split', action='store_true',
                                                 help="split samples with multiple datasets (extensions)")
+  parser_wrt.add_argument('-E','--skipempty',   dest='skipempty', action='store_true',
+                                                help="do not write file with zero events")
   parser_wrt.add_argument('-T','--try',         dest='retries', type=int, default=1, action='store',
                                                 help="number of retries if file is not found")
   parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,

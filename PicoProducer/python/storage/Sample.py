@@ -315,6 +315,7 @@ class Sample(object):
     If there is more than one DAS dataset path, write lists separately for each path."""
     kwargs    = kwargs.copy() # do not edit given dictionary
     writeevts = kwargs.pop('nevts',False) # also write nevents to file
+    skipempty = kwargs.pop('skipempty',False) # do not write files with zero events
     listname  = repkey(listname,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
     ensuredir(os.path.dirname(listname))
     filenevts = self.getfilenevts(checkfiles=True,**kwargs) if writeevts else None
@@ -323,7 +324,7 @@ class Sample(object):
     kwargs['refresh'] = False # already got file list in Sample.filenevts
     files     = self.getfiles(**kwargs) # get right URL
     if not files:
-      LOG.warning("writefiles: Did not find any files!")
+      LOG.warning("Sample.writefiles: Did not find any files!")
     def _writefile(ofile,fname,prefix=""):
       """Help function to write individual files."""
       if writeevts: # add nevents at end of infile string
@@ -331,6 +332,9 @@ class Sample(object):
         if nevts<0:
           LOG.warning("Did not find nevents of %s. Trying again..."%(fname))
           nevts = getnevents(fname,treename) # get nevents from file
+        if skipempty and nevts<1:
+          print ">>> Sample.writefiles: Skip %s with %s events..."%(fname,nevts)
+          return
         fname = "%s:%d"%(fname,nevts) # write $FILENAM(:NEVTS)
       ofile.write(prefix+fname+'\n')
     paths = self.paths if '$PATH' in listname else [self.paths[0]]
@@ -407,10 +411,10 @@ class Sample(object):
                 nevts  = int(match.group(2))
                 filenevts[infile] = nevts # store/cache in dictionary
                 nevents += nevts
+                if self.verbosity>=3:
+                  print ">>> %7d events for %s"%(nevts,infile)
               filelist.append(infile)
               self.pathfiles[path].append(infile)
-              if self.verbosity>=3:
-                print ">>> %7d events for %s"%(nevts,infile)
         if not filelist:
           LOG.warning("loadfiles: Did not find any files in %s!"%(listname_))
           self.refreshable = True
