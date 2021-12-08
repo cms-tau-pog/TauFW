@@ -34,7 +34,15 @@ Again, you should set up (by hardcoding) era, eta range and DeepTau WP for which
 The `--PO` option of the `text2workspace.py` allows you to set up the POI of your fit (for ETau FR, the POI is the pre-fit fake rate).
 You can set up other options for your purpose.
 
-### Plotting code
+### Plotting code (deprecated)
+To create pre and post fit plots of the observable you have used into the fit, you can use the `plotpostfit.py` script into the `Plotter` folder.
+Please check the documentation in [plotting tool of parent directory](https://github.com/cms-tau-pog/TauFW/blob/master/Fitter/paper/plotpostfit.py) for instructions. To run please use the following command:
+```
+python plotpostfit.py -c et -y <ERA> -w <Working Point>
+```
+Plots are created automatically for both PASS and FAIL regions.
+
+#### Plotting code (deprecated)
 To create pre and post fit plots of the observable you have used into the fit, you can use the `PlotShapes.C` script into the `Plotter` folder.
 To create a single plot, you should set up (by hardcoding) era, eta range, and DeepTau WP, and you can choose Fail or Pass and pre-fit or post-fit plots in `PlotShapes.C`.
 ```
@@ -46,3 +54,7 @@ You should only set up (by hardcoding) era and eta range in `FastPlot.sh`
 
 Plots will be stored as `.pdf` and `.png` files in the `Pre-PostFitPlots` folder.
 They will be also stored as `.root` files in the `rootFilesOfPlots` folder.
+
+### Create ROOT and JSON SF files
+The scripts `tau_ltf.py` is used to write the measured SFs in ROOT format, while `tau_createJSONs_VSe.py` is used to produce the associated JSON files.
+The scripts need to be edited by hardcoding the values of the measured SFs for the appropriate eta region and era.
