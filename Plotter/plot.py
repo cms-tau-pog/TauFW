@@ -13,20 +13,53 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   LOG.header("plot")
   
   # SELECTIONS
-  if 'mutau' in channel:
-    baseline  = "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
+  if 'mumu' in channel:
+    baseline = "q_1*q_2<0 && pt_2>15 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && metfilter && m_ll>20"
+  elif 'mutau' in channel:
+    baseline = "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
   elif 'etau' in channel:
-    baseline  = "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
+    baseline = "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
+  elif 'tautau' in channel:
+    baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20 && metfilter"
   else:
-    baseline  = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20 && metfilter"
-  zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline)
+    raise IOError("No baseline selection for channel %r defined!"%(channel))
+  zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5 && nbtag==0"%(baseline)
   selections = [
     #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16","")),
     Sel("baseline",baseline),
-    #Sel("baseline, pt > 29 GeV",baseline+" && pt_1>29 GeV && pt_1>20 GeV"),
+    #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
     #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
+    #Sel("0b",baseline+" && nbtag==0",weight="btagweight"),
+    Sel(">=1b",baseline+" && nbtag>=1",weight="btagweight"),
   ]
   selections = filtervars(selections,selfilter) # filter variable list with -V flag
+  
+  #### DIFFERENTIAL pt/DM bins for TauID measurement
+  ###wps = [
+  ###  #('Medium',"idDeepTau2017v2p1VSjet_2>=16"),
+  ###  ('VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16")
+  ###]
+  ###pts = [20,30,40,50,70]
+  ###dms = [0,1,10,11]
+  ###for wp, wpcut in wps:
+  ###  wpname  = wp.replace(" && !","-not")
+  ###  basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut)
+  ###  for i, ptlow in enumerate(pts):
+  ###    if i<len(pts)-1: # ptlow < pt < ptup
+  ###      ptup = pts[i+1]
+  ###      name = "%s_pt%d-%d"%(wpname,ptlow,ptup)
+  ###      tit  = "%s, %d < pt < %d GeV"%(wp,ptlow,ptup)
+  ###      cut  = "%s && %s<pt_2 && pt_2<%s"%(basecut,ptlow,ptup)
+  ###    else: # pt > ptlow (no upper pt cut)
+  ###      name = "%s_pt%d-Inf"%(wpname,ptlow)
+  ###      tit  = "%s, pt > %d GeV"%(wp,ptlow)
+  ###      cut  = "%s && pt_2>%s"%(basecut,ptlow)
+  ###    selections.append(Sel(name,tit,cut,only=['m_vis','m_2','mapRecoDM']))
+  ###    for dm in dms:
+  ###      name_ = "%s_dm%s"%(name,dm)
+  ###      tit_  = "%s, DM%s"%(tit,dm)
+  ###      cut_  = "%s && dm_2==%s"%(cut,dm)
+  ###      selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2']))
   
   # VARIABLES
   variables = [
@@ -41,6 +74,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     Var("jeta_2", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
     Var('npv',    40,  0,  80),
     Var('njets',   8,  0,   8),
+    Var('nbtag', "Number of b jets (Medium, pt > 30 GeV)", 8, 0, 8),
     Var('met',    50,  0, 150),
     Var('genmet', 50,  0, 150, fname="$VAR_log", logyrange=5, data=False, logy=True),
     Var('pt_ll',   "p_{T}(mutau_h)", 25, 0, 200, ctitle={'etau':"p_{T}(etau_h)",'tautau':"p_{T}(tau_htau_h)",'emu':"p_{T}(emu)"}),
@@ -48,10 +82,13 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     Var('deta_ll', "deta(mutau_h)",  20, 0, 6.0, ctitle={'etau':"deta(etau_h)",'tautau':"deta(tautau)",'emu':"deta(emu)"},logy=True,pos='TRR',cbins={"abs(deta_ll)<":(10,0,3)}), #, ymargin=8, logyrange=2.6
     Var('dzeta',  56, -180, 100, pos='L;y=0.88',units='GeV'),
   ]
-  if 'tau' in channel:
+  if 'tau' in channel: # mutau, etau, tautau
     loadmacro("python/macros/mapDecayModes.C") # for mapRecoDM
     dmlabels  = ["h^{#pm}","h^{#pm}h^{0}","h^{#pm}h^{#mp}h^{#pm}","h^{#pm}h^{#mp}h^{#pm}h^{0}","Other"]
     variables += [
+      Var('m_vis',          40,  0, 200, fname="mvis",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt>":(50,0,250),"pt>100":(35,0,350)},cpos={"pt>[1678]0":'ML'}),
+      Var('m_vis',          20,  0, 200, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt>":(25,0,250),"pt>100":(18,0,360)},cpos={"pt>[1678]0":'ML'}),
+      Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag"]),
       Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",ymargin=1.2),
       Var("mapRecoDM(dm_2)", 5,  0,   5, fname="dm_2_label",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",labels=dmlabels,ymargin=1.2),
       #Var("pzetavis", 50,    0, 200 ),
@@ -59,7 +96,6 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 20, 0.80, 1, fname="$VAR_zoom",ncols=2,pos='L;y=0.85'),
       Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   30, 0.70, 1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=4,pos='L;y=0.85'),
       Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  20, 0.80, 1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=5,pos='L;y=0.85'),
-      Var('m_vis',  40,  0, 200, ctitle={'mumu':"m_mumu",'emu':"m_emu"}),
     ]
   elif 'mumu' in channel:
     variables += [
@@ -74,8 +110,9 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   outdir   = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
   exts     = ['png','pdf'] if pdf else ['png'] # extensions
   for selection in selections:
+    print ">>> Selection %r: %r"%(selection.title,selection.selection)
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',parallel=parallel)
-    fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel,selection.filename,era)
+    fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
@@ -105,7 +142,8 @@ def main(args):
       setera(era) # set era for plot style and lumi-xsec normalization
       addsfs = [ ] #"getTauIDSF(dm_2,genmatch_2)"]
       rmsfs  = [ ] if (channel=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
-      sampleset = getsampleset(channel,era,fname=fname,rmsf=rmsfs,addsf=addsfs) #,dyweight="")
+      split  = ['DY','TT'] if 'tau' in channel else [ ] # split these backgrounds into tau components
+      sampleset = getsampleset(channel,era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split) #,dyweight="")
       plot(sampleset,channel,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
            varfilter=varfilter,selfilter=selfilter,pdf=pdf)
       sampleset.close()

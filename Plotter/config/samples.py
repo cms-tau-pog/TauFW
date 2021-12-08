@@ -8,7 +8,7 @@ def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
   year   = getyear(era) # get integer year
   fname  = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
-  split  = kwargs.get('split',  ['DY']       ) # split samples (e.g. DY) into genmatch components
+  split  = kwargs.get('split',  ['DY'] if 'tau' in channel else [ ] ) # split samples (e.g. DY) into genmatch components
   join   = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
   rmsfs  = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
   addsfs = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
@@ -18,6 +18,9 @@ def getsampleset(channel,era,**kwargs):
   tag    = kwargs.get('tag',    ""           )
   table  = kwargs.get('table',  True         ) # print sample set table
   setera(era) # set era for plot style and lumi-xsec normalization
+  if 'TT' in split and 'Top' in join: # don't join TT & ST
+    join.remove('Top')
+    join += ['TT','ST']
   
   # SM BACKGROUND MC SAMPLES
   if 'UL' in era: # UltraLegacy
@@ -190,9 +193,9 @@ def getsampleset(channel,era,**kwargs):
   #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M10to50" )
   
   # JOIN
-  sampleset.join('DY', name='DY'  ) # Drell-Yan, M < 50 GeV + M > 50 GeV
+  sampleset.join('DY', name='DY' ) # Drell-Yan, M < 50 GeV + M > 50 GeV
   if 'VV' in join:
-    sampleset.join('VV','WZ','WW','ZZ', name='VV'  ) # Diboson
+    sampleset.join('VV','WZ','WW','ZZ', name='VV' ) # Diboson
   if 'TT' in join and era!='year':
     sampleset.join('TT', name='TT' ) # ttbar
   if 'ST' in join:
