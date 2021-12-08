@@ -10,7 +10,8 @@ from ROOT import gROOT, gSystem
 gROOT.Macro('weights/zptweight.C+')
 from ROOT import loadZptWeights
 
-baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
+baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && metfilter && m_ll>20"
+#baseline = "q_1*q_2<0 && pfRelIso04_all_1<0.15 && pfRelIso04_all_2<0.15 && !extraelec_veto && !extramuon_veto && m_vis>20" # old
 ptitle   = "p_{T}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
 pgtitle  = "Z p_{T}"
@@ -19,53 +20,68 @@ Zmbins0  = [20,30,40,50,60,70,80,85,88,89,89.5,90,90.5,91,91.5,92,93,94,95,100,1
 Zmbins1  = [0,50,70,91,110,150,200,400,800,1500]
 ptbins0  = [0,5,10,15,20,25,30,35,40,45,50,60,70,100,140,200,300,500,1000]
 ptbins1  = [0,5,15,30,50,100,200,500,1000]
-nurbins  = (len(Zmbins1)-1)*(len(ptbins1)-1) # number of 2D bins (excl. under-/overflow)
-urbins0  = (nurbins,1,1+nurbins) # unrolled
-urlabels1 = [str(i) if i%(len(ptbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
-urlabels2 = [str(i) if i%(len(Zmbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
 dRbins   = [0,0.4,1.0,1.5,2.0]+frange(2.2,5.61,0.2)+[6.0]
 
 
-def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=False,verb=0):
+def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=False,dy='jets',verb=0):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plot %s"%(tag.strip('_')))
+  global Zmbins1, ptbins1
   
   # ERA
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   dyweight  = weight #"zptweight"
   #sampleset = getsampleset('mutau','UL2018',fname=fname,dyweight=weight,dy="") # check stitching
   #sampleset = getsampleset(channel,era,fname=fname,dyweight="") # no Z pt reweighting
-  sampleset = getsampleset(channel,era,fname=fname,dyweight=weight,dy="")
+  sampleset = getsampleset(channel,era,fname=fname,dyweight=weight,dy=dy)
   #sampleset = getsampleset(channel,era,fname=fname,dyweight=dyweight)
   
   # SELECTIONS
   selections = [
-    Sel('baseline',                  baseline),
-    #Sel('baseline, met<50 GeV',      baseline+" && met<50", fname="baseline-metlt50"),
-    #Sel('m_{mumu} > 200 GeV',        baseline+" && m_vis>200", fname="mgt200"),
-    #Sel('0j, m_{mumu} > 200 GeV',    baseline+" && m_vis>200 && njets50==0", fname="0j-mgt200"),
-    #Sel('0j, 200 GeV < m_{mumu} < 400 GeV', baseline+" && m_vis>200 && m_vis<400 && njets50==0", fname="0j-mgt200-400"),
+    Sel('baseline',                   baseline),
+    #Sel('baseline, met<50 GeV',       baseline+" && met<50", fname="baseline-metlt50"),
+    #Sel('m_{mumu} > 110 GeV',         baseline+" && pt_1>50 && pt_2>50 && m_vis>110", fname="mgt110"),
+    #Sel('m_{mumu} > 200 GeV',         baseline+" && pt_1>50 && pt_2>50 && m_vis>200", fname="mgt200"),
+    #Sel('0j, m_{mumu} > 200 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && njets50==0", fname="0j-mgt200"),
+    #Sel('0cj, m_{mumu} > 200 GeV',    baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && ncjets50==0", fname="0cj-mgt200"),
+    #Sel('0j, 200 GeV < m_{mumu} < 400 GeV',        baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && m_vis<400 && njets50==0", fname="0j-mgt200-400"),
+    #Sel('0cj, 200 GeV < m_{mumu} < 400 GeV',       baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && m_vis<400 && ncjets50==0", fname="0cj-mgt200-400"),
+    #Sel('m_{mumu} > 200 GeV, #LT#eta#GT<1.1',      baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && (eta_1+eta_2)/2<1.1 && deta_ll<3", fname="mgt200-etalt1p1"),
+    #Sel('0j, m_{mumu} > 200 GeV, #LT#eta#GT<1.1',  baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && (eta_1+eta_2)/2<1.1 && deta_ll<3 && njets50==0", fname="0j-mgt200-etalt1p1"),
+    #Sel('0cj, m_{mumu} > 200 GeV, #LT#eta#GT<1.1', baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && (eta_1+eta_2)/2<1.1 && deta_ll<3 && ncjets50==0", fname="0cj-mgt200-etalt1p1"),
+    #Sel('0j, 200 GeV < m_{mumu} < 400 GeV, (eta_1+eta_2)<2.2',  baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && m_vis<400 && njets50==0", fname="0j-mgt200-400-etalt1p1"),
+    #Sel('0cj, 200 GeV < m_{mumu} < 400 GeV, (eta_1+eta_2)<2.2', baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && m_vis<400 && ncjets50==0", fname="0cj-mgt200-400-etalt1p1"),
   ]
   
   # VARIABLES
+  if dy=='mass':
+    Zmbins1     = [110,150,200,400,600,1500]
+    ptbins1     = [0,3,5,7,11,15,30,50,100,200,500,1000]
+  nurbins  = (len(Zmbins1)-1)*(len(ptbins1)-1) # number of 2D bins (excl. under-/overflow)
+  urbins0  = (nurbins,1,1+nurbins) # unrolled
+  urlabels1 = [str(i) if i%(len(ptbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
+  urlabels2 = [str(i) if i%(len(Zmbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
   variables = [
     Var('pt_1',  "Leading muon pt",     40,  0,  120, cbins={"m_vis>200":(25,20,270)} ),
     Var('pt_2',  "Subleading muon pt",  40,  0,  120, cbins={"m_vis>200":(25,20,270)} ),
     Var('eta_1', "Leading muon eta",    30, -3,    3, ymargin=1.6, pos='T', ncols=2),
     Var('eta_2', "Subleading muon eta", 30, -3,    3, ymargin=1.6, pos='T', ncols=2),
-    Var('m_ll',  "m_mumu",              40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
-    Var('m_ll',  "m_mumu",              40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
-    Var('m_ll',  "m_mumu",              40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
+    Var('m_ll',  "m_mumu",              40,  0,  200, fname="$VAR", cbins={"m_vis>":(36,100,1000),"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
+    Var('m_ll',  "m_mumu",              40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>":(36,100,1000),"m_vis>200":(30,200,1000)} ),
+    Var('m_ll',  "m_mumu",              40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>110","m_vis>200"] ),
     Var('m_ll',  "m_mumu",              Zmbins1,      fname="$VAR_tail", logy=True, ymin=1e-1, logyrange=6 ), #cbins={"m_vis>200":Zmbins3}
     #Var('mt_1',  "mt(mu,MET)", 40,  0, 200),
-    Var("jpt_1",  29,   10,  300, veto=[r"njets\w*==0"]),
-    Var("jpt_2",  29,   10,  300, veto=[r"njets\w*==0"]),
-    #Var("jeta_1", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
-    #Var("jeta_2", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
-    Var('njets',   8,  0,   8),
-    Var('met',    50,  0, 150),
+    Var("jpt_1",    29,   10,  300, veto=[r"njets\w*==0"]),
+    Var("jpt_2",    29,   10,  300, veto=[r"njets\w*==0"]),
+    Var("jeta_1",   53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
+    Var("jeta_2",   53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
+    Var('njets',     8,  0,   8),
+    Var('njets50',   8,  0,   8),
+    Var('ncjets',    8,  0,   8),
+    Var('ncjets50',  8,  0,   8),
+    Var('met',      50,  0, 150),
     Var('pt_ll',   "pt(mumu)",    25, 0, 200, cbins={"m_vis>200":ptbins0}),
-    Var('pt_ll',   "pt(mumu)",    25, 0, 200, fname="$VAR_log", logy=True, logx=True, ymin=1e4, pos='RR', cbins={"m_vis>200":ptbins0}),
+    Var('pt_ll',   "pt(mumu)",    25, 0, 200, fname="$VAR_log", logy=True, logx=True, ymin=1e2, pos='RR', cbins={"m_vis>200":ptbins0}),
     Var('pt_ll',   "pt(mumu)",    50, 0, 500, fname="$VAR_500", logy=True, ymin=5e1, pos='RR'),
     Var('dR_ll',   "DR(mumu)",    30, 0, 6.0 ),
     Var('dR_ll',   "DR(mumu)",    dRbins, fname="$VAR_log", logy=True, pos='Ly=0.88', logyrange=7, ymargin=1.6),
@@ -89,6 +105,7 @@ def plot(era,channel,weight="",tag="",title="",outdir="plots",parallel=True,pdf=
   outdir   = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
   exts     = ['png','pdf'] if pdf else ['png'] # extensions
   for selection in selections:
+    if 'mgt200' in tag and 'm_vis>' not in selection.selection: continue
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',parallel=parallel)
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu',"m"),selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
@@ -124,28 +141,34 @@ def main(args):
   eras      = args.eras
   parallel  = args.parallel
   pdf       = args.pdf
+  dytype    = args.dytype
   outdir    = "plots/$ERA"
   verbosity = args.verbosity
   tag       = ""
   for era in eras:
+    setera(era) # set era for plot style and lumi-xsec normalization
     for channel in channels:
-      fname1D = "weights/zpt_weights_%s.root"%(era)
-      fname2D = "weights/zptmass_weights_%s.root"%(era)
-      #fname = "weights/zpt_weight_0j-mgt200_%s.root"%(era)
-      setera(era) # set era for plot style and lumi-xsec normalization
-      plot(era,channel,weight="",title="no reweighting",tag="_noweight",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
-      #loadZptWeights("0j-mgt200_"+era,"zpt_weight_reco")
-      #plot(era,channel,weight="getZptWeight(pt_ll)",title="reco. weight",tag="_recoweight",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
-      #loadZptWeights(era,"zpt_weight")
-      #loadZptWeights("0j-mgt200_"+era,"zpt_weight")
-      #plot(era,channel,weight="getZptWeight(pt_moth)",title="gen. weight",tag="_genweight",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
-      loadZptWeights(fname1D,"zpt_weight")
-      plot(era,channel,weight="getZptWeight(pt_moth)",title="unfolded 1D weight",tag="_weight1D",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
-      loadZptWeights(fname1D,"zpt_recoweight")
-      plot(era,channel,weight="getZptWeight(pt_moth)",title="reco. 1D weight",tag="_recoweight1D",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
-      loadZptWeights(fname2D,"zptmass_weight")
-      plot(era,channel,weight="getZptWeight(pt_moth,m_moth)",title="unfolded 2D weight",tag="_weight2D",outdir=outdir,parallel=parallel,pdf=pdf,verb=verbosity)
-  
+      plot(era,channel,weight="",title="no reweighting",tag="_noweight",outdir=outdir,parallel=parallel,pdf=pdf,dy=dytype,verb=verbosity)
+      if dytype=='mass': # mass-binned samples
+        fname1D = "weights/zpt_weights_mgt110_%s.root"%(era) # m_mumu > 110
+        #fname1D = "weights/zpt_weights_mgt200_%s.root"%(era) # m_mumu > 200
+        fname2D = "weights/zptmass_weights_mgt110_%s.root"%(era)
+        loadZptWeights(fname1D,"zpt_weight")
+        plot(era,channel,weight="getZptWeight(pt_moth)",title="unfolded 1D weight",tag="_weight1D_mgt110",outdir=outdir,parallel=parallel,pdf=pdf,dy=dytype,verb=verbosity)
+        loadZptWeights(fname2D,"zptmass_weight")
+        plot(era,channel,weight="getZptWeight(pt_moth,m_moth)",title="unfolded 2D weight",tag="_weight2D_mgt110",outdir=outdir,parallel=parallel,pdf=pdf,dy=dytype,verb=verbosity)
+        ###loadZptWeights("weights/zptnjets_weights_mgt200_%s.root"%(era),"zptnjets_weight")
+        ###plot(era,channel,weight="getZptWeight(pt_moth,njets)",title="unfolded 2D weight",tag="_weight2D_njets",outdir=outdir,parallel=parallel,pdf=pdf,dy=dytype,verb=verbosity)
+      else: # jet-binned samples
+        fname1D = "weights/zpt_weights_%s.root"%(era)
+        fname2D = "weights/zptmass_weights_%s.root"%(era)
+        ###loadZptWeights(fname1D,"zpt_weight_reco")
+        ###plot(era,channel,weight="getZptWeight(pt_ll)",title="reco. 1D weight",tag="_recoweight1D",outdir=outdir,parallel=parallel,pdf=pdf,dy=dytype,verb=verbosity)
+        loadZptWeights(fname1D,"zpt_weight")
+        plot(era,channel,weight="getZptWeight(pt_moth)",title="unfolded 1D weight",tag="_weight1D",outdir=outdir,parallel=parallel,pdf=pdf,dy=dytype,verb=verbosity)
+        loadZptWeights(fname2D,"zptmass_weight")
+        plot(era,channel,weight="getZptWeight(pt_moth,m_moth)",title="unfolded 2D weight",tag="_weight2D",outdir=outdir,parallel=parallel,pdf=pdf,dy=dytype,verb=verbosity)
+    
 
 if __name__ == "__main__":
   import sys
@@ -157,6 +180,8 @@ if __name__ == "__main__":
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mumu'], default=['mumu'], action='store',
                                          help="set channel" )
+  parser.add_argument(      '--dy',      dest='dytype', type=str, default='jet', action='store',
+                                         help="DY type: 'jet' (default), 'mass'" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',

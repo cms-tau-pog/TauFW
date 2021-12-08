@@ -2,6 +2,8 @@
 # Author: Izaak Neutelings (May 2021)
 # Description: Script to measure Z pt reweighting based on dimuon events
 #   ./measureZpt.py -y 2018
+#   ./measureZpt.py -y 2018 -m 1 --dy mass
+#   ./measureZpt.py -y 2018 -m 2 --dy mass -Y njets
 from utils import *
 from TauFW.Plotter.plot.Plot2D import Plot2D, addoverflow, capoff
 from TauFW.common.tools.math import scalevec
@@ -12,24 +14,28 @@ ptitle   = "p_{T}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
 pgtitle  = "Z p_{T}"
 mgtitle  = "m_{#mu#mu}" #"m_{Z}"
-baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20"
+njtitle  = "number of jets"
+baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && metfilter && m_ll>20"
+#baseline = "q_1*q_2<0 && pfRelIso04_all_1<0.15 && pfRelIso04_all_2<0.15 && !extraelec_veto && !extramuon_veto && metfilter && m_vis>20" # old
 Zmbins0  = [20,30,40,50,60,70,80,85,88,89,89.5,90,90.5,91,91.5,92,93,94,95,100,110,120,180,500,1000]
 Zmbins1  = [10,50,70,91,110,150,200,400,800,1500]
 ptbins0  = [0,3,6,8,10,12,15,20,25,30,35,40,45,50,60,70,100,140,200,300,500,1000]
-ptbins1  = [0,5,10,15,30,50,100,200,500,1000]
+ptbins1  = [0,3,5,7,11,15,30,50,100,200,500,1000]
+njbins1  = [0,1,10]
 
 
-def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag="",verb=0):
+def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag="",dy='jets',yvar='mass',verb=0):
   """Measure Z pT weights in dimuon pT and mass by unfolding.
   Unroll 2D histogram using the Unroll.cxx macro to 1D histogram (with integer bin numbers)."""
   LOG.header("measureZptmass_unfold()")
   gROOT.ProcessLine(".L ../../Plotter/python/macros/Unroll.cxx+O")
   from ROOT import Unroll
+  global Zmbins1, ptbins1
   
   # SETTINGS
   niter       = 4 # number of iterations in RooUnfoldBayes
   kterm       = (len(Zmbins1)-1)*(len(ptbins1)-1)/2. # kterm in RooUnfoldSvd
-  hname       = 'zptmass'
+  hname       = 'zptnjets' if yvar=='njets' else 'zptmass'
   fname       = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
   pname       = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
   outdir      = ensuredir(outdir) #repkey(outdir,CHANNEL=channel,ERA=era))
@@ -49,22 +55,46 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   selections = [
     Sel('Baseline #mu#mu',             baseline,              fname="baseline"),
     #Sel('Baseline #mu#mu, met<50 GeV', baseline+" && met<50", fname="metlt50"),
-    #Sel('Baseline #mu#mu, met<40 GeV', baseline+" && met<40", fname="metlt40"),
+    #Sel('m_{mumu} > 110 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>110", fname="mgt110"),
+    #Sel('m_{mumu} > 200 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>200", fname="mgt200"),
+    #Sel('m_{mumu} > 200 GeV, #LT#eta#GT<1.1', baseline+" && pt_1>50 && pt_2>50 && (eta_1+eta_2)/2<1.1 && deta_ll<3 && m_vis>200", fname="mgt200-etalt1p1"),
   ]
   
   # VARIABLES
-  nurbins  = (len(Zmbins1)-1)*(len(ptbins1)-1) # number of 2D bins (excl. under-/overflow)
-  urbins0  = (nurbins,1,1+nurbins) # unrolled
-  urlabels1 = [str(i) if i%(len(ptbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
-  urlabels2 = [str(i) if i%(len(Zmbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
-  xvar_reco   = Var('pt_ll',  ptbins1,"Reconstructed "+ptitle,logx=logx,logy=logy,addof=addof) # reconstructed pt_mumu
-  yvar_reco   = Var('m_ll',   Zmbins1,"Reconstructed "+mtitle,logx=logx,logy=logy,addof=addof) # reconstructed m_mumu
-  xvar_gen    = Var('pt_moth',ptbins1,"Generated "+pgtitle,logx=logx,logy=logy,addof=addof) # generated Z boson pt
-  yvar_gen    = Var('m_moth', Zmbins1,"Generated "+mgtitle,logx=logx,logy=logy,addof=addof) # generated Z boson mass
-  bvar_reco   = Var('Unroll::GetBin(pt_ll,m_ll,0,1)',"Reconstructed %s bin"%(ptitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
-  bvar_gen    = Var('Unroll::GetBin(pt_moth,m_moth,0,1)',"Generated %s bin"%(pgtitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
-  bvar_reco_T = Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed %s bin"%(mtitle),*urbins0,units=False,labels=urlabels2) # unroll bin number, transposed
-  print ">>> 2D bins: %d = %d pt bins x %d mass bins"%(bvar_reco.nbins,xvar_reco.nbins,yvar_reco.nbins)
+  if dy=='mass':
+    Zmbins1     = [110,150,200,400,600,1500]
+    ptbins1     = [0,3,5,7,11,15,30,50,100,200,500,1000]
+  if yvar=='njets': # use njets vs. pt_mumu
+    xminy       = 0
+    ytitle      = njtitle
+    nurbins     = (len(njbins1)-1)*(len(ptbins1)-1) # number of 2D bins (excl. under-/overflow)
+    urbins0     = (nurbins,1,1+nurbins) # unrolled
+    urlabels1   = [str(i) if i%(len(ptbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
+    urlabels2   = [str(i) if i%(len(njbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
+    xvar_reco   = Var('pt_ll',  ptbins1,"Reconstructed "+ptitle,logx=logx,logy=logy,addof=addof) # reconstructed pt_mumu
+    yvar_reco   = Var('njets50',njbins1,"Reconstructed "+njtitle,logx=False,logy=logy,addof=addof) # reconstructed njets
+    xvar_gen    = Var('pt_moth',ptbins1,"Generated "+pgtitle,logx=logx,logy=logy,addof=addof) # generated Z boson pt
+    yvar_gen    = Var('njets50',njbins1,"Reconstructed "+njtitle,logx=False,logy=logy,addof=addof) # reconstructed njets
+    bvar_reco   = Var('Unroll::GetBin(pt_ll,njets50,0,1)',"Reconstructed %s bin"%(ptitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
+    bvar_gen    = Var('Unroll::GetBin(pt_moth,njets50,0,1)',"Generated %s bin"%(pgtitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
+    bvar_reco_T = Var('Unroll::GetBin(pt_ll,njets50,1,1)',"Reconstructed %s bin"%(mtitle),*urbins0,units=False,labels=urlabels2) # unroll bin number, transposed
+  else: # use m_mumu vs. pt_mumu
+    xminy       = 15
+    ytitle      = mtitle
+    nurbins     = (len(Zmbins1)-1)*(len(ptbins1)-1) # number of 2D bins (excl. under-/overflow)
+    urbins0     = (nurbins,1,1+nurbins) # unrolled
+    urlabels1   = [str(i) if i%(len(ptbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
+    urlabels2   = [str(i) if i%(len(Zmbins1)-1)==1 or i in [nurbins] else " " for i in range(1,nurbins+1)]
+    xvar_reco   = Var('pt_ll',  ptbins1,"Reconstructed "+ptitle,logx=logx,logy=logy,addof=addof) # reconstructed pt_mumu
+    yvar_reco   = Var('m_ll',   Zmbins1,"Reconstructed "+mtitle,logx=logx,logy=logy,addof=addof) # reconstructed m_mumu
+    xvar_gen    = Var('pt_moth',ptbins1,"Generated "+pgtitle,logx=logx,logy=logy,addof=addof) # generated Z boson pt
+    yvar_gen    = Var('m_moth', Zmbins1,"Generated "+mgtitle,logx=logx,logy=logy,addof=addof) # generated Z boson mass
+    bvar_reco   = Var('Unroll::GetBin(pt_ll,m_ll,0,1)',"Reconstructed %s bin"%(ptitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
+    bvar_gen    = Var('Unroll::GetBin(pt_moth,m_moth,0,1)',"Generated %s bin"%(pgtitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
+    bvar_reco_T = Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed %s bin"%(mtitle),*urbins0,units=False,labels=urlabels2) # unroll bin number, transposed
+  print ">>> 2D bins: %d = %d pt bins x %d %s bins"%(bvar_reco.nbins,xvar_reco.nbins,yvar_reco.nbins,yvar)
+  print ">>> pt bins: %r"%(xvar_reco.bins)
+  print ">>> %s bins: %r"%(yvar,yvar_reco.bins)
   
   for selection in selections:
     LOG.color(selection.title,col='green')
@@ -245,7 +275,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     catstr = "data-mc_%s_%s"%(selection.filename,yvar_reco.filename)
     pname_ = repkey(pname,CAT=catstr).replace('_baseline',"")
     plot   = Stack(yvar_reco,yhists.data,yhists.exp,dividebins=True,ratio=True)
-    plot.draw(logx=logx,logy=logy,xmin=15.,ymin=1e-1,ytitle="Events / GeV",style=1)
+    plot.draw(logx=yvar_reco.logx,logy=logy,xmin=xminy,ymin=1e-1,ytitle="Events / GeV",style=1)
     plot.drawlegend('R')
     plot.drawtext(selection.title)
     plot.saveas(pname_,ext=['.png','.pdf'])
@@ -261,7 +291,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
               grid=False,xlabelsize=0.072,labeloption='h')
     plot.drawlegend(position)
     plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=mtitle,addoverflow=True)
+    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
     plot.saveas(pname_,ext=['.png','.pdf'])
     gStyle.Write('style',gStyle.kOverwrite)
     plot.canvas.Write("data_mc",gStyle.kOverwrite)
@@ -295,7 +325,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
               style=1,grid=False,xlabelsize=0.072,labeloption='h')
     plot.drawlegend('RR;y=0.9')
     plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=mtitle,addoverflow=True)
+    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
     plot.saveas(pname_,ext=['.png','.pdf'])
     plot.canvas.Write("dy",gStyle.kOverwrite)
     plot.close()
@@ -323,7 +353,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
               style=1,grid=False,xlabelsize=0.072,labeloption='h')
     plot.drawlegend(position)
     plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=mtitle,addoverflow=True)
+    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
     plot.saveas(pname_,ext=['.png','.pdf'])
     plot.canvas.Write("dy_norm",gStyle.kOverwrite)
     plot.close()
@@ -331,7 +361,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     # PLOT 2D - Drell-Yan generator distribution
     pname_ = repkey(pname,CAT="dy_gen_2D_"+selection.filename).replace('_baseline',"")
     plot   = Plot2D(xvar_gen,yvar_gen,dyhist2D_gen)
-    plot.draw(logx=logx,logy=logy,logz=logz,xmin=2.,ymin=30.,zmin=1.,ztitle="Events")
+    plot.draw(logx=logx,logy=yvar_gen.logx,logz=logz,xmin=2.,ymin=xminy,zmin=1.,ztitle="Events")
     plot.drawtext("%s, Drell-Yan"%(selection.title),size=0.052)
     plot.saveas(pname_,ext=['.png','.pdf'])
     gStyle.Write('style',gStyle.kOverwrite)
@@ -341,7 +371,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     # PLOT 2D - Drell-Yan reconstructed distribution
     pname_ = repkey(pname,CAT="dy_reco_2D_"+selection.filename).replace('_baseline',"")
     plot   = Plot2D(xvar_reco,yvar_reco,dyhist2D_reco,clone=True)
-    plot.draw(logx=logx,logy=logy,logz=logz,xmin=2.,ymin=30.,zmin=1.,ztitle="Events")
+    plot.draw(logx=logx,logy=yvar_reco.logx,logz=logz,xmin=2.,ymin=xminy,zmin=1.,ztitle="Events")
     plot.drawtext("%s, Drell-Yan"%(selection.title),size=0.052)
     plot.saveas(pname_,ext=['.png','.pdf'])
     gStyle.Write('style',gStyle.kOverwrite)
@@ -393,8 +423,12 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
   
   # SELECTIONS
   selections = [
-    Sel('baseline', baseline),
-    #Sel('m_{mumu} > 200 GeV',               baseline+" && m_vis>200", fname="mgt200"),
+    #Sel('baseline', baseline),
+    Sel('m_{mumu} > 110 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>110", fname="mgt110"),
+#     Sel('m_{mumu} > 200 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>200", fname="mgt200"),
+#     Sel('0j, m_{mumu} > 200 GeV', baseline+" && pt_1>50 && pt_2>50 && m_vis>200 && njets50==0", fname="0j-mgt200"),
+#     Sel('m_{mumu} > 200 GeV, #LT#eta#GT<1.1', baseline+" && pt_1>50 && pt_2>50 && (eta_1+eta_2)/2<1.1 && deta_ll<3 && m_vis>200", fname="mgt200-etalt1p1"),
+#     Sel('0j, m_{mumu} > 200 GeV, #LT#eta#GT<1.1', baseline+" && pt_1>50 && pt_2>50 && (eta_1+eta_2)/2<1.1 && deta_ll<3 && m_vis>200 && njets50==0", fname="0j-mgt200-etalt1p1"),
   ]
   #xvar = Var('m_ll', Zmbins, mtitle)
   xvar_reco = Var('pt_ll',  ptbins0,"Reconstructed "+ptitle,cbins={'njets50==0':ptbins1},addof=addof) # reconstructed pt_mumu
@@ -584,6 +618,8 @@ def main(args):
   parallel  = args.parallel
   verbosity = args.verbosity
   methods   = args.methods
+  dytype    = args.dytype
+  yvar      = args.yvar
   outdir    = "weights" #/$ERA"
   plotdir   = "weights/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
@@ -602,11 +638,11 @@ def main(args):
     tag_     = tag+'_'+era
     outdir_  = ensuredir(repkey(outdir,ERA=era))
     plotdir_ = ensuredir(repkey(plotdir,ERA=era))
-    samples  = getsampleset(channel,era,fname=fname,dyweight="",dy="")
+    samples  = getsampleset(channel,era,fname=fname,dyweight="",dy=dytype)
     if 1 in methods:
       measureZpt_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,verb=verbosity) # 1D
     if 2 in methods:
-      measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,verb=verbosity) # 2D
+      measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,yvar=yvar,dy=dytype,verb=verbosity) # 2D
     samples.close() # close all sample files to clean memory
   
 
@@ -620,6 +656,10 @@ if __name__ == "__main__":
                                          help="set era" )
   parser.add_argument('-m', '--method',  dest='methods', type=int, nargs='+', default=[1,2], action='store',
                                          help="methods: 1=1D (Z pT), 2=2D (Z pT and mass)" )
+  parser.add_argument('-D', '--dy',      dest='dytype', type=str, default='jet', action='store',
+                                         help="DY type: 'jet' (default), 'mass'" )
+  parser.add_argument('-Y', '--yvar',    dest='yvar', type=str, default='mass', action='store',
+                                         help="yvar for 2D reweighting: 'mass' (default), 'njets'" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',

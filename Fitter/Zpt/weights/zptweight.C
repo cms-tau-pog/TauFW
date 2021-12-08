@@ -33,7 +33,7 @@ void loadZptWeights(TString fname="2017", TString hname=_hname, TString tag=""){
     if(hname.Contains("zptmass")) // 2D weights
       fname = fname.Copy().ReplaceAll("zpt_weight","zptmass_weight");
   }
-  std::cout << ">>> loadZptWeights(): opening " << fname << ":" << hname << std::endl;
+  std::cout << ">>> loadZptWeights(): Opening " << fname << ":" << hname << "..." << std::endl;
   if(histZpt)
     histZpt->Delete();
   TFile *file = new TFile(fname);
