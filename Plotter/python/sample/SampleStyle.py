@@ -61,7 +61,7 @@ sample_colors = {
   'TT':        kBlue-8,
   'TTT':       kAzure-9,
   'TTL':       kBlue-8,
-  'TTJ':       kGreen-6,
+  'TTJ':       kGreen-8, #kViolet-8, #kGreen-2,
   'ST':        38, #TColor.GetColor(140,180,220),
   'STL':       kMagenta-3,
   'STJ':       kMagenta-8,
