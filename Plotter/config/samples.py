@@ -40,13 +40,13 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
     ]
     #if 'mutau' in channel:
     #  expsamples.append(('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh_M-50",5343.0,{'extraweight': dyweight})) # apply correct normalization in stitching
@@ -67,11 +67,11 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
+      ( 'TT', "TT",                    "ttbar",                831.76, {'extraweight': 'ttptweight'} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-      ( 'TT', "TT",                    "ttbar",                831.76, {'extraweight': 'ttptweight'} ),
     ]
   elif era=='2017': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
@@ -90,13 +90,13 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
     ]
   elif era=='UL2017': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
@@ -115,13 +115,13 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
     ]
   elif era=='2018': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
@@ -140,13 +140,13 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
     ]
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
