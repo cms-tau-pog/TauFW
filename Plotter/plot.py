@@ -24,27 +24,33 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20 && metfilter"
   else:
     raise IOError("No baseline selection for channel %r defined!"%(channel))
-  zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5 && nbtag==0"%(baseline)
+  zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline) # && nbtag==0
   selections = [
-    #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16","")),
+    #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16",""),only=["DeepTau"]),
     Sel("baseline",baseline),
     #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
     #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
     #Sel("0b",baseline+" && nbtag==0",weight="btagweight"),
     #Sel(">=1b",baseline+" && nbtag>=1",weight="btagweight"),
   ]
-  selections = filtervars(selections,selfilter) # filter variable list with -V flag
   
   #### DIFFERENTIAL pt/DM bins for TauID measurement
   ###wps = [
-  ###  #('Medium',"idDeepTau2017v2p1VSjet_2>=16"),
-  ###  ('VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16")
+  ###  ('Medium',"idDeepTau2017v2p1VSjet_2>=16"),
+  ###  #('VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16")
+  ###  #('>=1b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag>=1"),
+  ###  #('>=1b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag>=1")
   ###]
   ###pts = [20,30,40,50,70]
   ###dms = [0,1,10,11]
   ###for wp, wpcut in wps:
   ###  wpname  = wp.replace(" && !","-not")
   ###  basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut) #+" && nbtag==0"
+  ###  for dm in dms:
+  ###    name_ = "%s_dm%s"%(wpname,dm)
+  ###    tit_  = "%s, DM%s"%(wp,dm)
+  ###    cut_  = "%s && dm_2==%s"%(basecut,dm)
+  ###    selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
   ###  for i, ptlow in enumerate(pts):
   ###    if i<len(pts)-1: # ptlow < pt < ptup
   ###      ptup = pts[i+1]
@@ -55,12 +61,12 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   ###      name = "%s_pt%d-Inf"%(wpname,ptlow)
   ###      tit  = "%s, pt > %d GeV"%(wp,ptlow)
   ###      cut  = "%s && pt_2>%s"%(basecut,ptlow)
-  ###    selections.append(Sel(name,tit,cut,only=['m_vis','m_2','mapRecoDM']))
+  ###    #selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
   ###    for dm in dms:
   ###      name_ = "%s_dm%s"%(name,dm)
   ###      tit_  = "%s, DM%s"%(tit,dm)
   ###      cut_  = "%s && dm_2==%s"%(cut,dm)
-  ###      selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2']))
+  ###      selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
   
   # VARIABLES
   variables = [
@@ -77,20 +83,20 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     Var('njets',   8,  0,   8),
     Var('nbtag', "Number of b jets (Medium, pt > 30 GeV)", 8, 0, 8),
     Var('met',    50,  0, 150,cbins={"nbtag\w*>":(50,0,250)}),
-    Var('genmet', 50,  0, 150, fname="$VAR_log", logyrange=5, data=False, logy=True),
+    #Var('genmet', 50,  0, 150, fname="$VAR_log", logyrange=4, data=False, logy=True, ncols=2, pos='TT'),
     Var('pt_ll',   "p_{T}(mutau_h)", 25, 0, 200, ctitle={'etau':"p_{T}(etau_h)",'tautau':"p_{T}(tau_htau_h)",'emu':"p_{T}(emu)"}),
     Var('dR_ll',   "DR(mutau_h)",    30, 0, 6.0, ctitle={'etau':"DR(etau_h)",'tautau':"DR(tau_htau_h)",'emu':"DR(emu)"}),
     Var('deta_ll', "deta(mutau_h)",  20, 0, 6.0, ctitle={'etau':"deta(etau_h)",'tautau':"deta(tautau)",'emu':"deta(emu)"},logy=True,pos='TRR',cbins={"abs(deta_ll)<":(10,0,3)}), #, ymargin=8, logyrange=2.6
-    Var('dzeta',  56, -180, 100, pos='L;y=0.88',units='GeV',cbins={"nbtag\w*>":(35,-220,130)}),
+    Var('dzeta',  56, -180, 100, pos='L;y=0.87',units='GeV',cbins={"nbtag\w*>":(35,-220,130)}),
   ]
   if 'tau' in channel: # mutau, etau, tautau
     loadmacro("python/macros/mapDecayModes.C") # for mapRecoDM
     dmlabels  = ["h^{#pm}","h^{#pm}h^{0}","h^{#pm}h^{#mp}h^{#pm}","h^{#pm}h^{#mp}h^{#pm}h^{0}","Other"]
     variables += [
-      Var('m_vis',          40,  0, 200, fname="mvis",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt>":(50,0,250),"pt>100":(35,0,350),"nbtag\w*>":(60,0,300)},cpos={"pt>[1678]0":'ML'}),
-      Var('m_vis',          20,  0, 200, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt>":(25,0,250),"pt>100":(18,0,360),"nbtag\w*>":(30,0,300)},cpos={"pt>[1678]0":'ML'}),
-      Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag"]),
-      Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TC",ymargin=1.2),
+      Var('m_vis',          40,  0, 200, fname="mvis",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt_\d>":(50,0,250),"nbtag\w*>":(60,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
+      Var('m_vis',          20,  0, 200, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
+      Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
+      Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
       Var("mapRecoDM(dm_2)", 5,  0,   5, fname="dm_2_label",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",labels=dmlabels,ymargin=1.2),
       #Var("pzetavis", 50,    0, 200 ),
       Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5,cbins={"VSjet_2>":(60,0.4,1)}),
@@ -105,11 +111,12 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
       Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
     ]
-  variables = filtervars(variables,varfilter) # filter variable list with -V flag
   
   # PLOT
-  outdir   = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
-  exts     = ['png','pdf'] if pdf else ['png'] # extensions
+  selections = filtervars(selections,selfilter) # filter variable list with -V flag
+  variables  = filtervars(variables,varfilter)  # filter variable list with -V flag
+  outdir = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
+  exts   = ['png','pdf'] if pdf else ['png'] # extensions
   for selection in selections:
     print ">>> Selection %r: %r"%(selection.title,selection.selection)
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',parallel=parallel)
