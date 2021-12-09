@@ -19,7 +19,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   elif 'mutau' in channel:
     baseline = "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
   elif 'etau' in channel:
-    baseline = "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
+    baseline = "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=8 && idDeepTau2017v2p1VSmu_2>=1 && !lepton_vetoes_notau && metfilter"
   elif 'tautau' in channel:
     baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20 && metfilter"
   else:
@@ -38,6 +38,8 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   ###wps = [
   ###  ('Medium',"idDeepTau2017v2p1VSjet_2>=16"),
   ###  #('VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16")
+  ###  #('0b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag==0"),
+  ###  #('0b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag==0")
   ###  #('>=1b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag>=1"),
   ###  #('>=1b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag>=1")
   ###]
