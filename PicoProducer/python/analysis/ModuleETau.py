@@ -32,8 +32,8 @@ class ModuleETau(ModuleTauPair):
       self.tesTool = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
       self.fesTool = TauFESTool(tauSFVersion[self.year]) # e -> tau fake energy scale
       self.tauSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
-      self.etfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe',  'VLoose')
-      self.mtfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSmu', 'Tight')
+      self.etfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe',  'Tight')
+      self.mtfSFs  = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSmu', 'VLoose')
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
