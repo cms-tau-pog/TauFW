@@ -17,7 +17,7 @@ coldict = { # HTT / TauPOG colors
 }
 
 
-def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False):
+def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,fraction=False):
   """Plot Stack objects for a given data hisogram and list of MC histograms."""
   
   # SETTING
@@ -27,6 +27,8 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False):
     fname += "_ratio"
   if logy:
     fname += "_logy"
+  if fraction:
+    fname += "_frac"
   rrange   = 0.5
   text     = "#mu#tau_{h} baseline"
   grid     = True and False
@@ -35,7 +37,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False):
   # PLOT
   LOG.header(fname)
   plot = Stack(xtitle,datahist,exphists)
-  plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,grid=grid)
+  plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,grid=grid,fraction=fraction)
   plot.drawlegend(position=position)
   plot.drawtext(text)
   plot.saveas(fname+".png")
@@ -154,8 +156,10 @@ def main():
     #plotstack(xtitle,procs,ratio=False,logy=False)
     for ratio in [True,False]:
       for logy in [True,False]:
-        datahist, exphists = createhists(procs,binning,nevts)
-        plotstack(xname,xtitle,datahist,exphists,ratio=ratio,logy=logy)
+        fractions = [True,False] if ratio and not logy else [False]
+        for fraction in fractions:
+          datahist, exphists = createhists(procs,binning,nevts)
+          plotstack(xname,xtitle,datahist,exphists,ratio=ratio,logy=logy,fraction=fraction)
   
 
 if __name__ == "__main__":
