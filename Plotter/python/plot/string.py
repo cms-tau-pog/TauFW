@@ -146,7 +146,7 @@ def makelatex(string,**kwargs):
       GeV      = True
     if "eta" in strlow: #and "#eta" not in strlow and "#zeta" not in strlow and "deta" not in strlow:
       string = string.replace("deta","#Deltaeta")
-      string = re.sub(r"(?<!\#[Bbz])eta",r"#eta",string)
+      string = re.sub(r"(?<!\#[Bbz])eta(?!u)",r"#eta",string)
       string = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",string)
     if "tau" in strlow:
       #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)

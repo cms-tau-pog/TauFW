@@ -52,7 +52,8 @@ class Variable(object):
     self.ratiorange   = kwargs.get('rrange',      None          )
     self.logx         = kwargs.get('logx',        False         )
     self.logy         = kwargs.get('logy',        False         )
-    self.ymargin      = kwargs.get('ymargin',     None          ) # margin between hist maximum and plot's top
+    self.ymargin      = kwargs.get('ymarg'  ,     None          ) # margin between hist maximum and plot's top
+    self.ymargin      = kwargs.get('ymargin',     self.ymargin  ) # margin between hist maximum and plot's top
     self.logyrange    = kwargs.get('logyrange',   None          ) # log(y) range from hist maximum to ymin
     self.position     = kwargs.get('pos',         ""            ) # legend position
     self.position     = kwargs.get('position',    self.position ) # legend position
