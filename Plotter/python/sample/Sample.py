@@ -68,7 +68,7 @@ class Sample(object):
     self.scale        = kwargs.get('scale',        1.0          ) # scales factor (e.g. for W+Jets renormalization)
     self.upscale      = kwargs.get('upscale',      1.0          ) # drawing up/down scaling
     self._scale       = self.scale # back up scale to overwrite previous renormalizations
-    self.weight       = kwargs.get('weight',       ""           ) # weights
+    self.weight       = kwargs.get('weight',       ""           ) # common weights
     self.extraweight  = kwargs.get('extraweight',  ""           ) # extra weights particular to this sample
     self.cuts         = kwargs.get('cuts',         ""           ) # extra cuts particular to this sample
     self.channel      = kwargs.get('channel',      ""           ) # channel
@@ -413,11 +413,13 @@ class Sample(object):
   #  return None
   
   def __mul__(self, scale):
-    """Multiply selection with some weight (that can be string or Selection object)."""
-    if isnumber(scale):
-      self.setscale(scale)
-      return self
-    return None
+    """Multiply scale, or add extra weight (that can be string or Selection object)."""
+    if isnumber(scale): # multiply scale
+      #self.setscale(scale)
+      self.multiplyscale(scale)
+    elif isinstance(scale,str): # add extra weight
+      self.addextraweight(scale)
+    return self
   
   def getcutflow(self,cutflow=None):
     """Get cutflow histogram from file."""
@@ -479,8 +481,19 @@ class Sample(object):
     self.norm = norm
     return norm
   
+  def multiplyscale(self,scale,**kwargs):
+    """Multiply scale, including split samples."""
+    verbosity = LOG.getverbosity(kwargs)
+    oldscale = self.scale
+    newscale = oldscale*scale
+    LOG.verb("Sample.multiplyscale: %s, scale %s -> %s"%(self.name,oldscale,newscale),verbosity,level=2)
+    self.scale = newscale
+    for sample in self.splitsamples:
+      sample.scale = newscale
+    return newscale
+  
   def setscale(self,scale):
-    """Set scale, incl. for split samples."""
+    """Set scale, including split samples."""
     self.scale = scale
     for sample in self.splitsamples:
       sample.scale = scale
@@ -542,6 +555,7 @@ class Sample(object):
       LOG.verb('                       after:  %s, weight=%r, extraweight=%r'%(self,self.weight,self.extraweight),level=3)
     for sample in self.splitsamples:
       sample.addextraweight(weight)
+    return self.extraweight
   
   def setweight(self, weight, extraweight=False):
     """Set weight, overwriting all previous ones."""
