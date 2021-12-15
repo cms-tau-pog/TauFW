@@ -4,15 +4,16 @@
 #   ./measureZpt.py -y 2018
 #   ./measureZpt.py -y 2018 -m 1 --dy mass
 #   ./measureZpt.py -y 2018 -m 2 --dy mass -Y njets
+#   for s in tt_up tt_down; do ./measureZpt.py -y 2018 -m 2 --dy mass -S syst_$s; done
 from utils import *
 from TauFW.Plotter.plot.Plot2D import Plot2D, addoverflow, capoff
 from TauFW.common.tools.math import scalevec
 gSystem.Load('RooUnfold/libRooUnfold.so')
 from ROOT import TNamed, RooUnfoldResponse, RooUnfoldBinByBin, RooUnfoldBayes
 
-ptitle   = "p_{T}(#mu#mu)" # [GeV]"
+ptitle   = "p_{#kern[-0.1]{#lower[-0.1]{T}}}(#mu#mu)" # [GeV]"
 mtitle   = "m_{#mu#mu}" # [GeV]"
-pgtitle  = "Z p_{T}"
+pgtitle  = "Z p_{#kern[-0.1]{#lower[-0.1]{T}}}"
 mgtitle  = "m_{#mu#mu}" #"m_{Z}"
 njtitle  = "number of jets"
 baseline = "q_1*q_2<0 && pt_2>20 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && metfilter && m_ll>20"
@@ -24,7 +25,7 @@ ptbins1  = [0,3,5,7,11,15,30,50,100,200,500,1000]
 njbins1  = [0,1,10]
 
 
-def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag="",dy='jets',yvar='mass',verb=0):
+def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag="",dy='jets',yvar='mass',syst="",verb=0):
   """Measure Z pT weights in dimuon pT and mass by unfolding.
   Unroll 2D histogram using the Unroll.cxx macro to 1D histogram (with integer bin numbers)."""
   LOG.header("measureZptmass_unfold()")
@@ -35,8 +36,10 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   # SETTINGS
   niter       = 4 # number of iterations in RooUnfoldBayes
   kterm       = (len(Zmbins1)-1)*(len(ptbins1)-1)/2. # kterm in RooUnfoldSvd
-  hname       = 'zptnjets' if yvar=='njets' else 'zptmass'
-  fname       = "%s/%s_weights_$CAT%s.root"%(outdir,hname,tag)
+  basename    = 'zptnjets' if yvar=='njets' else 'zptmass'
+  systag      = "_"+syst if syst else ""
+  hname       = basename+systag
+  fname       = "%s/%s_weights_$CAT%s.root"%(outdir,basename,tag)
   pname       = "%s/%s_$CAT%s.png"%(plotdir or outdir,hname,tag)
   outdir      = ensuredir(outdir) #repkey(outdir,CHANNEL=channel,ERA=era))
   stitle      = "Z boson unfolding weight"
@@ -49,13 +52,28 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   logz        = True #and False
   addof       = True #and False # add overflow
   method      = None #'QCD'
+  if syst: # systematic variation
+    #hname    += '_'+syst
+    samples   = samples.clone(share=['WJ','ST','VV'])
+    if syst in ['syst_tt_up','syst_tt_down']: # vary the ttbar cross section
+      scale   = 1.06 if 'up' in syst else 0.94
+      sample  = samples.get('TT',unique=True)
+      sample.multiplyscale(scale,verb=4)
+      print ">>> measureZptmass_unfold: Scaling %r by %s"%(sample.name,scale)
+    elif syst in ['syst_dy_up','syst_dy_down']: # vary the DY cross section
+      scale   = 1.04 if 'up' in syst else 0.96
+      sample  = samples.get('DY',unique=True)
+      sample.multiplyscale(scale,verb=4)
+      print ">>> measureZptmass_unfold: Scaling %r by %s"%(sample.name,scale)
+    else:
+      raise IOError("measureZptmass_unfold: Did not recognize systematic %r"%(syst))
   dysample    = samples.get('DY',unique=True)
   
   # SELECTIONS
   selections = [
-    Sel('Baseline #mu#mu',             baseline,              fname="baseline"),
+#     Sel('Baseline #mu#mu',             baseline,              fname="baseline"),
     #Sel('Baseline #mu#mu, met<50 GeV', baseline+" && met<50", fname="metlt50"),
-    #Sel('m_{mumu} > 110 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>110", fname="mgt110"),
+    Sel('m_{mumu} > 110 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>110", fname="mgt110"),
     #Sel('m_{mumu} > 200 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>200", fname="mgt200"),
     #Sel('m_{mumu} > 200 GeV, #LT#eta#GT<1.1', baseline+" && pt_1>50 && pt_2>50 && (eta_1+eta_2)/2<1.1 && deta_ll<3 && m_vis>200", fname="mgt200-etalt1p1"),
   ]
@@ -177,26 +195,29 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     # WRITE
     print ">>> Writing histograms to %s..."%(outfile.GetPath())
     outfile.cd()
-    writehist(sfhist2D,     hname+"_weight",      "Unfolded Z boson weight",xvar_gen.title,yvar_gen.title,stitle,verb=1)
-    writehist(sfhist2D_reco,hname+"_recoweight",  "Reco. Z boson weight",xvar_reco.title,yvar_reco.title,stitle_reco,verb=1)
+    writehist(sfhist2D,       hname+"_weight",      "Unfolded Z boson weight",xvar_gen.title,yvar_gen.title,stitle,verb=1)
+    writehist(sfhist2D_reco,  hname+"_recoweight",  "Reco. Z boson weight",xvar_reco.title,yvar_reco.title,stitle_reco,verb=1)
     ctrldir.cd()
-    TNamed("selection",selection.selection).Write() # write exact selection string to ROOT file for the record / debugging
-    writehist(obshist,      hname+"_obs_reco",    "Observed",           bvar_reco.title,"Events")
-    writehist(exphist,      hname+"_exp_reco",    "Expected",           bvar_reco.title,"Events")
-    writehist(bkghist,      hname+"_bkg_reco",    "Exp. background",    bvar_reco.title,"Events")
-    writehist(dyhist,       hname+"_dy_reco",     "Drell-Yan reco.",    bvar_reco.title,"Events")
-    writehist(dyhist2D_reco,hname+"_dy_reco2D",   "Drell-Yan reco.",    xvar_reco.title,yvar_reco.title, "Events")
-    writehist(obsdyhist,    hname+"_obsdy_reco",  "Obs. - bkg.",        bvar_reco.title,"Events")
-    writehist(dyhist_gen,   hname+"_dy_gen",      "Drell-Yan generator",bvar_gen.title, "Events")
-    writehist(dyhist2D_gen, hname+"_dy_gen2D",    "Drell-Yan generator",xvar_gen.title,yvar_gen.title, "Events")
-    writehist(dyhist_unf,   hname+"_dy_unfold",   "Drell-Yan unfolded", bvar_gen.title, "Events")
-    writehist(dyhist2D_unf, hname+"_dy_unfold2D", "Drell-Yan unfolded", xvar_gen.title,yvar_gen.title,"Events")
-    writehist(resphist,     hname+"_dy_response", "Response matrix",    bvar_gen.title,bvar_reco.title,"Events")
-    writehist(sfhist1D,     hname+"_weight1D",    "Unfolded Z boson weight (unrolled)",xvar_reco.title,stitle)
-    writehist(sfhist2D,     hname+"_weight2D",    "Unfolded Z boson weight",xvar_gen.title,yvar_gen.title,stitle)
-    writehist(sfhist1D_reco,hname+"_recoweight1D","Reco. Z boson weight (unrolled)",xvar_reco.title,stitle_reco)
-    writehist(sfhist2D_reco,hname+"_recoweight2D","Reco. Z boson weight",xvar_reco.title,yvar_reco.title,stitle_reco)
-    writehist(rathist1D,    hname+"_ratio_weight","Reco. weight / Unf. weight (unrolled)",xvar_reco.title,"Reco. weight / Unf. weight")
+    if not syst: # write only nominal histograms
+      TNamed("selection",selection.selection).Write("selection",TNamed.kOverwrite) # write exact selection string to ROOT file for the record / debugging
+      writehist(obshist,      hname+"_obs_reco",    "Observed",           bvar_reco.title,"Events")
+      writehist(exphist,      hname+"_exp_reco",    "Expected",           bvar_reco.title,"Events")
+      writehist(bkghist,      hname+"_bkg_reco",    "Exp. background",    bvar_reco.title,"Events")
+      writehist(dyhist,       hname+"_dy_reco",     "Drell-Yan reco.",    bvar_reco.title,"Events")
+      writehist(dyhist2D_reco,hname+"_dy_reco2D",   "Drell-Yan reco.",    xvar_reco.title,yvar_reco.title, "Events")
+      writehist(obsdyhist,    hname+"_obsdy_reco",  "Obs. - bkg.",        bvar_reco.title,"Events")
+      writehist(dyhist_gen,   hname+"_dy_gen",      "Drell-Yan generator",bvar_gen.title, "Events")
+      writehist(dyhist2D_gen, hname+"_dy_gen2D",    "Drell-Yan generator",xvar_gen.title,yvar_gen.title, "Events")
+      writehist(dyhist_unf,   hname+"_dy_unfold",   "Drell-Yan unfolded", bvar_gen.title, "Events")
+      writehist(dyhist2D_unf, hname+"_dy_unfold2D", "Drell-Yan unfolded", xvar_gen.title,yvar_gen.title,"Events")
+      writehist(resphist,     hname+"_dy_response", "Response matrix",    bvar_gen.title,bvar_reco.title,"Events")
+    writehist(sfhist1D,       hname+"_weight1D",    "Unfolded Z boson weight (unrolled)",xvar_reco.title,stitle)
+    writehist(sfhist2D,       hname+"_weight2D",    "Unfolded Z boson weight",xvar_gen.title,yvar_gen.title,stitle)
+    writehist(sfhist1D_reco,  hname+"_recoweight1D","Reco. Z boson weight (unrolled)",xvar_reco.title,stitle_reco)
+    writehist(sfhist2D_reco,  hname+"_recoweight2D","Reco. Z boson weight",xvar_reco.title,yvar_reco.title,stitle_reco)
+    writehist(rathist1D,      hname+"_ratio_weight","Reco. weight / Unf. weight (unrolled)",xvar_reco.title,"Reco. weight / Unf. weight")
+    dyhists = [dyhist,obsdyhist,dyhist_gen,dyhist_unf]
+    dyhists_T = [Unroll.Transpose(h,dyhist2D_reco,verb) for h in dyhists]
     
     # PLOT 1D - Unrolled unfolded weight 1D
     print ">>> Plotting..."
@@ -209,7 +230,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     plot.drawtext("Unfolded weight, %s"%(selection.title),y=0.91)
     plot.drawbins(yvar_reco,y=0.96,size=bsize,text="m_{#mu#mu}",addoverflow=True)
     plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("weight_1D",gStyle.kOverwrite)
+    plot.canvas.Write("weight_1D"+systag,gStyle.kOverwrite)
     plot.close()
     
     # PLOT 2D - Rolled up unfolded weight 2D
@@ -219,178 +240,174 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     #plot.drawlegend()
     plot.drawtext(selection.title,size=0.052)
     plot.saveas(pname_,ext=['.png','.pdf'])
+    gStyle.Write('style_2D',gStyle.kOverwrite)
+    plot.canvas.Write("weight_2D"+systag,gStyle.kOverwrite)
+    plot.close()
+    
+    if not syst: # write only nominal plots
+      
+      # PLOT 1D - Unrolled reco. weight 1D
+      rline  = (bvar_reco.min,1.,bvar_reco.max,1.)
+      pname_ = repkey(pname,CAT="weight_reco_1D_"+selection.filename).replace('_baseline',"")
+      plot   = Plot(bvar_reco,sfhist1D_reco,dividebins=False)
+      plot.draw(logx=False,logy=False,logz=False,xmin=1.0,ymin=0.2,ymax=1.8,width=width,
+                style=1,grid=False,xlabelsize=0.072,labeloption='h')
+      plot.drawline(*rline,color=kBlue)
+      plot.drawtext("Reco. weight, %s"%(selection.title),y=0.91)
+      plot.drawbins(yvar_reco,y=0.96,size=bsize,text="m_{#mu#mu}",addoverflow=True)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("weight_reco_1D",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 2D - Rolled up reco. weight 2D
+      pname_ = repkey(pname,CAT="weight_reco_2D_"+selection.filename).replace('_baseline',"")
+      plot   = Plot2D(xvar_reco,yvar_reco,sfhist2D_reco)
+      plot.draw(logx=logx,logy=logy,logz=False,xmin=2.0,zmin=0.2,zmax=1.8,ztitle="Reco. Z boson weight")
+      #plot.drawlegend()
+      plot.drawtext(selection.title,size=0.052)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("weight_reco_2D",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - Unrolled ratio of Reco. weight / Unfolded weight
+      rline  = (bvar_reco.min,1.,bvar_reco.max,1.)
+      pname_ = repkey(pname,CAT="ratio_weight_1D_"+selection.filename).replace('_baseline',"")
+      plot   = Plot(bvar_reco,rathist1D,dividebins=False)
+      plot.draw(logx=False,logy=False,logz=False,xmin=1.0,ymin=0.2,ymax=1.8,width=width,
+                style=1,grid=False,xlabelsize=0.072,labeloption='h')
+      plot.drawline(*rline,color=kBlue)
+      plot.drawtext(selection.title,y=0.91)
+      plot.drawbins(yvar_reco,y=0.96,size=bsize,text="m_{#mu#mu}",addoverflow=True)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("ratio_weight_1D",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - xvar Drell-Yan 1D distribution
+      catstr = "data-mc_%s_%s"%(selection.filename,xvar_reco.filename)
+      pname_ = repkey(pname,CAT=catstr).replace('_baseline',"")
+      plot   = Stack(xvar_reco,xhists.data,xhists.exp,dividebins=True,ratio=True)
+      plot.draw(logx=logx,logy=logy,xmin=1.,ymin=1e-1,ytitle="Events / GeV",style=1)
+      plot.drawlegend('RR')
+      plot.drawtext(selection.title)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("data_mc_%s"%(xvar_reco.filename),gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - yvar Drell-Yan 1D distribution
+      catstr = "data-mc_%s_%s"%(selection.filename,yvar_reco.filename)
+      pname_ = repkey(pname,CAT=catstr).replace('_baseline',"")
+      plot   = Stack(yvar_reco,yhists.data,yhists.exp,dividebins=True,ratio=True)
+      plot.draw(logx=yvar_reco.logx,logy=logy,xmin=xminy,ymin=1e-1,ytitle="Events / GeV",style=1)
+      plot.drawlegend('R')
+      plot.drawtext(selection.title)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("data_mc_%s"%(yvar_reco.filename),gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - Unrolled Obs. / Exp.
+      for hist in [obshist]+hists.exp:
+        Unroll.DivideByBinSize(hist,dyhist2D_reco,False,verb)
+      pname_ = repkey(pname,CAT="data-mc_"+selection.filename).replace('_baseline',"")
+      plot   = Stack(bvar_reco,obshist,hists.exp,clone=True)
+      plot.draw(logx=False,logy=logy,ymin=1e-2,width=width,ytitle="Events / GeV",
+                grid=False,xlabelsize=0.072,labeloption='h')
+      plot.drawlegend(position)
+      plot.drawtext(selection.title,y=0.91)
+      plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      gStyle.Write('style_data_mc',gStyle.kOverwrite)
+      plot.canvas.Write("data_mc",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - Unrolled Obs. / Exp.  1D unrolled - transposed
+      for hist in [obshist_T]+histsexp_T:
+        Unroll.DivideByBinSize(hist,dyhist2D_reco,True,verb)
+      pname_ = repkey(pname,CAT="data-mc_"+selection.filename+"_transposed").replace('_baseline',"")
+      #xtitle = bvar_reco.title.replace(ptitle,mtitle) #"Reconstructed %s bin"%(mtitle)
+      plot   = Stack(bvar_reco_T,obshist_T,histsexp_T)
+      plot.draw(logx=False,logy=logy,ymin=1e-2,width=width,ytitle="Events / GeV",
+                grid=False,xlabelsize=0.072,labeloption='h')
+      plot.drawlegend(position)
+      plot.drawtext(selection.title,y=0.91)
+      plot.drawbins(xvar_reco,y=0.96,size=0.94*bsize,text=ptitle,addoverflow=True)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("data_mc_transposed",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - Unrolled Drell-Yan distributions
+      for hist in dyhists:
+        Unroll.DivideByBinSize(hist,dyhist2D_reco,False,verb)
+      pname_ = repkey(pname,CAT="dy_"+selection.filename).replace('_baseline',"")
+      xtitle = bvar_reco.title.replace("Reconstructed ","") # comparing generated to reconstructed
+      plot   = Plot(bvar_reco,dyhists,clone=True,dividebins=True,ratio=True)
+      plot.draw(logx=False,logy=logy,xmin=1.0,ymin=1e-2,width=width,xtitle=xtitle,ytitle="Events / GeV",
+                style=1,grid=False,xlabelsize=0.072,labeloption='h')
+      plot.drawlegend('RR;y=0.9')
+      plot.drawtext(selection.title,y=0.91)
+      plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("dy",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - Unrolled Drell-Yan distributions - transposed
+      for hist in dyhists_T:
+        Unroll.DivideByBinSize(hist,dyhist2D_reco,True,verb)
+      pname_ = repkey(pname,CAT="dy_transposed_"+selection.filename).replace('_baseline',"")
+      xtitle = bvar_reco_T.title.replace("Reconstructed ","")
+      plot   = Plot(bvar_reco_T,dyhists_T,clone=True,dividebins=True,ratio=True)
+      plot.draw(logx=False,logy=logy,xmin=1.,ymin=1e-2,width=width,xtitle=xtitle,ytitle="Events / GeV",
+                style=1,grid=False,xlabelsize=0.072,labeloption='h')
+      plot.drawlegend('RR;y=0.9')
+      plot.drawtext(selection.title,y=0.91)
+      plot.drawbins(xvar_reco,y=0.96,size=0.94*bsize,text=ptitle,addoverflow=True)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("dy_transposed",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 1D - Unrolled Drell-Yan distributions - normalized
+      pname_ = repkey(pname,CAT="dy_norm_"+selection.filename).replace('_baseline',"")
+      xtitle = bvar_reco.title.replace("Reconstructed ","")
+      plot   = Plot(bvar_reco,dyhists,clone=True,dividebins=True,ratio=True)
+      plot.draw(logx=False,logy=logy,xmin=1.,ymin=1e-4,width=width,xtitle=xtitle,norm=True,
+                style=1,grid=False,xlabelsize=0.072,labeloption='h')
+      plot.drawlegend(position)
+      plot.drawtext(selection.title,y=0.91)
+      plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("dy_norm",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 2D - Drell-Yan generator distribution
+      pname_ = repkey(pname,CAT="dy_gen_2D_"+selection.filename).replace('_baseline',"")
+      plot   = Plot2D(xvar_gen,yvar_gen,dyhist2D_gen)
+      plot.draw(logx=logx,logy=yvar_gen.logx,logz=logz,xmin=2.,ymin=xminy,zmin=1.,ztitle="Events")
+      plot.drawtext("%s, Drell-Yan"%(selection.title),size=0.052)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("dy_gen_2D",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 2D - Drell-Yan reconstructed distribution
+      pname_ = repkey(pname,CAT="dy_reco_2D_"+selection.filename).replace('_baseline',"")
+      plot   = Plot2D(xvar_reco,yvar_reco,dyhist2D_reco,clone=True)
+      plot.draw(logx=logx,logy=yvar_reco.logx,logz=logz,xmin=2.,ymin=xminy,zmin=1.,ztitle="Events")
+      plot.drawtext("%s, Drell-Yan"%(selection.title),size=0.052)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("dy_reco_2D",gStyle.kOverwrite)
+      plot.close()
+      
+      # PLOT 2D - Unrolled response matrix (4D)
+      pname_ = repkey(pname,CAT="response_"+selection.filename).replace('_baseline',"")
+      plot   = Plot2D(bvar_reco,bvar_gen,resphist)
+      plot.draw(logx=False,logy=False,width=1000,zmin=1.,logz=logz,ztitle="Events",
+                grid=False,labelsize=0.040,xlabeloption='h')
+      plot.drawbins(yvar_gen, y=0.96,text=False,axis='y')
+      plot.drawbins(yvar_reco,y=0.96,text=False,axis='x')
+      #plot.drawlegend()
+      plot.drawtext("Response matrix, %s"%(selection.title),size=0.052)
+      plot.saveas(pname_,ext=['.png','.pdf'])
+      plot.canvas.Write("response_matrix",gStyle.kOverwrite)
+      plot.close()
     gStyle.Write('style',gStyle.kOverwrite)
-    plot.canvas.Write("weight_2D",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - Unrolled reco. weight 1D
-    rline  = (bvar_reco.min,1.,bvar_reco.max,1.)
-    pname_ = repkey(pname,CAT="weight_reco_1D_"+selection.filename).replace('_baseline',"")
-    plot   = Plot(bvar_reco,sfhist1D_reco,dividebins=False)
-    plot.draw(logx=False,logy=False,logz=False,xmin=1.0,ymin=0.2,ymax=1.8,width=width,
-              style=1,grid=False,xlabelsize=0.072,labeloption='h')
-    plot.drawline(*rline,color=kBlue)
-    plot.drawtext("Reco. weight, %s"%(selection.title),y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text="m_{#mu#mu}",addoverflow=True)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("weight_reco_1D",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 2D - Rolled up reco. weight 2D
-    pname_ = repkey(pname,CAT="weight_reco_2D_"+selection.filename).replace('_baseline',"")
-    plot   = Plot2D(xvar_reco,yvar_reco,sfhist2D_reco)
-    plot.draw(logx=logx,logy=logy,logz=False,xmin=2.0,zmin=0.2,zmax=1.8,ztitle="Reco. Z boson weight")
-    #plot.drawlegend()
-    plot.drawtext(selection.title,size=0.052)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    gStyle.Write('style',gStyle.kOverwrite)
-    plot.canvas.Write("weight_reco_2D",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - Unrolled ratio of Reco. weight / Unfolded weight
-    rline  = (bvar_reco.min,1.,bvar_reco.max,1.)
-    pname_ = repkey(pname,CAT="ratio_weight_1D_"+selection.filename).replace('_baseline',"")
-    plot   = Plot(bvar_reco,rathist1D,dividebins=False)
-    plot.draw(logx=False,logy=False,logz=False,xmin=1.0,ymin=0.2,ymax=1.8,width=width,
-              style=1,grid=False,xlabelsize=0.072,labeloption='h')
-    plot.drawline(*rline,color=kBlue)
-    plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text="m_{#mu#mu}",addoverflow=True)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("ratio_weight_1D",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - xvar Drell-Yan 1D distribution
-    catstr = "data-mc_%s_%s"%(selection.filename,xvar_reco.filename)
-    pname_ = repkey(pname,CAT=catstr).replace('_baseline',"")
-    plot   = Stack(xvar_reco,xhists.data,xhists.exp,dividebins=True,ratio=True)
-    plot.draw(logx=logx,logy=logy,xmin=1.,ymin=1e-1,ytitle="Events / GeV",style=1)
-    plot.drawlegend('RR')
-    plot.drawtext(selection.title)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("data_mc_%s"%(xvar_reco.filename),gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - yvar Drell-Yan 1D distribution
-    catstr = "data-mc_%s_%s"%(selection.filename,yvar_reco.filename)
-    pname_ = repkey(pname,CAT=catstr).replace('_baseline',"")
-    plot   = Stack(yvar_reco,yhists.data,yhists.exp,dividebins=True,ratio=True)
-    plot.draw(logx=yvar_reco.logx,logy=logy,xmin=xminy,ymin=1e-1,ytitle="Events / GeV",style=1)
-    plot.drawlegend('R')
-    plot.drawtext(selection.title)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("data_mc_%s"%(yvar_reco.filename),gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - Unrolled Obs. / Exp.
-    for hist in [obshist]+hists.exp:
-      Unroll.DivideByBinSize(hist,dyhist2D_reco,False,verb)
-    pname_ = repkey(pname,CAT="data-mc_"+selection.filename).replace('_baseline',"")
-    plot   = Stack(bvar_reco,obshist,hists.exp,clone=True)
-    plot.draw(logx=False,logy=logy,ymin=1e-2,width=width,ytitle="Events / GeV",
-              grid=False,xlabelsize=0.072,labeloption='h')
-    plot.drawlegend(position)
-    plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    gStyle.Write('style',gStyle.kOverwrite)
-    plot.canvas.Write("data_mc",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - Unrolled Obs. / Exp.  1D unrolled - transposed
-    for hist in [obshist_T]+histsexp_T:
-      Unroll.DivideByBinSize(hist,dyhist2D_reco,True,verb)
-    pname_ = repkey(pname,CAT="data-mc_"+selection.filename+"_transposed").replace('_baseline',"")
-    #xtitle = bvar_reco.title.replace(ptitle,mtitle) #"Reconstructed %s bin"%(mtitle)
-    plot   = Stack(bvar_reco_T,obshist_T,histsexp_T)
-    plot.draw(logx=False,logy=logy,ymin=1e-2,width=width,ytitle="Events / GeV",
-              grid=False,xlabelsize=0.072,labeloption='h')
-    plot.drawlegend(position)
-    plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(xvar_reco,y=0.96,size=0.94*bsize,text=ptitle,addoverflow=True)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    gStyle.Write('style',gStyle.kOverwrite)
-    plot.canvas.Write("data_mc_transposed",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - Unrolled Drell-Yan distributions
-    dyhists = [dyhist,obsdyhist,dyhist_gen,dyhist_unf]
-    dyhists_T = [Unroll.Transpose(h,dyhist2D_reco,verb) for h in dyhists]
-    for hist in dyhists:
-      Unroll.DivideByBinSize(hist,dyhist2D_reco,False,verb)
-    pname_ = repkey(pname,CAT="dy_"+selection.filename).replace('_baseline',"")
-    xtitle = bvar_reco.title.replace("Reconstructed ","") # comparing generated to reconstructed
-    plot   = Plot(bvar_reco,dyhists,clone=True,dividebins=True,ratio=True)
-    plot.draw(logx=False,logy=logy,xmin=1.0,ymin=1e-2,width=width,xtitle=xtitle,ytitle="Events / GeV",
-              style=1,grid=False,xlabelsize=0.072,labeloption='h')
-    plot.drawlegend('RR;y=0.9')
-    plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("dy",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - Unrolled Drell-Yan distributions - transposed
-    for hist in dyhists_T:
-      Unroll.DivideByBinSize(hist,dyhist2D_reco,True,verb)
-    pname_ = repkey(pname,CAT="dy_transposed_"+selection.filename).replace('_baseline',"")
-    xtitle = bvar_reco_T.title.replace("Reconstructed ","")
-    plot   = Plot(bvar_reco_T,dyhists_T,clone=True,dividebins=True,ratio=True)
-    plot.draw(logx=False,logy=logy,xmin=1.,ymin=1e-2,width=width,xtitle=xtitle,ytitle="Events / GeV",
-              style=1,grid=False,xlabelsize=0.072,labeloption='h')
-    plot.drawlegend('RR;y=0.9')
-    plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(xvar_reco,y=0.96,size=0.94*bsize,text=ptitle,addoverflow=True)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("dy_transposed",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 1D - Unrolled Drell-Yan distributions - normalized
-    pname_ = repkey(pname,CAT="dy_norm_"+selection.filename).replace('_baseline',"")
-    xtitle = bvar_reco.title.replace("Reconstructed ","")
-    plot   = Plot(bvar_reco,dyhists,clone=True,dividebins=True,ratio=True)
-    plot.draw(logx=False,logy=logy,xmin=1.,ymin=1e-4,width=width,xtitle=xtitle,norm=True,
-              style=1,grid=False,xlabelsize=0.072,labeloption='h')
-    plot.drawlegend(position)
-    plot.drawtext(selection.title,y=0.91)
-    plot.drawbins(yvar_reco,y=0.96,size=bsize,text=ytitle,addoverflow=True)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    plot.canvas.Write("dy_norm",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 2D - Drell-Yan generator distribution
-    pname_ = repkey(pname,CAT="dy_gen_2D_"+selection.filename).replace('_baseline',"")
-    plot   = Plot2D(xvar_gen,yvar_gen,dyhist2D_gen)
-    plot.draw(logx=logx,logy=yvar_gen.logx,logz=logz,xmin=2.,ymin=xminy,zmin=1.,ztitle="Events")
-    plot.drawtext("%s, Drell-Yan"%(selection.title),size=0.052)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    gStyle.Write('style',gStyle.kOverwrite)
-    plot.canvas.Write("dy_gen_2D",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 2D - Drell-Yan reconstructed distribution
-    pname_ = repkey(pname,CAT="dy_reco_2D_"+selection.filename).replace('_baseline',"")
-    plot   = Plot2D(xvar_reco,yvar_reco,dyhist2D_reco,clone=True)
-    plot.draw(logx=logx,logy=yvar_reco.logx,logz=logz,xmin=2.,ymin=xminy,zmin=1.,ztitle="Events")
-    plot.drawtext("%s, Drell-Yan"%(selection.title),size=0.052)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    gStyle.Write('style',gStyle.kOverwrite)
-    plot.canvas.Write("dy_reco_2D",gStyle.kOverwrite)
-    plot.close()
-    
-    # PLOT 2D - Unrolled response matrix (4D)
-    pname_ = repkey(pname,CAT="response_"+selection.filename).replace('_baseline',"")
-    plot   = Plot2D(bvar_reco,bvar_gen,resphist)
-    plot.draw(logx=False,logy=False,width=1000,zmin=1.,logz=logz,ztitle="Events",
-              grid=False,labelsize=0.040,xlabeloption='h')
-    plot.drawbins(yvar_gen, y=0.96,text=False,axis='y')
-    plot.drawbins(yvar_reco,y=0.96,text=False,axis='x')
-    #plot.drawlegend()
-    plot.drawtext("Response matrix, %s"%(selection.title),size=0.052)
-    plot.saveas(pname_,ext=['.png','.pdf'])
-    gStyle.Write('style',gStyle.kOverwrite)
-    plot.canvas.Write("response_matrix",gStyle.kOverwrite)
-    plot.close()
     
     # CLOSE
     close([obshist,exphist,bkghist,dyhist2D_reco]+dyhists+dyhists_T+hists.exp) #sfhist
@@ -620,6 +637,7 @@ def main(args):
   methods   = args.methods
   dytype    = args.dytype
   yvar      = args.yvar
+  syst      = args.syst
   outdir    = "weights" #/$ERA"
   plotdir   = "weights/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
@@ -640,26 +658,28 @@ def main(args):
     plotdir_ = ensuredir(repkey(plotdir,ERA=era))
     samples  = getsampleset(channel,era,fname=fname,dyweight="",dy=dytype)
     if 1 in methods:
-      measureZpt_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,verb=verbosity) # 1D
+      measureZpt_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,
+                        tag=tag_,verb=verbosity) # 1D
     if 2 in methods:
-      measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,tag=tag_,yvar=yvar,dy=dytype,verb=verbosity) # 2D
+      measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,
+                            tag=tag_,yvar=yvar,dy=dytype,syst=syst,verb=verbosity) # 2D
     samples.close() # close all sample files to clean memory
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Measure Z pT reweighting in dimuon events with RooUnfold."""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='+', default=['2017'], action='store', #choices=['2016','2017','2018','UL2017']
                                          help="set era" )
   parser.add_argument('-m', '--method',  dest='methods', type=int, nargs='+', default=[1,2], action='store',
                                          help="methods: 1=1D (Z pT), 2=2D (Z pT and mass)" )
-  parser.add_argument('-D', '--dy',      dest='dytype', type=str, default='jet', action='store',
+  parser.add_argument('-D', '--dy',      dest='dytype', default='jet', action='store',
                                          help="DY type: 'jet' (default), 'mass'" )
-  parser.add_argument('-Y', '--yvar',    dest='yvar', type=str, default='mass', action='store',
+  parser.add_argument('-Y', '--yvar',    dest='yvar', default='mass', action='store',
                                          help="yvar for 2D reweighting: 'mass' (default), 'njets'" )
+  parser.add_argument('-S', '--syst',    dest='syst', default='', action='store',
+                                         help="systematic variation, e.g. syst_tt_(up|down), syst_tt_(up|down), ..." )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
