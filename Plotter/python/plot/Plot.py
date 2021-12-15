@@ -58,6 +58,8 @@ class Plot(object):
     self.verbosity = LOG.getverbosity(kwargs)
     if len(args)==1 and islist(args[0]):
       hists    = args[0] # list of histograms
+    if len(args)==1 and isinstance(args[0],TH1):
+      hists    = [args[0]] # list of histograms
     elif len(args)==2:
       variable = args[0] # string or Variable
       hists    = ensurelist(args[1]) # list of histograms
@@ -165,8 +167,9 @@ class Plot(object):
     labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
     xtitleoffset = kwargs.get('xtitleoffset', 1.0             )*bmargin # scale x title offset
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             ) # scale y title offset
-    xlabelsize   = kwargs.get('xlabelsize',   _lsize          ) # x label size
-    ylabelsize   = kwargs.get('ylabelsize',   _lsize          ) # y label size
+    labelsize    = kwargs.get('labelsize',    _lsize          ) # label size
+    xlabelsize   = kwargs.get('xlabelsize',   labelsize       ) # x label size
+    ylabelsize   = kwargs.get('ylabelsize',   labelsize       ) # y label size
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
@@ -309,7 +312,7 @@ class Plot(object):
     
     # AXES
     self.setaxes(self.frame,*hists,main=ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
-                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,xlabelsize=xlabelsize,
+                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,xlabelsize=xlabelsize,ylabelsize=ylabelsize,
                  binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
     
     # RATIO
@@ -318,7 +321,7 @@ class Plot(object):
       self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
       self.setaxes(self.ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,
-                   binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
+                   binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,ylabelsize=ylabelsize,xtitleoffset=xtitleoffset,
                    center=True,nydiv=506,rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,latex=latex)
       for line in self.lines:
         if line.pad==2:
@@ -484,15 +487,17 @@ class Plot(object):
     nydivisions   = kwargs.get('nydiv',        510              )
     main          = kwargs.get('main',         not lower        ) # main panel of ratio plot
     lower         = kwargs.get('lower',        lower            )
-    scale         = 600./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
+    scale         = 600./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC()) # automatic scaling (e.g. for lower panel)
     yscale        = 1.27/scale*gPad.GetLeftMargin()/_lmargin # ytitleoffset
     xtitlesize    = kwargs.get('xtitlesize',   _tsize           )*scale
     ytitlesize    = kwargs.get('ytitlesize',   _tsize           )*scale
-    xlabelsize    = kwargs.get('xlabelsize',   _lsize           )*scale
-    ylabelsize    = kwargs.get('ylabelsize',   _lsize           )*scale
+    labelsize     = kwargs.get('labelsize',    _lsize           )
+    xlabelsize    = kwargs.get('xlabelsize',   labelsize        )*scale
+    ylabelsize    = kwargs.get('ylabelsize',   labelsize        )*scale
     ytitleoffset  = kwargs.get('ytitleoffset', 1.0              )*yscale
     xtitleoffset  = kwargs.get('xtitleoffset', 1.0              )*1.00
     xlabeloffset  = kwargs.get('xlabeloffset', -0.008*scale if logx else 0.007 )
+    print kwargs
     if main:
       xtitlesize  = 0.0
       xlabelsize  = 0.0
@@ -503,8 +508,6 @@ class Plot(object):
       print ">>> Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex)
       print ">>> Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r, nxdiv=%s, nydiv=%s"%(logx,logy,ycenter,intbins,nxdivisions,nydivisions)
       print ">>> Plot.setaxes: lmargin=%.5g, _lmargin=%.5g, scale=%s, yscale=%s"%(gPad.GetLeftMargin(),_lmargin,scale,yscale)
-      print ">>> Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g, xlabelsize=%.5g, ylabelsize=%.5g"%(xtitlesize,ytitlesize,xlabelsize,ylabelsize)
-      print ">>> Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
     
     if ratiorange:
       ymin, ymax  = 1.-ratiorange, 1.+ratiorange
@@ -522,6 +525,9 @@ class Plot(object):
       xlabelsize   *= 1.08
     if binlabels:
       nxdivisions = 15
+    if verbosity>=3:
+      print ">>> Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g, xlabelsize=%.5g, ylabelsize=%.5g"%(xtitlesize,ytitlesize,xlabelsize,ylabelsize)
+      print ">>> Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
     
     # GET HIST MAX
     hmaxs = [ ]
@@ -860,8 +866,8 @@ class Plot(object):
       print ">>> Plot.drawlegend: hists=%s"%(hists)
       print ">>> Plot.drawlegend: entries=%s"%(entries)
       print ">>> Plot.drawlegend: styles=%s"%(styles)
-      print ">>> Plot.drawlegend: nlines=%s, len(hists)=%s, len(texts)=%s, ncols=%s, margin=%s"%(
-                                  nlines,len(hists),len(texts),ncols,margin)
+      print ">>> Plot.drawlegend: nlines=%s, len(hists)=%s, len(texts)=%s, ncols=%s, margin=%s, xscale=%s"%(
+                                  nlines,len(hists),len(texts),ncols,margin,xscale)
     
     legend.Draw(option)
     self.legends.append(legend)
@@ -971,6 +977,8 @@ class Plot(object):
   def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,**kwargs):
     """Draw line on canvas. If it already exists, draw now on top,
     else draw later in Plot.draw on bottom."""
+    if x1=='min': x1 = self.xmin
+    if x2=='max': x2 = self.xmax
     pad  = kwargs.get('pad', 1 ) # 1: main, 2: ratio
     line = TGraph(2) #TLine(xmin,1,xmax,1)
     line.SetPoint(0,x1,y1)
@@ -988,7 +996,7 @@ class Plot(object):
     
   
   def drawbins(self,bins,text=True,y=0.96,**kwargs):
-    """Divide xaxis into bins with extra lines, e.g. for unrolled 2D plots."""
+    """Divide x axis into bins with extra lines, e.g. for unrolled 2D plots."""
     verbosity = LOG.getverbosity(self,kwargs)
     title = kwargs.get('title',       ""    )
     size  = kwargs.get('size',        0.025 )
