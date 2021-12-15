@@ -6,12 +6,12 @@ from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
   year     = getyear(era) # get integer year
-  dysample = kwargs.get('dy',       "jet"        )
-  dyweight = kwargs.get('dyweight', ""           )
-  split    = kwargs.get('split',    [ ]          ) # split samples (e.g. DY) into genmatch components
-  join     = kwargs.get('join',     ['VV','Top'] ) # join samples (e.g. VV, top)
-  tag      = kwargs.get('tag',      ""           )
-  table    = kwargs.get('table',    True         ) # print sample set table
+  dysample = kwargs.get('dy',       "jet"            )
+  dyweight = kwargs.get('dyweight', ""               )
+  split    = kwargs.get('split',    [ ]              ) # split samples (e.g. DY) into genmatch components
+  join     = kwargs.get('join',     ['VV','TT','ST'] ) # join samples (e.g. VV, top)
+  tag      = kwargs.get('tag',      ""               )
+  table    = kwargs.get('table',    True             ) # print sample set table
   setera(era) # set global era for plot style and lumi-xsec normalization
   
   if 'UL2016' in era and 'VFP' not in era: # join pre-/post-VFP into full UL2016
