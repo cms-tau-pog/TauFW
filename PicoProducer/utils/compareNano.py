@@ -197,7 +197,6 @@ def main(args):
 if __name__ == "__main__":
   import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = '''This script compares pico files.'''
   parser = ArgumentParser(prog="comparePico",description=description,epilog="Good luck!")
   parser.add_argument('files',               nargs='+', default=[ ], action='store',

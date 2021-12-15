@@ -107,9 +107,7 @@ def main(args):
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Script to test the Plot class for comparing histograms."""
   parser = ArgumentParser(prog="testSample",description=description,epilog="Good luck!")
   parser.add_argument('-s', '--sample',  dest='filters', type=str, nargs='+', default=[ ],

@@ -154,9 +154,7 @@ def main(args):
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Test event-based splitting of files."""
   parser = ArgumentParser(prog="testBatch",description=description,epilog="Good luck!")
   parser.add_argument('infiles',         type=str, nargs='*', default=[], action='store',

@@ -96,9 +96,7 @@ def main():
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',

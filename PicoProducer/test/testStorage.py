@@ -166,9 +166,7 @@ def main(args):
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Test StorageSystem."""
   parser = ArgumentParser(prog="testStorage",description=description,epilog="Good luck!")
   parser.add_argument('path',             help="storage path on system to test" )

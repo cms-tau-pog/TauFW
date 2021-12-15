@@ -2,7 +2,6 @@
 # Author: Izaak Neutelings (June 2018)
 # https://ineuteli.web.cern.ch/ineuteli/public/TColor/
 
-import os, sys
 from math import ceil, sqrt
 # import CMS_lumi as CMS_lumi, tdrstyle as tdrstyle
 import ROOT

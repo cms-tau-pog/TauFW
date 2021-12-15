@@ -28,7 +28,6 @@ def main(args):
 if __name__ == '__main__':
   import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Trace & print parents of dataset."""
   parser = ArgumentParser(prog="checkEvents",description=description,epilog="Succes!")
   parser.add_argument('files',           nargs='+', default=[ ], action='store',

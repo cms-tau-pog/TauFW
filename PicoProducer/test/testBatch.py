@@ -95,9 +95,7 @@ def main(args):
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Test BatchSystem."""
   parser = ArgumentParser(prog="testBatch",description=description,epilog="Good luck!")
   parser.add_argument('batch',              help="batch sytem to test" )

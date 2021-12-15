@@ -136,9 +136,7 @@ def main(args):
   
 
 if __name__ == "__main__":
-  import sys
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Test the Sample class"""
   parser = ArgumentParser(prog="testSamples",description=description,epilog="Good luck!")
   parser.add_argument('-n', '--nevts',   type=int, default=50000, action='store',
