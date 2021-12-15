@@ -42,7 +42,7 @@ class SampleSet(object):
     self.loadingbar     = kwargs.get('loadingbar', True ) and self.verbosity<=1
     self.ignore         = kwargs.get('ignore',     [ ]  )
     self.sharedsamples  = kwargs.get('shared',     [ ]  ) # shared samples with set variation to reduce number of files
-    #self.shiftQCD       = kwargs.get('shiftQCD',   0    )
+    #self.shiftqcd       = kwargs.get('shiftqcd',   0    )
     #self.weight         = kwargs.get('weight',     ""   ) # use Sample objects to store weight !
     self.closed         = False
     self.nplots         = 0 # counter to clean and refresh memory once in a while
@@ -180,7 +180,7 @@ class SampleSet(object):
   
   #def setcolors(self):
   #  """Set colors for each sample. Check if each color is used uniquely."""
-  #  verbosity = LOG.getverbosity(kwargs)
+  #  verbosity = LOG.getverbosity(kwargs,self)
   #  usedcols  = [ ]
   #  # CHECK SPLIT
   #  for sample in self.samples:
@@ -221,7 +221,7 @@ class SampleSet(object):
   
   def refresh(self,**kwargs):
     """Open/reopen files to refresh file memories after some amount of plots have been made."""
-    verbosity = LOG.getverbosity(kwargs)
+    verbosity = LOG.getverbosity(kwargs,self)
     now       = kwargs.get('now',  False ) # refresh right now
     step      = kwargs.get('step', 20    ) # threshold of number of plots made before actual refreshing
     kwargs['verbosity'] = verbosity
@@ -234,54 +234,49 @@ class SampleSet(object):
       self.nplots = 0
   
   def clone(self,name="",**kwargs):
-    """Shift samples in samples set by creating new samples with new filename/titlename."""
-    filter        = kwargs.get('filter',      False       ) # filter out 
-    share         = kwargs.get('share',       False       ) # share other samples (as opposed to cloning them)
-    app           = kwargs.get('app',         "clone"     )
-    close         = kwargs.get('close',       False       )
-    deep          = kwargs.get('deep',        True        )
+    """Clone samples in sample set by creating new samples with new filename/titlename."""
+    verbosity     = LOG.getverbosity(kwargs,self)
+    filter        = kwargs.get('filter', False ) # only include samples passing the filter
+    share         = kwargs.get('share',  False ) # share other samples (as opposed to cloning them)
+    close         = kwargs.get('close',  False ) # set sample status to close, so files are reopened upon first use
+    deep          = kwargs.get('deep',   True  ) # deep copy
     filterterms   = filter if islist(filter) else ensurelist(filter) if isinstance(filter,str) else [ ]
     shareterms    = share  if islist(share)  else ensurelist(share)  if isinstance(share,str)  else [ ]
     datasample    = None
-    expsamples    = [ ]
-    sigsamples    = [ ]
     sharedsamples = [ ]
-    for sample in self.expsamples:
-      if filter and sample.match(*filterterms,incl=False):
-        if share:
-          newsample = sample
-          sharedsamples.append(newsample)
-        else:
-          newsample = sample.clone(samename=True,deep=deep)
-        expsamples.append(newsample)
-      elif not filter:
-        if share or (shareterms and sample.match(*shareterms,incl=False)):
-          newsample = sample
-          sharedsamples.append(newsample)
-        else:
-          newsample = sample.clone(samename=True,deep=deep)
-        expsamples.append(newsample)
-    for sample in self.sigsamples:
-      if filter and sample.match(*filterterms,incl=False):
-        if share:
-          newsample = sample
-          sharedsamples.append(newsample)
-        else:
-          newsample = sample.clone(samename=True,deep=deep)
-        expsamples.append(newsample)
-      elif not filter:
-        if share or (shareterms and sample.match(*shareterms,incl=False)):
-          newsample = sample
-          sharedsamples.append(newsample)
-        else:
-          newsample = sample.clone(samename=True,deep=deep)
-        sigsamples.append(newsample)
+    def clonesamples(oldsamples):
+      """Helpfunction to clone samples."""
+      newsamples = [ ]
+      for sample in oldsamples:
+        if filter and sample.match(*filterterms,incl=False):
+          if share:
+            LOG.verb("SampleSet.clone: Share %s..."%(sample.title),verbosity,level=2)
+            newsample = sample
+            sharedsamples.append(newsample)
+          else: # create new Sample object
+            LOG.verb("SampleSet.clone: Clone %s..."%(sample.title),verbosity,level=2)
+            newsample = sample.clone(samename=True,deep=deep)
+          newsamples.append(newsample)
+        elif not filter: # include everything
+          if share or (shareterms and sample.match(*shareterms,incl=False)):
+            LOG.verb("SampleSet.clone: Share %s..."%(sample.title),verbosity,level=2)
+            newsample = sample
+            sharedsamples.append(newsample)
+          else: # create new Sample object
+            LOG.verb("SampleSet.clone: Clone %s..."%(sample.title),verbosity,level=2)
+            newsample = sample.clone(samename=True,deep=deep)
+          newsamples.append(newsample)
+        else: # no match, do not include in new sampleset
+          LOG.verb("SampleSet.clone: Exclude %s..."%(sample.title),verbosity,level=2)
+      return newsamples
+    expsamples = clonesamples(self.expsamples)
+    sigsamples = clonesamples(self.sigsamples)
     if not filter:
       datasample = self.datasample
       sharedsamples.append(datasample)
     kwargs['shared']    = sharedsamples
     kwargs['name']      = name
-    kwargs['shiftQCD']  = self.shiftQCD
+    #kwargs['shiftqcd']  = self.shiftqcd
     kwargs['label']     = self.label
     kwargs['channel']   = self.channel
     kwargs['verbosity'] = self.verbosity
@@ -292,7 +287,7 @@ class SampleSet(object):
   def changecontext(self,*args,**kwargs):
     """Help function to change context of variable object."""
     variables, selection, issingle = unwrap_gethist_args(*args)
-    verbosity = LOG.getverbosity(kwargs)
+    verbosity = LOG.getverbosity(kwargs,self)
     invariables = variables[:]
     for var in variables:
       if not var.plotfor(selection,self.channel) or not selection.plotfor(var):
@@ -346,7 +341,7 @@ class SampleSet(object):
   
   def gethists(self, *args, **kwargs):
     """Create and fill histograms for all samples and return lists of histograms."""
-    verbosity     = LOG.getverbosity(kwargs)
+    verbosity     = LOG.getverbosity(kwargs,self)
     if verbosity>=1:
       print ">>> gethists"
     variables, selection, issingle = unwrap_gethist_args(*args)
@@ -516,7 +511,7 @@ class SampleSet(object):
   def gethists2D(self, *args, **kwargs):
     """Create and fill histograms for all samples and return lists of histograms."""
     variables, selection, issingle = unwrap_gethist2D_args(*args)
-    verbosity  = LOG.getverbosity(kwargs)
+    verbosity  = LOG.getverbosity(kwargs,self)
     dodata     = kwargs.get('data',       True     ) # create data hists
     domc       = kwargs.get('mc',         True     ) # create expected (SM background) hists
     doexp      = kwargs.get('exp',        domc     ) # create expected (SM background) hists
@@ -638,7 +633,7 @@ class SampleSet(object):
   
   def rename(self,*args,**kwargs):
     """Rename sample, e.g. sampleset.rename('WJ','W')"""
-    verbosity        = LOG.getverbosity(kwargs)
+    verbosity        = LOG.getverbosity(kwargs,self)
     LOG.insist(len(args)>=2,"SampleSet.rename: need more than two strings! Got %s"%(args,))
     strings          = [arg for arg in args if isinstance(arg,str)]
     searchterms      = strings[:-1]
@@ -661,7 +656,7 @@ class SampleSet(object):
          ('ZJ', "Fake tau","genmatch_2!=5"),
       ])
     """
-    verbosity        = LOG.getverbosity(kwargs)
+    verbosity        = LOG.getverbosity(kwargs,self)
     LOG.verb("SampleSet.split: splitting %s"%(self.name),verbosity,1)
     searchterms      = [arg for arg in args if isinstance(arg,str)]
     splitlist        = [arg for arg in args if islist(arg)        ][0]
@@ -674,15 +669,15 @@ class SampleSet(object):
   
   def shift(self,searchterms,filetag,nametag=None,titletag=None,**kwargs):
     """Shift samples in samples set by creating new samples with new filename/titlename."""
-    verbosity     = LOG.getverbosity(kwargs)
+    verbosity     = LOG.getverbosity(kwargs,self)
     LOG.verb("Sample.shift(%r,%r,%r)"%(searchterms,filetag,titletag),verbosity,1)
-    filter        = kwargs.get('filter',      False       ) # filter non-matched samples out
-    share         = kwargs.get('share',       False       ) # reduce memory by sharing non-matched samples (as opposed to cloning)
-    split         = kwargs.get('split',       False       ) # also look in split samples
-    close         = kwargs.get('close',       False       )
-    kwargs.setdefault('name',      filetag.lstrip('_')      )
-    kwargs.setdefault('label',     filetag                  )
-    kwargs.setdefault('channel',   self.channel             )
+    filter        = kwargs.get('filter', False       ) # filter non-matched samples out
+    share         = kwargs.get('share',  False       ) # reduce memory by sharing non-matched samples (as opposed to cloning)
+    split         = kwargs.get('split',  False       ) # also look in split samples
+    close         = kwargs.get('close',  False       )
+    kwargs.setdefault('name',    filetag.lstrip('_') )
+    kwargs.setdefault('label',   filetag             )
+    kwargs.setdefault('channel', self.channel        )
     searchterms   = ensurelist(searchterms)
     all           = searchterms==['*']
     datasample    = None
@@ -726,14 +721,14 @@ class SampleSet(object):
   
   def shiftweight(self,searchterms,newweight,titletag="",**kwargs):
     """Shift samples in samples set by creating new samples with new weight."""
-    filter          = kwargs.get('filter',      False       ) # filter other samples
-    share           = kwargs.get('share',       False       ) # share other samples (as opposed to cloning them)
-    extra           = kwargs.get('extra',       True        ) # replace extra weight
+    filter = kwargs.get('filter', False ) # filter other samples
+    share  = kwargs.get('share',  False ) # share other samples (as opposed to cloning them)
+    extra  = kwargs.get('extra',  True  ) # replace extra weight
     if not islist(searchterms):
       searchterms = [ searchterms ]
-    datasample      = None
-    expsamples      = [ ]
-    sigsamples      = [ ]
+    datasample = None
+    expsamples = [ ]
+    sigsamples = [ ]
     for sample in self.expsamples:
       if sample.match(*searchterms,incl=False):
         newsample = sample.clone(samename=True,deep=True)
