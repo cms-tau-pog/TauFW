@@ -497,7 +497,6 @@ class Plot(object):
     ytitleoffset  = kwargs.get('ytitleoffset', 1.0              )*yscale
     xtitleoffset  = kwargs.get('xtitleoffset', 1.0              )*1.00
     xlabeloffset  = kwargs.get('xlabeloffset', -0.008*scale if logx else 0.007 )
-    print kwargs
     if main:
       xtitlesize  = 0.0
       xlabelsize  = 0.0
