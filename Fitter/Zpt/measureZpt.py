@@ -71,9 +71,9 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
   
   # SELECTIONS
   selections = [
-#     Sel('Baseline #mu#mu',             baseline,              fname="baseline"),
+    Sel('Baseline #mu#mu',             baseline,              fname="baseline"),
     #Sel('Baseline #mu#mu, met<50 GeV', baseline+" && met<50", fname="metlt50"),
-    Sel('m_{mumu} > 110 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>110", fname="mgt110"),
+    #Sel('m_{mumu} > 110 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>110", fname="mgt110"),
     #Sel('m_{mumu} > 200 GeV',     baseline+" && pt_1>50 && pt_2>50 && m_vis>200", fname="mgt200"),
     #Sel('m_{mumu} > 200 GeV, #LT#eta#GT<1.1', baseline+" && pt_1>50 && pt_2>50 && (eta_1+eta_2)/2<1.1 && deta_ll<3 && m_vis>200", fname="mgt200-etalt1p1"),
   ]
