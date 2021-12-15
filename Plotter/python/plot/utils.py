@@ -554,6 +554,21 @@ def normalizebins(oldstack,**kwargs):
   return newstack
   
 
+def getconstanthist(oldhist,yval=1,**kwargs):
+  """Create a histogram with constant bin content."""
+  verbosity = LOG.getverbosity(kwargs)
+  tag   = kwargs.get('tag',  "constant" )
+  hname = kwargs.get('name', "%s_%s"%(oldhist.GetName(),tag) ) # treat poisson errors differently
+  yerr  = kwargs.get('err',  0.0        )
+  LOG.verbose('getconstanthist: %r -> %r'%(oldhist.GetName(),hname),verbosity,2)
+  newhist = oldhist.Clone(hname)
+  newhist.Reset()
+  for ibin in xrange(0,oldhist.GetXaxis().GetNbins()+2):
+    newhist.SetBinContent(ibin,yval) # set to same value
+    newhist.SetBinError(ibin,yerr) # set to same value
+  return newhist
+  
+
 def addoverflow(*hists,**kwargs):
   """Add overflow to last bin(s)."""
   verbosity = LOG.getverbosity(kwargs)
