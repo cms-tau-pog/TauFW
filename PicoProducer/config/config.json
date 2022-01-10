@@ -1,7 +1,7 @@
 {
   "channels": {
     "skim": "skimjob.py", 
-    "skim-jec": "skimjob.py --jec-sys",
+    "skim-jec": "skimjob.py --jec-sys", 
     "gen": "GenDumper", 
     "mutau": "ModuleMuTauSimple"
   }, 
@@ -12,5 +12,15 @@
   }, 
   "nfilesperjob": 1, 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
+  "basedir": "/afs/cern.ch/work/s/smonig/private/CMS/TauPOG/CMSSW_10_6_13/src/TauFW/PicoProducer", 
+  "outdir": "/tmp/smonig/output/$ERA/$CHANNEL/$SAMPLE", 
+  "nanodir": "samples/nano/$ERA/$DAS", 
+  "picodir": "analysis/$ERA/$GROUP", 
+  "tmpskimdir": "", 
+  "batch": "HTCondor", 
+  "queue": "", 
+  "maxevtsperjob": -1, 
+  "maxopenfiles": 500, 
+  "ncores": 4
 }

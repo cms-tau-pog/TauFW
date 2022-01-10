@@ -155,20 +155,19 @@ class ModuleMuTau(ModuleTauPair):
     genmatch  = -1 if self.isdata else tau.genPartFlav
     self.out.cutflow.fill('pair')
     
-    
     # VETOES
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon],[tau],self.channel)
     self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[muon],[ ],self.channel)
     self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] or self.out.dilepton_veto[0]
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto
     
-    # TIGHTEN PRE-SELECTION
+    # TIGHTEN PRE-SELECTION ### Check selection again!
     if self.dotight: # do not save all events to reduce disk space
       fail = (self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]) or\
              tau.idDeepTau2017v2p1VSjet<1 or tau.idDeepTau2017v2p1VSmu<2 or tau.idDeepTau2017v2p1VSe<1
       if (self.tes not in [1,None] or self.tessys!=None) and (fail or tau.genPartFlav!=5):
         return False
-      if (self.ltf!=1 or self.fes!=None) and (tau.genPartFlav<1 or tau.genPartFlav>4):
+      if (self.ltf not in [1,None] or self.fes!=None) and (tau.genPartFlav<1 or tau.genPartFlav>4):
         return False
       ###if self.jtf!=1 and tau.genPartFlav!=0:
       ###  return False
@@ -246,7 +245,6 @@ class ModuleMuTau(ModuleTauPair):
       self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau,self.ismc)
     else:
       self.out.jpt_match_2[0] = matchtaujet(event,tau,self.ismc)[0]
-    
     
     # WEIGHTS
     if self.ismc:
