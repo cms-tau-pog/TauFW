@@ -34,7 +34,11 @@
     "mutau_TES1p024": "ModuleMuTau tes=1.024", 
     "mutau_TES1p026": "ModuleMuTau tes=1.026", 
     "mutau_TES1p028": "ModuleMuTau tes=1.028", 
-    "mutau_TES1p030": "ModuleMuTau tes=1.030"
+    "mutau_TES1p030": "ModuleMuTau tes=1.030", 
+    "mutau_LTFUp": "ModuleMuTau ltf=1.030", 
+    "mutau_LTFDown": "ModuleMuTau ltf=0.970", 
+    "mutau_JTFUp": "ModuleMuTau jtf=1.100", 
+    "mutau_JTFDown": "ModuleMuTau jtf=0.900"
   }, 
   "eras": {
     "2016": "examples/samples_2016.py", 

@@ -208,8 +208,10 @@ def drawVariations(filename,dirname,samples,variations,**kwargs):
     exts       = ['pdf','png'] if args.pdf else ['png']
     
     plot = Plot(hists)
-    plot.plot(vartitle,title=title,text=text,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax,position=position)
-    plot.saveAs(canvasname,ext=exts)
+#    plot.plot(vartitle,title=title,text=text,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax,position=position)
+    plot.draw(vartitle,title=title,text=text,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax,position=position)
+#    plot.saveAs(canvasname,ext=exts)
+    plot.saveas(canvasname,ext=exts)
     plot.close()
   
   file.Close()
@@ -407,7 +409,8 @@ def main():
     year        = args.year
     lumi        = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
     era         = '%s-13TeV'%year
-    indir       = "input_%s"%year
+#    indir       = "input_%s"%year
+    indir       = "input"
     outdir      = "shapes_%s"%year
     stackoutdir = "control_%s"%year
     tags        = args.tags
@@ -439,11 +442,11 @@ def main():
     grouplist = [ (['^TT*','ST*'],'TT','ttbar and single top'), ]
     stacksamples2 = [ s.replace('_TES1.000','') for s in stacksamples]
     shifts   = [ "",
-       "shape_dy",
-       "shape_tid",
-       "shape_mTauFakeSF",
-       "shape_mTauFake_$CAT",
-       "shape_jTauFake_$CAT",
+#       "shape_dy",
+#       "shape_tid",
+#       "shape_mTauFakeSF",
+#       "shape_mTauFake_$CAT",
+#       "shape_jTauFake_$CAT",
        ###"shape_m_mt",
        ###"shape_jes",
        ###"shape_jer",
