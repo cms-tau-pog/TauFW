@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-# Author: Izaak Neutelings (August 2020)
+# Author: Yiwen Wen (August 2020)
+# Based on createinputs.py created by Izaak N.
 # Description: Create input histograms for datacards
 #   ./createinputs.py -c mutau -y UL2017
 import sys
@@ -60,7 +61,9 @@ def main(args):
         GML = "genmatch_2>0 && genmatch_2<5"
         GMJ = "genmatch_2==0"
         GMF = "genmatch_2<5"
-        sampleset.split('DY',[('ZTT',GMR),('ZL',GML),('ZJ',GMJ),])
+        GMM = "genmatch_2==2"
+        GMTL = "genmatch_2>2 && genmatch_2<5"
+        sampleset.split('DY',[('ZTT',GMR),('ZMM',GMM),('ZJ',GMJ),('ZTL',GMTL)])
         sampleset.split('TT',[('TTT',GMR),('TTL',GML),('TTJ',GMJ)])
         #sampleset.split('ST',[('STT',GMR),('STJ',GMF),]) # small background
         sampleset.rename('WJ','W')
@@ -68,12 +71,13 @@ def main(args):
         
         # SYSTEMATIC VARIATIONS
         varprocs = OrderedDict([ # processes to be varied
-          ('Nom',     ['ZTT','ZL','ZJ','W','VV','ST','TTT','TTL','TTJ','QCD','data_obs']), #,'STT','STJ'
+          ('Nom',     ['ZTT','ZMM','ZTL','ZJ','W','VV','ST','TTT','TTL','TTJ','QCD','data_obs']), #,'STT','STJ'
           ('TESUp',   ['ZTT','TTT']),
           ('TESDown', ['ZTT','TTT']),
-          ('FESUp',   ['ZL','TTL']),
-          ('FESDown', ['ZL','TTL']),
-
+          ('FESUp',   ['ZMM','ZTL','TTL']),
+          ('FESDown', ['ZMM','ZTL','TTL']),
+          ('RESUp',   ['ZMM']),
+          ('RESDown', ['ZMM']),
         ])
         samplesets = { # sets of samples per variation
           'Nom':     sampleset, # nominal
@@ -81,8 +85,10 @@ def main(args):
           'TESDown': sampleset.shift(varprocs['TESDown'],"_TES0p97","_TESDown"," -3% TES", split=True,filter=False,share=True),
           'FESUp':   sampleset.shift(varprocs['FESUp'],  "_FES1p05","_FESUp",  " +5% FES", split=True,filter=False,share=True),
           'FESDown': sampleset.shift(varprocs['FESDown'],"_FES0p95","_FESDown"," -5% FES", split=True,filter=False,share=True),
+          'RESUp':   sampleset.shift(varprocs['RESUp'],  "_RES1p20","_RESUp",  " +20% RES", split=True,filter=False,share=True),
+          'RESDown': sampleset.shift(varprocs['RESDown'],"_RES0p80","_RESDown"," -20% RES", split=True,filter=False,share=True),
         }
-        keys = samplesets.keys() if verbosity>=1 else ['Nom','TESUp','TESDown','FESUp','FESDown']
+        keys = samplesets.keys() if verbosity>=1 else ['Nom','TESUp','TESDown','FESUp','FESDown','RESUp','RESDown']
         for shift in keys:
           if not shift in samplesets: continue
           samplesets[shift].printtable(merged=True,split=True)
@@ -104,7 +110,7 @@ def main(args):
       else:
         
         mvis_pass = Var('m_vis', 10, 70, 120)
-        mvis_fail = Var('m_vis', 1, 70, 120)
+        mvis_fail = Var('m_vis', 10, 72.5, 122.5)
         observables_pass = [
           #Var('m_vis', 10, 70, 120),
           #Var('m_vis', 1, 70, 120, tag="_Fail"),
@@ -121,7 +127,7 @@ def main(args):
         #    instead of looping over many selection,
         #    also, each eta/DM bin will be a separate file
         #dmbins = [0,1,10,11]
-        etabins = [0,0.4,0.8,1.2,1.7,3.0]
+        etabins = [1.7,3.0]#[0,0.4,0.8,1.2,1.7,3.0]
         #ptbins = [20,25,30,35,40,50,70,2000] #500,1000]
         #print ">>> DM cuts:"
         #for dm in dmbins:
@@ -160,13 +166,17 @@ def main(args):
       
       else:
         
-        tauwps    = ['VLoose','Loose','Medium','Tight']
+        tauwps    = ['Medium']#,'Tight']
         tauwpbits = { wp: 2**i for i, wp in enumerate(tauwps)}
         iso_1     = "iso_1<0.15"
-        iso_2     = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSmu_2>=$WP && idDeepTau2017v2p1VSjet_2>=16"
-        iso_2_fail     = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSmu_2<$WP && idDeepTau2017v2p1VSjet_2>=16"
-        baseline  = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(iso_1,iso_2)
-        baseline_fail  = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(iso_1,iso_2_fail)
+        iso_2     = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSmu_2>=$WP && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=4"
+        iso_2_fail     = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSmu_2<$WP && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=4"
+        if era=='UL2017':
+            pt_1 = "pt_1>29"
+        else:
+            pt_1 = "pt_1>26"
+        baseline  = "q_1*q_2<0 && %s && %s && %s &&!lepton_vetoes_notau && metfilter"%(iso_1,iso_2,pt_1)
+        baseline_fail  = "q_1*q_2<0 && %s && %s && %s &&!lepton_vetoes_notau && metfilter"%(iso_1,iso_2_fail,pt_1)
         zttregion = "%s && mt_1<40"%(baseline)
         zttregion_fail = "%s && mt_1<40"%(baseline_fail)
         bins_pass = []
@@ -194,6 +204,8 @@ def main(args):
         createinputs(fname,samplesets['TESDown'],observables_pass,bins_pass,filter=varprocs['TESDown'])
         createinputs(fname,samplesets['FESUp'],  observables_pass,bins_pass,filter=varprocs['FESUp'])
         createinputs(fname,samplesets['FESDown'],observables_pass,bins_pass,filter=varprocs['FESDown'])
+        createinputs(fname,samplesets['RESUp'],  observables_pass,bins_pass,filter=varprocs['RESUp'])
+        createinputs(fname,samplesets['RESDown'],observables_pass,bins_pass,filter=varprocs['RESDown'])
        
       createinputs(fname,samplesets['Nom'],    observables_fail,bins_fail,recreate=False)
       if channel in ['mutau']:
@@ -201,7 +213,8 @@ def main(args):
         createinputs(fname,samplesets['TESDown'],observables_fail,bins_fail,filter=varprocs['TESDown'])
         createinputs(fname,samplesets['FESUp'],  observables_fail,bins_fail,filter=varprocs['FESUp'])
         createinputs(fname,samplesets['FESDown'],observables_fail,bins_fail,filter=varprocs['FESDown'])
-
+        createinputs(fname,samplesets['RESUp'],  observables_fail,bins_fail,filter=varprocs['RESUp'])
+        createinputs(fname,samplesets['RESDown'],observables_fail,bins_fail,filter=varprocs['RESDown'])
 
       
       ############
@@ -212,9 +225,10 @@ def main(args):
       if plot:
         pname  = "%s/%s_$OBS_%s-$BIN-%s$TAG%s.png"%(plotdir,analysis,chshort,era,tag)
         text   = "%s: $BIN"%(channel.replace("mu","#mu").replace("tau","#tau_{h}"))
-        groups = [ ] #(['^TT','ST'],'Top'),]
-        plotinputs(fname,varprocs,observables_pass,bins_pass,text=text,
-                   pname=pname,tag=tag,group=groups)
+        groups = [] #(['^TT','ST'],'Top'),]
+        plotinputs(fname,varprocs,observables_pass,bins_pass,text=text,pname=pname,tag=tag,group=groups)
+        plotinputs(fname,varprocs,observables_fail,bins_fail,text=text,pname=pname,tag=tag,group=groups)
+      
       
 
 if __name__ == "__main__":
@@ -222,7 +236,7 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017'], default=['UL2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_postVFP','UL2016_preVFP','UL2018_withJEC'], default=['UL2017'], action='store',
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau','mumu'], default=['mutau'], action='store',
                                          help="set channel" )
