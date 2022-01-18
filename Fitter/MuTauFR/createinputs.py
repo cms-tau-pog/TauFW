@@ -110,7 +110,7 @@ def main(args):
       else:
         
         mvis_pass = Var('m_vis', 10, 70, 120)
-        mvis_fail = Var('m_vis', 10, 72.5, 122.5)
+        mvis_fail = Var('m_vis', 1, 70, 120)
         observables_pass = [
           #Var('m_vis', 10, 70, 120),
           #Var('m_vis', 1, 70, 120, tag="_Fail"),
@@ -127,7 +127,7 @@ def main(args):
         #    instead of looping over many selection,
         #    also, each eta/DM bin will be a separate file
         #dmbins = [0,1,10,11]
-        etabins = [1.7,3.0]#[0,0.4,0.8,1.2,1.7,3.0]
+        etabins = [0,0.4,0.8,1.2,1.7,3.0]
         #ptbins = [20,25,30,35,40,50,70,2000] #500,1000]
         #print ">>> DM cuts:"
         #for dm in dmbins:
