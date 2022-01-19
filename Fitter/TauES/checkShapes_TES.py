@@ -208,9 +208,9 @@ def drawVariations(filename,dirname,samples,variations,**kwargs):
     exts       = ['pdf','png'] if args.pdf else ['png']
     
     plot = Plot(hists)
-#    plot.plot(vartitle,title=title,text=text,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax,position=position)
-    plot.draw(vartitle,title=title,text=text,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax,position=position)
-#    plot.saveAs(canvasname,ext=exts)
+    plot.draw(vartitle,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax)
+    plot.drawlegend(position,title=title)
+    plot.drawtext(text)
     plot.saveas(canvasname,ext=exts)
     plot.close()
   

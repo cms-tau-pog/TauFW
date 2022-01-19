@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (January 2018)
 
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import os, sys, re
 from argparse import ArgumentParser
 import CombineHarvester.CombineTools.ch as ch
