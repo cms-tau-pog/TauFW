@@ -134,8 +134,8 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
         if yval<0:
           print ">>> replace bin %d (%.3f<0) of %r"%(i,yval,hist.GetName())
           hist.SetBinContent(i,0)
-      files[obs].cd(bin) # $FILE:$BIN/$PROCESS_$SYSTEMATC
-      hist.Write(name,TH1.kOverwrite)
+      if files[obs].cd(bin): # $FILE:$BIN/$PROCESS_$SYSTEMATC
+        hist.Write(name,TH1.kOverwrite)
       TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(),name)
       deletehist(hist) # clean memory
   
