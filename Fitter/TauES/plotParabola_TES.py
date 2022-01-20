@@ -1168,8 +1168,6 @@ def main(args):
     entries = [varlabel[v] for v in vars]
     fittag  = "_fit_asymm" if asymmetric else "_fit"
     
-    finalCalculation(year); exit(0)
-    
     # LOOP over tags, channels, variables
     if parabola:
       for tag in tags:
