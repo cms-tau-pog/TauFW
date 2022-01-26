@@ -442,11 +442,11 @@ def main():
     grouplist = [ (['^TT*','ST*'],'TT','ttbar and single top'), ]
     stacksamples2 = [ s.replace('_TES1.000','') for s in stacksamples]
     shifts   = [ "",
-#       "shape_dy",
-#       "shape_tid",
-#       "shape_mTauFakeSF",
-#       "shape_mTauFake_$CAT",
-#       "shape_jTauFake_$CAT",
+       "shape_dy",
+       "shape_tid",
+       "shape_mTauFakeSF",
+       "shape_mTauFake_$CAT",
+       "shape_jTauFake_$CAT",
        ###"shape_m_mt",
        ###"shape_jes",
        ###"shape_jer",
