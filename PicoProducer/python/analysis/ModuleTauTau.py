@@ -229,7 +229,7 @@ class ModuleTauTau(ModuleTauPair):
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       self.out.trigweight[0]             = self.trigTool.getSFPair(tau1,tau2)
       self.out.trigweight_tight[0]       = self.trigTool_tight.getSFPair(tau1,tau2)
-      if not self.dotight:
+      if self.dosys:
         self.out.trigweightUp[0]         = self.trigTool.getSFPair(tau1,tau2,unc='Up')
         self.out.trigweightDown[0]       = self.trigTool.getSFPair(tau1,tau2,unc='Down')
       
@@ -240,7 +240,7 @@ class ModuleTauTau(ModuleTauPair):
       self.out.idweight_tight_2[0]  = 1.
       self.out.ltfweight_2[0]       = 1.
       self.out.ltfweight_2[0]       = 1.
-      if not self.dotight:
+      if self.dosys:
         self.out.idweightUp_1[0]    = 1.
         self.out.idweightUp_2[0]    = 1.
         self.out.idweightDown_1[0]  = 1.
@@ -254,13 +254,13 @@ class ModuleTauTau(ModuleTauPair):
       if tau1.genPartFlav==5:
         self.out.idweight_1[0]        = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode)
         self.out.idweight_tight_1[0]  = self.tauSFs_tight.getSFvsDM(tau1.pt,tau1.decayMode)
-        if not self.dotight:
+        if self.dosys:
           self.out.idweightUp_1[0]    = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Up')
           self.out.idweightDown_1[0]  = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Down')
       elif tau1.genPartFlav>0:
         ltfTool = self.etfSFs if tau1.genPartFlav in [1,3] else self.mtfSFs
         self.out.ltfweight_1[0]       = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav)
-        if not self.dotight:
+        if self.dosys:
           self.out.ltfweightUp_1[0]   = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Up')
           self.out.ltfweightDown_1[0] = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Down')
       
@@ -268,13 +268,13 @@ class ModuleTauTau(ModuleTauPair):
       if tau1.genPartFlav==5:
         self.out.idweight_2[0]        = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode)
         self.out.idweight_tight_2[0]  = self.tauSFs_tight.getSFvsDM(tau1.pt,tau1.decayMode)
-        if not self.dotight:
+        if self.dosys:
           self.out.idweightUp_2[0]    = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Up')
           self.out.idweightDown_2[0]  = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Down')
       elif tau1.genPartFlav>0:
         ltfTool = self.etfSFs if tau1.genPartFlav in [1,3] else self.mtfSFs
         self.out.ltfweight_2[0]       = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav)
-        if not self.dotight:
+        if self.dosys:
           self.out.ltfweightUp_2[0]   = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Up')
           self.out.ltfweightDown_2[0] = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Down')
     

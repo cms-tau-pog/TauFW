@@ -82,7 +82,7 @@ class TreeProducerETau(TreeProducerTauPair):
       self.addBranch('idisoweight_1',            'f', 1., title="electron ID/iso efficiency SF")
       self.addBranch('idweight_2',               'f', 1., title="tau ID efficiency SF")
       self.addBranch('ltfweight_2',              'f', 1., title="lepton -> tau fake rate SF")
-      if not module.dotight:
+      if self.module.dosys: # systematic variation (only for nominal tree)
         self.addBranch('idweightUp_2',           'f', 1.)
         self.addBranch('idweightDown_2',         'f', 1.)
         self.addBranch('ltfweightUp_2',          'f', 1.)

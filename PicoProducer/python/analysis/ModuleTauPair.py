@@ -43,10 +43,12 @@ class ModuleTauPair(Module):
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
     self.dopdf      = kwargs.get('dopdf',    False          ) and self.ismc # store PDF & scale weights
     self.dorecoil   = kwargs.get('recoil',   False          ) and self.ismc # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
-    self.dotight    = self.tes not in [1,None] or self.tessys!=None or self.ltf not in [1,None] or self.jtf not in [1,None] # store fewer branches and events
-    self.dotight    = kwargs.get('tight',    self.dotight   ) # save memory
+    self.dosys      = self.tessys in [None,''] and self.ltf in [1,None] and self.jtf in [1,None] # include systematic variations of weight
+    self.dosys      = kwargs.get('sys',      self.dosys     ) # store fewer branches to save disk space
+    self.dotight    = self.tes not in [1,None] or not self.dosys # tighten pre-selection to store fewer events
+    self.dotight    = kwargs.get('tight',    self.dotight   ) # store fewer events to save disk space
     self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
-    self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and not self.dotight #and self.dojec #and False
+    self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = 30
@@ -109,6 +111,7 @@ class ModuleTauPair(Module):
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
     print ">>> %-12s = %s"%('dojec',     self.dojec)
     print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
+    print ">>> %-12s = %s"%('dosys',     self.dosys)
     print ">>> %-12s = %s"%('dotight',   self.dotight)
     print ">>> %-12s = %s"%('useT1',     self.useT1)
     print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
@@ -146,6 +149,7 @@ class ModuleTauPair(Module):
     if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
       redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
+  
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
     self.out.cutflow.fill('none')
@@ -158,7 +162,7 @@ class ModuleTauPair(Module):
     else:
       self.out.cutflow.fill('weight',event.genWeight)
       self.out.pileup.Fill(event.Pileup_nTrueInt)
-      #if not self.doTight and event.nLHEScaleWeight>0:
+      #if self.dosys and event.nLHEScaleWeight>0:
       #idxs = [(0,0),(1,5),(2,10),(3,15),(4,20),(5,24),(6,29),(7,34),(8,39)] if event.nLHEScaleWeight>40 else\
       #       [(0,0),(1,1),(2,2),(3,3),(5,4),(6,5),(7,6),(8,7)] if event.nLHEScaleWeight==8 else\
       #       [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8)]
@@ -358,7 +362,7 @@ class ModuleTauPair(Module):
     self.out.genweight[0]     = event.genWeight
     self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
     self.out.btagweight[0]    = self.btagTool.getWeight(jets)
-    if not self.dotight:
+    if self.dosys:
       if self.dopdf:
         self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
         for i in range(self.out.npdfweight[0]):
