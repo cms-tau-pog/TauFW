@@ -65,6 +65,7 @@ def getconfig(verb=0,refresh=False):
   # SETTING
   cfgdir   = ensuredir(basedir,"config")
   cfgname  = os.path.join(cfgdir,"config.json")
+  bkpname  = os.path.join(cfgdir,"config.json.bkp") # back up to recover config if reset
   cfgdict  = _cfgdefaults.copy()
   rqdstrs  = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,basestring)]
   rqddicts = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,dict)]
@@ -73,14 +74,23 @@ def getconfig(verb=0,refresh=False):
   if os.path.isfile(cfgname):
     with open(cfgname,'r') as file:
       cfgdict = json.load(file,object_pairs_hook=OrderedDict)
-    update = False
-    for key in _cfgdefaults.keys(): # check for missing keys
-      if key not in cfgdict:
-        LOG.warning("Key '%s' not set in config file %s. Setting to default %r"%(key,os.path.relpath(cfgname),_cfgdefaults[key]))
-        cfgdict[key] = _cfgdefaults[key]
-        update = True
-    if update:
-      print ">>> Saving defaults..."
+    nmiss = len([0 for k in _cfgdefaults.keys() if k not in cfgdict]) # count missing keys
+    if nmiss>=5 and os.path.isfile(bkpname): # recover reset config file
+      print ">>> Config file may have been reset. Opening backup %s..."%(bkpname)
+      with open(bkpname,'r') as file:
+        cfgdict = json.load(file,object_pairs_hook=OrderedDict)
+      for key in cfgdict.keys(): # check for missing keys
+        if key not in cfgdict:
+          LOG.warning("Key '%s' not set in config file %s. Setting to backup %r"%(key,os.path.relpath(cfgname),cfgdict[key]))
+          cfgdict[key] = cfgdict[key]
+          nmiss += 1
+    if nmiss>0:
+      for key in _cfgdefaults.keys(): # check for missing keys
+        if key not in cfgdict:
+          LOG.warning("Key '%s' not set in config file %s. Setting to default %r"%(key,os.path.relpath(cfgname),_cfgdefaults[key]))
+          cfgdict[key] = _cfgdefaults[key]
+          nmiss += 1
+      print ">>> Saving updated keys..."
       with open(cfgname,'w') as file:
         json.dump(cfgdict,file,indent=2)
   else:
@@ -121,7 +131,7 @@ def setdefaultconfig(verb=0):
   if os.path.isfile(cfgname):
     LOG.warning("Config file '%s' already exists. Overwriting with defaults..."%(cfgname))
   CONFIG  = Config(cfgdict,cfgname)
-  CONFIG.write()
+  CONFIG.write(backup=False)
   return CONFIG
   
 
@@ -143,7 +153,6 @@ class Config(object):
           self._dict[str(key)][str(subkey)] = item # convert unicode to str
       elif isinstance(key,unicode):
         self._dict[str(key)] = self._dict[key] # convert unicode to str
-        
   
   def __str__(self):
     return str(self._dict)
@@ -208,10 +217,13 @@ class Config(object):
   def pop(self,*args,**kwargs):
     return self._dict.pop(*args,**kwargs)
   
-  def write(self,path=None):
+  def write(self,path=None,backup=False):
     if path==None:
       path = self._path
     with open(path,'w') as outfile:
       json.dump(self._dict,outfile,indent=2)
+    if backup: # backup to recover if config was reset
+      with open(path+'.bkp','w') as outfile:
+        json.dump(self._dict,outfile,indent=2)
     return path
   
