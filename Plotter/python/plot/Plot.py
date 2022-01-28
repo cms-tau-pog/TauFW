@@ -58,7 +58,7 @@ class Plot(object):
     self.verbosity = LOG.getverbosity(kwargs)
     if len(args)==1 and islist(args[0]):
       hists    = args[0] # list of histograms
-    if len(args)==1 and isinstance(args[0],TH1):
+    elif len(args)==1 and isinstance(args[0],TH1):
       hists    = [args[0]] # list of histograms
     elif len(args)==2:
       variable = args[0] # string or Variable
