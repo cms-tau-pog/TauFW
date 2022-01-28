@@ -78,11 +78,11 @@ def getconfig(verb=0,refresh=False):
     if nmiss>=5 and os.path.isfile(bkpname): # recover reset config file
       print ">>> Config file may have been reset. Opening backup %s..."%(bkpname)
       with open(bkpname,'r') as file:
-        cfgdict = json.load(file,object_pairs_hook=OrderedDict)
-      for key in cfgdict.keys(): # check for missing keys
+        bkpcfgdict = json.load(file,object_pairs_hook=OrderedDict)
+      for key in bkpcfgdict.keys(): # check for missing keys
         if key not in cfgdict:
-          LOG.warning("Key '%s' not set in config file %s. Setting to backup %r"%(key,os.path.relpath(cfgname),cfgdict[key]))
-          cfgdict[key] = cfgdict[key]
+          LOG.warning("Key '%s' not set in config file %s. Setting to backup %r"%(key,os.path.relpath(cfgname),bkpcfgdict[key]))
+          cfgdict[key] = bkpcfgdict[key]
           nmiss += 1
     if nmiss>0:
       for key in _cfgdefaults.keys(): # check for missing keys
