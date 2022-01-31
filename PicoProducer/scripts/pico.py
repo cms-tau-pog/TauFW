@@ -289,10 +289,10 @@ def main_set(args):
       LOG.warning("Did not recognize value '%s'. Did you mean 'default'?"%(value))
   elif variable in ['nfilesperjob','maxevtsperjob']:
     CONFIG[variable] = int(value)
-    CONFIG.write()
+    CONFIG.write(backup=True)
   else:
     CONFIG[variable] = value
-    CONFIG.write()
+    CONFIG.write(backup=True)
   
 
 
@@ -354,7 +354,7 @@ def main_link(args):
   if value!=oldval:
     print ">>> Converted '%s' to '%s'"%(oldval,value)
   CONFIG[varkey][key] = value
-  CONFIG.write()
+  CONFIG.write(backup=True)
   
 
 
@@ -387,7 +387,7 @@ def main_rm(args):
     if variable in CONFIG:
       if key in CONFIG[variable]:
         CONFIG[variable].pop(key,None)
-        CONFIG.write()
+        CONFIG.write(backup=True)
       else:
         print ">>> %s '%s' not in the configuration. Nothing to remove..."%(variable.capitalize(),key)
     else:
@@ -395,7 +395,7 @@ def main_rm(args):
   else:
     if variable in CONFIG:
       CONFIG.pop(variable)
-      CONFIG.write()
+      CONFIG.write(backup=True)
     else:
       print ">>> Variable '%s' not in the configuration. Nothing to remove..."%(variable)
     

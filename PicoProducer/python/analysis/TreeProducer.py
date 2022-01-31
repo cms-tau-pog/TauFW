@@ -13,7 +13,7 @@
 #   Double_t  'D'     'd'/'float64'/float  64-bit float
 import numpy as np
 from ROOT import TTree, TFile, TH1D
-from TauFW.PicoProducer.analysis.utils import Cutflow
+from TauFW.PicoProducer.analysis.Cutflow import Cutflow
 
 root_dtype = { # python/numpy -> root data type
   '?': 'O',  'bool':    'O',  bool:   'O', # Bool_t  
@@ -129,7 +129,8 @@ class TreeProducer(object):
   def endJob(self):
     """Write and close files after the job ends."""
     if self.cutflow and self.display:
-      self.cutflow.display()
+      nfinal = self.tree.GetEntries() if self.tree else None
+      self.cutflow.display(nfinal=nfinal,final="stored in tree")
       print ">>> Write %s..."%(self.outfile.GetName())
     self.outfile.Write()
     self.outfile.Close()

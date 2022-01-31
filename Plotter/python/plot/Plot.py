@@ -997,11 +997,12 @@ class Plot(object):
   def drawbins(self,bins,text=True,y=0.96,**kwargs):
     """Divide x axis into bins with extra lines, e.g. for unrolled 2D plots."""
     verbosity = LOG.getverbosity(self,kwargs)
-    title = kwargs.get('title',       ""    )
-    size  = kwargs.get('size',        0.025 )
-    align = kwargs.get('align',       23    )
-    axis  = kwargs.get('axis',        'x'   )
-    addof = kwargs.get('addoverflow', False ) # last bin is infinity
+    title   = kwargs.get('title',       ""    )
+    size    = kwargs.get('size',        0.025 )
+    align   = kwargs.get('align',       23    )
+    axis    = kwargs.get('axis',        'x'   )
+    ioffset = kwargs.get('ioffset',     0     )
+    addof   = kwargs.get('addoverflow', False ) # last bin is infinity
     xmin, xmax = self.xmin, self.xmax
     if isinstance(bins,Variable):
       nbins = bins.nbins
@@ -1010,6 +1011,8 @@ class Plot(object):
     else:
       text  = False
       nbins = bins
+    if ioffset>0:
+      nbins -= ioffset
     for ip in [1,2]:
       if ip==2 and not self.ratio: continue
       ymin, ymax = (self.ymin, self.ymax) if ip==1 else (self.rmin, self.rmax)
@@ -1034,9 +1037,11 @@ class Plot(object):
             x = scalevec(xmin,xmax,y,log=logx)
             y_ = ymin + (ymax-ymin)*(i+0.5)/nbins
           if isinstance(bins,Variable):
-            y1, y2 = bins.getedge(i), bins.getedge(i+1) # edges mass bin
+            y1 = bins.getedge(ioffset+i) # edges mass bin
+            y2 = bins.getedge(ioffset+i+1)
           else:
-            y1, y2 = bins[i], bins[i+1] # edges mass bin
+            y1 = bins[ioffset+i] # edges mass bin
+            y2 = bins[ioffset+i+1]
           if addof and i==nbins-1:
             btext = "[%d,#infty]"%(y1) # mass bin text
           else:

@@ -244,6 +244,8 @@ class ModuleMuTau(Module):
     # require tau, else return False...
     self.out.cutflow.fill('tau')
     return True
+  def endJob(self):
+    self.out.endJob()
 ```
 Note that if the generator weight in MC is very different than 1.0 (e.g. for some ttbar samples),
 it can be useful to save the total sum of weights of all processed events,

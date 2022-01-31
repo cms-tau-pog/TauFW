@@ -269,17 +269,17 @@ class ModuleETau(ModuleTauPair):
       # TAU WEIGHTS
       if tau.genPartFlav==5: # real tau
         self.out.idweight_2[0]              = self.tauSFs.getSFvsPT(tau.pt)
-        if not self.dotight:
+        if self.dosys:
           self.out.idweightUp_2[0]          = self.tauSFs.getSFvsPT(tau.pt,unc='Up')
           self.out.idweightDown_2[0]        = self.tauSFs.getSFvsPT(tau.pt,unc='Down')
       elif tau.genPartFlav in [1,3]: # muon -> tau fake
         self.out.ltfweight_2[0]             = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
-        if not self.dotight:
+        if self.dosys:
           self.out.ltfweightUp_2[0]         = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Up')
           self.out.ltfweightDown_2[0]       = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Down')
       elif tau.genPartFlav in [2,4]: # electron -> tau fake
         self.out.ltfweight_2[0]             = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
-        if not self.dotight:
+        if self.dosys:
           self.out.ltfweightUp_2[0]         = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Up')
           self.out.ltfweightDown_2[0]       = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='Down')
       self.out.weight[0]        = self.out.genweight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0] #*self.out.idisoweight_2[0]

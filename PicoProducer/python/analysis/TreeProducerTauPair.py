@@ -62,7 +62,7 @@ class TreeProducerTauPair(TreeProducer):
       self.addBranch('zptweight',           'f', 1., title="Z pT reweighting")
       self.addBranch('ttptweight',          'f', 1., title="top pT reweighting")
       self.addBranch('btagweight',          'f', 1., title="b tagging weight")
-      #if not module.dotight:
+      #if module.dosys:
       #  self.addBranch('btagweight_bc',      'f', 1., title="b tagging weight, heavy flavor")
       #  self.addBranch('btagweight_bcUp',    'f', 1., title="b tagging weight, heavy flavor up")
       #  self.addBranch('btagweight_bcDown',  'f', 1., title="b tagging weight, heavy flavor down")

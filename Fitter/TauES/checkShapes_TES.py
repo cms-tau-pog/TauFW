@@ -303,7 +303,7 @@ def drawUpDownVariation(filename,dirname,samples,shifts,**kwargs):
       
       plot = Plot(hists)
       plot.plot(vartitle,title=title,ratio=2,linestyle=False,xmin=xmin,xmax=xmax,errorbars=True,text=text)
-      plot.saveAs(canvasname,ext=exts)
+      plot.saveas(canvasname,ext=exts)
       plot.close()
   
   file.Close()

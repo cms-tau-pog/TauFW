@@ -58,11 +58,12 @@ or use the script
 ```
 source utils/setupVOMS.sh
 ```
-Note: If you are on lxplus, you may need to define the location for your temporary VOMS proxy
-by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):
+Note: If you are on lxplus, you may need to globally define the location for your temporary VOMS proxy
+by executing the following, and adding it to the shell startup script (e.g. `.bashrc` for BASH):
 ```
 export X509_USER_PROXY=~/.x509up_u`id -u`
 ```
+Or whatever the equivalent is in other shells (`setenv`, ...).
 
 
 ## Configuration
@@ -283,7 +284,7 @@ To give the output files a specific tag, use `-t`.
 If there are many small files, they can be combined with `--filesperjob`,
 or if there are a lot of large files, `--maxevts` can be used to limit the number of events processed per job.
 These parameters can also be set globally in the configuration, or for each sample individually in the sample list.
-WARNING! `--maxevts` has not been fully tested yet, and it does not work for skimming yet,
+WARNING! `--maxevts` has not been fully validated yet, and it does not work for skimming yet,
 see [issue #269 in nanoAOD-tools](https://github.com/cms-nanoAOD/nanoAOD-tools/issues/269).
 
 For all options with submission, do
@@ -307,6 +308,9 @@ To compare how many events were processed compared to the total available events
 ```
 pico.py status -y 2016 -c mutau --das
 ```
+
+If your jobs fail (status `FAIL` or `MISS`), please see
+[Why do my jobs fail ?](#why-do-my-jobs-fail-) in the FAQ below.
 
 ### Resubmission
 If jobs failed, you can resubmit with
@@ -568,7 +572,7 @@ you can find out the reason by looking into the job log files.
 You can find them in `jobdir`, which by default is set to `output/$ERA/$CHANNEL/$SAMPLE`,
 or via
 ```
-pico.py status -c mutau -y 2018 -l
+pico.py status -c mutau -y 2018 --log
 ```
 Make sure that your VOMS proxy is valid,
 ```
@@ -592,11 +596,12 @@ pico.py resubmit -c mutau -y 2018 --time 10:00:00
 ```
 Other options specific to your batch system can be added via `-B`.
 
-If you are on CERN's `lxplus`, you may need to define the location for your temporary VOMS proxy
-by executing the following, and adding it to the shell startup script (e.g. `.bashrc`):
+If you are on CERN's `lxplus`, you may need to globally define the location for your temporary VOMS proxy
+by executing the following, and adding it to the shell startup script (e.g. `.bashrc` for BASH):
 ```
 export X509_USER_PROXY=~/.x509up_u`id -u`
 ```
+Or whatever the equivalent is in other shells (`setenv`, ...).
 
 If you use HTCondor, double check the actual maximum run time for any job via
 (`jobid`="clusterId", `taskid`="procId")

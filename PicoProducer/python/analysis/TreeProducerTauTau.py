@@ -102,7 +102,7 @@ class TreeProducerTauTau(TreeProducerTauPair):
       self.addBranch('idweight_tight_2',         'f', 1., title="tau ID efficiency SF")
       self.addBranch('ltfweight_1',              'f', 1., title="lepton -> tau fake rate SF")
       self.addBranch('ltfweight_2',              'f', 1., title="lepton -> tau fake rate SF")
-      if not module.dotight:
+      if module.dosys: # systematic variation (only for nominal tree)
         self.addBranch('idweightUp_1',           'f', 1.)
         self.addBranch('idweightUp_2',           'f', 1.)
         self.addBranch('idweightDown_1',         'f', 1.)
