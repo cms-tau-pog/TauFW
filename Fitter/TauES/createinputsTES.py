@@ -222,7 +222,7 @@ def main(args):
           if var == "Nom":
             newsampleset = sampleset
           else:
-            newsampleset = sampleset.shift(varprocs[var], "_"+var.replace(".","p") , "_"+var, " %.1d"%((1.-float(var.replace("TES","")))*100.)+"% TES", split=True,filter=False,share=True)
+            newsampleset = sampleset.shift(varprocs[var], "_"+var.replace(".","p"), "_"+var, " %.1d"%((1.-float(var.replace("TES","")))*100.)+"% TES", split=True,filter=False,share=True)
 
           createinputs(fname,newsampleset, observables, bins, filter=varprocs[var], dots=True)
           newsampleset.close()
@@ -237,7 +237,7 @@ def main(args):
             else:
               continue
 
-            createinputs(fname,newsampleset_sys, observables, bins, filter=list(set(varprocs[var]) & set(sysprocs[sys][0])), replaceweight=sysprocs[sys][3])
+            createinputs(fname,newsampleset_sys, observables, bins, filter=list(set(varprocs[var]) & set(sysprocs[sys][0])), replaceweight=sysprocs[sys][3], dots=True)
             newsampleset_sys.close()
 
 

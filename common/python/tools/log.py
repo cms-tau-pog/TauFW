@@ -19,7 +19,7 @@ def color(string,c='green',b=False,ul=False,**kwargs):
   
 
 def warning(string,**kwargs):
-  return color(kwargs.get('exclam',"Warning! ")+string, color="yellow", bold=True, pre=kwargs.get('pre',">>> "))
+  return color(kwargs.get('exclam',"Warning! ")+string, color="magenta", bold=True, pre=kwargs.get('pre',">>> "))
   
 
 def error(string,**kwargs):
@@ -128,8 +128,8 @@ class Logger(object):
   def warning(self,string,trigger=True,**kwargs):
     """Print warning if triggered."""
     if trigger:
-      exclam  = color(kwargs.get('exclam',"Warning! "),'yellow',b=True,pre=self.pre+kwargs.get('pre',""))
-      message = color(string,'yellow',pre="")
+      exclam  = color(kwargs.get('exclam',"Warning! "),'magenta',b=True,pre=self.pre+kwargs.get('pre',""))
+      message = color(string,'magenta',pre="")
       print exclam+message
   
   def warn(self,*args,**kwargs):
