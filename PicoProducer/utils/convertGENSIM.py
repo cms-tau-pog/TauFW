@@ -107,19 +107,19 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   tree_event.addBranch('dr_jj',       'f')
   tree_event.addBranch('ncentral',    'i')
   tree_event.addBranch('mjj',         'f')
-  tree_event.addBranch('lq1_mass',    'f')
-  tree_event.addBranch('lq2_mass',    'f')
-  tree_event.addBranch('lq1_pt',      'f')
-  tree_event.addBranch('lq2_pt',      'f')
+  tree_event.addBranch('moth1_mass',  'f')
+  tree_event.addBranch('moth2_mass',  'f')
+  tree_event.addBranch('moth1_pt',    'f')
+  tree_event.addBranch('moth2_pt',    'f')
   tree_event.addBranch('tau1_pt',     'f')
   tree_event.addBranch('tau1_eta',    'f')
   tree_event.addBranch('tau2_pt',     'f')
   tree_event.addBranch('tau2_eta',    'f')
   tree_event.addBranch('st',          'f') # scalar sum pT
-  tree_event.addBranch('st_met',      'f') # scalar sum pT with MET
+  tree_event.addBranch('stmet',      'f') # scalar sum pT with MET
   tree_event.addBranch('weight',      'f')
   
-  # LQ DECAY
+  # MOTHER DECAY
   tree_mother.addBranch('pid',        'i')
   tree_mother.addBranch('moth',       'i')
   tree_mother.addBranch('status',     'i')
@@ -134,7 +134,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   tree_mother.addBranch('deta_ll',    'f')
   tree_mother.addBranch('dr_ll',      'f')
   tree_mother.addBranch('st',         'f') # scalar sum pT
-  tree_mother.addBranch('st_met',     'f') # scalar sum pT with MET
+  tree_mother.addBranch('stmet',      'f') # scalar sum pT with MET
   tree_mother.addBranch('weight',     'f')
   
   # FROM MOTHER DECAY
@@ -312,9 +312,9 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
     tree_event.tau2_pt[0]   = gps_tau[1].pt()
     tree_event.tau2_eta[0]  = gps_tau[1].eta()
     tree_event.st[0]        = st
-    tree_event.st_met[0]    = stmet
+    tree_event.stmet[0]     = stmet
     tree_mother.st[0]       = st
-    tree_mother.st_met[0]   = stmet
+    tree_mother.stmet[0]    = stmet
     
     tree_event.weight[0] = weight
     
@@ -333,7 +333,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       from_moth = False
       #from_had = False # from hadron decay
       #print '-'*30
-      while mothpid!=2212:
+      while mothpid!=2212: # proton
         #print taumoth.pdgId()
         if mothpid in mothids:
           from_moth = True
@@ -378,7 +378,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         tree_assoc.weight[0] = weight
         tree_assoc.Fill()
     
-    # MOTHER LQ
+    # MOTHER
     #print '-'*80
     taus_decay = [ ]
     bgen_decay = [ ]
@@ -394,9 +394,9 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         if abs(moth.daughter(0).pdgId()) in mothids: # single production with t-channel LQ
           continue
       
-      lq_moth = moth.mother(0)
-      while abs(lq_moth.pdgId()) in mothids:
-        lq_moth = lq_moth.mother(0)
+      granma = moth.mother(0) # grand mother
+      while abs(granma.pdgId()) in mothids:
+        granma = granma.mother(0)
       
       for i in range(moth.numberOfDaughters()):
         #print '\t', dau.pdgId()
@@ -465,7 +465,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         tree_mother.dr_ll[0]   = -99
       
       tree_mother.pid[0]       = moth.pdgId()
-      tree_mother.moth[0]      = lq_moth.pdgId()
+      tree_mother.moth[0]      = granma.pdgId()
       tree_mother.status[0]    = moth.status()
       tree_mother.mass[0]      = moth.mass()
       tree_mother.pt[0]        = moth.pt()
@@ -477,20 +477,20 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       tree_mother.Fill()
     
     if len(gps_mother)==1:
-      tree_event.lq1_mass[0]  = gps_mother[0].mass()
-      tree_event.lq1_pt[0]    = gps_mother[0].pt()
-      tree_event.lq2_mass[0]  = -1
-      tree_event.lq2_pt[0]    = -1
+      tree_event.moth1_mass[0]  = gps_mother[0].mass()
+      tree_event.moth1_pt[0]    = gps_mother[0].pt()
+      tree_event.moth2_mass[0]  = -1
+      tree_event.moth2_pt[0]    = -1
     elif len(gps_mother)>=2:
-      tree_event.lq1_mass[0]  = gps_mother[0].mass()
-      tree_event.lq1_pt[0]    = gps_mother[0].pt()
-      tree_event.lq2_mass[0]  = gps_mother[1].mass()
-      tree_event.lq2_pt[0]    = gps_mother[1].pt()
+      tree_event.moth1_mass[0]  = gps_mother[0].mass()
+      tree_event.moth1_pt[0]    = gps_mother[0].pt()
+      tree_event.moth2_mass[0]  = gps_mother[1].mass()
+      tree_event.moth2_pt[0]    = gps_mother[1].pt()
     else:
-      tree_event.lq1_mass[0]  = -1
-      tree_event.lq1_pt[0]    = -1
-      tree_event.lq2_mass[0]  = -1
-      tree_event.lq2_pt[0]    = -1
+      tree_event.moth1_mass[0]  = -1
+      tree_event.moth1_pt[0]    = -1
+      tree_event.moth2_mass[0]  = -1
+      tree_event.moth2_pt[0]    = -1
     
     tree_event.ntau_assoc[0]  = len(taus_assoc)
     tree_event.ntau_decay[0]  = len(taus_decay)
