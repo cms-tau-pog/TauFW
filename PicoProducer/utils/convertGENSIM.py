@@ -20,53 +20,6 @@ gStyle.SetOptStat(11111)
 decaydict = { 'ele': 0, 'muon': 1, 'tau': 2 }
 
 
-
-def main(args):
-  
-  # SETTING
-  url       = args.url #'root://t3dcachedb.psi.ch:1094/'
-  outdir    = ensuredir(args.outdir) if args.outdir else ""
-  maxevts   = args.maxevts
-  tag       = args.tag
-  dtier     = args.dtier
-  verbosity = args.verbosity
-  infiles   = args.infiles
-  outfile   = args.outfile
-  
-  # INPUT FILES
-  if infiles:
-    if len(infiles)==1 and not infiles[0].lower().endswith('.root'):
-      with open(infiles[0],'r') as infile:
-        infiles = [l.strip() for l in infile if l.strip().endswith('.root')]
-    elif url: # prepend director URL
-      infiles = [(url+f if '://' not in f else f) for f in infiles]
-  else:
-    raise IOError("No input given to run on.")
-  
-  # OUTPUT FILE
-  if not outfile:
-    outfile = infiles[0].split('/')[-1]
-    if 'GENSIM' in outfile:
-      outfile = outfile[:outfile.rfind('GENSIM')]+"GENSIM_simple%s.root"%tag
-    else:
-      outfile = outfile.replace(".root","_simple%s.root"%tag)
-  
-  # CONVERT
-  if len(infiles)<=10 or verbosity>=1:
-    print ">>> Input files:"
-    for file in infiles:
-      print ">>>   %s"%(file)
-  else:
-    nshow = min(len(infiles),6)
-    print ">>> Input files: (showing %d/%d)"%(nshow,len(infiles))
-    for file in infiles[:nshow]:
-      print ">>>   %s"%(file)
-  print ">>> Output file: %s"%(outfile)
-  isPythia  = 'Pythia' in infiles[0]
-  convertGENSIM(infiles,outfile,maxevts=maxevts,isPythia=isPythia,dtier=dtier)
-  print ">>> Done in in %s"%(formatTime(time.time()-start))
-
-
 def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   """Loop over GENSIM events and save custom trees."""
   start1 = time.time()
@@ -76,7 +29,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   print ">>> Loading %d input files..."%(len(infiles))
   events  = Events(infiles)
   assert events.size()>0, "Number of entries in Events tree = %s <= 0"%(events.size())
-  outfile = TFile(outfilename, 'RECREATE')
+  outfile = TFile(outfilename,'RECREATE')
   
   print ">>> Creating output trees and branches..."
   tree_event  = TTree('event', 'event')
@@ -692,11 +645,67 @@ def getETA(start,iJob,nJobs):
   ETA  = formatTimeShort((nJobs-iJob)/rate)
   return ETA, rate
   
+
 def ensuredir(dir):
   if not os.path.exists(dir):
     os.makedirs(dir)
-    print ">>> made directory %s\n>>>"%(dir)
+    print ">>> Made directory %s\n>>>"%(dir)
   return dir
+  
+
+def main(args):
+  
+  # SETTING
+  url       = args.url #'root://t3dcachedb.psi.ch:1094/'
+  outdir    = args.outdir or ""
+  maxevts   = args.maxevts
+  tag       = args.tag
+  dtier     = args.dtier
+  verbosity = args.verbosity
+  infiles   = args.infiles
+  outfile   = args.outfile
+  
+  # INPUT FILES
+  if infiles:
+    if len(infiles)==1 and not infiles[0].lower().endswith('.root'):
+      with open(infiles[0],'r') as infile:
+        infiles = [l.strip() for l in infile if l.strip().endswith('.root')]
+    elif url: # prepend director URL
+      infiles = [(url+f if '://' not in f else f) for f in infiles]
+  else:
+    raise IOError("No input given to run on.")
+  
+  # OUTPUT FILE
+  if outfile:
+    outdir2 = os.path.dirname(outfile)
+    outfile = os.path.basename(outfile) # remove any directory
+    if outdir2:
+      outdir = os.path.join(outdir,outdir2) # add to user output directory
+  else:
+    outfile = infiles[0].split('/')[-1]
+    if 'GENSIM' in outfile:
+      outfile = outfile[:outfile.rfind('GENSIM')]+"GENSIM_simple%s.root"%tag
+    else:
+      outfile = outfile.replace(".root","_simple%s.root"%tag)
+  if outdir:
+    print outdir
+    ensuredir(outdir)
+    outfile = os.path.join(outdir,outfile)
+  
+  # CONVERT
+  if len(infiles)<=10 or verbosity>=1:
+    print ">>> Input files:"
+    for file in infiles:
+      print ">>>   %s"%(file)
+  else:
+    nshow = min(len(infiles),6)
+    print ">>> Input files: (showing %d/%d)"%(nshow,len(infiles))
+    for file in infiles[:nshow]:
+      print ">>>   %s"%(file)
+  print ">>> Output file: %s"%(outfile)
+  isPythia  = 'Pythia' in infiles[0]
+  convertGENSIM(infiles,outfile,maxevts=maxevts,isPythia=isPythia,dtier=dtier)
+  print ">>> Done in in %s"%(formatTime(time.time()-start))
   
 
 if __name__=='__main__':
