@@ -688,7 +688,6 @@ def main(args):
     else:
       outfile = outfile.replace(".root","_simple%s.root"%tag)
   if outdir:
-    print outdir
     ensuredir(outdir)
     outfile = os.path.join(outdir,outfile)
   
