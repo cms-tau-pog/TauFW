@@ -3,8 +3,6 @@
 import os, re, glob, json
 from datetime import datetime
 from collections import OrderedDict
-import TauFW.PicoProducer.tools.config as GLOB
-from TauFW.common.tools.log import Logger, color, bold
 from TauFW.common.tools.file import ensuredir, getline
 from TauFW.common.tools.utils import execute, chunkify
 from TauFW.common.tools.string import repkey, lreplace, alphanum_key
@@ -12,9 +10,7 @@ from TauFW.common.tools.LoadingBar import LoadingBar
 from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples, chunkify_by_evts, evtsplitexp
 from TauFW.PicoProducer.storage.utils import getstorage, getsamples, isvalid, itervalid, print_no_samples
 from TauFW.PicoProducer.pico.run import getmodule
-os.chdir(GLOB.basedir)
-CONFIG = GLOB.getconfig(verb=0)
-LOG    = Logger()
+from TauFW.PicoProducer.pico.common import *
 
 
 
