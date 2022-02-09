@@ -149,6 +149,7 @@ class StorageSystem(object):
     else:
       fileurl = ""
     for i, file in enumerate(filelist):
+      file = file.split()[-1] # assume file last column
       if filters and not any(fnmatch(file,f) for f in filters): continue
       filelist[i] = fileurl+os.path.join(path,file)
     return filelist
