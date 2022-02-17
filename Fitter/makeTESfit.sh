@@ -37,7 +37,7 @@ mv higgsCombine*root output_UL2018
 for var in $VARS; do
 
     ./TauES/plotParabola_TES.py -y $YEAR -t $TAG -d $DMS -e $EXTRATAG -a -o $var -r $RANGE
-##    ./TauES/plotParabola_TES.py -y $YEAR -t $TAG -d $DMS -e $EXTRATAG -r $RANGE -s
-##    ./TauES/plotPostFitScan_TES.py -y $YEAR -t $TAG -d $DMS -e $EXTRATAG -o $var -r $RANGE
+    ./TauES/plotParabola_TES.py -y $YEAR -t $TAG -d $DMS -e $EXTRATAG -r $RANGE -s
+    ./TauES/plotPostFitScan_TES.py -y $YEAR -t $TAG -d $DMS -e $EXTRATAG -o $var -r $RANGE
 
 done
