@@ -1,0 +1,54 @@
+## Config file for default TES fit in mutau channel
+##
+
+join: ['VV','TT','ST']
+
+sname: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+
+processes: ['ZTT','ZL','ZJ','W','VV','ST','TTT','TTL','TTJ','QCD','data_obs']
+
+TESvariations:
+    values: [0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.984, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022, 1.024, 1.026, 1.028, 1.030]
+    processes: 'ZTT'
+
+systematics:
+    LTF:
+        processes: ['ZL', 'TTL']
+        name: "_shape_mTauFake_$BIN"
+        title: "+/- 2% LTF shape"
+        variations: ["Up", "Down"]
+        sampleAppend: ["_LTFUp","_LTFDown"]
+        nomWeight: ""
+        altWeights: ["", ""]
+    JTF:
+        processes: ['ZJ', 'TTJ', 'W']
+        name: "_shape_jTauFake_$BIN"
+        title: "+/- 5% JTF"
+        variations: ["Up", "Down"]
+        sampleAppend: ["_LTFUp","_LTFDown"]
+        nomWeight: ""
+        altWeights: ["", ""]
+    shape_tid:
+        processes: ['ZTT', 'TTT']            
+        name: "_shape_tid"
+        title: "TID shape syst"
+        variations: ["Up", "Down"]
+        sampleAppend: ["",""]
+        nomWeight: "idweight_2"
+        altWeights: ["idweightUp_2", "idweightDown_2"]
+    shape_mTauFake:
+        processes: ['ZL', 'TTL']
+        name: "_shape_mTauFakeSF"
+        title: "LTF rate syst"
+        variations: ["Up", "Down"]
+        sampleAppend: ["",""]
+        nomWeight: "ltfweight_2"
+        altWeights: ["ltfweightUp_2", "ltfweightDown_2"]
+    shape_dy:
+        processes: ['ZTT', 'ZL', 'ZJ']
+        name: "_shape_dy"
+        title: "+/- 10% Zptweight"
+        variations: ["Up", "Down"]
+        sampleAppend: ["",""]
+        nomWeight: "zptweight"
+        altWeights: ["(zptweight+0.1*(zptweight-1))", "(zptweight-0.1*(zptweight-1))"]

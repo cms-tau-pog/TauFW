@@ -8,7 +8,7 @@ sys.path.append("../Plotter/") # for config.samples
 from config.samples import *
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Fitter.plot.datacard import createinputs, plotinputs
-
+import yaml
 
 def main(args):
   channels  = args.channels
@@ -21,6 +21,9 @@ def main(args):
   analysis  = 'ztt' # $PROCESS_$ANALYSIS
   tag       = "13TeV_mtlt50"
   
+  with open('TauES/config/defaultFitSetupTES_mutau.yml', 'r') as file:
+    setup = yaml.safe_load(file)
+
   for era in eras:
     for channel in channels:
       
@@ -31,9 +34,8 @@ def main(args):
       # sample set and their systematic variations
       
       # GET SAMPLESET
-      join      = ['VV','TT','ST']
-      sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-#      sampleset = getsampleset(channel,era,fname=sname,join=join,split=None,table=False)
+      join      = setup["join"]
+      sname     = setup["sname"]
       sampleset = getsampleset(channel,era,fname=sname,join=join,split=[],table=False)
       
       if channel=='mumu':
@@ -61,58 +63,6 @@ def main(args):
         #sampleset.split('ST',[('STT',GMR),('STJ',GMF),]) # small background
         sampleset.rename('WJ','W')
         sampleset.datasample.name = 'data_obs'
-
-        
-        # TES variations for fit inputs
-        varprocs = OrderedDict([ 
-          ('Nom',      ['ZTT','ZL','ZJ','W','VV','ST','TTT','TTL','TTJ','QCD','data_obs']),
-          ('TES0.970', ['ZTT']),
-          ('TES0.972', ['ZTT']),
-          ('TES0.974', ['ZTT']),
-          ('TES0.976', ['ZTT']),
-          ('TES0.978', ['ZTT']),
-          ('TES0.980', ['ZTT']),
-          ('TES0.982', ['ZTT']),
-          ('TES0.984', ['ZTT']),
-          ('TES0.986', ['ZTT']),
-          ('TES0.988', ['ZTT']),
-          ('TES0.990', ['ZTT']),
-          ('TES0.992', ['ZTT']),
-          ('TES0.994', ['ZTT']),
-          ('TES0.996', ['ZTT']),
-          ('TES0.998', ['ZTT']),
-          ('TES1.000', ['ZTT']),
-          ('TES1.002', ['ZTT']),
-          ('TES1.004', ['ZTT']),
-          ('TES1.006', ['ZTT']),
-          ('TES1.008', ['ZTT']),
-          ('TES1.010', ['ZTT']),
-          ('TES1.012', ['ZTT']),
-          ('TES1.014', ['ZTT']),
-          ('TES1.016', ['ZTT']),
-          ('TES1.018', ['ZTT']),
-          ('TES1.020', ['ZTT']),
-          ('TES1.022', ['ZTT']),
-          ('TES1.024', ['ZTT']),
-          ('TES1.026', ['ZTT']),
-          ('TES1.028', ['ZTT']),
-          ('TES1.030', ['ZTT']),
-        ])
-
-        # Systematic uncertainties entring as NPs in fit
-        sysprocs = OrderedDict([ # key, [processes], "output-name", "title/definition", [old-weight, new-weight]
-          ('LTFUp',              [['ZL', 'TTL'],      "_shape_mTauFake_$BINUp",  " +2% LTF shape", ["",""]]),
-          ('LTFDown',            [['ZL', 'TTL'],      "_shape_mTauFake_$BINDown"," -2% LTF shape", ["",""]]),
-          ('JTFUp',              [['ZJ', 'TTJ', 'W'], "_shape_jTauFake_$BINUp",  " +5% JTF", ["",""]]),
-          ('JTFDown',            [['ZJ', 'TTJ', 'W'], "_shape_jTauFake_$BINDown"," -5% JTF", ["",""]]),
-          ('shape_tidUp',        [['ZTT', 'TTT'],     "_shape_tidUp",            " TID shape syst UP", ["idweight_2","idweightUp_2"]]),
-          ('shape_tidDown',      [['ZTT', 'TTT'],     "_shape_tidDown",          " TID shape syst DOWN", ["idweight_2","idweightDown_2"]]),
-          ('shape_mTauFakeUp',   [['ZL', 'TTL'],      "_shape_mTauFakeSFUp",     " LTF rate syst UP", ["ltfweight_2","ltfweightUp_2"]]),
-          ('shape_mTauFakeDown', [['ZL', 'TTL'],      "_shape_mTauFakeSFDown",   " LTF rate syst DOWN", ["ltfweight_2","ltfweightDown_2"]]),
-          ('shape_dyUp',         [['ZTT', 'ZL', 'ZJ'],"_shape_dyUp",             " +10% Zptweight", ["zptweight","(zptweight+0.1*(zptweight-1))"]]),
-          ('shape_dyDown',       [['ZTT', 'ZL', 'ZJ'],"_shape_dyDown",           " -10% Zptweight", ["zptweight","(zptweight-0.1*(zptweight-1))"]]),
-        ])
-
 
      
       ###################
@@ -215,29 +165,26 @@ def main(args):
       fname   = "%s/%s_%s_tes_$OBS.inputs-%s-%s.root"%(outdir,analysis,chshort,era,tag)
       if channel in ['mutau']:
 
-        # Varied inputs
-        for var in varprocs.keys():
-          print "Variation: %s"%var
+        print "Nominal inputs"
+        createinputs(fname, sampleset, observables, bins, filter=setup["processes"], dots=True)
 
-          if var == "Nom":
-            newsampleset = sampleset
-          else:
-            newsampleset = sampleset.shift(varprocs[var], "_"+var.replace(".","p"), "_"+var, " %.1d"%((1.-float(var.replace("TES","")))*100.)+"% TES", split=True,filter=False,share=True)
+        for var in setup["TESvariations"]["values"]:
+          print "Variation: TES = %f"%var
 
-          createinputs(fname,newsampleset, observables, bins, filter=varprocs[var], dots=True)
+          newsampleset = sampleset.shift(setup["TESvariations"]["processes"], ("_TES%.3f"%var).replace(".","p"), "_TES%.3f"%var, " %.1d"%((1.-var)*100.)+"% TES", split=True,filter=False,share=True)
+          createinputs(fname,newsampleset, observables, bins, filter=setup["TESvariations"]["processes"], dots=True)
           newsampleset.close()
 
-          for sys in sysprocs.keys():
-            print "Systematic: %s"%sys
+        for sys in setup["systematics"]:
+          print "Systematic: %s"%sys
 
-            if var == "Nom":
-              newsampleset_sys = sampleset.shift(sysprocs[sys][0], ("_"+sys if sysprocs[sys][3][0]=="" else ""), sysprocs[sys][1], sysprocs[sys][2], split=True,filter=False,share=True)
-            elif list(set(varprocs[var]) & set(sysprocs[sys][0])): # only relevant if TES variations and systematic computed for same process
-              newsampleset_sys = sampleset.shift(list(set(varprocs[var]) & set(sysprocs[sys][0])), "_"+var.replace(".","p")+("_"+sys if sysprocs[sys][3][0]=="" else ""), "_"+var+sysprocs[sys][1], " %.1d"%((1.-float(var.replace("TES","")))*100.)+"% TES, "+sysprocs[sys][2], split=True,filter=False,share=True)
-            else:
-              continue
+          for iSysVar in range(len(setup["systematics"][sys]["variations"])):
 
-            createinputs(fname,newsampleset_sys, observables, bins, filter=list(set(varprocs[var]) & set(sysprocs[sys][0])), replaceweight=sysprocs[sys][3], dots=True)
+            newsampleset_sys = sampleset.shift(setup["systematics"][sys]["processes"], setup["systematics"][sys]["sampleAppend"][iSysVar], setup["systematics"][sys]["name"]+setup["systematics"][sys]["variations"][iSysVar], setup["systematics"][sys]["title"], split=True,filter=False,share=True)
+
+            ## Missing: re-implement sys variations in case sys affect TES varied sample
+
+            createinputs(fname,newsampleset_sys, observables, bins, filter=setup["systematics"][sys]["processes"], replaceweight=[setup["systematics"][sys]["nomWeight"],setup["systematics"][sys]["altWeights"][iSysVar]], dots=True)
             newsampleset_sys.close()
 
 
