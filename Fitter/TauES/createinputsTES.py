@@ -15,13 +15,14 @@ def main(args):
   eras      = args.eras
   parallel  = args.parallel
   verbosity = args.verbosity
+  setupConfFile = args.config
   plot      = False
   outdir    = ensuredir("input")
   plotdir   = ensuredir(outdir,"plots")
   analysis  = 'ztt' # $PROCESS_$ANALYSIS
   tag       = "13TeV_mtlt50"
   
-  with open('TauES/config/defaultFitSetupTES_mutau.yml', 'r') as file:
+  with open(setupConfFile, 'r') as file:
     setup = yaml.safe_load(file)
 
   for era in eras:
@@ -185,7 +186,7 @@ def main(args):
             createinputs(fname,newsampleset_sys, observables, bins, filter=sysDef["processes"], replaceweight=[sysDef["nomWeight"],sysDef["altWeights"][iSysVar]], dots=True)
             newsampleset_sys.close()
 
-            overlap_TES_sys = list(set(sysDef["processes"]) & set(setup["TESvariations"]["processes"]))
+            overlap_TES_sys = list( set(sysDef["processes"]) & set(setup["TESvariations"]["processes"]) )
             if overlap_TES_sys:
               for var in setup["TESvariations"]["values"]:
                 print "Variation: TES = %f"%var
@@ -218,6 +219,8 @@ if __name__ == "__main__":
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau','mumu'], default=['mutau'], action='store',
                                          help="set channel" )
+  parser.add_argument('-f', '--config', dest='config', nargs=1, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
+                                         help="set config file containing sample & fit setup" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',

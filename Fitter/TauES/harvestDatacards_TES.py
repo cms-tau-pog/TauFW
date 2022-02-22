@@ -101,8 +101,6 @@ def harvest(channel,var,DMs,year,**kwargs):
         'sig':   [ 'ZTT' ],
         'bkg':   [ 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'QCD', 'ST', 'VV' ],
         'noQCD': [ 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W',        'ST', 'VV' ],
-        #'bkg':   [ 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'QCD', 'STT', 'STJ', 'VV' ],
-        #'noQCD': [ 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W',        'STT', 'STJ', 'VV' ],
         'DY':    [ 'ZTT', 'ZL', 'ZJ' ],
         'TT':    [ 'TTT', 'TTL', 'TTJ' ],
         'ST':    [ 'STT', 'STJ' ],
