@@ -177,15 +177,22 @@ def main(args):
 
         for sys in setup["systematics"]:
           print "Systematic: %s"%sys
+          sysDef = setup["systematics"][sys]
 
-          for iSysVar in range(len(setup["systematics"][sys]["variations"])):
+          for iSysVar in range(len(sysDef["variations"])):
 
-            newsampleset_sys = sampleset.shift(setup["systematics"][sys]["processes"], setup["systematics"][sys]["sampleAppend"][iSysVar], setup["systematics"][sys]["name"]+setup["systematics"][sys]["variations"][iSysVar], setup["systematics"][sys]["title"], split=True,filter=False,share=True)
-
-            ## Missing: re-implement sys variations in case sys affect TES varied sample
-
-            createinputs(fname,newsampleset_sys, observables, bins, filter=setup["systematics"][sys]["processes"], replaceweight=[setup["systematics"][sys]["nomWeight"],setup["systematics"][sys]["altWeights"][iSysVar]], dots=True)
+            newsampleset_sys = sampleset.shift(sysDef["processes"], sysDef["sampleAppend"][iSysVar], sysDef["name"]+sysDef["variations"][iSysVar], sysDef["title"], split=True,filter=False,share=True)
+            createinputs(fname,newsampleset_sys, observables, bins, filter=sysDef["processes"], replaceweight=[sysDef["nomWeight"],sysDef["altWeights"][iSysVar]], dots=True)
             newsampleset_sys.close()
+
+            overlap_TES_sys = list(set(sysDef["processes"]) & set(setup["TESvariations"]["processes"]))
+            if overlap_TES_sys:
+              for var in setup["TESvariations"]["values"]:
+                print "Variation: TES = %f"%var
+                newsampleset_TESsys = sampleset.shift(overlap_TES_sys, ("_TES%.3f"%var).replace(".","p")+sysDef["sampleAppend"][iSysVar], "_TES%.3f"%var+sysDef["name"]+sysDef["variations"][iSysVar], " %.1d"%((1.-var)*100.)+"% TES" + sysDef["title"], split=True,filter=False,share=True)
+                createinputs(fname,newsampleset_TESsys, observables, bins, filter=overlap_TES_sys, replaceweight=[sysDef["nomWeight"],sysDef["altWeights"][iSysVar]], dots=True)
+                newsampleset_TESsys.close()
+
 
 
 
