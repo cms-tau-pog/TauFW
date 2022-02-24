@@ -24,3 +24,17 @@ observables:
             rrange: 0.08
 
 processes: ['ZLL','W','VV','ST','TT','QCD','data_obs']
+
+systematics:
+    lumi:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.025
+    eff_m:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.02
+    xsec_dy:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ"]
+        scaleFactor: 1.02

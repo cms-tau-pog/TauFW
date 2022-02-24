@@ -31,6 +31,14 @@ observables:
             veto: "dm_2==0"
         fitRegions: [DM1, DM10, DM11]
 
+TESvariations:
+    values: [0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.984, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022, 1.024, 1.026, 1.028, 1.030]
+    processes: ["ZTT"]
+
+fitSpecs:
+    doBBB: doShapes
+    signalBBB: True
+
 
 samples:
     filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
@@ -44,10 +52,6 @@ samples:
     data: "data_obs"
 
 processes: ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"]
-
-TESvariations:
-    values: [0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.984, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022, 1.024, 1.026, 1.028, 1.030]
-    processes: ["ZTT"]
 
 systematics:
     LTF:
@@ -124,3 +128,12 @@ systematics:
         effect: "lnN"
         processes: ["W","QCD","ZJ","TTJ","STJ"]
         scaleFactor: 1.15
+
+scaleFactors:
+    WNFs:
+        processes: ["W"]
+        values:
+            'UL2016_preVFP': { 'DM0': 0.939,  'DM1': 1.031,  'DM10': 1.065,  'DM11': 1.021  }
+            'UL2016_postVFP': { 'DM0': 0.919,  'DM1': 0.972,  'DM10': 1.112,  'DM11': 1.074  }
+            'UL2017': { 'DM0': 0.971,  'DM1': 0.995,  'DM10': 1.109,  'DM11': 1.075  }
+            'UL2018': { 'DM0': 1.007,  'DM1': 0.968,  'DM10': 1.079,  'DM11': 1.044  }

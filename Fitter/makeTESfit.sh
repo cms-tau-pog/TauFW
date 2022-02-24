@@ -11,11 +11,7 @@ POI_OPTS="-P tes --setParameterRanges tes=${RANGE} -m 90 --setParameters r=1 --f
 XRTD_OPTS="--X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND" #--X-rtd FITTER_DYN_STEP
 CMIN_OPTS="--cminFallbackAlgo Minuit2,Migrad,0:0.5 --cminFallbackAlgo Minuit2,Migrad,0:1.0 --cminPreScan" # --cminPreFit 1 --cminOldRobustMinimize 
 
-for var in $VARS; do
-    ./TauES/harvestDatacards_TES.py -c mt -y UL2018 -t "_mtlt50" -r "0.970,1.030" -d DM0 DM1 DM10 DM11 -o $var -e "_DeepTau" 
-done
-
-
+./TauES/harvestDatacards_TES.py -c mt -y UL2018 -t "_mtlt50" -e "_DeepTau" -c TauES/config/defaultFitSetupTES_mutau.yml
 
 for DM in $DMS; do
     echo $DM
