@@ -211,7 +211,7 @@ def drawVariations(filename,dirname,samples,variations,**kwargs):
     plot.draw(vartitle,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax)
     plot.drawlegend(position,title=title)
     plot.drawtext(text)
-    plot.saveas(canvasname,ext=exts)
+    plot.saveAs(canvasname,ext=exts)
     plot.close()
   
   file.Close()
@@ -302,8 +302,8 @@ def drawUpDownVariation(filename,dirname,samples,shifts,**kwargs):
       exts       = ['pdf','png'] if args.pdf else ['png']
       
       plot = Plot(hists)
-      plot.draw(vartitle,title=title,ratio=2,linestyle=False,xmin=xmin,xmax=xmax,errorbars=True,text=text)
-      plot.saveas(canvasname,ext=exts)
+      plot.plot(vartitle,title=title,ratio=2,linestyle=False,xmin=xmin,xmax=xmax,errorbars=True,text=text)
+      plot.saveAs(canvasname,ext=exts)
       plot.close()
   
   file.Close()
@@ -388,8 +388,8 @@ def main():
     print ""
     
     
-    (minshift,maxshift,steps) = ( -0.030, 0.030, 0.002 )
-    tesshifts = [ 1+s*steps for s in xrange(int(minshift/steps), int(maxshift/steps)+1) ]
+    (minshift,maxshift,steps) = ( -0.060, 0.060, 0.01 )
+    tesshifts = [ s*steps for s in xrange(int(minshift/steps),int(maxshift/steps)+1) ]
     testags   = [ ]
     tesvars   = [ ]
     tesvarssmall = [ 'TES0.998', 'TES1.000', 'TES1.002' ]
@@ -409,8 +409,7 @@ def main():
     year        = args.year
     lumi        = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
     era         = '%s-13TeV'%year
-#    indir       = "input_%s"%year
-    indir       = "input"
+    indir       = "input_%s"%year
     outdir      = "shapes_%s"%year
     stackoutdir = "control_%s"%year
     tags        = args.tags
@@ -420,14 +419,12 @@ def main():
     DMs         = [ 'DM0', 'DM1', 'DM10', 'DM11' ]
     if args.observables: vars = args.observables
     if args.DMs:         DMs  = args.DMs
-#    doFR        = True and False
-    doFR = True
+    doFR        = True and False
     CMSStyle.setCMSEra(year)   
     
     # SAMPLES
     shapesamples  = [
-      'ZTT_TES1.000'
-      #'ZTT_TES1.000', 'TTT', 'TTL', 'TTJ', 'ST', 'ZJ', 'ZL', 'W', 'VV', 'QCD',
+      'ZTT_TES1.000', 'TTT', 'TTL', 'TTJ', 'ST', 'ZJ', 'ZL', 'W', 'VV', 'QCD',
       #'ZTT_TES1.000', 'TTT', 'TTL', 'TTJ', 'STT', 'STJ', 'ZJ', 'ZL', 'W', 'VV', 'QCD_TES1.000',
     ]
     stacksamples  = [
@@ -446,18 +443,17 @@ def main():
     shifts   = [ "",
        "shape_dy",
        "shape_tid",
-       #"shape_mTauFakeSF",
-       #"shape_mTauFake_$CAT",
-       #"shape_jTauFake_$CAT",
+       "shape_mTauFakeSF",
+       "shape_mTauFake_$CAT",
+       "shape_jTauFake_$CAT",
        ###"shape_m_mt",
        ###"shape_jes",
        ###"shape_jer",
        ###"shape_uncEn",
     ]
     if doFR:
-#      shapesamples.remove('QCD_TES1.000');  shapesamples.remove('W');  shapesamples.remove('ZJ');  shapesamples.append('JTF')
-#      stacksamples.remove('QCD_TES1.000');  stacksamples.remove('W');  stacksamples.remove('ZJ');  stacksamples.append('JTF')
-      stacksamples.remove('W');  stacksamples.remove('ZJ');  stacksamples.append('JTF')
+      shapesamples.remove('QCD_TES1.000');  shapesamples.remove('W');  shapesamples.remove('ZJ');  shapesamples.append('JTF')
+      stacksamples.remove('QCD_TES1.000');  stacksamples.remove('W');  stacksamples.remove('ZJ');  stacksamples.append('JTF')
       stacksamples2.remove('QCD'); stacksamples2.remove('W'); stacksamples2.remove('ZJ'); stacksamples2.append('JTF');
     
     if args.postfit and args.filename and args.dirnames:
@@ -493,7 +489,7 @@ def main():
               for nametag in testags:
                 samples = [ re.sub('ZTT_TES.*','ZTT%s'%nametag,s) for s in stacksamples ]
                 testag = tag+nametag.replace('.','p')
-#              drawVariations(filename,DM,'ZTT',tesvars,outdir=outdir,xmin=xmin,xmax=xmax,tag=tag,position=position)
+              drawVariations(filename,DM,'ZTT',tesvars,outdir=outdir,xmin=xmin,xmax=xmax,tag=tag,position=position)
               drawVariations(filename,DM,'ZTT',tesvarssmall,outdir=outdir,xmin=xmin,xmax=xmax,rmin=0.92,rmax=1.08,tag=tag,position=position)      
     
     print ">>>\n>>> done\n"
