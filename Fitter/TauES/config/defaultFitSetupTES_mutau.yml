@@ -1,19 +1,55 @@
 ## Config file for default TES fit in mutau channel
 ##
 
-join: ['VV','TT','ST']
+channel: mutau
 
-sname: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+samples:
+    filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+    join: ["VV","TT","ST"]
+    split:
+        DY: [ ["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"] ]
+        TT: [["TTT","genmatch_2==5"], ["TTL","genmatch_2>0 && genmatch_2<5"], ["TTJ","genmatch_2==0"] ]
+        #ST: [("STT","genmatch_2==5"),("STJ","genmatch_2<5")]
+    rename:
+        WJ: "W"
+    data: "data_obs"
 
-processes: ['ZTT','ZL','ZJ','W','VV','ST','TTT','TTL','TTJ','QCD','data_obs']
+baselineCuts: "(q_1*q_2<0) && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
+
+regions:
+    signalRegion: "mt_1<50"
+    DM0: "mt_1<50 && dm_2==0"
+    DM1: "mt_1<50 && dm_2==1"
+    DM10: "mt_1<50 && dm_2==10"
+    DM11: "mt_1<50 && dm_2==11"
+
+observables:
+    m_vis:
+        binning: [8, 50, 106]
+        title: "m_vis"
+        extra:
+            cut: "50<m_vis && m_vis<106"
+            veto: "dm_2==0"
+    m_2:
+        binning: [13, 0.3, 1.6]
+        title: "m_tau_h"
+        extra:
+            cut: "0.3<m_2 && m_2<1.6"
+            ccut: 
+                "dm_2==1(?!0)(?!1)": "0.35<m_2 && m_2<1.20"
+                "dm_2==10":          "0.83<m_2 && m_2<1.43"
+                "dm_2==11":          "0.93<m_2 && m_2<1.53"
+            veto: "dm_2==0"
+
+processes: ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"]
 
 TESvariations:
     values: [0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.984, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022, 1.024, 1.026, 1.028, 1.030]
-    processes: ['ZTT']
+    processes: ["ZTT"]
 
 systematics:
     LTF:
-        processes: ['ZL', 'TTL']
+        processes: ["ZL", "TTL"]
         name: "_shape_mTauFake_$BIN"
         title: "+/- 2% LTF shape"
         variations: ["Up", "Down"]
@@ -21,15 +57,15 @@ systematics:
         nomWeight: ""
         altWeights: ["", ""]
     JTF:
-        processes: ['ZJ', 'TTJ', 'W']
+        processes: ["ZJ", "TTJ", "W"]
         name: "_shape_jTauFake_$BIN"
         title: "+/- 5% JTF"
         variations: ["Up", "Down"]
-        sampleAppend: ["_LTFUp","_LTFDown"]
+        sampleAppend: ["_JTFUp","_JTFDown"]
         nomWeight: ""
         altWeights: ["", ""]
     shape_tid:
-        processes: ['ZTT', 'TTT']            
+        processes: ["ZTT", "TTT"]            
         name: "_shape_tid"
         title: "TID shape syst"
         variations: ["Up", "Down"]
@@ -37,7 +73,7 @@ systematics:
         nomWeight: "idweight_2"
         altWeights: ["idweightUp_2", "idweightDown_2"]
     shape_mTauFake:
-        processes: ['ZL', 'TTL']
+        processes: ["ZL", "TTL"]
         name: "_shape_mTauFakeSF"
         title: "LTF rate syst"
         variations: ["Up", "Down"]
@@ -45,7 +81,7 @@ systematics:
         nomWeight: "ltfweight_2"
         altWeights: ["ltfweightUp_2", "ltfweightDown_2"]
     shape_dy:
-        processes: ['ZTT', 'ZL', 'ZJ']
+        processes: ["ZTT", "ZL", "ZJ"]
         name: "_shape_dy"
         title: "+/- 10% Zptweight"
         variations: ["Up", "Down"]
