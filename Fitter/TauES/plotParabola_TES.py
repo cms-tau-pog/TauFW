@@ -1161,7 +1161,7 @@ def main(args):
     if args.DMs: DMs = args.DMs
     if args.observables: vars = [o for o in args.observables if '#' not in o]
     ensureDirectory(outdir)
-
+    
     CMSStyle.setCMSEra(year)
     
     cats    = [varlabel[d] for d in DMs]
@@ -1169,7 +1169,6 @@ def main(args):
     fittag  = "_fit_asymm" if asymmetric else "_fit"
     
     # LOOP over tags, channels, variables
-    print "parabola %i"%parabola
     if parabola:
       for tag in tags:
         tag += args.extratag

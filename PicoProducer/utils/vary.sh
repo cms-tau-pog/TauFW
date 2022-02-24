@@ -16,10 +16,10 @@ CHANNELS='mutau'
 SAMPLES=""
 OPTIONS="--das "
 CLEAN=0
-TES_FIRST=0.970
-TES_LAST=1.030
-STEP_SIZE=0.002
-SHIFT=""
+#TES_FIRST=0.970
+#TES_LAST=1.030
+#STEP_SIZE=0.002
+SHIFTS="" #`seq $TES_FIRST $STEP_SIZE $TES_LAST`
 
 OPTIND=2
 while getopts ":c:JLm:n:rq:s:Tvx:y:" option; do case "${option}" in
@@ -45,22 +45,20 @@ for era in $ERAS; do
   for channel in $CHANNELS; do
     [[ $channel = '#'* ]] && continue
     for shft in $SHIFTS; do
-	SAMPLES_=$SAMPLES
-	if [ "$SAMPLES" = "" ]; then
-	    [[ $shft = 'TES'* ]] && SAMPLES_="DY TT"
-	    [[ $shft = 'LTF'* ]] && SAMPLES_="DY TT"
-	    [[ $shft = 'JTF'* ]] && SAMPLES_="DY TT W*J"
-	fi
-	OPTIONS_="-s $SAMPLES_ $OPTIONS"
-	variation=$(echo "${shft/p/.}")
-	variation=$(echo "${variation/TES/tes=}")
-	variation=$(echo "${variation/LTF/ltf=}")
-	variation=$(echo "${variation/JTF/jtf=}")
-
-	CHANNEL_="${channel}"
-	echo pico.py $CMD -c $CHANNEL_ -E \'${variation}\' -t ${shft} -y $era $OPTIONS_
-	#peval pico.py $CMD -c $CHANNEL_ -t ${shft} -y $era $OPTIONS_
-
+      SAMPLES_=$SAMPLES
+      if [ "$SAMPLES" = "" ]; then
+        [[ $shft = 'TES'* ]] && SAMPLES_="DY TT"
+        [[ $shft = 'LTF'* ]] && SAMPLES_="DY TT"
+        [[ $shft = 'JTF'* ]] && SAMPLES_="DY TT W*J"
+      fi
+      OPTIONS_="-s $SAMPLES_ $OPTIONS"
+      
+      CHANNEL_="${channel}_${shft}"
+      peval "pico.py $CMD -c $CHANNEL_ -y $era $OPTIONS_"
+      ###elif [ $CLEAN -gt 0 ]; then
+      ###  for samplename in $SAMPLES; do
+      ###    peval "rm output/$CHANNEL_/$era/${samplename}*/"
+      ###  done
     done
   done
 done
