@@ -3,17 +3,6 @@
 
 channel: mutau
 
-samples:
-    filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-    join: ["VV","TT","ST"]
-    split:
-        DY: [ ["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"] ]
-        TT: [["TTT","genmatch_2==5"], ["TTL","genmatch_2>0 && genmatch_2<5"], ["TTJ","genmatch_2==0"] ]
-        #ST: [("STT","genmatch_2==5"),("STJ","genmatch_2<5")]
-    rename:
-        WJ: "W"
-    data: "data_obs"
-
 baselineCuts: "(q_1*q_2<0) && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
 
 regions:
@@ -29,7 +18,7 @@ observables:
         title: "m_vis"
         extra:
             cut: "50<m_vis && m_vis<106"
-            veto: "dm_2==0"
+        fitRegions: [DM0, DM1, DM10, DM11]
     m_2:
         binning: [13, 0.3, 1.6]
         title: "m_tau_h"
@@ -40,6 +29,19 @@ observables:
                 "dm_2==10":          "0.83<m_2 && m_2<1.43"
                 "dm_2==11":          "0.93<m_2 && m_2<1.53"
             veto: "dm_2==0"
+        fitRegions: [DM1, DM10, DM11]
+
+
+samples:
+    filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+    join: ["VV","TT","ST"]
+    split:
+        DY: [ ["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"] ]
+        TT: [["TTT","genmatch_2==5"], ["TTL","genmatch_2>0 && genmatch_2<5"], ["TTJ","genmatch_2==0"] ]
+        #ST: [("STT","genmatch_2==5"),("STJ","genmatch_2<5")]
+    rename:
+        WJ: "W"
+    data: "data_obs"
 
 processes: ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"]
 
@@ -49,42 +51,76 @@ TESvariations:
 
 systematics:
     LTF:
+        effect: "shape"
         processes: ["ZL", "TTL"]
-        name: "_shape_mTauFake_$BIN"
+        name: "shape_mTauFake_$BIN"
         title: "+/- 2% LTF shape"
         variations: ["Up", "Down"]
         sampleAppend: ["_LTFUp","_LTFDown"]
-        nomWeight: ""
-        altWeights: ["", ""]
     JTF:
+        effect: "shape"
         processes: ["ZJ", "TTJ", "W"]
-        name: "_shape_jTauFake_$BIN"
+        name: "shape_jTauFake_$BIN"
         title: "+/- 5% JTF"
         variations: ["Up", "Down"]
         sampleAppend: ["_JTFUp","_JTFDown"]
-        nomWeight: ""
-        altWeights: ["", ""]
     shape_tid:
+        effect: "shape"
         processes: ["ZTT", "TTT"]            
-        name: "_shape_tid"
+        name: "shape_tid"
         title: "TID shape syst"
         variations: ["Up", "Down"]
-        sampleAppend: ["",""]
         nomWeight: "idweight_2"
         altWeights: ["idweightUp_2", "idweightDown_2"]
     shape_mTauFake:
+        effect: "shape"
         processes: ["ZL", "TTL"]
-        name: "_shape_mTauFakeSF"
+        name: "shape_mTauFakeSF"
         title: "LTF rate syst"
         variations: ["Up", "Down"]
-        sampleAppend: ["",""]
         nomWeight: "ltfweight_2"
         altWeights: ["ltfweightUp_2", "ltfweightDown_2"]
     shape_dy:
+        effect: "shape"
         processes: ["ZTT", "ZL", "ZJ"]
-        name: "_shape_dy"
+        name: "shape_dy"
         title: "+/- 10% Zptweight"
         variations: ["Up", "Down"]
-        sampleAppend: ["",""]
         nomWeight: "zptweight"
         altWeights: ["(zptweight+0.1*(zptweight-1))", "(zptweight-0.1*(zptweight-1))"]
+    lumi:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.025
+    eff_m:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.02
+    xsec_dy:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ"]
+        scaleFactor: 1.02
+    xsec_tt:
+        effect: "lnN"
+        processes: ["TTT", "TTL", "TTJ"]
+        scaleFactor: 1.06
+    xsec_st:
+        effect: "lnN"
+        processes: ["ST"]
+        scaleFactor: 1.05
+    xsec_vv:
+        effect: "lnN"
+        processes: ["VV"]
+        scaleFactor: 1.05
+    norm_wj:
+        effect: "lnN"
+        processes: ["W"]
+        scaleFactor: 1.08
+    norm_qcd:
+        effect: "lnN"
+        processes: ["QCD"]
+        scaleFactor: 1.10
+    rate_jTauFake_$BIN:
+        effect: "lnN"
+        processes: ["W","QCD","ZJ","TTJ","STJ"]
+        scaleFactor: 1.15

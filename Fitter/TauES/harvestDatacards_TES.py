@@ -4,6 +4,7 @@
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import os, sys, re
 from argparse import ArgumentParser
+import yaml
 import CombineHarvester.CombineTools.ch as ch
 from CombineHarvester.CombineTools.ch import CombineHarvester, MassesFromRange, SystMap, BinByBinFactory, CardWriter, SetStandardBinNames, AutoRebin
 import CombineHarvester.CombinePdfs.morphing as morphing
@@ -18,12 +19,12 @@ parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','
                                            help="select year")
 parser.add_argument('-c', '--channel',     dest='channels', choices=['mt','et'], type=str, nargs='+', default='mt', action='store',
                                            help="channels to submit")
+parser.add_argument('-f', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
+                                         help="set config file containing sample & fit setup" )
 parser.add_argument('-t', '--tag',         dest='tags', type=str, nargs='+', default=[ ], action='store',
                     metavar='TAG',         help="tag for a file names")
 parser.add_argument('-e', '--extra-tag',   dest='extratag', type=str, default="", action='store',
                     metavar='TAG',         help="extra tag for output files")
-parser.add_argument('-d', '--decayMode',   dest='DMs', choices=['DM0','DM1','DM10','DM11'], type=str, nargs='*', default=[ ], action='store',
-                    metavar='DECAYMODE',   help="decay mode")
 parser.add_argument('-o', '--obs',         dest='observables', type=str, nargs='*', default=[ ], action='store',
                     metavar='VARIABLE',    help="name of observable for TES measurement" )
 parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store',
@@ -37,6 +38,11 @@ parser.add_argument('-C', '--ZMM',         dest='ZMM', default=False, action='st
 parser.add_argument('-v', '--verbose',     dest='verbose',  default=False, action='store_true',
                                            help="set verbose")
 args = parser.parse_args()
+
+## Open and import information from config file here to be publicly accessible in all functions
+print "Using configuration file: %s"%args.config
+with open(args.config, 'r') as file:
+  setup = yaml.safe_load(file)
 
 verbosity       = 1 if args.verbose else 0
 doShapes        = not args.noShapes #and False
@@ -66,21 +72,8 @@ TIDSFs          = {
 #           'Tight':  { 'DM0': 0.9741, 'DM1': 0.9144, 'DM10': 0.9123, 'DM11': 0.8606 }, },
 }
 
-# RANGE
-shiftRange = args.shiftRange
-parts = shiftRange.split(',')
-if len(parts)!=2 or not parts[0].replace('.','',1).isdigit() or not parts[1].replace('.','',1).isdigit():
-  print '>>> Warning! Not a valid range: "%s". Please pass two comma-separated values.'%(shiftRange); exit(1)
-tesmin     = float(parts[0])-1.
-tesmax     = float(parts[1])-1.
-steps      = 0.002
-tesshifts = [ "%.3f"%(1.+s*steps) for s in xrange(int(tesmin/steps),int(tesmax/steps)+1)]
-#tesshifts  = [ tesshift.replace('.','p') for tesshift in tesshiftsp]
-#print tesmin, tesmax, tesshifts2
 
-
-
-def harvest(channel,var,DMs,year,**kwargs):
+def harvest(channel,var,year,**kwargs):
     """Harvest cards."""
     
     tag         = kwargs.get('tag',        ""               )
@@ -92,11 +85,6 @@ def harvest(channel,var,DMs,year,**kwargs):
     outtag      = tag+extratag
     TIDWP       = 'Medium' if 'Medium' in outtag else 'Tight'
     
-    if 'DeepTau' in outtag or 'newDM' in outtag: 
-      cats   = [ (1, 'DM0'), (2, 'DM1'), (3, 'DM10'), (4, 'DM11') ] # (4, 'all') ]
-    else:
-      cats   = [ (1, 'DM0'), (2, 'DM1'), (3, 'DM10') ]
-    cats     = [ (c,d) for c,d in cats if d in DMs and (d!='DM0' or var!='m_2') ]
     procs    = {
         'sig':   [ 'ZTT' ],
         'bkg':   [ 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'QCD', 'ST', 'VV' ],
@@ -106,117 +94,63 @@ def harvest(channel,var,DMs,year,**kwargs):
         'ST':    [ 'STT', 'STJ' ],
         'mumu':  [ 'ZMM', 'W', 'VV', 'TT', 'ST' ],
     }
-    if doFR:
-      procs['bkg'].append('JTF')
-      for proc, proclist in procs.iteritems():
-        for jproc in ['TTJ','STJ']: 
-          if jproc in proclist:
-            proclist.remove(jproc)
-    procs['morph'] = [ 'ZTT', 'QCD' ] if morphQCD else [ 'ZTT' ]
-    procs['all'] = procs['sig'] + procs['bkg']
-    #if doFR:
-    #  for key, list in procs.iteritems():
-    #    procs[key] = [b for b in list if b not in ['QCD','W','ZJ']]
     
-    # HARVESTER
+    signal = []
+    bkg = []
+    for proc in setup["processes"]:
+      if("TESvariations" in setup and proc in setup["TESvariations"]["processes"]):
+        signal.append(proc)
+      else:
+        bkg.append(proc)
+
+
+    cats = []
+    icat = 0
+    # each variable can have a subset of regions in which it is fitted
+    # defined in config file under this variable entry
+    if "fitRegions" in setup["observables"][var]:
+      for region in setup["observables"][var]["fitRegions"]:
+        icat += 1
+        cats.append((icat, region))
+    # if not given, assume all defined regions should be fitted 
+    # (be careful with potential overlap!)
+    elif "regions" in setup:
+      for region in setup["regions"]:
+        icat += 1
+        cats.append((icat,region))
+
+    print "Fit regions for observable %s: %s"%(var, cats)
+
     harvester = CombineHarvester()
-    if morphQCD:
-      harvester.AddObservations(  ['*'],     [analysis], [era], [channel],                 cats         )
-      harvester.AddProcesses(     ['*'],     [analysis], [era], [channel], procs['noQCD'], cats, False  )
-      harvester.AddProcesses(     tesshifts, [analysis], [era], [channel], ['QCD'],        cats, False  )
-      harvester.AddProcesses(     tesshifts, [analysis], [era], [channel], procs['sig'],   cats, True   )
-    else:
-      harvester.AddObservations(  ['*'],     [analysis], [era], [channel],                 cats         )
-      harvester.AddProcesses(     ['*'],     [analysis], [era], [channel], procs['bkg'],   cats, False  )
-      harvester.AddProcesses(     tesshifts, [analysis], [era], [channel], procs['sig'],   cats, True   )
+    harvester.AddObservations(['*'], [analysis], [era], [channel], cats)
+    harvester.AddProcesses(['*'], [analysis], [era], [channel], procs['bkg'], cats, False)
+    # CAVEAT: This is specific to mutau channel; should see how to generalise!
+    tesshifts = [ "%.3f"%tes for tes in setup["TESvariations"]["values"] ]
+    harvester.AddProcesses(tesshifts, [analysis], [era], [channel], procs['sig'], cats, True)
     
-    # FILTER
-    if filterDM10:
-      harvester.FilterAll(lambda obj: obj.bin_id() in [3,4] and obj.process() in filterDM10)
-    if doFR:
-      harvester.FilterAll(lambda obj: obj.process() in ['QCD','W','ZJ','STJ'] ) #'TTJ'
+    # FILTER ## CAVEAT!!! potentially needed to not add zero backgrounds
+    #if filterDM10:
+    #  harvester.FilterAll(lambda obj: obj.bin_id() in [3,4] and obj.process() in filterDM10)
     
     # NUISSANCE PARAMETERS
     print green("\n>>> defining nuissance parameters ...")
     
-    harvester.cp().process(procs['DY']+procs['TT']+['W']+['ST']+['VV']).AddSyst(
-        harvester, 'lumi', 'lnN', SystMap()(1.025))
-    
-    harvester.cp().process(procs['DY']+procs['TT']+['W']+['ST']+['VV']).AddSyst(
-        harvester, 'eff_m', 'lnN', SystMap()(1.02))
-    
-    ###harvester.cp().process(['TTT','ZTT','STT']).AddSyst(
-    ###    #harvester, 'eff_t_$BIN', 'lnN', SystMap()(1.20))
-    ###    harvester, 'eff_t_$BIN', 'lnN', SystMap()(1.05))
-    
-    ###harvester.cp().process(procs['DY']+procs['TT']+['ST']+['VV']).AddSyst(
-    ###   harvester, 'eff_tracking', 'lnN', SystMap()(1.04))
-    
-    harvester.cp().process(procs['DY']).AddSyst(
-        harvester, 'xsec_dy', 'lnN', SystMap()(1.02))
-    
-    harvester.cp().process(procs['TT']).AddSyst(
-        harvester, 'xsec_tt', 'lnN', SystMap()(1.06))
-    
-    harvester.cp().process(['ST']).AddSyst(
-        harvester, 'xsec_st', 'lnN', SystMap()(1.05))
-    
-    harvester.cp().process(['VV']).AddSyst(
-        harvester, 'xsec_vv', 'lnN', SystMap()(1.05))
-    
-    #harvester.cp().process(['ZL','TTJ','STJ']).bin(['DM0','DM1']).AddSyst(
-    #    harvester, 'rate_mTauFake_$BIN', 'lnN', SystMap()(1.30))
-    
-    harvester.cp().process(['W']).AddSyst(
-        harvester, 'norm_wj', 'lnN', SystMap()(1.08))
-    
-    harvester.cp().process(['QCD']).AddSyst(
-        harvester, 'norm_qcd', 'lnN', SystMap()(1.10))  # From Tyler's studies
-    
-    if doFR:
-      harvester.cp().process(['JTF']).AddSyst(
-        harvester, 'rate_jTauFake_$BIN', 'lnN', SystMap()(1.15))
-    else:
-      harvester.cp().process(['W','QCD','ZJ','TTJ','STJ']).AddSyst( #'TTJ','STJ'
-        harvester, 'rate_jTauFake_$BIN', 'lnN', SystMap()(1.15))
-    
-    if doShapes:
-      harvester.cp().process(['ZTT','TTT']).AddSyst(
-        harvester, 'shape_tid', 'shape', SystMap()(1.00))
+    if "systematics" in setup:
+      for sys in setup["systematics"]:
+        sysDef = setup["systematics"][sys]
+        scaleFactor = 1.0 
+        if "scaleFactor" in sysDef: 
+          scaleFactor = sysDef["scaleFactor"]
+        harvester.cp().process(sysDef["processes"]).AddSyst(harvester, sysDef["name"] if "name" in sysDef else sys, sysDef["effect"], SystMap()(scaleFactor))
+ 
+      # CAVEAT!!!? Option in config file to apply some systematics only to some observables?    
+      #      if 'm_vis' in var:
+      #        harvester.cp().process(['ZL','TTL']).bin(['DM0','DM1']).AddSyst( #,'STJ'
+      #          harvester, 'shape_mTauFake_$BIN', 'shape', SystMap()(1.00))
+      #      harvester.cp().process(['ZL','TTL']).bin(['DM0','DM1']).AddSyst( #,'STJ'
+      #        harvester, 'shape_mTauFakeSF', 'shape', SystMap()(1.00))
       
-      if doFR:
-        harvester.cp().process(['JTF']).AddSyst(
-          harvester, 'shape_jTauFake_$BIN', 'shape', SystMap()(1.00))
-      else:
-        harvester.cp().process(['ZJ']).bin(['DM0','DM1']).AddSyst(
-          harvester, 'shape_jTauFake_$BIN', 'shape', SystMap()(1.00))
-        harvester.cp().process(['W','TTJ']).AddSyst(
-        #harvester.cp().process(['W','TTJ','STJ','QCD']).AddSyst(
-          harvester, 'shape_jTauFake_$BIN', 'shape', SystMap()(1.00))
-      
-      if 'm_vis' in var:
-        harvester.cp().process(['ZL','TTL']).bin(['DM0','DM1']).AddSyst( #,'STJ'
-          harvester, 'shape_mTauFake_$BIN', 'shape', SystMap()(1.00))
-      harvester.cp().process(['ZL','TTL']).bin(['DM0','DM1']).AddSyst( #,'STJ'
-        harvester, 'shape_mTauFakeSF', 'shape', SystMap()(1.00))
-      
-      harvester.cp().process(['ZTT','ZJ']).AddSyst(
-        harvester, 'shape_dy', 'shape', SystMap()(1.00)) #_$CHANNEL
-      harvester.cp().process(['ZL']).bin(['DM0','DM1']).AddSyst(
-        harvester, 'shape_dy', 'shape', SystMap()(1.00))
-      
-      #harvester.cp().process(['ZTT','ZJ','ZL','TTT','TTJ','STT','STJ','W','QCD','JTF']).AddSyst(
-      #  harvester, 'shape_m', 'shape', SystMap()(1.00))
-      
-      #harvester.cp().process(['ZJ','TTT','TTJ','STT','STJ','W','QCD']).AddSyst(
-      #  harvester, 'shape_jes', 'shape', SystMap()(1.00))
-      
-      #harvester.cp().process(['ZJ','TTT','TTJ','STT','STJ','W','QCD']).AddSyst(
-      #  harvester, 'shape_jer', 'shape', SystMap()(1.00))
-      
-      #harvester.cp().process(['ZJ','TTT','TTJ','STT','STJ','W','QCD']).AddSyst(
-      #  harvester, 'shape_uncEn', 'shape', SystMap()(1.0))
-    
+   
     # EXTRACT SHAPES
     print green(">>> extracting shapes...")
     filename = "%s/%s_%s_tes_%s.inputs-%s%s.root"%(indir,analysis,channel,var,era,tag)
@@ -276,12 +210,12 @@ def harvest(channel,var,DMs,year,**kwargs):
     workspace = RooWorkspace(analysis,analysis)
     if multiDimFit:
       for bin in bins:
-        tesname = "tes_%s"%(bin) # DM-dependent tes
-        tes = RooRealVar(tesname,tesname,1.+tesmin,1.+tesmax)
+        tesname = "tes_%s"%(bin)
+        tes = RooRealVar(tesname,tesname, min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]))
         tes.setConstant(True)
         pois.append(tes)
     else:
-      tes = RooRealVar('tes','tes',1.+tesmin,1.+tesmax)
+      tes = RooRealVar('tes','tes', min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]))
       tes.setConstant(True)
       pois = [tes]*len(bins)
     
@@ -292,7 +226,7 @@ def harvest(channel,var,DMs,year,**kwargs):
     verboseMorph = verbosity>0
     for bin, poi in zip(bins,pois):
       print '>>>   bin "%s"...'%(bin)
-      for proc in procs['morph']:
+      for proc in setup["TESvariations"]["processes"]:
         #print ">>>   bin %s, proc %s"%(bin,proc)
         BuildRooMorphing(workspace, harvester, bin, proc, poi, 'norm', True, verboseMorph, False, debugfile)
     debugfile.Close()
@@ -300,7 +234,7 @@ def harvest(channel,var,DMs,year,**kwargs):
     # EXTRACT PDFs
     print green(">>> add workspace and extract pdf...")
     harvester.AddWorkspace(workspace, False)
-    harvester.cp().process(procs['morph']).ExtractPdfs(harvester, analysis, "$BIN_$PROCESS_morph", "")
+    harvester.cp().process(setup["TESvariations"]["processes"]).ExtractPdfs(harvester, analysis, "$BIN_$PROCESS_morph", "")
     
     # NUISANCE PARAMETER GROUPS
     print green(">>> setting nuisance parameter groups...")
@@ -483,10 +417,8 @@ def main():
     
     channels = [ 'mt', ] #'et', ]
     vars     = [ 'm_2', 'm_vis', ]
-    DMs      = [ 'DM0','DM1','DM10','DM11' ]
     
     year     = args.year
-    DMs      = args.DMs if args.DMs else DMs
     vars     = observables if observables else vars
     indir    = "./input"
     #indir    = "./input_%s"%(args.year)
@@ -507,7 +439,7 @@ def main():
         print "producing datacards for %s"%(channel)
         for var in vars2:
           print "producing datacards for %s"%(var)
-          harvest(channel,var,DMs,year,tag=tag,extratag=extratag,indir=indir)
+          harvest(channel,var,year,tag=tag,extratag=extratag,indir=indir)
     
     if args.ZMM:
       harvest_ZMM(year,indir=indir,verbosity=2)

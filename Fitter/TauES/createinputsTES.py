@@ -21,7 +21,7 @@ def main(args):
   analysis  = 'ztt' # $PROCESS_$ANALYSIS
   tag       = "13TeV_mtlt50"
 
-  print setupConfFile  
+  print "Using configuration file: %s"%setupConfFile  
   with open(setupConfFile, 'r') as file:
     setup = yaml.safe_load(file)
 
@@ -38,13 +38,13 @@ def main(args):
     sampleset = getsampleset(channel,era,fname=sname,join=setup["samples"]["join"],split=[],table=False)
       
     # Potentially split up samples in several processes
-    if setup["samples"]["split"]:
+    if "split" in setup["samples"]:
       for splitSample in setup["samples"]["split"]:
         print "Splitting sample %s into %s"%(splitSample,setup["samples"]["split"][splitSample])
         sampleset.split(splitSample, setup["samples"]["split"][splitSample])
 
     # Rename processes according to custom convention
-    if setup["samples"]["rename"]:
+    if "rename" in setup["samples"]:
       for renamedSample in setup["samples"]["rename"]:
         print "Renaming sample %s into %s"%(renamedSample,setup["samples"]["rename"][renamedSample])
         sampleset.rename(renamedSample,setup["samples"]["rename"][renamedSample])
@@ -85,7 +85,7 @@ def main(args):
     print "Nominal inputs"
     createinputs(fname, sampleset, observables, bins, filter=setup["processes"], dots=True)
 
-    if setup["TESvariations"]:
+    if "TESvariations" in setup:
       for var in setup["TESvariations"]["values"]:
         print "Variation: TES = %f"%var
 
@@ -93,24 +93,30 @@ def main(args):
         createinputs(fname,newsampleset, observables, bins, filter=setup["TESvariations"]["processes"], dots=True)
         newsampleset.close()
 
-    if setup["systematics"]:
+    if "systematics" in setup:
       for sys in setup["systematics"]:
-        print "Systematic: %s"%sys
+
         sysDef = setup["systematics"][sys]
+        if sysDef["effect"] != "shape":
+          continue
+        print "Systematic: %s"%sys
 
         for iSysVar in range(len(sysDef["variations"])):
 
-          newsampleset_sys = sampleset.shift(sysDef["processes"], sysDef["sampleAppend"][iSysVar], sysDef["name"]+sysDef["variations"][iSysVar], sysDef["title"], split=True,filter=False,share=True)
-          createinputs(fname,newsampleset_sys, observables, bins, filter=sysDef["processes"], replaceweight=[sysDef["nomWeight"],sysDef["altWeights"][iSysVar]], dots=True)
+          sampleAppend = sysDef["sampleAppend"][iSysVar] if "sampleAppend" in sysDef else ""
+          weightReplaced = [sysDef["nomWeight"],sysDef["altWeights"][iSysVar]] if "altWeights" in sysDef else ["",""]
+
+          newsampleset_sys = sampleset.shift(sysDef["processes"], sampleAppend, "_"+sysDef["name"]+sysDef["variations"][iSysVar], sysDef["title"], split=True,filter=False,share=True)
+          createinputs(fname,newsampleset_sys, observables, bins, filter=sysDef["processes"], replaceweight=weightReplaced, dots=True)
           newsampleset_sys.close()
 
-          if setup["TESvariations"]:
+          if "TESvariations" in setup:
             overlap_TES_sys = list( set(sysDef["processes"]) & set(setup["TESvariations"]["processes"]) )
             if overlap_TES_sys:
               for var in setup["TESvariations"]["values"]:
                 print "Variation: TES = %f"%var
-                newsampleset_TESsys = sampleset.shift(overlap_TES_sys, ("_TES%.3f"%var).replace(".","p")+sysDef["sampleAppend"][iSysVar], "_TES%.3f"%var+sysDef["name"]+sysDef["variations"][iSysVar], " %.1d"%((1.-var)*100.)+"% TES" + sysDef["title"], split=True,filter=False,share=True)
-                createinputs(fname,newsampleset_TESsys, observables, bins, filter=overlap_TES_sys, replaceweight=[sysDef["nomWeight"],sysDef["altWeights"][iSysVar]], dots=True)
+                newsampleset_TESsys = sampleset.shift(overlap_TES_sys, ("_TES%.3f"%var).replace(".","p")+sampleAppend, "_TES%.3f"%var+"_"+sysDef["name"]+sysDef["variations"][iSysVar], " %.1d"%((1.-var)*100.)+"% TES" + sysDef["title"], split=True,filter=False,share=True)
+                createinputs(fname,newsampleset_TESsys, observables, bins, filter=overlap_TES_sys, replaceweight=weightReplaced, dots=True)
                 newsampleset_TESsys.close()
 
 
