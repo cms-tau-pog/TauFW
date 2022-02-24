@@ -6,72 +6,26 @@
 from config.samples import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
+import yaml
 
 
-def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era="",
+def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era="",
          varfilter=None,selfilter=None,fraction=False,pdf=False):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plot")
   
-  # SELECTIONS
-  if 'mumu' in channel:
-    baseline = "q_1*q_2<0 && pt_2>15 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && metfilter && m_ll>20"
+  channel  = setup["channel"]
 
-  elif 'mutau' in channel:
-#    baseline = "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
-    baseline = "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter && mt_1<70 && pt_ll<30"
-
-  elif 'etau' in channel:
-    baseline = "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=8 && idDeepTau2017v2p1VSmu_2>=1 && !lepton_vetoes_notau && metfilter"
-  elif 'tautau' in channel:
-    baseline = "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && idMedium_1 && idMedium_2 && !extraelec_veto && !extramuon_veto && m_ll>20 && metfilter"
+  if "baselineCuts" in setup:
+    baseline = setup["baselineCuts"]
   else:
     raise IOError("No baseline selection for channel %r defined!"%(channel))
-  zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline) # && nbtag==0
-  selections = [
-    #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16",""),only=["DeepTau"]),
-    Sel("baseline",baseline),
-    #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
-    #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
-    #Sel("0b",baseline+" && nbtag==0",weight="btagweight"),
-    #Sel(">=1b",baseline+" && nbtag>=1",weight="btagweight"),
-  ]
+
+  selections = [Sel("baseline",baseline)]
+  if "regions" in setup:
+    for region in setup["regions"]:
+      selections.append(Sel(region, setup["baselineCuts"]+" && "+setup["regions"][region]))
   
-  #### DIFFERENTIAL pt/DM bins for TauID measurement
-  ###wps = [
-  ###  ('Medium',"idDeepTau2017v2p1VSjet_2>=16"),
-  ###  #('VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16")
-  ###  #('0b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag==0"),
-  ###  #('0b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag==0")
-  ###  #('>=1b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag>=1"),
-  ###  #('>=1b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag>=1")
-  ###]
-  ###pts = [20,30,40,50,70]
-  ###dms = [0,1,10,11]
-  ###for wp, wpcut in wps:
-  ###  wpname  = wp.replace(" && !","-not")
-  ###  basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut) #+" && nbtag==0"
-  ###  for dm in dms:
-  ###    name_ = "%s_dm%s"%(wpname,dm)
-  ###    tit_  = "%s, DM%s"%(wp,dm)
-  ###    cut_  = "%s && dm_2==%s"%(basecut,dm)
-  ###    selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
-  ###  for i, ptlow in enumerate(pts):
-  ###    if i<len(pts)-1: # ptlow < pt < ptup
-  ###      ptup = pts[i+1]
-  ###      name = "%s_pt%d-%d"%(wpname,ptlow,ptup)
-  ###      tit  = "%s, %d < pt < %d GeV"%(wp,ptlow,ptup)
-  ###      cut  = "%s && %s<pt_2 && pt_2<%s"%(basecut,ptlow,ptup)
-  ###    else: # pt > ptlow (no upper pt cut)
-  ###      name = "%s_pt%d-Inf"%(wpname,ptlow)
-  ###      tit  = "%s, pt > %d GeV"%(wp,ptlow)
-  ###      cut  = "%s && pt_2>%s"%(basecut,ptlow)
-  ###    #selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
-  ###    for dm in dms:
-  ###      name_ = "%s_dm%s"%(name,dm)
-  ###      tit_  = "%s, DM%s"%(tit,dm)
-  ###      cut_  = "%s && dm_2==%s"%(cut,dm)
-  ###      selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
   
   # VARIABLES
   variables = [
@@ -139,7 +93,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   
 
 def main(args):
-  channels  = args.channels
+  config    = args.config
   eras      = args.eras
   parallel  = args.parallel
   varfilter = args.varfilter
@@ -151,28 +105,31 @@ def main(args):
   pdf       = args.pdf
   outdir    = "plots/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+
+  print "Using configuration file: %s"%config
+  with open(config, 'r') as file:
+    setup = yaml.safe_load(file)
+
   for era in eras:
-    for channel in channels:
-      setera(era) # set era for plot style and lumi-xsec normalization
-      addsfs = [ ] #"getTauIDSF(dm_2,genmatch_2)"]
-      rmsfs  = [ ] if (channel=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
-      split  = ['DY'] if 'tau' in channel else [ ] # split these backgrounds into tau components
-      sampleset = getsampleset(channel,era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split) #,dyweight="")
-      plot(sampleset,channel,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
-           varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf)
-      sampleset.close()
+    setera(era) # set era for plot style and lumi-xsec normalization
+    addsfs = [ ] #"getTauIDSF(dm_2,genmatch_2)"]
+    rmsfs  = [ ] if (setup["channel"]=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
+    split  = ['DY'] if 'tau' in setup["channel"] else [ ] # split these backgrounds into tau components
+    sampleset = getsampleset(setup["channel"],era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split) #,dyweight="")
+    plot(sampleset,setup,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
+         varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf)
+    sampleset.close()
   
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
-  channels = ['mutau','etau','mumu']
   eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018']
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
                                          help="set era" )
-  parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=channels, default=['mutau'],
-                                         help="set channel" )
+  parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
+                                         help="set config file containing sample & fit setup" )
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
                                          help="only plot the variables passing this filter (glob patterns allowed)" )
   parser.add_argument('-S', '--sel',     dest='selfilter', nargs='+',
@@ -195,3 +152,45 @@ if __name__ == "__main__":
   main(args)
   print "\n>>> Done."
   
+
+
+
+
+##==========================================================================
+## Removed from plotting function to make code more clean and easy to read
+
+  #### DIFFERENTIAL pt/DM bins for TauID measurement
+  ###wps = [
+  ###  ('Medium',"idDeepTau2017v2p1VSjet_2>=16"),
+  ###  #('VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16")
+  ###  #('0b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag==0"),
+  ###  #('0b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag==0")
+  ###  #('>=1b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag>=1"),
+  ###  #('>=1b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag>=1")
+  ###]
+  ###pts = [20,30,40,50,70]
+  ###dms = [0,1,10,11]
+  ###for wp, wpcut in wps:
+  ###  wpname  = wp.replace(" && !","-not")
+  ###  basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut) #+" && nbtag==0"
+  ###  for dm in dms:
+  ###    name_ = "%s_dm%s"%(wpname,dm)
+  ###    tit_  = "%s, DM%s"%(wp,dm)
+  ###    cut_  = "%s && dm_2==%s"%(basecut,dm)
+  ###    selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
+  ###  for i, ptlow in enumerate(pts):
+  ###    if i<len(pts)-1: # ptlow < pt < ptup
+  ###      ptup = pts[i+1]
+  ###      name = "%s_pt%d-%d"%(wpname,ptlow,ptup)
+  ###      tit  = "%s, %d < pt < %d GeV"%(wp,ptlow,ptup)
+  ###      cut  = "%s && %s<pt_2 && pt_2<%s"%(basecut,ptlow,ptup)
+  ###    else: # pt > ptlow (no upper pt cut)
+  ###      name = "%s_pt%d-Inf"%(wpname,ptlow)
+  ###      tit  = "%s, pt > %d GeV"%(wp,ptlow)
+  ###      cut  = "%s && pt_2>%s"%(basecut,ptlow)
+  ###    #selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
+  ###    for dm in dms:
+  ###      name_ = "%s_dm%s"%(name,dm)
+  ###      tit_  = "%s, DM%s"%(tit,dm)
+  ###      cut_  = "%s && dm_2==%s"%(cut,dm)
+  ###      selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
