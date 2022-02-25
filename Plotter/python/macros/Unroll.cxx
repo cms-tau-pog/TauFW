@@ -33,9 +33,8 @@
 //     hist2d = TH2D('hist2d',"y vs. x",nxbins,0,100,nybins,0,100) # original 2D
 //     tree.Draw("y:x >> hist2d") # create 2D histogram
 //     hist1d = Unroll.Unroll(hist2d,"Unrolled") # unroll 2D to 1D (without under/overflow)
-//   Roll back up 1D to 2D:
+//   Roll back up 1D to 2D histogram:
 //     hist2d_rollup = Unroll.RollUp(hist1d,"Rolled up",hist2d) # roll 1D back up to 2D
-//   
 //   4D migration / response matrix unrolled to 2D:
 //     hist4d = TH2D('h_response',"Response",20,1,21,20,1,21) # original 2D
 //     tree.Draw("Unroll::GetBin(xgen,ygen):Unroll::GetBin(xreco,yreco) >> h_response")
