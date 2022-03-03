@@ -14,7 +14,8 @@ samples:
 baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter"
 
 regions:
-    ZMM: ""
+    ZMM: 
+        definition: "true"
 
 observables:
     m_vis:

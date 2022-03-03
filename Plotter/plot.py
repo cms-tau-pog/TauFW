@@ -24,7 +24,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   selections = [Sel("baseline",baseline)]
   if "regions" in setup:
     for region in setup["regions"]:
-      selections.append(Sel(region, setup["baselineCuts"]+" && "+setup["regions"][region]))
+      selections.append(Sel(region, setup["baselineCuts"]+" && "+setup["regions"][region]["definition"]))
   
   
   # VARIABLES

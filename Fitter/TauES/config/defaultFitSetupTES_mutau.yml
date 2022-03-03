@@ -16,11 +16,21 @@ baselineCuts: "(q_1*q_2<0) && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017
 # At this point, they do not need to be exclusive; 
 # which regions are included in the fit will be explicitely given when defining the obervables
 regions:
-    signalRegion: "mt_1<50"
-    DM0: "mt_1<50 && dm_2==0"
-    DM1: "mt_1<50 && dm_2==1"
-    DM10: "mt_1<50 && dm_2==10"
-    DM11: "mt_1<50 && dm_2==11"
+    signalRegion: 
+        definition: "mt_1<50"
+        title: "signal region"
+    DM0: 
+        definition: "mt_1<50 && dm_2==0"
+        title: "h^{#pm}"
+    DM1: 
+        definition: "mt_1<50 && dm_2==1"
+        title: "h^{#pm}#pi^{0}"
+    DM10: 
+        definition: "mt_1<50 && dm_2==10"
+        title: "h^{#pm}h^{#mp}h^{#pm}"
+    DM11: 
+        definition: "mt_1<50 && dm_2==11"
+        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
 
 # Observables to be fitted and plotted
 # binning: as defined in TH1 (nbins, xmin, xmax)
