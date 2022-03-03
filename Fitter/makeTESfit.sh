@@ -11,8 +11,7 @@ POI_OPTS="-P tes --setParameterRanges tes=${RANGE} -m 90 --setParameters r=1 --f
 XRTD_OPTS="--X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND" #--X-rtd FITTER_DYN_STEP
 CMIN_OPTS="--cminFallbackAlgo Minuit2,Migrad,0:0.5 --cminFallbackAlgo Minuit2,Migrad,0:1.0 --cminPreScan" # --cminPreFit 1 --cminOldRobustMinimize 
 
-
-./TauES/harvestDatacards_TES.py -y $YEAR -t "_mtlt50" -e "_DeepTau" -c $1
+./TauES/harvestDatacards_TES.py -y $YEAR -t $TAG -e $EXTRATAG -c $1
 
 for DM in $DMS; do
     echo $DM
@@ -29,6 +28,6 @@ for DM in $DMS; do
     done
 done
 
-mv higgsCombine*root output_UL2018
+mv higgsCombine*root output_$YEAR
 
 ./TauES/plotParabola_TES.py -y $YEAR -t $TAG -e $EXTRATAG -r $RANGE -a -s -c $1

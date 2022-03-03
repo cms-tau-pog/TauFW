@@ -70,7 +70,7 @@ def main(args):
     bins = [ Sel("baseline", setup["baselineCuts"]) ]
     if "regions" in setup:
       for region in setup["regions"]:
-        bins.append(Sel(region, setup["baselineCuts"]+" && "+setup["regions"][region]))
+        bins.append(Sel(region, setup["baselineCuts"]+" && "+setup["regions"][region]["definition"]))
 
 
     #######################

@@ -1021,7 +1021,7 @@ def main(args):
             for r in var["fitRegions"]:
                 if not r in allRegions:
                     allRegions.append(r)
-                    allRegionTitles.append(setup["regionTitles"][r])
+                    allRegionTitles.append(setup["regions"][r]["title"])
 
         for var in setup["observables"]:
             variable = setup["observables"][var]
