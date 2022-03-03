@@ -231,7 +231,10 @@ def plotParabola(setup,var,region,year,**kwargs):
     text.SetTextAlign(31)
     text.SetTextFont(42)
     text.SetNDC(True)
-    text.DrawLatex(xtext,ytext,                "%s"%(setup["observables"][var]["title"]))
+    if "title" in setup["observables"][var]:
+        text.DrawLatex(xtext,ytext, "%s"%(setup["observables"][var]["title"]))
+    else:
+        text.DrawLatex(xtext,ytext, "%s"%(var))
     text.DrawLatex(xtext,ytext-lineheight,     "%s"%(region))
     text.DrawLatex(xtext,ytext-2.2*lineheight, "%7.3f_{-%5.3f}^{+%5.3f}"%(tes,tes_errDown,tes_errUp))
     if fit:
@@ -1016,12 +1019,18 @@ def main(args):
         for v in setup["observables"]:
             if not v in allObs:
                 allObs.append(v)
-                allObsTitles.append(setup["observables"][v]["title"])
+                if "title" in setup["observables"][v]:
+                    allObsTitles.append(setup["observables"][v]["title"])
+                else:
+                    allObsTitles.append(v)
             var = setup["observables"][v]
             for r in var["fitRegions"]:
                 if not r in allRegions:
                     allRegions.append(r)
-                    allRegionTitles.append(setup["regions"][r]["title"])
+                    if "title" in setup["regions"][r]:
+                        allRegionTitles.append(setup["regions"][r]["title"])
+                    else:
+                        allRegionTitles.append(r)
 
         for var in setup["observables"]:
             variable = setup["observables"][var]
@@ -1082,7 +1091,7 @@ if __name__ == '__main__':
                                                help="select year")
     parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
                                          help="set config file containing sample & fit setup" )
-    parser.add_argument('-t', '--tag',         dest='tag', type=str, default=[ ], action='store',
+    parser.add_argument('-t', '--tag',         dest='tag', type=str, default="", action='store',
                         metavar='TAG',        help="tag for the input file")
     parser.add_argument('-e', '--extra-tag',   dest='extratag', type=str, default="", action='store',
                         metavar='TAG',         help="extra tag for output files")
@@ -1105,10 +1114,6 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose',     dest='verbose',  default=False, action='store_true',
                                                help="set verbose")
     args = parser.parse_args()
-    
-    if isinstance(args.customSummary,list):
-      if args.customSummary==[ ]:
-        args.customSummary = [ "_0p10" ]
     
     main(args)
     print ">>>\n>>> done\n"

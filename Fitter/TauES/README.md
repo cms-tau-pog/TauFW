@@ -13,6 +13,7 @@ See [the README.md in the parent directory](../../../#taufw).
   -- it can (and will) be used in further scipts / routines in the future
 * each config file defines the setup for one specific channel
   -- combinations of channels can be done at datacard level, e.g. to include a mumu-CR
+* you can easily make changes on cuts, observables, regions, etc. through the config file
 
 ## Creating inputs:
 
@@ -20,4 +21,5 @@ See [the README.md in the parent directory](../../../#taufw).
 
 ## Running the fit:
 
-source makeFitTES.sh # for more information on the different parts, please look into the shell script
+source makeFitTES.sh TauES/config/defaultFitSetupTES_mutau.yml
+-> for more information on the different parts, please look into the shell script
