@@ -12,6 +12,8 @@ from TauFW.Plotter.sample.utils import CMSStyle
 from itertools import combinations
 from math import sqrt, log, ceil, floor
 
+import yaml
+
 gROOT.SetBatch(True)
 #gROOT.SetBatch(False)
 gStyle.SetOptTitle(0)
@@ -19,29 +21,9 @@ gStyle.SetOptTitle(0)
 # CMS style
 CMSStyle.setTDRStyle()
 
-DM_label    = { 'DM0':      "h^{#pm} decay mode",
-                'DM1':      "h^{#pm}#pi^{0} decay mode",
-                'DM10':     "h^{#pm}h^{#mp}h^{#pm} decay mode",
-                'DM11':     "h^{#pm}h^{#mp}h^{#pm}#pi^{0} decay mode",
-                'all':      "all old decay modes",
-                'combined': "combined", }
-bin_dict    = { 1: 'DM0', 2: 'DM1', 3: 'DM10', 4: 'all', }
-varlabel    = { 'm_2':   "m_{#tau}",
-                'm_vis': "m_{vis}",
-                'DM0':   "h^{#pm}",
-                'DM1':   "h^{#pm}#pi^{0}",
-                'DM10':  "h^{#pm}h^{#mp}h^{#pm}",
-                'DM11':  "h^{#pm}h^{#mp}h^{#pm}#pi^{0}", }
-vartitle    = { 'm_2':   "tau mass m_{#tau}",
-                'm_vis': "visible mass m_{vis}", }
-varshorttitle = { 'm_2':   "m_{#tau}",
-                  'm_vis': "m_{vis}", }
 
-
-
-def plotParabola(channel,var,DM,year,**kwargs):
-    if DM=='DM0' and 'm_2' in var: return
-    print green("plot parabola for %s, %s"%(DM, var),pre="\n>>> ")
+def plotParabola(setup,var,region,year,**kwargs):
+    print green("plot parabola for %s, %s"%(region, var),pre="\n>>> ")
     
     indir        = kwargs.get('indir',       "output_%s"%year )
     outdir       = kwargs.get('outdir',      "plots_%s"%year  )
@@ -53,16 +35,18 @@ def plotParabola(channel,var,DM,year,**kwargs):
     fit          = kwargs.get('fit',         False            ) and not breakdown
     ctext        = kwargs.get('ctext',       [ ]              )
     era          = "%s-13TeV"%year
+    channel      = setup["channel"].replace("mu","m").replace("tau","t")
     results      = [ ]
     results_up   = [ ]
     results_down = [ ]
     if breakdown: plottag = "_breakdown"+plottag
     if MDFslices: plottag = "_MDF"+plottag
     if fit:       plottag = ("_fit_asymm" if asymmetric else "_fit")+plottag
-    canvasname = "%s/parabola_tes_%s_%s-%s%s%s"%(outdir,channel,var,DM,tag,plottag)
+    canvasname = "%s/parabola_tes_%s_%s-%s%s%s"%(outdir,channel,var,region,tag,plottag)
     ensureDirectory(outdir)
-    
-    filename     = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,'MDF' if MDFslices else DM,tag,era)
+
+
+    filename     = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,'MDF' if MDFslices else region,tag,era)
     for i, (bdtag,bdtitle) in enumerate(breakdown):
       breakdown[i] = (bdtag, bdtitle,filename.replace("higgsCombine.","higgsCombine.%s-"%bdtag))
     print '>>>   file "%s"'%(filename)
@@ -73,7 +57,7 @@ def plotParabola(channel,var,DM,year,**kwargs):
     list_nll = [ ]
     list_tes = [ ]
     if MDFslices:
-      tes = "tes_%s"%DM
+      tes = "tes_%s"%region
       MDFslices = { t:v for t,v in MDFslices.iteritems() if t!=tes }
       for i, event in enumerate(tree):
         if i==0: continue
@@ -183,9 +167,6 @@ def plotParabola(channel,var,DM,year,**kwargs):
       para = fitParabola(xmin,xmax,tes,list_tes_left,list_dnll_left,list_tes_right,list_dnll_right,asymmetric=asymmetric)
       fit = graph.Fit("fit",'R0')
       para.SetRange(xmin,xmax)
-      #print para.GetXmin(),para.GetXmax()
-      #fit = graph.Fit("fit",'R0','',para.GetXmin(),para.GetXmax())
-      #para = para.Clone("fit_clone")
       para.Draw('SAME')
       gStyle.SetOptFit(0)
       tesf = para.GetParameter(1)
@@ -250,8 +231,8 @@ def plotParabola(channel,var,DM,year,**kwargs):
     text.SetTextAlign(31)
     text.SetTextFont(42)
     text.SetNDC(True)
-    text.DrawLatex(xtext,ytext,                "%s"%(varlabel[var]))
-    text.DrawLatex(xtext,ytext-lineheight,     "%s"%(DM_label[DM]))
+    text.DrawLatex(xtext,ytext,                "%s"%(setup["observables"][var]["title"]))
+    text.DrawLatex(xtext,ytext-lineheight,     "%s"%(region))
     text.DrawLatex(xtext,ytext-2.2*lineheight, "%7.3f_{-%5.3f}^{+%5.3f}"%(tes,tes_errDown,tes_errUp))
     if fit:
       text.SetTextColor(kRed)
@@ -272,7 +253,7 @@ def plotParabola(channel,var,DM,year,**kwargs):
     
 
     
-def plotParabolaMDF(channel,var,year,**kwargs):
+def plotParabolaMDF(setup,var,year,**kwargs):
     """Plot multidimensional parabola."""
     print green("plot multidimensional parabola for %s"%(var),pre="\n>>> ")
     
@@ -284,6 +265,8 @@ def plotParabolaMDF(channel,var,year,**kwargs):
     era        = "%s-13TeV"%year
     ensureDirectory(outdir)
     
+    channel    = setup["channel"].replace("mu","m").replace("tau","t")
+
     canvasname = "%s/parabola_tes_%s_%s-%s%s"%(outdir,channel,var,"MDF",tag)
     filename   = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,'MDF',tag,era)
     file       = ensureTFile(filename)
@@ -954,72 +937,6 @@ def marginCenter(canvas,axis,side='left',shift=0,margin=None):
         else:        center*=(1-shift/100.0)
     return center
     
-def tagToSelection(tag):
-    """Convert a tag to selections."""
-    text = ""
-    if "mtlt50" in tag:
-      text = "m_{T} < 50 GeV"
-      if "_100" in tag:
-        text += ", 50 GeV < m_{vis} < 100 GeV"%(106 if "-7" in tag else 100)
-      elif "_200" in tag:
-        text += ", 50 GeV < m_{vis} < 200 GeV"%(197 if "-7" in tag else 200)
-      #else:
-      #  text += ", 50 GeV < m_{vis} < 106 GeV"
-    elif "ZTTregion2" in tag:
-      text = "m_{T} < 50 GeV, 50 GeV < m_{vis} < 100 GeV"
-      if "_45" in tag:
-        text = text.replace("50 GeV < m_{vis}","45 GeV < m_{vis}")
-      if "_85" in tag:
-        text = text.replace("m_{vis} < 100 GeV","m_{vis} < 85 GeV")
-    elif "ZTTregion" in tag:
-      text = "m_{T} < 50 GeV, 50 GeV < m_{vis} < 85 GeV, D_{#zeta} > -25 GeV"
-    if "differentCuts" in tag:
-      #re.sub(r'\d+ GeV < m_{vis} < \d+ GeV',r'#color[4]{\1}',text)
-      text = "m_{T} < 50 GeV, #color[4]{%s GeV < m_{vis} < 100 GeV}"%(45 if "45" in tag else 50)
-    lines = text.split(', ')
-    return lines
-    
-def tagToBinning(var,DM,tag):
-    """Convert a tag to text."""
-    lines = [ ]
-    if var=='m_2':
-      range = "%.2f GeV < m_{#tau} < %.2f GeV"%((0.85,1.40) if DM=='DM10' else (0.95,1.50) if DM=='DM11' else (0.35,1.20))
-      bins  = "%.2f GeV bins"%(0.10 if "0p10" in tag else 0.05 if "0p05" in tag else 0.10)
-      lines = tagToSelection(tag) + [range,bins]
-    elif var=='m_vis':
-      if "mtlt50" in tag:
-        lines.append("m_{T} < 50 GeV")
-      range = "%d GeV < m_{vis}"%(45 if "_45" in tag else 50)
-      if "ZTTregion" in tag:
-        lines.append("m_{T} < 50 GeV")
-        range += " < %d GeV"%(100 if "ZTTregion2" in tag else 85)
-      elif "_100" in tag:
-        range += " < %d GeV"%(106 if "-7" in tag else 100)
-      elif "_200" in tag:
-        range += " < %d GeV"%(197 if "-7" in tag else 200)
-      else:
-        range += " < 106 GeV"
-      bins  = "%d GeV bins"%(5 if any(t in tag for t in ["-5","_5"]) else 7)
-      lines += [range,bins]
-      if re.search("ZTTregion(?!\d)",tag):
-        lines.append("D_{#zeta} > -25 GeV")
-    return lines
-    
-def tagToBinWidth(var,tag):
-    if var=='m_2':
-      return "%.2f GeV"%(0.10 if "0p10" in tag else 0.05 if "0p05" in tag else 0.04)
-    elif var=='m_vis':
-      return "%d GeV"%(7 if "-7" in tag else 5)
-    return ""
-
-
-def insertBinning(tag):
-  if '_0p' not in tag and '_' in tag and len(tag)>2:
-    pieces = tag.split('_')
-    pieces.insert(2,'0p10' if '_45' in tag else '0p10')
-    tag = '_'.join(pieces)
-  return tag
-
 def green(string,**kwargs):
   return kwargs.get('pre',"")+"\x1b[0;32;40m%s\033[0m"%(string)
   
@@ -1059,98 +976,20 @@ def ensureList(arg):
   return arg if (isinstance(arg,list) or isinstance(arg,tuple)) else [arg]
 
 
-def finalCalculation(year,**kwargs):
-  outdir = kwargs.get('outdir', "plots_%s"%year)
-  DMs    = ['DM0','DM1','DM10','DM11']
-  if year=='2016':
-    measurements = [
-      [ None,                  (0.9950,0.0063,0.0063)],
-      [(1.0021,0.0036,0.0023), (1.0013,0.0033,0.0036)],
-      [(0.9985,0.0027,0.0027), (1.0024,0.0045,0.0045)],
-      [(1.0199,0.0060,0.0067), (0.9977,0.0099,0.0089)],
-    ]
-  elif year=='2017':
-    measurements = [
-      [ None,                  (1.0012,0.0090,0.0084)],
-      [(0.9933,0.0036,0.0036), (1.0043,0.0036,0.0036)],
-      [(1.0017,0.0036,0.0036), (1.0034,0.0054,0.0054)],
-      [(1.0229,0.0061,0.0063), (0.9885,0.0105,0.0105)],
-    ]
-  elif year=='2018':
-    measurements = [
-      [ None,                  (0.9844,0.0086,0.0058)],
-      [(0.9961,0.0045,0.0034), (0.9964,0.0036,0.0036)],
-      [(0.9963,0.0045,0.0045), (0.9865,0.0053,0.0036)],
-      [(1.0014,0.0081,0.0052), (0.9939,0.0109,0.0121)],
-    ]
-  elif year=='UL2016_preVFP':
-    measurements = [
-      [ None,                  (0.9873,0.0078,0.0082)],
-      [(0.9935,0.0035,0.0036), (0.9980,0.0036,0.0036)],
-      [(0.9935,0.0072,0.0070), (0.9844,0.0063,0.0061)],
-      [(1.0034,0.0125,0.0036), (0.9991,0.0099,0.0088)],
-    ]
-  elif year=='UL2016_postVFP':
-    measurements = [
-      [ None,                  (0.9930,0.0056,0.0078)],
-      [(0.9945,0.0027,0.0027), (0.9913,0.0040,0.0045)],
-      [(0.9936,0.0045,0.0045), (1.0006,0.0054,0.0054)],
-      [(1.0137,0.0104,0.0118), (0.9969,0.0116,0.0153)],
-    ]
-  elif year=='UL2017':
-    measurements = [
-      [ None,                  (0.9860,0.0067,0.0081)],
-      [(0.9828,0.0063,0.0046), (0.9994,0.0036,0.0036)],
-      [(1.0028,0.0045,0.0045), (0.9985,0.0031,0.0054)],
-      [(1.0318,0.0105,0.0198), (0.9963,0.0098,0.0068)],
-    ]
-  elif year=='UL2018':
-    measurements = [
-      [ None,                  (0.9914,0.0063,0.0060)],
-      [(0.9940,0.0027,0.0027), (1.0037,0.0027,0.0027)],
-      [(1.0015,0.0054,0.0039), (0.9976,0.0045,0.0040)],
-      [(1.0186,0.0067,0.0050), (1.0036,0.0072,0.0072)],
-    ]
-  channel = 'mt'
-  ctext = "" #tagToSelection("_mtlt50_0p10_100-7")
-  name  = "%s/measurement_tes_%s_final"%(outdir,channel)
-  entries = [varlabel[v] for v in ["m_2","m_vis"]]
-  
-  string = ""
-  for i, (DM, points) in enumerate(zip(DMs,measurements)):
-    string += "%10s "%(DM)
-    for j, point in enumerate(points):
-      if point==None:
-        string += "& %12s "%('--')
-      else:
-        tes, eup, elow = point
-        err = 100*sqrt(max(eup,elow)**2 + (tes*0.005)**2)
-        tes = 100*(tes-1)
-        string += "& $%4.1f\\pm%3.1f$ "%(tes,err)
-        newpoint = (tes,err,err)
-        points[j] = newpoint
-    string += "\\\\\n"
-  print string
-  
-  cats = [varlabel[d] for d in DMs]
-  plotMeasurements(cats,measurements,xtitle="tau energy scale [%]",xmin=-3,xmax=+6,L=0.20,
-                   position="out",entries=entries,emargin=0.14,ctext=ctext,ctextsize=0.035,cposition='topright',canvas=name,exts=['png','pdf'])
-  
-
-
 
 def main(args):
     
+    print "Using configuration file: %s"%args.config
+    with open(args.config, 'r') as file:
+        setup = yaml.safe_load(file)
+
     verbosity     = args.verbose
     year          = args.year
     lumi          = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
-    channels      = args.channels
-    newDM         = any("newDM" in t or "DeepTau" in t for t in args.tags)
-    DMs           = [ 'DM0', 'DM1', 'DM10', 'DM11' ] if newDM else [ 'DM0', 'DM1', 'DM10' ]
-    vars          = [ 'm_2', 'm_vis' ]
+    channel         = setup["channel"].replace("mu","m").replace("tau","t")
     indir         = "output_%s"%year
     outdir        = "plots_%s"%year
-    tags          = args.tags
+    tag          = args.tag
     breakdown     = args.breakdown
     multiDimFit   = args.multiDimFit
     summary       = args.summary
@@ -1158,188 +997,79 @@ def main(args):
     fit           = args.fit
     asymmetric    = args.asymm
     customSummary = args.customSummary
-    if args.DMs: DMs = args.DMs
-    if args.observables: vars = [o for o in args.observables if '#' not in o]
     ensureDirectory(outdir)
 
     CMSStyle.setCMSEra(year)
     
-    cats    = [varlabel[d] for d in DMs]
-    entries = [varlabel[v] for v in vars]
     fittag  = "_fit_asymm" if asymmetric else "_fit"
+    tag += args.extratag
     
     # LOOP over tags, channels, variables
     print "parabola %i"%parabola
     if parabola:
-      for tag in tags:
-        tag += args.extratag
-        for channel in channels:
-          points, points_fit = [ ], [ ]
-          for var in vars:
+        points, points_fit = [ ], [ ]
+
+        allObs = []
+        allObsTitles = []
+        allRegions = []
+        allRegionTitles = []
+        for v in setup["observables"]:
+            if not v in allObs:
+                allObs.append(v)
+                allObsTitles.append(setup["observables"][v]["title"])
+            var = setup["observables"][v]
+            for r in var["fitRegions"]:
+                if not r in allRegions:
+                    allRegions.append(r)
+                    allRegionTitles.append(setup["regionTitles"][r])
+
+        for var in setup["observables"]:
+            variable = setup["observables"][var]
             
             # MULTIDIMFIT
             slices = { }
             if multiDimFit:
-              nnlmin, slices = findMultiDimSlices(channel,var,year,tag=tag)
-              plotParabolaMDF(channel,var,nnlmin=nnlmin,MDFslices=slices,indir=indir,tag=tag)
+                nnlmin, slices = findMultiDimSlices(channel,var,year,tag=tag)
+                plotParabolaMDF(setup,var,nnlmin=nnlmin,MDFslices=slices,indir=indir,tag=tag)
             
-            # LOOP over DMs
-            for i, DM in enumerate(DMs):
-              if "_0p"  in tag and var=='m_vis':  continue
-              if "_100" in tag and var=='m_2':    continue
-              if "_200" in tag and var=='m_2':    continue
-              if "_85"  in tag and var=='m_2':    continue
-              if "_45"  in tag and var=='m_2':    continue
-              if "_restr" in tag and var=='m_2':  continue
-              if DM=='DM11' and not ("newDM" in tag or "DeepTau" in tag): continue
-              if DM=="DM0" and var=='m_2':
-                if len(points)<=i:
-                  points.append([ ]); points_fit.append([ ])
-                points[i].append(None); points_fit[i].append(None)
-                continue
-              ctext = tagToBinning(var,DM,tag)
-              #title = "%s, %s"%(varshorttitle[var],DM_label[DM].replace("decay mode",''))
+            # LOOP over regions
+            for i, region in enumerate(variable["fitRegions"]):
               
-              # PARABOLA
-              if breakdown:
-                breakdown1 = [ ('stat', "stat. only,\nexcl. b.b.b."), ('sys', "stat. only\nincl. b.b.b.") ]
-                breakdown2 = [ ('jtf', "j #rightarrow #tau_{h} fake"), ('ltf', "l #rightarrow #tau_{h} fake"), ('zpt', "Z pT rew.") ]
-                breakdown3 = [ ('eff', "#mu, #tau_{h} eff."), ('norm', "xsecs, norms"), ('lumi', "lumi") ]
-                tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(channel,var,DM,year,indir=indir,breakdown=breakdown1,tag=tag,fit=fit,asymm=asymmetric,ctext=ctext)
-                tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(channel,var,DM,year,indir=indir,breakdown=breakdown2,tag=tag,plottag='_shapes',fit=fit,asymm=asymmetric,ctext=ctext)
-                tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(channel,var,DM,year,indir=indir,breakdown=breakdown3,tag=tag,plottag='_norms',fit=fit,asymm=asymmetric,ctext=ctext)
-              else:
-                tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(channel,var,DM,year,indir=indir,tag=tag,fit=fit,asymm=asymmetric,MDFslices=slices,ctext=ctext)
+                # PARABOLA
+                if breakdown:
+                    breakdown1 = [ ('stat', "stat. only,\nexcl. b.b.b."), ('sys', "stat. only\nincl. b.b.b.") ]
+                    breakdown2 = [ ('jtf', "j #rightarrow #tau_{h} fake"), ('ltf', "l #rightarrow #tau_{h} fake"), ('zpt', "Z pT rew.") ]
+                    breakdown3 = [ ('eff', "#mu, #tau_{h} eff."), ('norm', "xsecs, norms"), ('lumi', "lumi") ]
+                    tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(setup,var,region,year,indir=indir,breakdown=breakdown1,tag=tag,fit=fit,asymm=asymmetric)
+                    tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(setup,var,region,year,indir=indir,breakdown=breakdown2,tag=tag,plottag='_shapes',fit=fit,asymm=asymmetric)
+                    tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(setup,var,region,year,indir=indir,breakdown=breakdown3,tag=tag,plottag='_norms',fit=fit,asymm=asymmetric)
+                else:
+                    tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(setup,var,region,year,indir=indir,tag=tag,fit=fit,asymm=asymmetric,MDFslices=slices)
               
-              # SAVE points
-              if len(points)<=i: points.append([ ]); points_fit.append([ ])
-              points[i].append((tes,tesDown,tesUp))
-              points_fit[i].append((tesf,tesfDown,tesfUp))
+                # SAVE points
+                if len(points)<=i: 
+                    points.append([ ]); points_fit.append([ ])
+                points[i].append((tes,tesDown,tesUp))
+                points_fit[i].append((tesf,tesfDown,tesfUp))
           
-          if len(points)>1 and len(DMs)>2 and not breakdown:
-            print green("write results to file",pre="\n>>> ")
-            #DMs1 = DMs if ("newDM" in tag or "DeepTau" in tag) else DMs[:3]
-            filename = "%s/measurement_tes_%s%s"%(outdir,channel,tag)
-            writeMeasurement(filename,DMs,points)
+            if len(points)>1 and not breakdown:
+                print green("write results to file",pre="\n>>> ")
+                filename = "%s/measurement_tes_%s%s"%(outdir,channel,tag)
+                writeMeasurement(filename,allRegions,points)
             if args.fit:
-              writeMeasurement(filename+fittag,DMs,points_fit)
+                writeMeasurement(filename+fittag,allRegions,points_fit)
     
     # SUMMARY plot
     if summary:
-      for tag in tags:
-        tag += args.extratag
-        #if 'newDM' in tag: continue
-        for channel in channels:
-          if len(vars)==2 and len(DMs)>=3:
-            print green("make summary plot for %s"%(tag),pre="\n>>> ")
-            ftags = [ tag, tag+fittag ] if args.fit else [ tag ]
-            for ftag in ftags:
-              canvas = "%s/measurement_tes_%s%s"%(outdir,channel,ftag)
-              measurements = readMeasurement(canvas)
-              ###if "_0p" in tag: # add m_vis from measurement tagged without "_0p05"
-              ###  canvas2 = re.sub(r"_0p\d+","",canvas)
-              ###  measurements2 = readMeasurement(canvas2)
-              ###  for points,points2 in zip(measurements,measurements2):
-              ###    points.append(points2[1])
-              ###if "_100" in tag: # add m_2 from measurement tagged with "_0p05"
-              ###  canvas2 = re.sub(r"_[12]00(?:[_-][5-8])?","",canvas)
-              ###  measurements2 = readMeasurement(canvas2)
-              ###  for points, points2 in zip(measurements,measurements2):
-              ###    points = points.insert(0,points2[0])
-              canvas = "%s/measurement_tes_%s%s"%(outdir,channel,insertBinning(ftag)) # rename
-              
-              ctext = tagToSelection(tag)
-              plotMeasurements(cats,measurements,canvas=canvas,xtitle="tau energy scale",xmin=0.97,xmax=1.04,L=0.20,
-                               position="out",entries=entries,emargin=0.14,ctext=ctext,ctextsize=0.035,cposition='topright',exts=['png','pdf'])
-    
-    # CUSTOMARY summary plot
-    if customSummary and len(vars)==2 and len(DMs)>=3:
-      for ctag in customSummary:
-        print green("make customary summary plots for %s"%(ctag),pre="\n>>> ")
-        channel = 'mt'
-        newDM   = "newDM" in ctag or "DeepTau" in ctag
-        DMtag   = "_newDM" if "newDM" in ctag else ""
-        DMs     = [ 'DM0', 'DM1', 'DM10', 'DM11' ] if "newDM" in ctag else [ 'DM0', 'DM1', 'DM10',]
-        cats    = [varlabel[d] for d in DMs]
-        ftags   = [ "", fittag  ] if args.fit else [ "" ]
-        mtaubintag = "_0p04" if "0p04" in ctag else "_0p10" if "0p10" in ctag else "_0p05" if "0p05" in ctag else "_0p10"
-        mvisbintag = "_45-5" if "45-5" in ctag else "_45-7" if "45-7" in ctag else ""
+        print green("make summary plot for %s"%(tag),pre="\n>>> ")
+        ftags = [ tag, tag+fittag ] if args.fit else [ tag ]
         for ftag in ftags:
-          canvas  = "%s/measurement_tes_%s%s%s%s%s%s"%(outdir,channel,"_differentCuts",DMtag,mtaubintag,mvisbintag,ftag)
-          canvas1 = "%s/measurement_tes_%s%s%s%s%s"%(outdir,channel,"_mtlt50",DMtag,mtaubintag,ftag)
-          canvas2 = "%s/measurement_tes_%s%s%s%s%s"%(outdir,channel,"_ZTTregion2",DMtag,mvisbintag,ftag)
-          ensureFile(canvas1+'.txt')
-          ensureFile(canvas2+'.txt')
-          measurements1 = readMeasurement(canvas1) # m_2
-          measurements2 = readMeasurement(canvas2) # m_vis
-          
-          # CHECK
-          if len(measurements1)<3:
-            error('Cannot make measurement summary plot with different cuts: "%s.txt" does not have enough measurements! '%(canvas1))
-          if len(measurements2)<3 or any(len(m)<1 for m in measurements2):
-            error('Cannot make measurement summary plot with different cuts: "%s.txt" does not have enough measurements !'%(canvas2))
-          
-          measurements = [ ]
-          for points1, points2 in zip(measurements1,measurements2): # loop over DMs
-            points = [points1[0],points2[-1]]
-            measurements.append(points)
-          writeMeasurement(canvas,DMs,measurements)
-          ctext = tagToSelection("differentCuts"+mvisbintag)
-          plotMeasurements(cats,measurements,xtitle="tau energy scale",xmin=0.97,xmax=1.04,L=0.17,
-                               position="out",entries=entries,emargin=0.14,ctext=ctext,ctextsize=0.035,cposition='topright',canvas=canvas,exts=['png','pdf'])
-    
-#     # CUSTOMARY summary plot to compare selections
-#     if len(vars)>0 and len(DMs)>=3:
-#       print green("compare selections/binning in customary summary plot",pre="\n>>> ")
-#       channel  = "mt"
-#       ftags    = [ "", fittag  ] if args.fit else [ "" ]
-#       
-#       varAndTags = [
-#         ( 'm_2',   [ "_mtlt50", "_mtlt50_0p05", "_mtlt50_0p10" ]),
-#         ( 'm_vis', [ "_ZTTregion2_45-5", "_ZTTregion2_45-7" ]),
-#       ]
-#       
-#       for var, stags in varAndTags:
-#         if var not in vars: continue
-#         
-#         if var=='m_2':
-#           DMs   = [ 'DM1', 'DM10' ]
-#           index = 0
-#           ctext = tagToSelection(stags[0]) + [varlabel[var]]
-#         else:
-#           DMs   = [ 'DM0', 'DM1', 'DM10' ]
-#           index = -1
-#           ctext = tagToSelection(stags[0])
-#         
-#         canvas  = "%s/measurement_tes_%s_%s%s"%(PLOTS_DIR,channel,var,"_compareSelections")
-#         entries = ['NLL profile','parabola fit']
-#         cats    = [ "%s %s"%(varlabel[dm],tagToBinWidth(var,t)) for dm in DMs for t in stags ]
-#         
-#         # LOOP over selection tags
-#         points  = { dm: {t:[] for t in stags} for dm in DMs }
-#         for stag in stags:
-#           
-#           # LOOP over fit tags
-#           for ftag in ftags:
-#             canvas1 = "%s/measurement_tes_%s%s%s"%(PLOTS_DIR,channel,stag,ftag)
-#             ensureFile(canvas1+'.txt')
-#             measurements1 = readMeasurement(canvas1)
-#             
-#             # CHECK
-#             if len(measurements1)<3:
-#               error('Cannot make measurement summary plot with different cuts: "%s.txt" does not have enough measurements! '%(canvas1))
-#             
-#             if var!='m_2':
-#               points['DM0'][stag].append(measurements1[0][index])
-#             points['DM1'][stag].append(measurements1[1][index])
-#             points['DM10'][stag].append(measurements1[2][index])
-#           
-#         measurements = [points[dm][t] for dm in DMs for t in stags if len(points[dm][t])>0]
-#         plotMeasurements(cats,measurements,xtitle="tau energy scale",xmin=0.97,xmax=1.04,L=0.28,W=900,align='right',colors=[kBlack,kRed],
-#                              position="out",entries=entries,ctext=ctext,ctextsize=0.035,cposition='topright',canvas=canvas,exts=['png','pdf'])
+            canvas = "%s/measurement_tes_%s%s"%(outdir,channel,ftag)
+            measurements = readMeasurement(canvas)
 
+            plotMeasurements(allRegionTitles,measurements,canvas=canvas,xtitle="tau energy scale",xmin=min(setup["TESvariations"]["values"]),xmax=max(setup["TESvariations"]["values"]),L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'])
     
-        
+       
 
 
 if __name__ == '__main__':
@@ -1350,16 +1080,12 @@ if __name__ == '__main__':
     parser = ArgumentParser(prog="plotParabola",description=description,epilog="Succes!")
     parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store',
                                                help="select year")
-    parser.add_argument('-c', '--channel',     dest='channels', choices=['mt','et'], type=str, default=['mt'], action='store',
-                                               help="select channel")
-    parser.add_argument('-t', '--tag',         dest='tags', type=str, nargs='+', default=[ ], action='store',
-                        metavar='TAGS',        help="tags for the input file")
-    parser.add_argument('-d', '--decayMode',   dest='DMs', type=str, nargs='+', default=[ ], action='store',
-                        metavar='DECAY',       help="decay mode")
+    parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
+                                         help="set config file containing sample & fit setup" )
+    parser.add_argument('-t', '--tag',         dest='tag', type=str, default=[ ], action='store',
+                        metavar='TAG',        help="tag for the input file")
     parser.add_argument('-e', '--extra-tag',   dest='extratag', type=str, default="", action='store',
                         metavar='TAG',         help="extra tag for output files")
-    parser.add_argument('-o', '--obs',         dest='observables', type=str, nargs='+', default=[ ], action='store',
-                        metavar='VARIABLE',    help="name of observable for TES measurement")
     parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store',
                         metavar='RANGE',       help="range of TES shifts")
     parser.add_argument('-f', '--fit',         dest='fit',  default=True, action='store_true',
