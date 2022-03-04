@@ -18,14 +18,16 @@ def main(args):
   plot      = False
   outdir    = ensuredir("input")
   plotdir   = ensuredir(outdir,"plots")
-  analysis  = 'ztt' # $PROCESS_$ANALYSIS
-  tag       = "13TeV"
+  analysis  = 'ztt'
 
   print "Using configuration file: %s"%setupConfFile  
   with open(setupConfFile, 'r') as file:
     setup = yaml.safe_load(file)
 
   channel  = setup["channel"]
+  tag      = "13TeV"
+  if "tag" in setup:
+    tag += setup["tag"]
 
   for era in eras:
       

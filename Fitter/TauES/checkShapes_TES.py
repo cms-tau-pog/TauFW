@@ -364,7 +364,6 @@ def main(args):
     ]
     
     if args.postfit and args.filename and args.dirnames:
-      tag = tags[0]
       for dirname in args.dirnames:
         xmin, xmax = xlimits(args.filename,dirname)
         app_dict   = {'ZTT':getShiftTitle(tag)}
@@ -378,7 +377,7 @@ def main(args):
         drawpostfit(setup, args.filename,dirname,stacksamples2,year=year,xmin=xmin,xmax=xmax,pos='x=0.6', var=var, apptitle=app_dict,tag=tag,outdir=outdir,group=grouplist)
 
     else:
-      tag = args.tag
+      tag = setup["tag"] if "tag" in setup else ""
       for var in vars:
         print var
         filename = "%s/%s_%s_tes_%s.inputs-%s%s.root"%(indir,analysis,channel,var,era,tag)
@@ -407,8 +406,6 @@ if __name__ == '__main__':
   parser.add_argument('filename', type=str, nargs='?', action='store', metavar='FILENAME', help="file with shapes" ),
   parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2018', action='store', help="select year")
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup" )
-  parser.add_argument('-t', '--tag',         dest='tag', type=str, default='', action='store',
-                      metavar="TAGS",        help="tags for the input file" )
   parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store',
                       metavar="RANGE",       help="range of TES shifts" )
   parser.add_argument(      '--dirnames',    dest='dirnames', type=str, nargs='*', default=[ ], action='store',

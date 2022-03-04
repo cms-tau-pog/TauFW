@@ -230,11 +230,11 @@ def main(args):
     if args.multiDimFit:
         args.extratag += "_MDF"
 
-    for tag in args.tags:
-        print "producing datacards for %s"%(args.year)
-        for obs in observables:
-            print "producing datacards for %s"%(obs)
-            harvest(setup,args.year,obs,tag=tag,extratag=args.extratag,indir=indir,multiDimFit=args.multiDimFit,verbosity=verbosity)
+    tag = setup["tag"] if "tag" in setup else ""
+    print "producing datacards for %s"%(args.year)
+    for obs in observables:
+        print "producing datacards for %s"%(obs)
+        harvest(setup,args.year,obs,tag=tag,extratag=args.extratag,indir=indir,multiDimFit=args.multiDimFit,verbosity=verbosity)
     
 
 
@@ -247,7 +247,6 @@ if __name__ == '__main__':
   parser = ArgumentParser(prog="harvesterDatacards_TES",description=description,epilog="Succes!")
   parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default=2018, action='store', help="select year")
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup")
-  parser.add_argument('-t', '--tag', dest='tags', type=str, nargs='+', default=[ ], action='store', metavar='TAG', help="tag for a file names")
   parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
   parser.add_argument('-M', '--multiDimFit', dest='multiDimFit', default=False, action='store_true', help="assume multidimensional fit with a POI for each DM")
   parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true', help="set verbose")
