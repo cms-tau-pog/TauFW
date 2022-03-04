@@ -211,7 +211,7 @@ def drawVariations(filename,dirname,samples,variations,**kwargs):
     plot.draw(vartitle,ratio=ratio,linestyle=False,xmin=xmin,xmax=xmax,rmin=rmin,rmax=rmax)
     plot.drawlegend(position,title=title)
     plot.drawtext(text)
-    plot.saveAs(canvasname,ext=exts)
+    plot.saveas(canvasname,ext=exts)
     plot.close()
   
   file.Close()
