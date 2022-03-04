@@ -19,7 +19,7 @@ def main(args):
   outdir    = ensuredir("input")
   plotdir   = ensuredir(outdir,"plots")
   analysis  = 'ztt' # $PROCESS_$ANALYSIS
-  tag       = "13TeV_mtlt50"
+  tag       = "13TeV"
 
   print "Using configuration file: %s"%setupConfFile  
   with open(setupConfFile, 'r') as file:
