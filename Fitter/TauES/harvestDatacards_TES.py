@@ -15,7 +15,7 @@ from ROOT import RooWorkspace, TFile, RooRealVar
 def harvest(setup, year, obs, **kwargs):
     """Harvest cards."""
 
-    channel         = setup["channel"].replace("mu","m").replace("tau","t")
+    channel = setup["channel"].replace("mu","m").replace("tau","t")
     
     tag         = kwargs.get('tag',        ""               )
     extratag    = kwargs.get('extratag',   ""               )
