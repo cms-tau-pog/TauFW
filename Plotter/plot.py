@@ -99,7 +99,6 @@ def main(args):
   varfilter = args.varfilter
   selfilter = args.selfilter
   notauidsf = args.notauidsf
-  tag       = args.tag
   extratext = args.text
   fraction  = args.fraction
   pdf       = args.pdf
@@ -109,6 +108,8 @@ def main(args):
   print "Using configuration file: %s"%config
   with open(config, 'r') as file:
     setup = yaml.safe_load(file)
+
+  tag = setup["tag"] if "tag" in setup else ""
 
   for era in eras:
     setera(era) # set era for plot style and lumi-xsec normalization
@@ -142,7 +143,6 @@ if __name__ == "__main__":
                                          help="create pdf version of each plot" )
   parser.add_argument('-r', '--nosf',    dest='notauidsf', action='store_true',
                                          help="remove DeepTau ID SF" )
-  parser.add_argument('-t', '--tag',     default="", help="extra tag for output" )
   parser.add_argument('-T', '--text',    default="", help="extra text on plot" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )

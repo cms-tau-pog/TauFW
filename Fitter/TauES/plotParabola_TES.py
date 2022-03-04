@@ -986,13 +986,14 @@ def main(args):
     with open(args.config, 'r') as file:
         setup = yaml.safe_load(file)
 
+    channel       = setup["channel"].replace("mu","m").replace("tau","t")
+    tag           = setup["tag"] if "tag" in setup else ""
+
     verbosity     = args.verbose
     year          = args.year
     lumi          = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
-    channel         = setup["channel"].replace("mu","m").replace("tau","t")
     indir         = "output_%s"%year
     outdir        = "plots_%s"%year
-    tag          = args.tag
     breakdown     = args.breakdown
     multiDimFit   = args.multiDimFit
     summary       = args.summary
@@ -1087,32 +1088,18 @@ if __name__ == '__main__':
     argv = sys.argv
     description = '''Plot parabolas.'''
     parser = ArgumentParser(prog="plotParabola",description=description,epilog="Succes!")
-    parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store',
-                                               help="select year")
-    parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
-                                         help="set config file containing sample & fit setup" )
-    parser.add_argument('-t', '--tag',         dest='tag', type=str, default="", action='store',
-                        metavar='TAG',        help="tag for the input file")
-    parser.add_argument('-e', '--extra-tag',   dest='extratag', type=str, default="", action='store',
-                        metavar='TAG',         help="extra tag for output files")
-    parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store',
-                        metavar='RANGE',       help="range of TES shifts")
-    parser.add_argument('-f', '--fit',         dest='fit',  default=True, action='store_true',
-                                               help="fit NLL profile with parametrized parabola")
-    parser.add_argument('-a', '--asymm',       dest='asymm',  default=True, action='store_true',
-                                               help="fit asymmetric parabola")
-    parser.add_argument('-b', '--breakdown',   dest='breakdown',  default=False, action='store_true',
-                                               help="plot breakdown of NLL profile")
-    parser.add_argument('-M', '--multiDimFit', dest='multiDimFit',  default=False, action='store_true',
-                                               help="assume multidimensional fit with a POI for each DM")
-    parser.add_argument('-n', '--no-para',     dest='parabola', default=True, action='store_false',
-                                               help="make summary of measurements")
-    parser.add_argument('-s', '--summary',     dest='summary', default=False, action='store_true',
-                                               help="make summary of measurements")
-    parser.add_argument(      '--custom',      dest='customSummary', nargs='*', default=False, action='store',
-                                               help="make custom summary of measurements")
-    parser.add_argument('-v', '--verbose',     dest='verbose',  default=False, action='store_true',
-                                               help="set verbose")
+    parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store', help="select year")
+    parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup" )
+    parser.add_argument('-e', '--extra-tag',   dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
+    parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store', metavar='RANGE',       help="range of TES shifts")
+    parser.add_argument('-f', '--fit',         dest='fit',  default=True, action='store_true', help="fit NLL profile with parametrized parabola")
+    parser.add_argument('-a', '--asymm',       dest='asymm',  default=True, action='store_true', help="fit asymmetric parabola")
+    parser.add_argument('-b', '--breakdown',   dest='breakdown',  default=False, action='store_true', help="plot breakdown of NLL profile")
+    parser.add_argument('-M', '--multiDimFit', dest='multiDimFit',  default=False, action='store_true', help="assume multidimensional fit with a POI for each DM")
+    parser.add_argument('-n', '--no-para',     dest='parabola', default=True, action='store_false', help="make summary of measurements")
+    parser.add_argument('-s', '--summary',     dest='summary', default=False, action='store_true', help="make summary of measurements")
+    parser.add_argument(      '--custom',      dest='customSummary', nargs='*', default=False, action='store',help="make custom summary of measurements")
+    parser.add_argument('-v', '--verbose',     dest='verbose',  default=False, action='store_true', help="set verbose")
     args = parser.parse_args()
     
     main(args)

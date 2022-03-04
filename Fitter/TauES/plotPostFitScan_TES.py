@@ -507,7 +507,8 @@ def main(args):
     year      = args.year
     lumi      = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
     channel   = setup["channel"].replace("mu","m").replace("tau","t")
-    tag = args.tag + args.extratag
+    tag       = setup["tag"] if "tag" in setup else ""
+    tag += args.extratag
     CMSStyle.setCMSEra(year)
 
     # Leave hard-coded this part as this is purely a plotting choice
@@ -573,7 +574,6 @@ if __name__ == '__main__':
     parser = ArgumentParser(prog="LowMassDiTau_Harvester",description=description,epilog="Succes!")
     parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store', help="select year")
     parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup" )
-    parser.add_argument('-t', '--tag', dest='tag', type=str, default="", action='store', metavar='TAG', help="tag for the input file")
     parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar="TAG", help="extra tag for output files")
     parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store', metavar="RANGE", help="range of TES shifts")
     parser.add_argument('-p', '--pdf', dest='pdf', default=False, action='store_true', help="save plot as pdf as well")
