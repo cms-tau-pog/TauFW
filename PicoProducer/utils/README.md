@@ -48,10 +48,21 @@ For example for nanoAOD files, simply use
  ./utils/compareNano.py nano*.root -V "Jet_pt_nom,Jet_pt_jerUp,Jet_pt_jerDown>>20,0,200" -v3
 ```
 
+
 ## [`comparePico.py`](comparePico.py)
 Quickly compare two or more pico files by creating plots of some variables.
 Edit the file to change or add more variables:
 ```
 utils/comparePico.py pico1.root pico2.root
+```
+
+
+## [`convertGENSIM.py`](convertGENSIM.py)
+Convert generator information of GENSIM or MINIAOD files to something more simple
+for quick and easy analysis.
+```
+utils/convertGENSIM.py GENSIM*.root -o GENSIM_simple.root -n 1000
+utils/convertGENSIM.py MINIAOD*.root -o MINIAOD_simple.root -n 1000 -dtier MINIAOD
+utils/convertGENSIM.py GENSIM.txt GENSIM_simple.root -n 1000
 ```
 
