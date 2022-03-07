@@ -1018,20 +1018,25 @@ def main(args):
         allRegions = []
         allRegionTitles = []
         for v in setup["observables"]:
+            var = setup["observables"][v]
             if not v in allObs:
                 allObs.append(v)
-                if "title" in setup["observables"][v]:
-                    allObsTitles.append(setup["observables"][v]["title"])
+                if "title" in var:
+                    allObsTitles.append(var["title"])
                 else:
                     allObsTitles.append(v)
-            var = setup["observables"][v]
-            for r in var["fitRegions"]:
-                if not r in allRegions:
-                    allRegions.append(r)
-                    if "title" in setup["regions"][r]:
-                        allRegionTitles.append(setup["regions"][r]["title"])
-                    else:
-                        allRegionTitles.append(r)
+        for r in setup["regions"]:
+            isUsedInFit = False
+            for v in setup["observables"]:
+                if r in setup["observables"][v]["fitRegions"]:
+                    isUsedInFit = True
+                    break
+            if isUsedInFit and not r in allRegions:
+                allRegions.append(r)
+                if "title" in setup["regions"][r]:
+                    allRegionTitles.append(setup["regions"][r]["title"])
+                else:
+                    allRegionTitles.append(r)
 
         for var in setup["observables"]:
             variable = setup["observables"][var]
@@ -1043,8 +1048,12 @@ def main(args):
                 plotParabolaMDF(setup,var,nnlmin=nnlmin,MDFslices=slices,indir=indir,tag=tag)
             
             # LOOP over regions
-            for i, region in enumerate(variable["fitRegions"]):
-              
+            for i, region in enumerate(allRegions):
+                if not region in variable["fitRegions"]:
+                    if len(points)<=i: points.append([ ]); points_fit.append([ ])
+                    points[i].append(None); points_fit[i].append(None)
+                    continue
+      
                 # PARABOLA
                 if breakdown:
                     breakdown1 = [ ('stat', "stat. only,\nexcl. b.b.b."), ('sys', "stat. only\nincl. b.b.b.") ]
@@ -1057,8 +1066,7 @@ def main(args):
                     tes,tesDown,tesUp,tesf,tesfDown,tesfUp = plotParabola(setup,var,region,year,indir=indir,tag=tag,fit=fit,asymm=asymmetric,MDFslices=slices)
               
                 # SAVE points
-                if len(points)<=i: 
-                    points.append([ ]); points_fit.append([ ])
+                if len(points)<=i: points.append([ ]); points_fit.append([ ])
                 points[i].append((tes,tesDown,tesUp))
                 points_fit[i].append((tesf,tesfDown,tesfUp))
           
