@@ -37,9 +37,6 @@ class Sample(object):
     LOG.insist(len(paths)>=1,"Need at least one path to create a sample...")
     if len(paths)==1 and isinstance(paths[0],list):
       paths = paths[0]
-    for path in paths:
-      LOG.insist(path.count('/')>=3 and path.startswith('/'),"DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/FORMAT."%(path))
-      #sample = '/'.join(line.split('/')[-3:])
     
     # DATA TYPE
     dtype  = kwargs.get('dtype', None)
@@ -63,19 +60,20 @@ class Sample(object):
     self.channels     = kwargs.get('channel',       None   )
     self.channels     = kwargs.get('channels', self.channels )
     self.storage      = None
-    self.storepath    = kwargs.get('store',         None   ) # if stored elsewhere than DAS
+    self.storepath    = kwargs.get('storage',       None   ) # if stored elsewhere than DAS
+    self.storepath    = kwargs.get('store', self.storepath ) # alias
     self.url          = kwargs.get('url',           None   ) # URL if stored elsewhere
     self.dasurl       = kwargs.get('dasurl',        None   ) or "root://cms-xrd-global.cern.ch/" # URL for DAS
     self.blacklist    = kwargs.get('blacklist',     [ ]    ) # black list for ROOT files
-    self.instance     = kwargs.get('instance', 'prod/phys03' if path.endswith('USER') else 'prod/global') # if None, does not exist in DAS
+    self.instance     = kwargs.get('instance', 'prod/phys03' if self.paths[0].endswith('USER') else 'prod/global') # if None, does not exist in DAS
     self.nfilesperjob = kwargs.get('nfilesperjob',  -1     ) # number of nanoAOD files per job
     self.maxevts      = kwargs.get('maxevtsperjob', None   ) # maximum number of events processed per job (-1: split by number of files)
-    self.maxevts      = kwargs.get('maxevts', self.maxevts ) # maximum number of events processed per job (-1: split by number of files)
+    self.maxevts      = kwargs.get('maxevts', self.maxevts ) # alias
     self.extraopts    = kwargs.get('opts',          [ ]    ) # extra options for analysis module, e.g. ['doZpt=1','tes=1.1']
     self.subtry       = kwargs.get('subtry',        0      ) # to help keep track of resubmission
     self.jobcfg       = kwargs.get('jobcfg',        { }    ) # to help keep track of resubmission
     self.nevents      = kwargs.get('nevts',         0      ) # number of nanoAOD events that can be processed
-    self.nevents      = kwargs.get('nevents', self.nevents ) # cache of number of events
+    self.nevents      = kwargs.get('nevents', self.nevents ) # alias
     self.filelist     = None # text file
     self.files        = kwargs.get('files',         [ ]    ) or [ ] # list of ROOT files, OR text file with list of files
     if isinstance(self.files,str):
@@ -88,6 +86,12 @@ class Sample(object):
     self.dosplit      = kwargs.get('split', len(self.paths)>=2 ) # allow splitting (if multiple DAS datasets)
     self.verbosity    = kwargs.get('verbosity', LOG.verbosity ) # verbosity level for debugging
     self.refreshable  = not self.files                       # allow refresh of file list in getfiles()
+    
+    # CHECK PATH FORMAT
+    if not self.storepath:
+      for path in self.paths:
+        LOG.insist(path.count('/')>=3 and path.startswith('/'),"DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/TIER."%(path))
+        #sample = '/'.join(line.split('/')[-3:])
     
     # ENSURE LIST
     if self.channels!=None and not isinstance(self.channels,list):
