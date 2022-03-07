@@ -40,13 +40,13 @@ regions:
 observables:
     m_vis:
         binning: [8, 50, 106]
-        title: "m_vis"
+        title: "m_{vis}"
         extra:
             cut: "50<m_vis && m_vis<106"
         fitRegions: [DM0, DM1, DM10, DM11]
     m_2:
         binning: [13, 0.3, 1.6]
-        title: "m_tau_h"
+        title: "m_{#tau_{h}}"
         extra:
             cut: "0.3<m_2 && m_2<1.6"
             ccut: 
