@@ -53,6 +53,8 @@ def plotCorrelation(channel,var,region,year,*parameters,**kwargs):
     ensureDirectory(outdir)
     print '>>>   file "%s"'%(filename)
     
+    tes         = measureTES(filename)
+
     # HISTOGRAM
     parlist = getParameters(filename,parameters)
     if order:
@@ -60,12 +62,15 @@ def plotCorrelation(channel,var,region,year,*parameters,**kwargs):
     N       = len(parlist)     
     hist    = TH2F("corr","corr",N,0,N,N,0,N)
     
+    iPOI = -1 # save position of POI (here: TES)
     for i in xrange(N): # diagonal
       hist.SetBinContent(i+1,N-i,1.0)
       hist.GetXaxis().SetBinLabel(1+i,parlist[i].title)
       hist.GetYaxis().SetBinLabel(N-i,parlist[i].title)
+      if parlist[i].title == "tes":
+          iPOI = i
     for xi, yi in combinations(range(N),2): # off-diagonal
-      r = parlist[xi].corr(parlist[yi])
+      r = parlist[xi].corr(parlist[yi],tes,parlist[iPOI])
       hist.SetBinContent(1+xi,N-yi,r)
       hist.SetBinContent(1+yi,N-xi,r)
       #print "%20s - %20s: %5.3f"%(par1,par2,r)
@@ -177,9 +182,18 @@ class Parameter(object):
         self.mean  = sum(self.list) / float(self.N)
         self.sigma = sqrt(sum((x-self.mean)**2 for x in self.list)/float(self.N-1))
         
-    def corr(self,opar):
+    def corr(self,opar,poiBestFit,poi):
         """Correlation coefficient with another parameter."""
-        return sum((x-self.mean)*(y-opar.mean) for x, y in zip(self.list,opar.list))/(float(self.N-1)*self.sigma*opar.sigma)
+        covariance = 0
+        N = 0
+        for x, y, z in zip(self.list,opar.list,poi.list):
+            # only consider points within 2 sigma range of tes around its min
+            # assume best fit-value of tes is 1
+            if abs(z-poiBestFit) < poi.sigma:
+                covariance += (x-self.mean)*(y-opar.mean)
+                N +=1
+        covariance /= float(N-1)
+        return covariance/(self.sigma*opar.sigma)
         
 
 
