@@ -51,6 +51,15 @@ def main(args):
         print "Renaming sample %s into %s"%(renamedSample,setup["samples"]["rename"][renamedSample])
         sampleset.rename(renamedSample,setup["samples"]["rename"][renamedSample])
 
+#    # On-the-fly reweighting of specific processes -- do after splitting and renaming!
+#    if "scaleFactors" in setup:
+#      for SF in setup["scaleFactors"]:
+#        SFset = setup["scaleFactors"][SF]
+#        print "Reweighting with SF -- %s -- for the following processes: %s"%(SF, SFset)
+#        if not era in SFset["values"]: continue
+##### TO BE COMPLETED!        
+
+
     # Name of observed data 
     sampleset.datasample.name = setup["samples"]["data"]
 
