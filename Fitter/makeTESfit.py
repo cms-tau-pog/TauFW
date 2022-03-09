@@ -14,7 +14,7 @@ with open(args.config, 'r') as file:
 
 # MORE GLOBAL VARIABLES
 EXTRATAG="_DeepTau"
-ALGO="--algo=grid --points ${NPOINTS} --alignEdges=1 --saveFitResult" # --saveWorkspace 
+ALGO="--algo=grid --alignEdges=1 --saveFitResult" # --saveWorkspace 
 FIT_OPTS="--robustFit=1 --setRobustFitAlgo=Minuit2 --setRobustFitStrategy=0 --setRobustFitTolerance=0.2" #--preFitValue=1. 
 POI_OPTS="-P tes --setParameterRanges tes=${RANGE} -m 90 --setParameters r=1 --freezeParameters r" 
 XRTD_OPTS="--X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND" #--X-rtd FITTER_DYN_STEP
