@@ -88,11 +88,11 @@ def harvest(setup, year, obs, **kwargs):
     #harvester.cp().channel([channel]).process(['proc1','proc2']).ExtractShapes( filename, "$BIN/$PROCESS", "$BIN/$PROCESS_$SYSTEMATIC")
     
     if "scaleFactors" in setup:
-      for SFs in setup["scaleFactors"]:
-        print ">>> apply %s normalization factor on the fly on process %s"%(SFs, setup["scaleFactors"][SFs]["processes"])
-        for region, sf in setup["scaleFactors"][SFs]["values"][year].iteritems():
-          harvester.cp().bin([region]).process(setup["scaleFactors"][SFs]["processes"]).ForEachProc(lambda proc: scaleProcess(proc,sf))
-    
+        for SFs in setup["scaleFactors"]:
+            print ">>> apply %s normalization factor on the fly on process %s"%(SFs, setup["scaleFactors"][SFs]["processes"])
+            for region, sf in setup["scaleFactors"][SFs]["values"][year].iteritems():
+                harvester.cp().bin([region]).process(setup["scaleFactors"][SFs]["processes"]).ForEachProc(lambda proc: scaleProcess(proc,sf))
+
     # AUTOREBIN
     #print green(">>> automatically rebin (30%)...")
     #rebin = AutoRebin().SetBinThreshold(0.).SetBinUncertFraction(0.30).SetRebinMode(1).SetPerformRebin(True).SetVerbosity(1)

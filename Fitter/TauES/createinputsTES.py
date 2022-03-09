@@ -38,7 +38,7 @@ def main(args):
     # GET SAMPLESET
     sname     = setup["samples"]["filename"]
     sampleset = getsampleset(channel,era,fname=sname,join=setup["samples"]["join"],split=[],table=False)
-      
+
     # Potentially split up samples in several processes
     if "split" in setup["samples"]:
       for splitSample in setup["samples"]["split"]:

@@ -16,7 +16,10 @@ baselineCuts: "(q_1*q_2<0) && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017
 
 # These regions will be defined when creating inputs or making plots
 # At this point, they do not need to be exclusive; 
-# which regions are included in the fit will be explicitely given when defining the obervables
+# PLEASE NOTE:
+#     - which regions are included in the fit will be defined in obervables section --> adjust when changing regions
+#     - additional cross section scale factors applied to some processes need to be given in these regions to be considered --> adjust in scaleFactors section
+
 regions:
     signalRegion: 
         definition: "mt_1<50"
@@ -160,6 +163,7 @@ systematics:
         scaleFactor: 1.15
 
 # Additional scale factors per year for specific processes (correction of xsec, reco SFs, etc.)
+# Need to be provided, for now, in same regions as regions defined above
 scaleFactors:
     WNFs:
         processes: ["W"]
