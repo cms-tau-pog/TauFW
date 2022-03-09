@@ -116,7 +116,7 @@ def main(args):
     addsfs = [ ] #"getTauIDSF(dm_2,genmatch_2)"]
     rmsfs  = [ ] if (setup["channel"]=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
     split  = ['DY'] if 'tau' in setup["channel"] else [ ] # split these backgrounds into tau components
-    sampleset = getsampleset(setup["channel"],era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split) #,dyweight="")
+    sampleset = getsampleset(setup["channel"],era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split)
     plot(sampleset,setup,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
          varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf)
     sampleset.close()
@@ -129,7 +129,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
                                          help="set era" )
-  parser.add_argument('-c', '--config', dest='config', type=str, default='../Fitter/TauES/config/defaultFitSetupTES_mutau.yml', action='store',
+  parser.add_argument('-c', '--config', dest='config', type=str, default='ChannelConfigs/defaultFitSetup_mutau.yml', action='store',
                                          help="set config file containing sample & fit setup" )
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
                                          help="only plot the variables passing this filter (glob patterns allowed)" )
