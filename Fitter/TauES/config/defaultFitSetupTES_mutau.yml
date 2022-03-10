@@ -21,9 +21,6 @@ baselineCuts: "(q_1*q_2<0) && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017
 #     - additional cross section scale factors applied to some processes need to be given in these regions to be considered --> adjust in scaleFactors section
 
 regions:
-    signalRegion: 
-        definition: "mt_1<50"
-        title: "signal region"
     DM0: 
         definition: "mt_1<50 && dm_2==0"
         title: "h^{#pm}"
@@ -68,6 +65,7 @@ TESvariations:
 fitSpecs:
     doBBB: doShapes
     signalBBB: True
+    backgroundBBB: True
 
 
 # Samples to be used and association to processes entering analysis

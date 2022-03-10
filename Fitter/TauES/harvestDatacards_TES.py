@@ -106,7 +106,11 @@ def harvest(setup, year, obs, **kwargs):
     # Bin-by-bin uncertainties
     if "fitSpecs" in setup and "doBBB" in setup["fitSpecs"] and setup["fitSpecs"]["doBBB"] != "":
       print green(">>> generating bbb uncertainties...")
-      procsBBB = backgrounds + signals if ( "signalBBB" in setup["fitSpecs"] and setup["fitSpecs"]["signalBBB"]) else backgrounds
+      procsBBB = []
+      if ( "signalBBB" in setup["fitSpecs"] and setup["fitSpecs"]["signalBBB"]):
+          procsBBB += signals
+      if ( "backgroundBBB" in setup["fitSpecs"] and setup["fitSpecs"]["backgroundBBB"]):
+          procsBBB += backgrounds
       bbb = BinByBinFactory()
       bbb.SetAddThreshold(0.0)
       bbb.SetFixNorm(False)
