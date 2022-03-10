@@ -21,5 +21,5 @@ See [the README.md in the parent directory](../../../#taufw).
 
 ## Running the fit:
 
-source makeFitTES.sh TauES/config/defaultFitSetupTES_mutau.yml
--> for more information on the different parts, please look into the shell script
+python makeFitTES.py -y UL2018 -c TauES/config/defaultFitSetupTES_mutau.yml
+-> for more information on the different parts, please look into the python script
