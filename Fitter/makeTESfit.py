@@ -14,21 +14,20 @@ with open(args.config, 'r') as file:
 
 # MORE GLOBAL VARIABLES
 EXTRATAG="_DeepTau"
-ALGO="--algo=grid --alignEdges=1 --saveFitResult" # --saveWorkspace 
-FIT_OPTS="--robustFit=1 --setRobustFitAlgo=Minuit2 --setRobustFitStrategy=0 --setRobustFitTolerance=0.2" #--preFitValue=1. 
-POI_OPTS="-P tes --setParameterRanges tes=${RANGE} -m 90 --setParameters r=1 --freezeParameters r" 
-XRTD_OPTS="--X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND" #--X-rtd FITTER_DYN_STEP
-CMIN_OPTS="--cminFallbackAlgo Minuit2,Migrad,0:0.5 --cminFallbackAlgo Minuit2,Migrad,0:1.0 --cminPreScan" # --cminPreFit 1 --cminOldRobustMinimize 
+ALGO="--algo=grid --alignEdges=1 --saveFitResult --saveWorkspace "
+FIT_OPTS="--robustFit=1 --setRobustFitAlgo=Minuit2 --setRobustFitStrategy=0 --setRobustFitTolerance=0.2 " #--preFitValue=1. 
+POI_OPTS="-P tes --setParameterRanges tes=${RANGE} -m 90 --setParameters r=1 --freezeParameters r " 
+XRTD_OPTS="--X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND " #--X-rtd FITTER_DYN_STEP
+CMIN_OPTS="--cminFallbackAlgo Minuit2,Migrad,0:0.5 --cminFallbackAlgo Minuit2,Migrad,0:1.0 --cminPreScan " # --cminPreFit 1 --cminOldRobustMinimize 
 
 os.system("./TauES/harvestDatacards_TES.py -y %s -c %s -e %s"%(args.era,args.config,EXTRATAG))
 
-for r in setup["regions"]:
-    print r
-    region = setup["regions"][r]
+for v in setup["observables"]:
+    print v
+    variable = setup["observables"][v]
 
-    for v in setup["observables"]:
-        print v
-        variable = setup["observables"][v]
+    for r in variable["fitRegions"]:
+        print r
 
 	BINLABEL="mt_"+v+"-"+r+setup["tag"]+EXTRATAG+"-"+args.era+"-13TeV"
 	os.system("text2workspace.py output_%s/ztt_%s.txt"%(args.era,BINLABEL))
