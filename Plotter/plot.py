@@ -129,7 +129,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
                                          help="set era" )
-  parser.add_argument('-c', '--config', dest='config', type=str, default='ChannelConfigs/defaultFitSetup_mutau.yml', action='store',
+  parser.add_argument('-c', '--config', dest='config', type=str, default='config/setup_mutau.yml', action='store',
                                          help="set config file containing sample & fit setup" )
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
                                          help="only plot the variables passing this filter (glob patterns allowed)" )
