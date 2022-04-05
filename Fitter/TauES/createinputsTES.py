@@ -60,11 +60,11 @@ def main(args):
         for proc in SFset["processes"]:
           weight = ""
           for cond in SFset["values"][era]:
-            weight += str(SFset["values"][era][cond])+" ? "+cond+" : ("
+            weight += cond+" ? "+str(SFset["values"][era][cond])+" : ("
           weight += "1)"
           for i in range(len(SFset["values"][era])-1):
             weight += " )"
-          print "Applying weight %s: "%weight
+          print "Applying weight: %s"%weight
           sampleset.get(proc, unique=True).addextraweight(weight)
 
     # Name of observed data 
