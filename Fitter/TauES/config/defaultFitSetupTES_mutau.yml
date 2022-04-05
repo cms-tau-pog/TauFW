@@ -87,7 +87,7 @@ samples:
     rename:
         WJ: "W"
     data: "data_obs"
-    removeSFs: ['idweight_2']
+    #removeSFs: ['idweight_2']
     #addSFs: []
 
 
