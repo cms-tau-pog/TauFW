@@ -14,8 +14,9 @@ Data for corrections is saved in in [`../../data/`](../../data)
 ## Pileup reweighting
 
 [`PileupTool.py`](PileupTool.py) provides the pileup event weight based on the data and MC profiles in [`data/pileup/`](pileup).
-Please note that the official tools also provide the
-[`puWeightProducer.py`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/common/puWeightProducer.py) module.
+Please note that, as an alternative, the CMS also provide the official
+[`puWeightProducer.py`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/modules/common/puWeightProducer.py) module,
+which adds the weights to the nanoAOD.
 
 The data profile can be computed with the `pileupCalc.py` tool.
 The MC profile can be taken from the distribution of the `Pileup_nTrueInt` variable in nanoAOD, for each MC event:
@@ -23,7 +24,10 @@ The MC profile can be taken from the distribution of the `Pileup_nTrueInt` varia
     self.out.pileup.Fill(event.Pileup_nTrueInt)
 ```
 and then extracted with [`data/pileup/getPileupProfiles.py`](../../data/pileup/getPileupProfiles.py).
-A simple module, [`PicoProducer/python/analysis/PileUp.py`](../analysis/PileUp.py) is already provided. Run as:
+Most analysis modules already store the relevant information,
+but for a quick run, one can also use the simple, reduced module,
+[`PicoProducer/python/analysis/PileUp.py`](../analysis/PileUp.py).
+Run it as:
 ```
 pico.py channel pileup PileUp # link channel to module
 pico.py submit -c pileup -y UL2016 --dtype mc
