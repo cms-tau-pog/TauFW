@@ -11,37 +11,14 @@ from ROOT import gROOT, gPad, gStyle, Double, TFile, TCanvas, TLegend, TLatex, T
 from TauFW.Plotter.sample.utils import CMSStyle
 from math import sqrt, log, ceil, floor
 from itertools import combinations
+import yaml
 
 gROOT.SetBatch(True)
 #gROOT.SetBatch(False)
 gStyle.SetOptTitle(0)
 
-argv = sys.argv
-description = '''This script makes datacards with CombineHarvester.'''
-parser = ArgumentParser(prog="LowMassDiTau_Harvester",description=description,epilog="Succes!")
-parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store',
-                                           help="select year")
-parser.add_argument('-c', '--channel',     dest='channels', choices=['mt','et'], type=str, nargs='+', default=['mt'], action='store',
-                                           help="select channels")
-parser.add_argument('-t', '--tag',         dest='tags', type=str, nargs='*', default=[ '' ], action='store',
-                    metavar="TAG",         help="tags for a file" )
-parser.add_argument('-e', "--extra-tag",   dest='extratag', type=str, default="", action='store',
-                    metavar="TAG",         help="extra tag for output files" )
-parser.add_argument('-d', '--decayMode',   dest='DMs', type=str, nargs='*', default=[ ], action='store',
-                    metavar="DECAY",       help="decay mode" )
-parser.add_argument('-o', '--observable',  dest='observables', type=str, nargs='*', default=[ ], action='store',
-                    metavar="VARIABLE",    help="name of observable for TES measurement" )
-parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store',
-                    metavar="RANGE",       help="range of TES shifts" )
-parser.add_argument('-p', '--pdf',         dest='pdf', default=False, action='store_true',
-                                           help="save plot as pdf as well" )
-parser.add_argument('-v', '--verbose',     dest='verbose',  default=False, action='store_true',
-                                           help="set verbose" )
-args = parser.parse_args()
 
 DIR_DC      = "./input"
-verbosity   = args.verbose
-observables = [o for o in args.observables if '#' not in o]
 
 # CMS style
 CMSStyle.setTDRStyle()
@@ -58,44 +35,11 @@ gStyle.SetPalette(100,kMyTemperature)
 DIR         = "./output"
 PLOTS_DIR   = "./postfit"
 
-DM_label    = { 'DM0':      "h^{#pm} decay mode",
-                'DM1':      "h^{#pm}#pi^{0} decay mode",
-                'DM10':     "h^{#pm}h^{#mp}h^{#pm} decay mode",
-                'DM11':     "h^{#pm}h^{#mp}h^{#pm}#pi^{0} decay mode",
-                'all':      "all old decay modes",
-                'combined': "combined", }
-bin_dict    = { 1: 'DM0', 2: 'DM1', 3: 'DM10', 4: 'all', }
-varlabel    = { 'm_2':   "m_{#tau}",
-                'm_vis': "m_{vis}",
-                'DM0':   "h^{#pm}",
-                'DM1':   "h^{#pm}#pi^{0}",
-                'DM10':  "h^{#pm}h^{#mp}h^{#pm}",
-                'DM11':  "h^{#pm}h^{#mp}h^{#pm}#pi^{0}", }
-vartitle    = { 'm_2':   "hadronically decayed tau mass m_{#tau}",
-                'm_vis': "visible mass m_{vis}", }
-varshorttitle = { 'm_2':   "m_{#tau}",
-                  'm_vis': "m_{vis}", }
-# parameter_dict = {
-#     "eff_t", "xsec_dy", "norm_wj", 
-#     "shape_jetTauFake", "rate_jetTauFake", "xsec_ttj",
-#     "xsec_dy", "xsec_ttj", "xsec_st",
-#     "shape_jetTauFake",
-#     "rate_jetTauFake",
-#     "shape_dy",
-#     "shape_m",
-#     "shape_mTauFake",
-#     "rate_mTauFake"
-# }
-
-
-
-
-def plotCorrelation(channel,var,DM,year,*parameters,**kwargs):
+def plotCorrelation(channel,var,region,year,*parameters,**kwargs):
     """Calculate and plot correlation between parameters."""
-    if DM=='DM0' and 'm_2' in var: return
-    print green("\n>>> plotCorrelation %s, %s"%(DM, var))
+    print green("\n>>> plotCorrelation %s, %s"%(region, var))
     if len(parameters)==1 and isinstance(parameters[0],list): parameters = parameters[0]
-    parameters  = [p.replace('$CAT',DM).replace('$CHANNEL',channel) for p in list(parameters)]
+    parameters  = [p.replace('$CAT',region).replace('$CHANNEL',channel) for p in list(parameters)]
     
     title       = kwargs.get('title',     ""                )
     name        = kwargs.get('name',      ""                )
@@ -105,10 +49,12 @@ def plotCorrelation(channel,var,DM,year,*parameters,**kwargs):
     plotlabel   = kwargs.get('plotlabel', ""                )
     order       = kwargs.get('order',     False             )
     era         = "%s-13TeV"%year
-    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,DM,tag,era)
+    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
     ensureDirectory(outdir)
     print '>>>   file "%s"'%(filename)
     
+    tes         = measureTES(filename)
+
     # HISTOGRAM
     parlist = getParameters(filename,parameters)
     if order:
@@ -116,12 +62,15 @@ def plotCorrelation(channel,var,DM,year,*parameters,**kwargs):
     N       = len(parlist)     
     hist    = TH2F("corr","corr",N,0,N,N,0,N)
     
+    iPOI = -1 # save position of POI (here: TES)
     for i in xrange(N): # diagonal
       hist.SetBinContent(i+1,N-i,1.0)
       hist.GetXaxis().SetBinLabel(1+i,parlist[i].title)
       hist.GetYaxis().SetBinLabel(N-i,parlist[i].title)
+      if parlist[i].title == "tes":
+          iPOI = i
     for xi, yi in combinations(range(N),2): # off-diagonal
-      r = parlist[xi].corr(parlist[yi])
+      r = parlist[xi].corr(parlist[yi],tes,parlist[iPOI])
       hist.SetBinContent(1+xi,N-yi,r)
       hist.SetBinContent(1+yi,N-xi,r)
       #print "%20s - %20s: %5.3f"%(par1,par2,r)
@@ -179,7 +128,7 @@ def plotCorrelation(channel,var,DM,year,*parameters,**kwargs):
     gPad.Modified()
     frame.Draw('SAMEAXIS')
     
-    canvasname = "%s/postfit-correlation_%s_%s%s%s"%(outdir,var,DM,tag,plotlabel)
+    canvasname = "%s/postfit-correlation_%s_%s%s%s"%(outdir,var,region,tag,plotlabel)
     canvas.SaveAs(canvasname+".png")
     if args.pdf: canvas.SaveAs(canvasname+".pdf")
     canvas.Close()
@@ -233,19 +182,27 @@ class Parameter(object):
         self.mean  = sum(self.list) / float(self.N)
         self.sigma = sqrt(sum((x-self.mean)**2 for x in self.list)/float(self.N-1))
         
-    def corr(self,opar):
+    def corr(self,opar,poiBestFit,poi):
         """Correlation coefficient with another parameter."""
-        return sum((x-self.mean)*(y-opar.mean) for x, y in zip(self.list,opar.list))/(float(self.N-1)*self.sigma*opar.sigma)
+        covariance = 0
+        N = 0
+        for x, y, z in zip(self.list,opar.list,poi.list):
+            # only consider points within 2 sigma range of tes around its min
+            # assume best fit-value of tes is 1
+            if abs(z-poiBestFit) < poi.sigma:
+                covariance += (x-self.mean)*(y-opar.mean)
+                N +=1
+        covariance /= float(N-1)
+        return covariance/(self.sigma*opar.sigma)
         
 
 
-def plotPostFitValues(channel,var,DM,year,*parameters,**kwargs):
+def plotPostFitValues(channel,var,region,year,*parameters,**kwargs):
     """Draw post-fit values for parameter using MultiDimFit and FitDiagnostics output."""
-    if DM=='DM0' and 'm_2' in var: return
-    print green("\n>>> plotPostFitValues %s, %s"%(DM, var))
+    print green("\n>>> plotPostFitValues %s, %s"%(region, var))
     if len(parameters)==1 and isinstance(parameters[0],list): parameters = parameters[0]
     
-    parameters  = [p.replace('$CAT',DM).replace('$CHANNEL',channel) for p in list(parameters)]
+    parameters  = [p.replace('$CAT',region).replace('$CHANNEL',channel) for p in list(parameters)]
     title       = kwargs.get('title',     ""    )
     name        = kwargs.get('name',      ""    )
     indir       = kwargs.get('indir',     "output_%s"%year  )
@@ -255,14 +212,14 @@ def plotPostFitValues(channel,var,DM,year,*parameters,**kwargs):
     compareFD   = kwargs.get('compareFD', False ) and N==1
     era         = "%s-13TeV"%year
     isBBB       = any("_bin_" in p for p in parameters)
-    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,DM,tag,era)
-    filenamesFD = '%s/fitDiagnostics.%s_%s-%s%s-%s_TES*p*.root'%(indir,channel,var,DM,tag,era)
+    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
+    filenamesFD = '%s/fitDiagnostics.%s_%s-%s%s-%s_TES*p*.root'%(indir,channel,var,region,tag,era)
     ensureDirectory(outdir)
     if not name:
-      name = formatParameter(parameters[0]).replace('_'+DM,'')
+      name = formatParameter(parameters[0]).replace('_'+region,'')
     if len(parameters)>1:
       name = "comparison_%s"%(name) #re.sub(r"bin_\d+","bin",name)
-    canvasname = "%s/postfit-%s_%s_%s%s%s"%(outdir,name,var,DM,tag,plotlabel)
+    canvasname = "%s/postfit-%s_%s_%s%s%s"%(outdir,name,var,region,tag,plotlabel)
     print '>>>   file "%s"'%(filename)
     
     
@@ -285,7 +242,7 @@ def plotPostFitValues(channel,var,DM,year,*parameters,**kwargs):
       exit(1)
     N           = len(parameters)
     compareFD   = compareFD and len(graphsFD)>0
-    parameters  = [formatParameter(p).replace('_'+DM,'') for p in parameters]
+    parameters  = [formatParameter(p).replace('_'+region,'') for p in parameters]
     graphsleg   = columnize(graphs,3)     if N>6 else columnize(graphs,2)     if N>3 else graphs # reordered for two columns
     paramsleg   = columnize(parameters,3) if N>6 else columnize(parameters,2) if N>3 else parameters # reordered for two columns
     
@@ -444,8 +401,6 @@ def getTGraphOfParameter_FD(filepattern,ybranch,**kwargs):
 
 def formatParameter(param):
     """Helpfunction to format nuisance parameter."""
-    if "DM" in param:
-      param = re.sub(r"_(?:mt_)?DM\d+(?:_13TeV)?_","_",param)
     param = param.replace("CMS_","").replace("ttbar_","").replace("ztt_","").replace("_mt_13TeV","").replace("_mt","").replace("_13TeV","")
     return param
     
@@ -539,36 +494,38 @@ def chunkify(list,nmax,overlap=0,complete=False):
     chunks.append(chunk)
   return chunks
   
-def getBBBList(channel,var,DM,year,process,**kwargs):
+def getBBBList(channel,var,region,year,process,**kwargs):
     """Get list of all BBB nuisance parameter for a proces."""
-    if DM=='DM0' and 'm_2' in var: return [ ]
     indir    = kwargs.get('indir', "output_%s"%year)
     era      = "%s-13TeV"%year
     tag      = kwargs.get('tag', "" )
-    filename = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,DM,tag,era)
+    filename = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
     bbblist  = findBranches(filename,process) #[int(re.findall(r"\d+",b)[-1]) for b in findBranches(filename,process)]
     return bbblist
     
-def getChunkifiedBBBLists(channel,var,DM,year,process,**kwargs):
+def getChunkifiedBBBLists(channel,var,region,year,process,**kwargs):
     """Get list of all BBB nuisance parameter for a proces, chunked into smaller overlapping list."""
-    bbblist = getBBBList(channel,var,DM,year,process,**kwargs)
+    bbblist = getBBBList(channel,var,region,year,process,**kwargs)
     chunks  = chunkify(bbblist,9,complete=(len(bbblist)>9))
     return chunks
     
 
 
-def main():
+def main(args):
     
+    print "Using configuration file: %s"%args.config
+    with open(args.config, 'r') as file:
+        setup = yaml.safe_load(file)
+
     ensureDirectory(PLOTS_DIR)
     year      = args.year
     lumi      = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
-    channels  = args.channels
-    vars      = [ 'm_2', 'm_vis' ]
-    DMs       = [ 'DM0', 'DM1', 'DM10', 'DM11' ] #3 ]
-    tags      = args.tags
-    if args.DMs: DMs = args.DMs
-    if args.observables: vars = observables
+    channel   = setup["channel"].replace("mu","m").replace("tau","t")
+    tag       = setup["tag"] if "tag" in setup else ""
+    tag += args.extratag
     CMSStyle.setCMSEra(year)
+
+    # Leave hard-coded this part as this is purely a plotting choice
     nuisances = [ #"eff_t_$CAT",
                   "shape_tid", "xsec_dy", "norm_wj",
                   "shape_jTauFake", "rate_jTauFake", "xsec_tt", ]
@@ -591,42 +548,54 @@ def main():
     procsBBB  = [ 'QCD', 'W', 'TTT', 'ZTT' ] # 'JTF' ]
     indir     = "output_%s"%year
     
-    for tag in tags:
-      tag += args.extratag
-      for channel in channels:
-        for var in vars:
-          if "_0p"  in tag and var=='m_vis': continue
-          if "_85"  in tag and var=='m_2':   continue
-          if "_100" in tag and var=='m_2':   continue
-          if "_200" in tag and var=='m_2':   continue
-          if "_45"  in tag and var=='m_2':   continue
-          for DM in DMs:
-            if DM=='DM11' and "newDM" not in tag and "DeepTau" not in tag: continue
-            title = "%s, %s"%(varshorttitle[var],DM_label[DM].replace("decay mode",''))
-            
-            ## CHECK single nuisances
-            ##for parameter in nuisances:
-            ##  plotPostFitValues(channel,var,DM,parameter,tag=tag,compareFD=True,title=title)
-            
+
+    for var in setup["observables"]:
+        variable = setup["observables"][var]
+
+        for r in variable["fitRegions"]:
+            region = setup["regions"][r] # r listed for each observable defined in regions
+
+            varTitle = var
+            if "title" in variable:
+                varTitle = variable["title"]
+            regionTitle = r
+            if "title" in region: 
+                region["title"]
+            title = "%s, %s"%(varTitle,regionTitle)
+                        
+
             # COMPARE nuisances
             for name, parameters in compare.iteritems():
-              plotPostFitValues(channel,var,DM,year,*parameters,name=name,tag=tag,compareFD=False,title=title)
+                plotPostFitValues(channel,var,r,year,*parameters,name=name,tag=tag,compareFD=False,title=title)
             
             # BIN-BY-BIN
             for process in procsBBB:
-              bbblists = getChunkifiedBBBLists(channel,var,DM,year,process,tag=tag)
-              for bbblist in bbblists:
-                plotPostFitValues(channel,var,DM,year,*bbblist,tag=tag,compareFD=False,title=title)
+                bbblists = getChunkifiedBBBLists(channel,var,r,year,process,tag=tag)
+                for bbblist in bbblists:
+                    plotPostFitValues(channel,var,r,year,*bbblist,tag=tag,compareFD=False,title=title)
             
             # CORRELATION
-            correlate = ['tes'] + fulllist + getBBBList(channel,var,DM,year,'ZTT',tag=tag)
-            plotCorrelation(channel,var,DM,year,correlate,tag=tag,title=title)
+            correlate = ['tes'] + fulllist + getBBBList(channel,var,r,year,'ZTT',tag=tag)
+            plotCorrelation(channel,var,r,year,correlate,tag=tag,title=title)
           
 
 
 
 if __name__ == '__main__':
-    main()
+
+    argv = sys.argv
+    description = '''This script makes datacards with CombineHarvester.'''
+    parser = ArgumentParser(prog="LowMassDiTau_Harvester",description=description,epilog="Succes!")
+    parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store', help="select year")
+    parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup" )
+    parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar="TAG", help="extra tag for output files")
+    parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store', metavar="RANGE", help="range of TES shifts")
+    parser.add_argument('-p', '--pdf', dest='pdf', default=False, action='store_true', help="save plot as pdf as well")
+    parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true', help="set verbose")
+    args = parser.parse_args()
+
+
+    main(args)
     print ">>>\n>>> done\n"
     
 

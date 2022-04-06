@@ -1,0 +1,41 @@
+## Config file for default TES fit in mutau channel
+##
+
+channel: mumu
+
+samples:
+    filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+    join: ["VV","TT","ST"]
+    rename:
+        WJ: "W"
+        DY_M50: "ZLL"
+    data: "data_obs"
+
+baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter"
+
+regions:
+    ZMM: 
+        definition: "true"
+
+observables:
+    m_vis:
+        binning: [1, 60, 120]
+        extra:
+            ymargin: 1.6
+            rrange: 0.08
+
+processes: ['ZLL','W','VV','ST','TT','QCD','data_obs']
+
+systematics:
+    lumi:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.025
+    eff_m:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.02
+    xsec_dy:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ"]
+        scaleFactor: 1.02
