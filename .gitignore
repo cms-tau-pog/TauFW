@@ -8,6 +8,7 @@ core.*
 __init__.py
 */compare
 PicoProducer/config
+PicoProducer/config/config*
 PicoProducer/samples/files
 PicoProducer/output
 Plotter/plots
