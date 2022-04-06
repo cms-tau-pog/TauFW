@@ -18,13 +18,14 @@ echo "Running job on machine `uname -a`, host $HOSTNAME"
 function peval { echo ">>> $@"; eval "$@"; }
 
 # PRINT
-export JOBID=$SLURM_JOB_ID
+export JOBID=$SLURM_ARRAY_JOB_ID
 export TASKID=$SLURM_ARRAY_TASK_ID
 export WORKDIR="/scratch/$USER/$JOBID.$TASKID"
 export TMPDIR="/scratch/$USER/$JOBID.$TASKID" # using /tmp might destabilize
 JOBLIST=$1
 echo "\$JOBID=$JOBID"
 echo "\$TASKID=$TASKID"
+echo "\$SLURM_JOB_ID=$SLURM_JOB_ID"
 echo "\$HOSTNAME=$HOSTNAME"
 echo "\$JOBLIST=$JOBLIST"
 echo "\$SBATCH_TIMELIMIT=$SBATCH_TIMELIMIT"
