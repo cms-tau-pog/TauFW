@@ -47,7 +47,7 @@ class Selection(object):
       self.title       = args[1]
       self.selection   = getselstr(args[2])
       self.weight      = args[3]
-    self.title         = kwargs.get('title',    maketitle(self.title) )
+    self.title         = kwargs.get('title', maketitle(self.title) )
     self.filename      = makefilename(self.name)
     self.filename      = kwargs.get('fname',    self.filename ) # alias
     self.filename      = kwargs.get('filename', self.filename ) # name for files, histograms
@@ -55,8 +55,8 @@ class Selection(object):
     #if self.selection=="":
     #   LOG.warning('Selection::Selection - No selection string given for %r!'%(self.name))
     self.context       = getcontext(kwargs,self.selection) # context-dependent channel selections
-    self.only          = kwargs.get('only',       [ ]     )
-    self.veto          = kwargs.get('veto',       [ ]     )
+    self.only          = kwargs.get('only',     [ ]           )
+    self.veto          = kwargs.get('veto',     [ ]           )
     self.only          = ensurelist(self.only)
     self.veto          = ensurelist(self.veto)
   
