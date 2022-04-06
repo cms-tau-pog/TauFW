@@ -14,6 +14,16 @@ class TreeProducerTauPair(TreeProducer):
     super(TreeProducerTauPair,self).__init__(filename,module,**kwargs)
     #print "Loading TreeProducerTauPair for %r"%(filename)
     
+    #### SCALE VARIATIONS SUMS OF WEIGHTS
+    ###if not module.dotight:
+    ###  #self.h_pdfweight = TH1D('pdfweight', 'PDF weight variations', 150, 0, 150)
+    ###  self.h_muweight = TH1D('muweight', 'Sum of muR & muF scale variation weights', 10, 0, 10)
+    ###  self.h_muweight_genw = TH1D('muweight_genweighted', 'Sum of muR & muF scale variation weights (weighted)', 10, 0, 10)
+    ###  for i, label in enumerate(['0p5_0p5','0p5_1p0','0p5_2p0','1p0_0p5','1p0_1p0',
+    ###                             '1p0_2p0','2p0_0p5','2p0_1p0','2p0_2p0',]):
+    ###    self.h_muweight.GetXaxis().SetBinLabel(i+1,label)
+    ###    self.h_muweight_genw.GetXaxis().SetBinLabel(i+1,label)
+    
     
     #############
     #   EVENT   #
@@ -49,13 +59,15 @@ class TreeProducerTauPair(TreeProducer):
         if module.dopdf:
           self.addBranch('npdfweight',      'i', 1., title="number of PDF weights")
           self.addBranch('pdfweight',       'f', 1., len='npdfweight', max=110, title="vector of PDF weights")
-          #self.addBranch('qweight',         'f', 1., title="scale weight (Qren=1.0, Qfact=1.0)")
-          #self.addBranch('qweight_0p5_0p5', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=0.5")
-          #self.addBranch('qweight_0p5_1p0', 'f', 1., title="relative scale weight, Qren=0.5, Qfact=1.0")
-          #self.addBranch('qweight_1p0_0p5', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=0.5")
-          #self.addBranch('qweight_1p0_2p0', 'f', 1., title="relative scale weight, Qren=1.0, Qfact=2.0")
-          #self.addBranch('qweight_2p0_1p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=1.0")
-          #self.addBranch('qweight_2p0_2p0', 'f', 1., title="relative scale weight, Qren=2.0, Qfact=2.0")
+          #self.addBranch('npsweight',       'i', 1., title="number of parton shower weights")
+          #self.addBranch('psweight',        'f', 1., len='npsweight', max=110, title="vector of parton shower weights")
+          #self.addBranch('muweight',         'f', 1., title="scale weight (muR=1.0, muF=1.0)")
+          #self.addBranch('muweight_0p5_0p5', 'f', 1., title="relative scale weight, muR=0.5, muF=0.5")
+          #self.addBranch('muweight_0p5_1p0', 'f', 1., title="relative scale weight, muR=0.5, muF=1.0")
+          #self.addBranch('muweight_1p0_0p5', 'f', 1., title="relative scale weight, muR=1.0, muF=0.5")
+          #self.addBranch('muweight_1p0_2p0', 'f', 1., title="relative scale weight, muR=1.0, muF=2.0")
+          #self.addBranch('muweight_2p0_1p0', 'f', 1., title="relative scale weight, muR=2.0, muF=1.0")
+          #self.addBranch('muweight_2p0_2p0', 'f', 1., title="relative scale weight, muR=2.0, muF=2.0")
         self.addBranch('trigweightUp',      'f', 1.)
         self.addBranch('trigweightDown',    'f', 1.)
       self.addBranch('puweight',            'f', 1., title="pileup up reweighting")
