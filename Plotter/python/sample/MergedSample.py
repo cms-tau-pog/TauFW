@@ -182,7 +182,8 @@ class MergedSample(Sample):
     name      += kwargs.get('tag',      ""         )
     title      = kwargs.get('title',    self.title )
     dots       = kwargs.get('dots',     False      ) # allow dots in histogram name
-    parallel   = kwargs.get('parallel', False      )
+    parallel   = kwargs.get('parallel', False      ) # split subsamples into parallel jobs
+    scales     = kwargs.get('scales',   None       ) # list of scale factors, one for each subsample
     kwargs['cuts']   = joincuts(kwargs.get('cuts'), self.cuts            )
     kwargs['weight'] = joinweights(kwargs.get('weight', ""), self.weight ) # pass weight down
     kwargs['scale']  = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
@@ -191,14 +192,14 @@ class MergedSample(Sample):
     allhists = [ ]
     hargs    = (variables, selection)
     hkwargs  = kwargs.copy()
-    if parallel and len(self.samples)>1:
+    if parallel and len(self.samples)>1: # get subsample hist in parallel
       hkwargs['parallel'] = False
       processor = MultiProcessor()
       for sample in self.samples:
         processor.start(sample.gethist,hargs,hkwargs,name=sample.title)        
       for process in processor:
         allhists.append(process.join())
-    else:
+    else: # get subsample hist in series
       for sample in self.samples:
         if 'name' in kwargs: # prevent memory leaks
           hkwargs['name']  = makehistname(kwargs.get('name',""),sample.name,dots=dots)
@@ -209,10 +210,14 @@ class MergedSample(Sample):
     if any(len(subhists)<len(variables) for subhists in allhists):
       LOG.error("MergedSample.gethist: len(subhists) = %s < %s = len(variables)"%(len(subhists),len(variables)))
     for ivar, variable in enumerate(variables):
-      subhists = [subhists[ivar] for subhists in allhists]
-      sumhist  = None
-      for subhist in subhists:
-        if sumhist==None:
+      subhists = [subhists[ivar] for subhists in allhists] # reorder for summation
+      sumhist  = None # sum of all subsample hists
+      for isample, subhist in enumerate(subhists):
+        if scales: # apply extra scale factor per subsample
+          scale = scales[isample] # assume correct length
+          LOG.verb(">>> MergedSample.gethist: Scaling subhist %r by %s"%(subhist.GetTitle(),scale),verbosity,1)
+          subhist.Scale(scale)
+        if sumhist==None: # create sum-total hist
           sumhist = subhist.Clone(makehistname(variable.filename,name))
           sumhist.SetTitle(title)
           sumhist.SetDirectory(0)
@@ -220,7 +225,7 @@ class MergedSample(Sample):
           sumhist.SetFillColor(kWhite if self.isdata or self.issignal else self.fillcolor)
           sumhist.SetMarkerColor(self.fillcolor)
           sumhists.append(sumhist)
-        else:
+        else: # add other hists
           sumhist.Add(subhist)
       if verbosity>=4:
         printhist(sumhist,pre=">>>   ")

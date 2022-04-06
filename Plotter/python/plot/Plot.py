@@ -73,6 +73,8 @@ class Plot(object):
     self.hists = hists
     self.frame = kwargs.get('frame', None )
     frame      = self.frame or self.hists[0]
+    binlabels  = frame.GetXaxis().GetLabels()
+    binlabels  = [str(s) for s in binlabels] if binlabels else None
     if isinstance(variable,Variable):
       self.variable   = variable
       self.name       = kwargs.get('name',       variable.filename    )
@@ -84,7 +86,7 @@ class Plot(object):
       self.rmin       = kwargs.get('rmin',       variable.rmin        )
       self.rmax       = kwargs.get('rmax',       variable.rmax        )
       self.ratiorange = kwargs.get('rrange',     variable.ratiorange  )
-      self.binlabels  = kwargs.get('binlabels',  variable.binlabels   )
+      self.binlabels  = kwargs.get('binlabels',  variable.binlabels or binlabels )
       self.logx       = kwargs.get('logx',       variable.logx        )
       self.logy       = kwargs.get('logy',       variable.logy        )
       self.ymargin    = kwargs.get('ymargin',    variable.ymargin     )
@@ -104,7 +106,7 @@ class Plot(object):
       self.rmin       = kwargs.get('rmin',       None                 )
       self.rmax       = kwargs.get('rmax',       None                 )
       self.ratiorange = kwargs.get('rrange',     None                 )
-      self.binlabels  = kwargs.get('binlabels',  None                 )
+      self.binlabels  = kwargs.get('binlabels',  binlabels            )
       self.logx       = kwargs.get('logx',       False                )
       self.logy       = kwargs.get('logy',       False                )
       self.ymargin    = kwargs.get('ymargin',    None                 )
@@ -112,7 +114,7 @@ class Plot(object):
       self.position   = kwargs.get('position',   ""                   )
       self.ncols      = kwargs.get('ncols',      None                 )
       self.latex      = kwargs.get('latex',      True                 )
-      self.dividebins = kwargs.get('dividebins', frame.GetXaxis().IsVariableBinSize())
+      self.dividebins = kwargs.get('dividebins', False                ) # frame.GetXaxis().IsVariableBinSize()
     self.ytitle       = kwargs.get('ytitle', frame.GetYaxis().GetTitle() or None )
     self.name         = self.name or (self.hists[0].GetName() if self.hists else "noname")
     self.title        = kwargs.get('title',      None                 )
@@ -170,6 +172,7 @@ class Plot(object):
     labelsize    = kwargs.get('labelsize',    _lsize          ) # label size
     xlabelsize   = kwargs.get('xlabelsize',   labelsize       ) # x label size
     ylabelsize   = kwargs.get('ylabelsize',   labelsize       ) # y label size
+    ycenter      = kwargs.get('ycenter',      False           ) # center y title
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
@@ -216,9 +219,9 @@ class Plot(object):
       for hist in hists:
         if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if verbosity>=1:
-      print ">>> Plot.draw: hists=%s, norm=%r"%(self.hists,norm)
+      print ">>> Plot.draw: hists=%s, norm=%r, dividebins=%r"%(self.hists,norm,dividebins)
       print ">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
-    if verbosity>=3:
+    if verbosity>=2:
       print ">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax)
     
     # NORMALIZE
@@ -296,6 +299,7 @@ class Plot(object):
       if 'SAME' not in option_: #i>0:
         option_ += " SAME"
       hist.Draw(option_)
+      hist.SetOption(option_)
       LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,hist,option_),verbosity,2)
     
     # CMS STYLE
@@ -313,7 +317,7 @@ class Plot(object):
     # AXES
     self.setaxes(self.frame,*hists,main=ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
                  xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,xlabelsize=xlabelsize,ylabelsize=ylabelsize,
-                 binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
+                 center=ycenter,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
     
     # RATIO
     if ratio:
@@ -760,7 +764,10 @@ class Plot(object):
       elif hasattr(hist,'GetFillStyle') and hist.GetFillStyle()>0:
         styles.append('f')
       elif 'E0' in hist.GetOption() or 'E1' in hist.GetOption():
-        styles.append(errstyle)
+        if 'HIST' in hist.GetOption() and 'l' not in errstyle:
+          styles.append('l'+errstyle)
+        else:
+          styles.append(errstyle)
       else:
         styles.append('lp')
     
@@ -852,11 +859,11 @@ class Plot(object):
     
     # ENTRIES
     if hists:
-      for hist1, entry1, style1 in columnize(zip(hists,entries,styles),ncols):
-        for entry in entry1.split('\n'):
-          LOG.verb("Plot.drawlegend: Add entry (%r,%r,%r)"%(hist1,entry,style1),verbosity,2)
-          legend.AddEntry(hist1,entry,style1)
-          hist1, style1 = 0, ''
+      for hist_, entry_, style_ in columnize(zip(hists,entries,styles),ncols):
+        for entry in entry_.split('\n'): # break lines
+          LOG.verb("Plot.drawlegend: Add entry (%r,%r,%r)"%(hist_,entry,style_),verbosity,2)
+          legend.AddEntry(hist_,entry,style_)
+          hist_, style_ = 0, '' # for next line
     for line in texts:
       legend.AddEntry(0,line,'')
     
@@ -864,7 +871,7 @@ class Plot(object):
       print ">>> Plot.drawlegend: title=%r, texts=%s, latex=%s"%(title,texts,latex)
       print ">>> Plot.drawlegend: hists=%s"%(hists)
       print ">>> Plot.drawlegend: entries=%s"%(entries)
-      print ">>> Plot.drawlegend: styles=%s"%(styles)
+      print ">>> Plot.drawlegend: styles=%s, style=%s, errstyle=%s"%(styles,style,errstyle)
       print ">>> Plot.drawlegend: nlines=%s, len(hists)=%s, len(texts)=%s, ncols=%s, margin=%s, xscale=%s"%(
                                   nlines,len(hists),len(texts),ncols,margin,xscale)
     
