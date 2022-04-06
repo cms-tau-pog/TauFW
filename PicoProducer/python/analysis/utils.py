@@ -36,9 +36,6 @@ def ensurebranches(tree,branches):
     print "WARNING! Empty tree!"
     return
   fullbranchlist = tree.GetListOfBranches()
-  for b in fullbranchlist:
-    if 'MET' in b:
-      print b
   for newbranch, oldbranch in branches:
     if newbranch not in fullbranchlist:
       redirectbranch(oldbranch,newbranch)
