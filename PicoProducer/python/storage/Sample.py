@@ -88,10 +88,10 @@ class Sample(object):
     self.refreshable  = not self.files                       # allow refresh of file list in getfiles()
     
     # CHECK PATH FORMAT
-    if not self.storepath:
+    if not self.storepath and not self.files:
       for path in self.paths:
-        LOG.insist(path.count('/')>=3 and path.startswith('/'),"DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/TIER."%(path))
-        #sample = '/'.join(line.split('/')[-3:])
+        if path.count('/')<3 or not path.startswith('/'):
+          LOG.warn("DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/TIER."%(path))
     
     # ENSURE LIST
     if self.channels!=None and not isinstance(self.channels,list):
@@ -240,15 +240,13 @@ class Sample(object):
           postfix = self.postfix+'.root'
           sepath  = repkey(self.storepath,PATH=daspath,DAS=daspath).replace('//','/')
           outlist = self.storage.getfiles(sepath,url=url,verb=verb-1)
-          if limit>0:
-            outlist = outlist[:limit]
         else: # get files from DAS
           postfix = '.root'
           outlist = getdasfiles(daspath,instance=self.instance,limit=limit,verb=verb-1)
         for line in outlist: # filter root files
           line = line.strip()
           if line.endswith(postfix) and not any(f.endswith(line) for f in self.blacklist):
-            if url and url_ not in line and 'root://' not in line:
+            if url and url_ not in line and '://' not in line:
               line = url_+line
             files.append(line)
             pathfiles[daspath].append(line)
@@ -260,14 +258,22 @@ class Sample(object):
         for daspath in pathfiles:
           pathfiles[daspath].sort()
           self.pathfiles = pathfiles
-    elif url and any(url_ not in f for f in files): # add url if missing
-      files = [(url_+f if url_ not in f else f) for f in files]
+    elif url and any('://' not in f for f in files): # add url if missing
+      LOG.verb("getfiles: Add URL %r..."%(url),verb,2)
+      files = [(url_+f if '://' not in f else f) for f in files]
       for daspath in self.pathfiles:
-        self.pathfiles[daspath] = [(url_+f if url_ not in f else f) for f in self.pathfiles[daspath]]
+        self.pathfiles[daspath] = [(url_+f if '://' not in f else f) for f in self.pathfiles[daspath]]
+      #if any(url not in f for f in files)
+      #  LOG.warning("getfiles: Wrong URL %r!",verb,2)
     elif not url and any(url_ in f for f in files): # remove url
+      LOG.verb("getfiles: Removing URL %r..."%(url_),verb,2)
       files = [f.replace(url_,"") for f in files]
       for daspath in self.pathfiles:
         self.pathfiles[daspath] = [f.replace(url_,"") for f in self.pathfiles[daspath]]
+    else:
+      LOG.verb("getfiles: Did not change file list...",verb,2)
+    if limit>0:
+      files = files[:limit]
     return files[:] # pass copy to protect private self.files
   
   def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,ncores=0,verb=0):
@@ -405,7 +411,7 @@ class Sample(object):
             if line.startswith("DASPATH="): # to keep track of multiple DAS data set paths
               path = line.split('=')[-1] # DAS data set path
               LOG.insist(path.count('/')>=3 and path.startswith('/'),
-                "DAS path %r in %s has wrong format. Need /SAMPLE/CAMPAIGN/FORMAT..."%(path,listname_))
+                "DAS path %r in %s has wrong format. Need /SAMPLE/CAMPAIGN/TIER..."%(path,listname_))
               if path in self.paths: # store file list for this path
                 self.pathfiles[path] = [ ]
                 subpaths.append(path)

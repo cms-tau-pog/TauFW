@@ -37,3 +37,13 @@ regions:
     DM11: 
         definition: "mt_1<50 && dm_2==11"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+    #zttregion:
+    #    definition: "mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"
+    #    title: "mt<60 GeV, dzeta>-25 GeV, |deta|<1.5:"
+    #0b:
+    #    definition: "nbtag==0"
+    #    weight: "btagweight"
+    #geq1b:
+    #    definition: "nbtag>=1"
+    #    title: "#geq1b"
+    #    weight: "btagweight"

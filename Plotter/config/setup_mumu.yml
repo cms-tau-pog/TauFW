@@ -14,4 +14,6 @@ baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfil
 
 regions:
     ZMM: 
-        definition: "true"
+        definition: "m_ll>60 && m_ll<120"
+        title: "60 < m_mumu < 120 GeV"
+        fname: "zttregion"

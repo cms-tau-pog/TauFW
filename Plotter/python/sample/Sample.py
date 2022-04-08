@@ -208,40 +208,43 @@ class Sample(object):
   def gethist_from_file(self,hname,tag="",close=True,**kwargs):
     """Get histogram from file. Add histograms together if merged sample."""
     verbosity = LOG.getverbosity(kwargs)
-    indent = kwargs.get('indent', ''     )
-    incl   = kwargs.get('incl',   True   ) # use inclusive sample (if stitched and available)
-    scale  = kwargs.get('scale',  1.0    ) # extra scale factor
-    mode   = kwargs.get('mode',   None   ) # if mode=='sumw': add samples together with normalized weights
+    indent = kwargs.get('indent', ''   )
+    incl   = kwargs.get('incl',   True ) # use inclusive sample (if stitched and available)
+    scale  = kwargs.get('scale',  1.0  ) # extra scale factor
+    mode   = kwargs.get('mode',   None ) # if mode=='sumw': add samples together with normalized weights
     hist   = None
-    print ">>> Sample.gethist_from_file: %s%r, %r"%(indent,self.name,hname)
+    if verbosity>=2:
+      print ">>> Sample.gethist_from_file: %s%r, %r, mode=%r, incl=%r"%(indent,self.name,hname,mode,incl)
     if isinstance(self,MergedSample):
       #print ">>> Sample.getHistFromFile: %sincl=%r, sample_incl=%r"%(indent,incl,self.sample_incl)
       if incl and self.sample_incl: # only get histogram from inclusive sample
-        print ">>> Sample.gethist_from_file: %sOnly use inclusive sample %r!"%(indent,self.sample_incl.name)
-        samples = [self.sample_incl]
-      else:
+        if verbosity>=2:
+          print ">>> Sample.gethist_from_file: %sOnly use inclusive sample %r!"%(indent,self.sample_incl.name)
+        hist = self.sample_incl.gethist_from_file(hname,tag=tag,indent=indent+"  ",incl=False,verb=verbosity)
+        hist.SetDirectory(0)
+      else: # add histograms from each sub sample
         samples = self.samples[:]
-      sumw = 0
-      for i, sample in enumerate(samples):
-        if sample.xsec>0 and sample.nevents>0:
-          sumw += sample.xsec/sample.nevents
-      scale_ = 1./sumw if sumw>0 and mode=='sumw' else 1.0 # normalize
-      for sample in samples:
-        tag_  = "%s_tmp_%d"%(tag,i)
-        hist_ = sample.gethist_from_file(hname,tag=tag_,indent=indent+"  ",mode=mode,incl=incl,scale=scale_)
-        if hist==None:
-          hist = hist_.Clone(hname+tag)
-          hist.SetDirectory(0)
-        elif hist_:
-          hist.Add(hist_)
-          deletehist(hist_)
-    else:
+        sumw = 0 # total sum of weights
+        for i, sample in enumerate(samples):
+          sumw_ = sample.sumweights or sample.nevents
+          if sample.xsec>0 and sumw_>0:
+            sumw += sample.xsec/sumw_
+        scale *= 1./sumw if sumw>0 and mode=='sumw' else 1.0 # normalize by cross section / sumw
+        for sample in samples:
+          tag_  = "%s_tmp_%d"%(tag,i)
+          hist_ = sample.gethist_from_file(hname,tag=tag_,indent=indent+"  ",mode=mode,incl=incl,scale=scale,verb=verbosity)
+          if hist==None:
+            hist = hist_.Clone(hname+tag)
+            hist.SetDirectory(0)
+          elif hist_:
+            hist.Add(hist_)
+            deletehist(hist_)
+    else: # single sample
       file  = self.getfile()
       fname = file.GetPath()
       hist  = file.Get(hname)
-      norm  = 1.0
-      if self.xsec>0 and self.nevents>0:
-        norm = self.xsec/self.nevents
+      sumw  = self.sumweights or self.nevents
+      norm  = self.xsec/sumw if self.xsec>0 and sumw>0 else 1.0
       if hist:
         hist.SetName(hname+tag)
         hist.SetDirectory(0)
@@ -251,10 +254,12 @@ class Sample(object):
       if file and close:
         file.Close()
       if hist and mode=='sumw' and norm>0:
-        print ">>> Sample.gethist_from_file:   %s%r: scale=%s, norm=%s, fname=%s"%(indent,self.name,scale,norm,fname) #,hist)
-        print ">>> Sample.gethist_from_file:   %sbin 5 = %s, xsec=%s, Nunw=%s"%(indent,hist.GetBinContent(5),self.xsec,self.nevents)
+        if verbosity>=2:
+          print ">>> Sample.gethist_from_file:   %s%r: scale=%s, norm=%s, %s"%(indent,self.name,scale,norm,fname) #,hist)
+          print ">>> Sample.gethist_from_file:   %sbin 5 = %s, xsec=%s, nevts=%s, sumw=%s"%(indent,hist.GetBinContent(5),self.xsec,self.nevents,self.sumweights)
         hist.Scale(scale*norm)
-        print ">>> Sample.gethist_from_file:   %sbin 5 = %s"%(indent,hist.GetBinContent(5))
+        if verbosity>=2:
+          print ">>> Sample.gethist_from_file:   %sbin 5 = %s after normalization"%(indent,hist.GetBinContent(5))
     return hist
   
   @property

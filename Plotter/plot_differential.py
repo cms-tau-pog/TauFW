@@ -1,10 +1,11 @@
 #! /usr/bin/env python
-# Author: Izaak Neutelings (August 2020)
-# Description: Simple plotting script for pico analysis tuples
+# Author: Izaak Neutelings (April 2022)
+# Description:
+#   Simple plotting script for in (double) differential bins of tau ID WP, pt & DM
+#   Example of plots: https://indico.cern.ch/event/1104863/
 # Instructions:
-#   ./plot.py -y 2018 -c mutau
-#   ./plot.py -y 2018 -c config/setup_mutau.yml
-#   ./plot.py -y 2018 -c mutau -S baseline -V m_vis
+#   ./plot.py -c mutau -y 2018
+#   ./plot.py -c mutau -y 2018 -S baseline -V m_vis
 from config.samples import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
@@ -18,21 +19,59 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   
   channel  = setup["channel"]
   
-  if 'baselineCuts' in setup: # baseline pre-selections
+  if 'baselineCuts' in setup:
     baseline = setup['baselineCuts']
   else:
     raise IOError("No baseline selection for channel %r defined!"%(channel))
   
-  selections = [ # plot these selections
+  selections = [
     Sel('baseline',baseline)
   ]
-  if 'regions' in setup: # add extra regions on top of baseline
-    for region in setup['regions']:
-      skwargs = setup['regions'][region].copy() # extra key-word options
-      assert 'definition' in skwargs
-      selstr = setup['baselineCuts']+" && "+skwargs.pop('definition')
-      selections.append(Sel(region,selstr,**skwargs))
-  selections = filtervars(selections,selfilter) # filter variable list with -S/--sel flag
+  zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline) # && nbtag==0
+  selections = [
+    #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16",""),only=["DeepTau"]),
+    Sel("baseline",baseline),
+    #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
+    #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
+    #Sel("0b",baseline+" && nbtag==0",weight="btagweight"),
+    #Sel(">=1b",baseline+" && nbtag>=1",weight="btagweight"),
+  ]
+  
+  # DIFFERENTIAL pt/DM bins for TauID measurement
+  wps = [
+    ('Medium',"idDeepTau2017v2p1VSjet_2>=16"),
+    #('VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16")
+    #('0b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag==0"),
+    #('0b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag==0")
+    #('>=1b, Medium',"idDeepTau2017v2p1VSjet_2>=16 && nbtag>=1"),
+    #('>=1b, VVVLoose && !Medium',"idDeepTau2017v2p1VSjet_2>=1 && idDeepTau2017v2p1VSjet_2<16 && nbtag>=1")
+  ]
+  pts = [20,30,40,50,70]
+  dms = [0,1,10,11]
+  for wp, wpcut in wps:
+    wpname  = wp.replace(" && !","-not")
+    basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut) #+" && nbtag==0"
+    for dm in dms:
+      name_ = "%s_dm%s"%(wpname,dm)
+      tit_  = "%s, DM%s"%(wp,dm)
+      cut_  = "%s && dm_2==%s"%(basecut,dm)
+      selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
+    for i, ptlow in enumerate(pts):
+      if i<len(pts)-1: # ptlow < pt < ptup
+        ptup = pts[i+1]
+        name = "%s_pt%d-%d"%(wpname,ptlow,ptup)
+        tit  = "%s, %d < pt < %d GeV"%(wp,ptlow,ptup)
+        cut  = "%s && %s<pt_2 && pt_2<%s"%(basecut,ptlow,ptup)
+      else: # pt > ptlow (no upper pt cut)
+        name = "%s_pt%d-Inf"%(wpname,ptlow)
+        tit  = "%s, pt > %d GeV"%(wp,ptlow)
+        cut  = "%s && pt_2>%s"%(basecut,ptlow)
+      #selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
+      for dm in dms:
+        name_ = "%s_dm%s"%(name,dm)
+        tit_  = "%s, DM%s"%(tit,dm)
+        cut_  = "%s && dm_2==%s"%(cut,dm)
+        selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
   
   # VARIABLES
   variables = [
@@ -135,12 +174,11 @@ if __name__ == "__main__":
   from argparse import ArgumentParser, RawTextHelpFormatter
   eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018']
   description = """Simple plotting script for pico analysis tuples"""
-  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
+  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!",formatter_class=RawTextHelpFormatter)
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
                                          help="set era" )
-  parser.add_argument('-c', '--config', '--channel',
-                                         dest='configs', type=str, nargs='+', default=['config/setup_mutau.yml'], action='store',
-                                         help="config file(s) containing channel setup for samples and selections, default=%(default)r" )
+  parser.add_argument('-c', '--config',  dest='configs', type=str, nargs='+', default=['config/setup_mutau.yml'], action='store',
+                                         help="set config file containing sample & fit setup, default=%(default)r" )
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
                                          help="only plot the variables passing this filter (glob patterns allowed)" )
   parser.add_argument('-S', '--sel',     dest='selfilter', nargs='+',

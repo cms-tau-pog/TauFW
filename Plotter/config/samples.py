@@ -6,17 +6,19 @@ from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 
 def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
-  year   = getyear(era) # get integer year
-  fname  = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
-  split  = kwargs.get('split',  ['DY'] if 'tau' in channel else [ ] ) # split samples (e.g. DY) into genmatch components
-  join   = kwargs.get('join',   ['VV','Top'] ) # join samples (e.g. VV, top)
-  rmsfs  = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
-  addsfs = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
-  weight = kwargs.get('weight', None         ) # weight for all MC samples
-  filter = kwargs.get('filter', None         ) # only include these MC samples
-  vetoes = kwargs.get('vetoes', None         ) # veto these MC samples
-  tag    = kwargs.get('tag',    ""           )
-  table  = kwargs.get('table',  True         ) # print sample set table
+  year     = getyear(era) # get integer year
+  fname    = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
+  split    = kwargs.get('split',    ['DY'] if 'tau' in channel else [ ] ) # split samples (e.g. DY) into genmatch components
+  join     = kwargs.get('join',     ['VV','Top'] ) # join samples (e.g. VV, top)
+  rmsfs    = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
+  addsfs   = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
+  weight   = kwargs.get('weight',   None         ) # weight for all MC samples
+  dyweight = kwargs.get('dyweight', 'zptweight'  ) # weight for DY samples
+  ttweight = kwargs.get('ttweight', 'ttptweight' ) # weight for ttbar samples
+  filter   = kwargs.get('filter',   None         ) # only include these MC samples
+  vetoes   = kwargs.get('vetoes',   None         ) # veto these MC samples
+  #tag      = kwargs.get('tag',      ""           ) # extra tag for sample file names
+  table    = kwargs.get('table',    True         ) # print sample set table
   setera(era) # set era for plot style and lumi-xsec normalization
   if 'TT' in split and 'Top' in join: # don't join TT & ST
     join.remove('Top')
@@ -27,11 +29,11 @@ def getsampleset(channel,era,**kwargs):
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0  ),
-      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': 'zptweight'} ), # apply k-factor in stitching
-      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': 'zptweight'} ),
+      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ), # apply k-factor in stitching
+      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight} ),
+      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight} ),
+      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight} ),
+      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight} ),
       ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
       ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
       ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
@@ -40,9 +42,9 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
@@ -53,12 +55,12 @@ def getsampleset(channel,era,**kwargs):
   elif era=='2016': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        4963.0, {'extraweight': 'zptweight'} ), # apply k-factor in stitching
-      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",     1012.0, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      334.7, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      102.3, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      54.52, {'extraweight': 'zptweight'} ),
+      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': dyweight} ),
+      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        4963.0, {'extraweight': dyweight} ), # apply k-factor in stitching
+      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",     1012.0, {'extraweight': dyweight} ),
+      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      334.7, {'extraweight': dyweight} ),
+      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      102.3, {'extraweight': dyweight} ),
+      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      54.52, {'extraweight': dyweight} ),
       ( 'WJ', "WJetsToLNu",            "W + jets",           50260.0  ),
       ( 'WJ', "W1JetsToLNu",           "W + 1J",              9625.0  ),
       ( 'WJ', "W2JetsToLNu",           "W + 2J",              3161.0  ),
@@ -67,7 +69,7 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
-      ( 'TT', "TT",                    "ttbar",                831.76, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TT",                    "ttbar",                831.76, {'extraweight': ttweight} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
@@ -76,12 +78,12 @@ def getsampleset(channel,era,**kwargs):
   elif era=='2017': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ), # apply k-factor in stitching
-      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': 'zptweight'} ),
+      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': dyweight} ), # apply k-factor in stitching
+      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ),
+      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight} ),
+      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight} ),
+      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight} ),
+      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight} ),
       ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
       ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
       ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
@@ -90,9 +92,9 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
@@ -102,11 +104,11 @@ def getsampleset(channel,era,**kwargs):
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       #( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': 'zptweight'} ), # apply k-factor while stitching
-      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': 'zptweight'} ),
+      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ), # apply k-factor while stitching
+      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight} ),
+      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight} ),
+      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight} ),
+      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight} ),
       ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
       ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
       ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
@@ -115,9 +117,9 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
@@ -126,12 +128,12 @@ def getsampleset(channel,era,**kwargs):
   elif era=='2018': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': 'zptweight'} ), # apply k-factor while stitching
-      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': 'zptweight'} ),
-      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': 'zptweight'} ),
+      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {'extraweight': dyweight} ),
+      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ), # apply k-factor while stitching
+      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight} ),
+      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight} ),
+      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight} ),
+      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight} ),
       ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
       ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),
       ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
@@ -140,9 +142,9 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "WW",                    "WW",                    75.88 ),
       ( 'VV', "WZ",                    "WZ",                    27.6  ),
       ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight} ),
       ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),

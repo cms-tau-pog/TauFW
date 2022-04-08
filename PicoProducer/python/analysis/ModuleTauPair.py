@@ -167,12 +167,12 @@ class ModuleTauPair(Module):
       #       [(0,0),(1,1),(2,2),(3,3),(5,4),(6,5),(7,6),(8,7)] if event.nLHEScaleWeight==8 else\
       #       [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8)]
       #if event.nLHEScaleWeight==8:
-      #  self.out.h_qweight.Fill(4,event.LHEWeight_originalXWGTUP)
-      #  self.out.h_qweight_genw.Fill(4,event.LHEWeight_originalXWGTUP*event.genWeight)
+      #  self.out.h_muweight.Fill(4,event.LHEWeight_originalXWGTUP)
+      #  self.out.h_muweight_genw.Fill(4,event.LHEWeight_originalXWGTUP*event.genWeight)
       #for ibin, idx in idxs: # Ren. & fact. scale
       #  if idx>=event.nLHEScaleWeight: break
-      #  self.out.h_qweight.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx])
-      #  self.out.h_qweight_genw.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx]*event.genWeight)
+      #  self.out.h_muweight.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx])
+      #  self.out.h_muweight_genw.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx]*event.genWeight)
       if event.Pileup_nTrueInt>0:
         self.out.cutflow.fill('weight_no0PU',event.genWeight)
       else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
@@ -367,13 +367,13 @@ class ModuleTauPair(Module):
         self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
         for i in range(self.out.npdfweight[0]):
           self.out.pdfweight[i] = event.LHEPdfWeight[i]
-        #self.out.qweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, Qren=1.0, Qfact=1.0
-        #self.out.qweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, Qren=0.5, Qfact=0.5 (rel.)
-        #self.out.qweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, Qren=0.5, Qfact=1.0 (rel.)
-        #self.out.qweight_1p0_0p5[0]  = event.LHEScaleWeight[3] # scale weight, Qren=1.0, Qfact=0.5 (rel.)
-        #self.out.qweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, Qren=1.0, Qfact=2.0 (rel.)
-        #self.out.qweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, Qren=2.0, Qfact=1.0 (rel.)
-        #self.out.qweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, Qren=2.0, Qfact=2.0 (rel.)
+        #self.out.muweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, muR=1.0, muF=1.0
+        #self.out.muweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, muR=0.5, muF=0.5 (rel.)
+        #self.out.muweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, muR=0.5, muF=1.0 (rel.)
+        #self.out.muweight_1p0_0p5[0]  = event.LHEScaleWeight[3] # scale weight, muR=1.0, muF=0.5 (rel.)
+        #self.out.muweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, muR=1.0, muF=2.0 (rel.)
+        #self.out.muweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, muR=2.0, muF=1.0 (rel.)
+        #self.out.muweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, muR=2.0, muF=2.0 (rel.)
       #self.out.btagweight_bc[0],     self.out.btagweight_udsg[0]     = self.btagTool.getFlavorWeight(jets)
       #self.out.btagweight_bcUp[0],   self.out.btagweight_udsgUp[0]   = self.btagTool.getFlavorWeight(jets,unc='Up')
       #self.out.btagweight_bcDown[0], self.out.btagweight_udsgDown[0] = self.btagTool.getFlavorWeight(jets,unc='Down')

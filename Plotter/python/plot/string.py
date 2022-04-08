@@ -97,7 +97,7 @@ def makelatex(string,**kwargs):
       string = re.sub(r"\b(?<!Dee)(p)[tT]\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     if strlow=="mt":
-      string = re.sub(r"(m)(t)",r"\1_{T}",string,flags=re.IGNORECASE)
+      string = re.sub(r"(m)(t)(?![\w,:])",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     elif "m_" in strlow:
       string = re.sub(r"(?<!u)(m)_([^{}()|<>=\ \^]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
@@ -106,7 +106,7 @@ def makelatex(string,**kwargs):
       if "mt_" in strlow:
         string = re.sub(r"(m)t_([^{}()|<>=\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
       else: # "naked" mt
-        string = re.sub(r"(?<!\w)(m)t(?!\w)",r"\1_{T}",string,flags=re.IGNORECASE)
+        string = re.sub(r"(?<!\w)(m)t(?![\w,:])",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
     if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow): # HT
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
