@@ -37,6 +37,10 @@ regions:
         definition: "mt_1<50 && dm_2==11"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
 
+# Optional argument to define the order of the bins in the summary plot
+# Working without, but order might be random as disctionary is not sorted
+plottingOrder: ["DM0", "DM1", "DM10", "DM11"]
+
 # Observables to be fitted and plotted
 # binning: as defined in TH1 (nbins, xmin, xmax)
 # regions: (defined separately) to be included in the fit for this observable
@@ -48,17 +52,17 @@ observables:
         extra:
             cut: "50<m_vis && m_vis<106"
         fitRegions: [DM0, DM1, DM10, DM11]
-    m_2:
-        binning: [13, 0.3, 1.6]
-        title: "m_{#tau_{h}}"
-        extra:
-            cut: "0.3<m_2 && m_2<1.6"
-            ccut: 
-                "dm_2==1(?!0)(?!1)": "0.35<m_2 && m_2<1.20"
-                "dm_2==10":          "0.83<m_2 && m_2<1.43"
-                "dm_2==11":          "0.93<m_2 && m_2<1.53"
-            veto: "dm_2==0"
-        fitRegions: [DM1, DM10, DM11]
+    #m_2:
+    #    binning: [13, 0.3, 1.6]
+    #    title: "m_{#tau_{h}}"
+    #    extra:
+    #        cut: "0.3<m_2 && m_2<1.6"
+    #        ccut: 
+    #            "dm_2==1(?!0)(?!1)": "0.35<m_2 && m_2<1.20"
+    #            "dm_2==10":          "0.83<m_2 && m_2<1.43"
+    #            "dm_2==11":          "0.93<m_2 && m_2<1.53"
+    #        veto: "dm_2==0"
+    #    fitRegions: [DM1, DM10, DM11]
 
 # Assume that this code is meant to fit TES variations; more options could be added when adding other POIs
 
@@ -87,7 +91,7 @@ samples:
     rename:
         WJ: "W"
     data: "data_obs"
-    #removeSFs: ['idweight_2']
+    #removeSFs: ["idweight_2"]
     #addSFs: []
 
 
