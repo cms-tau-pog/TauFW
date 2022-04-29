@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # Author: Izaak Neutelings (April 2022)
 # Description: Study genmatch algorithms in nanoAOD
 # HTT gen-matching:
@@ -14,6 +15,8 @@
 #   pico.py submit -c genmatch -s DYJetsToLL_M-50 -y UL2018
 #   pico.py status -c genmatch -s DYJetsToLL_M-50 -y UL2018
 #   pico.py hadd -c genmatch -s DYJetsToLL_M-50 -y UL2018
+#   python/analysis/GenMatcher.py genmatch.root
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import TH2D, gStyle, kRed
 from TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -151,7 +154,7 @@ class TreeProducerGenMatcher(TreeProducer):
   def endJob(self):
     """Write and close files after the job ends."""
     
-    # NORMALIZE HISTOGRAMS
+    # PREPARE HISTOGRAMS
     self.outfile.cd()
     self.hnorms = [ ] # store new histograms before writing
     for hist in [self.h_gm_HTT_vs_nano,self.h_gm_HTT_nopt_vs_nano,self.h_gm_HTT_vs_HTT_nopt]:
@@ -173,37 +176,85 @@ class TreeProducerGenMatcher(TreeProducer):
       hist.SetMarkerSize(1.5)
       hist.GetXaxis().SetNdivisions(10)
       hist.GetYaxis().SetNdivisions(10)
-      hist.GetXaxis().SetLabelSize(0.055)
-      hist.GetYaxis().SetLabelSize(0.055)
+      hist.GetXaxis().SetLabelSize(0.058)
+      hist.GetYaxis().SetLabelSize(0.058)
       hist.GetXaxis().SetLabelOffset(0.003)
       hist.GetYaxis().SetLabelOffset(0.002)
-      hist.GetXaxis().SetTitleSize(0.044)
-      hist.GetYaxis().SetTitleSize(0.044)
-      hist.GetZaxis().SetTitleSize(0.044)
+      hist.GetXaxis().SetTitleSize(0.048)
+      hist.GetYaxis().SetTitleSize(0.048)
+      hist.GetZaxis().SetTitleSize(0.048)
       hist.GetZaxis().SetTitle("Events")
       hist.SetOption('COLZ TEXT22') # preset default draw option
       hnorm = hist.Clone(hist.GetName()+"_norm")
       hnorm.SetDirectory(self.outfile) # ensure write to ouput file
-      hnorm.SetMarkerSize(2) # draw with "COLZ TEXT"
-      hnorm.GetZaxis().SetTitle("Fraction [%]")
-      hnorm.SetTitle("Normalized columns")
-      hnorm.SetOption('COLZ TEXT') # preset default draw option
-      for ix in range(1,nxbins+1): # loop over columns
-        ntot = 0 # total number of events in this column at ix
-        for iy in range(1,nybins+1): # sum rows
-          ntot += hist.GetBinContent(ix,iy)
-        if ntot<=0: continue
-        for iy in range(1,nybins+1): # normalize rows
-          frac = 100.0*hist.GetBinContent(ix,iy)/ntot # fraction of column
-          hnorm.SetBinContent(ix,iy,frac) # overwrite number of events with fraction
+      normcol(hnorm) # normalize columns
       self.hnorms.append(hnorm) # store new histograms before writing
     
     # WRITE
     #gStyle.SetOptTitle(False) # don't make title on top of histogram
     gStyle.SetOptStat(False)  # don't make stat. box
-    gStyle.SetPaintTextFormat("d") # integer (events)
+    gStyle.SetPaintTextFormat('d') # integer (events)
     gStyle.Write("style_evts")
-    gStyle.SetPaintTextFormat(".1f") # percentage (fraction)
+    gStyle.SetPaintTextFormat('.1f') # percentage (fraction)
     gStyle.Write("style_frac")
     super(TreeProducerGenMatcher,self).endJob()
     
+
+def normcol(hist):
+  """Normalize columns."""
+  nxbins = hist.GetXaxis().GetNbins()
+  nybins = hist.GetYaxis().GetNbins()
+  hist.SetMarkerSize(2) # draw with "COLZ TEXT"
+  hist.GetZaxis().SetTitle("Fraction [%]")
+  hist.SetTitle("Normalized columns")
+  hist.SetOption('COLZ TEXT') # preset default draw option
+  for ix in range(1,nxbins+1): # loop over columns
+    ntot = 0 # total number of events in this column at ix
+    for iy in range(1,nybins+1): # sum rows
+      ntot += hist.GetBinContent(ix,iy)
+    if ntot<=0: continue
+    for iy in range(1,nybins+1): # normalize rows
+      frac = 100.0*hist.GetBinContent(ix,iy)/ntot # fraction of column
+      hist.SetBinContent(ix,iy,frac) # overwrite number of events with fraction
+  
+
+# SCRIPT
+if __name__ == '__main__':
+  # if run as script
+  from ROOT import gROOT, TFile, TCanvas
+  from argparse import ArgumentParser
+  gROOT.SetBatch(True)      # don't open GUI windows
+  gStyle.SetOptTitle(False) # don't make title on top of histogram
+  gStyle.SetOptStat(False)  # don't make stat. box
+  gStyle.SetPaintTextFormat('.2f') # integer (events)
+  description = """Make histograms from output file."""
+  parser = ArgumentParser(prog="GenMatcher",description=description,epilog="Good luck!")
+  parser.add_argument('file', help="final (hadd'ed) output file" )
+  args = parser.parse_args()
+  file = TFile.Open(args.file)
+  hnames = ['h_gm_HTT_vs_nano','h_gm_HTT_nopt_vs_nano','h_gm_HTT_vs_HTT_nopt']
+  for hname in hnames:
+    pname = hname.replace("h_gm","genmatch")
+    hist = file.Get(hname)
+    normcol(hist)
+    canvas = TCanvas('canvas','canvas',100,100,800,600)
+    canvas.SetMargin(0.09,0.15,0.11,0.02) # LRBT
+    hist.GetXaxis().SetLabelSize(0.075)
+    hist.GetYaxis().SetLabelSize(0.075)
+    hist.GetZaxis().SetLabelSize(0.046)
+    hist.GetXaxis().SetTitleSize(0.054)
+    hist.GetYaxis().SetTitleSize(0.054)
+    hist.GetZaxis().SetTitleSize(0.054)
+    hist.GetXaxis().SetTitleOffset(0.95)
+    hist.GetYaxis().SetTitleOffset(0.80)
+    hist.GetZaxis().SetTitleOffset(0.95)
+    hist.GetXaxis().SetLabelOffset(0.005)
+    hist.GetYaxis().SetLabelOffset(0.004)
+    hist.SetMaximum(100)
+    hist.Draw('COLZ TEXT')
+    canvas.SaveAs(pname+".png")
+    canvas.SaveAs(pname+".pdf")
+    canvas.Close()
+  file.Close()
+  print ">>> Done."
+  
