@@ -11,6 +11,9 @@
 # Instructions:
 #   pico.py channel genmatch GenMatcher
 #   pico.py run -c genmatch -s DYJetsToLL_M-50 -y UL2018 -m 1000
+#   pico.py submit -c genmatch -s DYJetsToLL_M-50 -y UL2018
+#   pico.py status -c genmatch -s DYJetsToLL_M-50 -y UL2018
+#   pico.py hadd -c genmatch -s DYJetsToLL_M-50 -y UL2018
 from ROOT import TH2D, gStyle, kRed
 from TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
