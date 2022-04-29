@@ -15,8 +15,11 @@
 #   pico.py submit -c genmatch -s DYJetsToLL_M-50 -y UL2018
 #   pico.py status -c genmatch -s DYJetsToLL_M-50 -y UL2018
 #   pico.py hadd -c genmatch -s DYJetsToLL_M-50 -y UL2018
-#   python/analysis/GenMatcher.py genmatch.root
+#   python/analysis/GenMatcher.py DYJetsToLL_M-50_genmatch.root
+#   tree->Draw("genmatch_HTT:genmatch >> h(7,0,7,7,0,7)","","COLZ TEXT")
+#   tree->Draw("genmatch_HTT:genmatch >> h(7,0,7,7,0,7)","idDeepTau2017v2p1VSe>=2 && idDeepTau2017v2p1VSmu>=2 && idDeepTau2017v2p1VSjet>=8 && pt>40","COLZ TEXT")
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+import re
 from ROOT import TH2D, gStyle, kRed
 from TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -40,7 +43,7 @@ class GenMatcher(Module):
     
     # TAU
     # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau
-    taus = [ ]
+    taus = [ ] # selected tau candidates
     for tau in Collection(event,'Tau'):
       if tau.pt<20: continue
       if abs(tau.eta)>2.3: continue
@@ -54,13 +57,15 @@ class GenMatcher(Module):
     if len(taus)==0:
       return False
     self.out.cutflow.fill('tau')
-    #tau = max(taus,lambda t: t.pt) # select tau with highest pT
+    if len(taus)>=2:
+      self.out.cutflow.fill('taus')
+    #tau = max(taus,key=lambda t: t.pt) # select tau with highest pT
     
     # STORE EACH TAU
     for tau in taus:
       
       # HTT GENMATCH ALGORITHMS
-      genmatch_HTT      = genmatch(tau,event,cutpt=True)
+      genmatch_HTT = genmatch(tau,event,cutpt=True)
       genmatch_HTT_nopt = genmatch(tau,event,cutpt=False)
       
       # FILL HISTOGRAMS
@@ -84,6 +89,15 @@ class GenMatcher(Module):
       self.out.idDeepTau2017v2p1VSmu[0]  = tau.idDeepTau2017v2p1VSmu
       self.out.idDeepTau2017v2p1VSjet[0] = tau.idDeepTau2017v2p1VSjet
       self.out.ntaus[0]                  = len(taus)
+      ###if genmatch_HTT==5:
+      ###  self.out.genpt[0]                = gmobj_HTT.pt
+      ###  self.out.genid[0]                = gmobj_HTT.status
+      ###elif 0<genmatch_HTT<5:
+      ###  self.out.genpt[0]                = gmobj_HTT.pt
+      ###  self.out.genid[0]                = gmobj_HTT.pdgId
+      ###else:
+      ###  self.out.genpt[0]                = -1
+      ###  self.out.genid[0]                = -99
       self.out.fill()
       
     return True
@@ -92,36 +106,37 @@ class GenMatcher(Module):
 def genmatch(tau,event,cutpt=True):
   """HTT-prescribed genmatching for reconstructed taus to generator electrons, muons and taus."""
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#MC_Matching
-  genmatch  = 0 # gen-match code, default: 0 (or 6) = no match (assumed from jet)
-  dR_min    = 0.2
+  genmatch = 0 # gen-match code, default: 0 (or 6) = no match (assumed from jet)
+  dRmin    = 0.2
+  ###gmobj    = None # matched object
   
   # FAKE lepton -> tau
-  particles = Collection(event,'GenPart')
-  for particle in particles:
+  for particle in Collection(event,'GenPart'):
     pid = abs(particle.pdgId)
     #if particle.status!=1 and pid!=13: continue
     if cutpt and particle.pt<8: continue
     if pid not in [11,13]: continue
     dR = tau.DeltaR(particle)
-    if dR<dR_min:
+    if dR<dRmin:
+      # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
       if hasbit(particle.statusFlags,0): # isPrompt
-        if   pid==11: genmatch = 1; dR_min = dR
-        elif pid==13: genmatch = 2; dR_min = dR
+        if   pid==11: genmatch = 1; dRmin = dR; ###gmobj = particle
+        elif pid==13: genmatch = 2; dRmin = dR; ###gmobj = particle
       elif hasbit(particle.statusFlags,5): # isDirectPromptTauDecayProduct
-        if   pid==11: genmatch = 3; dR_min = dR
-        elif pid==13: genmatch = 4; dR_min = dR
+        if   pid==11: genmatch = 3; dRmin = dR; ###gmobj = particle
+        elif pid==13: genmatch = 4; dRmin = dR; ###gmobj = particle
   
   # REAL (visible system of the) tau leptons
   # Gen-tau jet, rebuilt from sum of 4-momenta of visible gen tau decay products, excluding electrons and muons
-  genvistaus = Collection(event,'GenVisTau')
-  for gentau in genvistaus:
+  for gentau in Collection(event,'GenVisTau'):
     if cutpt and gentau.pt<15: continue
     dR = tau.DeltaR(gentau)
-    if dR<dR_min:
-      dR_min = dR
+    if dR<dRmin:
+      dRmin = dR
       genmatch = 5
+      ###gmobj = gentau
   
-  return genmatch
+  return genmatch ###, gmobj
   
 
 
@@ -131,9 +146,14 @@ class TreeProducerGenMatcher(TreeProducer):
     """Class to create and prepare a custom output file & tree."""
     super(TreeProducerGenMatcher,self).__init__(filename,module,**kwargs)
     
+    # ONLY JOB (no hadd)
+    self.localjob = bool(re.search(r"(-\d+|[^\d])$",filename.replace(".root","")))
+    self.onlyjob = self.localjob or bool(re.search(r"_0$",filename.replace(".root","")))
+    
     # CUTFLOW
     self.cutflow.addcut('none', "no cut" )
     self.cutflow.addcut('tau',  "tau"    )
+    self.cutflow.addcut('taus', "#geq2 taus" )
     
     # HISTOGRAMS
     self.h_gm_HTT_vs_nano      = TH2D('h_gm_HTT_vs_nano',     ";Tau gen-match nanoAOD;Tau gen-match HTT;Events",7,0,7,7,0,7)
@@ -155,7 +175,9 @@ class TreeProducerGenMatcher(TreeProducer):
     self.addBranch('idDeepTau2017v2p1VSe',   'i')
     self.addBranch('idDeepTau2017v2p1VSmu',  'i')
     self.addBranch('idDeepTau2017v2p1VSjet', 'i')
-    self.addBranch('ntaus',                  'i', title="number of taus in this event")
+    self.addBranch('ntaus',                  'i', title="number of selected tau candidates in this event")
+    ###self.addBranch('genpt',                  'f', title="pt of gen-matched object")
+    ###self.addBranch('genid',                  'f', title="id of gen-matched object")
     
   def endJob(self):
     """Write and close files after the job ends."""
@@ -191,42 +213,52 @@ class TreeProducerGenMatcher(TreeProducer):
       hist.GetZaxis().SetTitleSize(0.048)
       hist.GetZaxis().SetTitle("Taus")
       hist.SetOption('COLZ TEXT22') # preset default draw option
-      hnorm = hist.Clone(hist.GetName()+"_norm")
-      hnorm.SetDirectory(self.outfile) # ensure write to ouput file
-      normcol(hnorm) # normalize columns
-      self.hnorms.append(hnorm) # store new histograms before writing
+      if self.localjob:
+        hnorm = normalize(hnorm,hist.GetName()+"_norm") # normalize columns
+        hnorm.SetDirectory(self.outfile) # ensure write to ouput file
+        self.hnorms.append(hnorm) # store new histograms before writing
     
     # WRITE
-    #gStyle.SetOptTitle(False) # don't make title on top of histogram
-    gStyle.SetOptStat(False)  # don't make stat. box
-    gStyle.SetPaintTextFormat('d') # integer (events)
-    gStyle.Write("style_evts")
-    gStyle.SetPaintTextFormat('.1f') # percentage (fraction)
-    gStyle.Write("style_frac")
+    if self.onlyjob: # only store for first job output
+      #gStyle.SetOptTitle(False) # don't make title on top of histogram
+      gStyle.SetOptStat(False)  # don't make stat. box
+      gStyle.SetPaintTextFormat('d') # integer (events)
+      gStyle.Write("style_evts")
+      gStyle.SetPaintTextFormat('.1f') # percentage (fraction)
+      gStyle.Write("style_frac")
     super(TreeProducerGenMatcher,self).endJob()
     
 
-def normcol(hist):
-  """Normalize columns."""
+def normalize(hist,hname=None,row=False):
+  """Normalize rows (row=True) or columns (row=False) of 2D histogram."""
+  if hname: # create new histogram
+    hist = hist.Clone(hname)
   nxbins = hist.GetXaxis().GetNbins()
   nybins = hist.GetYaxis().GetNbins()
   hist.SetMarkerSize(2) # draw with "COLZ TEXT"
-  hist.GetZaxis().SetTitle("Fraction [%]")
   hist.SetTitle("Normalized columns")
   hist.SetOption('COLZ TEXT') # preset default draw option
-  for ix in range(1,nxbins+1): # loop over columns
-    ntot = 0 # total number of events in this column at ix
-    for iy in range(1,nybins+1): # sum rows
-      ntot += hist.GetBinContent(ix,iy)
-    if ntot<=0: continue
-    for iy in range(1,nybins+1): # normalize rows
-      frac = 100.0*hist.GetBinContent(ix,iy)/ntot # fraction of column
-      hist.SetBinContent(ix,iy,frac) # overwrite number of events with fraction
+  if row:
+    hist.GetZaxis().SetTitle("Row fraction [%]")
+    for iy in range(1,nybins+1): # loop over rows
+      ntot = sum(hist.GetBinContent(ix,iy) for ix in range(1,nxbins+1)) # sum row at iy
+      if ntot<=0: continue
+      for ix in range(1,nxbins+1): # normalize rows
+        frac = 100.0*hist.GetBinContent(ix,iy)/ntot # fraction of column
+        hist.SetBinContent(ix,iy,frac) # overwrite number of events with fraction
+  else:
+    hist.GetZaxis().SetTitle("Column fraction [%]")
+    for ix in range(1,nxbins+1): # loop over columns
+      ntot = sum(hist.GetBinContent(ix,iy) for iy in range(1,nybins+1)) # sum column at ix
+      if ntot<=0: continue
+      for iy in range(1,nybins+1): # normalize rows
+        frac = 100.0*hist.GetBinContent(ix,iy)/ntot # fraction of column
+        hist.SetBinContent(ix,iy,frac) # overwrite number of events with fraction
+  return hist
   
 
 # SCRIPT
 if __name__ == '__main__':
-  # if run as script
   from ROOT import gROOT, TFile, TCanvas
   from argparse import ArgumentParser
   gROOT.SetBatch(True)      # don't open GUI windows
@@ -235,16 +267,13 @@ if __name__ == '__main__':
   gStyle.SetPaintTextFormat('.2f') # integer (events)
   description = """Make histograms from output file."""
   parser = ArgumentParser(prog="GenMatcher",description=description,epilog="Good luck!")
-  parser.add_argument('file', help="final (hadd'ed) output file" )
+  parser.add_argument('file', help="final (hadd'ed) ROOT file")
+  parser.add_argument('-t',"--tag", default="", help="extra tag for output file")
   args = parser.parse_args()
   file = TFile.Open(args.file)
   hnames = ['h_gm_HTT_vs_nano','h_gm_HTT_nopt_vs_nano','h_gm_HTT_vs_HTT_nopt']
   for hname in hnames:
-    pname = hname.replace("h_gm","genmatch")
     hist = file.Get(hname)
-    normcol(hist)
-    canvas = TCanvas('canvas','canvas',100,100,800,600)
-    canvas.SetMargin(0.09,0.15,0.11,0.02) # LRBT
     hist.GetXaxis().SetLabelSize(0.075)
     hist.GetYaxis().SetLabelSize(0.075)
     hist.GetZaxis().SetLabelSize(0.046)
@@ -256,11 +285,16 @@ if __name__ == '__main__':
     hist.GetZaxis().SetTitleOffset(0.95)
     hist.GetXaxis().SetLabelOffset(0.005)
     hist.GetYaxis().SetLabelOffset(0.004)
-    hist.SetMaximum(100)
-    hist.Draw('COLZ TEXT')
-    canvas.SaveAs(pname+".png")
-    canvas.SaveAs(pname+".pdf")
-    canvas.Close()
+    for direction in ['row','col']:
+      pname = "%s_%s%s"%(hname.replace("h_gm","genmatch"),direction,args.tag)
+      hnorm = normalize(hist,pname,row=(direction=='row'))
+      canvas = TCanvas('canvas','canvas',100,100,800,600)
+      canvas.SetMargin(0.09,0.15,0.11,0.02) # LRBT
+      hnorm.SetMaximum(100)
+      hnorm.Draw('COLZ TEXT')
+      canvas.SaveAs(pname+".png")
+      canvas.SaveAs(pname+".pdf")
+      canvas.Close()
   file.Close()
   print ">>> Done."
   
