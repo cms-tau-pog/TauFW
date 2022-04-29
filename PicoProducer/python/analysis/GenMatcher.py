@@ -54,33 +54,38 @@ class GenMatcher(Module):
     if len(taus)==0:
       return False
     self.out.cutflow.fill('tau')
+    #tau = max(taus,lambda t: t.pt) # select tau with highest pT
     
-    # HTT GENMATCH ALGORITHMS
-    genmatch_HTT      = genmatch(tau,event,cutpt=True)
-    genmatch_HTT_nopt = genmatch(tau,event,cutpt=False)
-    
-    # FILL HISTOGRAMS
-    self.out.h_gm_HTT_vs_nano.Fill(tau.genPartFlav,genmatch_HTT)
-    self.out.h_gm_HTT_nopt_vs_nano.Fill(tau.genPartFlav,genmatch_HTT_nopt)
-    self.out.h_gm_HTT_vs_HTT_nopt.Fill(genmatch_HTT_nopt,genmatch_HTT)
-    
-    # FILL TREE BRANCHES
-    self.out.pt[0]                     = tau.pt
-    self.out.eta[0]                    = tau.eta
-    self.out.phi[0]                    = tau.phi
-    self.out.m[0]                      = tau.mass
-    self.out.q[0]                      = tau.charge
-    self.out.dm[0]                     = tau.decayMode
-    self.out.genmatch[0]               = tau.genPartFlav # default nanoAOD genmatch
-    self.out.genmatch_HTT[0]           = genmatch_HTT
-    self.out.genmatch_HTT_nopt[0]      = genmatch_HTT_nopt
-    self.out.idDecayMode[0]            = tau.idDecayMode
-    self.out.idDecayModeNewDMs[0]      = tau.idDecayModeNewDMs
-    self.out.idDeepTau2017v2p1VSe[0]   = tau.idDeepTau2017v2p1VSe
-    self.out.idDeepTau2017v2p1VSmu[0]  = tau.idDeepTau2017v2p1VSmu
-    self.out.idDeepTau2017v2p1VSjet[0] = tau.idDeepTau2017v2p1VSjet
-    self.out.fill()
-    
+    # STORE EACH TAU
+    for tau in taus:
+      
+      # HTT GENMATCH ALGORITHMS
+      genmatch_HTT      = genmatch(tau,event,cutpt=True)
+      genmatch_HTT_nopt = genmatch(tau,event,cutpt=False)
+      
+      # FILL HISTOGRAMS
+      self.out.h_gm_HTT_vs_nano.Fill(tau.genPartFlav,genmatch_HTT)
+      self.out.h_gm_HTT_nopt_vs_nano.Fill(tau.genPartFlav,genmatch_HTT_nopt)
+      self.out.h_gm_HTT_vs_HTT_nopt.Fill(genmatch_HTT_nopt,genmatch_HTT)
+      
+      # FILL TREE BRANCHES
+      self.out.pt[0]                     = tau.pt
+      self.out.eta[0]                    = tau.eta
+      self.out.phi[0]                    = tau.phi
+      self.out.m[0]                      = tau.mass
+      self.out.q[0]                      = tau.charge
+      self.out.dm[0]                     = tau.decayMode
+      self.out.genmatch[0]               = tau.genPartFlav # default nanoAOD genmatch
+      self.out.genmatch_HTT[0]           = genmatch_HTT
+      self.out.genmatch_HTT_nopt[0]      = genmatch_HTT_nopt
+      self.out.idDecayMode[0]            = tau.idDecayMode
+      self.out.idDecayModeNewDMs[0]      = tau.idDecayModeNewDMs
+      self.out.idDeepTau2017v2p1VSe[0]   = tau.idDeepTau2017v2p1VSe
+      self.out.idDeepTau2017v2p1VSmu[0]  = tau.idDeepTau2017v2p1VSmu
+      self.out.idDeepTau2017v2p1VSjet[0] = tau.idDeepTau2017v2p1VSjet
+      self.out.ntaus[0]                  = len(taus)
+      self.out.fill()
+      
     return True
     
 
@@ -150,6 +155,7 @@ class TreeProducerGenMatcher(TreeProducer):
     self.addBranch('idDeepTau2017v2p1VSe',   'i')
     self.addBranch('idDeepTau2017v2p1VSmu',  'i')
     self.addBranch('idDeepTau2017v2p1VSjet', 'i')
+    self.addBranch('ntaus',                  'i', title="number of taus in this event")
     
   def endJob(self):
     """Write and close files after the job ends."""
@@ -183,7 +189,7 @@ class TreeProducerGenMatcher(TreeProducer):
       hist.GetXaxis().SetTitleSize(0.048)
       hist.GetYaxis().SetTitleSize(0.048)
       hist.GetZaxis().SetTitleSize(0.048)
-      hist.GetZaxis().SetTitle("Events")
+      hist.GetZaxis().SetTitle("Taus")
       hist.SetOption('COLZ TEXT22') # preset default draw option
       hnorm = hist.Clone(hist.GetName()+"_norm")
       hnorm.SetDirectory(self.outfile) # ensure write to ouput file
