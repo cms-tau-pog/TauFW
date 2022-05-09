@@ -23,6 +23,11 @@ class Cutflow(object):
     bin = 1+index # range 0-ncuts, bin numbers 1-(ncuts+1)
     self.hist.GetXaxis().SetBinLabel(bin,title)
     self.cuts[name] = index
+    
+  def getbincontent(self,bin):
+    if isinstance(bin,str):
+      bin = self.hist.GetXaxis().FindBin(bin)
+    return self.hist.GetBinContent(bin)
   
   def fill(self, cut, *args):
     """Full histogram. Allow for possible weight."""
