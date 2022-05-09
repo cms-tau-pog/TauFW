@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-# Description: Skim
+# Description: Skim & apply JME corrections
 from __future__ import print_function
 import os
 import time; time0 = time.time()
@@ -12,19 +12,20 @@ from TauFW.PicoProducer.corrections.era_config import getjson, getperiod #, getj
 from TauFW.common.tools.utils import getyear
 from argparse import ArgumentParser
 parser = ArgumentParser()
-parser.add_argument('-i', '--infiles',   dest='infiles',   type=str, default=[ ], nargs='+')
-parser.add_argument('-o', '--outdir',    dest='outdir',    type=str, default='.')
-parser.add_argument('-C', '--copydir',   dest='copydir',   type=str, default=None)
-parser.add_argument('--preselect',       dest='preselect', type=str, default=None)
+parser.add_argument('-i', '--infiles',   dest='infiles',   default=[ ], nargs='+')
+parser.add_argument('-o', '--outdir',    dest='outdir',    default='.')
+parser.add_argument('-C', '--copydir',   dest='copydir',   default=None)
+parser.add_argument('--preselect',       dest='preselect', default=None)
 parser.add_argument('-s', '--firstevt',  dest='firstevt',  type=int, default=0)
 parser.add_argument('-m', '--maxevts',   dest='maxevts',   type=int, default=None)
-parser.add_argument('-t', '--tag',       dest='tag',       type=str, default="skim")
+parser.add_argument('-t', '--tag',       dest='tag',       default="skim")
 parser.add_argument('-d', '--dtype',     dest='dtype',     choices=['data','mc','embed'], default=None)
-parser.add_argument('-y', '-e','--era',  dest='era',       type=str, default="")
-parser.add_argument('-E', '--opts',      dest='extraopts', type=str, default=[ ], nargs='+')
+parser.add_argument('-y', '-e','--era',  dest='era',       default="")
+parser.add_argument('-E', '--opts',      dest='extraopts', default=[ ], nargs='+')
 parser.add_argument('-p', '--prefetch',  dest='prefetch',  action='store_true')
 parser.add_argument('-J', '--jec',       dest='doJEC',     action='store_true')
 parser.add_argument('-S', '--jec-sys',   dest='doJECSys',  action='store_true')
+parser.add_argument('-U', '--jec-unc',   dest='jesuncs',   default='Total')
 args = parser.parse_args()
 
 
@@ -46,12 +47,13 @@ url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch          # copy input file(s) to ouput directory first
 doJEC     = args.doJEC             # apply JECs #and dataType=='data'
 doJECSys  = args.doJECSys          # compute JEC variations
+jesuncs   = args.jesuncs if doJECSys else '' # type of uncertainties, e.g. 'Total', 'Merged', 'All', ...
 presel    = args.preselect         # simple pre-selection string, e.g. for mutau: "HLT_IsoMu27 && Muon_pt>28 && Tau_pt>18"
 branchsel = os.path.join(moddir,"keep_and_drop_skim.txt") # file with branch selection
 json      = None                   # JSON file of certified events
 modules   = [ ]                    # list of modules to run
 
-infiles   = args.infiles or [
+infiles   = args.infiles or [ # for testing
   url+"/store/mc/RunIISummer20UL18NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/50000/C9EAE9C3-7392-6B48-8FD2-A2DCA1C6B2C7.root",
   url+"/store/mc/RunIISummer20UL18NanoAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/50000/04BBC240-E6D5-824C-9688-835C8D1D9C12.root",
 ]
@@ -77,8 +79,7 @@ if dtype=='data':
                         noGroom=True,metBranchName=MET,applySmearing=False)()
     modules.append(calib)
 elif doJEC or doJECSys:
-  uncs  = 'Total' if doJECSys else ''
-  calib = getjmecalib(True,era,jesUncert=uncs,jetType='AK4PFchs', #,redojec=doJEC
+  calib   = getjmecalib(True,era,jesUncert=jesuncs,jetType='AK4PFchs', #,redojec=doJEC
                       noGroom=True,metBranchName=MET,applySmearing=True)()
   modules.append(calib)
 #modules = []
@@ -101,9 +102,10 @@ print(">>> %-12s = %r"%('branchsel',branchsel))
 print(">>> %-12s = %r"%('json',json))
 print(">>> %-12s = %s"%('modules',modules))
 print(">>> %-12s = %s"%('prefetch',prefetch))
-print(">>> %-12s = %s"%('doJEC',doJEC))
-print(">>> %-12s = %s"%('doJECSys',doJECSys))
-print(">>> %-12s = %s"%('cwd',os.getcwd()))
+print(">>> %-12s = %r"%('doJEC',doJEC))
+print(">>> %-12s = %r"%('doJECSys',doJECSys))
+print(">>> %-12s = %r"%('jesuncs',jesuncs))
+print(">>> %-12s = %r"%('cwd',os.getcwd()))
 print(">>> %-12s = %s"%('preselection',presel))
 print('-'*80)
 
