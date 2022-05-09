@@ -68,7 +68,7 @@ def getstorage(path,verb=0,ensure=False):
                   "If it is a special system, you need to subclass StorageSystem, see "
                   "https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer#Storage-system")
   if verb>=2:
-    print ">>> getstorage(%r), %r"%(path,storage)
+    print ">>> storage.utils.getstorage(%r), %r"%(path,storage)
   return storage
   
 
@@ -82,8 +82,8 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],das
   dtypes   = dtype   if not dtype   or isinstance(dtype,list)   else [dtype]
   sampfile = ensurefile("samples",repkey(CONFIG.eras[era],ERA=era,CHANNEL=channel,TAG=tag))
   samppath = sampfile.replace('.py','').replace('/','.')
-  LOG.verb("getsamples: sampfile=%r"%(sampfile),verb,1)
-  LOG.verb("getsamples: samppath=%r"%(samppath),verb,3)
+  LOG.verb("storage.utils.getsamples: sampfile=%r"%(sampfile),verb,1)
+  LOG.verb("storage.utils.getsamples: samppath=%r"%(samppath),verb,3)
   if samppath not in moddict:
     moddict[samppath] = importlib.import_module(samppath) # cache; save time by loading once
   if not hasattr(moddict[samppath],'samples'):
@@ -91,7 +91,7 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],das
   samplelist = moddict[samppath].samples
   samples    = [ ]
   sampledict = { } # ensure for unique names
-  LOG.verb("getsamples: samplelist=%r"%(samplelist),verb,3)
+  LOG.verb("storage.utils.getsamples: samplelist=%r"%(samplelist),verb,3)
   for sample in samplelist:
     if filters and not sample.match(filters,verb=verb): continue
     if vetoes and sample.match(vetoes,verb=verb): continue
@@ -112,11 +112,14 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],das
   return samples
   
 
-def getnevents(fname,treename='Events'):
+def getnevents(fname,treename='Events',verb=0):
+  """Help function to get number of entries in a tree."""
+  if verb>=3:
+    print ">>> storage.utils.getnevents: opening %s:%r"%(fname,treename)
   file = ensureTFile(fname)
   tree = file.Get(treename)
   if not tree:
-    LOG.warning("getnevents: No %r tree in events in %r!"%(treename,fname))
+    LOG.warning(">>> storage.utils.getnevents: No %r tree in events in %r!"%(treename,fname))
     return 0
   nevts = tree.GetEntries()
   file.Close()
@@ -157,33 +160,33 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
     if verb>=2:
-      print ">>> itervalid: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
+      print ">>> storage.utils.itervalid: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
       if not subset: break
       name = "itervalid_%d"%(i)
       processor.start(loopvalid,subset,kwargs,name=name)
     for process in processor:
       if verb>=2:
-        print ">>> joining process %r..."%(process.name)
+        print ">>> storage.utils.itervalid: joining process %r..."%(process.name)
       nevtfiles = process.join()
       for nevts, fname in nevtfiles:
         yield nevts, fname
   else:  # run validation in series
     for fname in fnames:
       if verb>=2:
-        print ">>>   Validating job output '%s'..."%(fname)
+        print ">>> storage.utils.itervalid:  Validating job output '%s'..."%(fname)
       nevts = isvalid(fname)
       yield nevts, fname
   
 
 def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
   """Help function for Sample._getnevents to iterate over file names and get number of events processed."""
-  if ncores>=2 and len(fnames)>5: # run events check in parallel
+  if ncores>=2 and len(fnames)>5: # run events check in PARALLEL
     from TauFW.Plotter.plot.MultiThread import MultiProcessor
     from TauFW.common.tools.math import partition
     def loopevts(fnames_):
       """Help function for parallel running on subsets."""
-      return [(getnevents(f,tree),f) for f in fnames_]
+      return [(getnevents(f,tree,verb=verb),f) for f in fnames_]
     processor = MultiProcessor(max=ncores)
     if not nchunks:
       nchunks = 10 if len(fnames)<100 else 20 if len(fnames)<500 else 50 if len(fnames)<1000 else 100
@@ -191,7 +194,7 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
     if verb>=2:
-      print ">>> iterevts: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
+      print ">>> storage.utils.iterevts: partitioning %d files into %d chunks for ncores=%d..."%(len(fnames),nchunks,ncores)
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
       for fname in subset[:]: # check cache
         if not refresh and fname in filenevts:
@@ -204,14 +207,16 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
       processor.start(loopevts,subset,name=name)
     for process in processor: # collect output from parallel processes
       if verb>=2:
-        print ">>> iterevts: joining process %r..."%(process.name)
+        print ">>> storage.utils.iterevts: joining process %r..."%(process.name)
       nevtfiles = process.join()
       for nevts, fname in nevtfiles:
         yield nevts, fname
-  else: # run events check in series
+  else: # run events check in SERIES
+    if verb>=2:
+      print ">>> storage.utils.iterevts: retrieving number of events for %d files (in series)..."%(len(fnames))
     for fname in fnames:
       if refresh or fname not in filenevts:
-        nevts = getnevents(fname,tree)
+        nevts = getnevents(fname,tree,verb=verb)
       else: # get from cache or efficiency
         nevts = filenevts[fname]
       yield nevts, fname

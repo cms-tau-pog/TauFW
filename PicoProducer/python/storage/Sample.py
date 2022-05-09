@@ -226,12 +226,12 @@ class Sample(object):
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist,verb=verb)
     files = self.files # cache for efficiency
-    url_  = self.dasurl if (das and self.storage) else self.url
+    url_  = self.dasurl if (das and self.storage) else self.url # ensure DAS URL if das==True
     if self.refreshable and (not files or das or refresh): # (re)derive file list
       if not files or das:
-        LOG.verb("getfiles: Retrieving files...",verb,2)
+        LOG.verb("Sample.getfiles: Retrieving files...",verb,2)
       else:
-        LOG.verb("getfiles: Refreshing file list...",verb,2)
+        LOG.verb("Sample.getfiles: Refreshing file list...",verb,2)
       files = [ ]
       pathfiles = { }
       for daspath in self.paths: # loop over DAS dataset paths
@@ -243,7 +243,7 @@ class Sample(object):
         else: # get files from DAS
           postfix = '.root'
           outlist = getdasfiles(daspath,instance=self.instance,limit=limit,verb=verb-1)
-        for line in outlist: # filter root files
+        for line in outlist: # filter ROOT files
           line = line.strip()
           if line.endswith(postfix) and not any(f.endswith(line) for f in self.blacklist):
             if url and url_ not in line and '://' not in line:
@@ -251,34 +251,34 @@ class Sample(object):
             files.append(line)
             pathfiles[daspath].append(line)
         if not pathfiles[daspath]:
-          LOG.warning("getfiles: Did not find any files for %s"%(daspath))
+          LOG.warning("Sample.getfiles: Did not find any files for %s"%(daspath))
       files.sort() # for consistent list order
-      if not das or not self.storage:
+      if not das or not self.storage or (refresh and not self.files): # do not cache if preferred source ambiguous
         self.files = files # store cache for efficiency
+        self.pathfiles = pathfiles
         for daspath in pathfiles:
           pathfiles[daspath].sort()
-          self.pathfiles = pathfiles
     elif url and any('://' not in f for f in files): # add url if missing
-      LOG.verb("getfiles: Add URL %r..."%(url),verb,2)
+      LOG.verb("Sample.getfiles: Add URL %r..."%(url),verb,2)
       files = [(url_+f if '://' not in f else f) for f in files]
       for daspath in self.pathfiles:
         self.pathfiles[daspath] = [(url_+f if '://' not in f else f) for f in self.pathfiles[daspath]]
       #if any(url not in f for f in files)
       #  LOG.warning("getfiles: Wrong URL %r!",verb,2)
     elif not url and any(url_ in f for f in files): # remove url
-      LOG.verb("getfiles: Removing URL %r..."%(url_),verb,2)
+      LOG.verb("Sample.getfiles: Removing URL %r..."%(url_),verb,2)
       files = [f.replace(url_,"") for f in files]
       for daspath in self.pathfiles:
         self.pathfiles[daspath] = [f.replace(url_,"") for f in self.pathfiles[daspath]]
     else:
-      LOG.verb("getfiles: Did not change file list...",verb,2)
+      LOG.verb("Sample.getfiles: Did not change file list...",verb,2)
     if limit>0:
       files = files[:limit]
     return files[:] # pass copy to protect private self.files
   
   def _getnevents(self,das=True,refresh=False,tree='Events',limit=-1,checkfiles=False,ncores=0,verb=0):
     """Get number of nanoAOD events from DAS (default), or from files on storage system (das=False)."""
-    LOG.verb("_getnevents: das=%r, refresh=%r, tree=%r, limit=%r, checkfiles=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
+    LOG.verb("Sample._getnevents: das=%r, refresh=%r, tree=%r, limit=%r, checkfiles=%r, filelist=%r, len(files)=%d, len(filenevts)=%d"%(
       das,refresh,tree,limit,checkfiles,self.filelist,len(self.files),len(self.filenevts)),verb,1)
     if self.filelist and not self.files: # get file list from text file for first time
       self.loadfiles(self.filelist,verb=verb)
@@ -287,29 +287,29 @@ class Sample(object):
     bar       = None
     if nevents<=0 or refresh:
       if checkfiles or (self.storage and not das): # get number of events per file from storage system
-        LOG.verb("_getnevents: Get events per file (storage=%r, das=%r)..."%(self.storage,das),verb,2)
+        LOG.verb("Sample._getnevents: Get events per file (storage=%r, das=%r)..."%(self.storage,das),verb,2)
         files = self.getfiles(url=True,das=das,refresh=refresh,limit=limit,verb=verb)
         if verb<=0 and len(files)>=5:
           bar = LoadingBar(len(files),width=20,pre=">>> Getting number of events: ",counter=True,remove=True)
         for nevts, fname in iterevts(files,tree,filenevts,refresh,ncores=ncores,verb=verb):
           filenevts[fname] = nevts # cache
           nevents += nevts
-          LOG.verb("_getnevents: Found %d events in %r."%(nevts,fname),verb,3)
+          LOG.verb("Sample._getnevents: Found %d events in %r."%(nevts,fname),verb,3)
           if bar:
              if self.nevents>0:
                bar.count("files, %d/%d events (%d%%)"%(nevents,self.nevents,100.0*nevents/self.nevents))
              else:
                bar.count("files, %d events"%(nevents))
       else: # get total number of events from DAS
-        LOG.verb("_getnevents: Get total number of events per path (storage=%r, das=%r)..."%(self.storage,das),verb,2)
+        LOG.verb("Sample._getnevents: Get total number of events per path (storage=%r, das=%r)..."%(self.storage,das),verb,2)
         for daspath in self.paths:
           nevts = getdasnevents(daspath,instance=self.instance,verb=verb-1)
-          LOG.verb("_getnevents: %10d events for %s..."%(nevts,daspath),verb,2)
+          LOG.verb("Sample._getnevents: %10d events for %s..."%(nevts,daspath),verb,2)
           nevents += nevts
       if limit<=0:
         self.nevents = nevents
     else:
-      LOG.verb("_getnevents: Reusing old number of events (nevents=%r, refresh=%r)..."%(nevents,refresh),verb,2)
+      LOG.verb("Sample._getnevents: Reusing old number of events (nevents=%r, refresh=%r)..."%(nevents,refresh),verb,2)
     return nevents, filenevts
   
   def getfilenevts(self,*args,**kwargs):
@@ -372,6 +372,7 @@ class Sample(object):
           else:
             print ">>> Write %s files to list %r..."%(len(files),listname_)
           for i, path in enumerate(self.paths):
+            assert path in self.pathfiles, "self.pathfiles.keys()=%s"%(self.pathfiles.keys())
             print ">>>   %3s files for %s..."%(len(self.pathfiles[path]),path)
             lfile.write("DASPATH=%s\n"%(path)) # write special line to text file, which loadfiles() can parse
             for infile in self.pathfiles[path]: # loop over this list (general list is sorted)
@@ -386,7 +387,7 @@ class Sample(object):
     verbosity = LOG.getverbosity(self,kwargs)
     """Load filenames from text file for fast look up in future."""
     listname  = repkey(listname_,ERA=self.era,GROUP=self.group,SAMPLE=self.name)
-    LOG.verb("loadfiles: listname=%r -> %r, len(files)=%d, len(filenevts)=%d"%(
+    LOG.verb("Sample.loadfiles: listname=%r -> %r, len(files)=%d, len(filenevts)=%d"%(
       listname_,listname,len(self.files),len(self.filenevts)),verbosity,1)
     filenevts = self.filenevts
     nevents   = 0
@@ -396,7 +397,7 @@ class Sample(object):
     for path in paths:
       listname_ = repkey(listname,PATH=path.strip('/').replace('/','__'))
       if self.verbosity>=1:
-        print ">>> Loading sample files from %r..."%(listname_)
+        print ">>> Sample.loadfiles: Loading sample files from %r..."%(listname_)
       self.pathfiles[path] = [ ]
       if os.path.isfile(listname_):
         skip = False
@@ -432,22 +433,22 @@ class Sample(object):
               filelist.append(infile)
               self.pathfiles[path].append(infile)
         if not filelist:
-          LOG.warning("loadfiles: Did not find any files in %s!"%(listname_))
+          LOG.warning("Sample.loadfiles: Did not find any files in %s!"%(listname_))
           self.refreshable = True
         else: # sanity check for empty list
           for subpath in subpaths:
             if not self.pathfiles[subpath]:
-              LOG.warning("loadfiles: Did not find any files for path %s in %s!"%(subpath,listname_))
+              LOG.warning("Sample.loadfiles: Did not find any files for path %s in %s!"%(subpath,listname_))
       else:
-        LOG.warning("loadfiles: file list %s does not exist!"%(listname_))
+        LOG.warning("Sample.loadfiles: file list %s does not exist!"%(listname_))
         self.refreshable = True
     for path in self.paths:
       if path not in self.pathfiles: # nonexistent list
-        LOG.warning("loadfiles: Did not find any files for path %s in %s!"%(path,listname))
+        LOG.warning("Sample.loadfiles: Did not find any files for path %s in %s!"%(path,listname))
     if self.nevents<=0:
       self.nevents = nevents
     elif self.nevents!=nevents:
-      LOG.warning("loadfiles: stored nevents=%d does not match the sum total of file events, %d!"%(self.nevents,nevents))
+      LOG.warning("Sample.loadfiles: stored nevents=%d does not match the sum total of file events, %d!"%(self.nevents,nevents))
       self.nevents == nevents
     self.files = filelist
     self.files.sort()

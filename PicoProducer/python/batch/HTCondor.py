@@ -38,7 +38,7 @@ class HTCondor(BatchSystem):
       subcmd += " "+options
     if short:
       if not queue: queue = "espresso"
-      if not time:  time  = "360" # 6 minutes
+      if not time:  time  = "720" # 12 minutes
     if queue:
       appcmds.append("+JobFlavour=%s"%(queue))
     if time:
