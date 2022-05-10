@@ -7,30 +7,22 @@ samples  = [
   
   # DRELL-YAN
   M('DY','DYJetsToLL_M-50',
-    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,opts='zpt=True',
-  ),
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts='zpt=True'),
   
   # TTBAR
   M('TT','TTTo2L2Nu',
-    "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,opts='toppt=True',
-  ),
+    "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts='toppt=True'),
   M('TT','TTToSemiLeptonic',
-    "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v1/NANOAODSIM",
-    "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20_ext3-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,opts='toppt=True',
-  ),
+    "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts='toppt=True'),
   M('TT','TTToHadronic',
-    "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20-v3/NANOAODSIM",
-    "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20_ext2-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,opts='toppt=True',
-  ),
+    "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts='toppt=True'),
   
   # DATA
-  D('Data','SingleMuon_Run2018B', "/SingleMuon/Run2018B-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
-  ),
-  
+  D('Data','SingleMuon_Run2018B',"/SingleMuon/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+    store=storage,url=url,files=filelist,channels=['mutau','mumu']),
   
 ]

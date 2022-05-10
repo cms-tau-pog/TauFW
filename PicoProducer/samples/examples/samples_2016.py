@@ -7,20 +7,22 @@ samples  = [
   
   # DRELL-YAN
   M('DY','DYJetsToLL_M-50',
-    "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7_ext1-v1/NANOAODSIM",
-    #"/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7_ext2-v1/NANOAODSIM",
-    store=storage,url=url,file=filelist,opts='zpt=True',
-  ),
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts='zpt=True'),
   
   # TTBAR
-  M('TT','TT',
-    "/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7-v2/NANOAODSIM",
-    store=storage,url=url,file=filelist,opts='toppt=True',
-  ),
+  M('TT','TTTo2L2Nu',
+    "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts="useT1=True,toppt=True"),
+  M('TT','TTToSemiLeptonic',
+    "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts="useT1=True,toppt=True"),
+  M('TT','TTToHadronic',
+    "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts="useT1=True,toppt=True"),
   
   # DATA
-  D('Data','SingleMuon_Run2016C', "/SingleMuon/Run2016C-Nano25Oct2019-v1/NANOAOD",
-    store=storage,url=url,file=filelist,channels=['mutau','mumu'],
-  ),
+  D('Data','SingleMuon_Run2016C',"/SingleMuon/Run2016F-UL2016_MiniAODv1_NanoAODv2-v4/NANOAOD",
+    store=storage,url=url,files=filelist,channels=['mutau','mumu']),
   
 ]
