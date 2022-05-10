@@ -91,7 +91,7 @@ if __name__ == "__main__":
                                                 help="queue of batch system (job flavor on HTCondor)")
   parser_job.add_argument('-P','--prompt',      dest='prompt', action='store_true',
                                                 help="ask user permission before submitting a sample")
-  parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=1000, default=0,
+  parser_job.add_argument('-T','--test',        dest='testrun', type=int, nargs='?', const=2000, default=0,
                           metavar='NEVTS',      help="run a test with limited nummer of jobs and events, default nevts=%(const)d")
   parser_job.add_argument('-n','--filesperjob', dest='nfilesperjob', type=int, default=-1,
                                                 help="number of files per job, default=%d"%(CONFIG.nfilesperjob))
