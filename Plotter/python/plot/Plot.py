@@ -860,6 +860,15 @@ class Plot(object):
     # ENTRIES
     if hists:
       for hist_, entry_, style_ in columnize(zip(hists,entries,styles),ncols):
+        if '$INT' in entry_: # add histogram integral in entry
+          intstr = "%+.1f"%hist_.Integral()
+          LOG.verb("Plot.drawlegend: Replace '$INT' with %r in %r"%(intstr,entry_),verbosity,3)
+          entry_ = entry_.replace('$INT',"%+.1f"%num)
+        if '$FRAC' in entry_ and hists[0].Integral()>0: # add relative difference in entry
+          num, den = hist_.Integral(), hists[0].Integral()
+          frac = "%+.1f%%"%(100.*(num/den-1.))
+          LOG.verb("Plot.drawlegend: Replace '$FRAC' with %r (num=%s, den=%s) in %r"%(frac,num,den,entry_),verbosity,3)
+          entry_ = entry_.replace('$FRAC',frac)
         for entry in entry_.split('\n'): # break lines
           LOG.verb("Plot.drawlegend: Add entry (%r,%r,%r)"%(hist_,entry,style_),verbosity,2)
           legend.AddEntry(hist_,entry,style_)
