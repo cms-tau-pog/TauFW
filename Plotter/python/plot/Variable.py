@@ -123,32 +123,42 @@ class Variable(object):
   def clone(self,*args,**kwargs):
     """Shallow copy."""
     verbosity = LOG.getverbosity(self,kwargs)
-    if not args:
-      args = self.getbins()
-      cut  = kwargs.get('cut',None)
+    strargs = tuple([a for a in args if isinstance(a,str)]) # string arguments: name, title
+    binargs = tuple([a for a in args if not isinstance(a,str)])
+    if verbosity>=2:
+      print ">>> Variable.clone: Old strargs=%r, binargs=%r, kwargs=%r"%(strargs,binargs,kwargs)
+    if not strargs:
+      strargs = (kwargs.pop('name',self.name),) # default name
+    if not binargs: # get binning
+      binargs = self.getbins()
+      cut = kwargs.get('cut',None)
       if cut and self.ctxbins: # change context based on extra cut
         bins = self.ctxbins.getcontext(cut) # get bins in this context
-        if args!=bins and verbosity>=2:
-          print ">>> Variable.clone: Changing binning %r -> %r because of context %r"%(args,bins,cut)
-        args = bins
-      if isinstance(args,list): # assume list is bin edges
-        args = (args,)
+        if binargs!=bins and verbosity>=2:
+          print ">>> Variable.clone: Changing binning %r -> %r because of context %r"%(binargs,bins,cut)
+        binargs = bins
+      if isinstance(binargs,list): # assume list is bin edges
+        binargs = (binargs,) # force list in tuple
     newdict = self.__dict__.copy()
     if 'fname' in kwargs:
       kwargs['filename'] = kwargs['fname']
     if 'filename' in kwargs:
       kwargs['filename'] = kwargs['filename'].replace('$FILE',self.filename)
+    if 'tag' in kwargs:
+      kwargs['filename'] = kwargs.get('filename',self.filename)+kwargs['tag']
     if kwargs.get('combine',True) and 'weight' in kwargs and self.weight:
       kwargs['weight'] = combineWeights(kwargs['weight'],self.weight)
-    for key in kwargs.keys()+['nbins','min','max','bins']: # to be reset with args
-      if key in newdict:
-        newdict.pop(key)
+    for key in kwargs.keys()+['name','title','nbins','min','max','bins']: # prevent overwrite: set via newargs
+      newdict.pop(key,None)
     if 'cbins' in kwargs:
       newdict.pop('ctxbins')
     elif self.ctxbins:
       newdict['ctxbins'] = self.ctxbins.clone() # create new dictionary
-      newdict['ctxbins'].default = args # change default context
-    newvar = Variable(self.name,*args,**kwargs)
+      newdict['ctxbins'].default = binargs # change default context
+    newargs = strargs+binargs
+    if verbosity>=2:
+      print ">>> Variable.clone: New args=%r, kwargs=%r"%(newargs,kwargs)
+    newvar = Variable(*newargs,**kwargs)
     newvar.__dict__.update(newdict)
     if verbosity>=2:
       print ">>> Variable.clone: Cloned %r -> %r"%(self,newvar)
