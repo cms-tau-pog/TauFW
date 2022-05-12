@@ -359,6 +359,8 @@ like `DY[1-4]JetsToLL_M-50*` or `W[1-4]JetsToLNu*`. (Here "jet" means number of 
 They increase the statistics, but overlap with their respective jet-inclusive sample.
 Therefore a special "stitching" procedure is needed that changes the effective
 luminosity-cross section normalization per "jet-bin", before they are merged into one big sample.
+The method is explained [[https://twiki.cern.ch/twiki/bin/view/CMS/MCStitching|on this TWiki page]].
+
 You can use the [`stitch` help function](python/sample/utils.py) to do it automatically:
 ```
 sampleset.stitch("W*Jets",   incl='WJ', name='WJ'                               )
