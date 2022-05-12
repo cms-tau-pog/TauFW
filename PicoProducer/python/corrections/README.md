@@ -93,7 +93,7 @@ Please use the official TauID tool. Installation instructions are given in the [
 
 ## B tagging tools
 
-[`BTagTool.py`](BTagTool.py) provides two classes: `BTagWPs` for saving the working points (WPs) per year and type of tagger, and `BTagWeightTool` to provide b tagging weights. These can be called during the initialization of you analysis module, e.g.:
+[`BTagTool.py`](BTagTool.py) provides two classes: `BTagWPs` for saving the working points (WPs) per year and type of tagger, and `BTagWeightTool` to provide b tagging weights. These can be called during the initialization of your analysis module, e.g.:
 ```
 class ModuleMuTau(Module):
   
@@ -121,7 +121,7 @@ The event weight is calculated according to [this method](https://twiki.cern.ch/
 
 ### Computing the b tag efficiencies
 The b tag efficiencies are analysis-dependent. They can be computed from the analysis output run on MC samples.
-For each MC event, fill the numerator and denominator histograms with `BTagWeightTool.fillEfficiencies`,
+For each (pre-)selected MC event, fill the numerator and denominator histograms with `BTagWeightTool.fillEfficiencies`,
 after removing overlap with other selected objects, e.g. the muon and tau object in [`ModuleMuTau.py`](../python/analysis/ModuleMuTau.py):
 <pre>
   def analyze(self, event):
