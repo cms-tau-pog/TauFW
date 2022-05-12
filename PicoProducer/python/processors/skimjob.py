@@ -2,7 +2,7 @@
 # Author: Izaak Neutelings (May 2020)
 # Description: Skim & apply JME corrections
 from __future__ import print_function
-import os
+import os, glob
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
@@ -42,7 +42,7 @@ nfiles    = -1 if maxevts>0 else -1 # maximum number of files to run
 tag       = args.tag                # postfix tag of job output file
 tag       = ('' if not tag or tag.startswith('_') else '_') + tag
 postfix   = tag
-outfiles  = os.path.join(outdir,"*%s.root"%postfix)
+outfname  = os.path.join(outdir,"*%s.root"%postfix)
 url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch          # copy input file(s) to ouput directory first
 doJEC     = args.doJEC             # apply JECs #and dataType=='data'
@@ -75,10 +75,12 @@ if dtype=='data':
   assert all(str(year) in f for f in infiles), "Not all files names are of the same year '%s': %s"%(year,infiles)
   json  = getjson(era,dtype)
   if doJEC:
+    print(">>> Loading createJMECorrector for data, era=%s, pariod=%s..."%(era,period))
     calib = getjmecalib(False,era,runPeriod=period,jetType='AK4PFchs', #,redojec=doJEC
                         noGroom=True,metBranchName=MET,applySmearing=False)()
     modules.append(calib)
 elif doJEC or doJECSys:
+  print(">>> Loading createJMECorrector for MC, era=%s, pariod=%s..."%(era,period))
   calib   = getjmecalib(True,era,jesUncert=jesuncs,jetType='AK4PFchs', #,redojec=doJEC
                       noGroom=True,metBranchName=MET,applySmearing=True)()
   modules.append(calib)
@@ -95,7 +97,7 @@ print(">>> %-12s = %s"%('maxevts',maxevts))
 print(">>> %-12s = %r"%('tag',tag))
 print(">>> %-12s = %r"%('postfix',postfix))
 print(">>> %-12s = %r"%('outdir',outdir))
-print(">>> %-12s = %r"%('outfiles',outfiles))
+print(">>> %-12s = %r"%('outfname',outfname))
 print(">>> %-12s = %r"%('copydir',copydir))
 print(">>> %-12s = %s"%('infiles',infiles))
 print(">>> %-12s = %r"%('branchsel',branchsel))
@@ -110,25 +112,34 @@ print(">>> %-12s = %s"%('preselection',presel))
 print('-'*80)
 
 # RUN
+print(">>> Loading post processor...")
 p = PostProcessor(outdir,infiles,cut=presel,branchsel=None,outputbranchsel=branchsel,
                   firstEntry=firstevt,maxEntries=maxevts,jsonInput=json,
                   modules=modules,postfix=postfix,noOut=False,prefetch=prefetch)
+print(">>> Start post processor...")
 p.run()
+
+# GET OUTFILES
+basenames = [os.path.basename(f).replace('.root','') for f in infiles] # basenames of output files
+outflist = [f for f in glob.glob(outfname) if any(b in f for b in basenames)] # only this job's output
+outfiles = ' '.join(outflist)
+print(">>> Found outflist = %s"%(outfiles))
+if len(outflist)!=len(infiles): # sanity check
+  print(">>> WARNING! len(outfiles)=%s != %s = len(infiles)"%(len(outflist),len(infiles)))
 
 # REDUCE FILE SIZE
 # Temporary solution to reduce file size
 #   https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3734/1.html
 #   https://github.com/cms-nanoAOD/nanoAOD-tools/issues/249
 print(">>> Reduce file size...")
-import glob
 from TauFW.common.tools.utils import execute
-execute("ls -hlt %s"%(outfiles),verb=2)
-for outfile in glob.glob(outfiles):
-  ftmp = outfile.replace(".root","_tmp.root")
-  execute("haddnano.py %s %s"%(ftmp,outfile),verb=2) # reduce file size
-  execute("ls -hlt %s %s"%(ftmp,outfile),verb=2)
-  execute("mv %s %s"%(ftmp,outfile),verb=2)
-execute("ls -hlt %s"%(outfiles),verb=2)
+execute("ls -hlt %s"%(outfname),verb=2)
+for outfile in outflist:
+  tmpfile = outfile.replace(".root","_tmp.root")
+  execute("haddnano.py %s %s"%(tmpfile,outfile),verb=2) # reduce file size
+  execute("ls -hlt %s %s"%(tmpfile,outfile),verb=2)
+  execute("mv %s %s"%(tmpfile,outfile),verb=2)
+execute("ls -hlt %s"%(outfname),verb=2)
 
 # COPY
 if copydir and outdir!=copydir:
