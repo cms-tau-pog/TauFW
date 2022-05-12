@@ -438,6 +438,19 @@ class Sample(object):
       LOG.warn("Sample.getcutflow: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     file.Close()
     return hist
+    
+  def getsumw(self,**kwargs):
+    """Get sum of weights."""
+    verbosity = LOG.getverbosity(kwargs)
+    if isinstance(self,MergedSample):
+      sumw = 0.0
+      for sample in self.samples:
+        sumw += sample.getsumw()
+      self.sumweights = sumw
+    else:
+      sumw = self.sumweights
+    LOG.verb('Sample.getsumw: %r %.10g'%(self.name,sumw),level=2)
+    return sumw
   
   def setnevents(self,binnevts=None,binsumw=None,cutflow=None):
     """Automatically set number of events from the cutflow histogram."""
