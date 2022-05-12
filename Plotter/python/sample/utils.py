@@ -17,7 +17,7 @@ cme  = 13   # center-of-mass energy [TeV]
 xsecs_nlo = { # NLO cross sections to compute k-factor for stitching
   'DYJetsToLL_M-50':     3*2025.74, # NNLO, FEWZ
   'DYJetsToLL_M-10to50':  18610.0, # NLO, aMC@NLO
-  'WJetsToLNu':           61526.7,
+  'WJetsToLNu':         3*20508.9, # NNLO, FEWZ
 }
 
 
