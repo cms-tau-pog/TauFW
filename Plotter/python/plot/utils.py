@@ -222,6 +222,13 @@ def seterrorbandstyle(hist,**kwargs):
   hist.SetFillStyle(style)
   
 
+def ensurepoisson(hist):
+  """Ensure a given histogram has Poisson errors set."""
+  hist.Sumw2(0) # convert back to "normal"
+  hist.SetBinErrorOption(hist.kPoisson)
+  return hist
+  
+
 def getbinedges(hist,**kwargs):
   """Get lower and upper edges of bins"""
   verbosity = LOG.getverbosity(kwargs)
