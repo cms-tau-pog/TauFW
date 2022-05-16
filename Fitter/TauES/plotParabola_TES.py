@@ -623,7 +623,7 @@ def measureTES_fit(filename,asymmetric=True,unc=False):
     return tesf
     
 
-def plotMeasurements(categories,measurements,**kwargs):
+def plotMeasurements(setup, measurements,binsOrder,**kwargs):
     """Plot measurements. in this format:
          cats = [ "cat1",              "cat2"              "cat3"            ]
          meas = [(0.976,0.004,0.004), (0.982,0.006,0.002),(0.992,0.002,0.008)]
@@ -636,8 +636,6 @@ def plotMeasurements(categories,measurements,**kwargs):
     """
     
     npoints      = len(measurements)
-    categories   = categories[::-1]
-    measurements = measurements[::-1]
     minB         = 0.13
     colors       = [ kBlack, kBlue, kRed, kOrange, kGreen, kMagenta ]
     title        = kwargs.get('title',       ""                   )
@@ -673,7 +671,8 @@ def plotMeasurements(categories,measurements,**kwargs):
     # MAKE GRAPH
     errwidth     = 0.1
     graphs       = [ ]
-    for i, points in enumerate(measurements): #(name, points)
+    for i,name in enumerate(binsOrder):
+      points = measurements[name]
       if not isinstance(points,list):
         points = [ points ]
       offset = 1./(len(points)+1)
@@ -780,9 +779,10 @@ def plotMeasurements(categories,measurements,**kwargs):
     else:
       latex.SetTextAlign(32)
       xtext  = xmin-0.02*(xmax-xmin)
-    for i, name in enumerate(categories):
+    for i, name in enumerate(binsOrder):
       ytext = i+0.5
-      latex.DrawLatex(xtext,ytext,name)
+      text = setup["regions"][name]["title"] if "title" in setup["regions"][name] else name
+      latex.DrawLatex(xtext,ytext,text)
     
     CMSStyle.setCMSLumiStyle(canvas,0)
     CMSStyle.cmsTextSize  = 0.85
@@ -850,8 +850,7 @@ def writeMeasurement(filename,categories,measurements,**kwargs):
 def readMeasurement(filename,**kwargs):
     """Read measurements from file."""
     if ".txt" not in filename[-4]: filename += ".txt"
-    categories   = [ ]
-    measurements = [ ]
+    measurements = dict()
     with open(filename,'r') as file:
       print ">>>   reading txt file %s"%(filename)
       startdate = time.strftime("%a %d/%m/%Y %H:%M:%S",time.gmtime())
@@ -859,7 +858,6 @@ def readMeasurement(filename,**kwargs):
       for line in file:
         points  = [ ]
         columns = line.split()
-        categories.append(columns[0])
         i = 1
         while len(columns[i:])>=3:
           try:
@@ -867,7 +865,7 @@ def readMeasurement(filename,**kwargs):
           except ValueError:
             points.append(None)
           i += 3
-        measurements.append(points)
+        measurements[columns[0]] = points
     return measurements
     
 def writeText(*text,**kwargs):
@@ -1016,7 +1014,6 @@ def main(args):
         allObs = []
         allObsTitles = []
         allRegions = []
-        allRegionTitles = []
         for v in setup["observables"]:
             var = setup["observables"][v]
             if not v in allObs:
@@ -1033,10 +1030,6 @@ def main(args):
                     break
             if isUsedInFit and not r in allRegions:
                 allRegions.append(r)
-                if "title" in setup["regions"][r]:
-                    allRegionTitles.append(setup["regions"][r]["title"])
-                else:
-                    allRegionTitles.append(r)
 
         for var in setup["observables"]:
             variable = setup["observables"][var]
@@ -1085,7 +1078,7 @@ def main(args):
             canvas = "%s/measurement_tes_%s%s"%(outdir,channel,ftag)
             measurements = readMeasurement(canvas)
 
-            plotMeasurements(allRegionTitles,measurements,canvas=canvas,xtitle="tau energy scale",xmin=min(setup["TESvariations"]["values"]),xmax=max(setup["TESvariations"]["values"]),L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'])
+            plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau energy scale",xmin=min(setup["TESvariations"]["values"]),xmax=max(setup["TESvariations"]["values"]),L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'])
     
        
 
