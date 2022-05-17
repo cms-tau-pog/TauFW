@@ -69,7 +69,7 @@ class Plot(object):
       if not hist or not isinstance(hist,TH1):
         LOG.throw(IOError,"Plot: Did not recognize histogram in input: %s"%(args,))
     if kwargs.get('clone',False):
-      hists    = [h.Clone(h.GetName()+"_clone_Plot") for h in hists]
+      hists    = [h.Clone(h.GetName()+"_clone_Plot%d"%i) for i, h in enumerate(hists)]
     self.hists = hists
     self.frame = kwargs.get('frame', None )
     frame      = self.frame or self.hists[0]
