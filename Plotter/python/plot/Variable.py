@@ -395,15 +395,32 @@ class Variable(object):
       newvar.filename += vshift # overwrite file name
     return newvar
   
-  def shiftjme(self,jshift,**kwargs):
+  def shiftjme(self,jshift,title=None,**kwargs):
     """Create new variable with a shift tag added to its name."""
+    verbosity = LOG.getverbosity(self,kwargs)
     if len(jshift)>0 and jshift[0]!='_':
       jshift = '_'+jshift
     newname  = shiftjme(self.name,jshift,**kwargs)
     newvar   = deepcopy(self)
+    LOG.verb("Variable.shiftjme: name = %r -> %r"%(self.name,newname),verbosity,2)
     newvar.name = newname # overwrite name
+    if title:
+      newvar.title = title
+    elif self.title[-1] in [']',')']: # insert shift tag into title before units
+      newvar.title = re.sub(r"^(.*\s*)([[(][^()\[\]]+[)\]])$",r"\1%s \2"%(jshift.strip('_')),self.title)
+    else: # add shift tag to title
+      newvar.title += ' '+jshift.strip('_')
+    LOG.verb("Variable.shiftjme: title = %r -> %r"%(self.title,newvar.title),verbosity,2)
     if not kwargs.get('keepfile',False) and self.name!=newname:
       newvar.filename += jshift # overwrite file name
+      LOG.verb("Variable.shiftjme: filename = %r -> %r"%(self.filename,newvar.filename),verbosity,2)
+    if newvar.cut:
+      newvar.cut = shiftjme(newvar.cut,jshift,**kwargs)
+      LOG.verb("Variable.shiftjme: extra cut = %r -> %r"%(self.cut,newvar.cut),verbosity,2)
+    if newvar.ctxcut:
+      for key, cut in newvar.ctxcut.context.iteritems():
+        newvar.ctxcut.context[key] = shiftjme(cut,jshift,**kwargs)
+      newvar.ctxcut.default = shiftjme(newvar.ctxcut.default,jshift,**kwargs)
     return newvar
   
   def shiftname(self,vshift,**kwargs):
