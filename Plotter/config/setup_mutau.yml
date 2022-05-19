@@ -11,9 +11,9 @@
 # Typically, each channel will have its own config file; combination can be done at datacard level
 channel: mutau
 # Tag can be used to differentiate between scenarios
-tag: "_mtlt50"
+tag: ""
 
-baselineCuts: "(q_1*q_2<0) && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
+baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
 
 # These regions will be defined when creating inputs or making plots
 # At this point, they do not need to be exclusive; 
