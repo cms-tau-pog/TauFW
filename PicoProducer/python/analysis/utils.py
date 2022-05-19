@@ -201,7 +201,7 @@ def filtermutau(event):
     ###dRmin = 10.
     for genvistau in Collection(event,'GenVisTau'):
       ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
-      if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId<0:
+      if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0:
         ###dR = min(genvistau.DeltaR(t) for t in taus)
         ###if dR<dRmin: dRmin = dR
         return True
