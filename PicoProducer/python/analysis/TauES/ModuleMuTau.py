@@ -239,7 +239,7 @@ class ModuleMuTau(ModuleTauPair):
       self.out.genvistauphi_2[0] = phi
       self.out.gendm_2[0]        = status
       if self.dozpt:
-        self.out.mutaufilter     = filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
+        self.out.mutaufilter[0]     = filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
     
     
     # JETS
