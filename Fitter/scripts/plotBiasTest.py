@@ -16,22 +16,33 @@ gStyle.SetErrorX(0)
 argv = sys.argv
 description = '''Plots bias tests and comparisons.'''
 parser = ArgumentParser(prog="plotBias",description=description,epilog="Good luck!")
-parser.add_argument( "filenames",          type=str, nargs='+', action='store',
-                                           help="file from fitDiagnostics" ),
-parser.add_argument( '-r', "--rinj",       dest="rinj", type=float, default=0, action='store',
-                                           help="injected signal strength" )
-parser.add_argument( '-t', "--text",       dest="text", type=str, default="", action='store',
-                                           help="extra text" )
-parser.add_argument( '-o', "--outfile",    dest="outfile", type=str, default="biastest", action='store',
-                     metavar="FILENAME",   help="name of output figure" )
-parser.add_argument( '-v', "--verbose",    dest="verbose",  default=False, action='store_true',
-                                           help="set verbose" )
+parser.add_argument("filenames",          type=str, nargs='+',
+                                          help="file from fitDiagnostics" ),
+parser.add_argument('-r', "--rinj",       dest="rinj", type=float, default=0,
+                                          help="injected signal strength" )
+parser.add_argument('-R', "--rtitle",     dest="rtitle",
+                                          help="title for injected signal strength" )
+parser.add_argument('-t', "--text",       dest="text", type=str, default="",
+                                          help="extra text" )
+parser.add_argument('-m', "--nmax",       type=long, default=-1,
+                                          help="maximum number of toys to process" )
+parser.add_argument('-o', "--outfile",    dest="outfile", type=str, default="biastest",
+                    metavar="FILENAME",   help="name of output figure" )
+parser.add_argument('-S', "--skipchecks", action='store_true',
+                                          help="skip checking errors" )
+parser.add_argument('-v', "--verbose",    dest="verbose", action='store_true',
+                                          help="set verbose" )
 args = parser.parse_args()
 
 
 def warning(string,**kwargs):
   return ">>> \033[1m\033[93m%sWarning!\033[0m\033[93m %s\033[0m"%(kwargs.get('pre',""),string)
   
+def lowerstr(string):
+  """Help function to add #lower to ROOT string."""
+  string = re.sub(r"_(\{[^#}]+\})",r"_{#lower[-0.1]\1}",string)
+  string = re.sub(r"\^(\{[^#}]+\})",r"^{#lower[0.25]\1}",string)
+  return string
 
 def columnize(oldlist,ncol=2):
   """Transpose lists into n columns, useful for TLegend,
@@ -67,8 +78,9 @@ def partition(list,nparts):
   return parts
   
 
-def checkErrors(tree):
+def checkErrors(tree,nmax=-1):
   """Help function to check for asymmetric errors, and detect possible 'Error: closed range without finding crossing'."""
+  nmax = long(nmax if nmax>0 else 1e15)
   varexps = [
     ('low',  "rLoErr/rErr"),
     ('up',   "rHiErr/rErr"),
@@ -79,7 +91,7 @@ def checkErrors(tree):
   marks = [ 2, 10, 100, 1000 ]
   cutexp = "fit_status==0 && rErr>0" #|| fit_status==300"
   for name, varexp in varexps:
-    nevts  = tree.Draw(varexp,cutexp,'gOff')
+    nevts = tree.Draw(varexp,cutexp,'gOff',nmax)
     if nevts<=0:
       print warning("Out of %d events none found with %r"%(tree.GetEntries(),cutexp))
     vector = tree.GetV1()
@@ -99,7 +111,8 @@ def checkErrors(tree):
         print warning("Found %s > %2s: %4s/%3s (%.1f%%)"%(varexp,mark,counts[mark],nevts,frac))
     
 
-def drawBiasTest(filenames,outfilename,rinj=0,text=None,write=False):
+def drawBiasTest(filenames,outfilename,rinj=0,text=None,rtitle=None,nmax=-1,
+                 skipchecks=False,write=False,verbose=False):
   """Draw bias test."""
   print '>>> drawBiasTest(%r,%r,rinj=%s)'%(filenames[0],outfilename,rinj)
   gStyle.SetOptStat(1111)
@@ -108,12 +121,14 @@ def drawBiasTest(filenames,outfilename,rinj=0,text=None,write=False):
   # SETTINGS
   tname  = 'tree_fit_sb'
   hname  = 'Toys'
-  htitle = "#mu_{inj.} = %s"%rinj
-  title  = "#mu_{inj.} = %s"%rinj
+  rtitle = str(rinj) if rtitle==None else rtitle.replace("rexp","r_{95%}^{exp}") #lowerstr ##lower[0.7]{exp}
+  htitle = "#mu_{#lower[-0.3]{inj.}} = %s"%rtitle
+  title  = "#mu_{#lower[-0.3]{inj.}} = %s"%rtitle
   ytitle = "Toys"
-  xtitle = "(#mu_{meas.} - #mu_{inj.}) / #sigma_{#mu}"
+  xtitle = "(#mu_{#lower[-0.3]{meas.}} - #mu_{#lower[-0.3]{inj.}}) / #sigma_{#lower[-0.1]{#mu}}}"
   varexp = "(r-%s)/rErr >> %s"%(rinj,hname)
   cutexp = "fit_status==0 || fit_status==300" #fit_status==0" # http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/nonstandard/?#fitting-diagnostics
+  nmax   = long(nmax if nmax>0 else 1e15)
   xmin   = -4
   xmax   = 5
   nbins  = 30
@@ -135,15 +150,18 @@ def drawBiasTest(filenames,outfilename,rinj=0,text=None,write=False):
   hist     = TH1F(hname,htitle,nbins,xmin,xmax)
   #hist.SetDirectory(0)
   print ">>> Draw bias..."
-  tree.Draw(varexp,cutexp,'gOff')
+  tree.Draw(varexp,cutexp,'gOff',nmax)
   print ">>> Fitting Gaussian..."
   hist.Fit('gaus',"0")
-  func     = hist.GetFunction('gaus')
-  checkErrors(tree)
-  nevts    = tree.GetEntries()
-  nevts300 = tree.GetEntries("fit_status==300")
-  if nevts300>0:
-    print warning("Found %d/%d (%.1f%%) events with 'fit_status==300'"%(nevts300,nevts,100.0*nevts300/nevts))
+  func = hist.GetFunction('gaus')
+  if not skipchecks:
+    print ">>> Checking errors..."
+    checkErrors(tree,nmax)
+    print ">>> Checking number of entries with fit_status==300..."
+    nevts    = tree.GetEntries()
+    nevts300 = tree.GetEntries("fit_status==300")
+    if nevts300>0:
+      print warning("Found %d/%d (%.1f%%) events with 'fit_status==300'"%(nevts300,nevts,100.0*nevts300/nevts))
   
   # WRITE to JSON
   bias  = func.GetParameter(1)
@@ -355,8 +373,12 @@ def main():
     # PLOT BIAS TEST
     filenames   = args.filenames
     outfilename = args.outfile
+    nmax        = args.nmax
     rinj        = args.rinj
+    rtitle      = args.rtitle or str(args.rinj)
     text        = args.text.replace("GeV, #","GeV,\n#")
+    skipchecks  = args.skipchecks
+    verbose     = args.verbose
     
     if filenames[0].endswith('.json'):
       # PLOT BIAS SUMMARY
@@ -374,7 +396,7 @@ def main():
             key = key.replace('$EXPSIG','')
           plotBiasSummary(jsonname,signal,masses[signal],labels,key,rinj,header=header)
     else:
-      drawBiasTest(filenames,outfilename,rinj,text,write=True)
+      drawBiasTest(filenames,outfilename,rinj,text,rtitle=rtitle,nmax=nmax,skipchecks=skipchecks,write=True,verbose=verbose)
     
 
 

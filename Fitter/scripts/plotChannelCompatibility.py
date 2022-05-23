@@ -16,19 +16,8 @@ gStyle.SetOptStat(0) # no stat. box
 gStyle.SetEndErrorSize(6) # size of bars at the end of error bars
 
 
-def plotChannelCompatibility(fname,outname,poi='r',rmin=None,rmax=None,**kwargs):
-  # Adapted from
-  #   https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/blob/master/test/plotting/cccPlot.cxx
-  poiname  = poi
-  xtitle   = kwargs.get('xtitle',  "r"     ) #" #sigma/#sigma_{SM}"
-  chandict = kwargs.get('chandict',{ }     ) # dictionary for channel POIs
-  texts    = kwargs.get('text',    [ ]     ) or [ ]
-  exts     = kwargs.get('ext',     ['png'] )
-  verb     = kwargs.get('verb',    0       )
-  if not isinstance(exts,list):
-    exts = list(exts)
-  if isinstance(texts,str):
-    texts = texts.split('\\n') if '\\n' in texts else texts.split('\n')
+def getPOIs(fname,poi='r',chandict={ }):
+  """Get POI from ChannelCompatibilityCheck file."""
   
   # GET FITS
   file = TFile.Open(fname,'READ')
@@ -64,16 +53,52 @@ def plotChannelCompatibility(fname,outname,poi='r',rmin=None,rmax=None,**kwargs)
       print ">>> Found channel POI %r -> %r"%(var.GetName(),channel)
       pois_chan.append(var)
     var = iter.Next()
-  if chandict: # reorder according to channel dictionary
-    keys  = chandict.keys()
+  
+  file.Close()
+  return poi, pois_chan
+
+
+def plotChannelCompatibility(fname,outname,poi='r',rmin=None,rmax=None,**kwargs):
+  # Adapted from
+  #   https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/blob/master/test/plotting/cccPlot.cxx
+  poiname  = poi
+  xtitle   = kwargs.get('xtitle',  "r"     ) #" #sigma/#sigma_{SM}"
+  chandict = kwargs.get('chandict',{ }     ) # dictionary for channel POIs
+  others   = kwargs.get('others',  [ ]     )
+  texts    = kwargs.get('text',    [ ]     ) or [ ]
+  exts     = kwargs.get('ext',     ['png'] )
+  verb     = kwargs.get('verb',    0       )
+  if not isinstance(exts,list):
+    exts = list(exts)
+  if isinstance(texts,str):
+    texts = texts.split('\\n') if '\\n' in texts else texts.split('\n')
+  
+  # GET POIs
+  poi, pois_chan = getPOIs(fname,poi=poiname,chandict=chandict)
+  if others:
+    for ofname in others:
+      pois_chan1 = pois_chan[:] # so list does not increase during iteration
+      poi2, pois_chan2 = getPOIs(ofname,poi=poiname,chandict=chandict)
+      if (poi.getVal()!=poi2.getVal() or poi.getAsymErrorLo()!=poi2.getAsymErrorLo() or poi.getAsymErrorHi()!=poi2.getAsymErrorHi()):
+        print ">>> WARNING! POI results for other file %s (%s = %7.2f %+4.2f %+4.2f) does not match main file %s (%s = %7.2f %+4.2f %+4.2f)"%(
+          ofname,poi2.GetTitle(),poi2.getVal(),poi2.getAsymErrorLo(),poi2.getAsymErrorHi(),
+          fname, poi.GetTitle(), poi.getVal(), poi.getAsymErrorLo(), poi.getAsymErrorHi())
+      for poi_chan in pois_chan2:
+        if not any(poi_chan.GetName()==p.GetName() for p in pois_chan1):
+          print ">>> Adding %r from %s"%(poi_chan.GetTitle(),ofname)
+          pois_chan.append(poi_chan)
+  
+  # SORT
+  if chandict: # reorder according to ordered channel dictionary
+    keys = chandict.keys()
     pois_chan.sort(key=lambda v: keys.index(vname(v)) if vname(v) in keys else len(keys))
-  nchans = len(pois_chan)
   
   # CREATE POINTS
   if verb>=1:
     print ">>> xtitle=%s"%(xtitle)
     print ">>> rmin=%s, rmax=%s"%(rmin,rmax)
   print ">>> %7.2f %+4.2f %+4.2f %s"%(poi.getVal(),poi.getAsymErrorLo(),poi.getAsymErrorHi(),poi.GetTitle())
+  nchans = len(pois_chan)
   frame = TH2F('frame',";Best fit %s;"%(xtitle),1,rmin,rmax,nchans,0,nchans)
   graph = TGraphAsymmErrors(nchans)
   for i, poi_chan in enumerate(pois_chan):
@@ -132,6 +157,7 @@ def plotChannelCompatibility(fname,outname,poi='r',rmin=None,rmax=None,**kwargs)
   canvas.RedrawAxis()
   for ext in exts:
     canvas.SaveAs(outname+'.'+ext)
+  canvas.Close()
   
 
 def main(args):
@@ -139,6 +165,7 @@ def main(args):
   outname    = args.outname
   masses     = args.masses
   names      = args.names
+  others     = args.others
   tag        = args.tag
   poi        = args.poi
   text       = args.text
@@ -149,19 +176,24 @@ def main(args):
   verbosity  = args.verbosity
   chandict   = OrderedDict()
   if dictfname:
+    if verbosity>=2:
+      print ">>> Opening JSON file %r"%(dictfname)
     with open(translate,'r') as dfile:
       chandict = json.load(dfile,object_pairs_hook=OrderedDict)
   for channel in chantitles:
-    channel, chantitle = channel.split('=',1)
+    if verbosity>=2:
+      print ">>> Parsing channel title %r"%(channel)
+    channel, chantitle = channel.split('=',1) if '=' in channel else (channel,channel)
     chandict[channel] = chantitle or channel
     print ">>> %r -> %r"%(channel,chandict[channel])
   for fname in filenames:
     for mass in masses:
       for name in names:
-        fname_ = fname.replace('$NAME',name).replace('$MASS',mass)
+        fname_   = fname.replace('$NAME',name).replace('$MASS',mass)
+        others_  = [f.replace('$NAME',name).replace('$MASS',mass) for f in others]
         outname_ = outname.replace('$NAME',name).replace('$TAG',tag).replace('$MASS',mass)
         plotChannelCompatibility(fname_,outname_,poi=poi,rmin=rmin,rmax=rmax,xtitle=xtitle,
-                                 text=text,chandict=chandict,verb=verbosity)
+                                 text=text,chandict=chandict,others=others_,verb=verbosity)
   
 
 if __name__ == "__main__":
@@ -169,6 +201,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="pulls",description="Plotting script for pulls",epilog="Good luck!")
   parser.add_argument("filenames",        nargs='+', default=["higgsCombineTest$NAME.ChannelCompatibilityCheck.mH$MASS.root"],
                                           help="input ROOT files from ChannelCompatibilityCheck, default=%(default)s")
+  parser.add_argument('-O',"--other",     dest='others', nargs='+', default=[ ], help="extra input file(s) to add in plot")
   parser.add_argument('-o',"--outname",   default='plot_channelCompatibility$NAME$TAG.mH$MASS',
                                           help="name of output image files, default=%(default)s")
   parser.add_argument('-e',"--exts",      nargs='+', default=['png','pdf'],help="output file extensions")
