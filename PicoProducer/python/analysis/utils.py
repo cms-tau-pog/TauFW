@@ -9,8 +9,21 @@ from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
 from TauFW.common.tools.file import ensurefile
 from TauFW.common.tools.file import ensuremodule as _ensuremodule
 from TauFW.common.tools.log import Logger
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event, Object
 LOG = Logger('Analysis')
+
+
+statusflags_dict = { # GenPart_statusFlags, stored bitwise:
+  # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+  'isPrompt':                      0,   'fromHardProcess':                     8,
+  'isDecayedLeptonHadron':         1,   'isHardProcessTauDecayProduct':        9,
+  'isTauDecayProduct':             2,   'isDirectHardProcessTauDecayProduct': 10,
+  'isPromptTauDecayProduct':       3,   'fromHardProcessBeforeFSR':           11,
+  'isDirectTauDecayProduct':       4,   'isFirstCopy':                        12,
+  'isDirectPromptTauDecayProduct': 5,   'isLastCopy':                         13,
+  'isDirectHadronDecayProduct':    6,   'isLastCopyBeforeFSR':                14,
+  'isHardProcess':                 7,
+}
 
 
 def ensuremodule(modname):
@@ -48,28 +61,26 @@ def redirectbranch(oldbranch,newbranch):
     exec "setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch)
   else: # set default value
     print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
-    exec "setattr(Event,newbranch,%s)"%(oldbranch)  
+    exec "setattr(Event,newbranch,%s)"%(oldbranch)
   
 
 def hasbit(value,bit):
   """Check if i'th bit is set to 1, i.e. binary of 2^i,
   from the right to the left, starting from position i=0."""
-  # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
-  # Gen status flags, stored bitwise, are:
-  #    0: isPrompt,                          8: fromHardProcess,
-  #    1: isDecayedLeptonHadron,             9: isHardProcessTauDecayProduct,
-  #    2: isTauDecayProduct,                10: isDirectHardProcessTauDecayProduct,
-  #    3: isPromptTauDecayProduct,          11: fromHardProcessBeforeFSR,
-  #    4: isDirectTauDecayProduct,          12: isFirstCopy,
-  #    5: isDirectPromptTauDecayProduct,    13: isLastCopy,
-  #    6: isDirectHadronDecayProduct,       14: isLastCopyBeforeFSR
-  #    7: isHardProcess,
   ###return bin(value)[-bit-1]=='1'
   ###return format(value,'b').zfill(bit+1)[-bit-1]=='1'
   return (value & (1 << bit))>0
   
 
-def dumpgenpart(part,genparts=None,event=None,flags=[]):
+def hasstatusflag(particle,*flags):
+  """Check if status flag of a GenPart is set."""
+  # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+  return all((particle.statusFlags & (1 << statusflags_dict[f]))>0 for f in flags)
+Object.statusflag = hasstatusflag # promote to method of Object class for GenPart
+# See PR: https://github.com/cms-nanoAOD/nanoAOD-tools/pull/301
+
+
+def dumpgenpart(part,genparts=None,event=None,flags=[],bits=[]):
   """Print information on gen particle. If collection is given, also print mother's PDG ID."""
   info = ">>>  i=%2s, PID=%3s, status=%2s, mother=%2s"%(part._index,part.pdgId,part.status,part.genPartIdxMother)
   if part.genPartIdxMother>=0:
@@ -79,7 +90,9 @@ def dumpgenpart(part,genparts=None,event=None,flags=[]):
     elif event:
       moth  = event.GenPart_pdgId[part.genPartIdxMother]
       info += " (%3s)"%(moth)
-  for bit in flags:
+  for flag in flags:
+    info += ", %s=%r"%(flag,part.statusflag(flag))
+  for bit in bits:
     info += ", bit%s=%d"%(bit,hasbit(part.statusFlags,bit))
   print info
   
@@ -183,18 +196,21 @@ def filtermutau(event):
   """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
   for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
   Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.801% for DYJetsToLL_M-50."""
+  # Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTau:
+  #   MuHadCut = cms.string('Mu.Pt > 20 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
+  #   https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
   ###print '-'*80
   particles = Collection(event,'GenPart')
   muon = None
   taus = [ ]
   for particle in particles:
     pid = abs(particle.pdgId)
-    if pid==13 and (hasbit(particle.statusFlags,9) or hasbit(particle.statusFlags,10)):
+    if pid==13 and (particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct')):
       ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
       if muon: # more than two muons from hard-proces taus
         return False # do not bother any further
       muon = particle
-    elif pid==15 and particle.status==2 and hasbit(particle.statusFlags,8):
+    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): #hasbit(particle.statusFlags,8):
       ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
       taus.append(particle)
   if len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:

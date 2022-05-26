@@ -5,13 +5,14 @@
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/MCStitching
 # Instructions:
 #   pico.py channel genmutau GenFilterMuTau
+#   pico.py run -c genmutau -y UL2018 -s DYJetsToLL_M-50 -m 1000
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
 from ROOT import TH1D, TH2D, gStyle, kRed
 from TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
-from TauFW.PicoProducer.analysis.utils import hasbit
+from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau
 
 
 class GenFilterMuTau(Module):
@@ -33,6 +34,7 @@ class GenFilterMuTau(Module):
     # SELECT PROMPT CANDIDATES
     #elecs        = [ ] # prompt elecs
     muons        = [ ] # prompt muons
+    taus         = [ ] # prompt taus
     elecs_hard   = [ ] # prompt electrons from hard process
     muons_hard   = [ ] # prompt muons from hard process
     taus_hard    = [ ] # prompt taus from hard process
@@ -43,20 +45,19 @@ class GenFilterMuTau(Module):
       pid = abs(particle.pdgId)
       ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
       if pid==11:
-        # 9: isHardProcessTauDecayProduct, 10: isDirectHardProcessTauDecayProduct
-        if (hasbit(particle.statusFlags,9) or hasbit(particle.statusFlags,10)):
+        if particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct'):
           elecs_tau.append(particle)
-        elif hasbit(particle.statusFlags,8): # fromHardProcess
+        elif particle.statusflag('fromHardProcess'):
           elecs_hard.append(particle)
-      elif pid==13:
+      elif pid==13: #particle.status==2:
         muons.append(particle)
-        # 9: isHardProcessTauDecayProduct, 10: isDirectHardProcessTauDecayProduct
-        if (hasbit(particle.statusFlags,9) or hasbit(particle.statusFlags,10)):
+        if particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct'):
           muons_tau.append(particle)
-        elif hasbit(particle.statusFlags,8): # fromHardProcess
+        elif particle.statusflag('fromHardProcess'):
           muons_hard.append(particle)
-      elif pid==15:
-        if particle.status==2 and hasbit(particle.statusFlags,8): # fromHardProcess
+      elif pid==15 and particle.status==2:
+        taus.append(particle)
+        if particle.statusflag('fromHardProcess'):
           taus_hard.append(particle)
         #else:
         #  taus_hard.append(particle)
@@ -80,6 +81,11 @@ class GenFilterMuTau(Module):
             tauhs_hard.append(match)
     
     # FILL HISTOGRAMS
+    self.out.h_nmuon.Fill(len(muons))
+    self.out.h_ntau.Fill(len(taus))
+    self.out.h_nmuon_status2.Fill(len([m for m in muons if m.status==2]))
+    self.out.h_nmuon_hard.Fill(len(muons_hard))
+    self.out.h_ntau_hard.Fill(len(taus_hard))
     self.out.h_nelec_vs_ntau.Fill(len(elecs_hard),len(taus_hard))
     self.out.h_nmuon_vs_ntau.Fill(len(muons_hard),len(taus_hard))
     self.out.h_nmuon_vs_ntauh.Fill(len(muons_hard),len(tauhs_hard))
@@ -105,14 +111,27 @@ class GenFilterMuTau(Module):
     if len(elecs_tau)+len(muons_tau)==2:
       self.out.cutflow.fill('taultaul')
     
-    if len(muons)==0 and len(genvistaus)==0:
+    # MUTAU FILTER
+    mutaufilter = filtermutau(event)
+    self.out.h_mutaufilter.Fill(mutaufilter)
+    
+    # SELECT MUTAU EVENTS FOR BRANCHES
+    if len(muons)==0 or len(genvistaus)==0:
       return False
     
     ## FILL TREE BRANCHES
-    #self.out.pt[0]                     = tau.pt
-    self.out.nelecs[0]                  = len(elecs_hard)
-    self.out.nmuons[0]                  = len(muons_hard)
-    self.out.ntaus[0]                   = len(taus_hard)
+    if len(muons_hard)>0:
+      muon                  = max(muons_hard,key=lambda m: -m.pt)
+      self.out.mu_pt[0]     = muon.pt
+      self.out.mu_eta[0]    = muon.eta
+    else:
+      self.out.mu_pt[0]     = -1
+      self.out.mu_eta[0]    = -9
+    self.out.nelecs[0]      = len(elecs_hard)
+    self.out.nmuons[0]      = len(muons_hard)
+    self.out.ntaus[0]       = len(taus_hard)
+    self.out.ntauhs[0]      = len(tauhs_hard)
+    self.out.mutaufilter[0] = mutaufilter
     self.out.fill()
     
     return True
@@ -137,20 +156,33 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     self.cutflow.addcut('taultaul',"taultaul" )
     
     # HISTOGRAMS
-    self.h_nup     = TH1D('h_nup',";Number of partons at LHE level;MC events",9,0,9)
-    self.h_dR_tauh = TH1D('h_dR_tauh',";#DeltaR(#tau,#tau);Tau leptons",5,0,5)
-    self.h_nelec_vs_ntau  = TH2D('h_nelec_vs_ntau', ";Number of electrons from hard process;Number of taus from hard process",8,0,8,8,0,8)
-    self.h_nmuon_vs_ntau  = TH2D('h_nmuon_vs_ntau', ";Number of muons from hard process;Number of #tau leptons from hard process",8,0,8,8,0,8)
-    self.h_nmuon_vs_ntauh = TH2D('h_nmuon_vs_ntauh',";Number of muons from hard process;Number of #tau_{#lower[-0.2]{h}} from hard process",8,0,8,8,0,8)
+    self.h_nup            = TH1D('h_nup',";Number of partons at LHE level;MC events",9,0,9)
+    self.h_dR_tauh        = TH1D('h_dR_tauh',";#DeltaR(#tau,#tau);Tau leptons",5,0,5)
+    self.h_mutaufilter    = TH1D('h_mutaufilter',";mutaufilter (pt>18, |eta|<2.5);Events",5,0,5)
+    self.h_nmuon          = TH1D('h_nmuon',";Number of generator muons;Events",8,0,8)
+    self.h_ntau           = TH1D('h_ntau',";Number of generator #tau leptons;Events",8,0,8)
+    self.h_nmuon_status2  = TH1D('h_nmuon_status2',";Number of generator muons (status==2);Events",8,0,8)
+    self.h_nmuon_hard     = TH1D('h_nmuon_hard',";Number of muons from hard process;Events",8,0,8)
+    self.h_ntau_hard      = TH1D('h_ntau_hard',";Number of #tau leptons from hard process;Events",8,0,8)
+    self.h_nelec_vs_ntau  = TH2D('h_nelec_vs_ntau', ";Number of taus from hard process;Number of electrons from hard process",8,0,8,8,0,8)
+    self.h_nmuon_vs_ntau  = TH2D('h_nmuon_vs_ntau', ";Number of taus from hard process;Number of muons from hard process",8,0,8,8,0,8)
+    self.h_nmuon_vs_ntauh = TH2D('h_nmuon_vs_ntauh',";Number of #tau_{#lower[-0.2]{h}} from hard process;Number of muons from hard process",8,0,8,8,0,8)
+    for hist in [self.h_nelec_vs_ntau,self.h_nmuon_vs_ntau,self.h_nmuon_vs_ntauh]:
+      hist.SetOption('COLZ')
     
     # TREE BRANCHES
-    #self.addBranch('pt',           'f')
-    self.addBranch('nelecs',        'i', title="number of prompt gen electrons")
-    self.addBranch('nmuons',        'i', title="number of prompt gen muons")
-    self.addBranch('ntaus',         'i', title="number of prompt gen taus")
+    self.addBranch('mu_pt',       'f', title="leading muon pT")
+    self.addBranch('mu_eta',      'f', title="leading muon eta")
+    self.addBranch('nelecs',      'i', title="number of prompt gen electrons")
+    self.addBranch('nmuons',      'i', title="number of prompt gen muons")
+    self.addBranch('ntaus',       'i', title="number of prompt gen taus")
+    self.addBranch('ntauhs',      'i', title="number of prompt gen tauhs")
+    self.addBranch('mutaufilter', '?', title="mutau filter")
     
   def endJob(self):
     """Write and close files after the job ends."""
+    
+    # DITAU DECAYS
     ntau  = self.cutflow.getbincontent('tautau')
     ntau_ = 0
     if ntau>0:
@@ -162,5 +194,15 @@ class TreeProducerGenFilterMuTau(TreeProducer):
       print ">>> %14.1f / %.1f = %5.2f%%"%(ntau_,ntau,100.0*ntau_/ntau)
     else:
       print ">>> No ditau..."
+    
+    # MUTAU FILTERS
+    # For DYJetsToLL_M-50, expect ~ 0.908 % = B(ll->tautau) * eff(mutau) = 1.843e+03 / 5343.0 * 0.02633
+    npass = self.h_mutaufilter.GetBinContent(2)
+    ntot  = self.h_mutaufilter.GetBinContent(1)+npass
+    assert ntot==self.h_mutaufilter.Integral(), "Bins do not add up!?"
+    if ntot>0:
+      print ">>> Efficiency of custom mutau gen-filter:"
+      print ">>> %14.1f / %.1f = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
+    
     super(TreeProducerGenFilterMuTau,self).endJob()
   
