@@ -80,21 +80,42 @@ Object.statusflag = hasstatusflag # promote to method of Object class for GenPar
 # See PR: https://github.com/cms-nanoAOD/nanoAOD-tools/pull/301
 
 
-def dumpgenpart(part,genparts=None,event=None,flags=[],bits=[]):
+def dumpgenpart(part,genparts=None,event=None,flags=[],bits=[],grand=False):
   """Print information on gen particle. If collection is given, also print mother's PDG ID."""
   info = ">>>  i=%2s, PID=%3s, status=%2s, mother=%2s"%(part._index,part.pdgId,part.status,part.genPartIdxMother)
   if part.genPartIdxMother>=0:
     if genparts: 
-      moth  = genparts[part.genPartIdxMother].pdgId
-      info += " (%3s)"%(moth)
+      moth  = genparts[part.genPartIdxMother]
+      info += " (%3s)"%(moth.pdgId)
+      if grand and moth.genPartIdxMother>=0:
+        grand = genparts[moth.genPartIdxMother]
+        info += ", grand=%2s (%3s)"%(moth.genPartIdxMother, grand.pdgId)
     elif event:
-      moth  = event.GenPart_pdgId[part.genPartIdxMother]
-      info += " (%3s)"%(moth)
+      moth  = part.genPartIdxMother
+      info += " (%3s)"%(event.GenPart_pdgId[moth])
+      if grand and event.GenPart_genPartIdxMother[moth]>=0:
+        granid = event.GenPart_genPartIdxMother[moth]
+        info  += ", grand=%2s (%3s)"%(event.GenPart_genPartIdxMother[granid],event.GenPart_pdgId[granid])
   for flag in flags:
     info += ", %s=%r"%(flag,part.statusflag(flag))
   for bit in bits:
     info += ", bit%s=%d"%(bit,hasbit(part.statusFlags,bit))
   print info
+  
+
+def printdecaychain(part,genparts=None,event=None):
+  """Print decay chain."""
+  chain = ">>>  %3s"%(part.pdgId)
+  imoth = part.genPartIdxMother
+  while imoth>=0:
+    if genparts:
+      moth = genparts[imoth]
+      chain += " <- %3s"%(moth.pdgId)
+      imoth = moth.genPartIdxMother
+    elif event:
+      chain += " <- %3s"%(event.GenPart_pdgId[imoth])
+      imoth = event.GenPart_genPartIdxMother[imoth]
+  print chain
   
 
 def deltaR(eta1, phi1, eta2, phi2):
@@ -197,7 +218,7 @@ def filtermutau(event):
   for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
   Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.801% for DYJetsToLL_M-50."""
   # Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTau:
-  #   MuHadCut = cms.string('Mu.Pt > 20 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
+  #   MuHadCut = cms.string('Mu.Pt > 16 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
   #   https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
   ###print '-'*80
   particles = Collection(event,'GenPart')

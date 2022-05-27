@@ -12,7 +12,10 @@ from ROOT import TH1D, TH2D, gStyle, kRed
 from TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
-from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau
+from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau, statusflags_dict, dumpgenpart, printdecaychain
+
+isHardProcTau = lambda p: p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct')
+countHardProcTau = lambda l: sum(1 for p in l if p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct'))
 
 
 class GenFilterMuTau(Module):
@@ -32,26 +35,30 @@ class GenFilterMuTau(Module):
     #self.out.h_weight.Fill(event.LHE_Njets)
     
     # SELECT PROMPT CANDIDATES
-    #elecs        = [ ] # prompt elecs
-    muons        = [ ] # prompt muons
-    taus         = [ ] # prompt taus
-    elecs_hard   = [ ] # prompt electrons from hard process
-    muons_hard   = [ ] # prompt muons from hard process
-    taus_hard    = [ ] # prompt taus from hard process
+    elecs        = [ ] # all (unique) elecs
+    muons        = [ ] # all (unique) muons
+    taus         = [ ] # all (unique) taus
+    elecs_hard   = [ ] # electrons from hard process
+    muons_hard   = [ ] # muons from hard process
+    taus_hard    = [ ] # taus from hard process
     elecs_tau    = [ ] # electrons from decay of prompt tau
     muons_tau    = [ ] # muons from decay of prompt tau
     particles = Collection(event,'GenPart')
     for particle in particles:
       pid = abs(particle.pdgId)
-      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
+      if pid>20: continue
+      ###self.out.fillStatusFlag(particle) # check correlations
+      if not particle.statusflag('isLastCopy'): continue # ignore duplicate particles before FSR
+      # https://github.com/cms-sw/cmssw/blob/e48b3c4c1c95b0bb8baa89b216313f012877a73e/PhysicsTools/NanoAOD/python/genparticles_cff.py#L8-L28
       if pid==11:
-        if particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct'):
+        elecs.append(particle)
+        if particle.statusflag('isDirectTauDecayProduct'): # use "direct" to remove tau -> pi0 -> e+e-
           elecs_tau.append(particle)
         elif particle.statusflag('fromHardProcess'):
           elecs_hard.append(particle)
       elif pid==13: #particle.status==2:
         muons.append(particle)
-        if particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct'):
+        if particle.statusflag('isDirectTauDecayProduct'):
           muons_tau.append(particle)
         elif particle.statusflag('fromHardProcess'):
           muons_hard.append(particle)
@@ -64,15 +71,15 @@ class GenFilterMuTau(Module):
     
     # HADRONIC TAUS
     tauhs_hard = [ ] # hadronic tau from prompt tau
-    genvistaus = Collection(event,'GenVisTau')
-    if len(taus_hard)>=2:
+    if len(taus_hard)>=1:
       #print '-'*20+" 2 taus "
+      genvistaus = Collection(event,'GenVisTau') # slimmed with pt > 10
       for tau in taus_hard:
-        dRmin = 1.0
+        dRmin = 3.0
         match = None
         for genvistau in genvistaus:
           dR = tau.DeltaR(genvistau)
-          if dR<dRmin:
+          if dR<dRmin and tau.pdgId*genvistau.charge<0: # same charge
             dRmin = dR
             match = genvistau
         if match:
@@ -80,15 +87,36 @@ class GenFilterMuTau(Module):
           if dRmin<0.5: # and genvistau in tauhs_hard
             tauhs_hard.append(match)
     
+    #### CHECK FOR OVERLAPPING ELECTRONS
+    ###if elecs_tau or muons_tau:
+    ###  print '-'*80
+    ###  for particle in elecs_tau+muons_tau:
+    ###    dumpgenpart(particle,particles,grand=True,flags=['isPrompt','fromHardProcess','isDirectTauDecayProduct',
+    ###      'isHardProcessTauDecayProduct','isDirectHardProcessTauDecayProduct']) #,'isLastCopyBeforeFSR','isLastCopy'])
+    ###for i, elec1 in enumerate(elecs):
+    ###  for elec2 in elecs[i+1:]:
+    ###    self.out.h_dR_elec.Fill(elec1.DeltaR(elec2))
+    
     # FILL HISTOGRAMS
+    self.out.h_nelec.Fill(len(elecs))
+    self.out.h_nelec_tau.Fill(len(elecs_tau))
+    self.out.h_nelec_hard.Fill(len(elecs_hard))
     self.out.h_nmuon.Fill(len(muons))
-    self.out.h_ntau.Fill(len(taus))
-    self.out.h_nmuon_status2.Fill(len([m for m in muons if m.status==2]))
+    self.out.h_nmuon_tau.Fill(len(muons_tau))
     self.out.h_nmuon_hard.Fill(len(muons_hard))
+    self.out.h_ntau.Fill(len(taus))
     self.out.h_ntau_hard.Fill(len(taus_hard))
-    self.out.h_nelec_vs_ntau.Fill(len(elecs_hard),len(taus_hard))
-    self.out.h_nmuon_vs_ntau.Fill(len(muons_hard),len(taus_hard))
-    self.out.h_nmuon_vs_ntauh.Fill(len(muons_hard),len(tauhs_hard))
+    self.out.h_ntauh_hard.Fill(len(tauhs_hard))
+    self.out.h_nmuon_nelec.Fill(len(muons_hard),len(elecs_hard))
+    self.out.h_nmuon_nelec_tau.Fill(len(muons_tau),len(elecs_tau))
+    self.out.h_ntau_nelec.Fill(len(taus_hard),len(elecs_hard))
+    self.out.h_ntau_nelec_tau.Fill(len(taus_hard),len(elecs_tau))
+    self.out.h_ntauh_nelec_tau.Fill(len(tauhs_hard),len(elecs_tau))
+    self.out.h_ntau_nmuon.Fill(len(taus_hard),len(muons_hard))
+    self.out.h_ntau_nmuon_tau.Fill(len(taus_hard),len(muons_tau))
+    self.out.h_ntauh_nmuon.Fill(len(tauhs_hard),len(muons_hard))
+    self.out.h_ntauh_nmuon_tau.Fill(len(tauhs_hard),len(muons_tau))
+    self.out.h_ntau_ntauh.Fill(len(taus_hard),len(tauhs_hard))
     if len(elecs_hard)>=2:
       self.out.cutflow.fill('ll')
       self.out.cutflow.fill('ee')
@@ -102,34 +130,65 @@ class GenFilterMuTau(Module):
       self.out.cutflow.fill('unknown')
     
     # TAU DECAYS
-    if len(elecs_tau)==1 and len(tauhs_hard)==1:
+    ntauhs = event.nGenVisTau #len(tauhs_hard)
+    taus_hard_pt20 = sum(1 for p in taus_hard if p.pt>20)>=2 # GenVisTau, has pt>10
+    #if len(taus_hard)>=2:
+    if len(elecs_tau)>=1 and ntauhs>=1:
       self.out.cutflow.fill('etauh')
-    if len(muons_tau)==1 and len(tauhs_hard)==1:
+      if taus_hard_pt20 and countHardProcTau(elecs_tau)>=1:
+        self.out.cutflow.fill('etauh_hard')
+    if len(muons_tau)>=1 and ntauhs>=1:
       self.out.cutflow.fill('mutauh')
-    if len(tauhs_hard)==2:
+      if taus_hard_pt20 and countHardProcTau(muons_tau)>=1:
+        self.out.cutflow.fill('mutauh_hard')
+    if ntauhs>=2:
       self.out.cutflow.fill('tauhtauh')
-    if len(elecs_tau)+len(muons_tau)==2:
+      if taus_hard_pt20:
+        self.out.cutflow.fill('tauhtauh_hard')
+    if len(elecs_tau)+len(muons_tau)>=2:
       self.out.cutflow.fill('taultaul')
+      if taus_hard_pt20 and countHardProcTau(elecs_tau)+countHardProcTau(muons_tau)>=2:
+        self.out.cutflow.fill('taultaul_hard')
     
     # MUTAU FILTER
     mutaufilter = filtermutau(event)
     self.out.h_mutaufilter.Fill(mutaufilter)
     
     # SELECT MUTAU EVENTS FOR BRANCHES
-    if len(muons)==0 or len(genvistaus)==0:
+    if len(muons)==0 or len(tauhs_hard)==0:
       return False
     
-    ## FILL TREE BRANCHES
-    if len(muons_hard)>0:
-      muon                  = max(muons_hard,key=lambda m: -m.pt)
-      self.out.mu_pt[0]     = muon.pt
-      self.out.mu_eta[0]    = muon.eta
-    else:
-      self.out.mu_pt[0]     = -1
-      self.out.mu_eta[0]    = -9
-    self.out.nelecs[0]      = len(elecs_hard)
-    self.out.nmuons[0]      = len(muons_hard)
-    self.out.ntaus[0]       = len(taus_hard)
+    # FILL TREE BRANCHES
+    muon                    = max(muons,key=lambda m: m.pt)
+    tauh                    = max(tauhs_hard,key=lambda t: t.pt)
+    if len(taus)>=2:
+      taus                  = sorted(taus_hard,key=lambda t: -t.pt)
+      self.out.pt_1[0]      = taus[0].pt
+      self.out.pt_2[0]      = taus[1].pt
+      self.out.eta_1[0]     = taus[0].eta
+      self.out.eta_2[0]     = taus[1].eta
+    elif len(taus)>=1:
+      self.out.pt_1[0]      = taus[0].pt
+      self.out.pt_2[0]      = -1
+      self.out.eta_1[0]     = taus[0].eta
+      self.out.eta_2[0]     = -9
+    elif len(taus)>=1:
+      self.out.pt_1[0]      = -1
+      self.out.pt_2[0]      = -1
+      self.out.eta_1[0]     = -9
+      self.out.eta_2[0]     = -9
+    self.out.mu_pt[0]       = muon.pt
+    self.out.mu_eta[0]      = muon.eta
+    self.out.tauh_pt[0]     = tauh.pt
+    self.out.tauh_eta[0]    = tauh.eta
+    self.out.nelecs[0]      = len(elecs)
+    self.out.nelecs_tau[0]  = len(elecs_tau)
+    self.out.nelecs_hard[0] = len(elecs_hard)
+    self.out.nmuons[0]      = len(muons)
+    self.out.nmuons_tau[0]  = len(muons_tau)
+    self.out.nmuons_hard[0] = len(muons_hard)
+    self.out.ntaus[0]       = len(taus)
+    self.out.ntaus_hard[0]  = len(taus_hard)
     self.out.ntauhs[0]      = len(tauhs_hard)
     self.out.mutaufilter[0] = mutaufilter
     self.out.fill()
@@ -144,65 +203,125 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     super(TreeProducerGenFilterMuTau,self).__init__(filename,module,**kwargs)
     
     # CUTFLOW
-    self.cutflow.addcut('none',    "no cut"   )
-    self.cutflow.addcut('ll',      "ll"       )
-    self.cutflow.addcut('ee',      "ee"       )
-    self.cutflow.addcut('mumu',    "mumu"     )
-    self.cutflow.addcut('tautau',  "tautau"   )
-    self.cutflow.addcut('unknown', "unknown"  )
-    self.cutflow.addcut('etauh',   "etauh"    )
-    self.cutflow.addcut('mutauh',  "mutauh"   )
-    self.cutflow.addcut('tauhtauh',"tauhtauh" )
-    self.cutflow.addcut('taultaul',"taultaul" )
+    self.cutflow.addcut('none',         "no cut"       )
+    self.cutflow.addcut('ll',           "ll"           )
+    self.cutflow.addcut('ee',           "ee"           )
+    self.cutflow.addcut('mumu',         "mumu"         )
+    self.cutflow.addcut('tautau',       "tautau"       )
+    self.cutflow.addcut('unknown',      "unknown"      )
+    self.cutflow.addcut('etauh',        "etauh"        )
+    self.cutflow.addcut('mutauh',       "mutauh"       )
+    self.cutflow.addcut('tauhtauh',     "tauhtauh"     )
+    self.cutflow.addcut('taultaul',     "taultaul"     )
+    self.cutflow.addcut('etauh_hard',   "etauh_hard"   )
+    self.cutflow.addcut('mutauh_hard',  "mutauh_hard"  )
+    self.cutflow.addcut('tauhtauh_hard',"tauhtauh_hard")
+    self.cutflow.addcut('taultaul_hard',"taultaul_hard")
     
     # HISTOGRAMS
-    self.h_nup            = TH1D('h_nup',";Number of partons at LHE level;MC events",9,0,9)
-    self.h_dR_tauh        = TH1D('h_dR_tauh',";#DeltaR(#tau,#tau);Tau leptons",5,0,5)
-    self.h_mutaufilter    = TH1D('h_mutaufilter',";mutaufilter (pt>18, |eta|<2.5);Events",5,0,5)
-    self.h_nmuon          = TH1D('h_nmuon',";Number of generator muons;Events",8,0,8)
-    self.h_ntau           = TH1D('h_ntau',";Number of generator #tau leptons;Events",8,0,8)
-    self.h_nmuon_status2  = TH1D('h_nmuon_status2',";Number of generator muons (status==2);Events",8,0,8)
-    self.h_nmuon_hard     = TH1D('h_nmuon_hard',";Number of muons from hard process;Events",8,0,8)
-    self.h_ntau_hard      = TH1D('h_ntau_hard',";Number of #tau leptons from hard process;Events",8,0,8)
-    self.h_nelec_vs_ntau  = TH2D('h_nelec_vs_ntau', ";Number of taus from hard process;Number of electrons from hard process",8,0,8,8,0,8)
-    self.h_nmuon_vs_ntau  = TH2D('h_nmuon_vs_ntau', ";Number of taus from hard process;Number of muons from hard process",8,0,8,8,0,8)
-    self.h_nmuon_vs_ntauh = TH2D('h_nmuon_vs_ntauh',";Number of #tau_{#lower[-0.2]{h}} from hard process;Number of muons from hard process",8,0,8,8,0,8)
-    for hist in [self.h_nelec_vs_ntau,self.h_nmuon_vs_ntau,self.h_nmuon_vs_ntauh]:
+    self.h_nup             = TH1D('h_nup',";Number of partons at LHE level;MC events",9,0,9)
+    self.h_dR_tauh         = TH1D('h_dR_tauh',";#DeltaR(#tau,#tau);Tau leptons",50,0,4)
+    ###self.h_dR_elec         = TH1D('h_dR_elec',";#DeltaR(e,e);Electron pairs",50,0,4)
+    self.h_mutaufilter     = TH1D('h_mutaufilter',";mutaufilter (pt>18, |eta|<2.5);Events",5,0,5)
+    self.h_nelec           = TH1D('h_nelec',";Number of generator electrons;Events",8,0,8)
+    self.h_nelec_tau       = TH1D('h_nelec_tau',";Number of electrons from #tau decay;Events",8,0,8)
+    self.h_nelec_hard      = TH1D('h_nelec_hard',";Number of electrons from hard process;Events",8,0,8)
+    self.h_nmuon           = TH1D('h_nmuon',";Number of generator muons;Events",8,0,8)
+    self.h_nmuon_tau       = TH1D('h_nmuon_tau',";Number of muons from tau decay;Events",8,0,8)
+    self.h_nmuon_hard      = TH1D('h_nmuon_hard',";Number of muons from hard process;Events",8,0,8)
+    self.h_ntau            = TH1D('h_ntau',";Number of generator #tau leptons;Events",8,0,8)
+    self.h_ntau_hard       = TH1D('h_ntau_hard',      ";Number of #tau leptons from hard process;Events",8,0,8)
+    self.h_ntauh_hard      = TH1D('h_ntauh_hard',     ";Number of #tau_{#lower[-0.2]{h}} leptons;Events",8,0,8)
+    self.h_nmuon_nelec     = TH2D('h_nmuon_nelec',    ";Number of muons from hard process;Number of electrons from hard process",8,0,8,8,0,8)
+    self.h_nmuon_nelec_tau = TH2D('h_nmuon_nelec_tau',";Number of muons from #tau decay;Number of electrons from #tau decay",8,0,8,8,0,8)
+    self.h_ntau_nelec      = TH2D('h_ntau_nelec',     ";Number of taus from hard process;Number of electrons from hard process",8,0,8,8,0,8)
+    self.h_ntau_nelec_tau  = TH2D('h_ntau_nelec_tau', ";Number of taus from hard process;Number of electrons from #tau decay",8,0,8,8,0,8)
+    self.h_ntauh_nelec_tau = TH2D('h_ntauh_nelec_tau',";Number of #tau_{#lower[-0.2]{h}} from hard process;Number of electrons from #tau decay",8,0,8,8,0,8)
+    self.h_ntau_nmuon      = TH2D('h_ntau_nmuon',     ";Number of taus from hard process;Number of muons from hard process",8,0,8,8,0,8)
+    self.h_ntau_nmuon_tau  = TH2D('h_ntau_nmuon_tau', ";Number of taus from hard process;Number of muons from #tau decay",8,0,8,8,0,8)
+    self.h_ntauh_nmuon     = TH2D('h_ntauh_nmuon',    ";Number of #tau_{#lower[-0.2]{h}} from hard process;Number of muons from hard process",8,0,8,8,0,8)
+    self.h_ntauh_nmuon_tau = TH2D('h_ntauh_nmuon_tau',";Number of #tau_{#lower[-0.2]{h}} from hard process;Number of muons from #tau decay",8,0,8,8,0,8)
+    self.h_ntau_ntauh      = TH2D('h_ntau_ntauh',     ";Number of taus from hard process;Number of #tau_{#lower[-0.2]{h}} from hard process",8,0,8,8,0,8)
+    ###self.h_statusflags     = TH2D('h_statusflags',    ";Status flags;Status flags;Gen particles",15,0,15,15,0,15)
+    for hist in [self.h_nmuon_nelec,self.h_nmuon_nelec_tau,self.h_ntauh_nmuon_tau,self.h_ntauh_nelec_tau,
+                 self.h_ntau_nelec,self.h_ntau_nelec_tau,self.h_ntau_ntauh,
+                 self.h_ntau_nmuon,self.h_ntau_nmuon_tau,self.h_ntauh_nmuon]:
       hist.SetOption('COLZ')
     
     # TREE BRANCHES
+    self.addBranch('pt_1',        'f', title="leading lepton (from hard process) pT")
+    self.addBranch('eta_1',       'f', title="leading lepton (from hard process) eta")
+    self.addBranch('pt_2',        'f', title="subleading lepton (from hard process) pT")
+    self.addBranch('eta_2',       'f', title="subleading lepton (from hard process) eta")
     self.addBranch('mu_pt',       'f', title="leading muon pT")
     self.addBranch('mu_eta',      'f', title="leading muon eta")
-    self.addBranch('nelecs',      'i', title="number of prompt gen electrons")
-    self.addBranch('nmuons',      'i', title="number of prompt gen muons")
-    self.addBranch('ntaus',       'i', title="number of prompt gen taus")
-    self.addBranch('ntauhs',      'i', title="number of prompt gen tauhs")
+    self.addBranch('tauh_pt',     'f', title="leading visible tauh pT")
+    self.addBranch('tauh_eta',    'f', title="leading visible tauh eta")
+    self.addBranch('nelecs',      'i', title="number of gen electrons")
+    self.addBranch('nelecs_tau',  'i', title="number of gen electrons from tau decays")
+    self.addBranch('nelecs_hard', 'i', title="number of gen electrons from hard process")
+    self.addBranch('nmuons',      'i', title="number of gen muons")
+    self.addBranch('nmuons_tau',  'i', title="number of gen muons from tau decays")
+    self.addBranch('nmuons_hard', 'i', title="number of gen muons from hard process")
+    self.addBranch('ntaus',       'i', title="number of gen taus")
+    self.addBranch('ntaus_hard',  'i', title="number of gen taus from hard process")
+    self.addBranch('ntauhs',      'i', title="number of gen tauhs")
     self.addBranch('mutaufilter', '?', title="mutau filter")
     
   def endJob(self):
     """Write and close files after the job ends."""
+    self.outfile.cd()
     
     # DITAU DECAYS
-    ntau  = self.cutflow.getbincontent('tautau')
-    ntau_ = 0
+    ntau = self.cutflow.getbincontent('tautau')
+    bins = [('etauh',23),('mutauh',23),('tauhtauh',42),('taultaul',12)]
     if ntau>0:
-      print ">>> Ditau decays:"
-      for bin, exp in [('etauh',23),('mutauh',23),('tauhtauh',42),('taultaul',12)]:
-        nbin = self.cutflow.getbincontent(bin)
-        ntau_ += nbin
-        print ">>> %14.1f / %.1f = %5.2f%%   %s, expect %s%%"%(nbin,ntau,100.0*nbin/ntau,bin,exp)
-      print ">>> %14.1f / %.1f = %5.2f%%"%(ntau_,ntau,100.0*ntau_/ntau)
+      for tag, title in [('',''),('_hard',' from hard process with tau pT > 20 GeV')]:
+        ntau_decay = sum(self.cutflow.getbincontent(b+tag) for b, e in bins)
+        print ">>> Ditau decays%s:"%(title)
+        for bin, exp in bins:
+          nbin = self.cutflow.getbincontent(bin+tag)
+          print ">>> %8d / %5d = %5.2f%%   %6d / %d = %5.2f%%   %s, expect %s%%"%(
+            nbin,ntau,100.0*nbin/ntau,nbin,ntau_decay,100.0*nbin/ntau_decay,bin,exp)
+        print ">>> %8d / %5d = %5.2f%%   found ditau decays / all tau pairs"%(ntau_decay,ntau,100.0*ntau_decay/ntau)
     else:
       print ">>> No ditau..."
     
     # MUTAU FILTERS
-    # For DYJetsToLL_M-50, expect ~ 0.908 % = B(ll->tautau) * eff(mutau) = 1.843e+03 / 5343.0 * 0.02633
     npass = self.h_mutaufilter.GetBinContent(2)
     ntot  = self.h_mutaufilter.GetBinContent(1)+npass
     assert ntot==self.h_mutaufilter.Integral(), "Bins do not add up!?"
     if ntot>0:
-      print ">>> Efficiency of custom mutau gen-filter:"
-      print ">>> %14.1f / %.1f = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
+      # https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007&page=0
+      print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
+      print ">>> %8d / %5d = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
+      print ">>> Expect ~ 0.908 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.843e+03 / 5343.0 * 0.02633
+    
+    #### NORMALIZE STATUS FLAG CORRELATION MATRIX
+    ###hist  = self.h_statusflags
+    ###nxbins = hist.GetXaxis().GetNbins()
+    ###nybins = hist.GetXaxis().GetNbins()
+    ###hist.GetXaxis().SetLabelSize(0.038)
+    ###hist.GetYaxis().SetLabelSize(0.038)
+    ###hist.SetMarkerSize(1.4) # draw with "COLZ TEXT"
+    ###hist.SetTitle("Normalized columns")
+    ###hist.SetOption('COLZ TEXT') # preset default draw option
+    ###gStyle.SetPaintTextFormat(".0f")
+    ###for ix in range(1,nxbins+1): # loop over columns
+    ###  ntot = hist.GetBinContent(ix,ix)
+    ###  key  = [k for k, v in statusflags_dict.iteritems() if v==ix-1][0]
+    ###  hist.GetXaxis().SetBinLabel(ix,key)
+    ###  hist.GetYaxis().SetBinLabel(ix,key)
+    ###  for iy in range(1,nybins+1): # normalize rows
+    ###    frac = 100.0*hist.GetBinContent(ix,iy)/ntot # fraction of column
+    ###    hist.SetBinContent(ix,iy,frac) # overwrite number of entries with fraction
+    ###gStyle.Write('style')
     
     super(TreeProducerGenFilterMuTau,self).endJob()
   
+  def fillStatusFlag(self,particle):
+    for xbit in xrange(0,15):
+      if not hasbit(particle.statusFlags,xbit): continue
+      for ybit in xrange(0,15):
+        if not hasbit(particle.statusFlags,ybit): continue
+        self.h_statusflags.Fill(xbit,ybit)

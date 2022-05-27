@@ -30,7 +30,7 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DYJetsToMuTauh_M-50',
     "/DYJetsToTauTauToMuTauh_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL16NanoAODAPVv2-106X_mcRun2_asymptotic_preVFP_v9-v1/NANOAODSIM", # BUGGY Summer19
-    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True",channels=["skim*",'mutau*']),
+    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True",channels=["skim*",'*mutau*']),
   #M('DY','DYJetsToEorMuTauh_M-50',
   #  "/DYJetsToTauTau_M-50_AtLeastOneEorMuDecay_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL16NanoAODv2-106X_mcRun2_asymptotic_v15-v1/NANOAODSIM",
   #  store=storage,url=url,files=filelist,opts="useT1=True,zpt=True",channels=["skim*",'mutau*','etau*']),

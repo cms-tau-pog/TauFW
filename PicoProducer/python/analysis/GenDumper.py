@@ -11,6 +11,13 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from TauFW.PicoProducer.analysis.utils import hasbit
 
 
+#def hasbit(value,bit):
+#  https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+#  """Check if i'th bit is set to 1, i.e. binary of 2^i,
+#  from the right to the left, starting from position i=0."""
+#  return (value & (1 << bit))>0
+
+
 def parsechain(particles,seeds,chain,indent=""):
   """Recursively print decay chain from dictionary."""
   string = ""
@@ -26,7 +33,7 @@ def parsechain(particles,seeds,chain,indent=""):
     if i<len(seeds)-1:
       string += '\n'+indent
   return string
-
+  
 
 # DUMPER MODULE
 class GenDumper(Module):
@@ -57,8 +64,8 @@ class GenDumper(Module):
         mothpid = -1
         mothdR  = -1
       eta       = max(-9999,min(9999,particle.eta))
-      prompt    = hasbit(particle.statusFlags,0)
-      lastcopy  = hasbit(particle.statusFlags,13)
+      prompt    = particle.statusflag('isPrompt') #hasbit(particle.statusFlags,0)
+      lastcopy  = particle.statusflag('isLastCopy') #hasbit(particle.statusFlags,13)
       #bothflags = (particle.statusFlags & 8193)==8193 # test both bits simultaneously: 2^0 + 2^13 = 8193
       #assert (prompt and lastcopy)==bothflags
       print " %7d %8d %8d %8d %8.2f %8.2f %8.2f %8d %9s %10s"%(
