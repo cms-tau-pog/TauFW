@@ -12,7 +12,7 @@ from ROOT import TH1D, TH2D, gStyle, kRed
 from TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
-from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau, statusflags_dict, dumpgenpart, printdecaychain
+from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau, statusflags_dict, dumpgenpart, printdecaychain, getmother
 
 #isHardProcTau = lambda p: p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct')
 countHardProcTau = lambda l: sum(1 for p in l if p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct'))
@@ -158,6 +158,14 @@ class GenFilterMuTau(Module):
     if len(muons)==0 or len(tauhs_hard)==0:
       return False
     
+    # MOTHER PDG ID
+    moth_pid = abs(getmother(taus_hard[0],particles)) if len(taus_hard)>=1 else 0
+    if len(taus_hard)>=2:
+      moth_pid2 = abs(getmother(taus_hard[1],particles))
+      if moth_pid!=moth_pid2:
+        print ">>> Mother of ditau does not match! %s vs %s"%(moth_pid,moth_pid2)
+    self.out.h_mothpid.Fill(moth_pid)
+    
     # FILL TREE BRANCHES
     muon = max(muons,key=lambda m: m.pt)
     tauh = max(tauhs_hard,key=lambda t: t.pt)
@@ -190,6 +198,7 @@ class GenFilterMuTau(Module):
       self.out.mu_tau_pt[0]       = -1
       self.out.mu_tau_eta[0]      = -9
       self.out.mu_tau_fromHard[0] = False
+    self.out.moth_pid[0]     = moth_pid
     self.out.tauh_pt[0]      = tauh.pt
     self.out.tauh_eta[0]     = tauh.eta
     self.out.nelecs[0]       = len(elecs)
@@ -230,8 +239,9 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     self.cutflow.addcut('taultaul_hard',"taultaul_hard")
     
     # HISTOGRAMS
-    self.h_nup             = TH1D('h_nup',        ";Number of partons at LHE level;MC events",9,0,9)
-    self.h_dR_tauh         = TH1D('h_dR_tauh',    ";#DeltaR(#tau,#tau);Tau leptons",50,0,4)
+    self.h_nup             = TH1D('h_nup',        ";Number of partons at LHE level;Events",9,0,9)
+    self.h_mothpid         = TH1D('h_mothpid',    ";Mother PID ;#tau#tau events",40,0,40)
+    self.h_dR_tauh         = TH1D('h_dR_tauh',    ";#DeltaR(#tau,#tau_{#lower[-0.2]{h}});Tau leptons",50,0,4)
     ###self.h_dR_elec         = TH1D('h_dR_elec',   ";#DeltaR(e,e);Electron pairs",50,0,4)
     self.h_mutaufilter     = TH1D('h_mutaufilter',";mutaufilter (pt>18, |eta|<2.5);Events",5,0,5)
     self.h_nelec           = TH1D('h_nelec',      ";Number of generator electrons;Events",8,0,8)
@@ -271,6 +281,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     self.addBranch('mu_tau_pt',       'f', title="leading muon (from tau decay) pT")
     self.addBranch('mu_tau_eta',      'f', title="leading muon (from tau decay) eta")
     self.addBranch('mu_tau_fromHard', '?', title="leading muon (from tau decay) fromHardProcess")
+    self.addBranch('moth_pid',        'i', title="PDG ID")
     self.addBranch('tauh_pt',         'f', title="leading visible tauh pT")
     self.addBranch('tauh_eta',        'f', title="leading visible tauh eta")
     self.addBranch('nelecs',          'i', title="number of gen electrons")
