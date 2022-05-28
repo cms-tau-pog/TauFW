@@ -18,6 +18,12 @@ class Variable(object):
    - allow for contextual binning, i.e. depending on channel/selection/...
    - easy string conversions: filename, LaTeX, ...
    - analysis-specific operations: applying variations, ...
+   
+  Initialize as
+    var = Variable('x',100,0,200)
+    var = Variable('x','x title',100,0,200)
+    var = Variable('x',[0,10,50,100,200])
+    ...
   """
   
   def __init__(self, name, *args, **kwargs):
@@ -25,7 +31,7 @@ class Variable(object):
     self.name         = name # variable name in tree, to be used in draw command
     self._name        = name # backup for addoverflow
     self.title        = strings[0] if strings else self.name
-    filename          = makefilename(self.name.replace('/','_'))  # file-safe name
+    filename          = strings[1] if len(strings)>=2 else makefilename(self.name.replace('/','_')) # file-safe name
     self.title        = kwargs.get('title',       self.title    ) # for plot axes
     self.filename     = kwargs.get('fname',       filename      ) # file-friendly name for files & histograms
     self.filename     = kwargs.get('filename',    self.filename ) # alias
