@@ -14,7 +14,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau, statusflags_dict, dumpgenpart, printdecaychain
 
-isHardProcTau = lambda p: p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct')
+#isHardProcTau = lambda p: p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct')
 countHardProcTau = lambda l: sum(1 for p in l if p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct'))
 
 
@@ -159,38 +159,49 @@ class GenFilterMuTau(Module):
       return False
     
     # FILL TREE BRANCHES
-    muon                    = max(muons,key=lambda m: m.pt)
-    tauh                    = max(tauhs_hard,key=lambda t: t.pt)
+    muon = max(muons,key=lambda m: m.pt)
+    tauh = max(tauhs_hard,key=lambda t: t.pt)
     if len(taus)>=2:
-      taus                  = sorted(taus_hard,key=lambda t: -t.pt)
-      self.out.pt_1[0]      = taus[0].pt
-      self.out.pt_2[0]      = taus[1].pt
-      self.out.eta_1[0]     = taus[0].eta
-      self.out.eta_2[0]     = taus[1].eta
+      taus = sorted(taus_hard,key=lambda t: -t.pt)
+      self.out.pt_1[0]       = taus[0].pt
+      self.out.pt_2[0]       = taus[1].pt
+      self.out.eta_1[0]      = taus[0].eta
+      self.out.eta_2[0]      = taus[1].eta
     elif len(taus)>=1:
-      self.out.pt_1[0]      = taus[0].pt
-      self.out.pt_2[0]      = -1
-      self.out.eta_1[0]     = taus[0].eta
-      self.out.eta_2[0]     = -9
-    elif len(taus)>=1:
-      self.out.pt_1[0]      = -1
-      self.out.pt_2[0]      = -1
-      self.out.eta_1[0]     = -9
-      self.out.eta_2[0]     = -9
-    self.out.mu_pt[0]       = muon.pt
-    self.out.mu_eta[0]      = muon.eta
-    self.out.tauh_pt[0]     = tauh.pt
-    self.out.tauh_eta[0]    = tauh.eta
-    self.out.nelecs[0]      = len(elecs)
-    self.out.nelecs_tau[0]  = len(elecs_tau)
-    self.out.nelecs_hard[0] = len(elecs_hard)
-    self.out.nmuons[0]      = len(muons)
-    self.out.nmuons_tau[0]  = len(muons_tau)
-    self.out.nmuons_hard[0] = len(muons_hard)
-    self.out.ntaus[0]       = len(taus)
-    self.out.ntaus_hard[0]  = len(taus_hard)
-    self.out.ntauhs[0]      = len(tauhs_hard)
-    self.out.mutaufilter[0] = mutaufilter
+      self.out.pt_1[0]       = taus[0].pt
+      self.out.pt_2[0]       = -1
+      self.out.eta_1[0]      = taus[0].eta
+      self.out.eta_2[0]      = -9
+    elif len(taus)>=1: # defaults
+      self.out.pt_1[0]       = -1
+      self.out.pt_2[0]       = -1
+      self.out.eta_1[0]      = -9
+      self.out.eta_2[0]      = -9
+    self.out.mu_pt[0]        = muon.pt
+    self.out.mu_eta[0]       = muon.eta
+    self.out.mu_fromTau[0]   = muon.statusflag('isDirectTauDecayProduct')
+    self.out.mu_fromHard[0]  = muon.statusflag('fromHardProcess') or muon.statusflag('isHardProcessTauDecayProduct') or muon.statusflag('isDirectHardProcessTauDecayProduct')
+    if len(muons_tau)>=1:
+      muon_tau = max(muons_tau,key=lambda m: m.pt)
+      self.out.mu_tau_pt[0]       = muon_tau.pt
+      self.out.mu_tau_eta[0]      = muon_tau.eta
+      self.out.mu_tau_fromHard[0] = muon_tau.statusflag('fromHardProcess') or muon.statusflag('isHardProcessTauDecayProduct') or muon.statusflag('isDirectHardProcessTauDecayProduct')
+    else: # defaults
+      self.out.mu_tau_pt[0]       = -1
+      self.out.mu_tau_eta[0]      = -9
+      self.out.mu_tau_fromHard[0] = False
+    self.out.tauh_pt[0]      = tauh.pt
+    self.out.tauh_eta[0]     = tauh.eta
+    self.out.nelecs[0]       = len(elecs)
+    self.out.nelecs_tau[0]   = len(elecs_tau)
+    self.out.nelecs_hard[0]  = len(elecs_hard)
+    self.out.nmuons[0]       = len(muons)
+    self.out.nmuons_tau[0]   = len(muons_tau)
+    self.out.nmuons_hard[0]  = len(muons_hard)
+    self.out.ntaus[0]        = len(taus)
+    self.out.ntaus_hard[0]   = len(taus_hard)
+    self.out.ntauhs[0]       = len(tauhs_hard)
+    self.out.mutaufilter[0]  = mutaufilter
     self.out.fill()
     
     return True
@@ -219,17 +230,17 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     self.cutflow.addcut('taultaul_hard',"taultaul_hard")
     
     # HISTOGRAMS
-    self.h_nup             = TH1D('h_nup',";Number of partons at LHE level;MC events",9,0,9)
-    self.h_dR_tauh         = TH1D('h_dR_tauh',";#DeltaR(#tau,#tau);Tau leptons",50,0,4)
-    ###self.h_dR_elec         = TH1D('h_dR_elec',";#DeltaR(e,e);Electron pairs",50,0,4)
+    self.h_nup             = TH1D('h_nup',        ";Number of partons at LHE level;MC events",9,0,9)
+    self.h_dR_tauh         = TH1D('h_dR_tauh',    ";#DeltaR(#tau,#tau);Tau leptons",50,0,4)
+    ###self.h_dR_elec         = TH1D('h_dR_elec',   ";#DeltaR(e,e);Electron pairs",50,0,4)
     self.h_mutaufilter     = TH1D('h_mutaufilter',";mutaufilter (pt>18, |eta|<2.5);Events",5,0,5)
-    self.h_nelec           = TH1D('h_nelec',";Number of generator electrons;Events",8,0,8)
-    self.h_nelec_tau       = TH1D('h_nelec_tau',";Number of electrons from #tau decay;Events",8,0,8)
-    self.h_nelec_hard      = TH1D('h_nelec_hard',";Number of electrons from hard process;Events",8,0,8)
-    self.h_nmuon           = TH1D('h_nmuon',";Number of generator muons;Events",8,0,8)
-    self.h_nmuon_tau       = TH1D('h_nmuon_tau',";Number of muons from tau decay;Events",8,0,8)
-    self.h_nmuon_hard      = TH1D('h_nmuon_hard',";Number of muons from hard process;Events",8,0,8)
-    self.h_ntau            = TH1D('h_ntau',";Number of generator #tau leptons;Events",8,0,8)
+    self.h_nelec           = TH1D('h_nelec',      ";Number of generator electrons;Events",8,0,8)
+    self.h_nelec_tau       = TH1D('h_nelec_tau',  ";Number of electrons from #tau decay;Events",8,0,8)
+    self.h_nelec_hard      = TH1D('h_nelec_hard', ";Number of electrons from hard process;Events",8,0,8)
+    self.h_nmuon           = TH1D('h_nmuon',      ";Number of generator muons;Events",8,0,8)
+    self.h_nmuon_tau       = TH1D('h_nmuon_tau',  ";Number of muons from tau decay;Events",8,0,8)
+    self.h_nmuon_hard      = TH1D('h_nmuon_hard', ";Number of muons from hard process;Events",8,0,8)
+    self.h_ntau            = TH1D('h_ntau',       ";Number of generator #tau leptons;Events",8,0,8)
     self.h_ntau_hard       = TH1D('h_ntau_hard',      ";Number of #tau leptons from hard process;Events",8,0,8)
     self.h_ntauh_hard      = TH1D('h_ntauh_hard',     ";Number of #tau_{#lower[-0.2]{h}} leptons;Events",8,0,8)
     self.h_nmuon_nelec     = TH2D('h_nmuon_nelec',    ";Number of muons from hard process;Number of electrons from hard process",8,0,8,8,0,8)
@@ -249,24 +260,29 @@ class TreeProducerGenFilterMuTau(TreeProducer):
       hist.SetOption('COLZ')
     
     # TREE BRANCHES
-    self.addBranch('pt_1',        'f', title="leading lepton (from hard process) pT")
-    self.addBranch('eta_1',       'f', title="leading lepton (from hard process) eta")
-    self.addBranch('pt_2',        'f', title="subleading lepton (from hard process) pT")
-    self.addBranch('eta_2',       'f', title="subleading lepton (from hard process) eta")
-    self.addBranch('mu_pt',       'f', title="leading muon pT")
-    self.addBranch('mu_eta',      'f', title="leading muon eta")
-    self.addBranch('tauh_pt',     'f', title="leading visible tauh pT")
-    self.addBranch('tauh_eta',    'f', title="leading visible tauh eta")
-    self.addBranch('nelecs',      'i', title="number of gen electrons")
-    self.addBranch('nelecs_tau',  'i', title="number of gen electrons from tau decays")
-    self.addBranch('nelecs_hard', 'i', title="number of gen electrons from hard process")
-    self.addBranch('nmuons',      'i', title="number of gen muons")
-    self.addBranch('nmuons_tau',  'i', title="number of gen muons from tau decays")
-    self.addBranch('nmuons_hard', 'i', title="number of gen muons from hard process")
-    self.addBranch('ntaus',       'i', title="number of gen taus")
-    self.addBranch('ntaus_hard',  'i', title="number of gen taus from hard process")
-    self.addBranch('ntauhs',      'i', title="number of gen tauhs")
-    self.addBranch('mutaufilter', '?', title="mutau filter")
+    self.addBranch('pt_1',            'f', title="leading lepton (from hard process) pT")
+    self.addBranch('eta_1',           'f', title="leading lepton (from hard process) eta")
+    self.addBranch('pt_2',            'f', title="subleading lepton (from hard process) pT")
+    self.addBranch('eta_2',           'f', title="subleading lepton (from hard process) eta")
+    self.addBranch('mu_pt',           'f', title="leading muon pT")
+    self.addBranch('mu_eta',          'f', title="leading muon eta")
+    self.addBranch('mu_fromTau',      '?', title="leading muon isDirectTauDecayProduct")
+    self.addBranch('mu_fromHard',     '?', title="leading muon fromHardProcess")
+    self.addBranch('mu_tau_pt',       'f', title="leading muon (from tau decay) pT")
+    self.addBranch('mu_tau_eta',      'f', title="leading muon (from tau decay) eta")
+    self.addBranch('mu_tau_fromHard', '?', title="leading muon (from tau decay) fromHardProcess")
+    self.addBranch('tauh_pt',         'f', title="leading visible tauh pT")
+    self.addBranch('tauh_eta',        'f', title="leading visible tauh eta")
+    self.addBranch('nelecs',          'i', title="number of gen electrons")
+    self.addBranch('nelecs_tau',      'i', title="number of gen electrons from tau decays")
+    self.addBranch('nelecs_hard',     'i', title="number of gen electrons from hard process")
+    self.addBranch('nmuons',          'i', title="number of gen muons")
+    self.addBranch('nmuons_tau',      'i', title="number of gen muons from tau decays")
+    self.addBranch('nmuons_hard',     'i', title="number of gen muons from hard process")
+    self.addBranch('ntaus',           'i', title="number of gen taus")
+    self.addBranch('ntaus_hard',      'i', title="number of gen taus from hard process")
+    self.addBranch('ntauhs',          'i', title="number of gen tauhs")
+    self.addBranch('mutaufilter',     '?', title="mutau filter")
     
   def endJob(self):
     """Write and close files after the job ends."""
