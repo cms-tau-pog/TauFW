@@ -103,6 +103,14 @@ def dumpgenpart(part,genparts=None,event=None,flags=[],bits=[],grand=False):
   print info
   
 
+def getmother(part,genparts):
+  """Get mother (which is not itself."""
+  moth = part
+  while moth.genPartIdxMother>=0 and part.pdgId==moth.pdgId:
+    moth = genparts[moth.genPartIdxMother]
+  return moth.pdgId
+  
+
 def printdecaychain(part,genparts=None,event=None):
   """Print decay chain."""
   chain = ">>>  %3s"%(part.pdgId)
@@ -116,6 +124,65 @@ def printdecaychain(part,genparts=None,event=None):
       chain += " <- %3s"%(event.GenPart_pdgId[imoth])
       imoth = event.GenPart_genPartIdxMother[imoth]
   print chain
+  
+
+def filtermutau(event):
+  """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
+  for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
+  Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.801% for DYJetsToLL_M-50."""
+  # Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTauToMuTauh:
+  #   MuHadCut = cms.string('Mu.Pt > 16 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
+  #   https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
+  ###print '-'*80
+  particles = Collection(event,'GenPart')
+  muon = None
+  taus = [ ]
+  hasZ = False # check if event contains a Z boson, required in DYJetsToTauTauToMuTauh fragment
+  for particle in particles:
+    pid = abs(particle.pdgId)
+    if pid==13 and (particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct')):
+      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
+      if muon: # more than two muons from hard-proces taus
+        return False # do not bother any further
+      muon = particle
+    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): #hasbit(particle.statusFlags,8):
+      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
+      taus.append(particle)
+    elif pid==23:
+      hasZ = True
+  if hasZ and len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
+    for genvistau in Collection(event,'GenVisTau'):
+      ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
+      if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0: #and any(genvistau.DeltaR(t)<0.5 for t in taus)
+        return True
+  return False
+  
+
+def matchgenvistau(event,tau,dRmin=0.5):
+  """Help function to match tau object to gen vis tau."""
+  # TO CHECK: taumatch.genPartIdxMother==tau.genPartIdx ?
+  taumatch = None
+  for genvistau in Collection(event,'GenVisTau'):
+    dR = genvistau.DeltaR(tau)
+    if dR<dRmin:
+      dRmin    = dR
+      taumatch = genvistau
+  if taumatch:
+    return taumatch.pt, taumatch.eta, taumatch.phi, taumatch.status
+  else:
+    return -1, -9, -9, -1
+  
+
+def matchtaujet(event,tau,ismc):
+  """Help function to match tau object to (gen) jet."""
+  jpt_match    = -1
+  jpt_genmatch = -1
+  if tau.jetIdx>=0:
+    jpt_match = event.Jet_pt[tau.jetIdx]
+    if ismc:
+      if event.Jet_genJetIdx[tau.jetIdx]>=0:
+        jpt_genmatch = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
+  return jpt_match, jpt_genmatch
   
 
 def deltaR(eta1, phi1, eta2, phi2):
@@ -211,65 +278,6 @@ def idIso(tau):
   if tau.photonsOutsideSignalCone/tau.pt<0.10:
     return 0 if raw>4.5 else 1 if raw>3.5 else 3 if raw>2.5 else 7 if raw>1.5 else 15 if raw>0.8 else 31 # VVLoose, VLoose, Loose, Medium, Tight
   return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
-  
-
-def filtermutau(event):
-  """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
-  for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
-  Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.801% for DYJetsToLL_M-50."""
-  # Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTau:
-  #   MuHadCut = cms.string('Mu.Pt > 16 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
-  #   https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
-  ###print '-'*80
-  particles = Collection(event,'GenPart')
-  muon = None
-  taus = [ ]
-  for particle in particles:
-    pid = abs(particle.pdgId)
-    if pid==13 and (particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct')):
-      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
-      if muon: # more than two muons from hard-proces taus
-        return False # do not bother any further
-      muon = particle
-    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): #hasbit(particle.statusFlags,8):
-      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
-      taus.append(particle)
-  if len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
-    ###dRmin = 10.
-    for genvistau in Collection(event,'GenVisTau'):
-      ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
-      if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0:
-        ###dR = min(genvistau.DeltaR(t) for t in taus)
-        ###if dR<dRmin: dRmin = dR
-        return True
-  return False
-  
-
-def matchgenvistau(event,tau,dRmin=0.5):
-  """Help function to match tau object to gen vis tau."""
-  # TO CHECK: taumatch.genPartIdxMother==tau.genPartIdx ?
-  taumatch = None
-  for genvistau in Collection(event,'GenVisTau'):
-    dR = genvistau.DeltaR(tau)
-    if dR<dRmin:
-      dRmin    = dR
-      taumatch = genvistau
-  if taumatch:
-    return taumatch.pt, taumatch.eta, taumatch.phi, taumatch.status
-  else:
-    return -1, -9, -9, -1
-  
-
-def matchtaujet(event,tau,ismc):
-  """Help function to match tau object to (gen) jet."""
-  jpt_match    = -1
-  jpt_genmatch = -1
-  if tau.jetIdx>=0:
-    jpt_match = event.Jet_pt[tau.jetIdx]
-    if ismc:
-      if event.Jet_genJetIdx[tau.jetIdx]>=0:
-        jpt_genmatch = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
-  return jpt_match, jpt_genmatch
 
 
 def getlepvetoes(event, electrons, muons, taus, channel):
