@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
-import re, glob
+import os, re, glob
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs, repkey, getyear
 from TauFW.common.tools.file import ensuredir, ensureTFile, ensuremodule
 from TauFW.common.tools.log import Logger, color
@@ -108,19 +108,44 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
   return sampleset
   
 
+def getmcsample(group,sample,title,xsec,channel,era,tag="",verb=0,**kwargs):
+  """Helper function to create MC sample.
+  E.g.: getmcsample('DY',"DYJetsToLL_M-50","DYJetsToLL",1.,channel,era,verb=1),"""
+  #LOG.header("getmcsamples")
+  fname   = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
+  user    = kwargs.get('user',   "" )
+  picodir = kwargs.get('pico',   "" )
+  picodir = ""
+  if '$USER' in fname and not user:
+    import getpass
+    user = getpass.getuser()
+  if '$PICODIR' in fname and not picodir:
+    import TauFW.PicoProducer.tools.config as GLOB
+    CONFIG  = GLOB.getconfig(verb=0)
+    picodir = CONFIG['picodir']
+  fname_ = repkey(fname,PICODIR=picodir,USER=user,ERA=era,GROUP=group,SAMPLE=sample,CHANNEL=channel,TAG=tag)
+  if not os.path.isfile(fname_):
+    print ">>> Did not find %r"%(fname_)
+  name = sample+tag
+  if verb>=1:
+    print ">>> getmcsample: %s, %s, %s"%(name,sample,fname_)
+  sample = MC(name,title,fname_,xsec,**kwargs)
+  return sample
+  
+
 def setera(era_,lumi_=None,**kwargs):
   """Set global era and integrated luminosity for Samples and CMSStyle."""
   global era, lumi, cme
-  era   = str(era_) #.replace('UL',"")
-  lumi  = kwargs.get('lumi',lumi_)
+  era  = str(era_) #.replace('UL',"")
+  lumi = kwargs.get('lumi',lumi_)
   if lumi==None:
     lumi = CMSStyle.lumi_dict.get(era,None)
     if lumi==None: # try again with year
-      year  = str(getyear(era_))
-      lumi  = CMSStyle.lumi_dict.get(year,None)
+      year = str(getyear(era_))
+      lumi = CMSStyle.lumi_dict.get(year,None)
   else:
     kwargs['lumi'] = lumi
-  cme  = kwargs.get('cme', 13 )
+  cme = kwargs.get('cme',13)
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   if not lumi or lumi<0:
@@ -253,7 +278,7 @@ def unwrap_gethist2D_args(*args,**kwargs):
   return vars, sel, single
   
 
-def getsample(samples,*searchterms,**kwargs):
+def findsample(samples,*searchterms,**kwargs):
   """Help function to get all samples corresponding to some name and optional label."""
   verbosity   = LOG.getverbosity(kwargs)
   filename    = kwargs.get('fname',    ""    )
@@ -266,7 +291,7 @@ def getsample(samples,*searchterms,**kwargs):
     newsamples = [ ]
     for sample in samples:
       if sample.splitsamples:
-        LOG.verb("getsample: Splitting sample %s..."%(sample.name),verbosity,3)
+        LOG.verb("findsample: Splitting sample %s..."%(sample.name),verbosity,3)
         newsamples.extend(sample.splitsamples)
       else:
         newsamples.append(sample)
@@ -276,16 +301,16 @@ def getsample(samples,*searchterms,**kwargs):
       matches.append(sample)
   if not matches:
     if warn:
-      LOG.warn("getsample: Could not find a sample with search terms %s..."%(quotestrs(list(searchterms)+[filename])))
+      LOG.warn("findsample: Could not find a sample with search terms %s..."%(quotestrs(list(searchterms)+[filename])))
   elif unique:
     if len(matches)>1:
-      LOG.warn("getsample: Found more than one match to %s. Using first match only: %s"%(
+      LOG.warn("findsample: Found more than one match to %s. Using first match only: %s"%(
                   quotestrs(searchterms),quotestrs(matches)))
     return matches[0]
   return matches
   
 
-def getsample_with_flag(samples,flag,*searchterms,**kwargs):
+def findsample_with_flag(samples,flag,*searchterms,**kwargs):
   """Help function to get sample with some flag from a list of samples."""
   matches   = [ ]
   unique    = kwargs.get('unique', False )
@@ -504,7 +529,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   
   # JOIN
   join(samplelist,*searchterms,name=name,title=title,verbosity=verbosity)
-  newsample = getsample(samplelist,name,unique=True)
+  newsample = findsample(samplelist,name,unique=True)
   newsample.sample_incl = sample_incl
   return samplelist
   

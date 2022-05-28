@@ -150,16 +150,16 @@ def makelatex(string,**kwargs):
       string = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",string)
     if "tau" in strlow:
       #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)
-      string = re.sub(r"(?<!Deep)(?<!Over)tau",r"#tau",string,flags=re.IGNORECASE)
+      string = re.sub(r"(?<!Deep)(?<!ToMu)(?<!Over)tau(?!filter)",r"#tau",string,flags=re.IGNORECASE)
       #string = re.sub(r" #tau ",r" tau ",string,flags=re.IGNORECASE)
       #string = re.sub(r"^#tau ",r"tau ",string,flags=re.IGNORECASE)
       string = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",string,flags=re.IGNORECASE)
-      string = re.sub(r"#tauh",r"#tau_{h}",string,flags=re.IGNORECASE)
+      string = re.sub(r"#tauh",r"#tau_{#lower[-0.2]{h}}",string,flags=re.IGNORECASE)
     if "abs(" in string and ")" in string:
       string = re.sub(r"abs\(([^)]+)\)",r"|\1|",string)
       #string = string.replace("abs(","|").replace(")","") + "|" # TODO: split at next space
     if "mu" in strlow:
-      string = re.sub(r"(?<!VS)mu(?![lo])",r"#mu",string)
+      string = re.sub(r"(?<!VS)mu(?![lo])(?!taufilter)",r"#mu",string)
       #string = string.replace("mu","#mu").replace("Mu","#mu")
       #string = string.replace("si#mulation","simulation")
     if "nu" in strlow:

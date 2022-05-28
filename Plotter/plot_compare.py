@@ -6,7 +6,7 @@ from config.samples import * # for general getsampleset
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset # for getsampleset_simple
 from TauFW.Plotter.plot.Plot import Plot, deletehist
 from TauFW.Plotter.plot.Plot import LOG as PLOG
-from TauFW.Plotter.sample.utils import MC
+from TauFW.Plotter.sample.utils import MC, SampleSet, getmcsample
 
 
 def getbaseline(channel):
@@ -19,32 +19,6 @@ def getbaseline(channel):
     idiso2   = "idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=16 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8"
     baseline = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(idiso1,idiso2)
   return baseline
-
-
-def getmcsample(group,sample,title,xsec,channel,era,tag="",verb=0,**kwargs):
-  """Simplified version of Plotter/config/samples.py:getsampleset"""
-  #LOG.header("getmcsamples")
-  fname   = kwargs.get('fname', "$PICODIR/$SAMPLE_$CHANNEL$TAG.root" ) # file name pattern of pico files
-  user    = kwargs.get('user',  "" )
-  picodir = kwargs.get('pico',  "" )
-  if 'e' in channel:
-    channel = channel.replace('e','ele')
-  picodir = ""
-  if '$USER' in fname and not user:
-    import getpass
-    user = getpass.getuser()
-  if '$PICODIR' in fname and not picodir:
-    import TauFW.PicoProducer.tools.config as GLOB
-    CONFIG   = GLOB.getconfig(verb=0)
-    picodir  = CONFIG['picodir']
-  fname_ = repkey(fname,PICODIR=picodir,USER=user,ERA=era,GROUP=group,SAMPLE=sample,CHANNEL=channel,TAG=tag)
-  if not os.path.isfile(fname_):
-    print ">>> Did not find %r"%(fname_)
-  name   = sample+tag
-  if verb>=1:
-    print ">>> getmcsample: %s, %s, %s"%(name,sample,fname_)
-  sample = MC(name,title,fname_,xsec)
-  return sample
   
 
 def getsampleset_simple(channel,era,**kwargs):
@@ -362,6 +336,7 @@ def main(args):
   fname    = None #"$PICODIR/$SAMPLE_$CHANNEL.root" # fname pattern
   eras     = ['UL2018']
   channels = ['mutau',] #'tautau'
+  outdir   = "plots"
   tag      = ""
   
   #### COMPARE SELECTIONS
@@ -395,8 +370,7 @@ def main(args):
                getmcsample('DY',"DYJetsToLL_M-50","DYJetsToLL, Summer20",1.,channel,era,tag="_Summer20",verb=1),),
       }
       for sname, sampleset in samplesets.items():
-        compare_samples(sname,sampleset,channel
-        ,tag=tag,outdir="plots")
+        compare_samples(sname,sampleset,channel,tag=tag,outdir=outdir)
   
 
 if __name__ == "__main__":
