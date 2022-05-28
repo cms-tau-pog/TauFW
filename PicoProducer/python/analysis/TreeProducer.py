@@ -12,7 +12,7 @@
 #   Float_t   'F'     'f'/'float32'        32-bit float
 #   Double_t  'D'     'd'/'float64'/float  64-bit float
 import numpy as np
-from ROOT import TTree, TFile, TH1D
+from ROOT import TTree, TFile, TH1D, TH2D, gDirectory
 from TauFW.PicoProducer.analysis.Cutflow import Cutflow
 
 root_dtype = { # python/numpy -> root data type
@@ -48,22 +48,46 @@ class TreeProducer(object):
   
   def addHist(self,name,*args):
     """Add a histogram."""
-    bins = args
-    if len(args)==1 and isinstance(args[0],list): # list of binedges
-      bins = np.array(args[0],'f')
-      hist = TH1D(name,name,len(bins)-1,bins)
-    elif len(args)==2 and isinstance(args[1],list): # title, list of binedges
-      bins = np.array(args[1],'f')
-      hist = TH1D(name,args[0],len(bins)-1,bins)
-    elif len(args)==3: # nbins, xmin, xmax
-      hist = TH1D(name,name,*args)
-    elif len(args)==4: # title, nbins, xmin, xmax
-      hist = TH1D(name,*args)
+    dname = ""
+    hname = name
+    if '/' in name: # make subdirectory
+      dname = '/'.join(name.split('/')[:-1])
+      hname = name.split('/')[-1]
+    if args and isinstance(args[0],str):
+      title = args[0] # optional title
+      bins  = args[1:]
+    else:
+      title = hname
+      bins  = args
+    if len(bins)==1 and isinstance(bins[0],list): # list of binedges
+      edges = np.array(bins[0],'f')
+      hist = TH1D(hname,title,len(edges)-1,edges)
+    elif len(bins)==3: # nbins, xmin, xmax
+      hist = TH1D(hname,title,*bins)
+    elif len(bins)==2 and isinstance(bins[0],list) and isinstance(bins[1],list): # list of binedges
+      xedges = np.array(bins[0],'d')
+      yedges = np.array(bins[1],'d')
+      hist = TH2D(hname,title,len(xedges)-1,xedges,len(yedges)-1,yedges)
+    elif len(bins)==4 and isinstance(bins[0],list): # list of binedges
+      binning = (len(bins[0])-1,np.array(bins[0],'d'))+bins[1:]
+      hist = TH2D(hname,title,*binning)
+    elif len(bins)==4 and isinstance(bins[3],list): # list of binedges
+      binning = bins[:3]+(len(bins[3])-1,np.array(bins[3],'d'))
+      hist = TH2D(hname,title,*binning)
+    elif len(bins)==6: # nxbins, xmin, xmax, nybins, ymin, ymax
+      hist = TH2D(hname,title,*bins)
     else:
       raise IOError("TreeProducer.addHist: Could not parse histogram arguments: %r, args=%r"%(name,args))
-    if self.verbosity>=1:
-      print ">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(name,bins)
+    if self.verbosity+2>=1:
+      print ">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins)
     self.hists[name] = hist
+    if dname: # make subdirectory
+      subdir = self.outfile.GetDirectory(dname)
+      if not subdir: # create directory for the first time
+        if self.verbosity+2>=1:
+          print ">>> TreeProducer.addHist: Creating subdirectory %s..."%(dname) 
+        subdir = self.outfile.mkdir(dname) #,'',True)
+      hist.SetDirectory(subdir)
     return hist
   
   def addBranch(self, name, dtype='f', default=None, title=None, arrname=None, **kwargs):
