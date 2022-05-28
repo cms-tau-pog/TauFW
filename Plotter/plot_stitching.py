@@ -49,32 +49,42 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
   
   # SAMPLE SETS
   samplesets = {
-    'DY': [samples['DY'],samples['DY1J'],samples['DY2J'],samples['DY3J'],samples['DY4J'],samples['DY_mt']],
+    'DY':     [samples['DY'],samples['DY_mt']],
+    #'DY-all': [samples['DY'],samples['DY1J'],samples['DY2J'],samples['DY3J'],samples['DY4J'],samples['DY_mt']],
   }
   
   # SELECTIONS
   baseline   = getbaseline(channel)
   selections = [
-    Sel('baseline', baseline),
+    #Sel('baseline', baseline),
     Sel('baseline, gen. mutaufilter', baseline+" && mutaufilter", fname="baseline-genfilter"),
   ]
   
   # VARIABLES
   variables = [
-    Var('mutaufilter', "Generator mutauh filter (pt > 18 GeV, |eta|<2.5)", 4, 0, 4, labels=['Fail','Pass']),
-    Var('m_vis',  50, 0, 150),
-    Var('dR_ll',  50, 0,   4, logy=True,pos='L',ymarg=1.3),
-    Var('pt_1',   "Muon pt",      60,10, 130),
-    Var('pt_2',   "tau_h pt",     60,10, 130),
-    Var('eta_1',  "Muon eta",     20,-3,   5),
-    Var('eta_2',  "tau_h eta",    20,-3,   5),
-    Var('q_1',    "Muon charge",   5,-2,   4),
-    Var('q_2',    "tau_h charge",  5,-2,   4),
-    #Var('jpt_1',  18, 0, 270),
-    #Var('jpt_2',  18, 0, 270),
-    #Var('met',    20, 0, 300),
-    Var('njets', 5, 0, 5, logy=True),
-    Var('NUP', "Number of partons (at LHE level)", 5, 0, 5, logy=True),
+    Var('mutaufilter', 4, 0, 4, "Generator mutauh filter (pt > 18 GeV, |eta|<2.5)", labels=['Fail','Pass']),
+    Var('m_vis',   50, 0, 150, fname="mvis"),
+    Var('m_vis',   50, 0, 150, fname="mvis_log",logy=True),
+    Var('dR_ll',   50, 0,   4, fname="dR",pos='L'),
+    Var('dR_ll',   50, 0,   4, fname="dR_log",logy=True,pos='L',ymarg=1.3),
+    Var('pt_1',    60,10, 130, "Muon pt" ),
+    Var('pt_2',    60,10, 130, "tau_h pt" ),
+    Var('eta_1',   20,-3,   5, "Muon eta" ),
+    Var('eta_2',   20,-3,   5, "tau_h eta" ),
+    Var('q_1',      5,-2,   4, "Muon charge" ),
+    Var('q_2',      5,-2,   4, "tau_h charge" ),
+    Var('jpt_1',   18, 0, 270 ),
+    Var('jpt_2',   18, 0, 270 ),
+    Var('met',     20, 0, 300 ),
+    Var('njets',    5, 0,   5, logy=True),
+    Var('NUP',      5, 0,   5, "Number of partons (at LHE level)", logy=True),
+    Var('genvistaupt_2', 60,10, 130, "Generator tau_h pt" ),
+    Var('genmatch_1',    10, 0,  10, "Gen. match muon",  logy=True),
+    Var('genmatch_2',    10, 0,  10, "Gen. match tau_h", logy=True),
+    Var('m_moth',  50, 0, 150, "Gen. Z boson mass" ),
+    Var('m_moth',  50, 0, 150, "Gen. Z boson mass", fname="$VAR_log",logy=True),
+    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt" ),
+    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt", fname="$VAR_log",logy=True),
     #Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   30, 0.70, 1, fname="$VAR_zoom",logy=True,pos='L;y=0.85'),
     #Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  20, 0.80, 1, fname="$VAR_zoom",logy=True,logyrange=4,pos='L;y=0.85'),
     #Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, pos='L;y=0.85',logy=True,ymargin=2.5),
