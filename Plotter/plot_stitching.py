@@ -56,19 +56,24 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
   # SELECTIONS
   baseline   = getbaseline(channel)
   selections = [
+    Sel('gen. mutaufilter', "mutaufilter", fname="nocuts-genfilter"),
     #Sel('baseline', baseline),
     Sel('baseline, gen. mutaufilter', baseline+" && mutaufilter", fname="baseline-genfilter"),
   ]
   
   # VARIABLES
+  ptbins  = range(10,50,2) + range(50,70,4) + range(70,100,10) + [100,120,140]
+  Zptbins = range(0,60,3) + range(60,100,10) + range(100,140,20) + [140,170,200]
   variables = [
     Var('mutaufilter', 4, 0, 4, "Generator mutauh filter (pt > 18 GeV, |eta|<2.5)", labels=['Fail','Pass']),
     Var('m_vis',   50, 0, 150, fname="mvis"),
     Var('m_vis',   50, 0, 150, fname="mvis_log",logy=True),
     Var('dR_ll',   50, 0,   4, fname="dR",pos='L'),
     Var('dR_ll',   50, 0,   4, fname="dR_log",logy=True,pos='L',ymarg=1.3),
-    Var('pt_1',    60,10, 130, "Muon pt" ),
-    Var('pt_2',    60,10, 130, "tau_h pt" ),
+    Var('pt_1',    60,10, 130, "Muon pt", fname="$VAR" ),
+    Var('pt_1',        ptbins, "Muon pt", fname="$VAR_coarse" ),
+    Var('pt_2',    60,10, 130, "tau_h pt", fname="$VAR" ),
+    Var('pt_2',        ptbins, "tau_h pt", fname="$VAR_coarse" ),
     Var('eta_1',   20,-3,   5, "Muon eta" ),
     Var('eta_2',   20,-3,   5, "tau_h eta" ),
     Var('q_1',      5,-2,   4, "Muon charge" ),
@@ -76,15 +81,17 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
     Var('jpt_1',   18, 0, 270 ),
     Var('jpt_2',   18, 0, 270 ),
     Var('met',     20, 0, 300 ),
-    Var('njets',    5, 0,   5, logy=True),
+    Var('njets',    5, 0,   5, logy=True,logyrange=2),
     Var('NUP',      5, 0,   5, "Number of partons (at LHE level)", logy=True),
-    Var('genvistaupt_2', 60,10, 130, "Generator tau_h pt" ),
+    Var('genvistaupt_2', 60,10, 130, "Generator tau_h pt", fname="$VAR" ),
+    Var('genvistaupt_2',     ptbins, "Generator tau_h pt", fname="$VAR_coarse" ),
     Var('genmatch_1',    10, 0,  10, "Gen. match muon",  logy=True),
     Var('genmatch_2',    10, 0,  10, "Gen. match tau_h", logy=True),
     Var('m_moth',  50, 0, 150, "Gen. Z boson mass" ),
     Var('m_moth',  50, 0, 150, "Gen. Z boson mass", fname="$VAR_log",logy=True),
     Var('pt_moth', 50, 0, 150, "Gen. Z boson pt" ),
-    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt", fname="$VAR_log",logy=True),
+    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt", fname="$VAR_log",logy=True,logyrange=2.4),
+    Var('pt_moth',    Zptbins, "Gen. Z boson pt", fname="$VAR_coarse",logy=True,logyrange=2.4),
     #Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   30, 0.70, 1, fname="$VAR_zoom",logy=True,pos='L;y=0.85'),
     #Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  20, 0.80, 1, fname="$VAR_zoom",logy=True,logyrange=4,pos='L;y=0.85'),
     #Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, pos='L;y=0.85',logy=True,ymargin=2.5),
@@ -109,12 +116,12 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
       for variable, hists in hdict.iteritems():
         for norm in norms:
           ntag = '_norm' if norm else "_lumi"
-          plot = Plot(variable,hists,norm=norm)
+          plot = Plot(variable,hists,norm=norm,clone=True)
           plot.draw(ratio=True,lstyle=1)
           plot.drawlegend(header=header) #,entries=entries)
           plot.drawtext(text)
           plot.saveas(fname,ext=['png'],tag=ntag) #,'pdf'
-          plot.close(keep=True)
+          plot.close()
         deletehist(hists)
     print ">>> "
   

@@ -27,7 +27,10 @@ class Variable(object):
   """
   
   def __init__(self, name, *args, **kwargs):
-    strings           = [a for a in args if isinstance(a,str) ]
+    strings, bins     = [ ], [ ]
+    for arg in args:
+      if isinstance(arg,str): strings.append(arg)
+      else: bins.append(arg)
     self.name         = name # variable name in tree, to be used in draw command
     self._name        = name # backup for addoverflow
     self.title        = strings[0] if strings else self.name
@@ -46,7 +49,7 @@ class Variable(object):
     self.cut          = kwargs.get('cut',         ""            ) # extra cut when filling histograms
     self.weight       = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
     self.dataweight   = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
-    self.setbins(*args)
+    self.setbins(*bins)
     self.dividebins   = kwargs.get('dividebins', self.hasvariablebins() ) # divide each histogram bins by it bin size (done in Plot.draw)
     self.data         = kwargs.get('data',        True          ) # also draw data
     self.flag         = kwargs.get('flag',        ""            ) # flag, e.g. 'up', 'down', ...
