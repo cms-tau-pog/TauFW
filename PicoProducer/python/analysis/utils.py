@@ -129,10 +129,13 @@ def printdecaychain(part,genparts=None,event=None):
 def filtermutau(event):
   """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
   for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
-  Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.801% for DYJetsToLL_M-50."""
-  # Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTauToMuTauh:
-  #   MuHadCut = cms.string('Mu.Pt > 16 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
-  #   https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
+  Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.774% for DYJetsToLL_M-50.
+  
+  Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTauToMuTauh:
+    MuHadCut = cms.string('Mu.Pt > 16 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
+    https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
+    https://github.com/cms-sw/cmssw/blob/master/GeneratorInterface/Core/src/EmbeddingHepMCFilter.cc
+  """
   ###print '-'*80
   particles = Collection(event,'GenPart')
   muon = None
@@ -145,7 +148,8 @@ def filtermutau(event):
       if muon: # more than two muons from hard-proces taus
         return False # do not bother any further
       muon = particle
-    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): #hasbit(particle.statusFlags,8):
+    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): # last copy
+    #elif pid==15 and particle.statusflag('fromHardProcess','isFirstCopy'): # first copy, like in EmbeddingHepMCFilter
       ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
       taus.append(particle)
     elif pid==23:

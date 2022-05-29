@@ -5,7 +5,7 @@
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/MCStitching
 # Instructions:
 #   pico.py channel genmutau GenFilterMuTau
-#   pico.py run -c genmutau -y UL2018 -s DYJetsToLL_M-50 -m 1000
+#   pico.py run -c genmutau -y UL2018 -s DYJetsToLL_M-50 DYJetsToMuTauh -m 10000
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
 from ROOT import TH1D, TH2D, gStyle, kRed
@@ -323,6 +323,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
       print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
       print ">>> %8d / %5d = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
       print ">>> Expect ~ 0.908 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.843e+03 / 5343.0 * 0.02633
+      print ">>> Expect ~ 0.637 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5, Z -> tautau)" # = 1.843e+03 / 5343.0 * 0.02633 * 0.7010
     
     #### NORMALIZE STATUS FLAG CORRELATION MATRIX
     ###hist  = self.h_statusflags
