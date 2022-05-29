@@ -23,12 +23,12 @@ DATASETS="SingleMuon SingleElectron EGamma Tau"
 MCYEARS="Summer20UL16 Summer20UL17 Summer20UL18" # Ultra Legacy
 
 DATAYEARS="2016 2017 2018" # reminiAOD
-MCCAMP="NanoAODv2"
+MCCAMP="NanoAODv9"
 #MCCAMP="NanoAODAPVv2"
 #MCCAMP="NanoAODv6"
 #DATACAMP="25Oct2019" # reminiAOD
-DATACAMP="UL201*02Dec2019" # Ultra Legacy
-#DATACAMP="UL201*NanoAODv2" # Ultra Legacy
+#DATACAMP="UL201*02Dec2019" # Ultra Legacy
+DATACAMP="UL201*NanoAODv9" # Ultra Legacy
 YEAR=0
 NFILES=2
 
@@ -52,6 +52,7 @@ for dataset in $MCSAMPLES; do
     echo
     echo -e "\e[1m\e[32m$pattern\e[0m"
     for daspath in `dasgoclient -query="dataset=$pattern"`; do
+      [[ $daspath = *JMENano* ]] && continue
       echo "$daspath"
     done
   done
@@ -67,6 +68,7 @@ for dataset in $DATASETS; do
     echo
     echo -e "\e[1m\e[32m$pattern\e[0m"
     for daspath in `dasgoclient -query="dataset=$pattern"`; do
+      [[ $daspath = *JMENano* ]] && continue
       echo "$daspath"
     done
   done
