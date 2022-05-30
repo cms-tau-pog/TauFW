@@ -1,7 +1,7 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = "/eos/cms/store/group/phys_tau/TauFW/nano/UL2018/$DAS"
-url      = None #"root://eosuser.cern.ch/"
+url      = "root://eosuser.cern.ch/"
 filelist = "samples/files/UL2018/$SAMPLE.txt"
 samples  = [
   
@@ -9,9 +9,13 @@ samples  = [
   M('DY','DYJetsToLL_M-10to50',
     "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
-  M('DY','DYJetsToLL_M-50',
+  M('DY','DYJetsToLL_M-50_Summer19',
     "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM", # BUGGY Summer19
     "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
+  M('DY','DYJetsToLL_M-50_Summer20',
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1_ext1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DY1JetsToLL_M-50',
     "/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM", # BUGGY Summer19
@@ -25,8 +29,11 @@ samples  = [
   M('DY','DY4JetsToLL_M-50',
     "/DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM", # BUGGY Summer19
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
-  M('DY','DYJetsToMuTauh_M-50',
+  M('DY','DYJetsToMuTauh_M-50_Summer19',
     "/DYJetsToTauTauToMuTauh_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL18NanoAODv2-106X_upgrade2018_realistic_v15_L1v1-v1/NANOAODSIM", # BUGGY Summer19
+    store=storage,url=url,files=filelist,opts="useT1=True,zpt=True",channels=["skim*",'*mutau*']),
+  M('DY','DYJetsToMuTauh_M-50_Summer20',
+    "/DYJetsToTauTauToMuTauh_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True",channels=["skim*",'*mutau*']),
   
   # TTBAR
