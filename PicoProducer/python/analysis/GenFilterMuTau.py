@@ -349,15 +349,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
       print ">>> No ditau..."
     
     # MUTAU FILTERS
-    npass = self.h_mutaufilter.GetBinContent(2)
-    ntot  = self.h_mutaufilter.GetBinContent(1)+npass
-    assert ntot==self.h_mutaufilter.Integral(), "Bins do not add up!?"
-    if ntot>0:
-      # https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007&page=0
-      print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
-      print ">>> %8d / %5d = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
-      print ">>> Expect ~ 0.908 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.843e+03 / 5343.0 * 0.02633
-      print ">>> Expect ~ 0.638 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5)" # = 1.843e+03 / 5343.0 * 0.02633 * 0.7026
+    getfiltereff(self.h_mutaufilter)
     
     #### NORMALIZE STATUS FLAG CORRELATION MATRIX
     ###hist  = self.h_statusflags
@@ -389,6 +381,21 @@ class TreeProducerGenFilterMuTau(TreeProducer):
         self.h_statusflags.Fill(xbit,ybit)
   
 
+def getfiltereff(hist):
+  eff   = -1
+  npass = hist.GetBinContent(2)
+  ntot  = hist.GetBinContent(1)+npass
+  assert ntot==hist.Integral(), "Bins do not add up!?"
+  if ntot>0:
+    # https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007&page=0
+    eff = npass/ntot
+    print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
+    print ">>> %8d / %5d = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
+    print ">>> Expect ~ 0.908 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.843e+03 / 5343.0 * 0.02633
+    print ">>> Expect ~ 0.638 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5)" # = 1.843e+03 / 5343.0 * 0.02633 * 0.7026
+  return eff
+  
+
 # QUICK PLOTTING SCRIPT
 if __name__ == '__main__':
   from ROOT import gROOT, TFile
@@ -416,6 +423,11 @@ if __name__ == '__main__':
     tree.title = title
     tree.file = file
     trees.append(tree)
+    
+    # CHECK MUTAU FILTER EFFICIENCY
+    hist = file.Get('h_mutaufilter')
+    getfiltereff(hist)
+    
   
   # DRAW NEW HISTOGRAMS
   selections = [
