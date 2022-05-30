@@ -6,13 +6,14 @@
 # Instructions:
 #   pico.py channel genmutau GenFilterMuTau
 #   pico.py run -c genmutau -y UL2018 -s DYJetsToLL_M-50 DYJetsToMuTauh -m 10000
+#   python/analysis/GenFilterMuTau.py DYJetsToLL=output/pico_genmutau_UL2018_DYJetsToLL_M-50.root DYJetsToMuTauh=output/pico_genmutau_UL2018_DYJetsToMuTauh_M-50.root
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
-from ROOT import TH1D, TH2D, gStyle, kRed
+from ROOT import TLorentzVector, TH1D, TH2D, gStyle, kRed
 from TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
-from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau, statusflags_dict, dumpgenpart, printdecaychain, getmother
+from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau, statusflags_dict, dumpgenpart, getdecaychain, getmother, deltaPhi
 
 #isHardProcTau = lambda p: p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct')
 countHardProcTau = lambda l: sum(1 for p in l if p.statusflag('isHardProcessTauDecayProduct') or p.statusflag('isDirectHardProcessTauDecayProduct'))
@@ -23,6 +24,8 @@ class GenFilterMuTau(Module):
   
   def __init__(self,fname,**kwargs):
     self.out = TreeProducerGenFilterMuTau(fname,self)
+    self.verb = kwargs.get('verb',0)
+    print ">>> verb = %r"%(self.verb)
     
   def endJob(self):
     """Wrap up after running on all events and files"""
@@ -43,49 +46,56 @@ class GenFilterMuTau(Module):
     taus_hard    = [ ] # taus from hard process
     elecs_tau    = [ ] # electrons from decay of prompt tau
     muons_tau    = [ ] # muons from decay of prompt tau
+    tauhs_hard   = [ ] # hadronic tau from prompt tau decay
     particles = Collection(event,'GenPart')
     for particle in particles:
       pid = abs(particle.pdgId)
-      if pid>20: continue
       ###self.out.fillStatusFlag(particle) # check correlations
-      if not particle.statusflag('isLastCopy'): continue # ignore duplicate particles before FSR
-      # https://github.com/cms-sw/cmssw/blob/e48b3c4c1c95b0bb8baa89b216313f012877a73e/PhysicsTools/NanoAOD/python/genparticles_cff.py#L8-L28
-      if pid==11:
-        elecs.append(particle)
-        if particle.statusflag('isDirectTauDecayProduct'): # use "direct" to remove tau -> pi0 -> e+e-
-          elecs_tau.append(particle)
-        elif particle.statusflag('fromHardProcess'):
-          elecs_hard.append(particle)
-      elif pid==13: #particle.status==2:
-        muons.append(particle)
-        if particle.statusflag('isDirectTauDecayProduct'):
-          muons_tau.append(particle)
-        elif particle.statusflag('fromHardProcess'):
-          muons_hard.append(particle)
-      elif pid==15 and particle.status==2:
-        taus.append(particle)
-        if particle.statusflag('fromHardProcess'):
-          taus_hard.append(particle)
-        #else:
-        #  taus_hard.append(particle)
+      if pid<16 and particle.statusflag('isLastCopy'): # ignore duplicate particles before FSR
+        # https://github.com/cms-sw/cmssw/blob/e48b3c4c1c95b0bb8baa89b216313f012877a73e/PhysicsTools/NanoAOD/python/genparticles_cff.py#L8-L28
+        if pid==11:
+          elecs.append(particle)
+          if particle.statusflag('isDirectTauDecayProduct'): # use "direct" to remove tau -> pi0 -> e+e-
+            elecs_tau.append(particle)
+          elif particle.statusflag('fromHardProcess'):
+            elecs_hard.append(particle)
+        elif pid==13: #particle.status==2:
+          muons.append(particle)
+          if particle.statusflag('isDirectTauDecayProduct'):
+            muons_tau.append(particle)
+          elif particle.statusflag('fromHardProcess'):
+            muons_hard.append(particle)
+        elif pid==15 and particle.status==2:
+          particle.pvis = TLorentzVector()
+          taus.append(particle)
+          if particle.statusflag('fromHardProcess'):
+            taus_hard.append(particle)
+          #else:
+          #  taus_hard.append(particle)
+      elif pid>16: # ignore neutrinos and charged leptons
+        for tau in taus:
+          if tau._index==particle.genPartIdxMother: # non-leptonic tau decay product
+            #print(">>> add %+d to %+d"%(particle.pdgId,tau.pdgId))
+            tau.pvis += particle.p4() # add visible tau decay product
+            if tau not in tauhs_hard:
+              tauhs_hard.append(tau)
     
-    # HADRONIC TAUS
-    tauhs_hard = [ ] # hadronic tau from prompt tau
-    if len(taus_hard)>=1:
-      #print '-'*20+" 2 taus "
-      genvistaus = Collection(event,'GenVisTau') # slimmed with pt > 10
-      for tau in taus_hard:
-        dRmin = 3.0
-        match = None
-        for genvistau in genvistaus:
-          dR = tau.DeltaR(genvistau)
-          if dR<dRmin and tau.pdgId*genvistau.charge<0: # same charge
-            dRmin = dR
-            match = genvistau
-        if match:
-          self.out.h_dR_tauh.Fill(dRmin)
-          if dRmin<0.5: # and genvistau in tauhs_hard
-            tauhs_hard.append(match)
+    #### HADRONIC TAUS
+    ###if len(taus_hard)>=1:
+    ###  #print '-'*20+" 2 taus "
+    ###  genvistaus = Collection(event,'GenVisTau') # slimmed with pt > 10 # not complete
+    ###  for tau in taus_hard:
+    ###    dRmin = 3.0
+    ###    match = None
+    ###    for genvistau in genvistaus:
+    ###      dR = tau.DeltaR(genvistau)
+    ###      if dR<dRmin and tau.pdgId*genvistau.charge<0: # same charge
+    ###        dRmin = dR
+    ###        match = genvistau
+    ###    if match:
+    ###      self.out.h_dR_tauh.Fill(dRmin)
+    ###      if dRmin<0.5: # and genvistau in tauhs_hard
+    ###        tauhs_hard.append(match)
     
     #### CHECK FOR OVERLAPPING ELECTRONS
     ###if elecs_tau or muons_tau:
@@ -130,25 +140,37 @@ class GenFilterMuTau(Module):
       self.out.cutflow.fill('unknown')
     
     # TAU DECAYS
-    ntauhs = event.nGenVisTau #len(tauhs_hard)
-    taus_hard_pt20 = sum(1 for p in taus_hard if p.pt>20)>=2 # GenVisTau, has pt>10
+    ntauhs = len(tauhs_hard) #event.nGenVisTau
+    taus_hard_pt18 = sum(1 for p in taus_hard if p.pt>18)>=2 # GenVisTau, has pt>10
     #if len(taus_hard)>=2:
     if len(elecs_tau)>=1 and ntauhs>=1:
       self.out.cutflow.fill('etauh')
-      if taus_hard_pt20 and countHardProcTau(elecs_tau)>=1:
+      if taus_hard_pt18 and countHardProcTau(elecs_tau)>=1:
         self.out.cutflow.fill('etauh_hard')
     if len(muons_tau)>=1 and ntauhs>=1:
       self.out.cutflow.fill('mutauh')
-      if taus_hard_pt20 and countHardProcTau(muons_tau)>=1:
+      if taus_hard_pt18 and countHardProcTau(muons_tau)>=1:
         self.out.cutflow.fill('mutauh_hard')
     if ntauhs>=2:
       self.out.cutflow.fill('tauhtauh')
-      if taus_hard_pt20:
+      if taus_hard_pt18:
         self.out.cutflow.fill('tauhtauh_hard')
     if len(elecs_tau)+len(muons_tau)>=2:
       self.out.cutflow.fill('taultaul')
-      if taus_hard_pt20 and countHardProcTau(elecs_tau)+countHardProcTau(muons_tau)>=2:
+      if taus_hard_pt18 and countHardProcTau(elecs_tau)+countHardProcTau(muons_tau)>=2:
         self.out.cutflow.fill('taultaul_hard')
+    
+    # CHECK FOR MISSING DECAYS
+    if self.verb>=2 and len(taus_hard)>=2 and len(elecs_tau)+len(muons_tau)+ntauhs<2:
+      print ">>> MISSING DITAU DECAY? electrons=%d (%d), muons=%d (%d), tauh=%d"%(
+        len(elecs_tau),len(elecs),len(muons_tau),len(muons),ntauhs)
+      for tau in taus_hard:
+        print getdecaychain(tau,particles)
+      for particle in particles:
+        pid = abs(particle.pdgId)
+        if pid in [11,13,15,16]:
+          dumpgenpart(particle,particles,grand=True,flags=['fromHardProcess',
+            'isDirectTauDecayProduct','isHardProcessTauDecayProduct','isDirectHardProcessTauDecayProduct','isLastCopy'])
     
     # MUTAU FILTER
     mutaufilter = filtermutau(event)
@@ -168,23 +190,32 @@ class GenFilterMuTau(Module):
     
     # FILL TREE BRANCHES
     muon = max(muons,key=lambda m: m.pt)
-    tauh = max(tauhs_hard,key=lambda t: t.pt)
-    if len(taus)>=2:
-      taus = sorted(taus_hard,key=lambda t: -t.pt)
-      self.out.pt_1[0]       = taus[0].pt
-      self.out.pt_2[0]       = taus[1].pt
-      self.out.eta_1[0]      = taus[0].eta
-      self.out.eta_2[0]      = taus[1].eta
-    elif len(taus)>=1:
-      self.out.pt_1[0]       = taus[0].pt
+    tauh = max(tauhs_hard,key=lambda t: t.pvis.Pt())
+    if len(taus_hard)>=2:
+      taus_hard = sorted(taus_hard,key=lambda t: -t.pt)
+      self.out.pt_1[0]       = taus_hard[0].pt
+      self.out.pt_2[0]       = taus_hard[1].pt
+      self.out.eta_1[0]      = taus_hard[0].eta
+      self.out.eta_2[0]      = taus_hard[1].eta
+      self.out.dR[0]         = taus_hard[0].DeltaR(taus_hard[1])
+      self.out.deta[0]       = abs(taus_hard[0].eta-taus_hard[1].eta)
+      self.out.dphi[0]       = deltaPhi(taus_hard[0].phi,taus_hard[1].phi)
+    elif len(taus_hard)>=1:
+      self.out.pt_1[0]       = taus_hard[0].pt
       self.out.pt_2[0]       = -1
-      self.out.eta_1[0]      = taus[0].eta
+      self.out.eta_1[0]      = taus_hard[0].eta
       self.out.eta_2[0]      = -9
-    elif len(taus)>=1: # defaults
+      self.out.dR[0]         = -1
+      self.out.deta[0]       = -1
+      self.out.dphi[0]       = -1
+    else: # defaults
       self.out.pt_1[0]       = -1
       self.out.pt_2[0]       = -1
       self.out.eta_1[0]      = -9
       self.out.eta_2[0]      = -9
+      self.out.dR[0]         = -1
+      self.out.deta[0]       = -1
+      self.out.dphi[0]       = -1
     self.out.mu_pt[0]        = muon.pt
     self.out.mu_eta[0]       = muon.eta
     self.out.mu_fromTau[0]   = muon.statusflag('isDirectTauDecayProduct')
@@ -270,29 +301,32 @@ class TreeProducerGenFilterMuTau(TreeProducer):
       hist.SetOption('COLZ')
     
     # TREE BRANCHES
-    self.addBranch('pt_1',            'f', title="leading lepton (from hard process) pT")
-    self.addBranch('eta_1',           'f', title="leading lepton (from hard process) eta")
-    self.addBranch('pt_2',            'f', title="subleading lepton (from hard process) pT")
-    self.addBranch('eta_2',           'f', title="subleading lepton (from hard process) eta")
-    self.addBranch('mu_pt',           'f', title="leading muon pT")
-    self.addBranch('mu_eta',          'f', title="leading muon eta")
-    self.addBranch('mu_fromTau',      '?', title="leading muon isDirectTauDecayProduct")
-    self.addBranch('mu_fromHard',     '?', title="leading muon fromHardProcess")
-    self.addBranch('mu_tau_pt',       'f', title="leading muon (from tau decay) pT")
-    self.addBranch('mu_tau_eta',      'f', title="leading muon (from tau decay) eta")
-    self.addBranch('mu_tau_fromHard', '?', title="leading muon (from tau decay) fromHardProcess")
+    self.addBranch('pt_1',            'f', title="Leading tau lepton (from hard process) pT")
+    self.addBranch('eta_1',           'f', title="Leading tau lepton (from hard process) eta")
+    self.addBranch('pt_2',            'f', title="Subleading tau lepton (from hard process) pT")
+    self.addBranch('eta_2',           'f', title="Subleading tau lepton (from hard process) eta")
+    self.addBranch('dR',              'f', title="DeltaR between tau leptons (from hard process)")
+    self.addBranch('deta',            'f', title="Deltaeta between tau leptons (from hard process)")
+    self.addBranch('dphi',            'f', title="Deltaphi between tau leptons (from hard process)")
+    self.addBranch('mu_pt',           'f', title="Leading muon pT")
+    self.addBranch('mu_eta',          'f', title="Leading muon eta")
+    self.addBranch('mu_fromTau',      '?', title="Leading muon isDirectTauDecayProduct")
+    self.addBranch('mu_fromHard',     '?', title="Leading muon fromHardProcess")
+    self.addBranch('mu_tau_pt',       'f', title="Leading muon (from tau decay) pT")
+    self.addBranch('mu_tau_eta',      'f', title="Leading muon (from tau decay) eta")
+    self.addBranch('mu_tau_fromHard', '?', title="Leading muon (from tau decay) fromHardProcess")
     self.addBranch('moth_pid',        'i', title="PDG ID")
-    self.addBranch('tauh_pt',         'f', title="leading visible tauh pT")
-    self.addBranch('tauh_eta',        'f', title="leading visible tauh eta")
-    self.addBranch('nelecs',          'i', title="number of gen electrons")
-    self.addBranch('nelecs_tau',      'i', title="number of gen electrons from tau decays")
-    self.addBranch('nelecs_hard',     'i', title="number of gen electrons from hard process")
-    self.addBranch('nmuons',          'i', title="number of gen muons")
-    self.addBranch('nmuons_tau',      'i', title="number of gen muons from tau decays")
-    self.addBranch('nmuons_hard',     'i', title="number of gen muons from hard process")
-    self.addBranch('ntaus',           'i', title="number of gen taus")
-    self.addBranch('ntaus_hard',      'i', title="number of gen taus from hard process")
-    self.addBranch('ntauhs',          'i', title="number of gen tauhs")
+    self.addBranch('tauh_pt',         'f', title="Leading visible tauh pT")
+    self.addBranch('tauh_eta',        'f', title="Leading visible tauh eta")
+    self.addBranch('nelecs',          'i', title="Number of gen electrons")
+    self.addBranch('nelecs_tau',      'i', title="Number of gen electrons from tau decays")
+    self.addBranch('nelecs_hard',     'i', title="Number of gen electrons from hard process")
+    self.addBranch('nmuons',          'i', title="Number of gen muons")
+    self.addBranch('nmuons_tau',      'i', title="Number of gen muons from tau decays")
+    self.addBranch('nmuons_hard',     'i', title="Number of gen muons from hard process")
+    self.addBranch('ntaus',           'i', title="Number of gen taus")
+    self.addBranch('ntaus_hard',      'i', title="Number of gen taus from hard process")
+    self.addBranch('ntauhs',          'i', title="Number of gen tauhs")
     self.addBranch('mutaufilter',     '?', title="mutau filter")
     
   def endJob(self):
@@ -303,7 +337,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     ntau = self.cutflow.getbincontent('tautau')
     bins = [('etauh',23),('mutauh',23),('tauhtauh',42),('taultaul',12)]
     if ntau>0:
-      for tag, title in [('',''),('_hard',' from hard process with tau pT > 20 GeV')]:
+      for tag, title in [('',''),('_hard',' from hard process with tau pT > 18 GeV')]:
         ntau_decay = sum(self.cutflow.getbincontent(b+tag) for b, e in bins)
         print ">>> Ditau decays%s:"%(title)
         for bin, exp in bins:
@@ -323,7 +357,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
       print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
       print ">>> %8d / %5d = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
       print ">>> Expect ~ 0.908 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.843e+03 / 5343.0 * 0.02633
-      print ">>> Expect ~ 0.637 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5, Z -> tautau)" # = 1.843e+03 / 5343.0 * 0.02633 * 0.7010
+      print ">>> Expect ~ 0.638 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5)" # = 1.843e+03 / 5343.0 * 0.02633 * 0.7026
     
     #### NORMALIZE STATUS FLAG CORRELATION MATRIX
     ###hist  = self.h_statusflags
@@ -353,3 +387,86 @@ class TreeProducerGenFilterMuTau(TreeProducer):
       for ybit in xrange(0,15):
         if not hasbit(particle.statusFlags,ybit): continue
         self.h_statusflags.Fill(xbit,ybit)
+  
+
+# QUICK PLOTTING SCRIPT
+if __name__ == '__main__':
+  from ROOT import gROOT, TFile
+  from TauFW.Plotter.plot.Plot import Plot
+  from argparse import ArgumentParser
+  gROOT.SetBatch(True)      # don't open GUI windows
+  gStyle.SetOptTitle(False) # don't make title on top of histogram
+  gStyle.SetOptStat(False)  # don't make stat. box
+  description = """Make histograms from output file."""
+  parser = ArgumentParser(prog="GenMatcher",description=description,epilog="Good luck!")
+  parser.add_argument('files', nargs='+', help="final (hadd'ed) ROOT file")
+  parser.add_argument('-t',"--tag", default="", help="extra tag for output file")
+  args = parser.parse_args()
+  
+  # OPEN FILES
+  trees = [ ]
+  for fname in args.files:
+    if fname.count('=')==1:
+      title, fname = fname.split('=')
+    else:
+      title = fname.replace('.root','')
+    print ">>> Opening %s (%s)"%(fname,title)
+    file = TFile.Open(fname,'READ')
+    tree = file.Get('tree')
+    tree.title = title
+    tree.file = file
+    trees.append(tree)
+  
+  # DRAW NEW HISTOGRAMS
+  selections = [
+    #("mutau","ntaus_hard==2 && nmuons_tau>=1 && ntauhs>=1"),
+    ("mutaufilter","mutaufilter"),
+  ]
+  vars = [
+    ('pt_1',      50, 0,100),
+    ('pt_2',      50, 0,100),
+    ('eta_1',     35,-3,  4),
+    ('eta_2',     35,-3,  4),
+    ('mu_pt',     50, 0,100),
+    ('mu_eta',    35,-3,  4),
+    ('mu_tau_pt', 50, 0,100),
+    ('mu_tau_eta',35,-3,  4),
+    ('tauh_pt',   50, 0,100),
+    ('tauh_eta',  35,-3,  4),
+    ('ntauhs',     5, 0,  5),
+    ('ntaus_hard', 5, 0,  5),
+    ('dR',        40, 0,  4),
+    ('dphi',      40, 0,  4),
+    ('deta',      40, 0,  4),
+  ]
+  for stitle, sstring in selections:
+    sname = stitle.replace(' ','').replace(',','-').replace('>','gt').replace('#','').replace('GeV','')
+    print ">>> Drawing %r..."%(stitle) #,sstring)
+    for xvar, nbins, xmin, xmax in vars:
+      xtitle = trees[0].GetBranch(xvar).GetTitle() #xvar
+      pname  = "%s_%s%s"%(xvar,sname,args.tag)
+      hists  = [ ]
+      for i, tree in enumerate(trees):
+        hname  = "h_%s_%d"%(pname,i)
+        title  = "%s;%s;Events"%(tree.title,xtitle)
+        dcmd   = "%s >> %s"%(xvar,hname)
+        hist   = TH1D(hname,title,nbins,xmin,xmax)
+        out    = tree.Draw(dcmd,sstring,'gOff')
+        print ">>>  %8s = tree.Draw(%r,%r,'gOff')"%(out,dcmd,sstring)
+        nevts  = hist.Integral()
+        if nevts:
+          hist.Scale(1./nevts)
+        hists.append(hist)
+      
+      # PLOT HISTOGRAMS
+      print ">>> Plotting..."
+      plot = Plot(xtitle,hists,clone=True)
+      plot.draw(ratio=True,lstyle=1)
+      plot.drawlegend()
+      plot.drawtext(stitle)
+      plot.saveas(pname,ext=['png']) #,'pdf'
+      plot.close()
+  for tree in trees:
+    tree.file.Close()
+  print ">>> Done."
+  

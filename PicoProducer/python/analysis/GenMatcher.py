@@ -37,6 +37,8 @@ class GenMatcher(Module):
   
   def __init__(self,fname,**kwargs):
     self.out = TreeProducerGenMatcher(fname,self)
+    #self.verb = kwargs.get('verb',0)
+    #print ">>> verb = %r"%(self.verb)
     
   def endJob(self):
     """Wrap up after running on all events and files"""

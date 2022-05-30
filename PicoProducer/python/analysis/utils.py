@@ -1,4 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
+#from __future__ import print_function # for python3 compatibility
 import os, sys
 from math import sqrt, sin, cos, pi, log10, floor
 from itertools import combinations
@@ -46,7 +47,7 @@ def ensurebranches(tree,branches):
   """Check if these branches are available in the tree branch list,
   if not, redirect them."""
   if tree.GetEntries()<1:
-    print "WARNING! Empty tree!"
+    print("WARNING! Empty tree!")
     return
   fullbranchlist = tree.GetListOfBranches()
   for newbranch, oldbranch in branches:
@@ -57,11 +58,11 @@ def ensurebranches(tree,branches):
 def redirectbranch(oldbranch,newbranch):
   """Redirect some branch names. newbranch -> oldbranch"""
   if isinstance(oldbranch,str): # rename
-    print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
-    exec "setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch)
+    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
+    exec("setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch))
   else: # set default value
-    print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
-    exec "setattr(Event,newbranch,%s)"%(oldbranch)
+    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
+    exec("setattr(Event,newbranch,%s)"%(oldbranch))
   
 
 def hasbit(value,bit):
@@ -100,7 +101,7 @@ def dumpgenpart(part,genparts=None,event=None,flags=[],bits=[],grand=False):
     info += ", %s=%r"%(flag,part.statusflag(flag))
   for bit in bits:
     info += ", bit%s=%d"%(bit,hasbit(part.statusFlags,bit))
-  print info
+  print(info)
   
 
 def getmother(part,genparts):
@@ -111,24 +112,40 @@ def getmother(part,genparts):
   return moth.pdgId
   
 
-def printdecaychain(part,genparts=None,event=None):
-  """Print decay chain."""
-  chain = ">>>  %3s"%(part.pdgId)
+def getprodchain(part,genparts=None,event=None):
+  """Print productions chain."""
+  chain = "%3s"%(part.pdgId)
   imoth = part.genPartIdxMother
   while imoth>=0:
     if genparts:
       moth = genparts[imoth]
-      chain += " <- %3s"%(moth.pdgId)
+      chain = "%3s -> "%(moth.pdgId)+chain
       imoth = moth.genPartIdxMother
     elif event:
-      chain += " <- %3s"%(event.GenPart_pdgId[imoth])
+      chain = "%3s -> "%(event.GenPart_pdgId[imoth])+chain
       imoth = event.GenPart_genPartIdxMother[imoth]
-  print chain
+  return chain
+  
+
+def getdecaychain(part,genparts,indent=0):
+  """Print decay chain."""
+  chain   = "%3s"%(part.pdgId)
+  imoth   = part._index
+  ndaus   = 0
+  indent_ = len(chain)+indent
+  for idau in range(imoth+1,len(genparts)): 
+    dau = genparts[idau]
+    if dau.genPartIdxMother==imoth:
+      if ndaus>=1:
+        chain += '\n'+' '*indent_
+      chain += " -> "+getdecaychain(dau,genparts,indent=indent_+4)
+      ndaus += 1
+  return chain
   
 
 def filtermutau(event):
   """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
-  for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
+  to find overlap between DYJetsToLL_M-50 and DYJetsToTauTauToMuTauh_M-50 for stitching.
   Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.774% for DYJetsToLL_M-50.
   
   Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTauToMuTauh:
@@ -136,11 +153,11 @@ def filtermutau(event):
     https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
     https://github.com/cms-sw/cmssw/blob/master/GeneratorInterface/Core/src/EmbeddingHepMCFilter.cc
   """
-  ###print '-'*80
+  #print '-'*80
   particles = Collection(event,'GenPart')
   muon = None
   taus = [ ]
-  hasZ = False # check if event contains a Z boson, required in DYJetsToTauTauToMuTauh fragment
+  hasZ = False # Z boson required in DYJetsToTauTauToMuTauh Pythia8 filter
   for particle in particles:
     pid = abs(particle.pdgId)
     if pid==13 and (particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct')):
@@ -148,17 +165,23 @@ def filtermutau(event):
       if muon: # more than two muons from hard-proces taus
         return False # do not bother any further
       muon = particle
-    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): # last copy
-    #elif pid==15 and particle.statusflag('fromHardProcess','isFirstCopy'): # first copy, like in EmbeddingHepMCFilter
-      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
+    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): # status==2 = last copy
+      particle.pvis = TLorentzVector() # visible 4-momentum
       taus.append(particle)
     elif pid==23:
-      hasZ = True
+      hasZ = True # Z boson required in DYJetsToTauTauToMuTauh Pythia8 filter
+    elif pid>16: # ignore neutrinos and charged leptons
+      for tau in taus:
+        if tau._index==particle.genPartIdxMother: # non-leptonic tau decay product
+          #print(">>> add %+d to %+d"%(particle.pdgId,tau.pdgId))
+          tau.pvis += particle.p4() # add visible tau decay product
   if hasZ and len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
-    for genvistau in Collection(event,'GenVisTau'):
-      ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
-      if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0: #and any(genvistau.DeltaR(t)<0.5 for t in taus)
-        return True
+    if any(tau.pdgId*muon.pdgId<0 and tau.pvis.Pt()>18 and abs(tau.pvis.Eta())<2.5 for tau in taus):
+      return True
+  #for genvistau in Collection(event,'GenVisTau'): # not complete...
+  #  ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
+  #  if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0: #and any(genvistau.DeltaR(t)<0.5 for t in taus)
+  #    return True
   return False
   
 
@@ -221,7 +244,7 @@ def getmet(era,var="",useT1=False,verb=0):
   funcstr = "func = lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
   if verb>=1:
     LOG.verb(">>> getmet: %r"%(funcstr))
-  exec funcstr #in locals()
+  exec(funcstr) #in locals()
   return func
   
 
@@ -264,7 +287,7 @@ def getmetfilters(era,isdata,verb=0):
   funcstr = "func = lambda e: e."+' and e.'.join(filters)
   if verb>=1:
     LOG.verb(">>> getmetfilters: %r"%(funcstr))
-  exec funcstr #in locals()
+  exec(funcstr) #in locals()
   return func
   
 
