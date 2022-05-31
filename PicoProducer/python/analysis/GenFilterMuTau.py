@@ -218,20 +218,24 @@ class GenFilterMuTau(Module):
       self.out.dphi[0]       = -1
     self.out.mu_pt[0]        = muon.pt
     self.out.mu_eta[0]       = muon.eta
+    self.out.mu_q[0]         = -muon.pdgId/13
     self.out.mu_fromTau[0]   = muon.statusflag('isDirectTauDecayProduct')
     self.out.mu_fromHard[0]  = muon.statusflag('fromHardProcess') or muon.statusflag('isHardProcessTauDecayProduct') or muon.statusflag('isDirectHardProcessTauDecayProduct')
     if len(muons_tau)>=1:
       muon_tau = max(muons_tau,key=lambda m: m.pt)
       self.out.mu_tau_pt[0]       = muon_tau.pt
       self.out.mu_tau_eta[0]      = muon_tau.eta
+      self.out.mu_tau_q[0]        = -muon_tau.pdgId/13
       self.out.mu_tau_fromHard[0] = muon_tau.statusflag('fromHardProcess') or muon.statusflag('isHardProcessTauDecayProduct') or muon.statusflag('isDirectHardProcessTauDecayProduct')
     else: # defaults
       self.out.mu_tau_pt[0]       = -1
       self.out.mu_tau_eta[0]      = -9
+      self.out.mu_tau_q[0]        = -9
       self.out.mu_tau_fromHard[0] = False
     self.out.moth_pid[0]     = moth_pid
     self.out.tauh_pt[0]      = tauh.pt
     self.out.tauh_eta[0]     = tauh.eta
+    self.out.tauh_q[0]       = -tauh.pdgId/15
     self.out.nelecs[0]       = len(elecs)
     self.out.nelecs_tau[0]   = len(elecs_tau)
     self.out.nelecs_hard[0]  = len(elecs_hard)
@@ -240,7 +244,7 @@ class GenFilterMuTau(Module):
     self.out.nmuons_hard[0]  = len(muons_hard)
     self.out.ntaus[0]        = len(taus)
     self.out.ntaus_hard[0]   = len(taus_hard)
-    self.out.ntauhs[0]       = len(tauhs_hard)
+    self.out.ntauhs_hard[0]  = len(tauhs_hard)
     self.out.mutaufilter[0]  = mutaufilter
     self.out.fill()
     
@@ -308,16 +312,19 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     self.addBranch('dR',              'f', title="DeltaR between tau leptons (from hard process)")
     self.addBranch('deta',            'f', title="Deltaeta between tau leptons (from hard process)")
     self.addBranch('dphi',            'f', title="Deltaphi between tau leptons (from hard process)")
-    self.addBranch('mu_pt',           'f', title="Leading muon pT")
-    self.addBranch('mu_eta',          'f', title="Leading muon eta")
-    self.addBranch('mu_fromTau',      '?', title="Leading muon isDirectTauDecayProduct")
-    self.addBranch('mu_fromHard',     '?', title="Leading muon fromHardProcess")
-    self.addBranch('mu_tau_pt',       'f', title="Leading muon (from tau decay) pT")
-    self.addBranch('mu_tau_eta',      'f', title="Leading muon (from tau decay) eta")
-    self.addBranch('mu_tau_fromHard', '?', title="Leading muon (from tau decay) fromHardProcess")
+    self.addBranch('mu_pt',           'f', title="Muon pT")
+    self.addBranch('mu_eta',          'f', title="Muon eta")
+    self.addBranch('mu_q',            'i', title="Muon charge")
+    self.addBranch('mu_fromTau',      '?', title="Muon isDirectTauDecayProduct")
+    self.addBranch('mu_fromHard',     '?', title="Muon fromHardProcess")
+    self.addBranch('mu_tau_pt',       'f', title="Muon (from tau decay) pT")
+    self.addBranch('mu_tau_eta',      'f', title="Muon (from tau decay) eta")
+    self.addBranch('mu_tau_q',        'f', title="Muon (from tau decay) charge")
+    self.addBranch('mu_tau_fromHard', '?', title="Muon (from tau decay) fromHardProcess")
     self.addBranch('moth_pid',        'i', title="PDG ID")
-    self.addBranch('tauh_pt',         'f', title="Leading visible tauh pT")
-    self.addBranch('tauh_eta',        'f', title="Leading visible tauh eta")
+    self.addBranch('tauh_pt',         'f', title="Visible tauh pT")
+    self.addBranch('tauh_eta',        'f', title="Visible tauh eta")
+    self.addBranch('tauh_q',          'i', title="Visible tauh charge")
     self.addBranch('nelecs',          'i', title="Number of gen electrons")
     self.addBranch('nelecs_tau',      'i', title="Number of gen electrons from tau decays")
     self.addBranch('nelecs_hard',     'i', title="Number of gen electrons from hard process")
@@ -326,7 +333,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     self.addBranch('nmuons_hard',     'i', title="Number of gen muons from hard process")
     self.addBranch('ntaus',           'i', title="Number of gen taus")
     self.addBranch('ntaus_hard',      'i', title="Number of gen taus from hard process")
-    self.addBranch('ntauhs',          'i', title="Number of gen tauhs")
+    self.addBranch('ntauhs_hard',     'i', title="Number of gen tauhs from hard process")
     self.addBranch('mutaufilter',     '?', title="mutau filter")
     
   def endJob(self):
@@ -391,8 +398,8 @@ def getfiltereff(hist):
     eff = npass/ntot
     print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
     print ">>> %8d / %5d = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
-    print ">>> Expect ~ 0.908 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.843e+03 / 5343.0 * 0.02633
-    print ">>> Expect ~ 0.638 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5)" # = 1.843e+03 / 5343.0 * 0.02633 * 0.7026
+    print ">>> Expect ~ 0.888 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.815e+03 / 5343.0 * 0.02615
+    print ">>> Expect ~ 0.624 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5)" # = 1.815e+03 / 5343.0 * 0.02615 * 0.7026
   return eff
   
 
@@ -431,28 +438,33 @@ if __name__ == '__main__':
   
   # DRAW NEW HISTOGRAMS
   selections = [
-    #("mutau","ntaus_hard==2 && nmuons_tau>=1 && ntauhs>=1"),
-    ("mutaufilter","mutaufilter"),
+    #("nocuts",""),
+    #("mutauh","ntaus_hard==2 && nmuons_tau>=1 && ntauhs_hard>=1"),
+    ("mutauh from hard process","ntaus_hard==2 && nmuons_tau>=1 && ntauhs_hard>=1 && mu_tau_fromHard"),
+    #("mutaufilter","mutaufilter"),
   ]
   vars = [
-    ('pt_1',      50, 0,100),
-    ('pt_2',      50, 0,100),
-    ('eta_1',     35,-3,  4),
-    ('eta_2',     35,-3,  4),
-    ('mu_pt',     50, 0,100),
-    ('mu_eta',    35,-3,  4),
-    ('mu_tau_pt', 50, 0,100),
-    ('mu_tau_eta',35,-3,  4),
-    ('tauh_pt',   50, 0,100),
-    ('tauh_eta',  35,-3,  4),
-    ('ntauhs',     5, 0,  5),
-    ('ntaus_hard', 5, 0,  5),
-    ('dR',        40, 0,  4),
-    ('dphi',      40, 0,  4),
-    ('deta',      40, 0,  4),
+    ('pt_1',       50, 0,100),
+    ('pt_2',       50, 0,100),
+    ('eta_1',      35,-3,  4),
+    ('eta_2',      35,-3,  4),
+    ('mu_pt',      50, 0,100),
+    ('mu_eta',     35,-3,  4),
+    ('mu_q',        6,-2,  4),
+    ('mu_tau_pt',  50, 0,100),
+    ('mu_tau_eta', 35,-3,  4),
+    ('mu_tau_q',    6,-2,  4),
+    ('tauh_pt',    50, 0,100),
+    ('tauh_eta',   35,-3,  4),
+    ('tauh_q',      6,-2,  4),
+    ('ntauhs_hard', 5, 0,  5),
+    ('ntaus_hard',  5, 0,  5),
+    ('dR',         40, 0,  4),
+    ('dphi',       40, 0,  4),
+    ('deta',       40, 0,  4),
   ]
   for stitle, sstring in selections:
-    sname = stitle.replace(' ','').replace(',','-').replace('>','gt').replace('#','').replace('GeV','')
+    sname = stitle.replace(' ','').replace(',','-').replace('>','gt').replace('#','').replace('GeV','').replace('fromhardprocess','_hard')
     print ">>> Drawing %r..."%(stitle) #,sstring)
     for xvar, nbins, xmin, xmax in vars:
       xtitle = trees[0].GetBranch(xvar).GetTitle() #xvar
