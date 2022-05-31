@@ -69,7 +69,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   tree_event.addBranch('tau2_pt',     'f')
   tree_event.addBranch('tau2_eta',    'f')
   tree_event.addBranch('st',          'f') # scalar sum pT
-  tree_event.addBranch('stmet',      'f') # scalar sum pT with MET
+  tree_event.addBranch('stmet',       'f') # scalar sum pT with MET
   tree_event.addBranch('weight',      'f')
   
   # MOTHER DECAY

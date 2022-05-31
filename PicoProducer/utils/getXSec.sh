@@ -18,7 +18,7 @@
 START=`date +%s`
 SAMPLEFILE="samples.txt"
 [ "$1" ] && SAMPLEFILE="$1" # user-defined sample list
-MAXFILES=2 # the more files, the better the statistical precision
+MAXFILES=5 # the more files, the better the statistical precision
 URL="root://xrootd-cms.infn.it" #root://cms-xrd-global.cern.ch/
 
 function main {
@@ -95,7 +95,7 @@ function formatLogName { # make log filename
 }
 
 function ensureDir { # check if directory exists, else create it
-  [ -e "$1" ] || { echo ">>> making $1 directory..."; mkdir "$1"; }
+  [ -e "$1" ] || { echo ">>> Making $1 directory..."; mkdir "$1"; }
 }
 
 function runtime { # print out runtime
@@ -106,7 +106,7 @@ function runtime { # print out runtime
 echo
 main
 echo ">>> "
-echo ">>> ${A}done in $(runtime)$E"
+echo ">>> ${A}Done in $(runtime)$E"
 echo
 
 exit 0
