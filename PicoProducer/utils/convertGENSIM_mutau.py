@@ -36,8 +36,10 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,dtier='GENSIM'):
   tree  = TTree('event', 'event')
   tree.addBranch('nmoth',       'i')
   tree.addBranch('nmuon',       'i')
+  tree.addBranch('nmuon_tau',   'i')
   tree.addBranch('ntau',        'i')
   tree.addBranch('ntau_hard',   'i')
+  tree.addBranch('ntauh_hard',  'i')
   tree.addBranch('ntauh',       'i')
   tree.addBranch('moth_m',      'f')
   tree.addBranch('moth_pt',     'f')
@@ -49,7 +51,21 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,dtier='GENSIM'):
   tree.addBranch('tau2_eta',    'f')
   tree.addBranch('muon_q',      'f')
   tree.addBranch('tauh_q',      'f')
+  tree.addBranch('muon_fromHardTau', 'f')
   tree.addBranch('weight',      'f')
+  
+  # PREPARE HIST
+  h_nmoth         = TH1F('h_nmoth',        ';Number of Z bosons;Events',8,0,8)
+  h_ntau_fromZ    = TH1F('h_ntau_fromZ',   ';Number of gen. #taus from Z -> #tau#tau;Events',8,0,8)
+  h_ntau_fromZ2   = TH1F('h_ntau_fromZ2',  ';Number of gen. #taus from Z -> #tau#tau;Events',8,0,8)
+  h_ntau_fromHard = TH1F('h_ntau_fromHard',';Number of gen. #taus from hard process;Events',8,0,8)
+  h_ntau_brem     = TH1F('h_ntau_brem',    ';Number of gen. #tau leptons that radiate;Events',8,0,8)
+  h_nmuon_tau     = TH1F('h_nmuon_tau',    ';Number of gen. muons from tau decay;Events',8,0,8)
+  h_nmuon_tau2    = TH1F('h_nmuon_tau2',   ';Number of gen. muons from tau decay;Events with Z #rightarrow #tau#tau',8,0,8)
+  h_tau_brem_q    = TH1F('h_tau_brem_q',   ';Gen. #tau lepton (that radiate) charge;Events',5,-2,3)
+  h_muon_tau_q    = TH1F('h_muon_tau_q',   ';Gen. muons (from #tau decay) charge;Events',5,-2,3)
+  h_muon_tau_q2   = TH1F('h_muon_tau_q2',  ';Gen. muons (from #tau decay) charge;Events with Z #rightarrow #tau#tau',5,-2,3)
+  h_muon_tau_brem_q = TH1F('h_muon_tau_brem_q', ';Gen. muons (from radiating #tau) charge;Events',5,-2,3)
   
   if 'AOD' in dtier:
     handle_gps,    label_gps    = Handle('std::vector<reco::GenParticle>'), 'prunedGenParticles'
@@ -67,11 +83,12 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,dtier='GENSIM'):
   start_proc = time.time()
   
   # LOOP OVER EVENTS
+  npass = 0
   for event in events:
     #print '='*30
     #print evtid
     if maxevts>0 and evtid>=maxevts:
-     break
+      break
     if evtid>0 and evtid%step==0:
       ETA, rate = getETA(start_proc,evtid+1,Ntot)
       print ">>>   Processed %4s/%d events, ETA %s (%d Hz)"%(evtid,Ntot,ETA,rate)
@@ -83,46 +100,97 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,dtier='GENSIM'):
     event.getByLabel(label_weight,handle_weight) # gen weight
     
     # GEN PARTICLES
-    gps_final  = [p for p in gps if isFinal(p) and abs(p.pdgId()) in [5,6,11,12,13,14,15,16]+mothids] #isLastCopy()
-    gps_mother = [p for p in gps_final if abs(p.pdgId()) in mothids and p.status()>60]
+    gps_final     = [p for p in gps if isFinal(p) and abs(p.pdgId()) in [5,6,11,12,13,14,15,16]+mothids]
+    #gps_final     = [p for p in gps if p.isLastCopy() and abs(p.pdgId()) in [5,6,11,12,13,14,15,16]+mothids]
+    #gps_final     = [p for p in gps if p.isFirstCopy() and abs(p.pdgId()) in [5,6,11,12,13,14,15,16]+mothids]
+    gps_mother    = [p for p in gps_final if abs(p.pdgId()) in mothids and p.status()>60]
+    gps_tau       = [p for p in gps_final if abs(p.pdgId())==15 and p.status()==2]
+    gps_tau_brem  = [p for p in gps_final if abs(p.pdgId())==15 and any(abs(p.daughter(i).pdgId())==22 for i in range(p.numberOfDaughters()))]
+    gps_muons     = [p for p in gps_final if abs(p.pdgId())==13]
+    gps_muons_tau = [m for m in gps_muons if m.statusFlags().isHardProcessTauDecayProduct()]
+    #gps_muons_tau = [m for m in gps_muons if m.statusFlags().isDirectHardProcessTauDecayProduct()]
+    
+    # HISTOGRAMS
+    h_nmoth.Fill(len(gps_mother))
+    h_ntau_fromHard.Fill(sum(t.statusFlags().fromHardProcess() for t in gps_tau)) # fill before selecting events
+    h_ntau_brem.Fill(len(gps_tau_brem)) # count radiated photons
+    h_nmuon_tau.Fill(len(gps_muons_tau)) # fill before selecting events
+    for muon in gps_muons_tau:
+      h_muon_tau_q.Fill(muon.charge()) #-muon.pdgId()/13
+    for tau in gps_tau_brem:
+      h_tau_brem_q.Fill(tau.charge())
+      dau = getdaughter_tau(tau)
+      if abs(dau.pdgId())==13: # muon
+        h_muon_tau_brem_q.Fill(dau.charge())
+    
+    # REQUIRE Z BOSON
     if not gps_mother:
       continue # only look at events with Z bosons
     moth = gps_mother[-1] # take last one
     
     # TAUS
-    gps_tau = [p for p in gps_final if abs(p.pdgId())==15 and p.status()==2]
-    gps_tau_hard = [p for p in gps_tau if p.mother(0)==moth]
+    #gps_tau_hard = [p for p in gps_tau if p.mother(0)==moth]
+    gps_tau_hard = [p for p in gps_tau if getmother(p)==moth]
+    h_ntau_fromZ.Fill(len(gps_tau_hard))
     if len(gps_tau_hard)<2:
+      #if len(gps_tau)>=2:
+      #  print '-'*8 + " no Z -> taus ?"
+      #  print ">>> Z BOSON:"
+      #  for part in gps_final:
+      #    if abs(part.pdgId()) in mothids:
+      #      printParticle(part)
+      #  print ">>> TAUS:"
+      #  for tau in gps_tau:
+      #    printParticle(tau.mother(0))
+      #    printParticle(tau)
       continue # only look at events with Z -> tautau
-    gps_muons = [p for p in gps_final if abs(p.pdgId())==13]
-    if len(gps_muons)<1:
+    h_ntau_fromZ2.Fill(len(gps_tau_hard)) # fill for Z -> tautau
+    h_nmuon_tau2.Fill(len(gps_muons_tau)) # fill for Z -> tautau
+    for muon in gps_muons_tau:
+      h_muon_tau_q2.Fill(muon.charge()) #-muon.pdgId()/13
+    
+    # MUONS
+    if len(gps_muons_tau)<1:
       continue # only look at events with Z -> tautau -> mutau
     
-    # CHECK FOR MUTAU
-    muon_tau = None
-    tauh_tau = None
-    skip     = False
-    for tau in gps_tau_hard:
-      for i in range(moth.numberOfDaughters()):
-        dau = tau.daughter(i)
-        assert abs(dau.pdgId())!=15 # should already be final
-        ###while abs(dau.pdgId())==15: # unlikely
-        ###  dau = dau.daughter(0)
-        if abs(dau.pdgId())==13: # muonic decay
-          if muon_tau: skip = True; break # require only one muon
-          muon_tau = dau
-          break # check next tau
-        elif abs(dau.pdgId())>20: # non-leptonic decay
-          if tauh_tau: skip = True; break # require only one tauh
-          tauh_tau = tau
-          break # check next tau
-      else: # no break: did not find muon or non-leptonic decay
-        skip = True; break
-      if skip:
-        break
-    if skip or not muon_tau or not tauh_tau: # failed mutau requirement
+    # VETO TAU -> ELECTRONS DECAYS
+    if any(abs(p.pdgId())==11 and m.statusFlags().isDirectHardProcessTauDecayProduct() for p in gps_final):
       continue
     
+    # NON-LEPTONIC TAUS
+    #gps_tauh_hard = [t for t in gps_tau_hard if not any(abs(t.daughter(i).pdgId())<16 for i in range(t.numberOfDaughters()))]
+    gps_tauh_hard = [t for t in gps_tau_hard if not any(abs(t.daughter(i).pdgId()) in [11,12,13,14,15] for i in range(t.numberOfDaughters()))]
+    if len(gps_tauh_hard)<1:
+      continue # only look at events with Z -> tautau -> mutau
+    muon_tau = gps_muons_tau[0]
+    tauh_hard = gps_tauh_hard[0]
+    
+    ## CHECK FOR MUTAU
+    #muon_tau = None
+    #tauh_hard = None
+    #skip     = False
+    #for tau in gps_tau_hard:
+    #  for i in range(moth.numberOfDaughters()):
+    #    dau = tau.daughter(i)
+    #    assert abs(dau.pdgId())!=15 # should already be final copy
+    #    ###while abs(dau.pdgId())==15: # unlikely
+    #    ###  dau = dau.daughter(0)
+    #    if abs(dau.pdgId())==13: # muonic decay
+    #      if muon_tau: skip = True; break # tautau -> mumu: require only one muon
+    #      muon_tau = dau
+    #      break # check next tau
+    #    elif abs(dau.pdgId())>20: # non-leptonic decay
+    #      if tauh_hard: skip = True; break # tautau -> tauhtauh: require only one tauh
+    #      tauh_hard = tau
+    #      break # check next tau
+    #  else: # no break: did not find muon or non-leptonic decay
+    #    skip = True; break
+    #  if skip:
+    #    break
+    #if skip or not muon_tau or not tauh_hard: # failed mutau requirement
+    #  continue
+    
+    gps_tau.sort(key=lambda p: p.pt(),reverse=True)
     gweight             = handle_weight.product()
     tree.weight[0]      = gweight.weight()
     tree.nmoth[0]       = len(gps_mother)
@@ -130,22 +198,24 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,dtier='GENSIM'):
     tree.moth_status[0] = moth.status()
     tree.moth_m[0]      = moth.mass()
     tree.moth_pt[0]     = moth.pt()
-    
-    # MULTIPLICITIES
-    gps_tau.sort(key=lambda p: p.pt(),reverse=True)
-    tree.nmuon[0]     = len(gps_muons)
-    tree.ntau[0]      = len(gps_tau)
-    tree.ntau_hard[0] = len(gps_tau_hard)
-    tree.tau1_pt[0]   = gps_tau[0].pt()
-    tree.tau1_eta[0]  = gps_tau[0].eta()
-    tree.tau2_pt[0]   = gps_tau[1].pt()
-    tree.tau2_eta[0]  = gps_tau[1].eta()
-    tree.muon_q[0]    = -muon_tau.pdgId()/13
-    tree.tauh_q[0]    = -tauh_tau.pdgId()/15
-    
+    tree.nmuon[0]       = len(gps_muons)
+    tree.nmuon_tau[0]   = len(gps_muons_tau)
+    tree.ntau[0]        = len(gps_tau)
+    tree.ntau_hard[0]   = len(gps_tau_hard)
+    tree.ntauh_hard[0]  = len(gps_tauh_hard)
+    tree.tau1_pt[0]     = gps_tau[0].pt()
+    tree.tau1_eta[0]    = gps_tau[0].eta()
+    tree.tau2_pt[0]     = gps_tau[1].pt()
+    tree.tau2_eta[0]    = gps_tau[1].eta()
+    tree.muon_q[0]      = muon_tau.charge() # -muon_tau.pdgId()/13
+    tree.tauh_q[0]      = tauh_hard.charge() # -tauh_hard.pdgId()/15
+    tree.muon_fromHardTau[0] = muon_tau.statusFlags().isDirectHardProcessTauDecayProduct()
     tree.Fill()
+    npass += 1
   
+  # npass = tree.GetEntries()
   print ">>> Processed %4s events in %s"%(evtid,formatTime(time.time()-start_proc))
+  print ">>> Selected %5s / %4s events (%d%%)"%(npass,evtid,(100.0*npass/evtid) if evtid else 0)
   print ">>> Writing to output file %s..."%(outfilename)
   outfile.Write()
   outfile.Close()
@@ -194,10 +264,10 @@ def finalDaughters(particle, daughters):
     daughters.append(particle)
   else:
     foundDaughter = False
-    for i in range( particle.numberOfDaughters() ):
+    for i in range(particle.numberOfDaughters()):
       dau = particle.daughter(i)
       if dau.status()>=1:
-        daughters = finalDaughters( dau, daughters )
+        daughters = finalDaughters(dau,daughters)
         foundDaughter = True
     if not foundDaughter:
       daughters.append(particle)
@@ -208,14 +278,35 @@ def isFinal(p):
   return not (p.numberOfDaughters()==1 and p.daughter(0).pdgId()==p.pdgId())
   
 
+def getmother(p):
+  """Get mother, which does not have the same PDG ID."""
+  if p.numberOfMothers()<1:
+    return None
+  if p.mother(0).pdgId()==p.pdgId():
+    return getmother(p.mother(0))
+  return p.mother(0)
+  
+def getdaughter_tau(particle):
+  for i in range(particle.numberOfDaughters()):
+    dau = particle.daughter(i)
+    pid = abs(dau.pdgId())
+    if pid==15:
+      return getdaughter_tau(dau)
+    elif pid in [12,14,16]:
+      continue # ignore neutrinos
+    else:
+      return dau # assume hadron or charged lepton
+  return None
+  
+
 def printParticle(p):
   string = "%9d: status=%2d, pt=%7.2f, eta=%5.2f, phi=%5.2f, final=%5s"%(p.pdgId(),p.status(),p.pt(),p.eta(),p.phi(),isFinal(p))
   if p.numberOfMothers()>=2:
-    string += ", mothers %s, %s"%(p.mother(0).pdgId(),p.mother(1).pdgId())
+    string += ", mothers "+', '.join(str(p.mother(i).pdgId()) for i in range(p.numberOfMothers()))
   elif p.numberOfMothers()==1:
     string += ", mother %s"%(p.mother(0).pdgId())
   if p.numberOfDaughters()>=2:
-    string += ", daughters %s, %s"%(p.daughter(0).pdgId(),p.daughter(1).pdgId())
+    string += ", daughters "+', '.join(str(p.daughter(i).pdgId()) for i in range(p.numberOfDaughters()))
   elif p.numberOfDaughters()==1:
     string += ", daughter %s"%(p.daughter(0).pdgId())
   print string

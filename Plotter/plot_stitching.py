@@ -4,6 +4,7 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/MCStitching
 import os
+import TauFW.Plotter.plot.Plot as _Plot
 from TauFW.Plotter.plot.Plot import Plot, deletehist
 from TauFW.Plotter.plot.Plot import LOG as PLOG
 from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, ensurelist, setera,\
@@ -38,18 +39,22 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
   xs_excl = 1.834e+03*0.0257
   samples = {
     'DY':    getmcsample('DY',"DYJetsToLL_M-50",    "DYJetsToLL",     5343.0,channel,era,verb=verb),
-    'DY1J':  getmcsample('DY',"DY1JetsToLL_M-50",   "DY1JetsToLL",     877.8,channel,era,verb=verb),
-    'DY2J':  getmcsample('DY',"DY2JetsToLL_M-50",   "DY2JetsToLL",     304.4,channel,era,verb=verb),
-    'DY3J':  getmcsample('DY',"DY3JetsToLL_M-50",   "DY3JetsToLL",     111.5,channel,era,verb=verb),
-    'DY4J':  getmcsample('DY',"DY4JetsToLL_M-50",   "DY4JetsToLL",     44.05,channel,era,verb=verb),
+    #'DY1J':  getmcsample('DY',"DY1JetsToLL_M-50",   "DY1JetsToLL",     877.8,channel,era,verb=verb),
+    #'DY2J':  getmcsample('DY',"DY2JetsToLL_M-50",   "DY2JetsToLL",     304.4,channel,era,verb=verb),
+    #'DY3J':  getmcsample('DY',"DY3JetsToLL_M-50",   "DY3JetsToLL",     111.5,channel,era,verb=verb),
+    #'DY4J':  getmcsample('DY',"DY4JetsToLL_M-50",   "DY4JetsToLL",     44.05,channel,era,verb=verb),
     'DY_mt': getmcsample('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh",xs_excl,channel,era,verb=verb),
+    'DY_S19':    getmcsample('DY',"DYJetsToLL_M-50",    "DYJetsToLL Summer19",    5343.0,channel,era,verb=verb),
+    'DY_mt_S19': getmcsample('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh Summer19",xs_excl,channel,era,verb=verb),
+    'DY_mt_S20': getmcsample('DY',"DYJetsToMuTauh_M-50_Summer20","DYJetsToMuTauh Summer20",xs_excl,channel,era,verb=verb),
   }
   #dysamples = [samples['DY'],samples['DY1J'],samples['DY2J'],samples['DY3J'],samples['DY4J']]
   #samples['DY*J'] = stitch(dysamples,'DY',incl='DYJ',name="DY_M50",npart='NUP')
   
   # SAMPLE SETS
   samplesets = {
-    'DY':     [samples['DY'],samples['DY_mt']],
+    'DY': [samples['DY'],samples['DY_mt']],
+    'DY_Summer20': [samples['DY_S19'],samples['DY_mt_S19'],samples['DY_mt_S20']],
     #'DY-all': [samples['DY'],samples['DY1J'],samples['DY2J'],samples['DY3J'],samples['DY4J'],samples['DY_mt']],
   }
   
@@ -65,7 +70,7 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
   ptbins  = range(10,50,2) + range(50,70,4) + range(70,100,10) + [100,120,140]
   Zptbins = range(0,60,3) + range(60,100,10) + range(100,140,20) + [140,170,200]
   variables = [
-    Var('mutaufilter', 4, 0, 4, "Generator mutauh filter (pt > 18 GeV, |eta|<2.5)", labels=['Fail','Pass']),
+    Var('mutaufilter', 4, 0, 4, "Generator mutauh filter (pt > 18 GeV, |eta|<2.5)", labels=['Fail','Pass','','']),
     Var('m_vis',   50, 0, 150, fname="mvis"),
     Var('m_vis',   50, 0, 150, fname="mvis_log",logy=True),
     Var('dR_ll',   50, 0,   4, fname="dR",pos='L'),
@@ -76,22 +81,22 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
     Var('pt_2',        ptbins, "tau_h pt", fname="$VAR_coarse" ),
     Var('eta_1',   20,-3,   5, "Muon eta" ),
     Var('eta_2',   20,-3,   5, "tau_h eta" ),
-    Var('q_1',      5,-2,   4, "Muon charge" ),
-    Var('q_2',      5,-2,   4, "tau_h charge" ),
+    Var('q_1',      6,-2,   4, "Muon charge", labels=['','#minus1','','#plus1','',''],ymarg=1.3),
+    Var('q_2',      6,-2,   4, "tau_h charge", labels=['','#minus1','','+1','',''],ymarg=1.3),
     Var('jpt_1',   18, 0, 270 ),
     Var('jpt_2',   18, 0, 270 ),
     Var('met',     20, 0, 300 ),
     Var('njets',    5, 0,   5, logy=True,logyrange=2),
-    Var('NUP',      5, 0,   5, "Number of partons (at LHE level)", logy=True),
+    Var('NUP',      5, 0,   5, "Number of partons (at LHE level)", logy=True,logyrange=2.2),
     Var('genvistaupt_2', 60,10, 130, "Generator tau_h pt", fname="$VAR" ),
     Var('genvistaupt_2',     ptbins, "Generator tau_h pt", fname="$VAR_coarse" ),
-    Var('genmatch_1',    10, 0,  10, "Gen. match muon",  logy=True),
+    Var('genmatch_1',    10, 0,  10, "Gen. match muon",  logy=True,logyrange=2.4),
     Var('genmatch_2',    10, 0,  10, "Gen. match tau_h", logy=True),
-    Var('m_moth',  50, 0, 150, "Gen. Z boson mass" ),
-    Var('m_moth',  50, 0, 150, "Gen. Z boson mass", fname="$VAR_log",logy=True),
-    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt" ),
-    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt", fname="$VAR_log",logy=True,logyrange=2.4),
-    Var('pt_moth',    Zptbins, "Gen. Z boson pt", fname="$VAR_coarse",logy=True,logyrange=2.4),
+    Var('m_moth',  50, 0, 150, "Gen. Z boson mass", pos='Ly=0.83'),
+    Var('m_moth',  50, 0, 150, "Gen. Z boson mass", pos='Ly=0.83', fname="$VAR_log",logy=True,logyrange=3.8),
+    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt", pos='y=0.78'),
+    Var('pt_moth', 50, 0, 150, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_log",logy=True,logyrange=2.4),
+    Var('pt_moth',    Zptbins, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_coarse",logy=True,logyrange=2.4),
     #Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   30, 0.70, 1, fname="$VAR_zoom",logy=True,pos='L;y=0.85'),
     #Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  20, 0.80, 1, fname="$VAR_zoom",logy=True,logyrange=4,pos='L;y=0.85'),
     #Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, pos='L;y=0.85',logy=True,ymargin=2.5),
@@ -102,7 +107,7 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
   for sname, samplelist in samplesets.items():
     sampleset = SampleSet(samplelist)
     sampleset.printtable()
-    header = samplelist[0].title
+    header = "" #samplelist[0].title
     for selection in selections:
       print ">>> %s: %r"%(selection,selection.selection)
       hdict = { }
@@ -115,9 +120,11 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
           hdict.setdefault(variable,[ ]).append(hist)
       for variable, hists in hdict.iteritems():
         for norm in norms:
-          ntag = '_norm' if norm else "_lumi"
-          plot = Plot(variable,hists,norm=norm,clone=True)
-          plot.draw(ratio=True,lstyle=1)
+          ntag  = '_norm' if norm else "_lumi"
+          lsize = _Plot._lsize*(1.55 if variable.name.startswith('q_') else 1)
+          style = [1,1,2,1,1,1]
+          plot  = Plot(variable,hists,norm=norm,clone=True)
+          plot.draw(ratio=True,style=style,xlabelsize=lsize)
           plot.drawlegend(header=header) #,entries=entries)
           plot.drawtext(text)
           plot.saveas(fname,ext=['png'],tag=ntag) #,'pdf'

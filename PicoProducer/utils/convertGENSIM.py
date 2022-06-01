@@ -143,7 +143,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
     #print '='*30
     #print evtid
     if maxevts>0 and evtid>=maxevts:
-     break
+      break
     if evtid>0 and evtid%step==0:
       ETA, rate = getETA(start_proc,evtid+1,Ntot)
       print ">>>   Processed %4s/%d events, ETA %s (%d Hz)"%(evtid,Ntot,ETA,rate)
@@ -610,11 +610,11 @@ def isFinalM(p):
 def printParticle(p):
   string = "%9d: status=%2d, pt=%7.2f, eta=%5.2f, phi=%5.2f, final=%5s"%(p.pdgId(),p.status(),p.pt(),p.eta(),p.phi(),isFinal(p))
   if p.numberOfMothers()>=2:
-    string += ", mothers %s, %s"%(p.mother(0).pdgId(),p.mother(1).pdgId())
+    string += ", mothers "+', '.join(str(p.mother(i).pdgId()) for i in range(p.numberOfMothers()))
   elif p.numberOfMothers()==1:
     string += ", mother %s"%(p.mother(0).pdgId())
   if p.numberOfDaughters()>=2:
-    string += ", daughters %s, %s"%(p.daughter(0).pdgId(),p.daughter(1).pdgId())
+    string += ", daughters "+', '.join(str(p.daughter(i).pdgId()) for i in range(p.numberOfDaughters()))
   elif p.numberOfDaughters()==1:
     string += ", daughter %s"%(p.daughter(0).pdgId())
   print string

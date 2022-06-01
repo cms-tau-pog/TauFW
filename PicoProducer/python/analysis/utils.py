@@ -153,7 +153,7 @@ def filtermutau(event):
     https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
     https://github.com/cms-sw/cmssw/blob/master/GeneratorInterface/Core/src/EmbeddingHepMCFilter.cc
   """
-  #print '-'*80
+  ###print '-'*80
   particles = Collection(event,'GenPart')
   muon = None
   taus = [ ]
@@ -165,15 +165,24 @@ def filtermutau(event):
       if muon: # more than two muons from hard-proces taus
         return False # do not bother any further
       muon = particle
-    elif pid==15 and particle.status==2 and particle.statusflag('fromHardProcess'): # status==2 = last copy
-      particle.pvis = TLorentzVector() # visible 4-momentum
-      taus.append(particle)
+    elif pid==15 and particle.statusflag('fromHardProcess'): # status==2 = last copy
+      if particle.status==2:
+        ###print getprodchain(particle,particles)
+        particle.pvis = TLorentzVector() # visible 4-momentum
+        taus.append(particle)
+      else: # particle.status==23
+        # QUICK FIX to exclude events with taus radiating FSR photons due to bug in EmbeddingHepMCFilter
+        # pre-CMSSW_10_6_30_patch1 affecting Summer19 and Summer20 UL
+        # => loss of ~20% events in DYJetsToTauTauToMuTauh
+        ###dumpgenpart(particle,genparts=particles,flags=['fromHardProcess','isHardProcessTauDecayProduct','isDirectHardProcessTauDecayProduct','isLastCopy'])
+        ###print(getdecaychain(particle,particles))
+        return False # no radiating taus !
     elif pid==23:
       hasZ = True # Z boson required in DYJetsToTauTauToMuTauh Pythia8 filter
     elif pid>16: # ignore neutrinos and charged leptons
       for tau in taus:
         if tau._index==particle.genPartIdxMother: # non-leptonic tau decay product
-          #print(">>> add %+d to %+d"%(particle.pdgId,tau.pdgId))
+          ###print(">>> add %+d to %+d"%(particle.pdgId,tau.pdgId))
           tau.pvis += particle.p4() # add visible tau decay product
   if hasZ and len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
     if any(tau.pdgId*muon.pdgId<0 and tau.pvis.Pt()>18 and abs(tau.pvis.Eta())<2.5 for tau in taus):

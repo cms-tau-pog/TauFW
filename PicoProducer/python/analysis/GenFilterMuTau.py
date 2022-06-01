@@ -397,9 +397,9 @@ def getfiltereff(hist):
     # https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007&page=0
     eff = npass/ntot
     print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
-    print ">>> %8d / %5d = %5.2f%%"%(npass,ntot,100.0*npass/ntot)
-    print ">>> Expect ~ 0.888 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.815e+03 / 5343.0 * 0.02615
-    print ">>> Expect ~ 0.624 % = B(ll->tautau) * eff(mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5)" # = 1.815e+03 / 5343.0 * 0.02615 * 0.7026
+    print ">>> %8d / %5d = %5.3f%%"%(npass,ntot,100.0*npass/ntot)
+    print ">>> Expect ~ 0.888 % = B(ll->tautau) * eff(Z -> mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.815e+03 / 5343.0 * 0.02615
+    print ">>> Expect ~ 0.519 % = B(ll->tautau) * eff(Z -> mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5, no FSR)" # = 1.815e+03 / 5343.0 * 0.02615 * 0.5841
   return eff
   
 
