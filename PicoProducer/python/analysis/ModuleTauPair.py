@@ -136,7 +136,12 @@ class ModuleTauPair(Module):
       ('Electron_mvaFall17V2noIso_WPL',  'Electron_mvaFall17noIso_WPL'  ),
       ('Electron_mvaFall17V2noIso_WP80', 'Electron_mvaFall17noIso_WP80' ),
       ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaFall17noIso_WP90' ),
-      #('Flag_ecalBadCalibFilterV2',       True                          ),
+      #('Flag_ecalBadCalibFilterV2',      True                           ),
+      ('Tau_idDecayMode',                [True]*32                      ), # not available anymore in nanoAODv9
+      ('Tau_idDecayModeNewDMs',          [True]*32                      ), # not available anymore in nanoAODv9
+      #('Tau_rawAntiEle',                 [0.]*30                        ), #  # not available anymore in nanoAODv9
+      #('Tau_rawMVAoldDM2017v2',          [0.]*30                        ), # not available anymore in nanoAODv9
+      #('Tau_rawMVAnewDM2017v2',          [0.]*30                        ), # not available anymore in nanoAODv9
     ]
     if self.year==2016:
       branches += [

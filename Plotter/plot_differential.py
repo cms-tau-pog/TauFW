@@ -28,7 +28,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   
   zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline) # && nbtag==0
   selections = [
-    Sel('baseline, no DeepTauVSjet',noVSjet,only=["DeepTau"]),
+    #Sel('baseline, no DeepTauVSjet',noVSjet,only=["DeepTau"]),
     Sel("baseline",baseline),
     #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
     #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
@@ -50,11 +50,11 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   for wp, wpcut in wps:
     wpname  = wp.replace(" && !","-not")
     basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut) #+" && nbtag==0"
-    for dm in dms:
-      name_ = "%s_dm%s"%(wpname,dm)
-      tit_  = "%s, DM%s"%(wp,dm)
-      cut_  = "%s && dm_2==%s"%(basecut,dm)
-      selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
+    #for dm in dms:
+    #  name_ = "%s_dm%s"%(wpname,dm)
+    #  tit_  = "%s, DM%s"%(wp,dm)
+    #  cut_  = "%s && dm_2==%s"%(basecut,dm)
+    #  selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
     for i, ptlow in enumerate(pts):
       if i<len(pts)-1: # ptlow < pt < ptup
         ptup = pts[i+1]
@@ -65,12 +65,12 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
         name = "%s_pt%d-Inf"%(wpname,ptlow)
         tit  = "%s, pt > %d GeV"%(wp,ptlow)
         cut  = "%s && pt_2>%s"%(basecut,ptlow)
-      #selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
-      for dm in dms:
-        name_ = "%s_dm%s"%(name,dm)
-        tit_  = "%s, DM%s"%(tit,dm)
-        cut_  = "%s && dm_2==%s"%(cut,dm)
-        selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
+      selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
+      #for dm in dms:
+      #  name_ = "%s_dm%s"%(name,dm)
+      #  tit_  = "%s, DM%s"%(tit,dm)
+      #  cut_  = "%s && dm_2==%s"%(cut,dm)
+      #  selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
   
   # VARIABLES
   variables = [
@@ -190,7 +190,7 @@ if __name__ == "__main__":
                                          help="include fraction stack in ratio plot" )
   parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',
                                          help="create pdf version of each plot" )
-  parser.add_argument('-e', '--ext',     dest='exts', nargs='+',
+  parser.add_argument('-e', '--ext',     dest='exts', nargs='+', default=['png'],
                                          help="extension for output image files" )
   parser.add_argument('-r', '--nosf',    dest='notauidsf', action='store_true',
                                          help="remove DeepTau ID SF" )

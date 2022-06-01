@@ -607,7 +607,7 @@ class SampleSet(object):
     return self.find(*searchterms,**kwargs)
   
   def find(self,*searchterms,**kwargs):
-    return self.findsample(self.samples,*searchterms,**kwargs)
+    return findsample(self.samples,*searchterms,**kwargs)
   
   def getexp(self,*searchterms,**kwargs):
     return findsample_with_flag(self.expsamples,'isexp',*searchterms,**kwargs)
