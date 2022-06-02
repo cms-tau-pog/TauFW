@@ -1,4 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
+#from __future__ import print_function # for python3 compatibility
 import os, sys
 from math import sqrt, sin, cos, pi, log10, floor
 from itertools import combinations
@@ -9,8 +10,21 @@ from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
 from TauFW.common.tools.file import ensurefile
 from TauFW.common.tools.file import ensuremodule as _ensuremodule
 from TauFW.common.tools.log import Logger
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event, Object
 LOG = Logger('Analysis')
+
+
+statusflags_dict = { # GenPart_statusFlags, stored bitwise:
+  # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+  'isPrompt':                      0,   'fromHardProcess':                     8,
+  'isDecayedLeptonHadron':         1,   'isHardProcessTauDecayProduct':        9,
+  'isTauDecayProduct':             2,   'isDirectHardProcessTauDecayProduct': 10,
+  'isPromptTauDecayProduct':       3,   'fromHardProcessBeforeFSR':           11,
+  'isDirectTauDecayProduct':       4,   'isFirstCopy':                        12,
+  'isDirectPromptTauDecayProduct': 5,   'isLastCopy':                         13,
+  'isDirectHadronDecayProduct':    6,   'isLastCopyBeforeFSR':                14,
+  'isHardProcess':                 7,
+}
 
 
 def ensuremodule(modname):
@@ -33,7 +47,7 @@ def ensurebranches(tree,branches):
   """Check if these branches are available in the tree branch list,
   if not, redirect them."""
   if tree.GetEntries()<1:
-    print "WARNING! Empty tree!"
+    print("WARNING! Empty tree!")
     return
   fullbranchlist = tree.GetListOfBranches()
   for newbranch, oldbranch in branches:
@@ -44,44 +58,167 @@ def ensurebranches(tree,branches):
 def redirectbranch(oldbranch,newbranch):
   """Redirect some branch names. newbranch -> oldbranch"""
   if isinstance(oldbranch,str): # rename
-    print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
-    exec "setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch)
+    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
+    exec("setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch))
   else: # set default value
-    print "redirectbranch: directing %r -> %r"%(newbranch,oldbranch)
-    exec "setattr(Event,newbranch,%s)"%(oldbranch)  
+    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
+    exec("setattr(Event,newbranch,%s)"%(oldbranch))
   
 
 def hasbit(value,bit):
   """Check if i'th bit is set to 1, i.e. binary of 2^i,
   from the right to the left, starting from position i=0."""
-  # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
-  # Gen status flags, stored bitwise, are:
-  #    0: isPrompt,                          8: fromHardProcess,
-  #    1: isDecayedLeptonHadron,             9: isHardProcessTauDecayProduct,
-  #    2: isTauDecayProduct,                10: isDirectHardProcessTauDecayProduct,
-  #    3: isPromptTauDecayProduct,          11: fromHardProcessBeforeFSR,
-  #    4: isDirectTauDecayProduct,          12: isFirstCopy,
-  #    5: isDirectPromptTauDecayProduct,    13: isLastCopy,
-  #    6: isDirectHadronDecayProduct,       14: isLastCopyBeforeFSR
-  #    7: isHardProcess,
   ###return bin(value)[-bit-1]=='1'
   ###return format(value,'b').zfill(bit+1)[-bit-1]=='1'
   return (value & (1 << bit))>0
   
 
-def dumpgenpart(part,genparts=None,event=None,flags=[]):
+def hasstatusflag(particle,*flags):
+  """Check if status flag of a GenPart is set."""
+  # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+  return all((particle.statusFlags & (1 << statusflags_dict[f]))>0 for f in flags)
+Object.statusflag = hasstatusflag # promote to method of Object class for GenPart
+# See PR: https://github.com/cms-nanoAOD/nanoAOD-tools/pull/301
+
+
+def dumpgenpart(part,genparts=None,event=None,flags=[],bits=[],grand=False):
   """Print information on gen particle. If collection is given, also print mother's PDG ID."""
   info = ">>>  i=%2s, PID=%3s, status=%2s, mother=%2s"%(part._index,part.pdgId,part.status,part.genPartIdxMother)
   if part.genPartIdxMother>=0:
     if genparts: 
-      moth  = genparts[part.genPartIdxMother].pdgId
-      info += " (%3s)"%(moth)
+      moth  = genparts[part.genPartIdxMother]
+      info += " (%3s)"%(moth.pdgId)
+      if grand and moth.genPartIdxMother>=0:
+        grand = genparts[moth.genPartIdxMother]
+        info += ", grand=%2s (%3s)"%(moth.genPartIdxMother, grand.pdgId)
     elif event:
-      moth  = event.GenPart_pdgId[part.genPartIdxMother]
-      info += " (%3s)"%(moth)
-  for bit in flags:
+      moth  = part.genPartIdxMother
+      info += " (%3s)"%(event.GenPart_pdgId[moth])
+      if grand and event.GenPart_genPartIdxMother[moth]>=0:
+        granid = event.GenPart_genPartIdxMother[moth]
+        info  += ", grand=%2s (%3s)"%(event.GenPart_genPartIdxMother[granid],event.GenPart_pdgId[granid])
+  for flag in flags:
+    info += ", %s=%r"%(flag,part.statusflag(flag))
+  for bit in bits:
     info += ", bit%s=%d"%(bit,hasbit(part.statusFlags,bit))
-  print info
+  print(info)
+  
+
+def getmother(part,genparts):
+  """Get mother (which is not itself."""
+  moth = part
+  while moth.genPartIdxMother>=0 and part.pdgId==moth.pdgId:
+    moth = genparts[moth.genPartIdxMother]
+  return moth.pdgId
+  
+
+def getprodchain(part,genparts=None,event=None):
+  """Print productions chain."""
+  chain = "%3s"%(part.pdgId)
+  imoth = part.genPartIdxMother
+  while imoth>=0:
+    if genparts:
+      moth = genparts[imoth]
+      chain = "%3s -> "%(moth.pdgId)+chain
+      imoth = moth.genPartIdxMother
+    elif event:
+      chain = "%3s -> "%(event.GenPart_pdgId[imoth])+chain
+      imoth = event.GenPart_genPartIdxMother[imoth]
+  return chain
+  
+
+def getdecaychain(part,genparts,indent=0):
+  """Print decay chain."""
+  chain   = "%3s"%(part.pdgId)
+  imoth   = part._index
+  ndaus   = 0
+  indent_ = len(chain)+indent
+  for idau in range(imoth+1,len(genparts)): 
+    dau = genparts[idau]
+    if dau.genPartIdxMother==imoth:
+      if ndaus>=1:
+        chain += '\n'+' '*indent_
+      chain += " -> "+getdecaychain(dau,genparts,indent=indent_+4)
+      ndaus += 1
+  return chain
+  
+
+def filtermutau(event):
+  """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
+  to find overlap between DYJetsToLL_M-50 and DYJetsToTauTauToMuTauh_M-50 for stitching.
+  Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.774% for DYJetsToLL_M-50.
+  
+  Pythia8 gen filter with ~2.57% efficiency for DYJetsToTauTauToMuTauh:
+    MuHadCut = cms.string('Mu.Pt > 16 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
+    https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
+    https://github.com/cms-sw/cmssw/blob/master/GeneratorInterface/Core/src/EmbeddingHepMCFilter.cc
+  """
+  ###print '-'*80
+  particles = Collection(event,'GenPart')
+  muon = None
+  taus = [ ]
+  hasZ = False # Z boson required in DYJetsToTauTauToMuTauh Pythia8 filter
+  for particle in particles:
+    pid = abs(particle.pdgId)
+    if pid==13 and (particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct')):
+      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
+      if muon: # more than two muons from hard-proces taus
+        return False # do not bother any further
+      muon = particle
+    elif pid==15 and particle.statusflag('fromHardProcess'): # status==2 = last copy
+      if particle.status==2:
+        ###print getprodchain(particle,particles)
+        particle.pvis = TLorentzVector() # visible 4-momentum
+        taus.append(particle)
+      else: # particle.status==23
+        # QUICK FIX to exclude events with taus radiating FSR photons due to bug in EmbeddingHepMCFilter
+        # pre-CMSSW_10_6_30_patch1 affecting Summer19 and Summer20 UL
+        # => loss of ~20% events in DYJetsToTauTauToMuTauh
+        ###dumpgenpart(particle,genparts=particles,flags=['fromHardProcess','isHardProcessTauDecayProduct','isDirectHardProcessTauDecayProduct','isLastCopy'])
+        ###print(getdecaychain(particle,particles))
+        return False # no radiating taus !
+    elif pid==23:
+      hasZ = True # Z boson required in DYJetsToTauTauToMuTauh Pythia8 filter
+    elif pid>16: # ignore neutrinos and charged leptons
+      for tau in taus:
+        if tau._index==particle.genPartIdxMother: # non-leptonic tau decay product
+          ###print(">>> add %+d to %+d"%(particle.pdgId,tau.pdgId))
+          tau.pvis += particle.p4() # add visible tau decay product
+  if hasZ and len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
+    if any(tau.pdgId*muon.pdgId<0 and tau.pvis.Pt()>18 and abs(tau.pvis.Eta())<2.5 for tau in taus):
+      return True
+  #for genvistau in Collection(event,'GenVisTau'): # not complete...
+  #  ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
+  #  if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0: #and any(genvistau.DeltaR(t)<0.5 for t in taus)
+  #    return True
+  return False
+  
+
+def matchgenvistau(event,tau,dRmin=0.5):
+  """Help function to match tau object to gen vis tau."""
+  # TO CHECK: taumatch.genPartIdxMother==tau.genPartIdx ?
+  taumatch = None
+  for genvistau in Collection(event,'GenVisTau'):
+    dR = genvistau.DeltaR(tau)
+    if dR<dRmin:
+      dRmin    = dR
+      taumatch = genvistau
+  if taumatch:
+    return taumatch.pt, taumatch.eta, taumatch.phi, taumatch.status
+  else:
+    return -1, -9, -9, -1
+  
+
+def matchtaujet(event,tau,ismc):
+  """Help function to match tau object to (gen) jet."""
+  jpt_match    = -1
+  jpt_genmatch = -1
+  if tau.jetIdx>=0:
+    jpt_match = event.Jet_pt[tau.jetIdx]
+    if ismc:
+      if event.Jet_genJetIdx[tau.jetIdx]>=0:
+        jpt_genmatch = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
+  return jpt_match, jpt_genmatch
   
 
 def deltaR(eta1, phi1, eta2, phi2):
@@ -116,7 +253,7 @@ def getmet(era,var="",useT1=False,verb=0):
   funcstr = "func = lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
   if verb>=1:
     LOG.verb(">>> getmet: %r"%(funcstr))
-  exec funcstr #in locals()
+  exec(funcstr) #in locals()
   return func
   
 
@@ -159,7 +296,7 @@ def getmetfilters(era,isdata,verb=0):
   funcstr = "func = lambda e: e."+' and e.'.join(filters)
   if verb>=1:
     LOG.verb(">>> getmetfilters: %r"%(funcstr))
-  exec funcstr #in locals()
+  exec(funcstr) #in locals()
   return func
   
 
@@ -177,62 +314,6 @@ def idIso(tau):
   if tau.photonsOutsideSignalCone/tau.pt<0.10:
     return 0 if raw>4.5 else 1 if raw>3.5 else 3 if raw>2.5 else 7 if raw>1.5 else 15 if raw>0.8 else 31 # VVLoose, VLoose, Loose, Medium, Tight
   return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
-  
-
-def filtermutau(event):
-  """Filter mutau final state with mu pt>18, |eta|<2.5 and tauh pt>18, |eta|<2.5
-  for stitching DYJetsToTauTauToMuTauh_M-50 sample into DYJetsToLL_M-50.
-  Efficiency: ~70.01% for DYJetsToTauTauToMuTauh_M-50, ~0.801% for DYJetsToLL_M-50."""
-  ###print '-'*80
-  particles = Collection(event,'GenPart')
-  muon = None
-  taus = [ ]
-  for particle in particles:
-    pid = abs(particle.pdgId)
-    if pid==13 and (hasbit(particle.statusFlags,9) or hasbit(particle.statusFlags,10)):
-      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
-      if muon: # more than two muons from hard-proces taus
-        return False # do not bother any further
-      muon = particle
-    elif pid==15 and particle.status==2 and hasbit(particle.statusFlags,8):
-      ###dumpgenpart(particle,genparts=particles,flags=[3,4,5,6,8,9,10])
-      taus.append(particle)
-  if len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
-    ###dRmin = 10.
-    for genvistau in Collection(event,'GenVisTau'):
-      ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
-      if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId<0:
-        ###dR = min(genvistau.DeltaR(t) for t in taus)
-        ###if dR<dRmin: dRmin = dR
-        return True
-  return False
-  
-
-def matchgenvistau(event,tau,dRmin=0.5):
-  """Help function to match tau object to gen vis tau."""
-  # TO CHECK: taumatch.genPartIdxMother==tau.genPartIdx ?
-  taumatch = None
-  for genvistau in Collection(event,'GenVisTau'):
-    dR = genvistau.DeltaR(tau)
-    if dR<dRmin:
-      dRmin    = dR
-      taumatch = genvistau
-  if taumatch:
-    return taumatch.pt, taumatch.eta, taumatch.phi, taumatch.status
-  else:
-    return -1, -9, -9, -1
-  
-
-def matchtaujet(event,tau,ismc):
-  """Help function to match tau object to (gen) jet."""
-  jpt_match    = -1
-  jpt_genmatch = -1
-  if tau.jetIdx>=0:
-    jpt_match = event.Jet_pt[tau.jetIdx]
-    if ismc:
-      if event.Jet_genJetIdx[tau.jetIdx]>=0:
-        jpt_genmatch = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
-  return jpt_match, jpt_genmatch
 
 
 def getlepvetoes(event, electrons, muons, taus, channel):

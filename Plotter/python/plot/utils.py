@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
-import os
+import os, re
 from math import sqrt, floor
 from array import array
 from TauFW.common.tools.file import ensuredir, ensureTFile
@@ -656,6 +656,92 @@ def capoff(hist,ymin=None,ymax=None,verb=0):
     print ">>> capoff: Found %d/%d values < %s, and %d/%d values > %s for histogram %s"%(nmin,ntot,ymin,nmax,ntot,ymax,hist)
   return nmin+nmax # number of reset bins
   
+
+
+def reducehist2d(oldhist,**kwargs):
+  """Help function to select a subset of columns and rows in a
+  symmetric TH2 histogram with alphanumerical bins."""
+  #print ">>> reducehist2d"
+  verb      = kwargs.get('verb',    0       ) # verbosity level
+  tag       = kwargs.get('tag',     "_reduced" ) # indices to filter
+  i_keep    = kwargs.get('i_keep',  [ ]     ) # indices to filter
+  ix_keep   = set(kwargs.get('ix_keep', i_keep )[:]) # indices to filter
+  iy_keep   = set(kwargs.get('iy_keep', i_keep )[:]) # indices to filter
+  labels    = kwargs.get('labels',  [ ]     ) # (regexp) bin labels to filter
+  xlabels   = kwargs.get('xlabels', labels  ) # (regexp) bin labels to filter
+  ylabels   = kwargs.get('ylabels', labels  ) # (regexp) bin labels to filter
+  i_rm      = kwargs.get('rm',      [ ]     ) # indices to be removed
+  ix_rm     = kwargs.get('xrm',     i_rm    ) # indices to be removed
+  iy_rm     = kwargs.get('yrm',     i_rm    ) # indices to be removed
+  sort      = kwargs.get('sort',    True    ) # sort
+  sortkey   = kwargs.get('sortkey', None    ) # sort
+  newhname  = oldhist.GetName()+tag
+  oldnxbins = oldhist.GetXaxis().GetNbins()
+  oldnybins = oldhist.GetYaxis().GetNbins()
+  if not isinstance(xlabels,list):
+    xlabels = [xlabels]
+  if not isinstance(ylabels,list):
+    ylabels = [ylabels]
+  xlabels   = [re.compile(s) for s in xlabels] # compile regexp
+  ylabels   = [re.compile(s) for s in ylabels] # compile regexp
+  
+  # FIND INDICES TO KEEP
+  if xlabels:
+    if verb>=1:
+      print ">>> reducehist2d:   Filter xlabels..."
+    for ix in xrange(1,oldnxbins+1): # x axis
+      if ix in ix_rm: continue
+      label = oldhist.GetXaxis().GetBinLabel(ix)
+      if any(s.match(label) for s in xlabels):
+        ix_keep.add(ix)
+  elif not ix_keep: # remove bins
+    ix_keep = set(i for i in xrange(1,oldnxbins+1) if i not in ix_rm)
+  if ylabels:
+    if verb>=1:
+      print ">>> reducehist2d:   Filter ylabels..."
+    for iy in xrange(1,oldnybins+1): # y axis
+      if iy in iy_rm: continue
+      label = oldhist.GetYaxis().GetBinLabel(iy)
+      if any(s.match(label) for s in ylabels):
+        iy_keep.add(iy)
+  elif not iy_keep: # remove bins
+    iy_keep = set(i for i in xrange(1,oldnybins+1) if i not in iy_rm)
+  
+  # SANITY CHECK
+  newnxbins = len(ix_keep)
+  newnybins = len(iy_keep)
+  if newnxbins==0 or newnybins==0:
+    print ">>> reducehist2d:   Cannot create new histogram with %d x %d dimensions! Ignoring..."%(newnxbins,newnybins)
+    return None
+  
+  # SORT
+  if sortkey:
+    ix_keep = sorted(ix_keep,key=lambda i: sortkey(oldhist.GetXaxis().GetBinLabel(i)))
+    iy_keep = sorted(iy_keep,key=lambda i: sortkey(oldhist.GetXaxis().GetBinLabel(i)))
+  elif sort:
+    ix_keep = sorted(ix_keep)
+    iy_keep = sorted(iy_keep)
+  
+  # CREATE & FILL REDUCED HISTOGRAM
+  if verb>=1:
+    print ">>> reducehist2d:   Reduce %dx%d to %dx%d histogram %r..."%(oldnxbins,oldnybins,newnxbins,newnybins,newhname)
+  newhist = TH2F(newhname,newhname,newnxbins,0,newnxbins,newnybins,0,newnybins)
+  for ix_new, ix_old in enumerate(ix_keep,1): # x axis
+    label = oldhist.GetXaxis().GetBinLabel(ix_old)
+    if verb>=2:
+      print ">>> reducehist2d:  ix=%d -> %d, %r"%(ix_old,ix_new,label)
+    newhist.GetXaxis().SetBinLabel(ix_new,label)
+    for iy_new, iy_old in enumerate(iy_keep,1): # y axis
+      zval = oldhist.GetBinContent(ix_old,iy_old)
+      newhist.SetBinContent(ix_new,iy_new,zval)
+  for iy_new, iy_old in enumerate(iy_keep,1): # y axis
+    label = oldhist.GetYaxis().GetBinLabel(iy_old)
+    if verb>=2:
+      print ">>> reducehist2d:  iy=%d -> %d, %r"%(iy_old,iy_new,label)
+    newhist.GetYaxis().SetBinLabel(iy_new,label)
+  return newhist
+  
+
 
 def resetedges(oldedges,xmin=None,xmax=None,**kwargs):
   """Reset the range a list of bin edges."""

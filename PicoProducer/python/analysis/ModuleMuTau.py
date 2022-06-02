@@ -205,18 +205,18 @@ class ModuleMuTau(ModuleTauPair):
     self.out.dm_2[0]                       = tau.decayMode
     self.out.iso_2[0]                      = tau.rawIso
     self.out.idiso_2[0]                    = idIso(tau) # cut-based tau isolation (rawIso)
-    self.out.rawAntiEle_2[0]               = tau.rawAntiEle
-    self.out.rawMVAoldDM2017v2_2[0]        = tau.rawMVAoldDM2017v2
-    self.out.rawMVAnewDM2017v2_2[0]        = tau.rawMVAnewDM2017v2
+    #self.out.rawAntiEle_2[0]               = tau.rawAntiEle # not available anymore in nanoAODv9
+    #self.out.rawMVAoldDM2017v2_2[0]        = tau.rawMVAoldDM2017v2
+    #self.out.rawMVAnewDM2017v2_2[0]        = tau.rawMVAnewDM2017v2
     self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
     self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
     self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
-    self.out.idAntiEle_2[0]                = tau.idAntiEle
-    self.out.idAntiMu_2[0]                 = tau.idAntiMu
+    #self.out.idAntiEle_2[0]                = tau.idAntiEle
+    #self.out.idAntiMu_2[0]                 = tau.idAntiMu
     self.out.idDecayMode_2[0]              = tau.idDecayMode
     self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idMVAoldDM2017v2_2[0]         = tau.idMVAoldDM2017v2
-    self.out.idMVAnewDM2017v2_2[0]         = tau.idMVAnewDM2017v2
+    #self.out.idMVAoldDM2017v2_2[0]         = tau.idMVAoldDM2017v2
+    #self.out.idMVAnewDM2017v2_2[0]         = tau.idMVAnewDM2017v2
     self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
     self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
     self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
@@ -237,7 +237,7 @@ class ModuleMuTau(ModuleTauPair):
       self.out.genvistauphi_2[0] = phi
       self.out.gendm_2[0]        = status
       if self.dozpt:
-        self.out.mutaufilter     = filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
+        self.out.mutaufilter[0]  = filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
     
     
     # JETS

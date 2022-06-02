@@ -599,21 +599,24 @@ class SampleSet(object):
     return found
   
   def remove(self,*searchterms,**kwargs):
-    samples = self.get(*searchterms,**kwargs)
+    samples = self.find(*searchterms,**kwargs)
     for sample in samples:
       self.samples.remove(sample)
   
   def get(self,*searchterms,**kwargs):
-    return getsample(self.samples,*searchterms,**kwargs)
+    return self.find(*searchterms,**kwargs)
+  
+  def find(self,*searchterms,**kwargs):
+    return findsample(self.samples,*searchterms,**kwargs)
   
   def getexp(self,*searchterms,**kwargs):
-    return getsample_with_flag(self.expsamples,'isexp',*searchterms,**kwargs)
+    return findsample_with_flag(self.expsamples,'isexp',*searchterms,**kwargs)
   
   #def getmc(self,*searchterms,**kwargs):
-  #  return getsample_with_flag(self.mcsamples,'ismc',*searchterms,**kwargs)
+  #  return findsample_with_flag(self.mcsamples,'ismc',*searchterms,**kwargs)
   
   def getsignal(self,*searchterms,**kwargs):
-    return getsample_with_flag(self.sigsamples,'issignal',*searchterms,**kwargs)
+    return findsample_with_flag(self.sigsamples,'issignal',*searchterms,**kwargs)
   
   def join(self,*searchterms,**kwargs):
     self.mcsamples = join(self.mcsamples,*searchterms,**kwargs)
@@ -661,7 +664,7 @@ class SampleSet(object):
     searchterms      = [arg for arg in args if isinstance(arg,str)]
     splitlist        = [arg for arg in args if islist(arg)        ][0]
     kwargs['unique'] = True
-    sample           = self.get(*searchterms,**kwargs)
+    sample           = self.find(*searchterms,**kwargs)
     if sample:
       sample.split(splitlist,**kwargs)
     else:

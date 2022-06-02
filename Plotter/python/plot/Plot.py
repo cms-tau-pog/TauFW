@@ -69,7 +69,7 @@ class Plot(object):
       if not hist or not isinstance(hist,TH1):
         LOG.throw(IOError,"Plot: Did not recognize histogram in input: %s"%(args,))
     if kwargs.get('clone',False):
-      hists    = [h.Clone(h.GetName()+"_clone_Plot") for h in hists]
+      hists    = [h.Clone(h.GetName()+"_clone_Plot%d"%i) for i, h in enumerate(hists)]
     self.hists = hists
     self.frame = kwargs.get('frame', None )
     frame      = self.frame or self.hists[0]
@@ -791,11 +791,18 @@ class Plot(object):
     position = position.replace('left','L').replace('center','C').replace('right','R').replace( #.lower()
                                 'top','T').replace('middle','M').replace('bottom','B')
     if not any(c in position for c in 'TMBy'): # set default vertical
-      position += 'T'
+      if 'L' in position:
+        y1_user = 0.89 # move down default left legend because of corner text
+      else:
+        position += 'T'
     if not any(c in position for c in 'LCRx'): # set default horizontal
       position += 'RR' if ncols>1 else 'R' # if title else 'L'
     
-    if 'C'     in position: # horizontal center
+    # HORIZONTAL X COORDINATES
+    if x1_user!=None:
+      x1 = x1_user
+      x2 = x1 + width if x2_user==None else x2_user
+    elif 'C'   in position: # horizontal center
       if   'R' in position: center = 0.57 # right of center
       elif 'L' in position: center = 0.43 # left of center
       else:                 center = 0.50 # center
@@ -807,7 +814,12 @@ class Plot(object):
     elif 'x='  in position: # horizontal coordinate set by user
       x1 = float(re.findall(r"x=(\d\.\d+)",position)[0])
       x2 = x1 + width
-    if 'M'     in position: # vertical middle
+    
+    # VERTICAL Y COORDINATES
+    if y1_user!=None:
+      y1 = y1_user
+      y2 = y1 - height if y2_user==None else y2_user
+    elif 'M'   in position: # vertical middle
       if   'T' in position: middle = 0.57 # above middle
       elif 'B' in position: middle = 0.43 # below middle
       else:                 middle = 0.50 # exact middle
@@ -819,16 +831,12 @@ class Plot(object):
     elif 'y='  in position: # vertical coordinate set by user
       y2 = float(re.findall(r"y=(\d\.\d+)",position)[0]);
       y1 = y2 - height
-    if x1_user!=None:
-      x1 = x1_user
-      x2 = x1 + width if x2_user==None else x2_user
-    if y1_user!=None:
-      y1 = y1_user
-      y2 = y1 - height if y2_user==None else y2_user
+    
+    # CONVERT TO NORMALIZED CANVAS COORDINATES
     L, R = gPad.GetLeftMargin(), gPad.GetRightMargin()
     T, B = gPad.GetTopMargin(),  gPad.GetBottomMargin()
-    X1, X2 = L+(1-L-R)*x1, L+(1-L-R)*x2 # convert frame to canvas coordinates
-    Y1, Y2 = B+(1-T-B)*y1, B+(1-T-B)*y2 # convert frame to canvas coordinates
+    X1, X2 = L+(1-L-R)*x1, L+(1-L-R)*x2
+    Y1, Y2 = B+(1-T-B)*y1, B+(1-T-B)*y2
     legend = TLegend(X1,Y1,X2,Y2)
     LOG.verb("Plot.drawlegend: position=%r, height=%.3f, width=%.3f, (x1,y1,x2,y2)=(%.2f,%.2f,%.2f,%.2f), (X1,Y1,X2,Y2)=(%.2f,%.2f,%.2f,%.2f)"%(
                                position,height,width,x1,y1,x2,y2,X1,Y1,X2,Y2),verbosity,1)

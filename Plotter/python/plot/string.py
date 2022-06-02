@@ -150,16 +150,16 @@ def makelatex(string,**kwargs):
       string = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",string)
     if "tau" in strlow:
       #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)
-      string = re.sub(r"(?<!Deep)(?<!Over)tau",r"#tau",string,flags=re.IGNORECASE)
+      string = re.sub(r"(?<!Deep)(?<!ToMu)(?<!Over)tau(?!filter)",r"#tau",string,flags=re.IGNORECASE)
       #string = re.sub(r" #tau ",r" tau ",string,flags=re.IGNORECASE)
       #string = re.sub(r"^#tau ",r"tau ",string,flags=re.IGNORECASE)
       string = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",string,flags=re.IGNORECASE)
-      string = re.sub(r"#tauh",r"#tau_{h}",string,flags=re.IGNORECASE)
+      string = re.sub(r"#tauh",r"#tau_{#lower[-0.2]{h}}",string,flags=re.IGNORECASE)
     if "abs(" in string and ")" in string:
       string = re.sub(r"abs\(([^)]+)\)",r"|\1|",string)
       #string = string.replace("abs(","|").replace(")","") + "|" # TODO: split at next space
     if "mu" in strlow:
-      string = re.sub(r"(?<!VS)mu(?![lo])",r"#mu",string)
+      string = re.sub(r"(?<!VS)mu(?![lo])(?!taufilter)",r"#mu",string)
       #string = string.replace("mu","#mu").replace("Mu","#mu")
       #string = string.replace("si#mulation","simulation")
     if "nu" in strlow:
@@ -375,20 +375,20 @@ def undoshift(string):
   return shiftless
   
 
-def shift(oldstr, shift, vars=["\w+"], **kwargs):
+def shift(oldstr,shifttag,vars=["\w+"],**kwargs):
   """Shift all jet variable in a given string (e.g. to propagate JEC/JER).
-  E.g. shift('jpt_1>50 && met<50','jecUp',['jpt_[12]','met']) -> 'jpt_1_jecUp>50 && met_jecUp<50'
+  E.g. shift('jpt_1>50 && met<50','jesUp',['jpt_[12]','met']) -> 'pt_1>50 && jpt_1_jesUp>50 && met_jesUp<50'
   """
   verbosity = LOG.getverbosity(kwargs)
   newstr    = oldstr
   vars      = ensurelist(vars)
   if re.search(r"(Up|Down)",oldstr):
     print "shift: already shifts in %r"%(oldstr)
-  if kwargs.get('us',True) and len(shift)>0 and shift[0]!='_': # ensure underscore in front
-    shift = '_'+shift
+  if kwargs.get('us',True) and len(shifttag)>0 and shifttag[0]!='_': # ensure underscore in front
+    shifttag = '_'+shifttag
   for oldvar in vars: # shift each jet/MET variable
     oldexp = r"\b("+oldvar+r")\b"
-    newexp = r"\1%s"%(shift)
+    newexp = r"\1%s"%(shifttag)
     newstr = re.sub(oldexp,newexp,newstr)
   if verbosity>=1:
     verbstr = ">>> shift: shift with %r shift: "%(newstr)
@@ -402,14 +402,14 @@ def shift(oldstr, shift, vars=["\w+"], **kwargs):
   return newstr
   
 
-def shiftjme(oldstr, shift, jmevars=None, **kwargs):
+def shiftjme(oldstr,shifttag,jmevars=None,**kwargs):
   """Shift all jet variable in a given string (e.g. to propagate JEC/JER).
-  E.g. shiftjme('jpt_1>50 && met<50','jecUp') -> 'jpt_1_jecUp>50 && met_jecUp<50'
+  E.g. shiftjme('jpt_1>50 && met<50','jesUp') -> 'pt_1>50 && jpt_1_jecUp>50 && met_jecUp<50'
   """
   if jmevars==None: # default jet/MET variables to shift
-    jmevars   = [r'\w*mt_1',r'met(?!filter)'] if "unclusten" in shift.lower() else\
+    jmevars   = [r'\w*mt_1',r'met(?!filter)'] if "unclusten" in shifttag.lower() else\
                 [r'jpt_[12]',r'jeta_[12]',r'n\w*jets\w*',r'nc?btag\w*',r'\w*mt_1',r'met(?!filter)',r'dphi_ll_bj']
-  return shift(oldstr,shift,jmevars,**kwargs)
+  return shift(oldstr,shifttag,jmevars,**kwargs)
   
 
 def invertcharge(oldcuts,target='SS',**kwargs):

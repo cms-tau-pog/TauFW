@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 # Description: Skim & apply JME corrections
-from __future__ import print_function
+from __future__ import print_function # for python3 compatibility
 import os, glob
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True

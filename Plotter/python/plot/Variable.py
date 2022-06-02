@@ -18,14 +18,23 @@ class Variable(object):
    - allow for contextual binning, i.e. depending on channel/selection/...
    - easy string conversions: filename, LaTeX, ...
    - analysis-specific operations: applying variations, ...
+   
+  Initialize as
+    var = Variable('x',100,0,200)
+    var = Variable('x','x title',100,0,200)
+    var = Variable('x',[0,10,50,100,200])
+    ...
   """
   
   def __init__(self, name, *args, **kwargs):
-    strings           = [a for a in args if isinstance(a,str) ]
+    strings, bins     = [ ], [ ]
+    for arg in args:
+      if isinstance(arg,str): strings.append(arg)
+      else: bins.append(arg)
     self.name         = name # variable name in tree, to be used in draw command
     self._name        = name # backup for addoverflow
     self.title        = strings[0] if strings else self.name
-    filename          = makefilename(self.name.replace('/','_'))  # file-safe name
+    filename          = strings[1] if len(strings)>=2 else makefilename(self.name.replace('/','_')) # file-safe name
     self.title        = kwargs.get('title',       self.title    ) # for plot axes
     self.filename     = kwargs.get('fname',       filename      ) # file-friendly name for files & histograms
     self.filename     = kwargs.get('filename',    self.filename ) # alias
@@ -40,7 +49,7 @@ class Variable(object):
     self.cut          = kwargs.get('cut',         ""            ) # extra cut when filling histograms
     self.weight       = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
     self.dataweight   = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
-    self.setbins(*args)
+    self.setbins(*bins)
     self.dividebins   = kwargs.get('dividebins', self.hasvariablebins() ) # divide each histogram bins by it bin size (done in Plot.draw)
     self.data         = kwargs.get('data',        True          ) # also draw data
     self.flag         = kwargs.get('flag',        ""            ) # flag, e.g. 'up', 'down', ...
@@ -395,15 +404,32 @@ class Variable(object):
       newvar.filename += vshift # overwrite file name
     return newvar
   
-  def shiftjme(self,jshift,**kwargs):
+  def shiftjme(self,jshift,title=None,**kwargs):
     """Create new variable with a shift tag added to its name."""
+    verbosity = LOG.getverbosity(self,kwargs)
     if len(jshift)>0 and jshift[0]!='_':
       jshift = '_'+jshift
     newname  = shiftjme(self.name,jshift,**kwargs)
     newvar   = deepcopy(self)
+    LOG.verb("Variable.shiftjme: name = %r -> %r"%(self.name,newname),verbosity,2)
     newvar.name = newname # overwrite name
+    if title:
+      newvar.title = title
+    elif self.title[-1] in [']',')']: # insert shift tag into title before units
+      newvar.title = re.sub(r"^(.*\s*)([[(][^()\[\]]+[)\]])$",r"\1%s \2"%(jshift.strip('_')),self.title)
+    else: # add shift tag to title
+      newvar.title += ' '+jshift.strip('_')
+    LOG.verb("Variable.shiftjme: title = %r -> %r"%(self.title,newvar.title),verbosity,2)
     if not kwargs.get('keepfile',False) and self.name!=newname:
       newvar.filename += jshift # overwrite file name
+      LOG.verb("Variable.shiftjme: filename = %r -> %r"%(self.filename,newvar.filename),verbosity,2)
+    if newvar.cut:
+      newvar.cut = shiftjme(newvar.cut,jshift,**kwargs)
+      LOG.verb("Variable.shiftjme: extra cut = %r -> %r"%(self.cut,newvar.cut),verbosity,2)
+    if newvar.ctxcut:
+      for key, cut in newvar.ctxcut.context.iteritems():
+        newvar.ctxcut.context[key] = shiftjme(cut,jshift,**kwargs)
+      newvar.ctxcut.default = shiftjme(newvar.ctxcut.default,jshift,**kwargs)
     return newvar
   
   def shiftname(self,vshift,**kwargs):

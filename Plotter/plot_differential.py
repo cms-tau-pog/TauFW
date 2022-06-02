@@ -13,7 +13,7 @@ import yaml
 
 
 def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era="",
-         varfilter=None,selfilter=None,fraction=False,pdf=False):
+         varfilter=None,selfilter=None,fraction=False,pdf=False,exts=['png']):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("plot")
   
@@ -23,13 +23,12 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     baseline = setup['baselineCuts']
   else:
     raise IOError("No baseline selection for channel %r defined!"%(channel))
+  baseline = baseline.replace("VSjet_2>=32","VSjet_2>=16")
+  noVSjet  = baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16","")
   
-  selections = [
-    Sel('baseline',baseline)
-  ]
   zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline) # && nbtag==0
   selections = [
-    #Sel('baseline, no DeepTauVSjet',baseline.replace(" && idDeepTau2017v2p1VSjet_2>=16",""),only=["DeepTau"]),
+    #Sel('baseline, no DeepTauVSjet',noVSjet,only=["DeepTau"]),
     Sel("baseline",baseline),
     #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
     #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
@@ -51,11 +50,11 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   for wp, wpcut in wps:
     wpname  = wp.replace(" && !","-not")
     basecut = baseline.replace("idDeepTau2017v2p1VSjet_2>=16",wpcut) #+" && nbtag==0"
-    for dm in dms:
-      name_ = "%s_dm%s"%(wpname,dm)
-      tit_  = "%s, DM%s"%(wp,dm)
-      cut_  = "%s && dm_2==%s"%(basecut,dm)
-      selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
+    #for dm in dms:
+    #  name_ = "%s_dm%s"%(wpname,dm)
+    #  tit_  = "%s, DM%s"%(wp,dm)
+    #  cut_  = "%s && dm_2==%s"%(basecut,dm)
+    #  selections.append(Sel(name_,tit_,cut_,only=['m_vis','m_2'])) # DM bins
     for i, ptlow in enumerate(pts):
       if i<len(pts)-1: # ptlow < pt < ptup
         ptup = pts[i+1]
@@ -66,12 +65,12 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
         name = "%s_pt%d-Inf"%(wpname,ptlow)
         tit  = "%s, pt > %d GeV"%(wp,ptlow)
         cut  = "%s && pt_2>%s"%(basecut,ptlow)
-      #selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
-      for dm in dms:
-        name_ = "%s_dm%s"%(name,dm)
-        tit_  = "%s, DM%s"%(tit,dm)
-        cut_  = "%s && dm_2==%s"%(cut,dm)
-        selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
+      selections.append(Sel(name,tit,cut,only=['m_vis','^m_2','mapRecoDM'])) # pt bins
+      #for dm in dms:
+      #  name_ = "%s_dm%s"%(name,dm)
+      #  tit_  = "%s, DM%s"%(tit,dm)
+      #  cut_  = "%s && dm_2==%s"%(cut,dm)
+      #  selections.append(Sel(name_,tit_,cut_,only=['m_vis','^m_2'])) # pt-DM bins
   
   # VARIABLES
   variables = [
@@ -102,9 +101,9 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       Var('m_vis',          20,  0, 200, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
       Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
       Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
-      Var("mapRecoDM(dm_2)", 5,  0,   5, fname="dm_2_label",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",labels=dmlabels,ymargin=1.2),
-      #Var("pzetavis", 50,    0, 200 ),
-      Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5,cbins={"VSjet_2>":(60,0.4,1)}),
+#       Var("mapRecoDM(dm_2)", 5,  0,   5, fname="dm_2_label",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",labels=dmlabels,ymargin=1.2),
+#       #Var("pzetavis", 50,    0, 200 ),
+      Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, ncols=2,pos='L;y=0.87',logy=True,ymargin=1.9,cymargin={'VSjet':1.5},cbins={"VSjet_2>":(60,0.4,1)}),
       Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 20, 0.80, 1, fname="$VAR_zoom",ncols=2,pos='L;y=0.85'),
       Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   30, 0.70, 1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=4,pos='L;y=0.85'),
       Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  20, 0.80, 1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=5,pos='L;y=0.85'),
@@ -120,7 +119,8 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   
   # PLOT
   outdir = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
-  exts   = ['png','pdf'] if pdf else ['png'] # extensions
+  if pdf and 'pdf' not in exts: # extensions for output image file
+    exts = exts+['pdf']
   for selection in selections:
     print ">>> Selection %r: %r"%(selection.title,selection.selection)
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',parallel=parallel)
@@ -147,6 +147,7 @@ def main(args):
   extratext = args.text
   fraction  = args.fraction
   pdf       = args.pdf
+  exts      = args.exts
   outdir    = "plots/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   
@@ -166,7 +167,7 @@ def main(args):
       split  = ['DY'] if 'tau' in setup['channel'] else [ ] # split these backgrounds into tau components
       sampleset = getsampleset(setup['channel'],era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split)
       plot(sampleset,setup,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
-           varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf)
+           varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf,exts=exts)
       sampleset.close()
   
 
@@ -177,7 +178,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!",formatter_class=RawTextHelpFormatter)
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
                                          help="set era" )
-  parser.add_argument('-c', '--config',  dest='configs', type=str, nargs='+', default=['config/setup_mutau.yml'], action='store',
+  parser.add_argument('-c', '--config',  dest='configs', type=str, nargs='+', default=['config/setup_mutau.yml'],
                                          help="set config file containing sample & fit setup, default=%(default)r" )
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
                                          help="only plot the variables passing this filter (glob patterns allowed)" )
@@ -189,11 +190,13 @@ if __name__ == "__main__":
                                          help="include fraction stack in ratio plot" )
   parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',
                                          help="create pdf version of each plot" )
+  parser.add_argument('-e', '--ext',     dest='exts', nargs='+', default=['png'],
+                                         help="extension for output image files" )
   parser.add_argument('-r', '--nosf',    dest='notauidsf', action='store_true',
                                          help="remove DeepTau ID SF" )
   parser.add_argument('-t', '--tag',     default="", help="extra tag for output" )
   parser.add_argument('-T', '--text',    default="", help="extra text on plot" )
-  parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
+  parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0,
                                          help="set verbosity" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
