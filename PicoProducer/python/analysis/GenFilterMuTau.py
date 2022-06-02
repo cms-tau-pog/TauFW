@@ -41,9 +41,11 @@ class GenFilterMuTau(Module):
     elecs        = [ ] # all (unique) elecs
     muons        = [ ] # all (unique) muons
     taus         = [ ] # all (unique) taus
-    elecs_hard   = [ ] # electrons from hard process
-    muons_hard   = [ ] # muons from hard process
-    taus_hard    = [ ] # taus from hard process
+    elecs_hard   = [ ] # from hard process electrons
+    muons_hard   = [ ] # from hard process muons
+    taus_hard    = [ ] # from hard process taus
+    taus_unst    = [ ] # from hard process taus for FSR photon check
+    taus_brem    = [ ] # from hard process taus that radiate FSR photon
     elecs_tau    = [ ] # electrons from decay of prompt tau
     muons_tau    = [ ] # muons from decay of prompt tau
     tauhs_hard   = [ ] # hadronic tau from prompt tau decay
@@ -51,6 +53,8 @@ class GenFilterMuTau(Module):
     for particle in particles:
       pid = abs(particle.pdgId)
       ###self.out.fillStatusFlag(particle) # check correlations
+      if pid==15 and particle.status!=2 and particle.statusflag('fromHardProcess'): # probably status==23
+        taus_unst.append(particle) # for FSR photon check
       if pid<16 and particle.statusflag('isLastCopy'): # ignore duplicate particles before FSR
         # https://github.com/cms-sw/cmssw/blob/e48b3c4c1c95b0bb8baa89b216313f012877a73e/PhysicsTools/NanoAOD/python/genparticles_cff.py#L8-L28
         if pid==11:
@@ -65,14 +69,20 @@ class GenFilterMuTau(Module):
             muons_tau.append(particle)
           elif particle.statusflag('fromHardProcess'):
             muons_hard.append(particle)
-        elif pid==15 and particle.status==2:
-          particle.pvis = TLorentzVector()
-          taus.append(particle)
-          if particle.statusflag('fromHardProcess'):
-            taus_hard.append(particle)
-          #else:
-          #  taus_hard.append(particle)
+        elif pid==15:
+          if particle.status==2:
+            particle.pvis = TLorentzVector() # build visible four-momentum for hadronic decays
+            taus.append(particle)
+            if particle.statusflag('fromHardProcess'):
+              taus_hard.append(particle)
+            #else:
+            #  taus_hard.append(particle)
       elif pid>16: # ignore neutrinos and charged leptons
+        if pid==22: # photon
+          for tau in taus_unst: # find actual radiating tau
+            if tau._index==particle.genPartIdxMother:
+              taus_brem.append(tau)
+              break
         for tau in taus:
           if tau._index==particle.genPartIdxMother: # non-leptonic tau decay product
             #print(">>> add %+d to %+d"%(particle.pdgId,tau.pdgId))
@@ -107,6 +117,31 @@ class GenFilterMuTau(Module):
     ###  for elec2 in elecs[i+1:]:
     ###    self.out.h_dR_elec.Fill(elec1.DeltaR(elec2))
     
+    # TAU RADIATING FSR PHOTON
+    # Checking taus radiating FSR photons for bug in EmbeddingHepMCFilter
+    # pre-CMSSW_10_6_30_patch1 affecting Summer19 and Summer20 UL
+    taus_brem_final = [ ] # final taus from hard process that have radiated earlier
+    muons_tau_brem  = [ ] # muons from radiating taus from hard process
+    for tau in taus_hard: # loop over final taus from hard process
+      moth = tau
+      while abs(moth.pdgId)==15 and moth.genPartIdxMother>=0: # go back up tau chain
+        if any(t._index==moth.genPartIdxMother for t in taus_brem): # match with radiating tau
+          taus_brem_final.append(moth) # save for checking decay
+          self.out.h_qtau_brem.Fill(-tau.pdgId/15) # charge
+          break
+        moth = particles[moth.genPartIdxMother] # check tau mother if tau again
+    for muon in muons_tau: # loop over muons from tau decay
+      moth = muon
+      charge = -muon.pdgId/13
+      self.out.h_qmuon_tau.Fill(charge)
+      while abs(moth.pdgId)==13 and moth.genPartIdxMother>=0: # go back up muon chain
+        if any(t._index==moth.genPartIdxMother for t in taus_brem_final): # match with radiating tau
+          muons_tau_brem.append(muon)
+          self.out.h_qmuon_tau_brem.Fill(charge) # charge
+          break
+        moth = particles[moth.genPartIdxMother] # check muon mother if tau again
+    self.out.h_nmuon_tau_brem.Fill(len(muons_tau_brem)) # count number of muons from radiating tau
+    
     # FILL HISTOGRAMS
     self.out.h_nelec.Fill(len(elecs))
     self.out.h_nelec_tau.Fill(len(elecs_tau))
@@ -116,6 +151,7 @@ class GenFilterMuTau(Module):
     self.out.h_nmuon_hard.Fill(len(muons_hard))
     self.out.h_ntau.Fill(len(taus))
     self.out.h_ntau_hard.Fill(len(taus_hard))
+    self.out.h_ntau_brem.Fill(len(taus_brem)) # radiating FSR photon
     self.out.h_ntauh_hard.Fill(len(tauhs_hard))
     self.out.h_nmuon_nelec.Fill(len(muons_hard),len(elecs_hard))
     self.out.h_nmuon_nelec_tau.Fill(len(muons_tau),len(elecs_tau))
@@ -127,6 +163,8 @@ class GenFilterMuTau(Module):
     self.out.h_ntauh_nmuon.Fill(len(tauhs_hard),len(muons_hard))
     self.out.h_ntauh_nmuon_tau.Fill(len(tauhs_hard),len(muons_tau))
     self.out.h_ntau_ntauh.Fill(len(taus_hard),len(tauhs_hard))
+    
+    # CUTFLOW Z/gamma -> ll
     if len(elecs_hard)>=2:
       self.out.cutflow.fill('ll')
       self.out.cutflow.fill('ee')
@@ -273,21 +311,28 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     self.cutflow.addcut('tauhtauh_hard',"tauhtauh_hard")
     self.cutflow.addcut('taultaul_hard',"taultaul_hard")
     
-    # HISTOGRAMS
-    self.h_nup             = TH1D('h_nup',        ";Number of partons at LHE level;Events",9,0,9)
-    self.h_mothpid         = TH1D('h_mothpid',    ";Mother PID ;#tau#tau events",40,0,40)
-    self.h_dR_tauh         = TH1D('h_dR_tauh',    ";#DeltaR(#tau,#tau_{#lower[-0.2]{h}});Tau leptons",50,0,4)
-    ###self.h_dR_elec         = TH1D('h_dR_elec',   ";#DeltaR(e,e);Electron pairs",50,0,4)
-    self.h_mutaufilter     = TH1D('h_mutaufilter',";mutaufilter (pt>18, |eta|<2.5);Events",5,0,5)
-    self.h_nelec           = TH1D('h_nelec',      ";Number of generator electrons;Events",8,0,8)
-    self.h_nelec_tau       = TH1D('h_nelec_tau',  ";Number of electrons from #tau decay;Events",8,0,8)
-    self.h_nelec_hard      = TH1D('h_nelec_hard', ";Number of electrons from hard process;Events",8,0,8)
-    self.h_nmuon           = TH1D('h_nmuon',      ";Number of generator muons;Events",8,0,8)
-    self.h_nmuon_tau       = TH1D('h_nmuon_tau',  ";Number of muons from tau decay;Events",8,0,8)
-    self.h_nmuon_hard      = TH1D('h_nmuon_hard', ";Number of muons from hard process;Events",8,0,8)
-    self.h_ntau            = TH1D('h_ntau',       ";Number of generator #tau leptons;Events",8,0,8)
-    self.h_ntau_hard       = TH1D('h_ntau_hard',      ";Number of #tau leptons from hard process;Events",8,0,8)
-    self.h_ntauh_hard      = TH1D('h_ntauh_hard',     ";Number of #tau_{#lower[-0.2]{h}} leptons;Events",8,0,8)
+    # 1D HISTOGRAMS
+    self.h_nup             = TH1D('h_nup',           ";Number of partons at LHE level;Events",9,0,9)
+    self.h_mothpid         = TH1D('h_mothpid',       ";Mother PID ;#tau#tau events",40,0,40)
+    self.h_dR_tauh         = TH1D('h_dR_tauh',       ";#DeltaR(#tau,#tau_{#lower[-0.2]{h}});Tau leptons",50,0,4)
+    ###self.h_dR_elec         = TH1D('h_dR_elec',      ";#DeltaR(e,e);Electron pairs",50,0,4)
+    self.h_mutaufilter     = TH1D('h_mutaufilter',   ";mutaufilter (pt>18, |eta|<2.5);Events",5,0,5)
+    self.h_nelec           = TH1D('h_nelec',         ";Number of generator electrons;Events",8,0,8)
+    self.h_nelec_tau       = TH1D('h_nelec_tau',     ";Number of electrons from #tau decay;Events",8,0,8)
+    self.h_nelec_hard      = TH1D('h_nelec_hard',    ";Number of electrons from hard process;Events",8,0,8)
+    self.h_nmuon           = TH1D('h_nmuon',         ";Number of generator muons;Events",8,0,8)
+    self.h_nmuon_tau       = TH1D('h_nmuon_tau',     ";Number of muons from tau decay;Events",8,0,8)
+    self.h_nmuon_hard      = TH1D('h_nmuon_hard',    ";Number of muons from hard process;Events",8,0,8)
+    self.h_nmuon_tau_brem  = TH1D('h_nmuon_tau_brem',";Number of muons from radiating #tau;Events",8,0,8)
+    self.h_ntau            = TH1D('h_ntau',          ";Number of generator #tau leptons;Events",8,0,8)
+    self.h_ntau_hard       = TH1D('h_ntau_hard',     ";Number of #tau leptons from hard process;Events",8,0,8)
+    self.h_ntau_brem       = TH1D('h_ntau_brem',     ";Number of radiating #tau leptons from hard process;Events",8,0,8)
+    self.h_ntauh_hard      = TH1D('h_ntauh_hard',    ";Number of #tau_{#lower[-0.2]{h}} leptons;Events",8,0,8)
+    self.h_qtau_brem       = TH1D('h_qtau_brem',     ";Charge of radiating #tau;Events",6,-2,4)
+    self.h_qmuon_tau       = TH1D('h_qmuon_tau',     ";Charge of muons from #tau decay;Events",6,-2,4)
+    self.h_qmuon_tau_brem  = TH1D('h_qmuon_tau_brem',";Charge of muons from radiating #tau;Events",6,-2,4)
+    
+    # 2D HISTOGRAMS
     self.h_nmuon_nelec     = TH2D('h_nmuon_nelec',    ";Number of muons from hard process;Number of electrons from hard process",8,0,8,8,0,8)
     self.h_nmuon_nelec_tau = TH2D('h_nmuon_nelec_tau',";Number of muons from #tau decay;Number of electrons from #tau decay",8,0,8,8,0,8)
     self.h_ntau_nelec      = TH2D('h_ntau_nelec',     ";Number of taus from hard process;Number of electrons from hard process",8,0,8,8,0,8)
