@@ -150,7 +150,7 @@ def makelatex(string,**kwargs):
       string = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",string)
     if "tau" in strlow:
       #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)
-      string = re.sub(r"(?<!Deep|Over|ToMu)(?<!To)(?<!ToTau)tau(?!filter)",r"#tau",string,flags=re.IGNORECASE)
+      string = re.sub(r"(?<!Deep|Over|ToMu)(?<!To)(?<!ToTau)(?<!#)tau(?!filter)",r"#tau",string,flags=re.IGNORECASE)
       #string = re.sub(r" #tau ",r" tau ",string,flags=re.IGNORECASE)
       #string = re.sub(r"^#tau ",r"tau ",string,flags=re.IGNORECASE)
       string = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",string,flags=re.IGNORECASE)
