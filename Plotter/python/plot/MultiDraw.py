@@ -53,16 +53,19 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     string specifying the weight to be applied to that histogram only."""
     
     selection = kwargs.get('cut',       selection ) # selections cuts
-    verbosity = kwargs.get('verbosity', 0         ) # verbosity
     poisson   = kwargs.get('poisson',   False     ) # kPoisson errors for data
     sumw2     = kwargs.get('sumw2',     False     ) # sumw2 for MC
     histlist  = kwargs.get('hists',     [ ]       ) # to not rely on gDirectory.Get(histname)
+    verbosity = kwargs.get('verb',      0         ) # verbosity level
+    verbosity = kwargs.get('verbosity', verbosity ) # verbosity level
     
     hists     = { }
     results, xformulae, yformulae, weights = [ ], [ ], [ ], [ ]
     lastXVar, lastYVar, lastWeight = None, None, None
     
     # A weight common to everything being drawn
+    if verbosity>=3:
+      print ">>> MultiDraw: Preparing common TTreeFormula for selection=%r"%(selection)
     commonFormula = TTreeFormula("commonFormula", selection, self)
     commonFormula.SetQuickLoad(True)
     
