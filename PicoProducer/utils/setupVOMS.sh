@@ -7,6 +7,7 @@
 #   source utils/setupVOMS.sh -m 10 -M 200
 # Tip: On lxplus, add this line to your .bashrc:
 #   export X509_USER_PROXY=~/.x509up_u`id -u`
+export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch
 function peval { echo ">>> $@"; eval "$@"; }
 
 FORCE=0      # force proxy init (even if valid one exists)
