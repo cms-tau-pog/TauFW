@@ -28,7 +28,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   
   zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline) # && nbtag==0
   selections = [
-    #Sel('baseline, no DeepTauVSjet',noVSjet,only=["DeepTau"]),
+    Sel('baseline, no DeepTauVSjet',noVSjet,only=["DeepTau","^pt_[12]","^eta_[12]","^m_2","dm"]),
     Sel("baseline",baseline),
     #Sel("baseline, pt > 50 GeV",baseline+" && pt_1>50"),
     #Sel("mt<60 GeV, dzeta>-25 GeV, |deta|<1.5",zttregion,fname="zttregion"),
@@ -101,8 +101,8 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       Var('m_vis',          20,  0, 200, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
       Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
       Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
-#       Var("mapRecoDM(dm_2)", 5,  0,   5, fname="dm_2_label",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",labels=dmlabels,ymargin=1.2),
-#       #Var("pzetavis", 50,    0, 200 ),
+      Var("mapRecoDM(dm_2)", 5,  0,   5, fname="dm_2_label",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",labels=dmlabels,ymargin=1.2),
+      #Var("pzetavis", 50,    0, 200 ),
       Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 100, 0.0, 1, ncols=2,pos='L;y=0.87',logy=True,ymargin=1.9,cymargin={'VSjet':1.5},cbins={"VSjet_2>":(60,0.4,1)}),
       Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 20, 0.80, 1, fname="$VAR_zoom",ncols=2,pos='L;y=0.85'),
       Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   30, 0.70, 1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=4,pos='L;y=0.85'),
@@ -145,11 +145,14 @@ def main(args):
   selfilter = args.selfilter
   notauidsf = args.notauidsf
   extratext = args.text
+  tag       = args.tag
   fraction  = args.fraction
   pdf       = args.pdf
   exts      = args.exts
   outdir    = "plots/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+  if notauidsf:
+    tag    += "_noIDSF"
   
   # LOOP over configs / channels
   for config in configs:
@@ -158,7 +161,7 @@ def main(args):
     print ">>> Using configuration file: %s"%config
     with open(config, 'r') as file:
       setup = yaml.safe_load(file)
-    tag = setup.get('tag',"")+args.tag
+    tag_ = setup.get('tag',"")+tag
     
     for era in eras:
       setera(era) # set era for plot style and lumi-xsec normalization
@@ -166,7 +169,7 @@ def main(args):
       rmsfs  = [ ] if (setup['channel']=='mumu' or not notauidsf) else ['idweight_2','ltfweight_2'] # remove tau ID SFs
       split  = ['DY'] if 'tau' in setup['channel'] else [ ] # split these backgrounds into tau components
       sampleset = getsampleset(setup['channel'],era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split)
-      plot(sampleset,setup,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
+      plot(sampleset,setup,parallel=parallel,tag=tag_,extratext=extratext,outdir=outdir,era=era,
            varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf,exts=exts)
       sampleset.close()
   

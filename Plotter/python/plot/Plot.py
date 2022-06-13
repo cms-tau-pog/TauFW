@@ -175,7 +175,8 @@ class Plot(object):
     ycenter      = kwargs.get('ycenter',      False           ) # center y title
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
-    ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
+    ymargin      = kwargs.get('ymarg',        self.ymargin    ) # alias
+    ymargin      = kwargs.get('ymargin',      ymargin         ) # margin between hist maximum and plot's top
     logyrange    = kwargs.get('logyrange',    self.logyrange  ) # log(y) range from hist maximum to ymin
     grid         = kwargs.get('grid',         True            )
     tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
@@ -479,7 +480,8 @@ class Plot(object):
     labeloption   = kwargs.get('labeloption',  None             ) # 'h'=horizontal, 'v'=vertical
     logx          = kwargs.get('logx',         False            )
     logy          = kwargs.get('logy',         False            )
-    ymargin       = kwargs.get('ymargin',      None             ) or (1.3 if logy else 1.2) # margin between hist maximum and plot's top
+    ymargin       = kwargs.get('ymarg',        None             ) # alias
+    ymargin       = kwargs.get('ymargin',      ymargin          ) or (1.3 if logy else 1.2) # margin between hist maximum and plot's top
     logyrange     = kwargs.get('logyrange',    None             ) or 3 # log(y) range from hist maximum to ymin
     negativey     = kwargs.get('negativey',    True             ) # allow negative y values
     xtitle        = kwargs.get('xtitle',       frame.GetTitle() )
@@ -1002,6 +1004,8 @@ class Plot(object):
     else draw later in Plot.draw on bottom."""
     if x1=='min': x1 = self.xmin
     if x2=='max': x2 = self.xmax
+    if y1=='min': y1 = self.ymin # if available after Plot.draw
+    if y2=='max': y2 = self.ymax # if available after Plot.draw
     pad  = kwargs.get('pad', 1 ) # 1: main, 2: ratio
     line = TGraph(2) #TLine(xmin,1,xmax,1)
     line.SetPoint(0,x1,y1)
