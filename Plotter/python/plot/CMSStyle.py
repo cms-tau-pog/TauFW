@@ -81,7 +81,7 @@ def setCMSEra(*eras,**kwargs):
     if lumi:
       if string:
         string += ", "
-      string += "%s fb^{-1}"%(lumi)
+      string += "%s fb^{#minus1}"%(lumi)
     if cme:
       string += " (%s TeV)"%(cme)
     strings.append(string)
