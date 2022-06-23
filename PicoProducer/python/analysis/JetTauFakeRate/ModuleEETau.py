@@ -363,7 +363,7 @@ class ModuleEETau(Module):
       if muon.DeltaR(jet)<0.4 : continue
       if muon.DeltaR(tau)<0.4 : continue
       if any(muon.DeltaR(electron)<0.3 for electron in electrons): continue ## remove overlap with selected melectrons as well !?! dR<0.3 optimal???
-      if muon.convVeto==1 and muon.lostHits<=1 and muon.looseId:
+      if muon.looseId:
         Muons.append(muon)
     if len(Muons)>0 : return False
     self.cutflow.Fill(self.cut_muveto)  
