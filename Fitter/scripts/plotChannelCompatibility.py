@@ -17,6 +17,10 @@ gStyle.SetOptStat(0) # no stat. box
 gStyle.SetEndErrorSize(7) # size of bars at the end of error bars
 
 
+def warning(string,**kwargs):
+  print ">>> \033[1m\033[93m%sWarning!\033[0m\033[93m %s\033[0m"%(kwargs.get('pre',""),string)
+  
+
 def rmprefix(var,poiname='r'):
   """Help function to remove the ChannelCompatibilityCheck prefix."""
   #vname = lambda v: v.GetName().replace(prefix,'') # help function
@@ -53,13 +57,26 @@ def scalePOI(xvar,scale,verb=0):
   return xvar
   
 
+def checkBoundary(xvar,verb=0):
+  """Make sure variable has not hit boundary."""
+  if verb<0:
+    return
+  den = 1.0 if abs(xvar.getVal())<=1e-5 else xvar.getVal()
+  for x in [xvar.getAsymErrorHi(),xvar.getAsymErrorLo()]:
+    for xbound in [xvar.getMin(),xvar.getMax()]:
+      if abs((xvar.getVal()+x-xbound)/den)<0.01:
+        warning("Parameter %5s (%6.2f %+4.2f %+4.2f) might have hit a boundary of [%6.2f,%6.2f]"%(
+          xvar.GetName(),xvar.getVal(),xvar.getAsymErrorHi(),xvar.getAsymErrorLo(),xvar.getMin(),xvar.getMax()))
+        return
+  
+
 def getPOIs(fname,**kwargs):
   """Get POI from ChannelCompatibilityCheck file."""
-  poiname  = kwargs.get('poi',      None ) # string
+  poiname  = kwargs.get('poi',      'r'  ) # string
   chandict = kwargs.get('chandict', { }  ) # dictionary for channel POIs
   scale    = kwargs.get('scale',    1    ) # scale by number (e.g. to convert to cross section)
   verb     = kwargs.get('verb',     0    )
-  if verb>=1:
+  if verb>=2:
     print ">>> getPOIs(%r,scale=%r)"%(fname,scale)
   
   # GET FITS
@@ -77,6 +94,7 @@ def getPOIs(fname,**kwargs):
   if not poi:
     print "Nominal fit does not contain parameter of interest %s"%(poiname)
     return
+  checkBoundary(poi,verb=verb)
   
   # GET CHANNEL POIs
   pois_chan = [ ]
@@ -90,8 +108,10 @@ def getPOIs(fname,**kwargs):
       if channel in chandict:
         channel = chandict[channel]
       xvar.SetTitle(channel)
-      print ">>>   Found channel POI %r -> %r"%(varname,channel)
+      if verb>=1:
+        print ">>>   Found channel POI %r -> %r"%(varname,channel)
       pois_chan.append(xvar)
+      checkBoundary(xvar,verb=verb)
     xvar = iter.Next()
   
   # SCALE
@@ -137,9 +157,9 @@ def plotChannelCompatibility(fname,outname,**kwargs):
       pois_chan1 = pois_chan[:] # so list does not increase during iteration
       poi2, pois_chan2 = getPOIs(ofname,**kwargs)
       if (poi.getVal()!=poi2.getVal() or poi.getAsymErrorLo()!=poi2.getAsymErrorLo() or poi.getAsymErrorHi()!=poi2.getAsymErrorHi()):
-        print ">>> WARNING! POI results for other file %s (%s = %7.2f %+4.2f %+4.2f) does not match main file %s (%s = %7.2f %+4.2f %+4.2f)"%(
+        warning("POI results for other file %s (%s = %7.2f %+4.2f %+4.2f) does not match main file %s (%s = %7.2f %+4.2f %+4.2f)"%(
           ofname,poi2.GetTitle(),poi2.getVal(),poi2.getAsymErrorLo(),poi2.getAsymErrorHi(),
-          fname, poi.GetTitle(), poi.getVal(), poi.getAsymErrorLo(), poi.getAsymErrorHi())
+          fname, poi.GetTitle(), poi.getVal(), poi.getAsymErrorLo(), poi.getAsymErrorHi()))
       for poi_chan in pois_chan2:
         if not any(poi_chan.GetName()==p.GetName() for p in pois_chan1):
           print ">>>   Adding %r from %s"%(poi_chan.GetTitle(),ofname)
@@ -163,14 +183,14 @@ def plotChannelCompatibility(fname,outname,**kwargs):
             poi_chan.bonly = (-poi_chan_bo.getAsymErrorLo(),poi_chan_bo.getAsymErrorHi())
             break
         else:
-          print ">>> WARNING! Did not find corresponding channel POI for B-only %s"%(poi_chan_bo.GetName())
+          warning("Did not find corresponding channel POI for B-only %s"%(poi_chan_bo.GetName()))
   
   # SORT
   if chandict: # reorder according to ordered channel dictionary
     keys = chandict.keys() # ordered keys
     pois_chan.sort(key=lambda v: channelkey(v,keys,poiname))
   poi.SetTitle('Combined')
-  pois_chan.append(poi) # add main POI
+  ###pois_chan.append(poi) # add main, "combined" POI in bottom row
   
   # CREATE POINTS
   nchans = len(pois_chan)
@@ -212,7 +232,7 @@ def plotChannelCompatibility(fname,outname,**kwargs):
         if rmin_>-errdn_bo:
           rmin_ = -errdn_bo
       except AttributeError as err:
-        print("WARNING! AttributeError: channel POI %s does not have B-only! Ignoring...")
+        warning("AttributeError: channel POI %s does not have B-only! Ignoring...")
   ###if xsec and xsec>0:
   ###  graph.Scale(xsec,'xy')
   ###  bandbo.Scale(xsec,'xy')
@@ -271,30 +291,30 @@ def plotChannelCompatibility(fname,outname,**kwargs):
   poi_up = poi.getAsymErrorHi() #poi.getVal()+poi.getAsymErrorHi()
   poi_dn = -poi.getAsymErrorLo() #poi.getVal()+poi.getAsymErrorLo()
   if poi_up>=rmin and poi_dn<=rmax: # make sure entire band within range
-    ###band = TGraphAsymmErrors(1)
-    ###band.SetTitle("Combined")
-    ###band.SetPoint(0,poi.getVal(),0) # start at bottom
-    ###band.SetPoint(1,poi.getVal(),nchans) # end at top
-    ###band.SetPointError(0,max(rmin,poi_dn),min(rmax,poi_up),0,nchans/2.)
-    ###band.SetPointError(1,max(rmin,poi_dn),min(rmax,poi_up),nchans/2.,0)
-    ####band.SetFillStyle(3013)
-    ###band.SetFillColor(65)
-    ###band.SetLineStyle(0)
-    ###band.SetLineWidth(2)
-    ###band.SetLineColor(214)
-    ######band.Draw('ZL SAME') # draw line only
-    ####band.Draw('ZLE2 SAME') # draw with band
-    ###legend.AddEntry(band,band.GetTitle(),'fl')
+    band = TGraphAsymmErrors(1)
+    band.SetTitle("Combined")
+    band.SetPoint(0,poi.getVal(),0) # start at bottom
+    band.SetPoint(1,poi.getVal(),nchans) # end at top
+    band.SetPointError(0,max(rmin,poi_dn),min(rmax,poi_up),0,nchans/2.)
+    band.SetPointError(1,max(rmin,poi_dn),min(rmax,poi_up),nchans/2.,0)
+    #band.SetFillStyle(3013)
+    band.SetFillColor(65)
+    band.SetLineStyle(0)
+    band.SetLineWidth(2)
+    band.SetLineColor(214)
+    ###band.Draw('ZL SAME') # draw line only
+    band.Draw('ZLE2 SAME') # draw with band
+    legend.AddEntry(band,band.GetTitle(),'fl')
     ###band = TBox(max(rmin,poi_dn),0,min(rmax,poi_up),nchans)
     ####band.SetFillStyle(3013)
     ###band.SetFillColor(65)
     ###band.SetLineStyle(0)
     ###band.Draw('SAME') #DrawClone
-    line = TLine(poi.getVal(),0,poi.getVal(),nchans) # global line
-    line.SetLineWidth(2)
-    line.SetLineColor(214)
-    line.Draw('SAME')
-    legend.AddEntry(line,"Combined",'l')
+    ###line = TLine(poi.getVal(),0,poi.getVal(),nchans) # global line
+    ###line.SetLineWidth(2)
+    ###line.SetLineColor(214)
+    ###line.Draw('SAME')
+    ###legend.AddEntry(line,"Combined",'l')
   graph.Draw('PE1 SAME') #PE0
   
   # ERROR BAND
@@ -408,7 +428,7 @@ if __name__ == "__main__":
   parser.add_argument('-a',"--autoRange", action='store_true',help="Allow automatic setting of POI range")
   parser.add_argument('-l',"--log",       action='store_true',help="Make x axis logarithmic")
   parser.add_argument('-E',"--text",      help="Extra text")
-  parser.add_argument('-L',"--lumi",      type=float, help="Add integrated luminosity and CMS logo")
+  parser.add_argument('-L',"--lumi",      type=str, help="Add integrated luminosity and CMS logo")
   parser.add_argument('-p',"--title",     help="Title of POI for title of x axis")
   parser.add_argument('-P',"--poi",       default='r',help="Parameter of interest")
   parser.add_argument('-t',"--tag",       help="Tag for output file")
