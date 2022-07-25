@@ -6,6 +6,8 @@ keepmatch HLT_(Iso|Tk|Old)?Mu\d+
 keep HLT_Ele*
 keep HLT_*Tau*
 keep HLT_Mu*_Ele*
+keep HLT_PFMETNoMu*_PFMETHTNoMu*
+keep HLT_PFJet*
 drop *_cleanmask
 drop *IsoTrack*
 drop *FatJet*
