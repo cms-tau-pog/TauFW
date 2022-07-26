@@ -1,6 +1,6 @@
 # Author: Konstantinos Christoforou (Jan 2022)
 # Description: Simple module to pre-select mumutau events
-# for measuring jet to tau Fake Rate in DY-enriched region
+# for measuring jet to tau Fake Rate in WJets-enriched region
 import sys
 import numpy as np
 from math import sin, cos, sqrt
@@ -16,10 +16,10 @@ from TauFW.PicoProducer.corrections.MuonSFs import *
 from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 from TauFW.PicoProducer.corrections.PileupTool import *
 from TauFW.PicoProducer.corrections.TrigObjMatcher import TrigObjMatcher
-from TauFW.PicoProducer.analysis.utils import deltaPhi, getmetfilters
+from TauFW.PicoProducer.analysis.utils import deltaPhi, getmetfilters, correctmet
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool, campaigns
 
-class ModuleMuMuTau(Module):
+class ModuleMuMETTau(Module):
   
   def __init__(self,fname,**kwargs):
     self.outfile = TFile(fname,'RECREATE')
@@ -112,10 +112,8 @@ class ModuleMuMuTau(Module):
     self.pt_moth       = np.zeros(1,dtype='f') 
     self.ttptweight    = np.zeros(1,dtype='f')
     self.pt_moth1      = np.zeros(1,dtype='f')
-    self.pt_moth2      = np.zeros(1,dtype='f')
     self.trigweight    = np.zeros(1,dtype='f')
     self.idisoweight_1 = np.zeros(1,dtype='f')
-    self.idisoweight_2 = np.zeros(1,dtype='f')
     self.idweightTdm_tau  = np.zeros(1,dtype='f')
     self.idweightT_tau    = np.zeros(1,dtype='f')
     self.idweightM_tau    = np.zeros(1,dtype='f')
@@ -127,18 +125,12 @@ class ModuleMuMuTau(Module):
     self.q_mu0    = np.zeros(1,dtype='i')
     self.id_mu0   = np.zeros(1,dtype='?')
     self.iso_mu0  = np.zeros(1,dtype='f')
-    self.pt_mu1   = np.zeros(1,dtype='f')
-    self.eta_mu1  = np.zeros(1,dtype='f')
-    self.q_mu1    = np.zeros(1,dtype='i')
-    self.id_mu1   = np.zeros(1,dtype='?')
-    self.iso_mu1  = np.zeros(1,dtype='f')
     self.pt_tau   = np.zeros(1,dtype='f')
     self.eta_tau  = np.zeros(1,dtype='f')
     self.q_tau    = np.zeros(1,dtype='i')
     self.id_tau   = np.zeros(1,dtype='i')
     self.iso_tau  = np.zeros(1,dtype='f')
     ## Jet to tau FR
-    self.IsOnZ              = np.zeros(1,dtype='?')
     self.JetPt              = np.zeros(1,dtype='f')
     self.JetEta             = np.zeros(1,dtype='f')
     self.TauIsGenuine       = np.zeros(1,dtype='?')
@@ -153,12 +145,8 @@ class ModuleMuMuTau(Module):
     self.LT                 = np.zeros(1,dtype='f')
     self.ST                 = np.zeros(1,dtype='f')
     self.LeptonOnePt        = np.zeros(1,dtype='f')
-    self.LeptonTwoPt        = np.zeros(1,dtype='f')
-    self.DileptonPt         = np.zeros(1,dtype='f')
-    self.DileptonMass       = np.zeros(1,dtype='f')
-    self.DileptonDeltaEta   = np.zeros(1,dtype='f')
-    self.DileptonDeltaPhi   = np.zeros(1,dtype='f')
-    self.DileptonDeltaR     = np.zeros(1,dtype='f')
+    self.LeptonMETTMass     = np.zeros(1,dtype='f')
+    self.LeptonMETDeltaPhi  = np.zeros(1,dtype='f')
 
     self.tree.Branch('evt',          self.evt,           'evt/I'          )          
     self.tree.Branch('lumi',         self.lumi,          'lumi/F'         )
@@ -173,10 +161,8 @@ class ModuleMuMuTau(Module):
     self.tree.Branch('pt_moth',      self.pt_moth,       'pt_moth/F'      )      
     self.tree.Branch('ttptweight',   self.ttptweight,    'ttptweight/F'   )
     self.tree.Branch('pt_moth1',     self.pt_moth1,      'pt_moth1/F'     )       
-    self.tree.Branch('pt_moth2',     self.pt_moth2,      'pt_moth2/F'     )           
     self.tree.Branch('trigweight',   self.trigweight,    'trigweight/F'   )
     self.tree.Branch('idisoweight_1',self.idisoweight_1, 'idisoweight_1/F')
-    self.tree.Branch('idisoweight_2',self.idisoweight_2, 'idisoweight_2/F')
     self.tree.Branch('idweightTdm_tau',  self.idweightTdm_tau,  'idweightTdm_tau/F'  )
     self.tree.Branch('idweightT_tau',    self.idweightT_tau,    'idweightT_tau/F'    )
     self.tree.Branch('idweightM_tau',    self.idweightM_tau,    'idweightM_tau/F'    )
@@ -188,18 +174,12 @@ class ModuleMuMuTau(Module):
     self.tree.Branch('q_mu0',    self.q_mu0,   'q_mu0/I'  )
     self.tree.Branch('id_mu0',   self.id_mu0,  'id_mu0/O' )
     self.tree.Branch('iso_mu0',  self.iso_mu0, 'iso_mu0/F')
-    self.tree.Branch('pt_mu1',   self.pt_mu1,  'pt_mu1/F' )
-    self.tree.Branch('eta_mu1',  self.eta_mu1, 'eta_mu1/F')
-    self.tree.Branch('q_mu1',    self.q_mu1,   'q_mu1/I'  )
-    self.tree.Branch('id_mu1',   self.id_mu1,  'id_mu1/O' )
-    self.tree.Branch('iso_mu1',  self.iso_mu1, 'iso_mu1/F')
     self.tree.Branch('pt_tau',   self.pt_tau,  'pt_tau/F' )
     self.tree.Branch('eta_tau',  self.eta_tau, 'eta_tau/F')
     self.tree.Branch('q_tau',    self.q_tau,   'q_tau/I'  )
     self.tree.Branch('id_tau',   self.id_tau,  'id_tau/I' )
     self.tree.Branch('iso_tau',  self.iso_tau, 'iso_tau/F')
     ## Jet to tau FR
-    self.tree.Branch("IsOnZ"           ,  self.IsOnZ           , "IsOnZ/O"            )           
     self.tree.Branch("JetPt"           ,  self.JetPt           , "JetPt/F"            )
     self.tree.Branch("JetEta"          ,  self.JetEta          , "JetEta/F"           )
     self.tree.Branch("TauIsGenuine"    ,  self.TauIsGenuine    , "TauIsGenuine/O"     )           
@@ -214,12 +194,8 @@ class ModuleMuMuTau(Module):
     self.tree.Branch("LT"              ,  self.LT              , "LT/F"               ) 
     self.tree.Branch("ST"              ,  self.ST              , "ST/F"               ) 
     self.tree.Branch("LeptonOnePt"     ,  self.LeptonOnePt     , "LeptonOnePt/F"      ) 
-    self.tree.Branch("LeptonTwoPt"     ,  self.LeptonTwoPt     , "LeptonTwoPt/F"      ) 
-    self.tree.Branch("DileptonPt"      ,  self.DileptonPt      , "DileptonPt/F"       ) 
-    self.tree.Branch("DileptonMass"    ,  self.DileptonMass    , "DileptonMass/F"     ) 
-    self.tree.Branch("DileptonDeltaEta",  self.DileptonDeltaEta, "DileptonDeltaEta/F" )
-    self.tree.Branch("DileptonDeltaPhi",  self.DileptonDeltaPhi, "DileptonDeltaPhi/F" ) 
-    self.tree.Branch("DileptonDeltaR"  ,  self.DileptonDeltaR  , "DileptonDeltaR/F"   )
+    self.tree.Branch("LeptonMETTMass"  ,  self.LeptonMETTMass  , "LeptonMETTMass/F"   ) 
+    self.tree.Branch("LeptonMETDeltaPhi",  self.LeptonMETDeltaPhi, "LeptonMETDeltaPhi/F" ) 
 
                                             
   def endJob(self):                         
@@ -259,7 +235,7 @@ class ModuleMuMuTau(Module):
       if not muon.tightId: continue
       if muon.pfRelIso04_all>0.50: continue
       muons.append(muon)
-    if len(muons)!=2: return False
+    if len(muons)!=1: return False
     # apply trigger matching#######
     MatchedTrigger = False
     for selmuon in muons:
@@ -306,23 +282,22 @@ class ModuleMuMuTau(Module):
     self.cutflow.Fill(self.cut_tau)
 
     # Calculate MET
-    MET = event.MET_pt    
+    MET     = event.MET_pt    
     MET_phi = event.MET_phi
-  
+    #if self.ismc:
+    #  dp = taus[0].tlv*(1.-1./taus[0].es) # assume shift is already applied     
+    #  correctmet(met,dp)
+
     # Leptons
     tau   = taus[0] # max(taus,key=lambda p: p.pt)
     muon0 = muons[0]
-    muon1 = muons[1]
     # Fake Tau candidate
     jet   = jets[0]
 
     # Leptons dR
     #muon = max(muons,key=lambda p: p.pt)
-    if muon0.DeltaR(muon1)<0.4: return False
     if muon0.DeltaR(jet)<0.4:   return False
-    if muon1.DeltaR(jet)<0.4:   return False
     if muon0.DeltaR(tau)<0.4:   return False
-    if muon1.DeltaR(tau)<0.4:   return False
     self.cutflow.Fill(self.cut_pair)
     
     # VETO for extraMuons
@@ -379,12 +354,10 @@ class ModuleMuMuTau(Module):
       elif self.dotoppt:
         toppt1, toppt2      = gettoppt(event)
         self.pt_moth1[0]    = max(toppt1,toppt2)
-        self.pt_moth2[0]    = min(toppt1,toppt2)
         self.ttptweight[0]  = getTopPtWeight(toppt1,toppt2)
       # MUON WEIGHTS
       self.trigweight[0]    = self.muSFs.getTriggerSF(muon0.pt,muon0.eta) # assume leading muon was triggered on
       self.idisoweight_1[0] = self.muSFs.getIdIsoSF(muon0.pt,muon0.eta)
-      self.idisoweight_2[0] = self.muSFs.getIdIsoSF(muon1.pt,muon1.eta)
       # TAU WEIGHTS
       self.idweightTdm_tau[0]  = -1.0
       self.idweightT_tau[0]    = -1.0
@@ -410,11 +383,6 @@ class ModuleMuMuTau(Module):
     self.q_mu0[0]    = muon0.charge
     self.id_mu0[0]   = muon0.tightId
     self.iso_mu0[0]  = muon0.pfRelIso04_all
-    self.pt_mu1[0]   = muon1.pt
-    self.eta_mu1[0]  = muon1.eta
-    self.q_mu1[0]    = muon1.charge
-    self.id_mu1[0]   = muon1.tightId
-    self.iso_mu1[0]  = muon1.pfRelIso04_all
     self.pt_tau[0]   = tau.pt
     self.eta_tau[0]  = tau.eta
     self.q_tau[0]    = tau.charge
@@ -435,14 +403,23 @@ class ModuleMuMuTau(Module):
     LT += tau.pt
     ST = HT + LT + MET
     
-    #DiLepton Vars
-    isOnZ = False;
-    dileptonSystem_p4 = muon0.p4()+muon1.p4()
-    dilepton_mass = dileptonSystem_p4.M()
-    if( 75.0 < dilepton_mass < 105.0) : isOnZ = True
+    #LeptonMET Vars
+    muon0.tlv = muon0.p4()
+    MET_Px    = MET*cos(MET_phi)
+    MET_Py    = MET*sin(MET_phi)
+    #Calculate TMass(muon,MET)
+    ETsum = MET + muon0.tlv.Et()
+    xsum  = MET*cos(MET_phi) + muon0.tlv.Px()
+    ysum  = MET*sin(MET_phi) + muon0.tlv.Py()
+    TMassSquared = (ETsum*ETsum) - (xsum*xsum) - (ysum*ysum)
+    if(TMassSquared >= 0) :
+      TMass_leptonMET = sqrt(TMassSquared) 
+    else :
+      TMass_leptonMET = 0
+
+    # if TMass_leptonMET < 60.0 : return False
     
     ##jet to tau fake rate method
-    IsOnZ             = isOnZ
     JetPt             = jet.pt  
     JetEta            = jet.eta 
     TauIsGenuine      = isGenuineTau
@@ -453,14 +430,9 @@ class ModuleMuMuTau(Module):
     TauIdVSmu         = tau.idDeepTau2017v2p1VSmu
     JetN              = len(jets)
     LeptonOnePt       = muon0.pt
-    LeptonTwoPt       = muon1.pt
-    DileptonPt        = dileptonSystem_p4.Pt()
-    DileptonMass      = dilepton_mass
-    DileptonDeltaEta  = dileptonSystem_p4.Eta()
-    DileptonDeltaPhi  = deltaPhi(muon0.phi,muon1.phi)
-    DileptonDeltaR    = muon0.DeltaR(muon1)
+    LeptonMETTMass    = TMass_leptonMET
+    LeptonMETDeltaPhi = deltaPhi(muon0.phi,MET_phi)
     
-    self.IsOnZ[0]              = IsOnZ
     self.JetPt[0]              = JetPt           
     self.JetEta[0]             = JetEta     
     self.TauIsGenuine[0]       = TauIsGenuine
@@ -475,12 +447,8 @@ class ModuleMuMuTau(Module):
     self.LT[0]                 = LT            
     self.ST[0]                 = ST            
     self.LeptonOnePt[0]        = LeptonOnePt     
-    self.LeptonTwoPt[0]        = LeptonTwoPt     
-    self.DileptonPt[0]         = DileptonPt      
-    self.DileptonMass[0]       = DileptonMass    
-    self.DileptonDeltaEta[0]   = DileptonDeltaEta
-    self.DileptonDeltaPhi[0]   = DileptonDeltaPhi
-    self.DileptonDeltaR[0]     = DileptonDeltaR  
+    self.LeptonMETTMass[0]     = LeptonMETTMass
+    self.LeptonMETDeltaPhi[0]  = LeptonMETDeltaPhi
     
     #Fill Histos
     self.tree.Fill()
