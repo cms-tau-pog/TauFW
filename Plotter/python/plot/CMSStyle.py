@@ -90,12 +90,13 @@ def setCMSEra(*eras,**kwargs):
   
 
 def setCMSLumiStyle(pad, iPosX, **kwargs):
-  global outOfFrame, lumiTextSize, lumiText
+  global outOfFrame, lumiTextSize, lumiText, extraText
   if iPosX/10==0:
     outOfFrame  = True
   lumiTextSize_ = lumiTextSize
   relPosX_      = kwargs.get('relPosX',    relPosX)
   lumiText_     = kwargs.get('lumiText',   lumiText)
+  extraText_    = kwargs.get('extraText',  extraText) # Preliminary, Simulation, ...
   outOfFrame    = kwargs.get('outOfFrame', outOfFrame)
   verbosity     = kwargs.get('verb',       0)
   if outOfFrame:
@@ -108,60 +109,14 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     eras = kwargs.get('eras')
     setCMSEra(*eras,**kwargs)
   
-  #if lumiText=="":
-  #  if iPeriod==1:
-  #    lumiText += lumi_7TeV
-  #    lumiText += " (7 TeV)"
-  #  elif iPeriod==2:
-  #    lumiText += lumi_8TeV
-  #    lumiText += " (8 TeV)"
-  #  elif iPeriod==3:
-  #    lumiText = lumi_8TeV
-  #    lumiText += " (8 TeV)"
-  #    lumiText += " + "
-  #    lumiText += lumi_7TeV
-  #    lumiText += " (7 TeV)"
-  #  elif iPeriod==4:
-  #    lumiText += lumi_13TeV
-  #    lumiText += " (13 TeV)"
-  #  elif iPeriod==7:
-  #    if outOfFrame: lumiTextSize_ *= 0.85
-  #    lumiText += lumi_13TeV
-  #    lumiText += " (13 TeV)"
-  #    lumiText += " + "
-  #    lumiText += lumi_8TeV
-  #    lumiText += " (8 TeV)"
-  #    lumiText += " + "
-  #    lumiText += lumi_7TeV
-  #    lumiText += " (7 TeV)"
-  #  elif iPeriod==12:
-  #    lumiText += "8 TeV"
-  #  else:
-  #    if outOfFrame: lumiTextSize_ *= 0.90
-  #    if iPeriod==13:
-  #      lumiText += lumi_13TeV
-  #      lumiText += " (13 TeV)"
-  #    elif iPeriod==2016:
-  #      lumiText += lumi_2016
-  #      lumiText += " (13 TeV)"
-  #    elif iPeriod==2017:
-  #      lumiText += lumi_2017
-  #      lumiText += " (13 TeV)"
-  #    elif iPeriod==2018:
-  #      lumiText += lumi_2018
-  #      lumiText += " (13 TeV)"
-  #    elif iPeriod==14:
-  #      lumiText += lumi_14TeV
-  #      lumiText += " (14 TeV, 200 PU)"
-  ##print lumiText
-  
-  alignY_ = 3
-  alignX_ = 2
-  if   iPosX==0:    alignY_ = 1
-  if   iPosX/10==0: alignX_ = 1
-  elif iPosX/10==1: alignX_ = 1
-  elif iPosX/10==2: alignX_ = 2
-  elif iPosX/10==3: alignX_ = 3
+  # https://root.cern.ch/doc/master/classTAttText.html#ATTTEXT1
+  alignY_ = 3 # align top
+  alignX_ = 2 # align center
+  if   iPosX==0:     alignY_ = 1 # align bottom
+  if   iPosX//10==0: alignX_ = 1 # align left
+  elif iPosX//10==1: alignX_ = 1 # align left
+  elif iPosX//10==2: alignX_ = 2 # align center
+  elif iPosX//10==3: alignX_ = 3 # align right
   align = 10*alignX_ + alignY_
   extraTextSize = extraOverCmsTextSize*cmsTextSize
   
@@ -206,11 +161,11 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     latex.SetTextAlign(11)
     latex.SetTextSize(cmsTextSize*t)
     latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText)
-    if extraText:
+    if extraText_:
       latex.SetTextFont(extraTextFont)
       latex.SetTextSize(extraTextSize*t)
       latex.SetTextAlign(align)
-      latex.DrawLatex(posX,posY,extraText)
+      latex.DrawLatex(posX,posY,extraText_)
   elif drawLogo:
     posX =     l + 0.045*(1-l-r)*W/H
     posY = 1 - t - 0.045*(1-t-b)
@@ -230,11 +185,11 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     latex.SetTextSize(cmsTextSize*t)
     latex.SetTextAlign(align)
     latex.DrawLatex(posX,posY,cmsText)
-    if extraText:
+    if extraText_:
       latex.SetTextFont(extraTextFont)
       latex.SetTextAlign(align)
       latex.SetTextSize(extraTextSize*t)
-      latex.DrawLatex(posX,posY-relExtraDY*cmsTextSize*t,extraText)
+      latex.DrawLatex(posX,posY-relExtraDY*cmsTextSize*t,extraText_)
   
   if verbosity>=2:
     print ">>> setCMSLumiStyle: outOfFrame=%r, iPosX=%s, alignX_=%s, align=%s"%(outOfFrame,iPosX,alignX_,align)
