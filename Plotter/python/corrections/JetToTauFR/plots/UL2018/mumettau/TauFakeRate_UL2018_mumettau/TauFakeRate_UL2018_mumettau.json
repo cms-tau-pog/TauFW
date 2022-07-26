@@ -1,0 +1,239 @@
+{
+  "timestamp": "Generated on Tue Jul 26 15:40:01 2022 by jsonWriter.py",
+  "mumettau_Endcap": {
+	"Data":{
+		"pt:[20.0, 25.0]": {
+			"value": 0.40035,
+			"error": 0.01660,
+			"errorUp": 0.01660,
+			"errorLow": 0.01660,
+			"numerator": 553.97210,
+			"denominator": 1383.71976
+		},
+		"pt:[25.0, 30.0]": {
+			"value": 0.39861,
+			"error": 0.00718,
+			"errorUp": 0.00718,
+			"errorLow": 0.00718,
+			"numerator": 2357.15037,
+			"denominator": 5913.39982
+		},
+		"pt:[30.0, 35.0]": {
+			"value": 0.33198,
+			"error": 0.00641,
+			"errorUp": 0.00641,
+			"errorLow": 0.00641,
+			"numerator": 2396.04962,
+			"denominator": 7217.44770
+		},
+		"pt:[35.0, 40.0]": {
+			"value": 0.29879,
+			"error": 0.00718,
+			"errorUp": 0.00718,
+			"errorLow": 0.00718,
+			"numerator": 1651.77665,
+			"denominator": 5528.28418
+		},
+		"pt:[40.0, 50.0]": {
+			"value": 0.25598,
+			"error": 0.00661,
+			"errorUp": 0.00661,
+			"errorLow": 0.00661,
+			"numerator": 1413.75743,
+			"denominator": 5522.95644
+		},
+		"pt:[50.0, 70.0]": {
+			"value": 0.22365,
+			"error": 0.00944,
+			"errorUp": 0.00944,
+			"errorLow": 0.00944,
+			"numerator": 580.80514,
+			"denominator": 2596.97890
+		},
+		"pt:[70.0, 120.0]": {
+			"value": 0.15106,
+			"error": 0.02318,
+			"errorUp": 0.02318,
+			"errorLow": 0.02318,
+			"numerator": 82.93018,
+			"denominator": 548.98729
+		}
+	},
+	"Simulation":{
+		"pt:[20.0, 25.0]": {
+			"value": 0.42140,
+			"error": 0.06364,
+			"errorUp": 0.06364,
+			"errorLow": 0.06364,
+			"numerator": 362.37474,
+			"denominator": 859.93391
+		},
+		"pt:[25.0, 30.0]": {
+			"value": 0.34739,
+			"error": 0.02573,
+			"errorUp": 0.02573,
+			"errorLow": 0.02573,
+			"numerator": 1489.71501,
+			"denominator": 4288.36236
+		},
+		"pt:[30.0, 35.0]": {
+			"value": 0.36139,
+			"error": 0.02469,
+			"errorUp": 0.02469,
+			"errorLow": 0.02469,
+			"numerator": 1741.40629,
+			"denominator": 4818.63931
+		},
+		"pt:[35.0, 40.0]": {
+			"value": 0.29988,
+			"error": 0.02790,
+			"errorUp": 0.02790,
+			"errorLow": 0.02790,
+			"numerator": 998.50595,
+			"denominator": 3329.68815
+		},
+		"pt:[40.0, 50.0]": {
+			"value": 0.26288,
+			"error": 0.02695,
+			"errorUp": 0.02695,
+			"errorLow": 0.02695,
+			"numerator": 811.12362,
+			"denominator": 3085.57592
+		},
+		"pt:[50.0, 70.0]": {
+			"value": 0.20407,
+			"error": 0.03500,
+			"errorUp": 0.03500,
+			"errorLow": 0.03500,
+			"numerator": 333.79842,
+			"denominator": 1635.68356
+		},
+		"pt:[70.0, 120.0]": {
+			"value": 0.15749,
+			"error": 0.08981,
+			"errorUp": 0.08981,
+			"errorLow": 0.08981,
+			"numerator": 36.40982,
+			"denominator": 231.19324
+		}
+	}
+  },
+  "mumettau_Barrel": {
+	"Data":{
+		"pt:[20.0, 25.0]": {
+			"value": 0.44133,
+			"error": 0.01420,
+			"errorUp": 0.01420,
+			"errorLow": 0.01420,
+			"numerator": 661.48605,
+			"denominator": 1498.85988
+		},
+		"pt:[25.0, 30.0]": {
+			"value": 0.41792,
+			"error": 0.00663,
+			"errorUp": 0.00663,
+			"errorLow": 0.00663,
+			"numerator": 2577.57519,
+			"denominator": 6167.69991
+		},
+		"pt:[30.0, 35.0]": {
+			"value": 0.35255,
+			"error": 0.00590,
+			"errorUp": 0.00590,
+			"errorLow": 0.00590,
+			"numerator": 2644.02481,
+			"denominator": 7499.72385
+		},
+		"pt:[35.0, 40.0]": {
+			"value": 0.31910,
+			"error": 0.00661,
+			"errorUp": 0.00661,
+			"errorLow": 0.00661,
+			"numerator": 1830.38832,
+			"denominator": 5736.14209
+		},
+		"pt:[40.0, 50.0]": {
+			"value": 0.27119,
+			"error": 0.00624,
+			"errorUp": 0.00624,
+			"errorLow": 0.00624,
+			"numerator": 1534.37872,
+			"denominator": 5657.97822
+		},
+		"pt:[50.0, 70.0]": {
+			"value": 0.24301,
+			"error": 0.00885,
+			"errorUp": 0.00885,
+			"errorLow": 0.00885,
+			"numerator": 650.40257,
+			"denominator": 2676.48945
+		},
+		"pt:[70.0, 120.0]": {
+			"value": 0.20535,
+			"error": 0.01972,
+			"errorUp": 0.01972,
+			"errorLow": 0.01972,
+			"numerator": 121.46509,
+			"denominator": 591.49365
+		}
+	},
+	"Simulation":{
+		"pt:[20.0, 25.0]": {
+			"value": 0.48190,
+			"error": 0.05491,
+			"errorUp": 0.05491,
+			"errorLow": 0.05491,
+			"numerator": 469.88870,
+			"denominator": 975.07403
+		},
+		"pt:[25.0, 30.0]": {
+			"value": 0.37646,
+			"error": 0.02415,
+			"errorUp": 0.02415,
+			"errorLow": 0.02415,
+			"numerator": 1710.13982,
+			"denominator": 4542.66245
+		},
+		"pt:[30.0, 35.0]": {
+			"value": 0.39000,
+			"error": 0.02310,
+			"errorUp": 0.02310,
+			"errorLow": 0.02310,
+			"numerator": 1989.38148,
+			"denominator": 5100.91546
+		},
+		"pt:[35.0, 40.0]": {
+			"value": 0.33275,
+			"error": 0.02596,
+			"errorUp": 0.02596,
+			"errorLow": 0.02596,
+			"numerator": 1177.11763,
+			"denominator": 3537.54606
+		},
+		"pt:[40.0, 50.0]": {
+			"value": 0.28931,
+			"error": 0.02561,
+			"errorUp": 0.02561,
+			"errorLow": 0.02561,
+			"numerator": 931.74491,
+			"denominator": 3220.59770
+		},
+		"pt:[50.0, 70.0]": {
+			"value": 0.23519,
+			"error": 0.03319,
+			"errorUp": 0.03319,
+			"errorLow": 0.03319,
+			"numerator": 403.39585,
+			"denominator": 1715.19411
+		},
+		"pt:[70.0, 120.0]": {
+			"value": 0.27382,
+			"error": 0.07529,
+			"errorUp": 0.07529,
+			"errorLow": 0.07529,
+			"numerator": 74.94473,
+			"denominator": 273.69959
+		}
+	}
+  }
+}
