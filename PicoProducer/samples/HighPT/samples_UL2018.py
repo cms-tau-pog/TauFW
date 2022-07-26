@@ -1,13 +1,13 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-storage  = "/eos/cms/store/group/phys_tau/TauFW/nano/UL2018/$DAS"
-url      = "root://eosuser.cern.ch/"
-filelist = "samples/files/UL2018/$SAMPLE.txt"
+storage  = None #"/eos/cms/store/group/phys_tau/TauFW/nano/UL2018/$DAS"
+url      = None #"root://eosuser.cern.ch/"
+filelist = None #"samples/files/UL2018/$SAMPLE.txt"
 samples  = [
   
   # DRELL-YAN
   M('DY','DYJetsToLL_M-50',
-    "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM",
+    "/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True,zpt=True"),
   M('DY','DY1JetsToLL_M-50',
     "/DY1JetsToLL_M-50_MatchEWPDG20_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
@@ -38,19 +38,19 @@ samples  = [
     "/WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WJetsToLNuHT200to400',
-    "/WJetsToLNu_HT-200to400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WJetsToLNuHT400to600',
-    "/WJetsToLNu_HT-400to600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WJetsToLNuHT600to800',
-    "/WJetsToLNu_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WJetsToLNuHT800to1200',
-    "/WJetsToLNu_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WJetsToLNuHT1200to2500',
-    "/WJetsToLNu_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WJetsToLNu',
     "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
@@ -107,13 +107,13 @@ samples  = [
   
   # DIBOSON
   M('VV','WW',
-    "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('VV','WZ',
-    "/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('VV','ZZ',
-    "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
+    "/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   
   # W*
@@ -132,7 +132,7 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','highpt']),
   D('Data','SingleMuon_Run2018C',"/SingleMuon/Run2018C-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','highpt']),
-  D('Data','SingleMuon_Run2018D',"/SingleMuon/Run2018D-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
+  D('Data','SingleMuon_Run2018D',"/SingleMuon/Run2018D-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD",
    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','highpt']),
   
   
@@ -141,18 +141,18 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
   D('Data','MET_Run2018B',"/MET/Run2018B-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
-  D('Data','MET_Run2018C',"/MET/Run2018C-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
+  D('Data','MET_Run2018C',"/MET/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
-  D('Data','MET_Run2018D',"/MET/Run2018D-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
+  D('Data','MET_Run2018D',"/MET/Run2018D-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
 
 
   # JET
   D('Data','JetHT_Run2018A',"/JetHT/Run2018A-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
-  D('Data','JetHT_Run2018B',"/JetHT/Run2018B-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
+  D('Data','JetHT_Run2018B',"/JetHT/Run2018B-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
-  D('Data','JetHT_Run2018C',"/JetHT/Run2018C-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
+  D('Data','JetHT_Run2018C',"/JetHT/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
   D('Data','JetHT_Run2018D',"/JetHT/Run2018D-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt']),
