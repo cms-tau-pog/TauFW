@@ -85,13 +85,13 @@ samples  = [
   
   # SINGLE MUON
   D('Data','SingleMuon_Run2018A',"/SingleMuon/Run2018A-UL2018_MiniAODv1_NanoAODv2-v3/NANOAOD",
-    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau']),
+    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau','mumettau']),
   D('Data','SingleMuon_Run2018B',"/SingleMuon/Run2018B-UL2018_MiniAODv1_NanoAODv2-v2/NANOAOD",
-    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau']),
+    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau','mumettau']),
   D('Data','SingleMuon_Run2018C',"/SingleMuon/Run2018C-UL2018_MiniAODv1_NanoAODv2-v2/NANOAOD",
-    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau']),
+    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau','mumettau']),
   D('Data','SingleMuon_Run2018D',"/SingleMuon/Run2018D-UL2018_MiniAODv1_NanoAODv2-v2/NANOAOD",
-    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau']),
+    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu','mumutau','mumettau']),
   
   # SINGLE ELECTRON
   D('Data','EGamma_Run2018A',"/EGamma/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
