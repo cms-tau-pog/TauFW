@@ -993,7 +993,7 @@ class Plot(object):
         line = maketitle(line)
       yline = y-i*theight*1.2*tsize
       latex.DrawLatex(x,yline,line)
-      LOG.verb("Plot.drawcornertext: i=%d, x=%.2f, y=%.2f, text=%r"%(i,x,yline,line),verbosity,2)
+      LOG.verb("Plot.drawtext: i=%d, x=%.2f, y=%.2f, text=%r"%(i,x,yline,line),verbosity,2)
     self.texts.append(latex)
     
     return latex
