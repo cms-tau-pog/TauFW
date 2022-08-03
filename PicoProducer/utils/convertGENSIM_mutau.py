@@ -127,6 +127,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,dtier='GENSIM'):
     event.getByLabel(label_weight,handle_weight) # gen weight
     
     # GEN PARTICLES
+    # Not the most efficient, but okay...
     gps_final     = [p for p in gps if isFinal(p) and abs(p.pdgId()) in [5,6,11,12,13,14,15,16]+mothids]
     #gps_final     = [p for p in gps if p.isLastCopy() and abs(p.pdgId()) in [5,6,11,12,13,14,15,16]+mothids]
     #gps_final     = [p for p in gps if p.isFirstCopy() and abs(p.pdgId()) in [5,6,11,12,13,14,15,16]+mothids]
@@ -187,6 +188,10 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,dtier='GENSIM'):
       dau = getdaughter_tau(tau)
       if abs(dau.pdgId())==13: # muon
         h_muon_tau_brem_q.Fill(dau.charge())
+    
+    #### CHECK PROMPT MUONS
+    ###for muon in gps_muons:
+    ###  if muon.statusFlags().isPrompt() and muon.statusFlags().isLastCopy():
     
     # REQUIRE Z BOSON
     gps_tau_fromZ = [ ]
