@@ -586,12 +586,12 @@ def cleanObjectCollection(objects, masks, dRmin):
   cleanObjects = [ ]
   dirtyObjects = [ ]
   for object in objects:
-    overlap = True
+    overlap = False
     for mask in masks:
-        dR = deltaR(object.eta(),object.phi(),mask.eta(),mask.phi())
-        if dR<dRmin:
-          overlap = False
-          break
+      dR = deltaR(object.eta(),object.phi(),mask.eta(),mask.phi())
+      if dR<dRmin:
+        overlap = True
+        break
     if overlap:
       dirtyObjects.append(object)
     else:
