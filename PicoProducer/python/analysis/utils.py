@@ -369,7 +369,7 @@ def getlepvetoes(event, electrons, muons, taus, channel):
   
 ######## WORK IN PROGRESS ############
 
-def gettauveto(event, taus, muons, electrons, channel):
+def gettauveto(event, taus, channel):
   """Check if event has extra taus"""
  
   extratau_veto=False
@@ -382,7 +382,7 @@ def gettauveto(event, taus, muons, electrons, channel):
     if abs(tau.dz)>0.1: continue
     if abs(tau.dxy)>0.045: continue
     if tau.pfRelIso04_all>0.3: continue
-    if any(tau.DeltaR(muon)<0.4 for muon in muons or tau.DeltaR(electron)<0.4 for electron in electrons): continue  
+    if any(tau.DeltaR(tau)<0.4 for tau in taus): continue  
     if all(t._index!=tau._index for t in taus): continue 
     if tau.idDeepTau2017v2p1VSe >= 128 and tau.idDeepTau2017v2p1VSmu >= 8:
       extratau_veto = True
