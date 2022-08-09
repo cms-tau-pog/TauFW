@@ -90,9 +90,9 @@ def makelatex(string,**kwargs):
     if not strlow:
       return string
     if "p_" in strlow:
-      string = re.sub(r"(?<!i)(p)_([^{}()|<>=\ ]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}')
+      string = re.sub(r"(?<!i)(p)_([^{}()|<>=\ ]+)",r"\1_{\2}",string,flags=re.IGNORECASE).replace('{t}','{T}') ##lower[-0.2]{T}
       GeV    = True
-    if re.search(r"(?<!le)(?<!byphoton)(?<!dee)pt(?!weight)",strlow): # pt
+    if re.search(r"(?<!le)(?<!byphoton)(?<!dee)(?<!prom)pt(?!weight)",strlow): # pt
       string = re.sub(r"(?<!k)(?<!Dee)(?<!OverTau)(p)[tT]_([^{}()|<>=_\ ]+)",r"\1_{T}^{\2}",string,flags=re.IGNORECASE)
       string = re.sub(r"\b(?<!Dee)(p)[tT]\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
@@ -150,7 +150,7 @@ def makelatex(string,**kwargs):
       string = re.sub(r"eta_([^{}()|<>=\ ]+)",r"eta_{\1}",string)
     if "tau" in strlow:
       #string = re.sub(r"(?<!^)tau(?!\ )",r"#tau",string,re.IGNORECASE)
-      string = re.sub(r"(?<!Deep)(?<!ToMu)(?<!Over)tau(?!filter)",r"#tau",string,flags=re.IGNORECASE)
+      string = re.sub(r"(?<!Deep|Over|ToMu)(?<!To)(?<!ToTau)(?<!#)tau(?!filter)",r"#tau",string,flags=re.IGNORECASE)
       #string = re.sub(r" #tau ",r" tau ",string,flags=re.IGNORECASE)
       #string = re.sub(r"^#tau ",r"tau ",string,flags=re.IGNORECASE)
       string = re.sub(r"tau_([^{}()^|<>=\ ]+)",r"tau_{\1}",string,flags=re.IGNORECASE)

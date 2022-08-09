@@ -72,9 +72,9 @@ class GenFilterMuTau(Module):
         elif pid==15:
           if particle.status==2:
             particle.pvis = TLorentzVector() # build visible four-momentum for hadronic decays
-            taus.append(particle)
+            taus.append(particle) # all tau
             if particle.statusflag('fromHardProcess'):
-              taus_hard.append(particle)
+              taus_hard.append(particle) # taus from hard process
             #else:
             #  taus_hard.append(particle)
       elif pid>16: # ignore neutrinos and charged leptons
