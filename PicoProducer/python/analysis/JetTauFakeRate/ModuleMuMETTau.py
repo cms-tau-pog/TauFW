@@ -119,7 +119,6 @@ class ModuleMuMETTau(Module):
     self.idweightM_tau    = np.zeros(1,dtype='f')
     self.idweightVVVL_tau = np.zeros(1,dtype='f')
     self.ltfweight_tau    = np.zeros(1,dtype='f')
-    self.ltfweight_tau    = np.zeros(1,dtype='f')
     self.pt_mu0   = np.zeros(1,dtype='f')
     self.eta_mu0  = np.zeros(1,dtype='f')
     self.q_mu0    = np.zeros(1,dtype='i')
@@ -167,7 +166,6 @@ class ModuleMuMETTau(Module):
     self.tree.Branch('idweightT_tau',    self.idweightT_tau,    'idweightT_tau/F'    )
     self.tree.Branch('idweightM_tau',    self.idweightM_tau,    'idweightM_tau/F'    )
     self.tree.Branch('idweightVVVL_tau', self.idweightVVVL_tau, 'idweightVVVL_tau/F' )
-    self.tree.Branch('ltfweight_tau',    self.ltfweight_tau,    'ltfweight_tau/F'    )
     self.tree.Branch('ltfweight_tau',    self.ltfweight_tau,    'ltfweight_tau/F'    )
     self.tree.Branch('pt_mu0',   self.pt_mu0,  'pt_mu0/F' )
     self.tree.Branch('eta_mu0',  self.eta_mu0, 'eta_mu0/F')
@@ -363,8 +361,8 @@ class ModuleMuMETTau(Module):
       self.idweightT_tau[0]    = -1.0
       self.idweightM_tau[0]    = -1.0
       self.idweightVVVL_tau[0] = -1.0
-      self.ltfweight_tau[0]    = -1.0
-      self.ltfweight_tau[0]    = -1.0
+      self.ltfweight_tau[0]    = 1.0
+      self.ltfweight_tau[0]    = 1.0
       
       if tau.genPartFlav==5: # real tau
         self.idweightTdm_tau[0]  = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode)

@@ -34,7 +34,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       #baseline = 'iso_e0 < 0.15 && iso_e1< 0.15 && (q_e0*q_e1) <= 0 && id_tau >= 1 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && !(DileptonMass >= 88 && DileptonMass <= 94) && DileptonMass >= 70 && DileptonMass <= 110'
   if 'mumettau' in channel:
     if closure:
-      baseline = 'id_mu0 && iso_mu0 < 0.15 && id_tau >= 16 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && LeptonMETTMass >= 70 && MET <= 35 && TauIsGenuine'
+      baseline = 'id_mu0 && iso_mu0 < 0.15 && id_tau >= 8 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && LeptonMETTMass >= 70 && MET <= 40 && TauIsGenuine'
     else:
       baseline = 'id_mu0 && iso_mu0 < 0.15 && id_tau >= 1  && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && LeptonMETTMass >= 70'
   else:
@@ -49,10 +49,14 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   if not closure :
     print(baseline)
     LooseTauWP = 'VVVLoose'
-    TightTauWP = 'Medium'
+    TightTauWP = 'LooseWP' ## SOS, if you put 'Loose' it makes a kind of a conflict with the Loose definition in FakeRateMethod
+    #TightTauWP = 'Medium'
+    #TightTauWP = 'Tight'
     wps = [
       (LooseTauWP,'id_tau >= 1'),
-      (TightTauWP,'id_tau >= 16'),
+      (TightTauWP,'id_tau >= 8'),
+      #(TightTauWP,'id_tau >= 16'),
+      #(TightTauWP,'id_tau >= 32'),
     ]
 
     for wp, wpcut in wps:
@@ -66,14 +70,14 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   # VARIABLES
   if 'mumettau' in channel:
     variables = [
-      Var('TauPt'            , 'Tau pt'             , 40,  0   ,   200),
+      Var('TauPt'            , 'Tau pt'             , 24,  0   ,   120),
       Var('JetPt'            , 'Jet pt'             , 40,  0   ,   200),
       Var('JetEta'           , 'Jet eta'            , 25, -2.5 ,   2.5),
       Var('id_tau'           , 'Tau id'             , 20,  0   ,  20  ),
       Var('TauEta'           , 'Tau eta'            , 25, -2.5 ,   2.5),
       Var('TauDM'            , 'Tau DM'             , 12,  0   ,   12 ),
       Var('MET'              , 'MET'                , 30,  0   ,  150 ), 
-      Var('HT'               , 'HT'                 , 30,  0   ,  600 ),
+      Var('HT'               , 'HT'                 , 40,  0   ,  200 ),
       Var('LT'               , 'LT'                 , 60,  0   ,  300 ),
       Var('ST'               , 'ST'                 , 50,  0   , 1000 ),
       Var('LeptonOnePt'      , 'Leading Muon pt'    , 15,  0   ,  150 , ctitle={'mumettau' : 'Leading Muon pt', 'emettau' : 'Leading Electron pt'}),

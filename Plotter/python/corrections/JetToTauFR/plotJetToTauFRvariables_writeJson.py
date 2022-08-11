@@ -28,7 +28,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   elif 'eetau' in channel:
     baseline = 'iso_e0 < 0.15 && iso_e1< 0.15 && (q_e0*q_e1) <= 0 && id_tau >= 1 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && DileptonMass >= 88 && DileptonMass <= 94'
   elif 'mumettau' in channel:
-    baseline = 'id_mu0 && iso_mu0 < 0.15 && id_tau >= 1 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && LeptonMETTMass >= 70 && MET > 35'
+    baseline = 'id_mu0 && iso_mu0 < 0.15 && id_tau >= 1 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && LeptonMETTMass >= 70 && MET > 40'
   else:
     raise IOError("No baseline selection for channel %r defined!"%(channel))
 
@@ -39,14 +39,20 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
 
   #### DIFFERENTIAL for TauID measurement #########
   LooseTauWP = 'VVVLoose'
-  TightTauWP = 'Medium'
+  TightTauWP = 'LooseWP' ## SOS, if you put 'Loose' it makes a kind of a conflict with the Loose definition in FakeRateMethod
+  #TightTauWP = 'Medium'
+  #TightTauWP = 'Tight'
   LooseTauWPGenuine = LooseTauWP+'Genuine'
   TightTauWPGenuine = TightTauWP+'Genuine'
   wps = [
     (LooseTauWP,'id_tau >= 1'),
-    (TightTauWP,'id_tau >= 16'),
+    (TightTauWP,'id_tau >= 8'),
+    #(TightTauWP,'id_tau >= 16'),
+    #(TightTauWP,'id_tau >= 32'),
     (LooseTauWPGenuine,'id_tau >= 1 && TauIsGenuine'),
-    (TightTauWPGenuine,'id_tau >= 16 && TauIsGenuine'),
+    (TightTauWPGenuine,'id_tau >= 8 && TauIsGenuine'),
+    #(TightTauWPGenuine,'id_tau >= 16 && TauIsGenuine'),
+    #(TightTauWPGenuine,'id_tau >= 32 && TauIsGenuine'),
   ]
   
   maxPt  = 120.0
@@ -236,14 +242,14 @@ def GetEfficiencyHisto(numHisto, denHisto, dsetType, outdir, era, channel, ptLis
   # First determine the bin number [Bin# 0 contains the underflow. The Last bin (bin# nbins+1) contains the overflow.]
   #for j in range(1, nBinsX+1):
   for j in range(1, nBinsX+1):
-    print "nBinsX is = ", nBinsX
-    print "and j now is =", j
+    #print "nBinsX is = ", nBinsX
+    #print "and j now is =", j
     # Get the denominator
     denValue   = ctypes.c_double(0.0)
     denError_  = ctypes.c_double(0.0)
     denValue   = denHisto.IntegralAndError(j, j, denError_)
-    print "HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR DENVALUE"
-    print denValue
+    #print "HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR DENVALUE"
+    #print denValue
     denError   = denError_.value
     
     # Get the denominator
@@ -251,8 +257,8 @@ def GetEfficiencyHisto(numHisto, denHisto, dsetType, outdir, era, channel, ptLis
     numError_  = ctypes.c_double(0.0)
     numValue   = numHisto.IntegralAndError(j, j, numError_)
     numError   = numError_.value
-    print "HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR NUMVALUE"
-    print numValue
+    #print "HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR NUMVALUE"
+    #print numValue
     effValue   = 0.0
     effError   = 0.0
     histoName  = numHisto.GetName()

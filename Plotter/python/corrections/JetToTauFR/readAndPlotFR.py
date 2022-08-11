@@ -84,14 +84,15 @@ def Print(msg, printHeader=True):
     return
 
 def getLumiByYear(year):
-    yrList = ["2016", "2017", "2018", "2016UL", "2017UL", "2018UL"]
+    yrList = ["2016", "2017", "2018", "UL2016_preVFP", "UL2016_postVFP", "UL2017", "UL2018"]
     yrDict = {}
     yrDict["2016"] = 36.3*1e3
     yrDict["2017"] = 41.5*1e3
     yrDict["2018"] = 59.0*1e3
-    yrDict["2016UL"] = 36.3*1e3
-    yrDict["2017UL"] = 41.5*1e3
-    yrDict["2018UL"] = 59.0*1e3
+    yrDict["UL2016_preVFP"]  = 19.5*1e3
+    yrDict["UL2016_postVFP"] = 16.8*1e3
+    yrDict["UL2017"] = 41.5*1e3
+    yrDict["UL2018"] = 59.0*1e3
     
     if year not in yrList:
         msg = "Invalid year \"%s\". Please select one of: %s" % (year, ", ".join(yrList) ) 
@@ -195,6 +196,10 @@ def doPlots(fakeFactorsData, fakeFactorsSimulation, decayMode, etaRegion, saveNa
         plot = plots.ComparisonManyPlot(graphs[0], graphs[1:], saveFormats=[])
 
     # Set luminosity?
+    #kc
+    opts.intLumi = getLumiByYear(opts.year)
+    ###
+
     if opts.intLumi > 0.0:
         plot.setLuminosity(opts.intLumi)
     #    for k in legDict.keys():
@@ -262,9 +267,12 @@ def doPlots(fakeFactorsData, fakeFactorsSimulation, decayMode, etaRegion, saveNa
 
     # Draw the plot with standard texts
     plot.draw()
+    #kc
+    opts.intLumi = getLumiByYear(opts.year)
+    ###
     plot.addStandardTexts(addLuminosityText=(opts.intLumi > 0.0))
     #plot.addStandardTexts(addLuminosityText=getLumiByYear(era))
-    #plot.addStandardTexts(addLuminosityText=getLumiByYear("2018"))
+    plot.addStandardTexts(addLuminosityText=getLumiByYear("2018"))
 
     # Additional text?    
     if 0:
@@ -291,24 +299,11 @@ def GetLabel(dirName):
     Verbose("dirName = %s" % (dirName), True)
     
     finalState = ""
-    dataEra    = ""
     # FIXME with better code!
     if "Simulation" in dirName:
         finalState = "Simulation"
     elif opts.analysisType+"Data" in dirName:
         finalState = "Data"
-
-    # Data era
-    if "2018UL" in dirName:
-        dataEra = "2018UL"
-    #elif "Run2017" in dirName:
-    #    dataEra = "2017"
-    #elif "Run2016" in dirName:
-    #    dataEra = "2016"
-    #else:
-    #    if opts.year == None:
-    #        opts.year = re.sub("[^0-9]", "", dirName.split("_")[1]) # keep only year (remove all characters that are non-numbers)
-    #    opts.dataEra = opts.year
 
     dirToLabelDict = {}
     #dirToLabelDict["DYJets2016"]  = "ee#tau_{h} + #mu#mu#tau_{h} (2016)" #"Z/\\gamma\,\, 2016"
@@ -550,7 +545,7 @@ if __name__ == "__main__":
     #    pass
     
     #kc
-    opts.intLumi = getLumiByYear("2018UL")
+    opts.intLumi = getLumiByYear(opts.year)
     ###
 
     # Save in current working directory?

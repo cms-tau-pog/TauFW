@@ -184,7 +184,7 @@ def getsampleset(channel,era,**kwargs):
   elif channel in ['mumutau','eetau']:
     weight = "genweight*trigweight*puweight*idisoweight_1*idisoweight_2" #genweight*trigweight*puweight*idisoweight_1*idisoweight_2*ltfweight_tau 
   elif channel in ['mumettau','emettau']:
-    weight = "genweight*trigweight*puweight*idisoweight_1" 
+    weight = "genweight*trigweight*puweight*idisoweight_1" # ltfweight_tau 
   else: # mumu, emu, ...
     weight = "genweight*trigweight*puweight*idisoweight_1*idisoweight_2"
   for sf in rmsfs: # remove (old) SFs, e.g. for SF measurement

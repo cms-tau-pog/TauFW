@@ -24,7 +24,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   elif 'eetau' in channel:
     baseline = 'iso_e0 < 0.15 && iso_e1< 0.15 && (q_e0*q_e1) <= 0 && id_tau >= 1 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && DileptonMass >= 88 && DileptonMass <= 94'
   elif 'mumettau' in channel:
-    baseline = 'id_mu0 && iso_mu0 < 0.15 && id_tau >= 1 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && LeptonMETTMass >= 70 && MET > 35'
+    baseline = 'id_mu0 && iso_mu0 < 0.15 && id_tau >= 1 && iso_tau<0.15 && metfilter && TauIdVSe >= 16 && TauIdVSmu >= 8 && LeptonMETTMass >= 70 && MET > 40'
   else:
     raise IOError("No baseline selection for channel %r defined!"%(channel))
 
