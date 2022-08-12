@@ -3,8 +3,11 @@
 # Description: Simple plotting script for pico analysis tuples
 #   test/plotPico.py -v2
 import re
-from TauFW.Plotter.sample.utils import LOG, STYLE, setera, ensuredir,\
-                                       getsampleset, Var
+from TauFW.Plotter.sample.utils import getsampleset, setera
+from TauFW.common.python.tools.file import ensuredir
+from TauFW.common.tools.log import LOG
+from TauFW.Plotter.python.plot.Variable import Var
+import TauFW.Plotter.sample.SampleStyle as STYLE
 
 def makesamples(channel,era,fname):
   LOG.header("makesamples")
