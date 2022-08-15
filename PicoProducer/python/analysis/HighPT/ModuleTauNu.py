@@ -1,11 +1,11 @@
 # Author: Izaak Neutelings (June 2020)
-# Description: Simple module to pre-select mutau events
+# Description: Simple module to pre-select TauNu events
 import sys
 import numpy as np
 from TauFW.PicoProducer import datadir
 from TauFW.PicoProducer.analysis.TreeProducerTauNu import *
 from TauFW.PicoProducer.analysis.ModuleHighPT import *
-from TauFW.PicoProducer.analysis.utils import loosestIso, idIso, matchgenvistau, matchtaujet # I removed DiTauPair 
+from TauFW.PicoProducer.analysis.utils import loosestIso, idIso, matchgenvistau, matchtaujet
 from TauFW.PicoProducer.corrections.TrigObjMatcher import TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool, TauFESTool
 
@@ -18,10 +18,9 @@ class ModuleTauNu(ModuleHighPT):
     self.out = TreeProducerTauNu(fname,self)
     
     # TRIGGERS
-    jsonfile       = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
-    #self.trigger   = TrigObjMatcher(jsonfile,trigger='ditau',isdata=self.isdata) #I don't have a ditau, so i think this trigger is useless 
+    self.trigger   = lambda e: e.HLT_PFMETNoMu120_PFMHTNoMu120_IDTight
     self.tauCutPt  = 40
-    self.tauCutEta = 2.1
+    self.tauCutEta = 2.3
     
     # CORRECTIONS
     if self.ismc:
@@ -49,7 +48,7 @@ class ModuleTauNu(ModuleHighPT):
     print ">>> %-12s = %s"%('tauwp',     self.tauwp)
     print ">>> %-12s = %s"%('tauCutPt',  self.tauCutPt)
     print ">>> %-12s = %s"%('tauCutEta', self.tauCutEta)
-    print ">>> %-12s = '%s'"%('triggers',self.trigger.path.replace("||","\n>>> %s||"%(' '*16)))
+    
     
   
   def analyze(self, event):
@@ -63,8 +62,8 @@ class ModuleTauNu(ModuleHighPT):
       return False
     
     
-    ##### TRIGGER ####################################
-    if not self.trigger.fired(event):
+    ##### TRIGGER ####################################  Ho commentato tutto, dava problemi
+    if not self.trigger(event):
       return False
     self.out.cutflow.fill('trig')
     
@@ -78,7 +77,7 @@ class ModuleTauNu(ModuleHighPT):
       if abs(tau.charge)!=1: continue
       if tau.idDeepTau2017v2p1VSe<1: continue   # VVVLoose
       if tau.idDeepTau2017v2p1VSmu<1: continue  # VLoose
-      if tau.idDeepTau2017v2p1VSjet<self.tauwp: continue
+      if tau.idDeepTau2017v2p1VSjet<1: continue
       if self.ismc:
         tau.es   = 1 # store energy scale for propagating to MET
         genmatch = tau.genPartFlav
@@ -91,6 +90,7 @@ class ModuleTauNu(ModuleHighPT):
             tau.pt   *= tes
             tau.mass *= tes
             tau.es    = tes
+
         elif self.ltf and 0<genmatch<5: # lepton -> tau fake
           tau.pt   *= self.ltf
           tau.mass *= self.ltf
@@ -109,13 +109,12 @@ class ModuleTauNu(ModuleHighPT):
     if len(taus)==0:
       return False
     self.out.cutflow.fill('tau')
-    
-    
-  
-    
+    tau1 = max(taus,key=lambda p:p.rawDeepTau2017v2p1VSjet)
     
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[ ],[tau1],self.channel)
+    extratau_veto                                 = gettauveto(event,[tau1],self.channel)
+    extrajet_veto                                 = getjetveto(event,[ ],[tau1],self.channel,self.era)
     self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[ ],[ ],self.channel)
     self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] #or self.out.dilepton_veto[0]
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto #or dilepton_veto
@@ -130,7 +129,7 @@ class ModuleTauNu(ModuleHighPT):
     self.out.eta_1[0]                      = tau1.eta
     self.out.phi_1[0]                      = tau1.phi
     self.out.m_1[0]                        = tau1.mass
-    self.out.y_1[0]                        = tau1.tlv.Rapidity()
+    self.out.y_1[0]                        = tau1.p4().Rapidity()
     self.out.dxy_1[0]                      = tau1.dxy
     self.out.dz_1[0]                       = tau1.dz
     self.out.q_1[0]                        = tau1.charge
@@ -140,12 +139,9 @@ class ModuleTauNu(ModuleHighPT):
     self.out.rawDeepTau2017v2p1VSe_1[0]    = tau1.rawDeepTau2017v2p1VSe
     self.out.rawDeepTau2017v2p1VSmu_1[0]   = tau1.rawDeepTau2017v2p1VSmu
     self.out.rawDeepTau2017v2p1VSjet_1[0]  = tau1.rawDeepTau2017v2p1VSjet
-    self.out.idAntiEle_1[0]                = tau1.idAntiEle
     self.out.idAntiMu_1[0]                 = tau1.idAntiMu
     self.out.idDecayMode_1[0]              = tau1.idDecayMode
     self.out.idDecayModeNewDMs_1[0]        = tau1.idDecayModeNewDMs
-    self.out.idMVAoldDM2017v2_1[0]         = tau1.idMVAoldDM2017v2
-    self.out.idMVAnewDM2017v2_1[0]         = tau1.idMVAnewDM2017v2
     self.out.idDeepTau2017v2p1VSe_1[0]     = tau1.idDeepTau2017v2p1VSe
     self.out.idDeepTau2017v2p1VSmu_1[0]    = tau1.idDeepTau2017v2p1VSmu
     self.out.idDeepTau2017v2p1VSjet_1[0]   = tau1.idDeepTau2017v2p1VSjet
@@ -165,10 +161,7 @@ class ModuleTauNu(ModuleHighPT):
       self.out.genvistauphi_1[0] = phi1
       self.out.gendm_1[0]        = status1
       
-      
-      
-    
-    
+        
     # JETS
     jets, met, njets_vars, met_vars = self.fillJetBranches(event,tau1) #I changed fillJetBranches in ModelHighPT  
     self.out.jpt_match_1[0], self.out.jpt_genmatch_1[0] = matchtaujet(event,tau1,self.ismc)
@@ -180,6 +173,7 @@ class ModuleTauNu(ModuleHighPT):
       self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
       if tau1.idDeepTau2017v2p1VSjet>=2:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
+        #self.out.trigweight[0]             = self.trigTool.metTriggerSF(event,met,mht)
       #self.out.trigweight[0]             = self.trigTool.getSFPair(tau1,tau2) # Do have i to change trigTool.getSFPair or can i just remove this line? 
       #self.out.trigweight_tight[0]       = self.trigTool_tight.getSFPair(tau1,tau2)# Same as above
       #if self.dosys:
@@ -216,7 +210,4 @@ class ModuleTauNu(ModuleHighPT):
     # MET & DILEPTON VARIABLES
     self.fillMETAndDiLeptonBranches(event,tau1,met,met_vars)
     
-    
-    self.out.fill()
-    return True
     

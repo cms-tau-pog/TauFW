@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
 import os, re, glob
-from TauFW.common.python.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs, repkey, getyear
-from TauFW.common.python.tools.file import ensuredir, ensureTFile, ensuremodule
-from TauFW.common.python.tools.log import Logger, color
-from TauFW.Plotter.python.plot.Variable import Variable, Var, ensurevar
-from TauFW.Plotter.python.plot.Selection import Selection, Sel
-import TauFW.Plotter.python.plot.CMSStyle as CMSStyle
+from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs, repkey, getyear
+from TauFW.common.tools.file import ensuredir, ensureTFile, ensuremodule
+from TauFW.common.tools.log import Logger, color
+from TauFW.Plotter.plot.Variable import Variable, Var, ensurevar
+from TauFW.Plotter.plot.Selection import Selection, Sel
+import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gDirectory, gROOT, TH1, THStack, kDotted, kBlack, kWhite
 gROOT.SetBatch(True)

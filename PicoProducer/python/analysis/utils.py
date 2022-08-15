@@ -385,12 +385,12 @@ def gettauveto(event, taus, channel):
     if tau.idDeepTau2017v2p1VSe >= 128 and tau.idDeepTau2017v2p1VSmu >= 8:
       extratau_veto = True
     
-   return extratau_veto
+  return extratau_veto
 
 def getjetveto(event,jets,taus,channel,era):
-   """Check if event has extra jets"""
+  """Check if event has extra jets"""
   
-   extrajet_veto=False
+  extrajet_veto=False
 
   # EXTRA JET VETO
   for jet in Collection(event,'Jet'):
@@ -402,6 +402,7 @@ def getjetveto(event,jets,taus,channel,era):
        extrajet_veto = True
     elif (era == '2017'  or era =='2018') and (jet.jetId >= 2):
        extrajet_veto = True
+  
   return extrajet_veto
 
 
