@@ -1,5 +1,5 @@
-# Author: Izaak Neutelings (June 2020)
-# Description: Base class for tau pair analysis
+# Author: Jacopo Malvaso (August 2020)
+# Description: Base class for tau HighPT analysis
 from ROOT import TFile, TTree
 import sys, re
 from math import sqrt, exp, cos

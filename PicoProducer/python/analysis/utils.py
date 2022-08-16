@@ -376,7 +376,7 @@ def gettauveto(event, taus, channel):
   # EXTRA TAU VETO
   for tau in Collection(event,'Tau'):
     if tau.pt<100: continue
-    if abs(tau.eta)>2.4: continue
+    if abs(tau.eta)>2.3: continue
     if abs(tau.dz)>0.1: continue
     if abs(tau.dxy)>0.045: continue
     if tau.pfRelIso04_all>0.3: continue

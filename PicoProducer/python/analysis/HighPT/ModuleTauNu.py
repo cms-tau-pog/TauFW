@@ -1,4 +1,4 @@
-# Author: Izaak Neutelings (June 2020)
+# Author: Jacopo Malvaso (August 2022)
 # Description: Simple module to pre-select TauNu events
 import sys
 import numpy as np
@@ -62,7 +62,7 @@ class ModuleTauNu(ModuleHighPT):
       return False
     
     
-    ##### TRIGGER ####################################  Ho commentato tutto, dava problemi
+    ##### TRIGGER ####################################  
     if not self.trigger(event):
       return False
     self.out.cutflow.fill('trig')
@@ -75,9 +75,9 @@ class ModuleTauNu(ModuleHighPT):
       if abs(tau.dz)>0.2: continue
       if tau.decayMode not in [0,1,10,11]: continue
       if abs(tau.charge)!=1: continue
-      if tau.idDeepTau2017v2p1VSe<1: continue   # VVVLoose
-      if tau.idDeepTau2017v2p1VSmu<1: continue  # VLoose
-      if tau.idDeepTau2017v2p1VSjet<1: continue
+      if tau.idDeepTau2017v2p1VSe < 1: continue   # VVVLoose
+      if tau.idDeepTau2017v2p1VSmu < 1: continue  # VLoose
+      if tau.idDeepTau2017v2p1VSjet < 1: continue
       if self.ismc:
         tau.es   = 1 # store energy scale for propagating to MET
         genmatch = tau.genPartFlav

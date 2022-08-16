@@ -1,4 +1,4 @@
-# Author: Izaak Neutelings (June 2020)
+# Author: Jacopo Malvaso (August 2022)
 # Description: Simple module to pre-select munu events
 import sys
 import numpy as np
