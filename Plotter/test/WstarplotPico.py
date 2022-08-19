@@ -4,7 +4,6 @@
 #   test/plotPico.py -v2
 import re
 import sys
-#print(sys.path)
 import os 
 from TauFW.Plotter.sample.utils import getsampleset, setera
 from TauFW.common.tools.file import ensuredir
@@ -12,27 +11,19 @@ from TauFW.common.tools.log import LOG
 from TauFW.Plotter.plot.Variable import Var
 import TauFW.Plotter.sample.SampleStyle as STYLE
 
-#STYLE.sample_colors['WJ'] = 400
-#STYLE.sample_titles['WMu']="W*-> #mu #nu"
-#STYLE.sample_colors['WTau'] = 416
-#STYLE.sample_titles['WTau']="W*-> #Tau #nu"
-
-
-
 def makesamples(channel,era,fname):
-  LOG.header("makesamples")
-  #weight = "genweight*trigweight*puweight*idisoweight_1" 
-  weight = "genweight*trigweight*puweight" 
+  LOG.header("makesamples") 
+  weight = "genweight*trigweight*puweight*idisoweight_1" 
   expsamples = [ # table of MC samples to be converted to Sample objects
    ('WMu',                "WToMuNu",  "WToMuNu",   1.0*7.273 ),
-   ('WTau',              "WToTauNu", "WToTauNu",   1.0*7.246 ),
+   #('WTau',              "WToTauNu", "WToTauNu",   1.0*7.246),
    ('WJ',              "WJetsToLNu", "W + jets", 52760*1.166 ),
-   ('WJ',    "WJetsToLNuHT100to200", "W + jets", 1395.0*1.166),
-   ('WJ',    "WJetsToLNuHT200to400", "W + jets", 407.9*1.166 ),
-   ('WJ',    "WJetsToLNuHT400to600", "W + jets", 57.48*1.166 ),
+   ('WJ',    "WJetsToLNuHT100to200", "W + jets", 1395.0*1.166), #{'extraweight': 'idisoweight'} 
+   ('WJ',    "WJetsToLNuHT200to400", "W + jets", 407.9*1.166),
+   ('WJ',    "WJetsToLNuHT400to600", "W + jets", 57.48*1.166),
    ('WJ',    "WJetsToLNuHT600to800", "W + jets", 12.87*1.166 ),
-   ('WJ',   "WJetsToLNuHT800to1200", "W + jets", 5.366*1.166 ),
-   ('WJ',  "WJetsToLNuHT1200to2500", "W + jets", 1.074*1.166 ),
+   ('WJ',   "WJetsToLNuHT800to1200", "W + jets", 5.366*1.166),
+   ('WJ',  "WJetsToLNuHT1200to2500", "W + jets", 1.074*1.166),
     
   ]
 
@@ -53,14 +44,14 @@ def plotSampleSet(channel,sampleset,tag="",outdir="plots"):
   LOG.header("plotSampleSet")
   
   selections = [
-    #'njets == 0 && met > 120 && pt_1 > 120 && DPhi > 2.6 && extramuon_veto > 0.5 &&  extraelec_veto > 0.5',
-    'met > 80 && pt_1 > 80 && abs(DPhi) > 1 ',
+    #'njets==0 && met > 120 && pt_1 > 120 && abs(DPhi) > 2.6 && extramuon_veto < 0.5 &&  extraelec_veto < 0.5',
+    'njets==0 && met > 80 && pt_1 > 80  && extramuon_veto < 0.5 && extraelec_veto < 0.5 ',
      ]
   variables = [
-    Var('mt_1', "m_{T}(#mu,MET)",                                                               100,  0, 400),
-    Var('pt_1', "Muon p_{T}"   ,                                                                100,  0, 400),
-    Var('met' , "MET p_{T}"    ,                                                                100,  0, 400),
-    Var('DPhi', "#Delta#phi(#mu,MET)",                                      100, -3.1415926538, 3.1415926538),
+    Var('mt_1', "m_{T}(#mu,MET)",                                                              100,  50, 750),
+    Var('pt_1', "Muon p_{T}"   ,                                                               100,  50, 400),
+    Var('met' , "MET p_{T}"    ,                                                                100, 50, 400),
+    Var('DPhi', "#Delta#phi(#mu,MET)",                                                      100, -3.15, 3.15),
   ]
   text = "#mu#nu_{h} baseline" 
 
@@ -69,7 +60,7 @@ def plotSampleSet(channel,sampleset,tag="",outdir="plots"):
   parallel = True #and False
   fname    = "%s/plotPico_$VAR%s"%(outdir,tag)
   for selection in selections:
-    stacks = sampleset.getstack(variables,selection,parallel=parallel) #method='QCD_OSSS'
+    stacks = sampleset.getstack(variables,selection, parallel=parallel) #method='QCD_OSSS'
     for stack, variable in stacks.iteritems():
       #position = "" #variable.position or 'topright'
       stack.draw()

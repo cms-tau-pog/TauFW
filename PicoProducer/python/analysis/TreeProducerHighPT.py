@@ -135,6 +135,8 @@ class TreeProducerHighPT(TreeProducer):
     self.addBranch('dilepton_veto',       '?')
     self.addBranch('extraelec_veto',      '?')
     self.addBranch('extramuon_veto',      '?')
+    self.addBranch('extratau_veto',      '?')
+    self.addBranch('extrajet_veto',      '?')
     self.addBranch('lepton_vetoes',       '?')
     self.addBranch('lepton_vetoes_notau', '?')
     

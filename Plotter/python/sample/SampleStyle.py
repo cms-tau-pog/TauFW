@@ -2,6 +2,7 @@
 # Author: Izaak Neutelings (July 2020)
 import os, re
 from collections import OrderedDict
+from tabnanny import verbose
 from TauFW.Plotter.sample.utils import LOG
 from TauFW.Plotter.plot.string import makelatex
 from ROOT import TColor, kBlack, kWhite, kGray, kAzure, kBlue, kCyan,\
@@ -107,8 +108,8 @@ def set_sample_colors(coldict):
     ('EWKT',             coldict['VV']),
     ('EWKJ',             coldict['WJ']),
     ('EWK',              coldict['WJ']),
-    ('WMu',              coldict['WMu']),
-    ('WTau',             coldict['WTau']),
+    ('WToMuNu',          coldict['WMu']),
+    ('WToTauNu',         coldict['WTau']),
     ('W*jets',           coldict['WJ']),
     ('W*J',              coldict['WJ']),
     ('W',                coldict['WJ']),
@@ -158,6 +159,8 @@ def getcolor(sample,color=kWhite,**kwargs):
   for key in sample_colors: #sorted(sample_colors,key=lambda x: len(x),reverse=True)
     if re.findall(key.replace('*',".*"),sample): # glob -> regex wildcard
       LOG.verb("SampleStyle.getcolor: Found color %s for %r from search term %r!"%(sample_colors[key],sample,key),kwargs,level=3)
+      #print("SampleStyle.getcolor: Found color %s for %r from search term %r!"%(sample_colors[key],sample,key))
+      #print(kwargs)
       color = sample_colors[key]
       break
   else:

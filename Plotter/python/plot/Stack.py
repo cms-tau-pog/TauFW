@@ -52,7 +52,7 @@ class Stack(Plot):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
     # https://root.cern.ch/doc/master/classTHStack.html
     # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
-    verbosity    = LOG.getverbosity(self,kwargs)
+    verbosity    = LOG.getverbosity(self,kwargs) 
     xtitle       = (args[0] if args else self.xtitle) or ""
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
     square       = kwargs.get('square',       False           ) # square canvas

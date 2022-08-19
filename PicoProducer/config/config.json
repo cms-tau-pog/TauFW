@@ -3,12 +3,16 @@
     "skim": "skimjob.py", 
     "skim-jec": "skimjob.py --jec-sys", 
     "gen": "GenDumper", 
-    "mutau": "ModuleMuTauSimple"
+    "mutau": "ModuleMuTauSimple", 
+    "highpt": "HighPT.ModuleTauNu", 
+    "taunu": "HighPT.ModuleTauNu", 
+    "munu": "HighPT.ModuleMuNu", 
+    "WJToLNu": "HighPT.ModuleMuNu"
   }, 
   "eras": {
     "2016": "examples/samples_2016.py", 
     "2017": "examples/samples_2017.py", 
-    "2018": "examples/samples_2018.py"
+    "2018": "HighPT/samples_UL2018.py"
   }, 
   "nfilesperjob": 1, 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 

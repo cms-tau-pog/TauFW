@@ -407,10 +407,9 @@ class ModuleHighPT(Module):
     # MET
     self.out.met[0]       = met.Pt()
     self.out.metphi[0]    = met.Phi()
-    self.out.mt_1[0]      = sqrt( 2*self.out.pt_1[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_1[0],met.Phi()))) )  #I think i need only mt_1
+    self.out.mt_1[0]      = sqrt( 2*self.out.pt_1[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_1[0],met.Phi()))) ) 
     self.out.DPhi[0]      = deltaPhi(self.out.phi_1[0],met.Phi())
-
-    #self.out.mt_2[0]      = sqrt( 2*self.out.pt_2[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_2[0],met.Phi()))) )
+    
     ###self.out.puppimetpt[0]             = event.PuppiMET_pt
     ###self.out.puppimetphi[0]            = event.PuppiMET_phi
     ###self.out.metsignificance[0]        = event.MET_significance

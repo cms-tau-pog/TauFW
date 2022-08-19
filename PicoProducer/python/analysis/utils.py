@@ -379,7 +379,6 @@ def gettauveto(event, taus, channel):
     if abs(tau.eta)>2.3: continue
     if abs(tau.dz)>0.1: continue
     if abs(tau.dxy)>0.045: continue
-    if tau.pfRelIso04_all>0.3: continue
     if any(tau.DeltaR(tau)<0.4 for tau in taus): continue  
     if all(t._index!=tau._index for t in taus): continue 
     if tau.idDeepTau2017v2p1VSe >= 128 and tau.idDeepTau2017v2p1VSmu >= 8:
@@ -396,7 +395,7 @@ def getjetveto(event,jets,taus,channel,era):
   for jet in Collection(event,'Jet'):
     if jet.pt<30: continue
     if abs(jet.eta)>4.7: continue
-    if any(jet.DeltaR(tau)>0.4 for tau in taus):continue
+    if any(jet.DeltaR(tau)<0.5 for tau in taus):continue
     if all(j._index!=jet._index for j in jets):continue
     if(era == '2016' )and (jet.jetId >=1):
        extrajet_veto = True

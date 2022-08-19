@@ -1,4 +1,4 @@
-# Author: Izaak Neutelings (June 2020)
+# Author: Jacopo Malvaso (August 2022)
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
