@@ -2,6 +2,8 @@
 # Description: Simple module to pre-select TauNu events
 import sys
 import numpy as np
+import ROOT 
+from ROOT import TLorentzVector
 from TauFW.PicoProducer import datadir
 from TauFW.PicoProducer.analysis.TreeProducerTauNu import *
 from TauFW.PicoProducer.analysis.ModuleHighPT import *
@@ -219,3 +221,27 @@ class ModuleTauNu(ModuleHighPT):
 
     self.out.fill()
     return True
+
+
+######################### WORK IN PROGRESS #########################
+
+######################### MET #########################
+lorentzVectorMet = met.SetPtEtaPhiM(met.pt,0,met.phi,0) 
+######################### MUON #########################
+lorentzVectorAllMuons = TLorentzVector()
+for muon in Collection(event,'Muon'):
+  muonLV= muon.p4()
+  lorentzVectorAllMuons += muonLV
+metNoMu = (lorentzVectorMet+lorentzVectorAllMuons).Pt();
+######################### JET #########################
+lorentzVectorAllJetsForMht = TLorentzVector()
+for jet in Collection(event,'Jet'):
+ if (era == '2017' and jet.pt < 50 and  abs(jet.eta) < 3.139 and abs(jet.eta) > 2.65): continue ######clean for EEnoise jets###### 
+ if (abs(jet.eta) >5.2): continue
+ if (jet.pt<20.0): 
+  jetLV= jet.p4()
+  lorentzVectorAllJetsForMht += jetLV
+mht = (lorentzVectorAllJetsForMht).Pt()
+mhtNoMu = (lorentzVectorAllJetsForMht-lorentzVectorAllMuons).Pt() 
+           
+ 
