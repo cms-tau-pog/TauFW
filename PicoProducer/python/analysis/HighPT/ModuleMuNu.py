@@ -6,6 +6,7 @@ from TauFW.PicoProducer.analysis.TreeProducerMuNu import *
 from TauFW.PicoProducer.analysis.ModuleHighPT import *
 from TauFW.PicoProducer.analysis.utils import idIso, matchtaujet 
 from TauFW.PicoProducer.corrections.MuonSFs import *
+from TauFW.PicoProducer.corrections.WmassCorrection import *
 #from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
@@ -144,7 +145,7 @@ class ModuleMuNu(ModuleHighPT):
     
 
     if met.Pt() < 50:
-	return False
+	    return False
     self.out.cutflow.fill('met')
 
 
@@ -152,9 +153,20 @@ class ModuleMuNu(ModuleHighPT):
     # MET & DILEPTON VARIABLES
     self.fillMETAndDiLeptonBranches(event,muon1,met,met_vars) 
     
+    # KFACTOR_MUON
+    self.wMassweight = True
     
+    if self.wMassweight:
+      for genpart in Collection(event,'GenPart'):
+        if genpart.statusFlags < 8192: continue
+        if abs(genpart.pdgId) == 24:
+          wMass=genpart.mass
+    
+      self.out.kfactor_mu[0] = GetWmassWeight(wMass)
+
 
 
     self.out.fill()
     return True
-    
+  
+  
