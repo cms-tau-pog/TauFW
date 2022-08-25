@@ -30,6 +30,7 @@ class TreeProducerMuNu(TreeProducerHighPT):
     self.addBranch('idMedium_1', '?')
     self.addBranch('idTight_1',  '?')
     self.addBranch('idHighPt_1', 'i')
+    self.addBranch('kfactor_mu', 'f')
     
     
     ###########
