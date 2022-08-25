@@ -13,17 +13,17 @@ import TauFW.Plotter.sample.SampleStyle as STYLE
 
 def makesamples(channel,era,fname):
   LOG.header("makesamples") 
-  weight = "genweight*trigweight*puweight*idisoweight_1" 
+  weight = "genweight*trigweight*puweight*idisoweight_1*kfactor_mu" 
   expsamples = [ # table of MC samples to be converted to Sample objects
    ('WMu',                "WToMuNu",  "WToMuNu",   1.0*7.273 ),
    #('WTau',              "WToTauNu", "WToTauNu",   1.0*7.246),
-   ('WJ',              "WJetsToLNu", "W + jets", 52760*1.166 ),
-   ('WJ',    "WJetsToLNuHT100to200", "W + jets", 1395.0*1.166), #{'extraweight': 'idisoweight'} 
-   ('WJ',    "WJetsToLNuHT200to400", "W + jets", 407.9*1.166),
-   ('WJ',    "WJetsToLNuHT400to600", "W + jets", 57.48*1.166),
-   ('WJ',    "WJetsToLNuHT600to800", "W + jets", 12.87*1.166 ),
-   ('WJ',   "WJetsToLNuHT800to1200", "W + jets", 5.366*1.166),
-   ('WJ',  "WJetsToLNuHT1200to2500", "W + jets", 1.074*1.166),
+   #('WJ',              "WJetsToLNu", "W + jets", 52760*1.166 ),
+   #('WJ',    "WJetsToLNuHT100to200", "W + jets", 1395.0*1.166), #{'extraweight': 'idisoweight'} 
+   #('WJ',    "WJetsToLNuHT200to400", "W + jets", 407.9*1.166),
+   #('WJ',    "WJetsToLNuHT400to600", "W + jets", 57.48*1.166),
+   #('WJ',    "WJetsToLNuHT600to800", "W + jets", 12.87*1.166 ),
+   #('WJ',   "WJetsToLNuHT800to1200", "W + jets", 5.366*1.166),
+   #('WJ',  "WJetsToLNuHT1200to2500", "W + jets", 1.074*1.166),
     
   ]
 
@@ -44,8 +44,7 @@ def plotSampleSet(channel,sampleset,tag="",outdir="plots"):
   LOG.header("plotSampleSet")
   
   selections = [
-    #'njets==0 && met > 120 && pt_1 > 120 && abs(DPhi) > 2.6 && extramuon_veto < 0.5 &&  extraelec_veto < 0.5',
-    'njets==0 && met > 80 && pt_1 > 80  && extramuon_veto < 0.5 && extraelec_veto < 0.5 ',
+    'njets==0 && met > 120 && pt_1 > 110 && abs(DPhi) > 2.6 && extramuon_veto < 0.5 &&  extraelec_veto < 0.5',
      ]
   variables = [
     Var('mt_1', "m_{T}(#mu,MET)",                                                              100,  50, 750),
