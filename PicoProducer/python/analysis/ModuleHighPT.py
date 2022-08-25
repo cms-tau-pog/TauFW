@@ -50,6 +50,7 @@ class ModuleHighPT(Module):
     self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1
+    self.wMassweight= kwargs.get('wStarWeight',    False    ) # W* NLO correction
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = 30
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
@@ -235,7 +236,8 @@ class ModuleHighPT(Module):
       if abs(jet.eta)>4.7: continue
       if jet.DeltaR(tau1)<0.5: continue
       
-      if jet.jetId<2: continue # Tight
+      if (self.era=='2017'or self.era=='2018') and (jet.jetId<2): continue # Tight
+      elif (self.era=='2016') and (jet.jetId < 1): continue #Loose
       
       # SAVE JEC VARIATIONS
       if self.dojec:
@@ -409,6 +411,7 @@ class ModuleHighPT(Module):
     self.out.metphi[0]    = met.Phi()
     self.out.mt_1[0]      = sqrt( 2*self.out.pt_1[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_1[0],met.Phi()))) ) 
     self.out.DPhi[0]      = deltaPhi(self.out.phi_1[0],met.Phi())
+  
     
     ###self.out.puppimetpt[0]             = event.PuppiMET_pt
     ###self.out.puppimetphi[0]            = event.PuppiMET_phi
