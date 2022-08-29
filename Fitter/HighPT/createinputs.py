@@ -31,9 +31,9 @@ def main(args):
       # sample set and their systematic variations
 
       # GET SAMPLESET
-      join      = ['WJ']
+      #join      = ['WJ']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-      sampleset = getsampleset(channel,era,fname=sname,join=join)
+      sampleset = getsampleset(channel,era,fname=sname)
         
       # RENAME (HTT convention)
       sampleset.datasample.name = 'data_obs'
@@ -43,7 +43,7 @@ def main(args):
           'Nom': sampleset, # nominal
         }
       systs = preparesysts( # prepare systematic variations: syskey, systag, procs
-          ('Nom',"",  ['WToMuNu','WJ','data_obs']),
+          ('Nom',"",  ['WToMuNu','data_obs']),
         )
       samplesets['Nom'].printtable(merged=True,split=True)
       if verbosity>=2:
