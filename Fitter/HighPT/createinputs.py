@@ -17,26 +17,26 @@ def main(args):
   parallel  = args.parallel
   verbosity = args.verbosity
   plot      = True
-  analysis  = 'munu' # $PROCESS_$ANALYSIS
+  analysis  = "munu" # $PROCESS_$ANALYSIS
   tag       = ""
   fileexp   = "$OUTDIR/$ANALYSIS_$OBS_$CHANNEL-$ERA$TAG.inputs.root"
   outdir    = ensuredir("input")
   plotdir   = "input/plots/$ERA"
   
   for era in eras:
-
+    for channel in channels:
       ###############
       #   SAMPLES   #
       ###############
       # sample set and their systematic variations
       
       # GET SAMPLESET
+      join      = ['WJ']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-      sampleset = getsampleset(channel,era,fname=sname,join=None,split=None,table=False, rmsf=None,dyweight=None)
-      
+      sampleset = getsampleset(channel,era,fname=sname)
         
       # RENAME (HTT convention)
-     sampleset.datasample.name = 'data_obs'
+      sampleset.datasample.name = 'data_obs'
         
       # SYSTEMATIC VARIATIONS
       
@@ -86,7 +86,7 @@ def main(args):
       chshort = channel.replace('mu','m') # abbreviation of channel
       fname   = repkey(fileexp,OUTDIR=outdir,ANALYSIS=analysis,CHANNEL=chshort,ERA=era,TAG=tag)
       createinputs(fname,samplesets['Nom'],observables,bins,recreate=True)
-      
+  
       
       ############
       #   PLOT   #
