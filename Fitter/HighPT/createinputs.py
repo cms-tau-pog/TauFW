@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # Author: Jacopo Malvaso (August 2022)
 # Description: Create input histograms for datacards
-#   ./createinputs.py -c munu -y UL2018
+#   ./createinputs.py -c munu -y 2018
 #copiato da TauID 
 import sys
 sys.path.append("../../Plotter/") # for config.samples
-from config.samples import *
+from config.samples_HighPT import *
 from TauFW.Plotter.plot.utils import LOG as PLOG 
 from TauFW.Plotter.plot.utils import ensuredir
 from TauFW.Fitter.plot.datacard import createinputs, plotinputs, preparesysts
@@ -29,20 +29,22 @@ def main(args):
       #   SAMPLES   #
       ###############
       # sample set and their systematic variations
-      
+
       # GET SAMPLESET
       join      = ['WJ']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-      sampleset = getsampleset(channel,era,fname=sname)
+      sampleset = getsampleset(channel,era,fname=sname,join=join)
         
       # RENAME (HTT convention)
       sampleset.datasample.name = 'data_obs'
         
-      # SYSTEMATIC VARIATIONS
-      
+        # SYSTEMATIC VARIATIONS
+      samplesets = { # sets of samples per variation
+          'Nom': sampleset, # nominal
+        }
       systs = preparesysts( # prepare systematic variations: syskey, systag, procs
-        ('Nom',"",  ['WToMuNu','data_obs']),
-      )
+          ('Nom',"",  ['WToMuNu','WJ','data_obs']),
+        )
       samplesets['Nom'].printtable(merged=True,split=True)
       if verbosity>=2:
         samplesets['Nom'].printobjs(file=True)
@@ -58,12 +60,12 @@ def main(args):
       ###################
       # observable/variables to be fitted in combine
       
-      
       observables = [
-        Var('mt_1', "m_{T}(#mu,MET)", 100,  50, 750, fname='m_t1', ymargin=1.6, rrange=0.16)
-      ]
-      
-        
+        Var('mt_1', "m_{T}(#mu,MET)", 100,  50, 750, fname='mt_1', ymargin=1.6, rrange=0.16),
+        Var('pt_1', "Muon p_{T}"   ,  100,  50, 400, fname='pt_1', ymargin=1.6, rrange=0.16),
+        Var('met' , "MET p_{T}"    ,  100, 50, 400, fname='met', ymargin=1.6, rrange=0.16),
+        Var('DPhi', "#Delta#phi(#mu,MET)", 100, -3.15, 3.15, fname='DPhi', ymargin=1.6, rrange=0.16),
+        ]
       
       ############
       #   BINS   #
@@ -74,29 +76,25 @@ def main(args):
         
         baseline = "njets==0 && met > 120 && pt_1 > 110 && abs(DPhi) > 2.6 && extramuon_veto < 0.5 &&  extraelec_veto < 0.5"
         bins = [
-          Sel('WToMuNu', "W* -> munu", baseline),
+          Sel('WToMuNu', "W* -> #mu#nu", baseline),
         ]
       
       #######################
       #   DATACARD INPUTS   #
       #######################
       # histogram inputs for the datacards
-      
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/SMTauTau2016
-      chshort = channel.replace('mu','m') # abbreviation of channel
+      chshort = channel.replace('mu','#mu') # abbreviation of channel
       fname   = repkey(fileexp,OUTDIR=outdir,ANALYSIS=analysis,CHANNEL=chshort,ERA=era,TAG=tag)
       createinputs(fname,samplesets['Nom'],observables,bins,recreate=True)
   
-      
       ############
       #   PLOT   #
       ############
       # control plots of the histogram inputs
-      
       if plot:
         plotdir_ = ensuredir(repkey(plotdir,ERA=era,CHANNEL=channel))
         pname    = repkey(fileexp,OUTDIR=plotdir_,ANALYSIS=analysis,CHANNEL=chshort+"-$BIN",ERA=era,TAG='$TAG'+tag).replace('.root','.png')
-        text     = "%s: $BIN"%(channel.replace("mu","#mu"))
+        text     = "%s: $BIN"%(channel.replace("mu","#mu").replace("nu","#nu"))
         groups   = [ ] 
         plotinputs(fname,systs,observables,bins,text=text,
                    pname=pname,tag=tag,group=groups)
