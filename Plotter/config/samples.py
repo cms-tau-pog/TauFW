@@ -23,9 +23,8 @@ def getsampleset(channel,era,**kwargs):
   if 'TT' in split and 'Top' in join: # don't join TT & ST
     join.remove('Top')
     join += ['TT','ST']
-  
-  # SM BACKGROUND MC SAMPLES
-  if 'UL' in era: # UltraLegacy
+ # SM BACKGROUND MC SAMPLES
+ if 'UL' in era: # UltraLegacy
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0  ),
@@ -152,7 +151,7 @@ def getsampleset(channel,era,**kwargs):
     ]
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
-  
+
   # OBSERVED DATA SAMPLES
   if   'tautau' in channel: dataset = "Tau_Run%d?"%year
   elif 'mutau'  in channel: dataset = "SingleMuon_Run%d?"%year
@@ -160,6 +159,7 @@ def getsampleset(channel,era,**kwargs):
   elif 'mumu'   in channel: dataset = "SingleMuon_Run%d?"%year
   elif 'emu'    in channel: dataset = "SingleMuon_Run%d?"%year
   elif 'ee'     in channel: dataset = "EGamma_Run%d?"%year if year==2018 else "SingleElectron_Run%d?"%year
+  elif 'munu'   in channel: dataset = "SingleMuon_Run%d?"%year
   else:
     LOG.throw(IOError,"Did not recognize channel %r!"%(channel))
   datasample = ('Data',dataset) # GROUP, NAME
@@ -173,6 +173,8 @@ def getsampleset(channel,era,**kwargs):
   # SAMPLE SET
   if weight=="":
     weight = ""
+  elif channel in ['munu']:
+    weight = "genweight*trigweight*puweight*idisoweight_1*kfactor_mu"
   elif channel in ['mutau','etau']:
     weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
   elif channel in ['tautau','ditau']:
