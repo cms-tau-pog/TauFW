@@ -4,14 +4,14 @@ Author      : Konstantinos Christoforou
 
 
 ### Table of Contents  
-* [General Idea](#General_Idea)<br>
-* [Scripts and tools](#Scripts_Tools)<br>
-  * [plot_forTauFR.py](#plot_forTauFR)<br>
-  * [plotJetToTauFRvariables_writeJson.py](#plotJetToTauFRvariables_writeJson)<br>
-  * [plotJetToTauFRvariables_writeJson_FRinPtBins.py](#plotJetToTauFRvariables_writeJson_FRinPtBins)<br>
-  * [readAndPlotFR.py](#readAndPlotFR)<br>
+* [General Idea](#General-Idea)<br>
+* [Scripts and tools](#Scripts-and-Tools)<br>
+  * [plot_forTauFR.py](#plot_forTauFR.py)<br>
+  * [plotJetToTauFRvariables_writeJson.py](#plotJetToTauFRvariables_writeJson.py)<br>
+  * [plotJetToTauFRvariables_writeJson_FRinPtBins.py](#plotJetToTauFRvariables_writeJson_FRinPtBins.py)<br>
+  * [readAndPlotFR.py](#readAndPlotFR.py)<br>
   * [JetToTau_MisID.py](#JetToTau_MisID.py)<br>
-  * [tools]
+  * [tools](#tools)
 * [Workflow]
 
 ## General Idea
@@ -60,6 +60,9 @@ change the "eta" list in both ['readAndPlotFR'](readAndPlotFR.py) and
 ### readAndPlotFR.py
 This script reads and plots the FRs of a given directory.  It uses scripts mainly from the
 ['tools'](tools) folder and it produces a Data-MC FR comparison plots under "plots/<era>/<finalstate>/FakeRates".
+
+### JetToTau_MisID.py
+This script is located [here](../../methods/JetToTau_MisID.py) and is where FR method is been applied.
 
 ### tools
 This folder contains a few helping scripts mainly for calculating and plotting Fake Rates.

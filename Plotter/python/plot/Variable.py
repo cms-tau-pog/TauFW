@@ -50,7 +50,7 @@ class Variable(object):
     self.weight       = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
     self.dataweight   = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
     self.setbins(*bins)
-    self.dividebins   = kwargs.get('dividebins',  False         ) #self.hasvariablebins() ) # divide each histogram bins by it bin size (done in Plot.draw)
+    self.dividebins   = kwargs.get('dividebins',  self.hasvariablebins() ) # divide each histogram bins by it bin size (done in Plot.draw)
     self.data         = kwargs.get('data',        True          ) # also draw data
     self.flag         = kwargs.get('flag',        ""            ) # flag, e.g. 'up', 'down', ...
     self.binlabels    = kwargs.get('labels',      [ ]           ) # bin labels for x axis
