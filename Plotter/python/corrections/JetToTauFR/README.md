@@ -62,7 +62,7 @@ This script reads and plots the FRs of a given directory.  It uses scripts mainl
 ['tools'](tools) folder and it produces a Data-MC FR comparison plots under "plots/<era>/<finalstate>/FakeRates".
 
 ### JetToTau_MisID
-This script is located [here](../../methods/JetToTau_MisID.py) and is where FR method is been applied.
+This script is located [here](../../methods/JetToTau_MisID.py) and it's where FR method is been applied.
 
 ### tools
 This folder contains a few helping scripts mainly for calculating and plotting Fake Rates.
@@ -72,10 +72,10 @@ dedicated and time-consuming task.
 
 ### Workflow
 Example for W+jets enriched region
-'''
+```
 ./plot_forTauFR.py -c mumettau --era UL2018 (Optional, just to monitor and reference)
 ./plotJetToTauFRvariables_writeJson.py -c mumettau --era UL2018
 -> Fix the label in the json file, as explained above
 ./readAndPlotFR.py --yMin 0.0 --yMax 0.5 --saveDir plots/UL2018/mumettau/FakeRates --ratio --bandValue 30 --dirs plots/UL2018/mumettau/TauFakeRate_UL2018_mumettau,plots/UL2018/mumettau/TauFakeRate_UL2018_mumettau --analysisType mumettau
 ./plot_forTauFR.py -c mumettau --era UL2018 -C
-
+```
