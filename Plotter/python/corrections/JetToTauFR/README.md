@@ -6,13 +6,13 @@ Author      : Konstantinos Christoforou
 ### Table of Contents  
 * [General Idea](#General-Idea)<br>
 * [Scripts and tools](#Scripts-and-Tools)<br>
-  * [plot_forTauFR.py](#plot_forTauFR.py)<br>
-  * [plotJetToTauFRvariables_writeJson.py](#plotJetToTauFRvariables_writeJson.py)<br>
-  * [plotJetToTauFRvariables_writeJson_FRinPtBins.py](#plotJetToTauFRvariables_writeJson_FRinPtBins.py)<br>
-  * [readAndPlotFR.py](#readAndPlotFR.py)<br>
-  * [JetToTau_MisID.py](#JetToTau_MisID.py)<br>
+  * [plot_forTauFR.py](#plot_forTauFR)<br>
+  * [plotJetToTauFRvariables_writeJson.py](#plotJetToTauFRvariables_writeJson)<br>
+  * [plotJetToTauFRvariables_writeJson_FRinPtBins.py](#plotJetToTauFRvariables_writeJson_FRinPtBins)<br>
+  * [readAndPlotFR.py](#readAndPlotFR)<br>
+  * [JetToTau_MisID.py](#JetToTau_MisID)<br>
   * [tools](#tools)
-* [Workflow]
+* [Workflow](#Workflow)
 
 ## General Idea
 All scripts and tools needed for perfoming Jet to Tau Fake Rate measurements are included in this folder.
@@ -23,7 +23,7 @@ first produce the dedicated pico tuple, using the analyzers in
 
 ## Scripts and tools
 
-### plot_forTauFR.py
+### plot_forTauFR
 A simple script for plotting basic distributions and comparing Data/MC.
 This script was based on the original ['plot.py'](../../../plot.py).
 An important addition was the Closure option (-C) but this works
@@ -33,7 +33,7 @@ and the corresponding json file with the FRs exist.
 Closure tests should performed for FRs in order to validate them.  Closure plots
 are stored under "plots/<era>/<finalstate>/Closure".
 
-### plotJetToTauFRvariables_writeJson.py
+### plotJetToTauFRvariables_writeJson
 The measurement of the Jet to Tau FRs is performed in this script.  FRs
 are calculated in pT-eta bins of the jet that serves as tau-candidate.
 After the caclulation of the FRs, everything is stored in a json file named as
@@ -50,18 +50,18 @@ mumettau_Barrel
 '''
 Same for endcap.  
 
-### plotJetToTauFRvariables_writeJson_FRinPtBins.py
+### plotJetToTauFRvariables_writeJson_FRinPtBins
 Same as plotJetToTauFRvariables_writeJson.py but the FR are calculated in pT-only-bins.
 
 Bug-to-be-fixed : If you want to use FRs in pT-only-bins, you should manually
 change the "eta" list in both ['readAndPlotFR'](readAndPlotFR.py) and 
 ['JetToTau_MisID.py'](../../methods/JetToTau_MisID.py) to "eta = [""] "
 
-### readAndPlotFR.py
+### readAndPlotFR
 This script reads and plots the FRs of a given directory.  It uses scripts mainly from the
 ['tools'](tools) folder and it produces a Data-MC FR comparison plots under "plots/<era>/<finalstate>/FakeRates".
 
-### JetToTau_MisID.py
+### JetToTau_MisID
 This script is located [here](../../methods/JetToTau_MisID.py) and is where FR method is been applied.
 
 ### tools
@@ -70,7 +70,7 @@ These scripts were used for another analysis and there is a lot of cleaning to b
 Though, there are a lot of dependencies between them and is a kind of a maze so it would be a very
 dedicated and time-consuming task.
 
-## Workflow
+### Workflow
 Example for W+jets enriched region
 '''
 ./plot_forTauFR.py -c mumettau --era UL2018 (Optional, just to monitor and reference)
