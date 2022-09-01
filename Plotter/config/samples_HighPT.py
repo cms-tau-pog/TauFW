@@ -1,4 +1,5 @@
 # Description: Common configuration file for creating pico sample set plotting scripts
+# Author: Jacopo Malvaso (August 2022)
 import re
 from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, joinweights, ensurelist,\
                                        setera, getyear, loadmacro, Sel, Var

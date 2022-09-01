@@ -15,7 +15,7 @@ def makesamples(channel,era,fname):
   LOG.header("makesamples") 
   weight = "genweight*trigweight*puweight*idisoweight_1*kfactor_mu" 
   expsamples = [ # table of MC samples to be converted to Sample objects
-   ('WMu',                "WToMuNu",  "WToMuNu",   1.0*7.273 ),
+   ('WMu',                "WToMuNu",  "WToMuNu", 1.0*7.273 ),  
    #('WTau',              "WToTauNu", "WToTauNu",   1.0*7.246),
    #('WJ',              "WJetsToLNu", "W + jets", 52760*1.166 ),
    #('WJ',    "WJetsToLNuHT100to200", "W + jets", 1395.0*1.166), #{'extraweight': 'idisoweight'} 

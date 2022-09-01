@@ -379,9 +379,8 @@ def gettauveto(event, taus, channel):
     if abs(tau.eta)>2.3: continue
     if abs(tau.dz)>0.1: continue
     if abs(tau.dxy)>0.045: continue
-    if any(tau.DeltaR(tau)<0.4 for tau in taus): continue  
     if all(t._index!=tau._index for t in taus): continue 
-    if tau.idDeepTau2017v2p1VSe >= 128 and tau.idDeepTau2017v2p1VSmu >= 8:
+    if tau.idDeepTau2017v2p1VSe >= 128 and tau.idDeepTau2017v2p1VSmu >= 8 and tau.idDeepTau2017v2p1VSjet >= 1:
       extratau_veto = True
     
   return extratau_veto
