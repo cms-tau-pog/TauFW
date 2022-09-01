@@ -106,8 +106,8 @@ class Ratio(object):
       xmax      = max(xvals)
     xmin        = kwargs.get('xmin',   xmin  )
     xmax        = kwargs.get('xmax',   xmax  )
-    ymin        = kwargs.get('ymin',   0.5   )
-    ymax        = kwargs.get('ymax',   1.5   )
+    ymin        = kwargs.get('ymin',   0.8   ) #default = 0.5
+    ymax        = kwargs.get('ymax',   1.2   ) #default = 1.5
     data        = kwargs.get('data',   False )
     xtitle      = kwargs.get('xtitle', ""    )
     ytitle      = kwargs.get('ytitle', "Obs. / Exp." if data else "Ratio" )
