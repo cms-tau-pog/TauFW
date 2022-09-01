@@ -83,8 +83,8 @@ def main(args):
       #   DATACARD INPUTS   #
       #######################
       # histogram inputs for the datacards
-      chshort = channel.replace('mu','#mu') # abbreviation of channel
-      fname   = repkey(fileexp,OUTDIR=outdir,ANALYSIS=analysis,CHANNEL=chshort,ERA=era,TAG=tag)
+      #chshort = channel.replace('mu','#mu') # abbreviation of channel
+      fname   = repkey(fileexp,OUTDIR=outdir,ANALYSIS=analysis,CHANNEL=channel,ERA=era,TAG=tag)
       createinputs(fname,samplesets['Nom'],observables,bins,recreate=True)
   
       ############
@@ -93,7 +93,7 @@ def main(args):
       # control plots of the histogram inputs
       if plot:
         plotdir_ = ensuredir(repkey(plotdir,ERA=era,CHANNEL=channel))
-        pname    = repkey(fileexp,OUTDIR=plotdir_,ANALYSIS=analysis,CHANNEL=chshort+"-$BIN",ERA=era,TAG='$TAG'+tag).replace('.root','.png')
+        pname    = repkey(fileexp,OUTDIR=plotdir_,ANALYSIS=analysis,CHANNEL=channel+"-$BIN",ERA=era,TAG='$TAG'+tag).replace('.root','.png')
         text     = "%s: $BIN"%(channel.replace("mu","#mu").replace("nu","#nu"))
         groups   = [ ] 
         plotinputs(fname,systs,observables,bins,text=text,
