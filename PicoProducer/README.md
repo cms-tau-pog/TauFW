@@ -130,6 +130,7 @@ and you should avoid characters that are not safe for filenames, including `:` a
 Extra options to the skimming script can be passed as well:
 ```
 pico.py channel skimjec 'skimjob.py --jec-sys'
+pico.py channel skimmutau 'skimjob.py --jec-sys --preselect "HLT_IsoMu27 && Muon_pt>20 && Tau_pt>20"'
 ```
 
 ### Analysis
@@ -286,6 +287,12 @@ or if there are a lot of large files, `--maxevts` can be used to limit the numbe
 These parameters can also be set globally in the configuration, or for each sample individually in the sample list.
 WARNING! `--maxevts` has not been fully validated yet, and it does not work for skimming yet,
 see [issue #269 in nanoAOD-tools](https://github.com/cms-nanoAOD/nanoAOD-tools/issues/269).
+
+You can force the use of GRID files from DAS with `--dasfiles` as opposed to local nanoAOD files,
+which is useful for the skimming step:
+```
+pico.py submit -y 2016 -c mutau --dasfiles
+```
 
 For all options with submission, do
 ```
