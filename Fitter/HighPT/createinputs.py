@@ -31,7 +31,7 @@ def main(args):
       # sample set and their systematic variations
 
       # GET SAMPLESET
-      #join      = ['WJ']
+      join      = ['Other']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
       sampleset = getsampleset(channel,era,fname=sname)
         
@@ -43,7 +43,7 @@ def main(args):
           'Nom': sampleset, # nominal
         }
       systs = preparesysts( # prepare systematic variations: syskey, systag, procs
-          ('Nom',"",  ['WToMuNu','data_obs']),
+          ('Nom',"",  ['WToMuNu','Other','data_obs']),
         )
       samplesets['Nom'].printtable(merged=True,split=True)
       if verbosity>=2:
@@ -61,7 +61,8 @@ def main(args):
       # observable/variables to be fitted in combine
       
       observables = [
-        Var('mt_1', "m_{T}(#mu,MET)", 100,  50, 750, fname='mt_1', ymargin=1.6, rrange=0.16),
+        Var('mt_1', "m_{T}(#mu,MET)", 20,  250, 500, fname='mt_1', ymargin=1.6, rrange=0.16),
+        #Var('mt_1', "m_{T}(#mu,MET)", 100,  200, 750, fname='mt_1', ymargin=1.6, rrange=0.16),
         Var('pt_1', "Muon p_{T}"   ,  100,  50, 400, fname='pt_1', ymargin=1.6, rrange=0.16),
         Var('met' , "MET p_{T}"    ,  100, 50, 400, fname='met', ymargin=1.6, rrange=0.16),
         Var('DPhi', "#Delta#phi(#mu,MET)", 100, -3.15, 3.15, fname='DPhi', ymargin=1.6, rrange=0.16),

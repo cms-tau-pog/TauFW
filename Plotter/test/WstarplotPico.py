@@ -13,7 +13,7 @@ import TauFW.Plotter.sample.SampleStyle as STYLE
 
 def makesamples(channel,era,fname):
   LOG.header("makesamples") 
-  weight = "genweight*trigweight*puweight*idisoweight_1*kfactor_mu" 
+  weight = "genweight*trigweight*puweight*idisoweight_1" 
   expsamples = [ # table of MC samples to be converted to Sample objects
    ('WMu',                "WToMuNu",  "WToMuNu", 1.0*7.273 ),  
    #('WTau',              "WToTauNu", "WToTauNu",   1.0*7.246),
@@ -52,7 +52,7 @@ def plotSampleSet(channel,sampleset,tag="",outdir="plots"):
     Var('met' , "MET p_{T}"    ,                                                                100, 50, 400),
     Var('DPhi', "#Delta#phi(#mu,MET)",                                                      100, -3.15, 3.15),
   ]
-  text = "#mu#nu_{h} baseline" 
+  text = "#mu#nu baseline" 
 
   # PLOT
   outdir   = ensuredir(outdir)

@@ -11,7 +11,7 @@ import re
 
 cmsText        = "CMS"
 cmsTextFont    = 61
-extraText      = "Preliminary"
+extraText      = "Work in progress"
 lumiText       = ""
 extraTextFont  = 52
 lumiTextSize   = 0.90

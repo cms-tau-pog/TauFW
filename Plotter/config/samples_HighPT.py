@@ -27,14 +27,14 @@ def getsampleset(channel,era,**kwargs):
   if era=='2018': 
    expsamples = [ # table of MC samples to be converted to Sample objects
    # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-   ('WMu',                "WToMuNu",  "WToMuNu",   1.0*7.273) # {'extraweight': kfactor_mu}
+   ('WMu',                "WToMuNu",  "WToMuNu",   1.0*7.273),# {'extraweight': kfactor_mu}
    #('WJ',              "WJetsToLNu", "W + jets", 52760*1.166 ),
-   #('WJ',    "WJetsToLNuHT100to200", "W + jets", 1395.0*1.166),
-   #('WJ',    "WJetsToLNuHT200to400", "W + jets", 407.9*1.166),
-   #('WJ',    "WJetsToLNuHT400to600", "W + jets", 57.48*1.166),
-   #('WJ',    "WJetsToLNuHT600to800", "W + jets", 12.87*1.166 ),
-   #('WJ',   "WJetsToLNuHT800to1200", "W + jets", 5.366*1.166),
-   #('WJ',  "WJetsToLNuHT1200to2500", "W + jets", 1.074*1.166),
+   ('WJ',    "WJetsToLNuHT100to200", "W + jets", 1395.0*1.166),
+   ('WJ',    "WJetsToLNuHT200to400", "W + jets", 407.9*1.166),
+   ('WJ',    "WJetsToLNuHT400to600", "W + jets", 57.48*1.166),
+   ('WJ',    "WJetsToLNuHT600to800", "W + jets", 12.87*1.166 ),
+   ('WJ',   "WJetsToLNuHT800to1200", "W + jets", 5.366*1.166),
+   ('WJ',  "WJetsToLNuHT1200to2500", "W + jets", 1.074*1.166),
     ]
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
@@ -66,7 +66,7 @@ def getsampleset(channel,era,**kwargs):
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)
   LOG.verb("weight = %r"%(weight),verbosity,1)
   # JOIN
-  #sampleset.join('WJ', name='WJ' ) 
+  sampleset.join('WJ', name='Other' ) 
   
   if table:
     sampleset.printtable(merged=True,split=True)
