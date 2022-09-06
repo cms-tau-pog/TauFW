@@ -437,11 +437,10 @@ def stitch(samplelist,*searchterms,**kwargs):
     print "Inclusive %i jets weight = %.6g"%(njets,wIncl_njet[njets])
 
   wIncl_mutau = ""
-  wMuTau_njet = ""
+  wMuTau_njet = dict()
   if sample_mutau:
     wIncl_mutau = sample_incl.lumi * sample_incl.xsec * 1000. * effMuTau_incl / ( effMuTau_incl*sample_incl.sumweights + effMuTau_excl*sample_mutau.sumweights )
     print "Inclusive mutau weight = %.6g"%wIncl_mutau
-    wMuTau_njet = dict()
     for njets in sample_njet:
       sample = sample_njet[njets]
       wMuTau_njet[njets] = sample.lumi * sample.xsec * 1000. * effMuTau_njet[njets] / ( effMuTau_njet[njets]*sample.sumweights + effIncl_njet[njets]*( effMuTau_excl*sample_mutau.sumweights + effMuTau_incl*sample_incl.sumweights ) )
@@ -456,7 +455,10 @@ def stitch(samplelist,*searchterms,**kwargs):
     for njets in sample_njet:
       conditionalWeight_incl += " * (%s==%i ? (mutaufilter ? %.6g : %.6g) : 1)"%(npartvar, njets, wMuTau_njet[njets], wIncl_njet[njets])
   else:
-    conditionalWeight_incl = "(%s==0||%s>4 ? %.6g : 1)"%(npartvar, npartvar, wIncl)
+    if len(sample_njet)>0:
+      conditionalWeight_incl = "(%s==0||%s>4 ? %.6g : 1)"%(npartvar, npartvar, wIncl)
+    else:
+      conditionalWeight_incl = "(%.6g)"%(wIncl)
     for njets in sample_njet:
       conditionalWeight_incl += " * (%s==%i ? %.6g : 1)"%(npartvar, njets, wIncl_njet[njets])
   sample_incl.norm = 1.0
