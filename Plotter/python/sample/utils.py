@@ -373,6 +373,10 @@ def stitch(samplelist,*searchterms,**kwargs):
   name_incl = kwargs.get('incl',      searchterms[0] ) # name of inclusive sample
   xsec_incl = kwargs.get('xsec',      None           ) # (N)NLO cross section to compute k-factor
   kfactor   = kwargs.get('kfactor',   None           ) # k-factor
+
+####################################################################################
+# Efficiency values should be adapted when removing "quick fix" for mutau flag removing radiating taus!
+####################################################################################
   effMuTau_incl = kwargs.get('eff_mutau_incl', 0.005086       ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToLL_M-50
   effMuTau_excl = kwargs.get('eff_mutau_excl', 0.58383   ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToMuTauh_M-50
   effMuTau_njet = dict()
@@ -380,6 +384,19 @@ def stitch(samplelist,*searchterms,**kwargs):
   effMuTau_njet[2] = kwargs.get('eff_mutau_2jet', 0.006309  ) # efficiency mutau (pT>18, |eta|<2.5) in DY2JetsToLL_M-50
   effMuTau_njet[3] = kwargs.get('eff_mutau_3jet', 0.006932  ) # efficiency mutau (pT>18, |eta|<2.5) in DY3JetsToLL_M-50
   effMuTau_njet[4] = kwargs.get('eff_mutau_4jet', 0.007856  ) # efficiency mutau (pT>18, |eta|<2.5) in DY4JetsToLL_M-50
+  effMuTauNjet_incl = dict()
+  effMuTauNjet_incl[0] = kwargs.get('eff_mutau_0orp4jet_incl', 0.0035283673 )
+  effMuTauNjet_incl[1] = kwargs.get('eff_mutau_1jet_incl', 0.0010102964 )
+  effMuTauNjet_incl[2] = kwargs.get('eff_mutau_2jet_incl', 0.0003650867 )
+  effMuTauNjet_incl[3] = kwargs.get('eff_mutau_3jet_incl', 0.0001165299 )
+  effMuTauNjet_incl[4] = kwargs.get('eff_mutau_4jet_incl', 0.0000658845 )
+  effMuTauNjet_excl = dict()
+  effMuTauNjet_excl[0] = kwargs.get('eff_mutau_0orp4jet_excl', 0.40987941 )
+  effMuTauNjet_excl[1] = kwargs.get('eff_mutau_1jet_excl', 0.11475415 )
+  effMuTauNjet_excl[2] = kwargs.get('eff_mutau_2jet_excl', 0.039009160 )
+  effMuTauNjet_excl[3] = kwargs.get('eff_mutau_3jet_excl', 0.012867714 )
+  effMuTauNjet_excl[4] = kwargs.get('eff_mutau_4jet_excl', 0.0073231573 )
+
   npartvar  = kwargs.get('npart',     'NUP'          ) # variable name of number of partons in tree; 'NUP', 'LHE_Njets', ...
   LOG.verb("stitch: rescale, reweight and merge %r samples"%(name),verbosity,level=1)
 
@@ -443,7 +460,7 @@ def stitch(samplelist,*searchterms,**kwargs):
     print "Inclusive mutau weight = %.6g"%wIncl_mutau
     for njets in sample_njet:
       sample = sample_njet[njets]
-      wMuTau_njet[njets] = sample.lumi * sample.xsec * 1000. * effMuTau_njet[njets] / ( effMuTau_njet[njets]*sample.sumweights + effIncl_njet[njets]*( effMuTau_excl*sample_mutau.sumweights + effMuTau_incl*sample_incl.sumweights ) )
+      wMuTau_njet[njets] = sample.lumi * sample.xsec * 1000. * effMuTau_njet[njets] / ( effMuTau_njet[njets]*sample.sumweights + effMuTauNjet_excl[njets]*sample_mutau.sumweights + effMuTauNjet_incl[njets]*sample_incl.sumweights )
       print "Inclusive mutau %i jets weight = %.6g"%(njets,wMuTau_njet[njets])
 
   conditionalWeight_incl = ""
