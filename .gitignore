@@ -14,7 +14,6 @@ PicoProducer/config/config.json
 PicoProducer/samples/files
 PicoProducer/output
 Plotter/plots
-Plotter/python/corrections/JetToTauFR/plots
 Fitter/*/*plots*
 Fitter/*/log
 Fitter/Zpt/weights

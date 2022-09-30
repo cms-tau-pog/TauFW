@@ -3,18 +3,14 @@
     "skim": "skimjob.py", 
     "skim-jec": "skimjob.py --jec-sys",
     "gen": "GenDumper", 
-    "mutau": "ModuleMuTauSimple",
+    "mutau": "ModuleMuTauSimple"
   }, 
   "eras": {
     "2016": "examples/samples_2016.py", 
     "2017": "examples/samples_2017.py", 
-    "2018": "examples/samples_2018.py",
-    "UL2016_preVFP": "samples_UL2016_preVFP.py",
-    "UL2016_postVFP": "samples_UL2016_postVFP.py",
-    "UL2017": "samples_UL2017.py",
-    "UL2018": "samples_UL2018.py"
+    "2018": "examples/samples_2018.py"
   }, 
   "nfilesperjob": 1, 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
 }
