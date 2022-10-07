@@ -180,16 +180,18 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     CMS_logo.Draw('X')
     pad_logo.Modified()
     pad.cd()
-  else:
+  else: # inside frame
     latex.SetTextFont(cmsTextFont)
     latex.SetTextSize(cmsTextSize*t)
     latex.SetTextAlign(align)
     latex.DrawLatex(posX,posY,cmsText)
     if extraText_:
+      lines = extraText_.split('\n') if '\n' in extraText_ else [extraText_]
       latex.SetTextFont(extraTextFont)
       latex.SetTextAlign(align)
       latex.SetTextSize(extraTextSize*t)
-      latex.DrawLatex(posX,posY-relExtraDY*cmsTextSize*t,extraText_)
+      for i, line in enumerate(lines):
+        latex.DrawLatex(posX,posY-(relExtraDY+i)*cmsTextSize*t,line)
   
   if verbosity>=2:
     print ">>> setCMSLumiStyle: outOfFrame=%r, iPosX=%s, alignX_=%s, align=%s"%(outOfFrame,iPosX,alignX_,align)
