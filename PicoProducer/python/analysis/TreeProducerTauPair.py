@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (June 2020)
-# Description: Produce generic tree for tau analysis
+# Description: Produce generic tree for ditau analyses
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
@@ -31,7 +31,7 @@ class TreeProducerTauPair(TreeProducer):
     
     self.addBranch('run',                 'i')
     self.addBranch('lumi',                'i')
-    self.addBranch('evt',                 'i')
+    self.addBranch('evt',                 'L') # uint64 -> ULong64_t
     self.addBranch('data',                '?', module.isdata)
     self.setAlias("year",str(module.year)) # save as alias to storage space
     

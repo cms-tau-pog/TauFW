@@ -20,11 +20,13 @@ root_dtype = { # python/numpy -> root data type
   'b': 'b',  'int8':    'b',  'byte': 'b', # UChar_t 
   'i': 'I',  'int32':   'I',               # Int_t   
   'l': 'L',  'int64':   'L',  int:    'L', # Long64_t
+  'L': 'l',  'uint64':  'l',               # ULong64_t
   'f': 'F',  'float32': 'F',               # Float_t 
   'd': 'D',  'float64': 'D',  float:  'D', # Double_t
 }
 np_dtype = { # ROOT -> numpy data type
-  'b': 'b', 'O': '?', 'I': 'int32', 'L': 'int64',
+  'b': 'b', 'O': '?',
+  'I': 'int32', 'L': 'int64', 'l': 'uint64',
   'F': 'float32', 'D': 'float64',
 }
 
