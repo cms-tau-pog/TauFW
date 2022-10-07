@@ -122,7 +122,7 @@ class StorageSystem(object):
     path    = self.expandpath(*paths,here=here)
     retlist = self.execute("%s %s%s"%(self.lscmd,self.lsurl,path),fatal=False,dry=dryrun,verb=verb)
     delim   = '\r\n' if '\r\n' in retlist else '\n'
-    retlist = retlist.split(delim)
+    retlist = [x for x in retlist.split(delim) if x]
     if isinstance(lscol,int):
       retlist = [l.split(' ')[lscol] for l in retlist]
     if retlist and 'No such file or directory' in retlist[0]:

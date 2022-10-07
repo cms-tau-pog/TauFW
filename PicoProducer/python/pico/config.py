@@ -209,7 +209,7 @@ def main_write(args):
         sampleset.append([ ]) # list for retries
       if len(samples0)>=2 and '$' not in listname.replace('$ERA',''):
         LOG.warn("Given list name %r without variables for %d samples. "%(listname,len(samples0))+
-                 "Note this will overwrite.Please add variables, such as '$SAMPLE', '$PATH', '$GROUP'.")
+                 "Note this will overwrite. Please add variables, such as '$SAMPLE', '$PATH', '$GROUP'.")
       
       # LOOP over SAMPLES
       for retry, samples in enumerate(sampleset):
