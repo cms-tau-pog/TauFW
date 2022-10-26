@@ -40,9 +40,17 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
       if verb>=4:
         print ">>> %10d %s (dict)"%(nevts,fname)
     else: # get number of events from file
-      file  = ensureTFile(fname,'READ')
-      nevts = file.Get('Events').GetEntries()
-      file.Close()
+      tries = 0
+      nevts = -1
+      while tries<5 and nevts==-1:
+        try:
+          file  = ensureTFile(fname,'READ')
+          nevts = file.Get('Events').GetEntries()
+          file.Close()
+        except OSError:
+          tries+=1
+      if nevts==-1:
+        OSError("Failed to open file "+fname)
       if isinstance(evtdict,dict):
         evtdict[fname] = nevts # store for possible later reuse (if same sample is submitted multiple times)
       if verb>=4:
