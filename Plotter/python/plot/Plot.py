@@ -71,7 +71,7 @@ class Plot(object):
     if kwargs.get('clone',False):
       hists    = [h.Clone(h.GetName()+"_clone_Plot%d"%i) for i, h in enumerate(hists)]
     self.hists = hists
-    self.frame = kwargs.get('frame', None )
+    self.frame = kwargs.get('frame', None ) # only store if specified by user
     frame      = self.frame or self.hists[0]
     binlabels  = frame.GetXaxis().GetLabels()
     binlabels  = [str(s) for s in binlabels] if binlabels else None
@@ -208,13 +208,13 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    if logx and xmin==0.0: xmin = 0.25*self.frame.GetXaxis().GetBinWidth(1)
     hists        = self.hists
+    frame = self.frame or hists[0]
+    if logx and xmin==0.0: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else False
     denom        = kwargs.get('den',   denom ) # alias
     denom        = kwargs.get('denom', denom ) # denominator histogram in ratio plot
     if logx and xmin==0: # reset xmin in binning
-      frame = self.frame or hists[0]
       xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
       xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
       LOG.verb("Plot.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
