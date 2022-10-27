@@ -194,6 +194,7 @@ class Plot(object):
     option       = kwargs.get('option',       'HIST'          ) # draw option for every histogram
     options      = kwargs.get('options',      [ ]             ) # draw option list per histogram
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
+    drawden      = kwargs.get('drawden',      False           ) # draw denominator in ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       False           ) # horizontal error bars
     dividebins   = kwargs.get('dividebins',   self.dividebins )
@@ -323,7 +324,7 @@ class Plot(object):
     # RATIO
     if ratio:
       self.canvas.cd(2)
-      self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,option=roption)
+      self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,drawden=drawden,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
       self.setaxes(self.ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,ylabelsize=ylabelsize,xtitleoffset=xtitleoffset,
