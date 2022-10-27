@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (April 2022)
-# Description: Study genmatch algorithms in nanoAOD
+# Description: Study genmatch algorithms for hadronic taus (Tau_genPartFlav) in nanoAOD
 # HTT gen-matching:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#MC_Matching
 #   https://indico.cern.ch/event/439324/#19-studies-on-background-categ
