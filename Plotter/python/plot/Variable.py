@@ -79,7 +79,7 @@ class Variable(object):
       self.title = makelatex(self.title,units=self.units)
       if 'ctitle' in kwargs:
         for ckey, title in kwargs['ctitle'].iteritems():
-          kwargs['ctitle'][ckey] = makelatex(title)
+          kwargs['ctitle'][ckey] = makelatex(title,units=self.units)
     if self.only:
       self.only = ensurelist(self.only)
     if self.veto:
