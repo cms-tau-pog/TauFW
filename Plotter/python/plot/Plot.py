@@ -71,7 +71,7 @@ class Plot(object):
     if kwargs.get('clone',False):
       hists    = [h.Clone(h.GetName()+"_clone_Plot%d"%i) for i, h in enumerate(hists)]
     self.hists = hists
-    self.frame = kwargs.get('frame', None )
+    self.frame = kwargs.get('frame', None ) # only store if specified by user
     frame      = self.frame or self.hists[0]
     binlabels  = frame.GetXaxis().GetLabels()
     binlabels  = [str(s) for s in binlabels] if binlabels else None
@@ -194,6 +194,7 @@ class Plot(object):
     option       = kwargs.get('option',       'HIST'          ) # draw option for every histogram
     options      = kwargs.get('options',      [ ]             ) # draw option list per histogram
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
+    drawden      = kwargs.get('drawden',      False           ) # draw denominator in ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       False           ) # horizontal error bars
     dividebins   = kwargs.get('dividebins',   self.dividebins )
@@ -207,13 +208,13 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    if logx and xmin==0.0: xmin = 0.25*self.frame.GetXaxis().GetBinWidth(1)
     hists        = self.hists
+    frame = self.frame or hists[0]
+    if logx and xmin==0.0: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else False
     denom        = kwargs.get('den',   denom ) # alias
     denom        = kwargs.get('denom', denom ) # denominator histogram in ratio plot
     if logx and xmin==0: # reset xmin in binning
-      frame = self.frame or hists[0]
       xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
       xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
       LOG.verb("Plot.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
@@ -323,7 +324,7 @@ class Plot(object):
     # RATIO
     if ratio:
       self.canvas.cd(2)
-      self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,option=roption)
+      self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,drawden=drawden,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
       self.setaxes(self.ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,ylabelsize=ylabelsize,xtitleoffset=xtitleoffset,

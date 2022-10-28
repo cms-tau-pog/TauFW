@@ -283,6 +283,17 @@ They follow this hierarchy:
 </p>
 
 
+## Other modules
+Several other modules are stored here:
+* [`GenDumper.py`](GenDumper.py): To dump some basic generator-level information (PDG ID, pt, status, status flags, ...) of a given sample.
+* [`GenFilterMuTau.py`](GenFilterMuTau.py): To study the generator mutau-filter, used for stitching.
+* ['GenMatcher.py`](GenMatcher.py): To study the gen-match algorithm for hadronic taus (`Tau_genPartFlav`).
+* [`PileUp.py`](PileUp.py): To compile histograms of pileup / number of primary vertices distributions in MC,
+see [these instructions](https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer/python/corrections#pileup-reweighting).
+* [`StitchEffs.py`](StitchEffs.py): To create 1D & 2D histograms of LHE-level Njets (number of partons) & HT to compute stitching weights
+for `DY*Jets*(HT)` & `W*Jets*(HT)` samples.
+
+
 ## Corrections
 Correction tools are found in [`python/corrections/`](../corrections) and
 corresponding weights, scale factors and more in [`data/`](../../data).

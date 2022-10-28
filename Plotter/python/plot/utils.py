@@ -783,7 +783,7 @@ def resetbinning(axis,xmin=None,xmax=None,variable=False,**kwargs):
     xmax = xmax_ if xmax==None else xmax
     LOG.verb("resetbinning: width=%s, xmin=%s -> %s, xmax=%s -> %s"%(width,xmin_,xmin,xmax_,xmax),verbosity,3)
     if not variable and (xmax_-xmin)%width==0 and (xmax-xmin_)%width==0: # bin edges align
-      nbins = (xmax-xmin)/width # new number of bins
+      nbins = int((xmax-xmin)/width) # new number of bins
       xbins = (nbins,xmin,xmax)
     else: # bin edges do not align; create a variable binning
       oldedges = [xmin_+width*i for i in range(0,nbins+1)] # original bin edges
@@ -816,7 +816,11 @@ def resetrange(oldhist,xmin=None,xmax=None,ymin=None,ymax=None,**kwargs):
     xbins = resetbinning(oldhist.GetXaxis(),xmin,xmax,verb=verbosity)
     ybins = resetbinning(oldhist.GetYaxis(),ymin,ymax,verb=verbosity)
     bins = xbins+ybins
-    newhist = TH2D(hname,hname,*bins)
+    try:
+      newhist = TH2D(hname,hname,*bins)
+    except TypeError as err:
+      print ">>> resetrange: hname=%r bins=%r"%(hname,bins)
+      raise err
     if verbosity>=1:
       print ">>> resetrange: (nxbins,xmin,xmax) = (%s,%s,%s) -> (%s,%s,%s)"%(
         oldhist.GetXaxis().GetNbins(),oldhist.GetXaxis().GetXmin(),oldhist.GetXaxis().GetXmax(),

@@ -373,162 +373,139 @@ def stitch(samplelist,*searchterms,**kwargs):
   name_incl = kwargs.get('incl',      searchterms[0] ) # name of inclusive sample
   xsec_incl = kwargs.get('xsec',      None           ) # (N)NLO cross section to compute k-factor
   kfactor   = kwargs.get('kfactor',   None           ) # k-factor
-  eff_mutau = kwargs.get('eff_mutau', 0.008009       ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToLL_M-50
-  eff_mutau_excl = kwargs.get('eff_mutau', 0.701     ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToTauTauToMuTauh_M-50
+
+####################################################################################
+# Efficiency values should be adapted when removing "quick fix" for mutau flag removing radiating taus!
+####################################################################################
+  effMuTau_incl = kwargs.get('eff_mutau_incl', 0.005086       ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToLL_M-50
+  effMuTau_excl = kwargs.get('eff_mutau_excl', 0.58383   ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToMuTauh_M-50
+  effMuTau_njet = dict()
+  effMuTau_njet[1] = kwargs.get('eff_mutau_1jet', 0.005593  ) # efficiency mutau (pT>18, |eta|<2.5) in DY1JetsToLL_M-50
+  effMuTau_njet[2] = kwargs.get('eff_mutau_2jet', 0.006309  ) # efficiency mutau (pT>18, |eta|<2.5) in DY2JetsToLL_M-50
+  effMuTau_njet[3] = kwargs.get('eff_mutau_3jet', 0.006932  ) # efficiency mutau (pT>18, |eta|<2.5) in DY3JetsToLL_M-50
+  effMuTau_njet[4] = kwargs.get('eff_mutau_4jet', 0.007856  ) # efficiency mutau (pT>18, |eta|<2.5) in DY4JetsToLL_M-50
+  effMuTauNjet_incl = dict()
+  effMuTauNjet_incl[0] = kwargs.get('eff_mutau_0orp4jet_incl', 0.0035283673 )
+  effMuTauNjet_incl[1] = kwargs.get('eff_mutau_1jet_incl', 0.0010102964 )
+  effMuTauNjet_incl[2] = kwargs.get('eff_mutau_2jet_incl', 0.0003650867 )
+  effMuTauNjet_incl[3] = kwargs.get('eff_mutau_3jet_incl', 0.0001165299 )
+  effMuTauNjet_incl[4] = kwargs.get('eff_mutau_4jet_incl', 0.0000658845 )
+  effMuTauNjet_excl = dict()
+  effMuTauNjet_excl[0] = kwargs.get('eff_mutau_0orp4jet_excl', 0.40987941 )
+  effMuTauNjet_excl[1] = kwargs.get('eff_mutau_1jet_excl', 0.11475415 )
+  effMuTauNjet_excl[2] = kwargs.get('eff_mutau_2jet_excl', 0.039009160 )
+  effMuTauNjet_excl[3] = kwargs.get('eff_mutau_3jet_excl', 0.012867714 )
+  effMuTauNjet_excl[4] = kwargs.get('eff_mutau_4jet_excl', 0.0073231573 )
+
   npartvar  = kwargs.get('npart',     'NUP'          ) # variable name of number of partons in tree; 'NUP', 'LHE_Njets', ...
   LOG.verb("stitch: rescale, reweight and merge %r samples"%(name),verbosity,level=1)
-  
+
   # GET list samples to-be-stitched
   stitchlist = samplelist.samples if isinstance(samplelist,SampleSet) else samplelist
   stitchlist = [s for s in stitchlist if s.match(*searchterms,incl=True)]
   if len(stitchlist)<2:
     LOG.warn("stitch: Could not stitch %r: fewer than two %s samples (%d) match '%s'"%(
                  name,name,len(stitchlist),"', '".join(searchterms)))
-    for s in stitchlist:
-      print ">>>   %s"%s.name
-    if len(stitchlist)==0:
-      return samplelist
+    return samplelist
+  for s in stitchlist:
+    print ">>>   %s"%s.name
+
+  sample_incl = None
+  sample_mutau = None #"DYJetsToMuTauh_M-50"
+  samples_jetIncl = [s for s in stitchlist if s.match(name_incl)]
+  for sample in samples_jetIncl:
+    if sample.match("DYJets*MuTau",incl=False):
+      sample_mutau = sample
+    else:
+      sample_incl = sample
+  if not sample_incl:
+    print "No inclusive sample to stitch... abort"
+    return samplelist
+
   name  = kwargs.get('name',stitchlist[0].name)
   title = kwargs.get('title',gettitle(name,stitchlist[0].title))
   if not title:
     title = sample_incl.title
-  
-  # FIND inclusive sample
-  sample_incls = [s for s in stitchlist if s.match(name_incl)]
-  sample_mutau = None # DYJetsToTauTauToMuTauh_M-50
-  if len(sample_incls)==2: # look for DYJetsToTauTauToMuTauh_M-50
-    for sample in sample_incls:
-      if sample.match("DYJets*MuTau",incl=False):
-        sample_mutau = sample
-        stitchlist.remove(sample) # stitch in parallel
-        sample_incls.remove(sample)
-  if len(sample_incls)==0:
-    LOG.warn('stitch: Could not find inclusive sample "%s"! Just joining...'%(name))
-    return join(samplelist,*searchterms,**kwargs)
-  elif len(sample_incls)>1:
-    LOG.warn("stitch: Found more than one inclusive sample %r with '%s' searchterms: %s"%(
-                name,"', '".join(searchterms),sample_incls))
-  
-  # (N)NLO/LO k-factor
-  sample_incl     = sample_incls[0]
-  nevts_incl      = sample_incl.sumweights
-  xsec_incl_LO    = sample_incl.xsec
-  if kfactor:
-    xsec_incl_NLO = kfactor*xsec_incl_LO
-  else:
-    xsec_incl_NLO = xsec_incl or getxsec_nlo(name,*searchterms) or xsec_incl_LO
-    kfactor       = xsec_incl_NLO / xsec_incl_LO
-  LOG.verb("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
-  
-  # GET effective number of events per jet bin
-  neffs = [ ]
-  if verbosity>=2:
-    print ">>>   Get effective number of events per jet bin:"
-    LOG.ul("%-19s %12s = %12s + %12s * %7s / %6s"%('name','neff','nevts','nevts_incl','xsec','xsec_incl_LO'),pre="    ")
+
+  sample_njet = dict()
   for sample in stitchlist:
-    nevts = sample.sumweights # number of events in this sample
-    neff  = nevts # effective number of events after stitching
-    xsec  = sample.xsec # LO inclusive or jet-binned cross section
-    if sample==sample_incl: #.match(name_incl):
-      LOG.verb("%-19s %12.2f = %12.1f"%(sample.name,neff,nevts),verbosity,2,pre="    ")
+    if sample in samples_jetIncl:
+      continue
     else:
-      neff = nevts + nevts_incl*xsec/xsec_incl_LO # effective number of events (no k-factor to preserve npart distribution)
-      LOG.verb("%-19s %12.2f = %12.1f + %12.2f * %7.2f / %6.2f"%(sample.name,neff,nevts,nevts_incl,xsec,xsec_incl_LO),verbosity,2,pre="    ")
-    neffs.append(neff)
-  
-  # GET effective number of events in mutau phase space (pT>18, |eta|<2.5)
-  neffs_mutau = [ ]
+      print sample.name
+      njets = int(sample.name[int(sample.name.find("Jets")-1)])
+      print "...jet multiplcity: %i"%njets
+      sample_njet[njets] = sample
+
+  print "Lumi = %.6g, xsec = %.6g, sumw = %.6g"%(sample_incl.lumi, sample_incl.xsec, sample_incl.sumweights)
+  print "Sample_incl.norm = %.6g"%sample_incl.norm
+  wIncl = sample_incl.lumi * sample_incl.xsec * 1000. / sample_incl.sumweights
+  print "Inclusive weight = %.6g"%wIncl
+
+  effIncl_njet = dict()
+  wIncl_njet = dict()
+  for njets in sample_njet:
+    sample = sample_njet[njets]
+    effIncl_njet[njets] = sample.xsec/sample_incl.xsec
+    print "%i-jet efficiency in inclusive sample = %.6g"%(njets,effIncl_njet[njets])
+    wIncl_njet[njets] = sample.lumi * sample.xsec * 1000. / (sample.sumweights + effIncl_njet[njets]*sample_incl.sumweights)
+    print "Lumi = %.6g, xsec = %.6g, sumw = %.6g"%(sample.lumi, sample.xsec, sample.sumweights)
+    print "Sample.norm = %.6g"%sample.norm
+    print "Inclusive %i jets weight = %.6g"%(njets,wIncl_njet[njets])
+
+  wIncl_mutau = ""
+  wMuTau_njet = dict()
   if sample_mutau:
-    print ">>>   Get effective number of events in mutau phase space (pT>18, |eta|<2.5):"
-    LOG.ul("%-19s %12s = %9s * %12s + %9s * %12s"%('name','neff','eff_mutau','nevts_mutau','eff_mutau','neff_incl'),pre="    ")
-    LOG.verb("%-19s %12s %26.1f"%(sample_mutau.name,"",sample_mutau.sumweights),verbosity,2,pre="    ")
-    nevts_excl = sample_mutau.sumweights
-    for sample, neff in zip(stitchlist,neffs):
-      neff_mutau = eff_mutau_excl*nevts_excl + eff_mutau*neff
-      neffs_mutau.append(neff_mutau)
-      LOG.verb("%-19s %12.2f = %9.5f * %12.1f + %9.5f * %12.2f"%(
-        sample.name,neff_mutau,eff_mutau_excl,nevts_excl,eff_mutau,neff),verbosity,2,pre="    ")
-  
-  # SET normalization with effective luminosity
-  weights_incl  = [ ] # normalization for NUP==npart component in incl. sample
-  weights_mutau = [ ] # normalization for NUP==npart component in incl. sample in mutau phase space
-  npart_max     = -1
-  if verbosity>=2:
-    print ">>>   Get lumi-xsec normalization:"
-    LOG.ul('%-18s %5s %9s = %9s * %7s * %8s * 1000 / %8s'%('name','npart','norm','lumi','kfactor','xsec','neff'+' '*9),pre="    ")
-  for i, (sample,neff) in enumerate(zip(stitchlist,neffs)):
-    if sample==sample_incl: #.match(name_incl):
-      npart = 0
-    else: # get number of jets/partons from name pattern
-      matches = re.findall("(\d+)Jets",sample.fnameshort)      
-      if len(matches)==0:
-        LOG.throw(IOError,'stitch: Could not stitch %r: no "\\d+Jets" pattern found in %r!'%(name,sample.name))
-      elif len(matches)>1:
-        LOG.warn('stitch: More than one "\\d+Jets" match found in %r! matches = %s'%(sample.name,matches))
-      npart = int(matches[0])
-    xsec = sample.xsec # LO inclusive or jet-binned xsec
-    norm = sample.lumi * kfactor * xsec * 1000 / neff # normalization for NUP==npart component in jet-incl. sample
-    weights_incl.append("(%s==%d?%.6g:1)"%(npartvar,npart,norm))
-    LOG.verb('%-18s %5d %9.4f = %9.2f * %7.3f * %8.2f * 1000 / %12.2f'%(
-      sample.name,npart,norm,sample.lumi,kfactor,xsec,neff),verbosity,2,pre="    ")
-    if sample_mutau: # normalization for NUP==npart in mutau phase space
-      neff_mutau = neffs_mutau[i]
-      norm_mutau = sample.lumi * kfactor * eff_mutau * xsec * 1000 / neff_mutau # for mutau phase space
-      weights_mutau.append("(%s==%d?%.6g:1)"%(npartvar,npart,norm_mutau))
-      weight_mutau = "(mutaufilter?%.6g:%.6g)"%(norm_mutau,norm)
-      LOG.verb('%-18s %5d %9.4f = %9.2f * %7.3f * %8.2f * 1000 / %12.2f (mutau)'%(
-        sample.name,npart,norm_mutau,sample.lumi,kfactor,eff_mutau*xsec,neff_mutau),verbosity,2,pre="    ")
-    if npart>npart_max:
-      npart_max = npart
-    if sample==sample_incl: # jet-inclusive sample
-      if len(stitchlist)>=2:
-        sample.norm = 1.0 # apply lumi-xsec normalization via weights instead of Sample.norm attribute
-      elif sample_mutau:
-        sample.norm = 1.0 # apply lumi-xsec normalization via weights instead of Sample.norm attribute
-        sample_mutau.norm = 1.0
-        sample.addweight(weight_mutau)
-        sample_mutau.addweight(weight_mutau)
-        LOG.verb("  Mutau stitch weight:\n>>>     %r"%(weight_mutau),verbosity,2)
-      else:
-        sample.norm = norm # apply lumi-xsec normalization directly
-    else: # jet-binned sample
-      if sample_mutau: # stitch jet-binned sample with mutau
-        sample.norm = 1.0 # apply lumi-xsec normalization via weights instead of Sample.norm attribute
-        sample.addweight(weight_mutau) # reweight mutau phase space
-      else:
-        sample.norm = norm # apply lumi-xsec normalization directly
-  
-  # IF NO JET BINNED SAMPLE
-  if len(stitchlist)==1:
-    if not sample_mutau: # do not join
-      return samplelist # only k-factor was applied to lumi-xsec normalization (of jet-incl. sample)
+    wIncl_mutau = sample_incl.lumi * sample_incl.xsec * 1000. * effMuTau_incl / ( effMuTau_incl*sample_incl.sumweights + effMuTau_excl*sample_mutau.sumweights )
+    print "Inclusive mutau weight = %.6g"%wIncl_mutau
+    for njets in sample_njet:
+      sample = sample_njet[njets]
+      wMuTau_njet[njets] = sample.lumi * sample.xsec * 1000. * effMuTau_njet[njets] / ( effMuTau_njet[njets]*sample.sumweights + effMuTauNjet_excl[njets]*sample_mutau.sumweights + effMuTauNjet_incl[njets]*sample_incl.sumweights )
+      print "Inclusive mutau %i jets weight = %.6g"%(njets,wMuTau_njet[njets])
+
+  conditionalWeight_incl = ""
+  if sample_mutau:
+    if len(sample_njet)>0:
+      conditionalWeight_incl = "(%s==0||%s>4 ? (mutaufilter ? %.6g : %.6g) : 1)"%(npartvar, npartvar, wIncl_mutau, wIncl)
+    else:
+      conditionalWeight_incl = "(mutaufilter ? %.6g : %.6g)"%(wIncl_mutau, wIncl)
+    for njets in sample_njet:
+      conditionalWeight_incl += " * (%s==%i ? (mutaufilter ? %.6g : %.6g) : 1)"%(npartvar, njets, wMuTau_njet[njets], wIncl_njet[njets])
   else:
-    
-    # ADD weights for NUP > npart_max, same as NUP==0
-    if npart_max>0:
-      for weight in weights_incl:
-        if "==0" in weight:
-          weights_incl.append(weight.replace("==0",">%d"%(npart_max))); break
-      for weight in weights_mutau:
-        if "==0" in weight:
-          weights_mutau.append(weight.replace("==0",">%d"%(npart_max))); break
+    if len(sample_njet)>0:
+      conditionalWeight_incl = "(%s==0||%s>4 ? %.6g : 1)"%(npartvar, npartvar, wIncl)
     else:
-      LOG.warn("   found no maximum %s (%d)..."%(npartvar,npartvar,npart_max))
-    
-    # SET stich weight of inclusive sample
+      conditionalWeight_incl = "(%.6g)"%(wIncl)
+    for njets in sample_njet:
+      conditionalWeight_incl += " * (%s==%i ? %.6g : 1)"%(npartvar, njets, wIncl_njet[njets])
+  sample_incl.norm = 1.0
+  conditionalWeight_incl = "("+conditionalWeight_incl+")"
+  sample_incl.addweight(conditionalWeight_incl)
+
+  conditionalWeight_mutau = ""
+  if sample_mutau:
+    if len(sample_njet)>0:
+      conditionalWeight_mutau = "mutaufilter * (%s==0||%s>4 ? %.6g : 1)"%(npartvar, npartvar, wIncl_mutau)
+    else:
+      conditionalWeight_mutau = "mutaufilter * %.6g"%(wIncl_mutau)
+    for njets in sample_njet:
+      conditionalWeight_mutau += " * (%s==%i ? %.6g : 1)"%(npartvar, njets, wMuTau_njet[njets])
+    sample_mutau.norm = 1.0
+    conditionalWeight_mutau = "("+conditionalWeight_mutau+")"
+    sample_mutau.addweight(conditionalWeight_mutau)
+
+  for njets in sample_njet:
+    conditionalWeight_njet = ""
     if sample_mutau:
-      stitchweights = "(mutaufilter?(%s):(%s))"%('*'.join(weights_mutau),'*'.join(weights_incl))
-      weight_mutau = "(mutaufilter?(%s):0)"%('*'.join(weights_mutau))
-      sample_mutau.norm = 1.0
-      sample_mutau.addweight(weight_mutau)
-      LOG.verb("  Mutau stitch weight:\n>>>     %r"%(weight_mutau),verbosity,2)
+      conditionalWeight_njet = "(mutaufilter ? %.6g : %.6g)"%(wMuTau_njet[njets], wIncl_njet[njets])
     else:
-      stitchweights = '*'.join(weights_incl)
-    LOG.verb("  Inclusive stitch weight:\n>>>     %r"%(stitchweights),verbosity,2)
-    sample_incl.addweight(stitchweights)
-  
+      conditionalWeight_njet = "(%.6g)"%wIncl_njet[njets]
+    sample_njet[njets].norm = 1.0
+    conditionalWeight_njet = "("+conditionalWeight_njet+")"
+    sample_njet[njets].addweight(conditionalWeight_njet)
+
   # JOIN
-  join(samplelist,*searchterms,name=name,title=title,verbosity=verbosity)
+  join(samplelist,*searchterms,name=name,title=title,verbosity=5)
   newsample = findsample(samplelist,name,unique=True)
   newsample.sample_incl = sample_incl
   return samplelist

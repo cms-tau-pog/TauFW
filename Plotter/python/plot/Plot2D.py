@@ -58,6 +58,7 @@ class Plot2D(Plot):
       self.ymax       = kwargs.get('ymax',       yvariable.xmax      )
       self.logy       = kwargs.get('logy',       xvariable.logx      )
       self.ybinlabels = kwargs.get('ybinlabels', yvariable.binlabels )
+      self.ztitle     = kwargs.get('ztitle',     ""                  )
       self.logz       = kwargs.get('logz',       xvariable.logy      )
       self.position   = kwargs.get('position',   xvariable.position  )
       self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable.filename,xvariable.filename))
@@ -74,6 +75,7 @@ class Plot2D(Plot):
       self.ymax       = kwargs.get('ymax',       hist.GetYaxis().GetXmax() )
       self.logy       = kwargs.get('logy',       False                     )
       self.ybinlabels = kwargs.get('ybinlabels', None                      )
+      self.ztitle     = kwargs.get('ztitle',     ""                        )
       self.logz       = kwargs.get('logz',       False                     )
       self.position   = kwargs.get('position',   ""                        )
       self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable,xvariable))
@@ -86,11 +88,11 @@ class Plot2D(Plot):
     hist         = self.hist
     verbosity    = LOG.getverbosity(self,kwargs)
     yoffset      = kwargs.get('yoffset',      1.35 if self.hist.GetYaxis().GetXmax()>=1000 else 1.15 )
-    option       = kwargs.get('option',       'COLZ',                     ) # COLZTEXT44
+    option       = kwargs.get('option',       args[0] if args else 'COLZ' ) # COLZTEXT44
     title        = kwargs.get('title',        ""                          )
     xtitle       = kwargs.get('xtitle',       self.xtitle                 )
     ytitle       = kwargs.get('ytitle',       self.ytitle                 )
-    ztitle       = kwargs.get('ztitle',       ""                          )
+    ztitle       = kwargs.get('ztitle',       self.ztitle                 )
     zcenter      = kwargs.get('zcenter',      "Events" not in ztitle      )
     xmin         = kwargs.get('xmin',         self.xmin                   )
     xmax         = kwargs.get('xmax',         self.xmax                   )

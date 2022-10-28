@@ -17,6 +17,7 @@ from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, ensurelist, ensure
                                        setera, Sel, Var
 from ROOT import TChain
 
+
 class Sample:
   """Container class for sample files."""
   

@@ -18,10 +18,12 @@ class Ratio(object):
     verbosity     = LOG.getverbosity(kwargs)
     self.ratios   = [ ]
     self.errband  = None
+    self.drawden  = kwargs.get('drawden',     False       ) # draw denominator (with error bars)
     self.title    = kwargs.get('title',       "ratio"     )
     self.line     = kwargs.get('line',        True        )
     self.drawzero = kwargs.get('drawzero',    True        ) # draw ratio of two zero bins as 1
-    errband       = kwargs.get('errband',     None        ) # error band (e.g. stat. and/or sys. unc.)
+    errband       = kwargs.get('errband',     None        ) # draw error band (e.g. stat. and/or sys. unc.)
+    errbars       = kwargs.get('errbars',     False       ) # draw error bars
     option        = kwargs.get('option',      ""          )
     denom         = kwargs.get('denom',       None        ) # histogram as denominator (count from 1)
     errorX        = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
@@ -43,6 +45,8 @@ class Ratio(object):
       if fraction:
         fraction = normalizebins(histden)
       histden = histden.GetStack().Last() # should have correct bin content and error
+    if self.drawden and histden not in histnums:
+      histnums.insert(0,histden)
     #elif isinstance(histden,TGraph):
     #  LOG.error("Ratio.init: TGraph not implemented")
     #elif isinstance(histden,TProfile):
@@ -106,8 +110,8 @@ class Ratio(object):
       xmax      = max(xvals)
     xmin        = kwargs.get('xmin',   xmin  )
     xmax        = kwargs.get('xmax',   xmax  )
-    ymin        = kwargs.get('ymin',   0.5   )
-    ymax        = kwargs.get('ymax',   1.5   )
+    ymin        = kwargs.get('ymin',   0.5   ) #default = 0.5
+    ymax        = kwargs.get('ymax',   1.5   ) #default = 1.5
     data        = kwargs.get('data',   False )
     xtitle      = kwargs.get('xtitle', ""    )
     ytitle      = kwargs.get('ytitle', "Obs. / Exp." if data else "Ratio" )
