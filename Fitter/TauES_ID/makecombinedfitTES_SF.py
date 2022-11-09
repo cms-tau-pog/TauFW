@@ -88,7 +88,7 @@ def combinedfit(setup, option, **kwargs):
                 os.system("text2workspace.py output_%s/ztt_%s.txt" %(era, BINLABEL))
                 os.system("combine -M MultiDimFit %s %s %s -n .%s %s %s %s %s --trackParameters %s" %(WORKSPACE, algo, POI_OPTS, BINLABEL, fit_opts, xrtd_opts, cmin_opts, save_opts, NP))
 
-            # @D Fit of tes_DM and tid_SF_DM by DM, both are pois
+            # 2D Fit of tes_DM and tid_SF_DM by DM, both are pois
             elif option == '3':  
                 print(">>>>>>> Fit of tid_SF_"+r+" and tes_"+r)
                 POI1 = "tid_SF_%s" % (r)

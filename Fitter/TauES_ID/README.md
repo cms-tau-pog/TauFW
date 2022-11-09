@@ -10,7 +10,7 @@ See [the README.md in the TauES directory ](../TauES)
 
 ## Running the fit:
 
-python makecombinedFitTES_SF.py -y UL2018 -o 1 -c TauES_ID/config/FitSetupTES_mutau_noSF.yml
+python TauES_ID/makecombinedFitTES_SF.py -y UL2018 -o 1 -c TauES_ID/config/FitSetupTES_mutau_noSF.yml
 -> for more information on the different parts, please look into the python script
 
 The fit is done using [Combine tool](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/).
@@ -28,11 +28,11 @@ The fit is done using [Combine tool](https://cms-analysis.github.io/HiggsAnalysi
 * important information to define in the config file to use makecombinedfitTES_SF.py :
   - 'regions': one datacard file is created for each region. A region contains a definition and a title.
   - 'plottingOrder': used by plotParabola_POI.py to make the summary plot of the POI measurements.
-  - 'tesRegions': tes are scanned in this regions. Title are defined. 
-  - 'tid_SFRegions': tid SF are scanned in this regions.  Title are defined.
-  - 'observables ': observable to fit : usally m_vis.
-    - 'fitRegions': for each observable, fit regions are defined.
-    - 'scanRegions': for each observable, the region to scan the poi. 
+  - 'tesRegions': tes are scanned in this regions. Title are defined. Used for 2d scan.
+  - 'tid_SFRegions': tid SF are scanned in this regions. Title are defined. Used for 2d scan
+  - 'observables ': observable to fit: usally m_vis.
+    - 'fitRegions': for each observable, fitted regions are defined.
+    - 'scanRegions': for each observable, the poi is scanned on this regions. 
 
 ### Preparing the datacards:
 

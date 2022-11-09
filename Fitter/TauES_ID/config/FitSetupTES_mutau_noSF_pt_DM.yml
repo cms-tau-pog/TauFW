@@ -111,11 +111,11 @@ regions:
         definition: "mt_1<65 && dm_2==11 && pt_2>70"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
 
-# #tes 
-plottingOrder: ["DM11", "DM10","DM1", "DM0"]
+# # #tes 
+# plottingOrder: ["DM11", "DM10","DM1", "DM0"]
 
 # #tid SF
-# plottingOrder: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"]
+plottingOrder: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"]
 
 # Observable: to be fitted and plotted
 # binning: as defined in TH1 (nbins, xmin, xmax)
@@ -155,8 +155,8 @@ observables:
         extra:
             cut: "50<m_vis && m_vis<106"
         fitRegions: ["DM0_pt1","DM0_pt2","DM0_pt3","DM0_pt4","DM0_pt5","DM0_pt6","DM0_pt7", "DM1_pt1","DM1_pt2","DM1_pt3","DM1_pt4","DM1_pt5","DM1_pt6","DM1_pt7","DM10_pt1","DM10_pt2","DM10_pt3","DM10_pt4","DM10_pt5","DM10_pt6","DM10_pt7","DM11_pt1","DM11_pt2","DM11_pt3","DM11_pt4","DM11_pt5","DM11_pt6","DM11_pt7"]
-        #scanRegions: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"] #option 4
-        scanRegions: ["DM0", "DM1", "DM10", "DM11"] #option 5
+        scanRegions: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"] #option 4
+        #scanRegions: ["DM0", "DM1", "DM10", "DM11"] #option 5
 
 
 # Assume that this code is meant to fit TES variations; more options could be added when adding other POIs
