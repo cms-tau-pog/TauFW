@@ -368,6 +368,43 @@ def getlepvetoes(event, electrons, muons, taus, channel):
   return extramuon_veto, extraelec_veto, dilepton_veto
   
 
+def gettauveto(event, taus, channel):
+  """Check if event has extra taus"""
+ 
+  extratau_veto=False
+
+  # EXTRA TAU VETO
+  for tau in Collection(event,'Tau'):
+    if tau.pt<100: continue
+    if abs(tau.eta)>2.3: continue
+    if abs(tau.dz)>0.1: continue
+    if abs(tau.dxy)>0.045: continue
+    if all(t._index!=tau._index for t in taus): continue 
+    if tau.idDeepTau2017v2p1VSe >= 128 and tau.idDeepTau2017v2p1VSmu >= 8 and tau.idDeepTau2017v2p1VSjet >= 1:
+      extratau_veto = True
+    
+  return extratau_veto
+
+def getjetveto(event,jets,taus,channel,era):
+  """Check if event has extra jets"""
+  
+  extrajet_veto=False
+
+  # EXTRA JET VETO
+  for jet in Collection(event,'Jet'):
+    if jet.pt<30: continue
+    if abs(jet.eta)>4.7: continue
+    if any(jet.DeltaR(tau)<0.5 for tau in taus):continue
+    if all(j._index!=jet._index for j in jets):continue
+    if(era == '2016' )and (jet.jetId >=1):
+       extrajet_veto = True
+    elif (era == '2017'  or era =='2018') and (jet.jetId >= 2):
+       extrajet_veto = True
+  
+  return extrajet_veto
+
+
+
 class LeptonPair:
   """Container class to pair and order tau decay candidates."""
   def __init__(self, obj1, iso1, obj2, iso2):

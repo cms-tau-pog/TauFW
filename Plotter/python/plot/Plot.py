@@ -21,7 +21,7 @@ gROOT.SetBatch(True)
 
 # CMS style
 #TGaxis.SetExponentOffset(-0.074,0.015,'y')
-CMSStyle.extraText    = "Preliminary"
+CMSStyle.extraText    = "Work in progress "
 #CMSStyle.cmsTextSize  = 0.75
 #CMSStyle.lumiTextSize = 0.70
 #CMSStyle.relPosX      = 0.12
