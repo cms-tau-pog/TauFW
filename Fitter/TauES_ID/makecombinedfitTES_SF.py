@@ -25,17 +25,17 @@ from argparse import ArgumentParser
 
 ### Fitting fnction using combine tool
 def combinedfit(setup, option, **kwargs):
-    tes_range    = kwargs.get('tes_range',    "%s,%s" %(min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]))        )
-    tid_SF_range = kwargs.get('tid_SF_range', "0.7,1.2"                                                                                      )
-    extratag     = kwargs.get('extratag',     "_DeepTau"                                                                                     )
-    algo         = kwargs.get('algo',         "--algo=grid --alignEdges=1 --saveFitResult "                                                  )# --saveWorkspace
-    fit_opts     = kwargs.get('fit_opts',     "--robustFit=1 --setRobustFitAlgo=Minuit2 --setRobustFitStrategy=2 --setRobustFitTolerance=0.1")
-    npts_fit     = kwargs.get('npts_fit',     "--points=201"                                                                                  )
-    xrtd_opts    = kwargs.get('xrtd_opts',    "--X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND"           )
-    cmin_opts    = kwargs.get('cmin_opts',    "--cminFallbackAlgo Minuit2,Migrad,0:0.5 --cminFallbackAlgo Minuit2,Migrad,0:1.0 --cminPreScan")
-    save_opts    = kwargs.get('save_opts',     "--saveNLL --saveSpecifiedNuis all"                                                            )
-    era          = kwargs.get('era',          ""                                                                                             )
-    config       = kwargs.get('config',       ""                                                                                             )
+    tes_range    = kwargs.get('tes_range',    "%s,%s" %(min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]))                       )
+    tid_SF_range = kwargs.get('tid_SF_range', "0.7,1.2"                                                                                                     )
+    extratag     = kwargs.get('extratag',     "_DeepTau"                                                                                                    )
+    algo         = kwargs.get('algo',         "--algo=grid --alignEdges=1 --saveFitResult "                                                                 )# --saveWorkspace
+    npts_fit     = kwargs.get('npts_fit',     "--points=201"                                                                                                )
+    fit_opts     = kwargs.get('fit_opts',     "--robustFit=1 --setRobustFitAlgo=Minuit2 --setRobustFitStrategy=2 --setRobustFitTolerance=0.1 %s" %(npts_fit))
+    xrtd_opts    = kwargs.get('xrtd_opts',    "--X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND"                          )
+    cmin_opts    = kwargs.get('cmin_opts',    "--cminFallbackAlgo Minuit2,Migrad,0:0.5 --cminFallbackAlgo Minuit2,Migrad,0:1.0 --cminPreScan"               )
+    save_opts    = kwargs.get('save_opts',     "--saveNLL --saveSpecifiedNuis all"                                                                          )
+    era          = kwargs.get('era',          ""                                                                                                            )
+    config       = kwargs.get('config',       ""                                                                                                            )
 
     ### DM regions : tes and tid_SF
     if option < '7':
@@ -78,15 +78,32 @@ def combinedfit(setup, option, **kwargs):
                 POI_OPTS = "-P %s --setParameterRanges %s=%s:tid_SF_%s=%s -m 90 --setParameters r=1,rgx{.*tes.*}=1,rgx{.*tid.*}=1 --freezeParameters r " % (POI, POI, tes_range, r,tid_SF_range)  # tes_DM
                 os.system("text2workspace.py output_%s/ztt_%s.txt" %(era, BINLABEL))
                 os.system("combine -M MultiDimFit  %s %s %s -n .%s %s %s %s %s --trackParameters %s" %(WORKSPACE, algo, POI_OPTS, BINLABEL, fit_opts, xrtd_opts, cmin_opts, save_opts,NP))
+                  # ##Impact plot
+                # POI_OPTS_I = "-P %s --setParameterRanges %s=%s:tid_SF_%s=%s -m 90 --setParameters r=1 --freezeParameters r "%(POI, POI, tes_range, r,tid_SF_range)
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs %s %s %s %s %s  --doInitialFit"%(BINLABEL, WORKSPACE, POI,fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts))
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs %s %s %s %s %s --doFits --parallel 4"%(BINLABEL, WORKSPACE, POI,fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts))
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs %s %s %s %s %s -o postfit/impacts_%s.json"%(BINLABEL, WORKSPACE,POI, fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts, BINLABEL))
+                # os.system("plotImpacts.py -i postfit/impacts_%s.json -o postfit/impacts_%s.json"%(BINLABEL,BINLABEL))
+                # os.system("convert -density 160 -trim postfit/impacts_%s.json.pdf[0] -quality 100 postfit/impacts_%s.png"%(BINLABEL,BINLABEL))
+                
 
             # Fit of tid_SF_DM by DM with tes as a nuisance parameter
             elif option == '2':
                 POI = "tid_SF_%s" % (r)
-                NP = "rgx{.*tes.*}"
+                NP = "rgx{.*tid.*}" 
                 print(">>>>>>> tid_"+r+" fit")
-                POI_OPTS = "-P %s --setParameterRanges %s=%s:tid_SF_%s=%s -m 90 --setParameters r=1,rgx{.*tes.*}=1,rgx{.*tid.*}=1 --freezeParameters r " % (POI, POI, tes_range, r,tid_SF_range)  # tes_DM
+                POI_OPTS = "-P %s --setParameterRanges %s=%s:tes_%s=%s -m 90 --setParameters r=1,rgx{.*tes.*}=1,rgx{.*tid.*}=1 --freezeParameters r " % (POI, POI, tid_SF_range, r,tid_SF_range)  # tes_DM
                 os.system("text2workspace.py output_%s/ztt_%s.txt" %(era, BINLABEL))
                 os.system("combine -M MultiDimFit %s %s %s -n .%s %s %s %s %s --trackParameters %s" %(WORKSPACE, algo, POI_OPTS, BINLABEL, fit_opts, xrtd_opts, cmin_opts, save_opts, NP))
+                 ##Impact plot
+                # POI_OPTS_I = "-P %s --setParameterRanges %s=%s:tes_%s=%s -m 90 --setParameters r=1,tes_%s=1 --freezeParameters r %s"%(POI, POI,tid_SF_range, r,tes_range,r,save_opts)
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs %s %s %s %s %s  --doInitialFit"%(BINLABEL, WORKSPACE, POI,fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts))
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs %s %s %s %s %s --doFits --parallel 4"%(BINLABEL, WORKSPACE, POI,fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts))
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs %s %s %s %s %s -o postfit/impacts_%s.json"%(BINLABEL, WORKSPACE,POI, fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts, BINLABEL))
+                # os.system("plotImpacts.py -i postfit/impacts_%s.json -o postfit/impacts_%s.json"%(BINLABEL,BINLABEL))
+                # os.system("convert -density 160 -trim postfit/impacts_%s.json.pdf[0] -quality 100 postfit/impacts_%s.png"%(BINLABEL,BINLABEL))
+                
+
 
             # 2D Fit of tes_DM and tid_SF_DM by DM, both are pois
             elif option == '3':  
@@ -105,6 +122,13 @@ def combinedfit(setup, option, **kwargs):
                 POI_OPTS = "-P tid_SF_%s --setParameterRanges rgx{.*tid.*}=%s:rgx{.*tes.*}=%s -m 90 --setParameters r=1,rgx{.*tes.*}=1,rgx{.*tid.*}=1 --freezeParameters r" %(r, tid_SF_range, tes_range)
                 WORKSPACE = "output_"+era+"/combinecards.root"
                 os.system("combine -M MultiDimFit %s %s %s -n .%s %s %s %s %s --trackParameters rgx{.*tes.*}" %(WORKSPACE, algo, POI_OPTS, BINLABEL, fit_opts, xrtd_opts, cmin_opts, save_opts))
+                # POI_OPTS_I = "-P tid_SF_%s --setParameterRanges tid_SF_%s=%s -m 90 --setParameters r=1 --freezeParameters r" %(r,r, tid_SF_range)
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs tid_SF_%s %s %s %s %s  --doInitialFit"%(BINLABEL, WORKSPACE, r,fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts))
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs tid_SF_%s %s %s %s %s --doFits --parallel 4"%(BINLABEL, WORKSPACE, r,fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts))
+                # os.system("combineTool.py -M Impacts -n %s -d %s --redefineSignalPOIs tid_SF_%s %s %s %s %s -o postfit/impacts_%s.json"%(BINLABEL, WORKSPACE,r, fit_opts, POI_OPTS_I, xrtd_opts, cmin_opts, BINLABEL))
+                # os.system("plotImpacts.py -i postfit/impacts_%s.json -o postfit/impacts_%s.json"%(BINLABEL,BINLABEL))
+                # os.system("convert -density 160 -trim postfit/impacts_%s.json.pdf[0] -quality 100 postfit/impacts_%s.png"%(BINLABEL,BINLABEL))
+
 
             ## Fit of tes in DM regions with tid_SF and other tes_DM as nuisance parameters  
             elif option == '5':
@@ -133,9 +157,11 @@ def combinedfit(setup, option, **kwargs):
     ### Plot 
 
     if option == '2' or option == '4' :
+      print(">>> Plot parabola")
       os.system("./TauES_ID/plotParabola_POI_region.py -p tid_SF -y %s -e %s -r %s,%s -s -a -c %s"% (era, extratag, min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]), config))
     
     elif option == '1' or option == '5' :
+        print(">>> Plot parabola")
         os.system("./TauES_ID/plotParabola_POI_region.py -p tes -y %s -e %s -r %s,%s -s -a -c %s" % (era, extratag, min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]), config))
     #    os.system("./TauES/plotPostFitScan_TES.py -y %s -e %s -r %s,%s -c %s" %(era,extratag,min(setup["TESvariations"]["values"]),max(setup["TESvariations"]["values"]), config))
 
@@ -143,6 +169,12 @@ def combinedfit(setup, option, **kwargs):
         print(" No output plot...")
       
 
+            # Add this when addind -saveToys option to combine
+            # print("higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.123456.root")
+            # os.rename("higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.123456.root", "higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.root")
+            # os.rename("higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.GenerateOnly.mH90.123456.root", "higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.root")
+
+ 
 
 
 ### main function
@@ -175,21 +207,6 @@ if __name__ == '__main__':
 
     main(args)
     print ">>>\n>>> done\n"
-
-
-
-
-#             # Add this when addind -saveToys option to combine
-#             # print("higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.123456.root")
-#             # os.rename("higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.123456.root", "higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.root")
-#             # os.rename("higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.GenerateOnly.mH90.123456.root", "higgsCombine.mt_"+v+"-"+r+setup["tag"]+"_DeepTau-UL2018-13TeV.MultiDimFit.mH90.root")
-
-            # # ##Impact plot
-            # os.system("combineTool.py -M Impacts -t -1 -n %s -d %s %s  --redefineSignalPOIs tes %s %s %s --doInitialFit"%(BINLABEL, WORKSPACE, FIT_OPTS, POI_OPTS, XRTD_OPTS, CMIN_OPTS))
-            # os.system("combineTool.py -M Impacts -t -1 -n %s -d %s %s  --redefineSignalPOIs tes %s %s %s --doFits --parallel 4"%(BINLABEL, WORKSPACE, FIT_OPTS, POI_OPTS, XRTD_OPTS, CMIN_OPTS))
-            # os.system("combineTool.py -M Impacts -t -1 -n %s -d %s %s  --redefineSignalPOIs tes %s %s %s -o postfit/impacts_%s.json"%(BINLABEL, WORKSPACE, FIT_OPTS, POI_OPTS, XRTD_OPTS, CMIN_OPTS, BINLABEL))
-            # os.system("plotImpacts.py -i postfit/impacts_%s.json -o postfit/impacts_%s.json"%(BINLABEL,BINLABEL))
-            # os.system("convert -density 160 -trim postfit/impacts_%s.json.pdf[0] -quality 100 postfit/impacts_%s.png"%(BINLABEL,BINLABEL))
 
 
 
