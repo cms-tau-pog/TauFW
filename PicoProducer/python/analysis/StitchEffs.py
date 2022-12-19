@@ -113,7 +113,7 @@ if __name__ == '__main__':
   gStyle.SetOptTitle(False) # don't make title on top of histogram
   gStyle.SetOptStat(False)  # don't make stat. box
   description = """Make histograms from output file."""
-  parser = ArgumentParser(prog="GenMatcher",description=description,epilog="Good luck!")
+  parser = ArgumentParser(prog="StitchEffs",description=description,epilog="Good luck!")
   parser.add_argument('files', nargs='+', help="final (hadd'ed) ROOT file")
   parser.add_argument('-m',"--mutau", action='store_true', help="plot mutau filter")
   parser.add_argument('-p',"--pdf", action='store_true', help="create PDF version as well")
