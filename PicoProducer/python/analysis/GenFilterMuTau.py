@@ -120,6 +120,9 @@ class GenFilterMuTau(Module):
     # TAU RADIATING FSR PHOTON
     # Checking taus radiating FSR photons for bug in EmbeddingHepMCFilter
     # pre-CMSSW_10_6_30_patch1 affecting Summer19 and Summer20 UL
+    # Buggy Pythia8 filter:
+    #   https://indico.cern.ch/event/1170879/#2-validation-of-exclusive-dy-t
+    #   https://github.com/cms-sw/cmssw/pull/38829
     taus_brem_final = [ ] # final taus from hard process that have radiated earlier
     muons_tau_brem  = [ ] # muons from radiating taus from hard process
     for tau in taus_hard: # loop over final taus from hard process
