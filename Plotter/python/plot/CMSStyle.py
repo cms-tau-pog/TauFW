@@ -1,19 +1,23 @@
 #  Initiated by: Gautier Hamel de Monchenault (Saclay)
 #  Translated in Python by: Joshua Hardenbrook (Princeton)
 #  Edited: Izaak Neutelings (July 2018)
-#  Sources:
+#  CMS guidelines:
 #    https://ghm.web.cern.ch/ghm/plots/
 #    https://twiki.cern.ch/twiki/bin/view/CMS/Internal/FigGuidelines
+#    https://twiki.cern.ch/twiki/bin/view/CMS/Internal/Publications
+#  CMS luminosity:
 #    https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
 #    https://twiki.cern.ch/twiki/bin/view/CMSPublic/LumiPublicResults#Multi_year_plots
+#  ROOT settings:
+#    https://root.cern.ch/doc/master/classTAttText.html
 from ROOT import TStyle, TPad, TLatex, TASImage, kBlack, kWhite, TGaxis
 import re
 
 cmsText        = "CMS"
-cmsTextFont    = 61
+cmsTextFont    = 61 # 60: Arial bold (helvetica-bold-r-normal)
 extraText      = "Preliminary"
 lumiText       = ""
-extraTextFont  = 52
+extraTextFont  = 52 # 50: Arial italics (helvetica-medium-o-normal)
 lumiTextSize   = 0.90
 lumiTextOffset = 0.20
 cmsTextSize    = 1.00
@@ -25,7 +29,7 @@ relExtraDY     = 1.2
 drawLogo       = False
 outOfFrame     = False
 lumi_dict      = {
-  '7':      5.1,    '2016': 35.9, 'UL2016_preVFP':  19.5, # actually 19.5, update after reprocessing with new JSON
+  '7':      5.1,    '2016': 36.3, 'UL2016_preVFP':  19.5, # actually 19.5, update after reprocessing with new JSON
   '8':      19.7,   '2017': 41.5, 'UL2016_postVFP': 16.8, # actually 16.8, update after reprocessing with new JSON
   '2012':   19.7,   '2018': 59.7, 'UL2016': 36.3, # actually 19.5+16.8=36.3
   'Run2':   137.1,                'UL2017': 41.5, # actually 41.5
@@ -60,24 +64,30 @@ def getyear(era):
   
 
 def setCMSEra(*eras,**kwargs):
+  """Set CMS era(s) and luminosity."""
   global cmsText, extraText, lumiText
-  cmsText   = "CMS"
-  extra     = kwargs.get('extra',None)
+  cms      = kwargs.get('cms',    None)
+  extra    = kwargs.get('extra',  None)
+  thesis   = kwargs.get('thesis', False)
+  if thesis:
+    setThesisStyle(**kwargs)
+  if cms!=None:
+    cmsText = cms
   if extra!=None:
     extraText = extra
-  strings   = [ ]
+  strings  = [ ]
   for era in eras:
-    era     = str(era)
-    year    = getyear(era)
-    string  = era_dict.get(era,   era   )
-    lumi    = lumi_dict.get(era,  False )
-    cme     = cme_dict.get(era,   False )
+    era    = str(era)
+    year   = getyear(era)
+    string = era_dict.get(era,   era   )
+    lumi   = lumi_dict.get(era,  False )
+    cme    = cme_dict.get(era,   False )
     if not lumi: # try again with year
-      lumi  = lumi_dict.get(year, lumi  )
+      lumi = lumi_dict.get(year, lumi  )
     if not cme: # try again with year
-      cme   = cme_dict.get(year,  cme   )
-    lumi    = kwargs.get('lumi',  lumi  )
-    cme     = kwargs.get('cme',   cme   )
+      cme  = cme_dict.get(year,  cme   )
+    lumi   = kwargs.get('lumi',  lumi  )
+    cme    = kwargs.get('cme',   cme   )
     if lumi:
       if string:
         string += ", "
@@ -89,7 +99,21 @@ def setCMSEra(*eras,**kwargs):
   return lumiText
   
 
+def setThesisStyle(**kwargs):
+  """Set CMS style for thesis with unendorsed work."""
+  # https://twiki.cern.ch/twiki/bin/view/CMS/PhysicsApprovals#Thesis_endorsement
+  global cmsText, extraText, cmsTextFont, cmsTextSize, extraTextFont, lumiTextSize, relPosX
+  cmsText       = kwargs.get('cms',  "Private work")
+  extraText     = kwargs.get('extra',"(CMS data/simulation)")
+  cmsTextFont   = 42 # 40: Arial (helvetica-medium-r-normal)
+  extraTextFont = 42 # 40: Arial (helvetica-medium-r-normal)
+  cmsTextSize   = 0.72
+  lumiTextSize  = 0.82
+  relPosX       = 2.32*0.045
+  
+
 def setCMSLumiStyle(pad, iPosX, **kwargs):
+  """Set CMS style for given TPad."""
   global outOfFrame, lumiTextSize, lumiText, extraText
   if iPosX/10==0:
     outOfFrame  = True
