@@ -422,6 +422,17 @@ def stitch(samplelist,*searchterms,**kwargs):
     print "No inclusive sample to stitch... abort"
     return samplelist
 
+  # Compute k-factor for NLO cross section normalisation
+  nevts_incl      = sample_incl.sumweights
+  xsec_incl_LO    = sample_incl.xsec
+  if kfactor:
+    xsec_incl_NLO = kfactor*xsec_incl_LO
+  else:
+    xsec_incl_NLO = xsec_incl or getxsec_nlo(name,*searchterms) or xsec_incl_LO
+    kfactor       = xsec_incl_NLO / xsec_incl_LO
+  LOG.verb("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
+  
+
   name  = kwargs.get('name',stitchlist[0].name)
   title = kwargs.get('title',gettitle(name,stitchlist[0].title))
   if not title:
@@ -437,9 +448,9 @@ def stitch(samplelist,*searchterms,**kwargs):
       print "...jet multiplcity: %i"%njets
       sample_njet[njets] = sample
 
-  print "Lumi = %.6g, xsec = %.6g, sumw = %.6g"%(sample_incl.lumi, sample_incl.xsec, sample_incl.sumweights)
+  print "Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample_incl.lumi, kfactor, sample_incl.xsec, sample_incl.sumweights)
   print "Sample_incl.norm = %.6g"%sample_incl.norm
-  wIncl = sample_incl.lumi * sample_incl.xsec * 1000. / sample_incl.sumweights
+  wIncl = sample_incl.lumi * kfactor * sample_incl.xsec * 1000. / sample_incl.sumweights
   print "Inclusive weight = %.6g"%wIncl
 
   effIncl_njet = dict()
@@ -448,19 +459,19 @@ def stitch(samplelist,*searchterms,**kwargs):
     sample = sample_njet[njets]
     effIncl_njet[njets] = sample.xsec/sample_incl.xsec
     print "%i-jet efficiency in inclusive sample = %.6g"%(njets,effIncl_njet[njets])
-    wIncl_njet[njets] = sample.lumi * sample.xsec * 1000. / (sample.sumweights + effIncl_njet[njets]*sample_incl.sumweights)
-    print "Lumi = %.6g, xsec = %.6g, sumw = %.6g"%(sample.lumi, sample.xsec, sample.sumweights)
+    wIncl_njet[njets] = sample.lumi * kfactor * sample.xsec * 1000. / (sample.sumweights + effIncl_njet[njets]*sample_incl.sumweights)
+    print "Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample.lumi, kfactor, sample.xsec, sample.sumweights)
     print "Sample.norm = %.6g"%sample.norm
     print "Inclusive %i jets weight = %.6g"%(njets,wIncl_njet[njets])
 
   wIncl_mutau = ""
   wMuTau_njet = dict()
   if sample_mutau:
-    wIncl_mutau = sample_incl.lumi * sample_incl.xsec * 1000. * effMuTau_incl / ( effMuTau_incl*sample_incl.sumweights + effMuTau_excl*sample_mutau.sumweights )
+    wIncl_mutau = sample_incl.lumi * kfactor * sample_incl.xsec * 1000. * effMuTau_incl / ( effMuTau_incl*sample_incl.sumweights + effMuTau_excl*sample_mutau.sumweights )
     print "Inclusive mutau weight = %.6g"%wIncl_mutau
     for njets in sample_njet:
       sample = sample_njet[njets]
-      wMuTau_njet[njets] = sample.lumi * sample.xsec * 1000. * effMuTau_njet[njets] / ( effMuTau_njet[njets]*sample.sumweights + effMuTauNjet_excl[njets]*sample_mutau.sumweights + effMuTauNjet_incl[njets]*sample_incl.sumweights )
+      wMuTau_njet[njets] = sample.lumi * kfactor * sample.xsec * 1000. * effMuTau_njet[njets] / ( effMuTau_njet[njets]*sample.sumweights + effMuTauNjet_excl[njets]*sample_mutau.sumweights + effMuTauNjet_incl[njets]*sample_incl.sumweights )
       print "Inclusive mutau %i jets weight = %.6g"%(njets,wMuTau_njet[njets])
 
   conditionalWeight_incl = ""
