@@ -14,12 +14,12 @@
 # Instructions:
 # 1a) Set extra text and luminosity with CMSStyle.setCMSEra:
 #   import TauFW.Plotter.plot.CMSStyle as CMSStyle
-#   CMSStyle.setCMSEra(2018)
-#   CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary")
+#   CMSStyle.setCMSEra(2018) # use default settings
+#   CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary") # override default
 #   CMSStyle.setCMSEra(era='Run 2',lumi=None,thesis=True,extra="(CMS simulation)")
 # 1b) Or set it manually:
 #   CMSStyle.extraText = "Preliminary"
-#   CMSStyle.lumiText = ""
+#   CMSStyle.lumiText = "59.7 fb^{#minus1} (13 TeV)"
 #   CMSStyle.outOfFrame = True
 # 2) Pass TCanvas:
 #   CMSStyle.setTDRStyle() # set CMS TDR style
