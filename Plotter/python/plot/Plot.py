@@ -21,12 +21,8 @@ gROOT.SetBatch(True)
 
 # CMS style
 #TGaxis.SetExponentOffset(-0.074,0.015,'y')
-CMSStyle.extraText    = "Preliminary"
-#CMSStyle.cmsTextSize  = 0.75
-#CMSStyle.lumiTextSize = 0.70
-#CMSStyle.relPosX      = 0.12
-CMSStyle.outOfFrame   = True
-CMSStyle.lumi_13TeV   = ""
+CMSStyle.extraText  = "Preliminary"
+CMSStyle.outOfFrame = True
 CMSStyle.setTDRStyle()
 
 # https://root.cern.ch/doc/master/classTColor.html
@@ -407,13 +403,10 @@ class Plot(object):
     tmargin = kwargs.get('tmargin', 1.    ) # scale top margin
     bmargin = kwargs.get('bmargin', 1.    ) # scale bottom margin
     pads    = kwargs.get('pads',    [ ]   ) # pass list as reference
-    #if not CMSStyle.lumi_13TeV:
-    #  tmargin *= 0.7
     if square:
       lmargin *= 1.15
       tmargin *= 0.90
       #rmargin *= 3.6
-      #CMSStyle.relPosX = 0.15
     if verbosity>=2:
       print ">>> Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
       print ">>> Plot.setcanvas: width=%s, height=%s"%(width,height)

@@ -1,20 +1,39 @@
-#  Initiated by: Gautier Hamel de Monchenault (Saclay)
-#  Translated in Python by: Joshua Hardenbrook (Princeton)
-#  Edited: Izaak Neutelings (July 2018)
-#  CMS guidelines:
-#    https://ghm.web.cern.ch/ghm/plots/
-#    https://twiki.cern.ch/twiki/bin/view/CMS/Internal/FigGuidelines
-#    https://twiki.cern.ch/twiki/bin/view/CMS/Internal/Publications
-#  CMS luminosity:
-#    https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
-#    https://twiki.cern.ch/twiki/bin/view/CMSPublic/LumiPublicResults#Multi_year_plots
-#  ROOT settings:
-#    https://root.cern.ch/doc/master/classTAttText.html
+# Initiated by: Gautier Hamel de Monchenault (Saclay)
+# Translated in Python by: Joshua Hardenbrook (Princeton)
+# Edited: Izaak Neutelings (July 2018)
+# CMS guidelines:
+#   https://ghm.web.cern.ch/ghm/plots/
+#   https://twiki.cern.ch/twiki/bin/view/CMS/Internal/FigGuidelines
+#   https://twiki.cern.ch/twiki/bin/view/CMS/Internal/Publications
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PhysicsApprovals
+# CMS luminosity:
+#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
+#   https://twiki.cern.ch/twiki/bin/view/CMSPublic/LumiPublicResults#Multi_year_plots
+# ROOT settings:
+#   https://root.cern.ch/doc/master/classTAttText.html
+# Instructions:
+# 1a) Set extra text and luminosity with CMSStyle.setCMSEra:
+#   import TauFW.Plotter.plot.CMSStyle as CMSStyle
+#   CMSStyle.setCMSEra(2018)
+#   CMSStyle.setCMSEra(2018,lumi=59.7,cme=13,extra="Preliminary")
+#   CMSStyle.setCMSEra(era='Run 2',lumi=None,thesis=True,extra="(CMS simulation)")
+# 1b) Or set it manually:
+#   CMSStyle.extraText = "Preliminary"
+#   CMSStyle.lumiText = ""
+#   CMSStyle.outOfFrame = True
+# 2) Pass TCanvas:
+#   CMSStyle.setTDRStyle() # set CMS TDR style
+#   CMSStyle.setCMSLumiStyle(gPad,0) # add CMS text & lumi
+from __future__ import print_function # for python3 compatibility
 from ROOT import TStyle, TPad, TLatex, TASImage, kBlack, kWhite, TGaxis
 import re
 
 cmsText        = "CMS"
 cmsTextFont    = 61 # 60: Arial bold (helvetica-bold-r-normal)
+# Guidelines for labels:
+#   https://twiki.cern.ch/twiki/bin/view/CMS/Internal/FigGuidelines#Use_of_the_Preliminary_Simulatio
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PhysicsApprovals#Student_presentations_of_unappro
+#   E.g. "Preliminary", "Simulation", "Simulation Preliminary", "Supplementary", "Work in progress", ...
 extraText      = "Preliminary"
 lumiText       = ""
 extraTextFont  = 52 # 50: Arial italics (helvetica-medium-o-normal)
@@ -49,7 +68,7 @@ era_dict       = {
   'Phase1': "Phase I",
   'Phase2': "Phase II",
   'UL2016_preVFP': "UL2016", #(pre VFP)
-  'UL2016_postVFP':  "UL2016", #(pre VFP)
+  'UL2016_postVFP': "UL2016", #(pre VFP)
   'UL2016': "UL2016",
   'UL2017': "UL2017",
   'UL2018': "UL2018",
@@ -57,6 +76,9 @@ era_dict       = {
 
 
 def getyear(era):
+  """If possible, return string of year without extra text.
+  E.g. 'UL2016_preVFP' -> '2016', 'UL2018' -> '2018', etc.
+  """
   match = re.search(r"(?<!\d)(20\d{2})(?!\d)",era)
   if match:
     return match.group(1)
@@ -66,9 +88,10 @@ def getyear(era):
 def setCMSEra(*eras,**kwargs):
   """Set CMS era(s) and luminosity."""
   global cmsText, extraText, lumiText
-  cms      = kwargs.get('cms',    None)
-  extra    = kwargs.get('extra',  None)
-  thesis   = kwargs.get('thesis', False)
+  cms       = kwargs.get('cms',    None) # CMS text in bold, e.g. "CMS"
+  extra     = kwargs.get('extra',  None) # extra text, e.g. "Preliminary"
+  thesis    = kwargs.get('thesis', False) # special labels for results not approved, nor unendorsed by CMS
+  verbosity = kwargs.get('verb',   0)
   if thesis:
     setThesisStyle(**kwargs)
   if cms!=None:
@@ -76,31 +99,42 @@ def setCMSEra(*eras,**kwargs):
   if extra!=None:
     extraText = extra
   strings  = [ ]
-  for era in eras:
-    era    = str(era)
-    year   = getyear(era)
-    string = era_dict.get(era,   era   )
-    lumi   = lumi_dict.get(era,  False )
-    cme    = cme_dict.get(era,   False )
-    if not lumi: # try again with year
-      lumi = lumi_dict.get(year, lumi  )
-    if not cme: # try again with year
-      cme  = cme_dict.get(year,  cme   )
-    lumi   = kwargs.get('lumi',  lumi  )
-    cme    = kwargs.get('cme',   cme   )
-    if lumi:
-      if string:
-        string += ", "
-      string += "%s fb^{#minus1}"%(lumi)
-    if cme:
-      string += " (%s TeV)"%(cme)
-    strings.append(string)
-  lumiText = ' + '.join(strings)
+  if 'lumiText' in kwargs: # set by user
+    lumiText = kwargs['lumiText']
+  elif eras: # set automatically based on given era(s)
+    for i, era in enumerate(eras):
+      era    = str(era) # string
+      year   = getyear(era) # get year from e.g. "UL2016_preVFP", "UL2018"
+      string = era_dict.get(era,   era   )
+      lumi   = lumi_dict.get(era,  False )
+      cme    = cme_dict.get(era,   False ) # center-of-mass energy, e.g. 13
+      if not lumi: # try again with year
+        lumi = lumi_dict.get(year, lumi  )
+      if not cme: # try again with year
+        cme  = cme_dict.get(year,  cme   )
+      lumi   = kwargs.get('lumi',  lumi  ) # allow override by user
+      cme    = kwargs.get('cme',   cme   ) # allow override by user
+      if isinstance(cme,(list,tuple)):
+        cme  = cme[i]
+      if lumi:
+        if string:
+          string += ", "
+        string += "%s fb^{#minus1}"%(lumi)
+      if cme:
+        string += " (%s TeV)"%(cme)
+      strings.append(string.strip())
+      if verbosity>=3:
+        print(">>> setCMSEra: era=%r, lumi=%r, cme=%r, lumiText=%r"%(eras,lumi,lumiText,cme))
+    lumiText = ' + '.join(strings)
+  elif 'cme' in kwargs: # only print CME
+    lumiText = "(%s TeV)"%(kwargs['cme'])
+  if verbosity>=2:
+    print(">>> setCMSEra: cmsText=%r, extraText=%r, eras=%r, lumiText=%r"%(cmsText,extraText,eras,lumiText))
   return lumiText
   
 
 def setThesisStyle(**kwargs):
-  """Set CMS style for thesis with unendorsed work."""
+  """Set CMS style for thesis with for results not approved, nor unendorsed by CMS."""
   # https://twiki.cern.ch/twiki/bin/view/CMS/PhysicsApprovals#Thesis_endorsement
   global cmsText, extraText, cmsTextFont, cmsTextSize, extraTextFont, lumiTextSize, relPosX
   cmsText       = kwargs.get('cms',  "Private work")
@@ -115,6 +149,12 @@ def setThesisStyle(**kwargs):
 def setCMSLumiStyle(pad, iPosX, **kwargs):
   """Set CMS style for given TPad."""
   global outOfFrame, lumiTextSize, lumiText, extraText
+  if 'era' in kwargs: # one era
+    era = kwargs.get('era')
+    setCMSEra(era,**kwargs)
+  elif 'eras' in kwargs:  # list of multiple eras
+    eras = kwargs.get('eras')
+    setCMSEra(*eras,**kwargs)
   if iPosX/10==0:
     outOfFrame  = True
   lumiTextSize_ = lumiTextSize
@@ -125,13 +165,8 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
   verbosity     = kwargs.get('verb',       0)
   if outOfFrame:
     lumiTextSize_ *= 0.90
-  
-  if 'era' in kwargs: # one era
-    era = kwargs.get('era')
-    setCMSEra(era,**kwargs)
-  elif 'eras' in kwargs:  # list of multiple eras
-    eras = kwargs.get('eras')
-    setCMSEra(*eras,**kwargs)
+  if verbosity>=2:
+    print(">>> setCMSLumiStyle: cmsText=%r, extraText=%r, lumiText=%r"%(cmsText,extraText_,lumiText))
   
   # https://root.cern.ch/doc/master/classTAttText.html#ATTTEXT1
   alignY_ = 3 # align top
@@ -218,9 +253,9 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
         latex.DrawLatex(posX,posY-(relExtraDY+i)*cmsTextSize*t,line)
   
   if verbosity>=2:
-    print ">>> setCMSLumiStyle: outOfFrame=%r, iPosX=%s, alignX_=%s, align=%s"%(outOfFrame,iPosX,alignX_,align)
-    print ">>> setCMSLumiStyle: extraTextSize=%s, extraOverCmsTextSize=%s, cmsTextSize=%s"%(extraTextSize,extraOverCmsTextSize,cmsTextSize)
-    print ">>> setCMSLumiStyle: posX=%s, posY=%s, relPosX_=%s"%(posX,posY,relPosX_)
+    print(">>> setCMSLumiStyle: outOfFrame=%r, iPosX=%s, alignX_=%s, align=%s"%(outOfFrame,iPosX,alignX_,align))
+    print(">>> setCMSLumiStyle: extraTextSize=%s, extraOverCmsTextSize=%s, cmsTextSize=%s"%(extraTextSize,extraOverCmsTextSize,cmsTextSize))
+    print(">>> setCMSLumiStyle: posX=%s, posY=%s, relPosX_=%s"%(posX,posY,relPosX_))
     
   pad.Update()
   
