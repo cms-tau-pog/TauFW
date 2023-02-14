@@ -43,6 +43,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   tree_event.addBranch('nbcut',       'i')
   tree_event.addBranch('ntgen',       'i')
   tree_event.addBranch('njet',        'i')
+  tree_event.addBranch('ncjet',       'i')
   tree_event.addBranch('nlepton',     'i')
   tree_event.addBranch('ntau',        'i')
   tree_event.addBranch('ntaucut',     'i')
@@ -53,7 +54,9 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   tree_event.addBranch('nbgen_decay', 'i')
   tree_event.addBranch('met',         'f')
   tree_event.addBranch('jpt1',        'f')
+  tree_event.addBranch('jeta1',       'f')
   tree_event.addBranch('jpt2',        'f')
+  tree_event.addBranch('jeta2',       'f')
   tree_event.addBranch('sumjet',      'f')
   tree_event.addBranch('dphi_jj',     'f')
   tree_event.addBranch('deta_jj',     'f')
@@ -114,6 +117,8 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   tree_jet.addBranch('pt',            'f')
   tree_jet.addBranch('eta',           'f')
   tree_jet.addBranch('phi',           'f')
+  tree_jet.addBranch('index',         'i')
+  tree_jet.addBranch('cindex',        'i')
   tree_jet.addBranch('weight',        'f')
   
   # HISTOGRAMS
@@ -189,10 +194,13 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         gps_tgen.remove(top)
     
     # REMOVE JET-LEPTON OVERLAP
-    jets, dummy = cleanObjectCollection(jets,gps_tau,dRmin=0.5)
+    jets, dummy = cleanObjectCollection(jets,gps_tau,dRmin=0.4)
     njets  = 0
+    ncjets = 0
     sumjet = 0
     jets30  = [ ]
+    ijet   = 0
+    icjet  = 0
     for jet in jets:
       if jet.pt()>30 and abs(jet.eta())<5:
         sumjet            += jet.pt()
@@ -200,16 +208,24 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         tree_jet.pt[0]     = jet.pt()
         tree_jet.eta[0]    = jet.eta()
         tree_jet.phi[0]    = jet.phi()
+        tree_jet.index[0]  = ijet
+        tree_jet.cindex[0] = -1
         tree_jet.weight[0] = weight
         tree_jet.Fill()
         jets30.append(jet)
+        if abs(jet.eta())<2.5:
+          ncjets += 1
+          tree_jet.cindex[0] = icjet
+          icjet += 1
+        ijet += 1
     
     # MULTIPLICITIES
     tree_event.nmoth[0]   = len(gps_mother)
     tree_event.nbcut[0]   = len(gps_bcut)
     tree_event.nbgen[0]   = len(gps_bgen)
     tree_event.ntgen[0]   = len(gps_tgen)
-    tree_event.njet[0]    = njets
+    tree_event.njet[0]    = njets  # pt>30, abs(eta)<5
+    tree_event.ncjet[0]   = ncjets # pt>30, abs(eta)<2.5
     tree_event.nlepton[0] = len(gps_tau)
     tree_event.ntau[0]    = len(gps_tau)
     tree_event.ntaucut[0] = len(gps_taucut)
@@ -225,7 +241,9 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       tree_event.ncentral[0] = -9
     if(len(jets30)>=2):
       tree_event.jpt1[0]    = jets30[0].pt()
-      tree_event.jpt2[0]    = jets30[1].pt()    
+      tree_event.jeta1[0]   = jets30[0].eta()
+      tree_event.jpt2[0]    = jets30[1].pt()  
+      tree_event.jeta2[0]   = jets30[1].eta()
       tree_event.dphi_jj[0] = deltaPhi(jets30[0].phi(), jets30[1].phi())
       tree_event.deta_jj[0] = jets30[0].eta() - jets30[1].eta()
       tree_event.dr_jj[0]   = deltaR(jets30[0].eta(),jets30[0].phi(),jets30[1].eta(),jets30[1].phi())
@@ -233,14 +251,18 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       tree_event.mjj[0]     = dijetp4.M()
     elif (len(jets30)==1):
       tree_event.jpt1[0]    = jets30[0].pt()
+      tree_event.jeta1[0]   = jets30[0].eta()
       tree_event.jpt2[0]    = -1
+      tree_event.jeta2[0]   = -9
       tree_event.dphi_jj[0] = -9
       tree_event.deta_jj[0] = -9
       tree_event.dr_jj[0]   = -1
       tree_event.mjj[0]     = -1
     else:
       tree_event.jpt1[0]    = -1
+      tree_event.jeta1[0]   = -9
       tree_event.jpt2[0]    = -1
+      tree_event.jeta2[0]   = -9
       tree_event.dphi_jj[0] = -9
       tree_event.deta_jj[0] = -9
       tree_event.dr_jj[0]   = -1
@@ -464,7 +486,7 @@ root_dtype = { # python/numpy -> root data type
   'f': 'F',  'float32': 'F',               # Float_t 
   'd': 'D',  'float64': 'D',  float:  'D', # Double_t
 }
-  
+
 def addBranch(self, name, dtype='f', default=None):
    """Add branch with a given name, and create an array of the same name as address."""
    # https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/analysis/TreeProducer.py

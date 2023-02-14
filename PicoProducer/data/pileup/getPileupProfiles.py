@@ -17,7 +17,7 @@
 #   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2018Analysis
 #   https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#PileupInformation
 import os, sys, re, shutil, json
-from argparse import ArgumentParser
+
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from filterRunsJSON import getJSON, getRuns, cleanPeriods, getPeriodRunNumbers, filterJSONByRunNumberRange
 from TauFW.common.tools.file import ensuredir, ensureTFile, gethist
@@ -31,22 +31,6 @@ from ROOT import gROOT, gDirectory, gStyle, gPad, TFile, TTree, TCanvas, TH1, TH
 #gStyle.SetOptTitle(False)
 linecolors = [ kRed+1, kAzure+5, kGreen+2, kOrange+1, kMagenta-4, kYellow+1,
                kRed-9, kAzure-4, kGreen-2, kOrange+6, kMagenta+3, kYellow+2, ]
-argv = sys.argv
-description = '''This script makes pileup profiles for MC and data.'''
-parser = ArgumentParser(prog="pileup",description=description,epilog="Good luck!")
-parser.add_argument('-y', '-e', '--era', dest='eras', nargs='+',
-                    metavar='ERA',       help="select era" )
-parser.add_argument('-c', '--channel',   dest='channel', default='pileup',
-                                         help="select channel for which MC pile up distributions were made" )
-parser.add_argument('-t', '--type',      dest='types', choices=['data','mc','flat'], type=str, nargs='+', default=['data','mc'],
-                                         help="make profile for data and/or MC" )
-parser.add_argument('-P', '--period',    dest='periods', type=str, nargs='+', default=[ ],
-                                         help="make data profiles for given data taking period (e.g. B, BCD, GH, ...)" )
-parser.add_argument('-p', '--plot',      dest='plot', default=False, action='store_true', 
-                                         help="plot profiles" )
-parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0,
-                                         help="set verbosity" )
-args = parser.parse_args()
 
 
 def getMCProfile(outfname,samples,channel,era,tag=""):
@@ -249,7 +233,7 @@ def getFlatProfile(outfname,max=75,nbins=100,xmin=0,xmax=100):
   return hist
   
 
-def compareMCProfiles(samples,channel,era,tag=""):
+def compareMCProfiles(samples,channel,era,tag="",xmax=100):
   """Compare MC profiles."""
   print ">>> compareMCProfiles()"
   
@@ -287,9 +271,9 @@ def compareMCProfiles(samples,channel,era,tag=""):
   avehist.Scale(1./avehist.Integral())
   pname  = "%s/pileup_MC_%s%s"%(outdir,era,tag)
   xtitle = "Number of true interactions"
-  plot   = Plot(hists,ratio=True)
+  plot   = Plot(hists,ratio=True,rmin=0.45,rmax=1.55,xmax=xmax)
   plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="MC / Ave.",
-            textsize=0.032,rmin=0.45,rmax=1.55,denom=2,colors=colors)
+            textsize=0.032,denom=2,colors=colors)
   plot.drawlegend('TTR',tsize=0.04,latex=False)
   plot.saveas(pname+".png")
   plot.saveas(pname+".pdf")
@@ -305,7 +289,7 @@ def compareMCProfiles(samples,channel,era,tag=""):
   return avehist
   
 
-def compareDataMCProfiles(datahists,mchist,era="",minbiases=0.0,tag="",rmin=0.6,rmax=1.4,delete=False):
+def compareDataMCProfiles(datahists,mchist,era="",minbiases=0.0,tag="",rmin=0.6,rmax=1.4,xmax=100,delete=False):
   """Compare data/MC profiles."""
   print ">>> compareDataMCProfiles()"
   mctitle = "MC average"
@@ -321,10 +305,10 @@ def compareDataMCProfiles(datahists,mchist,era="",minbiases=0.0,tag="",rmin=0.6,
   styles = [kSolid]*len(datahists)+[kDashed]
   colors = [kBlack]+linecolors if len(datahists)==1 else linecolors[:len(datahists)]+[kBlack]
   if 'pmx' in tag:
-    width  = 0.36
+    width  = 0.35
     position = 'TCR'
   else:
-    width  = 0.39
+    width  = 0.35
     position = 'TR'
   if era and isinstance(era,str) and any(s in era for s in ["Run","VFP"]):
     width =  max(width,0.26+(len(era)-5)*0.018)
@@ -349,11 +333,11 @@ def compareDataMCProfiles(datahists,mchist,era="",minbiases=0.0,tag="",rmin=0.6,
   mchist.SetTitle(mctitle)
   mchist.Scale(1./mchist.Integral())
   
-  xtitle = "Number of interactions"
+  xtitle = "Mean number of pileup interactions" # 'true' pileup, i.e. Poisson mean
   pname  = "%s/pileup_Data-MC_%s%s"%(outdir,era,tag)
-  plot   = Plot(hists,ratio=True)
+  plot   = Plot(hists,ratio=True,rmin=rmin,rmax=rmax,xmax=xmax)
   plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="Data / MC",
-            textsize=0.045,rmin=rmin,rmax=rmax,denom=-1,colors=colors,styles=styles)
+            textsize=0.045,denom=-1,colors=colors,styles=styles)
   plot.drawlegend(position,width=width)
   plot.saveas(pname+".png")
   plot.saveas(pname+".pdf")
@@ -374,16 +358,18 @@ def copy2local(filename):
   return filenew
   
 
-def main():
+def main(args):
   
   eras      = args.eras
   periods   = cleanPeriods(args.periods) 
   channel   = args.channel
   types     = args.types
+  xmax      = args.xmax
   verbosity = args.verbosity
-  minbiases = [ 69.2 ] if periods else [ 69.2, 69.2*1.046, 69.2*0.954, 80.0 ]
+  minbiases = [ 69.2 ] if periods else [ 69.2*0.954, 69.2, 69.2*1.046, 80.0 ]
   
-  fname_ = "$PICODIR/$SAMPLE_$CHANNEL.root" # sample file name
+  #fname_ = "$PICODIR/$SAMPLE_$CHANNEL.root" # sample file name
+  fname_ = "/scratch/ineuteli/analysis/LQ_$ERA/$GROUP/$SAMPLE_$CHANNEL.root" # sample file name
   if 'mc' in types and '$PICODIR' in fname_:
     import TauFW.PicoProducer.tools.config as GLOB
     CONFIG = GLOB.getconfig(verb=verbosity)
@@ -395,7 +381,7 @@ def main():
     jsondir    = os.path.join(datadir,'json',str(year))
     pileup     = os.path.join(jsondir,"pileup_latest.txt")
     jname      = getJSON(era)
-    CMSStyle.setCMSEra(era)
+    CMSStyle.setCMSEra(era,extra="Internal",thesis=False)
     samples_bug = [ ] # buggy samples in (pre-UL) 2017 with "old pmx" library
     samples_fix = [ ] # fixed samples in (pre-UL) 2017 with "new pmx" library
     samples = [ # default set of samples
@@ -533,7 +519,7 @@ def main():
     
     # DATA
     datahists = { period: [ ] for period in jsons }
-    if 'data' in types:
+    if 'data' in types: #and False:
       for period, json in jsons.iteritems():
         for minbias in minbiases:
           filename = "Data_PileUp_%s_%s.root"%(period,str(minbias).replace('.','p'))
@@ -556,24 +542,24 @@ def main():
       #mcfilename = "MC_PileUp_%s_%s.root"%(era,campaign)
       getMCProfile(mcfilename,samples,channel,era)
       if args.plot:
-        mchist = compareMCProfiles(samples,channel,era)
+        mchist = compareMCProfiles(samples,channel,era,xmax=xmax)
         for era in jsons:
           for minbias, datahist in datahists[era]:
-            compareDataMCProfiles(datahist,mchist,era,minbias)
-          compareDataMCProfiles(datahists[era],mchist,era,rmin=0.4,rmax=1.5,delete=True)
+            compareDataMCProfiles(datahist,mchist,era,minbias,xmax=xmax,delete=False)
+          compareDataMCProfiles(datahists[era],mchist,era,rmin=0.4,rmax=1.5,xmax=xmax,delete=True)
         deletehist(mchist) # clean memory
-      if era=='2017': #and 'UL' not in era # buggy (pre-UL) 2017: also check new/old pmx separately
-        mcfilename_bug = mcfilename.replace(".root","_old_pmx.root")
-        mcfilename_fix = mcfilename.replace(".root","_new_pmx.root")
-        getMCProfile(mcfilename_bug,samples_bug,channel,era)
-        getMCProfile(mcfilename_fix,samples_fix,channel,era)
-        if args.plot:
-          mchist_bug = compareMCProfiles(samples_bug,channel,era,tag="old_pmx")
-          mchist_fix = compareMCProfiles(samples_fix,channel,era,tag="new_pmx")
-          for era in jsons:
-            for minbias, datahist in datahists[era]:
-              compareDataMCProfiles(datahist,mchist_bug,era,minbias,tag="old_pmx")
-              compareDataMCProfiles(datahist,mchist_fix,era,minbias,tag="new_pmx")
+      ###if era=='2017': #and 'UL' not in era # buggy (pre-UL) 2017: also check new/old pmx separately
+      ###  mcfilename_bug = mcfilename.replace(".root","_old_pmx.root")
+      ###  mcfilename_fix = mcfilename.replace(".root","_new_pmx.root")
+      ###  getMCProfile(mcfilename_bug,samples_bug,channel,era)
+      ###  getMCProfile(mcfilename_fix,samples_fix,channel,era)
+      ###  if args.plot:
+      ###    mchist_bug = compareMCProfiles(samples_bug,channel,era,tag="old_pmx")
+      ###    mchist_fix = compareMCProfiles(samples_fix,channel,era,tag="new_pmx")
+      ###    for era in jsons:
+      ###      for minbias, datahist in datahists[era]:
+      ###        compareDataMCProfiles(datahist,mchist_bug,era,minbias,tag="old_pmx")
+      ###        compareDataMCProfiles(datahist,mchist_fix,era,minbias,tag="new_pmx")
     
     # FLAT
     if 'flat' in types:
@@ -585,7 +571,25 @@ def main():
   
 
 if __name__ == '__main__':
+  from argparse import ArgumentParser
+  description = '''This script makes pileup profiles for MC and data.'''
+  parser = ArgumentParser(prog="pileup",description=description,epilog="Good luck!")
+  parser.add_argument('-y', '-e', '--era', dest='eras', nargs='+',
+                      metavar='ERA',       help="select era" )
+  parser.add_argument('-c', '--channel',   dest='channel', default='pileup',
+                                           help="select channel for which MC pile up distributions were made" )
+  parser.add_argument('-t', '--type',      dest='types', choices=['data','mc','flat'], type=str, nargs='+', default=['data','mc'],
+                                           help="make profile for data and/or MC" )
+  parser.add_argument('-P', '--period',    dest='periods', type=str, nargs='+', default=[ ],
+                                           help="make data profiles for given data taking period (e.g. B, BCD, GH, ...)" )
+  parser.add_argument('-p', '--plot',      dest='plot', default=False, action='store_true', 
+                                           help="plot profiles" )
+  parser.add_argument('-m', '--xmax',      dest='xmax', type=float, default=90, 
+                                           help="x axis maximum (for plotting)" )
+  parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0,
+                                           help="set verbosity" )
+  args = parser.parse_args()
   print
-  main()
+  main(args)
   print ">>> Done!\n"
   

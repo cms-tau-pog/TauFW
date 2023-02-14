@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (June 2020)
-# Description: Base class for tau pair analysis
+# Description: Base class for ditau analyses
 from ROOT import TFile, TTree
 import sys, re
 from math import sqrt, exp, cos
@@ -189,7 +189,7 @@ class ModuleTauPair(Module):
     """Help function to fill branches of common event variables."""
     
     # EVENT
-    self.out.evt[0]             = event.event & 0xffffffffffffffff
+    self.out.evt[0]             = event.event # ULong64_t -> uint64
     self.out.data[0]            = self.isdata
     self.out.run[0]             = event.run
     self.out.lumi[0]            = event.luminosityBlock
