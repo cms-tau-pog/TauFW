@@ -87,13 +87,16 @@ def getyear(era):
 
 def setCMSEra(*eras,**kwargs):
   """Set CMS era(s) and luminosity."""
-  global cmsText, extraText, lumiText
+  global cmsText, extraText, lumiText, cmsTextSize, lumiTextSize, relPosX
   cms       = kwargs.get('cms',    None) # CMS text in bold, e.g. "CMS"
   extra     = kwargs.get('extra',  None) # extra text, e.g. "Preliminary"
   thesis    = kwargs.get('thesis', False) # special labels for results not approved, nor unendorsed by CMS
   verbosity = kwargs.get('verb',   0)
   if thesis:
     setThesisStyle(**kwargs)
+  cmsTextSize  = kwargs.get('cmsTextSize',cmsTextSize)
+  lumiTextSize = kwargs.get('lumiTextSize',lumiTextSize)
+  relPosX      = kwargs.get('relPosX',relPosX)
   if cms!=None:
     cmsText = cms
   if extra!=None:
@@ -141,9 +144,9 @@ def setThesisStyle(**kwargs):
   extraText     = kwargs.get('extra',"(CMS data/simulation)")
   cmsTextFont   = 42 # 40: Arial (helvetica-medium-r-normal)
   extraTextFont = 42 # 40: Arial (helvetica-medium-r-normal)
-  cmsTextSize   = 0.72
-  lumiTextSize  = 0.82
-  relPosX       = 2.32*0.045
+  cmsTextSize   = 0.74
+  lumiTextSize  = 0.84
+  relPosX       = 2.36*0.045
   
 
 def setCMSLumiStyle(pad, iPosX, **kwargs):
