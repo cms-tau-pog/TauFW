@@ -1,6 +1,5 @@
 ##ModuleHighPT
-This README is intended to give instructions on how create ntuples for the tau ID efficiency and ES SFs measurement at high pt.
-The ModuleHighPT is the main module for this kind of analysis in which you have one PF candidate + MET.
+This README is intended to give instructions on how create ntuples for the tau ID efficiency and ES SFs measurement at high pt. The ModuleHighPT is the main module for this kind of analysis.
 The script is here:`python/analysis/ModuleHighPT.py`
 
 ##Before start
@@ -10,20 +9,37 @@ All information provided here assume that one has already looked at [the README.
 ##ModuleTauNu 
 This module inherits from ModuleHighPT and it's meant to select events for the W*->tau nu process.
 Event selection is performed by the script `python/analysis/HighPT/ModuleTauNu.py`.
+
 ##ModuleMuNu 
 This module inherits from ModuleHighPT and it's meant to select events for the W*->mu nu process.
 Event selection is performed by the script `python/analysis/HighPT/ModuleMuNu.py`.
+
+##ModuleWJ
+This module inherits from ModuleHighPT and intended to select events to select W(->mu+v)+1jet events for the measurement of the jet->tau fake factors.
+
+##ModuleDiJet
+This module inherits from ModuleHighPT and intended to select events to	select dijet events for the measurement of the jet->tau fake factors.
 
 ##TreeProducerHighPT
 The TreeProducerHighPT module inherits from other modules defined in `PicoProducer`.
 It's purpose is to be the basis for the TreeProducers.
 The script is here:`python/analysis/TreeProducerHighPT.py`
+
 ##TreeProducerTauNu
 This module inherits from TreeProducerHighPT and it's meant to create ntuples (ROOT files) for the W*->tau nu process.
 The script is here:`python/analysis/TreeProducerTauNu.py`
+
 ##TreeProducerMuNu
 This module inherits from TreeProducerHighPT and it's meant to create ntuples (ROOT files) for the W*->mu nu process.
 The script is here:`python/analysis/TreeProducerMuNu.py`
+
+##TreeProducerWJ
+This module inherits from TreeProducerHighPT and it's meant to create ntuples (ROOT files) for the W(->mu+v)+1jet process.
+The script is here:`python/analysis/TreeProducerWJ.py`
+
+##TreeProducerDiJet
+This module inherits from TreeProducerHighPT and it's meant to create ntuples (ROOT files) for the dijet events.
+The script is here:`python/analysis/TreeProducerDijet.py`
 
 ## Check your configuration
 `PicoProducer` relies on an user configuration file. 

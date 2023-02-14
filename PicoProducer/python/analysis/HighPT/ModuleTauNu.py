@@ -1,46 +1,57 @@
-# Author: Jacopo Malvaso (August 2022)
-# Description: Simple module to pre-select TauNu events
+# Author: Alexei Raspereza (December 2022)
+# Description: Module to preselect W*->tau+v events
 import sys
 import numpy as np
-import ROOT 
-from ROOT import TLorentzVector
+import math
 from TauFW.PicoProducer import datadir
 from TauFW.PicoProducer.analysis.TreeProducerTauNu import *
 from TauFW.PicoProducer.analysis.ModuleHighPT import *
-from TauFW.PicoProducer.analysis.utils import loosestIso, idIso, matchgenvistau, matchtaujet, gettauveto, getjetveto 
+from TauFW.PicoProducer.analysis.utils import loosestIso, idIso, matchgenvistau, matchtaujet
 from TauFW.PicoProducer.corrections.TrigObjMatcher import TrigObjMatcher
+from TauFW.PicoProducer.corrections.TauTriggerSFs import TauTriggerSFs
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool, TauFESTool
-
+from TauFW.PicoProducer.corrections.MetTriggerSF import METTriggerSF
+from TauFW.PicoProducer.corrections.WmassCorrection import WStarWeight 
+from ROOT import TLorentzVector
 
 class ModuleTauNu(ModuleHighPT):
   
   def __init__(self, fname, **kwargs):
     kwargs['channel'] = 'taunu'
     super(ModuleTauNu,self).__init__(fname,**kwargs)
+
+    # conservative unc
+    self.tes_shift = 0.03
+    self.unc_names  = ['taues','taues_1pr','taues_1pr1pi0','taues_3pr','taues_3pr1pi0']
+    self.tes_uncs = [ u+v for u in self.unc_names for v in ['Up','Down'] ]  
+
     self.out = TreeProducerTauNu(fname,self)
-    
-    # TRIGGERS
-    self.trigger   = lambda e: e.HLT_PFMETNoMu120_PFMHTNoMu120_IDTight
-    self.tauCutPt  = 40
-    self.tauCutEta = 2.3
-    
+
+    # loose pre-selection cuts
+    self.tauPtCut  = 90
+    self.tauEtaCut = 2.3
+    self.metCut    = 90
+    self.mtCut     = 150
+    self.dphiCut   = 2.2
+
     # CORRECTIONS
     if self.ismc:
-      #self.trigTool       = TauTriggerSFs('tautau','Medium',year=self.year)
-      #self.trigTool_tight = TauTriggerSFs('tautau','Tight', year=self.year)
-      self.tesTool        = TauESTool(tauSFVersion[self.year]) # real tau energy scale
-      self.fesTool        = TauFESTool(tauSFVersion[self.year]) # e -> tau fake energy scale
-      self.tauSFs         = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Medium',dm=True)
-      self.tauSFs_tight   = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight',dm=True)
-      self.etfSFs         = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSe', 'VVLoose')
-      self.mtfSFs         = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSmu','Loose')
+      # MET trigger corrections
+      filename = 'mettrigger_'+self.era+'.root'
+      self.trig_corr       = METTriggerSF(filename)
+
+      # WStar mass reweighting
+      filename = 'kfactor_tau.root'
+      if self.year==2016: filename = 'kfactor_tau_2016.root'
+      self.wmass_corr = WStarWeight(filename,'kfactor_tau')
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                      )
-    self.out.cutflow.addcut('trig',         "trigger"                     )
+    self.out.cutflow.addcut('trigger',      "trigger"                     )
     self.out.cutflow.addcut('tau',          "tau"                         )
-    self.out.cutflow.addcut('met' ,         "met"                         )
-
+    self.out.cutflow.addcut('met',          "met"                         )
+    self.out.cutflow.addcut('mT',           "mT"                          )
+    self.out.cutflow.addcut('dphi',         "DPhi"                        )
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15        )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16  ) # use for normalization
     
@@ -48,10 +59,74 @@ class ModuleTauNu(ModuleHighPT):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleTauNu,self).beginJob()
-    print ">>> %-12s = %s"%('tauwp',     self.tauwp)
-    print ">>> %-12s = %s"%('tauCutPt',  self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta', self.tauCutEta)
+    print ">>> %-12s = %s"%('tauPtCut',   self.tauPtCut)
+    print ">>> %-12s = %s"%('tauEtaCut',  self.tauEtaCut)
+    print ">>> %-12s = %s"%('metCut',     self.metCut)
+    print ">>> %-12s = %s"%('mtCut',      self.mtCut)
+    print ">>> %-12s = %s"%('dphiCut',    self.dphiCut)
+    print ">>> %-12s = %s"%('tes_shift',  self.tes_shift)
+
+  # should be run after filling met and tau branches
+  def FillTESshifts(self):  
+
+    # initializing taues uncertainty variables
+    for unc in self.tes_uncs:      
+      getattr(self.out,'met_'+unc)[0]  = self.out.met[0]
+      getattr(self.out,'metphi_'+unc)[0] = self.out.metphi[0]
+      getattr(self.out,'pt_1_'+unc)[0] = self.out.pt_1[0]
+      getattr(self.out,'m_1_'+unc)[0]  = self.out.m_1[0]
+      getattr(self.out,'mt_1_'+unc)[0] = self.out.mt_1[0]
+      getattr(self.out,'metdphi_1_'+unc)[0] = self.out.metdphi_1[0]
+
+    unc_name=''  
+    if self.out.dm_1[0]==0: unc_name='taues_1pr'
+    elif self.out.dm_1[0]==1 or self.out.dm_1[0]==2: unc_name='taues_1pr1pi0'
+    elif self.out.dm_1[0]==10: unc_name='taues_3pr'
+    elif self.out.dm_1[0]==11: unc_name='taues_3pr1pi0'
+
+    shifts = {'Up':True, 'Down':False}
+    for shift in shifts:
+      met_shift, pt_shift, metdphi_shift, mt_shift, mass_shift = self.PropagateTESshift(shifts[shift])
+      unc_incl = 'taues'+shift
+      unc_dm = unc_name+shift
+      for unc in [unc_incl, unc_dm]:
+        getattr(self.out,'met_'+unc)[0]  = met_shift.Pt()
+        getattr(self.out,'metphi_'+unc)[0] = met_shift.Phi()
+        getattr(self.out,'pt_1_'+unc)[0] = pt_shift.Pt()
+        if self.out.dm_1[0]>0: getattr(self.out,'m_1_'+unc)[0]  = mass_shift
+        getattr(self.out,'mt_1_'+unc)[0] = mt_shift
+        getattr(self.out,'metdphi_1_'+unc)[0] = metdphi_shift
+        
+
+  # should be run after filling met and tau branches!
+  def PropagateTESshift(self,up):
     
+    metx = self.out.met[0]*math.cos(self.out.metphi[0])
+    mety = self.out.met[0]*math.sin(self.out.metphi[0])
+    met = TLorentzVector()
+    met.SetXYZT(metx,mety,0,self.out.met[0])
+
+    ptx = self.out.pt_1[0]*math.cos(self.out.phi_1[0])
+    pty = self.out.pt_1[0]*math.sin(self.out.phi_1[0])
+    pt = TLorentzVector()
+    pt.SetXYZT(ptx,pty,0,self.out.pt_1[0])
+
+    scale = 1.0 - self.tes_shift
+    if up:
+      scale = 1.0 + self.tes_shift
+
+    
+    ptx_shift = scale * pt.Px()
+    pty_shift = scale * pt.Py()
+    ptTot_shift = scale * pt.Pt()
+    pt_shift = TLorentzVector()
+    pt_shift.SetXYZT(ptx_shift,pty_shift,0,ptTot_shift)
+    met_shift = met + pt - pt_shift
+    mass_shift = scale * self.out.m_1[0]
+    metdphi_shift = abs(met_shift.DeltaPhi(pt_shift))
+    mt_shift = math.sqrt(2.0 * pt_shift.Pt() * met_shift.Pt() * (1.0 - math.cos(metdphi_shift) ) )
+
+    return met_shift, pt_shift, metdphi_shift, mt_shift, mass_shift
     
   
   def analyze(self, event):
@@ -64,184 +139,119 @@ class ModuleTauNu(ModuleHighPT):
     if not self.fillhists(event):
       return False
     
-    
-    ##### TRIGGER ####################################  
-    if not self.trigger(event):
+    if not event.HLT_PFMETNoMu120_PFMHTNoMu120_IDTight:
       return False
-    self.out.cutflow.fill('trig')
-    
+    self.out.cutflow.fill('trigger')
+
     
     ##### TAU ########################################
     taus = [ ]
     for tau in Collection(event,'Tau'):
-      if abs(tau.eta)>self.tauCutEta: continue
+      if abs(tau.eta)>self.tauEtaCut: continue
       if abs(tau.dz)>0.2: continue
-      if tau.decayMode not in [0,1,10,11]: continue
+      if tau.decayMode not in [0,1,2,10,11]: continue
       if abs(tau.charge)!=1: continue
-      if tau.idDeepTau2017v2p1VSe < 1: continue   # VVVLoose
-      if tau.idDeepTau2017v2p1VSmu < 1: continue  # VLoose
-      if tau.idDeepTau2017v2p1VSjet < 1: continue
-      if self.ismc:
-        tau.es   = 1 # store energy scale for propagating to MET
-        genmatch = tau.genPartFlav
-        if genmatch==5: # real tau
-          if self.tes!=None: # user-defined energy scale (for TES studies)
-            tes = self.tes
-          else: # (apply by default)
-            tes = self.tesTool.getTES(tau.pt,tau.decayMode,unc=self.tessys)
-          if tes!=1:
-            tau.pt   *= tes
-            tau.mass *= tes
-            tau.es    = tes
-
-        elif self.ltf and 0<genmatch<5: # lepton -> tau fake
-          tau.pt   *= self.ltf
-          tau.mass *= self.ltf
-          tau.es    = self.ltf
-        elif genmatch in [1,3]: # electron -> tau fake (apply by default, override with 'ltf=1.0')
-          fes = self.fesTool.getFES(tau.eta,tau.decayMode,unc=self.fes)
-          tau.pt   *= fes
-          tau.mass *= fes
-          tau.es    = fes
-        elif self.jtf!=1.0 and genmatch==0: # jet -> tau fake
-          tau.pt   *= self.jtf
-          tau.mass *= self.jtf
-          tau.es    = self.jtf
-      if tau.pt<self.tauCutPt: continue
+      if tau.idDeepTau2017v2p1VSe<1: continue   # VVVLoose
+      if tau.idDeepTau2017v2p1VSmu<1: continue  # VLoose
+      if tau.idDeepTau2017v2p1VSjet<1: continue  # VVVLoose
+      if tau.pt<self.tauPtCut: continue
       taus.append(tau)
     if len(taus)==0:
       return False
     self.out.cutflow.fill('tau')
-    tau1 = max(taus,key=lambda p:p.rawDeepTau2017v2p1VSjet)
-    
+    tau1 = max(taus,key=lambda p: p.pt)
+
+    # JETS
+    leptons = [tau1]
+    jets, ht_muons, met, met_vars = self.fillJetMETBranches(event,leptons,tau1)
+
+    if met.Pt()<self.metCut:
+      return False
+    self.out.cutflow.fill('met')
+
+    if self.out.mt_1[0]<self.mtCut:
+      return False
+    self.out.cutflow.fill('mT')
+
+    if self.out.metdphi_1[0]<self.dphiCut:
+      return False
+    self.out.cutflow.fill('dphi')
+
     # VETOS
-    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[ ],[tau1],self.channel)
-    extratau_veto                                 = gettauveto(event,[tau1],self.channel)
-    extrajet_veto                                 = getjetveto(event,[ ],[tau1],self.channel,self.era)
-    self.out.extratau_veto[0]                    = gettauveto(event,[ ],self.channel)
-    self.out.extrajet_veto[0]                    = getjetveto(event,[ ],[ ],self.channel,self.era)
-    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[ ],[ ],self.channel)
-    self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] #or self.out.dilepton_veto[0]
-    self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto #or dilepton_veto
-    
+    self.out.extramuon_veto[0] = self.get_extramuon_veto(event,[tau1]) 
+    self.out.extraelec_veto[0] = self.get_extraelec_veto(event,[tau1]) 
+    self.out.extratau_veto[0]  = self.get_extratau_veto(event,[tau1])
     
     # EVENT
     self.fillEventBranches(event)
-    
-    
+        
     # TAU 1
     self.out.pt_1[0]                       = tau1.pt
     self.out.eta_1[0]                      = tau1.eta
     self.out.phi_1[0]                      = tau1.phi
     self.out.m_1[0]                        = tau1.mass
-    self.out.y_1[0]                        = tau1.p4().Rapidity()
     self.out.dxy_1[0]                      = tau1.dxy
     self.out.dz_1[0]                       = tau1.dz
     self.out.q_1[0]                        = tau1.charge
     self.out.dm_1[0]                       = tau1.decayMode
-    self.out.iso_1[0]                      = tau1.rawIso
-    self.out.idiso_1[0]                    = idIso(tau1) # cut-based tau isolation (rawIso)
     self.out.rawDeepTau2017v2p1VSe_1[0]    = tau1.rawDeepTau2017v2p1VSe
     self.out.rawDeepTau2017v2p1VSmu_1[0]   = tau1.rawDeepTau2017v2p1VSmu
     self.out.rawDeepTau2017v2p1VSjet_1[0]  = tau1.rawDeepTau2017v2p1VSjet
-    self.out.idAntiMu_1[0]                 = tau1.idAntiMu
-    self.out.idDecayMode_1[0]              = tau1.idDecayMode
-    self.out.idDecayModeNewDMs_1[0]        = tau1.idDecayModeNewDMs
     self.out.idDeepTau2017v2p1VSe_1[0]     = tau1.idDeepTau2017v2p1VSe
     self.out.idDeepTau2017v2p1VSmu_1[0]    = tau1.idDeepTau2017v2p1VSmu
     self.out.idDeepTau2017v2p1VSjet_1[0]   = tau1.idDeepTau2017v2p1VSjet
-    self.out.chargedIso_1[0]               = tau1.chargedIso
-    self.out.neutralIso_1[0]               = tau1.neutralIso
-    self.out.leadTkPtOverTauPt_1[0]        = tau1.leadTkPtOverTauPt
-    self.out.photonsOutsideSignalCone_1[0] = tau1.photonsOutsideSignalCone
-    self.out.puCorr_1[0]                   = tau1.puCorr
+    jpt_match, jpt_genmatch = matchtaujet(event,tau1,self.ismc)
+    if jpt_match>10:
+      self.out.jpt_match_1[0] = jpt_match
+    else:
+      self.out.jpt_match_1[0] = self.out.pt_1[0]
+    self.out.jpt_ratio_1[0] = self.out.pt_1[0]/self.out.jpt_match_1[0]
     
-    
-  # GENERATOR 
+
+    # GENERATOR 
     if self.ismc:
       self.out.genmatch_1[0]     = tau1.genPartFlav
+     
       pt1, phi1, eta1, status1   = matchgenvistau(event,tau1)
+      
       self.out.genvistaupt_1[0]  = pt1
       self.out.genvistaueta_1[0] = eta1
       self.out.genvistauphi_1[0] = phi1
       self.out.gendm_1[0]        = status1
-      
-        
-    # JETS
-    jets, met, njets_vars, met_vars = self.fillJetBranches(event,tau1)  
-    self.out.jpt_match_1[0], self.out.jpt_genmatch_1[0] = matchtaujet(event,tau1,self.ismc)
-    
-    
-    
-    # WEIGHTS
-    if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
-      if tau1.idDeepTau2017v2p1VSjet>=2:
-        self.btagTool.fillEffMaps(jets,usejec=self.dojec)
-        #self.out.trigweight[0]             = self.trigTool.metTriggerSF(event,met,mht)
-      #self.out.trigweight[0]             = self.trigTool.getSFPair(tau1,tau2) # Do have i to change trigTool.getSFPair or can i just remove this line? 
-      #self.out.trigweight_tight[0]       = self.trigTool_tight.getSFPair(tau1,tau2)# Same as above
-      #if self.dosys:
-        #self.out.trigweightUp[0]         = self.trigTool.getSFPair(tau1,tau2,unc='Up') # Same ad above
-        #self.out.trigweightDown[0]       = self.trigTool.getSFPair(tau1,tau2,unc='Down') # I think i can remove it because i'm not interested in tau pairs  
-      
-      # DEFAULTS
-      self.out.idweight_1[0]        = 1.
-      self.out.idweight_tight_1[0]  = 1.
-      self.out.ltfweight_1[0]       = 1.
-      if self.dosys:
-        self.out.idweightUp_1[0]    = 1.
-        self.out.idweightDown_1[0]  = 1.
-        self.out.ltfweightUp_1[0]   = 1.
-        self.out.ltfweightDown_1[0] = 1.
-        
-      
-      # TAU 1 WEIGHTS
-      if tau1.genPartFlav==5:
-        self.out.idweight_1[0]        = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode)
-        self.out.idweight_tight_1[0]  = self.tauSFs_tight.getSFvsDM(tau1.pt,tau1.decayMode)
-        if self.dosys:
-          self.out.idweightUp_1[0]    = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Up')
-          self.out.idweightDown_1[0]  = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Down')
-      elif tau1.genPartFlav>0:
-        ltfTool = self.etfSFs if tau1.genPartFlav in [1,3] else self.mtfSFs
-        self.out.ltfweight_1[0]       = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav)
-        if self.dosys:
-          self.out.ltfweightUp_1[0]   = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Up')
-          self.out.ltfweightDown_1[0] = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Down')
-      
-      if met.Pt() < 50:
-	return False
-    self.out.cutflow.fill('met')    
-    
-    # MET & DILEPTON VARIABLES
-    self.fillMETAndDiLeptonBranches(event,tau1,met,met_vars)
-    
+      if jpt_genmatch>10:
+        self.out.jpt_genmatch_1[0] = jpt_genmatch
+      else:
+        self.out.jpt_genmatch_1[0] = pt1
 
+      self.FillTESshifts()
+        
+      
+    # WEIGHTS
+    self.out.weight[0] = 1.0 # for data
+    if self.ismc:
+      self.fillCommonCorrBraches(event)
+      self.out.trigweight[0] = self.trig_corr.getWeight(self.out.metnomu[0],self.out.mhtnomu[0])
+      self.out.idisoweight_1[0] = 1.0    
+
+      # KFACTOR_TAU
+      if self.dowmasswgt:
+        wMass = 81
+        for genpart in Collection(event,'GenPart'):
+          if genpart.statusFlags < 8192: continue
+          if abs(genpart.pdgId) == 24:
+            wMass=genpart.mass    
+        self.out.kfactor_tau[0] = self.wmass_corr.getWeight(wMass)
+
+      # total weight ->
+      self.out.weight[0] = self.out.trigweight[0]*self.out.puweight[0]*self.out.genweight[0]*self.out.idisoweight_1[0]
+
+      if self.dowmasswgt:
+        self.out.weight[0] *= self.out.kfactor_tau[0]
+      if self.dozpt:
+        self.out.weight[0] *= self.out.zptweight[0]
+      if self.dotoppt:
+        self.out.weight[0] *= self.out.ttptweight[0]
 
     self.out.fill()
     return True
-
-
-######################### WORK IN PROGRESS #########################
-
-######################### MET #########################
-lorentzVectorMet = met.SetPtEtaPhiM(met.pt,0,met.phi,0) 
-######################### MUON #########################
-lorentzVectorAllMuons = TLorentzVector()
-for muon in Collection(event,'Muon'):
-  muonLV= muon.p4()
-  lorentzVectorAllMuons += muonLV
-metNoMu = (lorentzVectorMet+lorentzVectorAllMuons).Pt();
-######################### JET #########################
-lorentzVectorAllJetsForMht = TLorentzVector()
-for jet in Collection(event,'Jet'):
- if (era == '2017' and jet.pt < 50 and  abs(jet.eta) < 3.139 and abs(jet.eta) > 2.65): continue ######clean for EEnoise jets###### 
- if (abs(jet.eta) >5.2): continue
- if (jet.pt<20.0): 
-  jetLV= jet.p4()
-  lorentzVectorAllJetsForMht += jetLV
-mht = (lorentzVectorAllJetsForMht).Pt()
-mhtNoMu = (lorentzVectorAllJetsForMht-lorentzVectorAllMuons).Pt() 
-           
- 
+    

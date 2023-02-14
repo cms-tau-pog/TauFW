@@ -44,7 +44,7 @@ def plotSampleSet(channel,sampleset,tag="",outdir="plots"):
   LOG.header("plotSampleSet")
   
   selections = [
-    'njets==0 && met > 120 && pt_1 > 110 && abs(DPhi) > 2.6 && extramuon_veto < 0.5 &&  extraelec_veto < 0.5',
+    'njets==0 && met > 120 && pt_1 > 110 && abs(DPhi) > 2.6 && extramuon_veto < 0.5 &&  extraelec_veto < 0.5 && extratau_veto',
      ]
   variables = [
     Var('mt_1', "m_{T}(#mu,MET)",                                                              100,  50, 750),

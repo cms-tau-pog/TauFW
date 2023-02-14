@@ -23,7 +23,8 @@ class TreeProducerHighPT(TreeProducer):
     ###                             '1p0_2p0','2p0_0p5','2p0_1p0','2p0_2p0',]):
     ###    self.h_muweight.GetXaxis().SetBinLabel(i+1,label)
     ###    self.h_muweight_genw.GetXaxis().SetBinLabel(i+1,label)
-    
+
+    self.sumgenweights = TH1D('weightedEvents','Sum of generator weight',1,0,1)
     
     #############
     #   EVENT   #
@@ -39,55 +40,33 @@ class TreeProducerHighPT(TreeProducer):
     self.addBranch('npv_good',            'i')
     self.addBranch('rho',                 'f', title="fixedGridRhoFastjetAll")
     self.addBranch('metfilter',           '?', title="recommended metfilters")
+    self.addBranch('mettrigger',          '?', False, title="Met trigger")
     
     if module.ismc:
       # https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/NPUTablesProducer.cc
       self.addBranch('npu',               'i', -1, title="number of in-time pu interactions added (getPU_NumInteractions -> nPU)")
       self.addBranch('npu_true',          'i', -1, title="true mean number of Poisson distribution (getTrueNumInteractions -> nTrueInt)")
       self.addBranch('NUP',               'i', -1, title="number of partons for stitching (LHE_Njets)")
-    
+      self.addBranch('HT',                'f', -1, title="LHE HT variable for stitching")
     
     ##############
     #   WEIGHT   #
     ##############
-    
+ 
+    self.addBranch('weight',              'f', 1., title="weight combining others (to reduce selection string length)") # will have weight also for data
     if module.ismc:
-      self.addBranch('weight',              'f', 1., title="weight combining others (to reduce selection string length)")
       self.addBranch('genweight',           'f', 1., title="generator weight")
       self.addBranch('trigweight',          'f', 1., title="trigger SF")
       if not module.dotight:
         if module.dopdf:
           self.addBranch('npdfweight',      'i', 1., title="number of PDF weights")
           self.addBranch('pdfweight',       'f', 1., len='npdfweight', max=110, title="vector of PDF weights")
-          #self.addBranch('npsweight',       'i', 1., title="number of parton shower weights")
-          #self.addBranch('psweight',        'f', 1., len='npsweight', max=110, title="vector of parton shower weights")
-          #self.addBranch('muweight',         'f', 1., title="scale weight (muR=1.0, muF=1.0)")
-          #self.addBranch('muweight_0p5_0p5', 'f', 1., title="relative scale weight, muR=0.5, muF=0.5")
-          #self.addBranch('muweight_0p5_1p0', 'f', 1., title="relative scale weight, muR=0.5, muF=1.0")
-          #self.addBranch('muweight_1p0_0p5', 'f', 1., title="relative scale weight, muR=1.0, muF=0.5")
-          #self.addBranch('muweight_1p0_2p0', 'f', 1., title="relative scale weight, muR=1.0, muF=2.0")
-          #self.addBranch('muweight_2p0_1p0', 'f', 1., title="relative scale weight, muR=2.0, muF=1.0")
-          #self.addBranch('muweight_2p0_2p0', 'f', 1., title="relative scale weight, muR=2.0, muF=2.0")
-        self.addBranch('trigweightUp',      'f', 1.)
-        self.addBranch('trigweightDown',    'f', 1.)
       self.addBranch('puweight',            'f', 1., title="pileup up reweighting")
       self.addBranch('zptweight',           'f', 1., title="Z pT reweighting")
       self.addBranch('ttptweight',          'f', 1., title="top pT reweighting")
-      self.addBranch('btagweight',          'f', 1., title="b tagging weight")
-      #if module.dosys:
-      #  self.addBranch('btagweight_bc',      'f', 1., title="b tagging weight, heavy flavor")
-      #  self.addBranch('btagweight_bcUp',    'f', 1., title="b tagging weight, heavy flavor up")
-      #  self.addBranch('btagweight_bcDown',  'f', 1., title="b tagging weight, heavy flavor down")
-      #  self.addBranch('btagweight_udsg',    'f', 1., title="b tagging weight, light flavor")
-      #  self.addBranch('btagweight_udsgUp',  'f', 1., title="b tagging weight, light flavor up")
-      #  self.addBranch('btagweight_udsgDown','f', 1., title="b tagging weight, light flavor down")
-      self.addBranch('prefireweight',       'f', 1.)
-      self.addBranch('prefireweightUp',     'f', 1.)
-      self.addBranch('prefireweightDown',   'f', 1.)
     elif module.isembed:
       self.addBranch('genweight',           'f', 1., title="generator weight")
       self.addBranch('trackweight',         'f', 1.)
-    
     
     ############
     #   JETS   #
@@ -98,47 +77,38 @@ class TreeProducerHighPT(TreeProducer):
     self.addBranch('ncjets',              'i', title="number of central jets (pT > 30 GeV, |eta| < 2.4)")
     self.addBranch('ncjets50',            'i', title="number of central jets (pT > 50 GeV, |eta| < 2.4)")
     self.addBranch('nfjets',              'i', title="number of forward jets (pT > 30 GeV, 2.4 < |eta| < 4.7)")
-    self.addBranch('nbtag',               'i', title="number of b tagged jets (pT > 30 GeV, |eta| < 2.7)")
     self.setAlias("njets30","njets")
-    self.setAlias("nbtag30","nbtag")
-    
-    self.addBranch('jpt_1',               'f', title="pT of leading jet")
-    self.addBranch('jeta_1',              'f', title="eta of leading jet")
-    self.addBranch('jphi_1',              'f', title="phi of leading jet")
-    self.addBranch('jdeepjet_1',          'f', title="DeepJet score of leading jet")
-    self.addBranch('jpt_2',               'f', title="pT of subleading jet")
-    self.addBranch('jeta_2',              'f', title="eta of subleading jet")
-    self.addBranch('jphi_2',              'f', title="phi of subleading jet")
-    self.addBranch('jdeepjet_2',          'f', title="DeepJet score of subleading jet")
-    
-    self.addBranch('bpt_1',               'f', title="pT of leading b jet")
-    self.addBranch('beta_1',              'f', title="eta of leading jet")
-    self.addBranch('bpt_2',               'f', title="pT of leading jet")
-    self.addBranch('beta_2',              'f', title="eta of leading jet")
+
+    ####################
     
     self.addBranch('met',                 'f')
     self.addBranch('metphi',              'f')
-    self.addBranch('DPhi',                'f')
-    
+    self.addBranch('metnomu',             'f') # ETmis w/o muons needed for MET trigger
+    self.addBranch('mhtnomu',             'f') # MHT w/o muons needed for MET trigger
+    self.addBranch('mt_1',                'f', title="PF transverse mass with first lepton")
+    self.addBranch('metdphi_1',           'f', title="Delta(phi) between MET and first lepton")
+
+    ##################
+    # MET variations #
+    ##################
+    if module.dojecsys:
+      for unc in module.metUncLabels:
+        self.addBranch('met_'+unc,        'f')
+        self.addBranch('metphi_'+unc,     'f')
+        self.addBranch('metdphi_1_'+unc,  'f')
+        self.addBranch('mt_1_'+unc,       'f')
+
     if module.ismc:
       self.addBranch('genmet',            'f', -1)
       self.addBranch('genmetphi',         'f', -9)
     
-    
     #############
-    #   OTHER   #
+    #   VETOS   #
     #############
     
-    self.addBranch('mt_1',                'f', title="PF transverse mass with first lepton")
-
-
-    self.addBranch('dilepton_veto',       '?')
     self.addBranch('extraelec_veto',      '?')
     self.addBranch('extramuon_veto',      '?')
-    self.addBranch('extratau_veto',      '?')
-    self.addBranch('extrajet_veto',      '?')
-    self.addBranch('lepton_vetoes',       '?')
-    self.addBranch('lepton_vetoes_notau', '?')
+    self.addBranch('extratau_veto',       '?')
     
     if module.ismc:
       if module.dotoppt:

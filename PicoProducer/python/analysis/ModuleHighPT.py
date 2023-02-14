@@ -1,7 +1,9 @@
-# Author: Jacopo Malvaso (August 2020)
+# Author: Jacopo Malvaso (August 2022)
 # Description: Base class for tau HighPT analysis
 from ROOT import TFile, TTree
 import sys, re
+import math
+import numpy as np
 from math import sqrt, exp, cos
 from ROOT import TLorentzVector, TVector3
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -50,42 +52,30 @@ class ModuleHighPT(Module):
     self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1
-    self.wMassweight= kwargs.get('wStarWeight',    False    ) # W* NLO correction
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
+    self.dowmasswgt = kwargs.get('dowmasswgt',  False       ) # doing w mass reweighting
     self.jetCutPt   = 30
-    self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
-    
+
     assert self.year in [2016,2017,2018], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
-    self.met        = getmet(self.era,"nom" if self.dojec else "",useT1=self.useT1,verb=self.verbosity)
+#    self.met        = getmet(self.era,"nom" if self.dojec else "",useT1=self.useT1,verb=self.verbosity)
     self.filter     = getmetfilters(self.era,self.isdata,verb=self.verbosity)
     
     # CORRECTIONS
-    self.ptnom        = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
     self.jecUncLabels = [ ]
     self.metUncLabels = [ ]
     if self.ismc:
       self.puTool     = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
-      self.btagTool   = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
-      #if self.dorecoil:
-      #  self.recoilTool   = RecoilCorrectionTool(year=self.year)
-      #if self.year in [2016,2017]:
-      #  self.prefireTool  = PreFireTool(self.year)
-      if self.dojec:
-        self.ptnom = lambda j: j.pt_nom # use 'pt_nom' as nominal jet pt
-      #if self.dojecsys:
+      if self.dojecsys:
       #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
-      #  self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
-      #  self.met_vars     = { u: getMET(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
+        self.metUncLabels = [ u+v for u in ['JER','JES','Unclustered'] for v in ['Down','Up']]
       if self.isUL and self.tes==None:
         self.tes = 1.0 # placeholder
-    
-    self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
   
   def beginJob(self):
@@ -116,13 +106,13 @@ class ModuleHighPT(Module):
     print ">>> %-12s = %s"%('dotight',   self.dotight)
     print ">>> %-12s = %s"%('useT1',     self.useT1)
     print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
-    print ">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta)
+    print ">>> %-12s = %s"%('dowmasswgt',self.dowmasswgt)
     
   
   def endJob(self):
     """Wrap up after running on all events and files"""
-    if self.ismc:
-      self.btagTool.setDir(self.out.outfile,'btag')
+#    if self.ismc:
+#      self.btagTool.setDir(self.out.outfile,'btag')
     self.out.endJob()
     
   
@@ -155,6 +145,15 @@ class ModuleHighPT(Module):
     if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
       redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
+    # save number of weights
+    runTree = inputFile.Get('Runs')
+    genEventSumw = np.zeros(1,dtype='d')
+    runTree.SetBranchAddress("genEventSumw",genEventSumw)
+    nentries = runTree.GetEntries()
+    for entry in range(0,nentries):
+      runTree.GetEntry(entry)
+      self.out.sumgenweights.Fill(0.5,genEventSumw[0])
+
   
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
@@ -197,6 +196,10 @@ class ModuleHighPT(Module):
     self.out.npv[0]             = event.PV_npvs
     self.out.npv_good[0]        = event.PV_npvsGood
     self.out.metfilter[0]       = self.filter(event)
+    try:
+      self.out.mettrigger[0]    = event.HLT_PFMETNoMu120_PFMHTNoMu120_IDTight
+    except RuntimeError:
+      self.out.mettrigger[0]    = False
     
     if self.ismc:
       ###self.out.ngentauhads[0]   = ngentauhads
@@ -209,137 +212,139 @@ class ModuleHighPT(Module):
         self.out.NUP[0]         = event.LHE_Njets
       except RuntimeError:
         self.out.NUP[0]         = -1
+      try:
+        self.out.HT[0]          = event.LHE_HT
+      except RuntimeError:
+        self.out.HT[0]          = -1
     elif self.isembed:
       self.out.isdata[0]        = False
     
-  
-  def fillJetBranches(self,event,tau1): #I removed tau2 related things
-    """Help function to select jets and b tags, after removing overlap with tau decay candidates,
-    and fill the jet variable branches."""
+  def met_sys(self,event,unc):
+    metsys_pt = getattr(event,"PuppiMET_pt"+unc)
+    metsys_phi = getattr(event,"PuppiMET_phi"+unc)
+    metsys = TLorentzVector();
+    metsys.SetXYZT(metsys_pt*math.cos(metsys_phi),metsys_pt*math.sin(metsys_phi),0.,metsys_pt)
+    return metsys
+
+  def fillJetMETBranches(self,event,leptons,lep1): 
+    """Help function to select jets after removing overlap with tau decay candidates,
+    and fill the jet and met variable branches."""
+
+    #######################
+    # sum up muon momenta
+    #######################
+    ht_muons = TLorentzVector()
+    ht_muons.SetXYZT(0,0,0,0)
+    for muon in Collection(event,'Muon'):
+      if muon.pt<10: continue
+      if abs(muon.eta)>2.4: continue
+      if abs(muon.dz)>0.2: continue
+      if abs(muon.dxy)>0.045: continue
+      if not muon.looseId: continue
+      if muon.pfRelIso04_all>0.3: continue
+      ht_muons += muon.p4()
+
     
-    # NOMINAL AND VARIATIONS
-    metnom     = self.met(event)
-    met_vars   = { }
+    # MET NOMINAL AND VARIATIONS
+    met_pt     = event.PuppiMET_pt
+    met_phi    = event.PuppiMET_phi
+    met        = TLorentzVector()
+    met.SetXYZT(met_pt*math.cos(met_phi),met_pt*math.sin(met_phi),0.,met_pt)
+    
+    met_vars = { }
     if self.dojecsys:
-      jets_vars = { u: [ ] for u in self.jecUncLabels }
-      met_vars  = { u: self.met_vars[u](event) for u in self.metUncLabels } # TLVs
+      for unc in self.metUncLabels:
+        met_vars[unc]  = self.met_sys(event,unc) # TLVs
     
+    lep1.tlv = lep1.p4()
+    # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
+    if self.ismc and 'tau' in self.channel:
+      if hasattr(lep1,'es') and lep1.es!=1:
+        dp = lep1.tlv*(1.-1./lep1.es) # assume shift is already applied
+        correctmet(met,dp)
+        
+    #print ">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(lep2.es,lep2.pt,dp.Pt(),lep2.genPartFlav)
+        
+    lep1 = lep1.tlv # continue with TLorentzVector
+    
+    # MET
+    self.out.met[0]       = met.Pt()
+    self.out.metphi[0]    = met.Phi()
+    dphi = abs(lep1.DeltaPhi(met))
+    self.out.mt_1[0]      = sqrt( 2*lep1.Pt()*met.Pt()*(1-cos(dphi) ) ) 
+    self.out.metdphi_1[0] = dphi
+
+    # MET no muon
+    metNoMu = met + ht_muons
+    self.out.metnomu[0] = metNoMu.Pt()
+    
+    # MET SYSTEMATICS
+    for unc, met_var in met_vars.iteritems():
+      getattr(self.out,"met_"+unc)[0]    = met_var.Pt()
+      getattr(self.out,"metphi_"+unc)[0] = met_var.Phi()
+      dphi = abs(lep1.DeltaPhi(met_var))
+      getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2 * lep1.Pt() * met_var.Pt() * ( 1 - cos(dphi) ) )
+      getattr(self.out,'metdphi_1_'+unc)[0] = dphi
+
+
     # COUNTERS
-    njets_vars     = { }
-    jets,   bjets  = [ ], [ ]
+    jets           = [ ]
     nfjets, ncjets = 0, 0
-    ncjets50       = 0
-    nbtag          = 0
-    
+    njets50, ncjets50  = 0, 0
+
+    ht_jets = TLorentzVector()
+    ht_jets.SetXYZT(0,0,0,0)
     # SELECT JET, remove overlap with selected objects
     for jet in Collection(event,'Jet'):
+      if abs(jet.eta)>5.0: continue
+      if (jet.pt<10): continue
+      ht_jets = ht_jets + jet.p4() 
       if abs(jet.eta)>4.7: continue
-      if jet.DeltaR(tau1)<0.5: continue
-      
+      overlap = False
+      for lepton in leptons:
+        if jet.DeltaR(lepton)<0.5: 
+          overlap = True
+          break
+      if overlap: continue
+
       if (self.era=='2017'or self.era=='2018') and (jet.jetId<2): continue # Tight
       elif (self.era=='2016') and (jet.jetId < 1): continue #Loose
       
-      # SAVE JEC VARIATIONS
-      if self.dojec:
-        jetpt = jet.pt_nom
-        for unc in self.jecUncLabels:
-          if getattr(jet,'pt_'+unc) < self.jetCutPt: continue
-          jets_vars[unc].append(jet)
-      else:
-        jetpt = jet.pt
-      
       # PT CUT
-      if jetpt<self.jetCutPt: continue
+      if jet.pt<self.jetCutPt: continue
       jets.append(jet)
       
+      # COUNT JETS PT>50
+      if jet.pt>50:
+        njets50 += 1
       # COUNT FORWARD/CENTRAL
       if abs(jet.eta)>2.4:
         nfjets += 1
       else:
         ncjets += 1
-        if jetpt>50:
+        if jet.pt>50:
           ncjets50 += 1
       
-      # B TAGGING #I think b-tagging it's unnecessary in our case 
-      if jet.btagDeepFlavB>self.deepjet_wp.medium and abs(jet.eta)<self.bjetCutEta:
-        nbtag += 1
-        bjets.append(jet)
+    mht = ht_jets - ht_muons
     
-    #### TOTAL MOMENTUM
-    ###eventSum = TLorentzVector()
-    ###for lep in muons :
-    ###    eventSum += lep.p4()
-    ###for lep in electrons :
-    ###    eventSum += lep.p4()
-    ###for j in filter(self.jetSel,jets):
-    ###    eventSum += j.p4()
-    
-    # FILL JET BRANCHES
-    jets.sort( key=lambda j: self.ptnom(j),reverse=True)
-    bjets.sort(key=lambda j: self.ptnom(j),reverse=True)
     self.out.njets[0]         = len(jets)
-    self.out.njets50[0]       = len([j for j in jets if self.ptnom(j)>50])
+    self.out.njets50[0]       = njets50
     self.out.nfjets[0]        = nfjets
     self.out.ncjets[0]        = ncjets
     self.out.ncjets50[0]      = ncjets50
-    self.out.nbtag[0]         = nbtag
+    self.out.mhtnomu[0]       = mht.Pt()
     
-    # LEADING JET
-    if len(jets)>0:
-      self.out.jpt_1[0]       = self.ptnom(jets[0])
-      self.out.jeta_1[0]      = jets[0].eta
-      self.out.jphi_1[0]      = jets[0].phi
-      self.out.jdeepjet_1[0]  = jets[0].btagDeepFlavB
-    else:
-      self.out.jpt_1[0]       = -1.
-      self.out.jeta_1[0]      = -9.
-      self.out.jphi_1[0]      = -9.
-      self.out.jdeepjet_1[0]  = -9.
+    ## FILL JET VARIATION BRANCHES (Not available in NanoAOD v10)
+    #    if self.dojecsys:
+    #      for unc, jets_var in jets_vars.iteritems():
+    #        getattr(self.out,"njets_"+unc)[0] = len(jets_var)
+    #        getattr(self.out,"ncjets_"+unc)[0] = ncjets_var
+    #        getattr(self.out,"nfjets_"+unc)[0] = nfjets_var
     
-    # SUBLEADING JET
-    if len(jets)>1:
-      self.out.jpt_2[0]       = self.ptnom(jets[1])
-      self.out.jeta_2[0]      = jets[1].eta
-      self.out.jphi_2[0]      = jets[1].phi
-      self.out.jdeepjet_2[0]  = jets[1].btagDeepFlavB
-    else:
-      self.out.jpt_2[0]       = -1.
-      self.out.jeta_2[0]      = -9.
-      self.out.jphi_2[0]      = -9.
-      self.out.jdeepjet_2[0]  = -9.
-    
-    # LEADING B JETS 
-    if len(bjets)>0:
-      self.out.bpt_1[0]       = self.ptnom(bjets[0])
-      self.out.beta_1[0]      = bjets[0].eta
-    else:
-      self.out.bpt_1[0]       = -1.
-      self.out.beta_1[0]      = -9.
-    
-    # SUBLEADING B JETS
-    if len(bjets)>1:
-      self.out.bpt_2[0]       = self.ptnom(bjets[1])
-      self.out.beta_2[0]      = bjets[1].eta
-    else:
-      self.out.bpt_2[0]       = -1.
-      self.out.beta_2[0]      = -9.
-    
-    ## FILL JET VARIATION BRANCHES
-    #if self.dojecsys:
-    #  for unc, jets_var in jets_vars.iteritems():
-    #    ptvar = 'pt_'+unc
-    #    jets_var.sort(key=lambda j: getattr(j,ptvar),reverse=True)
-    #    njets_vars[unc] = len(jets_var)
-    #    bjets_vars      = [j for j in jets_vars if j.btagDeepFlavB>self.deepjet_wp.medium and abs(j.eta)<self.bjetCutEta]
-    #    getattr(self.out,"njets_"+unc)[0] = njets_vars[unc]
-    #    getattr(self.out,"nbtag_"+unc)[0] = len(bjets_vars)
-    #    getattr(self.out,"jpt_1_"+unc)[0] = getattr(jets_var[0],ptvar) if len(jets_var)>=1 else -1
-    #    getattr(self.out,"jpt_2_"+unc)[0] = getattr(jets_var[1],ptvar) if len(jets_var)>=2 else -1
-    
-    return jets, metnom, njets_vars, met_vars
+    return jets, ht_muons, met, met_vars
     
   
-  def fillCommonCorrBraches(self, event, jets, met, njets_vars, met_vars):
+  def fillCommonCorrBraches(self, event):
     """Help function to apply common corrections, and fill weight branches."""
     
     #if self.dorecoil:
@@ -354,12 +359,13 @@ class ModuleHighPT(Module):
     #  if self.dozpt:
     #    self.out.zptweight[0]      = self.zptTool.getzptweight(boson.Pt(),boson.M())
     #
+
     if self.dozpt:
       zboson = getzboson(event)
       self.out.m_moth[0]      = zboson.M()
       self.out.pt_moth[0]     = zboson.Pt()
       self.out.zptweight[0]   = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
-    
+      
     elif self.dotoppt:
       toppt1, toppt2          = gettoppt(event)
       self.out.pt_moth1[0]    = max(toppt1,toppt2)
@@ -368,77 +374,66 @@ class ModuleHighPT(Module):
     
     self.out.genweight[0]     = event.genWeight
     self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
-    self.out.btagweight[0]    = self.btagTool.getWeight(jets)
-    if self.dosys:
-      if self.dopdf:
-        self.out.npdfweight[0]  = min(event.nLHEPdfWeight,len(self.out.pdfweight))
-        for i in range(self.out.npdfweight[0]):
-          self.out.pdfweight[i] = event.LHEPdfWeight[i]
-        #self.out.muweight[0]          = event.LHEWeight_originalXWGTUP # scale weight, muR=1.0, muF=1.0
-        #self.out.muweight_0p5_0p5[0]  = event.LHEScaleWeight[0] # scale weight, muR=0.5, muF=0.5 (rel.)
-        #self.out.muweight_0p5_1p0[0]  = event.LHEScaleWeight[1] # scale weight, muR=0.5, muF=1.0 (rel.)
-        #self.out.muweight_1p0_0p5[0]  = event.LHEScaleWeight[3] # scale weight, muR=1.0, muF=0.5 (rel.)
-        #self.out.muweight_1p0_2p0[0]  = event.LHEScaleWeight[5] # scale weight, muR=1.0, muF=2.0 (rel.)
-        #self.out.muweight_2p0_1p0[0]  = event.LHEScaleWeight[7] # scale weight, muR=2.0, muF=1.0 (rel.)
-        #self.out.muweight_2p0_2p0[0]  = event.LHEScaleWeight[8] # scale weight, muR=2.0, muF=2.0 (rel.)
-      #self.out.btagweight_bc[0],     self.out.btagweight_udsg[0]     = self.btagTool.getFlavorWeight(jets)
-      #self.out.btagweight_bcUp[0],   self.out.btagweight_udsgUp[0]   = self.btagTool.getFlavorWeight(jets,unc='Up')
-      #self.out.btagweight_bcDown[0], self.out.btagweight_udsgDown[0] = self.btagTool.getFlavorWeight(jets,unc='Down')
-    #if self.year in [2016,2017]:
-    #  self.out.prefireweightDown[0], self.out.prefireweight[0], self.out.prefireweightUp[0] = self.prefireTool.getWeight(event)
-    
 
-  #extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event, electrons, muons, taus, channel)
-  
-  def fillMETAndDiLeptonBranches(self, event, tau1, met, met_vars):
-    """Help function to compute variable related to the MET and visible tau candidates,
-     and fill the corresponding branches."""
-    tau1.tlv = tau1.p4()
-    # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
-    if self.ismc and 't' in self.channel:
-      if hasattr(tau1,'es') and tau1.es!=1:
-        dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
-        correctmet(met,dp)
-      
+  # EXTRA TAU VETO
+  def get_extratau_veto(self,event,leptons):
+    tau_veto = False
+    for tau in Collection(event,'Tau'):
+      if tau.pt<20: continue
+      if abs(tau.eta)>2.3: continue
+      if abs(tau.dz)>0.2: continue
+      if tau.decayMode not in [0,1,2,10,11]: continue
+      if abs(tau.charge)!=1: continue
+      if tau.idDeepTau2017v2p1VSe < 1: continue   # VVVLoose
+      if tau.idDeepTau2017v2p1VSmu < 1: continue  # VLoose
+      overlap = False
+      for lepton in leptons:
+        if tau.DeltaR(lepton)<0.4:
+          overlap = True
+          break
+      if overlap: continue          
+      if tau.idDeepTau2017v2p1VSjet>=1:
+        tau_veto = True
+        break
+    return tau_veto
 
-        #print ">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(tau2.es,tau2.pt,dp.Pt(),tau2.genPartFlav)
-        
-    tau1 = tau1.tlv # continue with TLorentzVector
-    
-    
-    # MET
-    self.out.met[0]       = met.Pt()
-    self.out.metphi[0]    = met.Phi()
-    self.out.mt_1[0]      = sqrt( 2*self.out.pt_1[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_1[0],met.Phi()))) ) 
-    self.out.DPhi[0]      = deltaPhi(self.out.phi_1[0],met.Phi())
-  
-    
-    ###self.out.puppimetpt[0]             = event.PuppiMET_pt
-    ###self.out.puppimetphi[0]            = event.PuppiMET_phi
-    ###self.out.metsignificance[0]        = event.MET_significance
-    ###self.out.metcov00[0]               = event.MET_covXX
-    ###self.out.metcov01[0]               = event.MET_covXY
-    ###self.out.metcov11[0]               = event.MET_covYY
-    ###self.out.fixedGridRhoFastjetAll[0] = event.fixedGridRhoFastjetAll
-    
-    # PZETA #I don't need PZETA because i don't have tau2)
-    #leg1                  = TVector3(tau1.Px(),tau1.Py(),0.)
-    #leg2                  = TVector3(tau2.Px(),tau2.Py(),0.)
-    #zetaAxis              = TVector3(leg1.Unit()+leg2.Unit()).Unit() # bisector of visible tau candidates
-    #pzetavis              = leg1*zetaAxis + leg2*zetaAxis # bisector of visible ditau momentum onto zeta axis
-    #pzetamiss             = met.Vect()*zetaAxis # projection of MET onto zeta axis
-    #self.out.pzetamiss[0] = pzetamiss
-    #self.out.pzetavis[0]  = pzetavis
-    #self.out.dzeta[0]     = pzetamiss - 0.85*pzetavis
-    
-    # MET SYSTEMATICS
-    for unc, met_var in met_vars.iteritems():
-      getattr(self.out,"met_"+unc)[0]    = met_var.Pt()
-      getattr(self.out,"metphi_"+unc)[0] = met_var.Phi()
-      getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2 * self.out.pt_1[0] * met_var.Pt() * ( 1 - cos(deltaPhi(self.out.phi_1[0],met_var.Phi())) ))
-      getattr(self.out,"dzeta_"+unc)[0]  = met_var.Vect()*zetaAxis - 0.85*pzeta_vis
-    
+  # EXTRA MUON VETO
+  def get_extramuon_veto(self,event,leptons):
+    muon_veto = False
+    for muon in Collection(event,'Muon'):
+      if muon.pt<10: continue
+      if abs(muon.eta)>2.4: continue
+      if abs(muon.dz)>0.2: continue
+      if abs(muon.dxy)>0.045: continue
+      if muon.pfRelIso04_all>0.3: continue
+      overlap = False
+      for lepton in leptons:
+        if muon.DeltaR(lepton)<0.4:
+          overlap = True
+          break
+      if overlap: continue
+      if muon.mediumId:
+        muon_veto = True
+        break
+    return muon_veto
 
-    
-    
+  # EXTRA ELECTRON VETO
+  def get_extraelec_veto(self,event,leptons):
+    elec_veto = False
+    for electron in Collection(event,'Electron'):
+      if electron.pt<15: continue
+      if abs(electron.eta)>2.5: continue
+      if abs(electron.dz)>0.2: continue
+      if abs(electron.dxy)>0.045: continue
+      if electron.pfRelIso03_all>0.3: continue
+      overlap = False
+      for lepton in leptons:
+        if electron.DeltaR(lepton)<0.4:
+          overlap = True
+          break
+      if overlap: continue
+      if electron.convVeto==1 and electron.mvaNoIso_WP80:
+        elec_veto = True
+        break
+    return elec_veto
 

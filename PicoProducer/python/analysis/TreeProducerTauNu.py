@@ -1,4 +1,4 @@
-# Author: Jacopo Malvaso (August 2022)
+# Author: Jacopo Malvaso, Alexei Raspereza (August 2022)
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
@@ -26,46 +26,32 @@ class TreeProducerTauNu(TreeProducerHighPT):
     self.addBranch('dz_1',                       'f')
     self.addBranch('q_1',                        'i')
     self.addBranch('dm_1',                       'i')
-    self.addBranch('iso_1',                      'f', title="rawIso")
-    self.addBranch('idiso_1',                    'i', title="rawIso WPs")
     self.addBranch('rawDeepTau2017v2p1VSe_1',    'f')
     self.addBranch('rawDeepTau2017v2p1VSmu_1',   'f')
     self.addBranch('rawDeepTau2017v2p1VSjet_1',  'f')
-    self.addBranch('idAntiEle_1',                'i')
-    self.addBranch('idAntiMu_1',                 'i')
     self.addBranch('idDecayMode_1',              '?', title="oldDecayModeFinding")
     self.addBranch('idDecayModeNewDMs_1',        '?', title="newDecayModeFinding")
-    self.addBranch('idMVAoldDM2017v2_1',         'i')
-    self.addBranch('idMVAnewDM2017v2_1',         'i')
     self.addBranch('idDeepTau2017v2p1VSe_1',     'i')
     self.addBranch('idDeepTau2017v2p1VSmu_1',    'i')
     self.addBranch('idDeepTau2017v2p1VSjet_1',   'i')
-    self.addBranch('leadTkPtOverTauPt_1',        'f')
-    self.addBranch('chargedIso_1',               'f')
-    self.addBranch('neutralIso_1',               'f')
-    self.addBranch('photonsOutsideSignalCone_1', 'f')
-    self.addBranch('puCorr_1',                   'f')
     self.addBranch('jpt_match_1',                'f', -1, title="pt of jet matching tau")
-    
-        
-   
-    
+    self.addBranch('jpt_ratio_1',                'f', -1, title="pt(tau)/pt(jet)")    
+
     if self.module.ismc:
+      if self.module.dowmasswgt:
+        self.addBranch('kfactor_tau',            'f',  1)
+      self.addBranch('idisoweight_1',            'f',  1)
       self.addBranch('jpt_genmatch_1',           'f', -1, title="pt of gen jet matching tau")
       self.addBranch('genmatch_1',               'i', -1)
       self.addBranch('genvistaupt_1',            'f', -1)
       self.addBranch('genvistaueta_1',           'f', -9)
       self.addBranch('genvistauphi_1',           'f', -9)
       self.addBranch('gendm_1',                  'i', -1)
-      self.addBranch('trigweight_tight',         'f', 1.)
-      self.addBranch('idweight_1',               'f', 1., title="tau ID efficiency SF")
-      self.addBranch('idweight_tight_1',         'f', 1., title="tau ID efficiency SF")
-      self.addBranch('ltfweight_1',              'f', 1., title="lepton -> tau fake rate SF")
-      
-      if module.dosys: # systematic variation (only for nominal tree)
-        self.addBranch('idweightUp_1',           'f', 1.)
-        self.addBranch('idweightDown_1',         'f', 1.)
-        self.addBranch('ltfweightUp_1',          'f', 1.)
-        self.addBranch('ltfweightDown_1',        'f', 1.)
-        
-    
+
+      for unc in self.module.tes_uncs:
+        self.addBranch('pt_1_'+unc,         'f')
+        self.addBranch('m_1_'+unc,          'f')
+        self.addBranch('met_'+unc,          'f')
+        self.addBranch('metphi_'+unc,       'f')
+        self.addBranch('mt_1_'+unc,         'f')
+        self.addBranch('metdphi_1_'+unc,    'f')
