@@ -66,7 +66,10 @@ function main {
         
         # COMBINE FIT WITH TENSOR FLOW
         #peval "text2hdf5.py $CARDTXT -m 90 -o $CARDHDF"
-        #peval "combinetf.py $CARDHDF  --binByBinStat --output output/fitresults_${LABEL}.root --saveHists"
+        #peval "combinetf.py $CARDHDF  --binByBinStat --output output/fit_${LABEL}.root --saveHists"
+        
+        # IMPACTS
+        #combinetf.py $CARDHDF --binByBinStat --output root/impacts_${LABEL}_impact.root --doImpacts
         
       done
     done
