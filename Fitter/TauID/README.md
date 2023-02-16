@@ -38,13 +38,17 @@ combinetf.py mydatacard.hdf5 --binByBinStat --output fitresults.root
 ```
 
 ## 4. Create cards
+Use the Combine Harvester:
 ```
-...
+python harvestcards.py input/ztt_tid_mvis_pt30to35_mt-UL2018.inputs.root input/ztt_tid_mvis_mm-UL2018.inputs.root -y UL2018 -w Tight -t _pt30to35 -v 1
+python harvestcards.py input/ztt_tid_mvis_dm1_mt-UL2018.inputs.root input/ztt_tid_mvis_mm-UL2018.inputs.root -y UL2018 -w Tight -t _dm1 -v 1
 ```
 
 ## 5. Run combine
+The script `fit.sh` creates the datacards for you and runs combine:
 ```
-./fit.sh
+./fit.sh -y UL2018 -w Tight
+./fit.sh -y UL2016_preVFP,UL2016_postVFP,UL2017,UL2018 -w Loose,Medium,Tight
 ```
 
 ## References
