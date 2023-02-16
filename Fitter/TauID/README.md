@@ -54,8 +54,8 @@ The script `fit.sh` creates the datacards for you and runs combine:
 ## 6. Plot & create ROOT files
 if the fit was succesful, use
 ```
-./read.py
-./read_dm.py
+./plotfit.py
+./plotfit_dm.py
 ```
 
 
