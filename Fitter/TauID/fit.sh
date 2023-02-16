@@ -13,11 +13,13 @@ PTBINS="20to25 25to30 30to35 35to40 40to50 50to70 70to2000"
 DMBINS="0 1 10 11"
 DCPATH="input" # datacard path
 DOHARV=1
+DOIMPACT=0
 VERB=0 # verbosity
 
 # COMMAND LINE SETTINGS
-while getopts "hp:v:w:y:" option; do case "${option}" in
-  h) DOHARV=1;; # Skip harvester step
+while getopts "hIp:v:w:y:" option; do case "${option}" in
+  h) DOHARV=0;; # skip harvester step
+  I) DOIMPACT=1;; # do impacts
   d) DMBINS="${OPTARG//,/ }";;
   p) PTBINS="${OPTARG//,/ }";;
   w) WPS="${OPTARG//,/ }";;
@@ -67,11 +69,12 @@ function main {
         fi
         
         # COMBINE FIT WITH TENSOR FLOW
-        #peval "text2hdf5.py $CARDTXT -m 90 -o $CARDHDF" | tee -a ../$LOG
-        #peval "combinetf.py $CARDHDF  --binByBinStat --output output/fit_${LABEL}.root --saveHists" | tee -a ../$LOG
-        
-        # IMPACTS
-        #combinetf.py $CARDHDF --binByBinStat --output root/impacts_${LABEL}_impact.root --doImpacts | tee -a ../$LOG
+        if [[ $DOIMPACT -gt 0 ]]; then # IMPACTS
+          combinetf.py $CARDHDF --binByBinStat --output root/impacts_${LABEL}_impact.root --doImpacts | tee -a ../$LOG
+        else # MAIN FIT
+          peval "text2hdf5.py $CARDTXT -m 90 -o $CARDHDF" | tee -a ../$LOG
+          peval "combinetf.py $CARDHDF  --binByBinStat --output output/fit_${LABEL}.root --saveHists" | tee -a ../$LOG
+        fi
         
       done
     done

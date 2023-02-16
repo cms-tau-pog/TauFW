@@ -51,5 +51,13 @@ The script `fit.sh` creates the datacards for you and runs combine:
 ./fit.sh -y UL2016_preVFP,UL2016_postVFP,UL2017,UL2018 -w Loose,Medium,Tight
 ```
 
+## 6. Plot & create ROOT files
+if the fit was succesful, use
+```
+./read.py
+./read_dm.py
+```
+
+
 ## References
 Yuta's presentation: https://indico.cern.ch/event/847119/#13-tau-id-scale-factor-for-dee
