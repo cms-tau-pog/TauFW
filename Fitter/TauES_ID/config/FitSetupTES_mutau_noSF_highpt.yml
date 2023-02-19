@@ -13,14 +13,13 @@ channel: mutau
 
 # Tag can be used to differentiate between scenarios
 
-#tag: "_mutau_mt65_noSF_DM_v2"
-#tag: "_mutau_mt65_noSF_DM_stitching_baseline"
-#tag: "_mutau_mt65_noSF_DM_binmvis1000_rebin"
-tag: "_mutau_mt65_noSF_DM"
+#tag: "_mutau_mt65_noSF_DM"
+#tag: "_mutau_mt65_noSF_DM_stitching"
+tag: "_mutau_mt65_noSF_DM_highpt"
+#tag: "_mutau_mt65_noSF_DM_lowpt"
 
 
 baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
-
 
 # These regions will be defined when creating inputs or making plots
 # At this point, they do not need to be exclusive; 
@@ -29,30 +28,30 @@ baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2
 #     - additional cross section scale factors applied to some processes need to be given in these regions to be considered --> adjust in scaleFactors section
 
 regions:
-    DM0: 
-        definition: "mt_1<65 && dm_2==0"
-        title: "h^{#pm}"
-    DM1: 
-        definition: "mt_1<65 && dm_2==1"
-        title: "h^{#pm}#pi^{0}"
-    DM10: 
-        definition: "mt_1<65 && dm_2==10"
-        title: "h^{#pm}h^{#mp}h^{#pm}"
+    # DM0: 
+    #     definition: "mt_1<65 && dm_2==0 && pt_2<35"
+    #     title: "h^{#pm}"
+    # DM1: 
+    #     definition: "mt_1<65 && dm_2==1 && pt_2<35"
+    #     title: "h^{#pm}#pi^{0}"
+    # DM10: 
+    #     definition: "mt_1<65 && dm_2==10 && pt_2<35"
+    #     title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11: 
-        definition: "mt_1<65 && dm_2==11"
+        definition: "mt_1<65 && dm_2==11 && pt_2<35"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
 
-plottingOrder: ["DM11", "DM10","DM1", "DM0"]
-#plottingOrder: ["DM11"]
+#plottingOrder: ["DM11", "DM10","DM1", "DM0"]
+plottingOrder: ["DM11"]
 
 
 tesRegions:
-    DM02: 
-        title: "h^{#pm}"
-    DM1: 
-        title: "h^{#pm}#pi^{0}"
-    DM10: 
-        title: "h^{#pm}h^{#mp}h^{#pm}"
+    # DM0: 
+    #     title: "h^{#pm}"
+    # DM1: 
+    #     title: "h^{#pm}#pi^{0}"
+    # DM10: 
+    #     title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11: 
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
 
@@ -72,19 +71,19 @@ tid_SFRegions:
 
 observables:
     m_vis:
-        binning: [8, 50, 106]
+        binning: [10, 50, 106]
         title: "m_{vis}"
         extra:
             cut: "50<m_vis && m_vis<106"
-        fitRegions: [DM0, DM1, DM10, DM11]
-        scanRegions: ["DM0", "DM1", "DM10", "DM11"] 
-        # fitRegions: ["DM11"]
-        # scanRegions: ["DM11"] 
+        # fitRegions: [DM0, DM1, DM10, DM11]
+        # scanRegions: ["DM0", "DM1", "DM10", "DM11"] 
+        fitRegions: ["DM11"]
+        scanRegions: ["DM11"] 
+
 
 # Assume that this code is meant to fit TES variations; more options could be added when adding other POIs
 
 TESvariations:
-    #values: [0.970, 0.974, 0.978, 0.982, 0.986, 0.990, 0.994, 0.998, 1.002, 1.006, 1.010, 1.014, 1.018, 1.022, 1.026, 1.030]
     values: [0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.984, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022, 1.024, 1.026, 1.028, 1.030]
     #values: [0.950, 0.951, 0.952, 0.953, 0.954, 0.955, 0.956, 0.957, 0.958, 0.959,0.960, 0.961, 0.962, 0.963, 0.964, 0.965, 0.966, 0.967, 0.968, 0.969, 0.970, 0.971, 0.972, 0.973, 0.974, 0.975, 0.976, 0.977, 0.978, 0.979, 0.980, 0.981, 0.982, 0.983, 0.984, 0.985, 0.986, 0.987, 0.988, 0.989,0.990, 0.991, 0.992, 0.993, 0.994, 0.995, 0.996, 0.997, 0.998, 0.999, 1.000, 1.001, 1.002, 1.003, 1.004, 1.005, 1.006, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.013, 1.014, 1.015, 1.016, 1.017, 1.018, 1.019, 1.020, 1.021, 1.022, 1.023, 1.024, 1.025, 1.026, 1.027, 1.028, 1.029, 1.030, 1.031, 1.032, 1.033, 1.034, 1.035, 1.036, 1.037, 1.038, 1.039, 1.040, 1.041, 1.042, 1.043, 1.044, 1.045, 1.046, 1.047, 1.048, 1.049]
     processes: ["ZTT"]

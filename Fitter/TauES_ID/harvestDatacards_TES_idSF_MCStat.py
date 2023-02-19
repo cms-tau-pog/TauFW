@@ -2,7 +2,7 @@
 # Author: Izaak Neutelings (January 2018)
 # Modification by Saskia Falke and Oceane Poncet (June 2022)
 # Add tid SF as nuisance parameter that affect the norm = rateParameter
-# Use sum of the of the backrgound processes for the bin-by-bin nuisance parameters
+# Use sum of the of the background processes for the bin-by-bin nuisance parameters
 
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import os, sys, re
@@ -63,8 +63,6 @@ def harvest(setup, year, obs, **kwargs):
         # CAVEAT: Assume we always want to fit TES as POI; if running for mumu channel, everything will be bkg
         harvester.AddProcesses(tesshifts, [analysis], [era], [channel], signals, cats, True)
 
-    
-        # NUISSANCE PARAMETERS
         print green("\n>>> defining nuissance parameters ...")
   
         if "systematics" in setup:
@@ -77,14 +75,29 @@ def harvest(setup, year, obs, **kwargs):
             #harvester.cp().signals().AddSyst(harvester, 'tid_SF_$BIN','rateParam', SystMap()(1.00))
             #print sysDef
          
-        listbin = region.split("_")
-        print("listbin : %s") %(listbin)
+        # listbin = region.split("_")
+        # print("listbin : %s") %(listbin)
 
-        if len(listbin) == 1:
-          tid_name = "tid_SF_%s"%(listbin[0])
+        # if len(listbin) == 1:
+        #   tid_name = "tid_SF_%s"%(listbin[0])
+        # else:
+        #   tid_name = "tid_SF_%s"%(listbin[1])
+        # print("tid : %s") %(tid_name)
+
+        listbin = region.split("_")
+        if region in setup["tid_SFRegions"]:
+          tid_name = "tid_SF_%s" %(region)
         else:
-          tid_name = "tid_SF_%s"%(listbin[1])
-        print("tid : %s") %(tid_name)
+          print("listbin : %s") %(listbin)
+
+          if len(listbin) == 1:
+            tid_name = "tid_SF_%s"%(listbin[0])
+          else:
+            tid_name = "tid_SF_%s"%(listbin[1])
+        print(">>> tid : %s") %(tid_name)
+
+
+        
 
         harvester.cp().signals().AddSyst(harvester, tid_name,'rateParam', SystMap()(1.00))
 
@@ -97,17 +110,27 @@ def harvest(setup, year, obs, **kwargs):
         harvester.cp().channel([channel]).backgrounds().ExtractShapes(filename, "$BIN/$PROCESS", "$BIN/$PROCESS_$SYSTEMATIC")
         harvester.cp().channel([channel]).signals().ExtractShapes(filename, "$BIN/$PROCESS_TES$MASS", "$BIN/$PROCESS_TES$MASS_$SYSTEMATIC")
         #harvester.cp().channel([channel]).process(sysDef["processes"]).ExtractShapes( filename, "$BIN/$PROCESS_SF", "$BIN/$PROCESS_$SYSTEMATIC_SF") ###change
-   
+
+
 
    
         # ROOVAR
         workspace = RooWorkspace(analysis,analysis)
         print analysis
-        #tesname = "tes_%s"%(region)
-        tesname = "tes_%s"%(listbin[0])
+
+        if region in setup["tesRegions"]:
+          tesname = "tes_%s" %(region)
+        else:
+          tesname = "tes_%s"%(listbin[0])
         print("tes: %s") %(tesname)
+
+
+        #tesname = "tes_%s"%(region)
+        # tesname = "tes_%s"%(listbin[0])
+        # print("tes: %s") %(tesname)
         tes = RooRealVar(tesname,tesname, min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]))
         tes.setConstant(True)
+    
     
         # MORPHING
         print green(">>> morphing...")
@@ -126,12 +149,24 @@ def harvest(setup, year, obs, **kwargs):
 
         harvester.SetAutoMCStats(harvester, 0, 1, 1) # Set the autoMCStats line (with -1 = no bbb uncertainties)
 
+
+        # Rebin histograms for channel using Auto Rebinning
+
+        # rebin = AutoRebin()
+        # rebin.SetBinThreshold(100)
+        # rebin.SetBinUncertFraction(0.2)
+        # rebin.SetRebinMode(1)
+        # rebin.SetPerformRebin(True)
+        # rebin.SetVerbosity(1) 
+        # rebin.Rebin(harvester,harvester)
+
+
         # NUISANCE PARAMETER GROUPS
         # To do: export to config file
         print green(">>> setting nuisance parameter groups...")
         harvester.SetGroup('all', [ ".*"           ])
         harvester.SetGroup('sys', [ "^((?!bin).)*$"]) # everything except bin-by-bin
-        harvester.SetGroup( 'bin',      [ ".*_bin_.*"        ])
+        harvester.SetGroup( 'bin',      [ ".*_bin.*"        ])
         harvester.SetGroup( 'lumi',     [ ".*lumi"           ])
         harvester.SetGroup( 'eff',      [ ".*eff_.*"         ])
         harvester.SetGroup( 'jtf',      [ ".*jTauFake.*"     ])
@@ -232,7 +267,7 @@ if __name__ == '__main__':
   argv = sys.argv
   description = '''This script makes datacards with CombineHarvester.'''
   parser = ArgumentParser(prog="harvesterDatacards_TES",description=description,epilog="Succes!")
-  parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default=2018, action='store', help="select year")
+  parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018v10'], type=str, default=2018, action='store', help="select year")
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup")
   parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
   parser.add_argument('-M', '--multiDimFit', dest='multiDimFit', default=False, action='store_true', help="assume multidimensional fit with a POI for each DM")

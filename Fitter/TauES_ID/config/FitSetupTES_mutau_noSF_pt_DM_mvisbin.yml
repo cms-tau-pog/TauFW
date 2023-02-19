@@ -13,15 +13,13 @@ channel: mutau
 
 # Tag can be used to differentiate between scenarios
 
+#tag: "_mtlt65_noSF_DMpt_mvisbin_10"
+#tag: "_mtlt65_noSF_DMpt"
 #tag: "_mtlt65_noSF_DMpt_mvisbin_50_rebin"
+#tag: "_mtlt65_noSF_DMpt_mvisbin_200_rebin"
+#tag: "_mtlt65_noSF_DMpt_mvisbinfullrange_10"
+tag: "_mtlt65_noSF_DMpt_11bins"
 
-#tag: "_mtlt65_noSF_DMpt_mvisbin_160_rebin"
-tag: "_mtlt65_noSF_DMpt"
-#tag: "_mtlt65_noSF_DMpt_stitching"
-#tag: "_mtlt65_noSF_DMpt_100bins_gendm"
-#tag: "_mtlt65_noSF_DMpt_mvisbin_200"
-
-#baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=2 && idDeepTau2017v2p1VSe_2>=8 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
 baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
 
 # These regions will be defined when creating inputs or making plots
@@ -32,97 +30,95 @@ baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2
 
 regions:
     DM0_pt1: 
-        definition: "mt_1<65 && dm_2==0 && pt_2>20 && pt_2<25 "
+        definition: "mt_1<65 && dm_2==0 && pt_2>20 && pt_2<25"
         title: "h^{#pm}"
     DM1_pt1: 
         definition: "mt_1<65 && dm_2==1 && pt_2>20 && pt_2<25 "
         title: "h^{#pm}#pi^{0}"
     DM10_pt1: 
-        definition: "mt_1<65 && dm_2==10 && pt_2>20 && pt_2<25 "
+        definition: "mt_1<65 && dm_2==10 && pt_2>20 && pt_2<25"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11_pt1: 
-        definition: "mt_1<65 && dm_2==11 && pt_2>20 && pt_2<25 "
+        definition: "mt_1<65 && dm_2==11 && pt_2>20 && pt_2<25"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
     DM0_pt2: 
-        definition: "mt_1<65 && dm_2==0 && pt_2>25 && pt_2<30 "
+        definition: "mt_1<65 && dm_2==0 && pt_2>25 && pt_2<30"
         title: "h^{#pm}"
     DM1_pt2: 
-        definition: "mt_1<65 && dm_2==1 && pt_2>25 && pt_2<30 "
+        definition: "mt_1<65 && dm_2==1 && pt_2>25 && pt_2<30"
         title: "h^{#pm}#pi^{0}"
     DM10_pt2: 
-        definition: "mt_1<65 && dm_2==10 && pt_2>25 && pt_2<30 "
+        definition: "mt_1<65 && dm_2==10 && pt_2>25 && pt_2<30"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11_pt2: 
-        definition: "mt_1<65 && dm_2==11 && pt_2>25 && pt_2<30 "
+        definition: "mt_1<65 && dm_2==11 && pt_2>25 && pt_2<30"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
     DM0_pt3: 
-        definition: "mt_1<65 && dm_2==0 && pt_2>30 && pt_2<35 "
+        definition: "mt_1<65 && dm_2==0 && pt_2>30 && pt_2<35"
         title: "h^{#pm}"
     DM1_pt3: 
-        definition: "mt_1<65 && dm_2==1 && pt_2>30 && pt_2<35 "
+        definition: "mt_1<65 && dm_2==1 && pt_2>30 && pt_2<35"
         title: "h^{#pm}#pi^{0}"
     DM10_pt3: 
-        definition: "mt_1<65 && dm_2==10 && pt_2>30 && pt_2<35 "
+        definition: "mt_1<65 && dm_2==10 && pt_2>30 && pt_2<35"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11_pt3: 
-        definition: "mt_1<65 && dm_2==11 && pt_2>30 && pt_2<35 "
+        definition: "mt_1<65 && dm_2==11 && pt_2>30 && pt_2<35"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
     DM0_pt4: 
-        definition: "mt_1<65 && dm_2==0 && pt_2>35 && pt_2<40 "
+        definition: "mt_1<65 && dm_2==0 && pt_2>35 && pt_2<40"
         title: "h^{#pm}"
     DM1_pt4: 
-        definition: "mt_1<65 && dm_2==1 && pt_2>35 && pt_2<40 "
+        definition: "mt_1<65 && dm_2==1 && pt_2>35 && pt_2<40"
         title: "h^{#pm}#pi^{0}"
     DM10_pt4: 
-        definition: "mt_1<65 && dm_2==10 && pt_2>35 && pt_2<40 "
+        definition: "mt_1<65 && dm_2==10 && pt_2>35 && pt_2<40"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11_pt4: 
-        definition: "mt_1<65 && dm_2==11 && pt_2>35 && pt_2<40 "
+        definition: "mt_1<65 && dm_2==11 && pt_2>35 && pt_2<40"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
     DM0_pt5: 
-        definition: "mt_1<65 && dm_2==0 && pt_2>40 && pt_2<50 "
+        definition: "mt_1<65 && dm_2==0 && pt_2>40 && pt_2<50"
         title: "h^{#pm}"
     DM1_pt5: 
-        definition: "mt_1<65 && dm_2==1 && pt_2>40 && pt_2<50 "
+        definition: "mt_1<65 && dm_2==1 && pt_2>40 && pt_2<50"
         title: "h^{#pm}#pi^{0}"
     DM10_pt5: 
-        definition: "mt_1<65 && dm_2==10 && pt_2>40 && pt_2<50 "
+        definition: "mt_1<65 && dm_2==10 && pt_2>40 && pt_2<50"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11_pt5: 
-        definition: "mt_1<65 && dm_2==11 && pt_2>40 && pt_2<50 "
+        definition: "mt_1<65 && dm_2==11 && pt_2>40 && pt_2<50"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
     DM0_pt6: 
-        definition: "mt_1<65 && dm_2==0 && pt_2>50 && pt_2<70 "
+        definition: "mt_1<65 && dm_2==0 && pt_2>50 && pt_2<70"
         title: "h^{#pm}"
     DM1_pt6: 
-        definition: "mt_1<65 && dm_2==1 && pt_2>50 && pt_2<70 "
+        definition: "mt_1<65 && dm_2==1 && pt_2>50 && pt_2<70"
         title: "h^{#pm}#pi^{0}"
     DM10_pt6: 
-        definition: "mt_1<65 && dm_2==10 && pt_2>50 && pt_2<70 "
+        definition: "mt_1<65 && dm_2==10 && pt_2>50 && pt_2<70"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11_pt6: 
-        definition: "mt_1<65 && dm_2==11 && pt_2>50 && pt_2<70 "
+        definition: "mt_1<65 && dm_2==11 && pt_2>50 && pt_2<70"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
     DM0_pt7: 
-        definition: "mt_1<65 && dm_2==0 && pt_2>70 "
+        definition: "mt_1<65 && dm_2==0 && pt_2>70"
         title: "h^{#pm}"
     DM1_pt7: 
-        definition: "mt_1<65 && dm_2==1 && pt_2>70 "
+        definition: "mt_1<65 && dm_2==1 && pt_2>70"
         title: "h^{#pm}#pi^{0}"
     DM10_pt7: 
-        definition: "mt_1<65 && dm_2==10 && pt_2>70 "
+        definition: "mt_1<65 && dm_2==10 && pt_2>70"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11_pt7: 
-        definition: "mt_1<65 && dm_2==11 && pt_2>70 "
+        definition: "mt_1<65 && dm_2==11 && pt_2>70"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
 
-# # #tes 
-#plottingOrder: ["DM11", "DM10","DM1", "DM0"] # option 5
-#plottingOrder: ["DM11"]
+# #tes 
+plottingOrder: ["DM11", "DM10","DM1", "DM0"]
 
-#tid SF
-#plottingOrder: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"]
-plottingOrder: ["DM0_pt1","DM0_pt2","DM0_pt3","DM0_pt4","DM0_pt5","DM0_pt6","DM0_pt7", "DM1_pt1","DM1_pt2","DM1_pt3","DM1_pt4","DM1_pt5","DM1_pt6","DM1_pt7","DM10_pt1","DM10_pt2","DM10_pt3","DM10_pt4","DM10_pt5","DM10_pt6","DM10_pt7","DM11_pt1","DM11_pt2","DM11_pt3","DM11_pt4","DM11_pt5","DM11_pt6","DM11_pt7"]
+# #tid SF
+# plottingOrder: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"]
 
 # Observable: to be fitted and plotted
 # binning: as defined in TH1 (nbins, xmin, xmax)
@@ -139,86 +135,37 @@ tesRegions:
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
 
 tid_SFRegions:
-    DM0_pt1: 
-        title: "DM0 20<p_{t_{#tau}}<25"
-    DM0_pt2: 
-        title: "DM0 25<p_{t_{#tau}}<30"
-    DM0_pt3: 
-        title: "DM0 30<p_{t_{#tau}}<35"
-    DM0_pt4: 
-        title: "DM0 35<p_{t_{#tau}}<40" ###
-    DM0_pt5: 
-        title: "DM0 40<p_{t_{#tau}}<50"
-    DM0_pt6: 
-        title: "DM0 50<p_{t_{#tau}}<70"
-    DM0_pt7: 
-        title: "DM0 70<p_{t_{#tau}}<200" ###
-    DM1_pt1: 
-        title: "DM0 20<p_{t_{#tau}}<25"
-    DM1_pt2: 
-        title: "DM1 25<p_{t_{#tau}}<30"
-    DM1_pt3: 
-        title: "DM1 30<p_{t_{#tau}}<35"
-    DM1_pt4: 
-        title: "DM1 35<p_{t_{#tau}}<40" ###
-    DM1_pt5: 
-        title: "DM1 40<p_{t_{#tau}}<50"
-    DM1_pt6: 
-        title: "DM1 50<p_{t_{#tau}}<70"
-    DM1_pt7: 
-        title: "DM1 70<p_{t_{#tau}}<200" ###
-    DM10_pt1: 
-        title: "DM10 20<p_{t_{#tau}}<25"
-    DM10_pt2: 
-        title: "DM10 25<p_{t_{#tau}}<30"
-    DM10_pt3: 
-        title: "DM10 30<p_{t_{#tau}}<35"
-    DM10_pt4: 
-        title: "DM10 35<p_{t_{#tau}}<40" ###
-    DM10_pt5: 
-        title: "DM10 40<p_{t_{#tau}}<50"
-    DM10_pt6: 
-        title: "DM10 50<p_{t_{#tau}}<70"
-    DM10_pt7: 
-        title: "DM10 70<p_{t_{#tau}}<200" ### no <200
-    DM11_pt1: 
-        title: "DM11 20<p_{t_{#tau}}<25"
-    DM11_pt2: 
-        title: "DM11 25<p_{t_{#tau}}<30"
-    DM11_pt3: 
-        title: "DM11 30<p_{t_{#tau}}<35"
-    DM11_pt4: 
-        title: "DM11 35<p_{t_{#tau}}<40" ###
-    DM11_pt5: 
-        title: "DM11 40<p_{t_{#tau}}<50"
-    DM11_pt6: 
-        title: "DM11 50<p_{t_{#tau}}<70"
-    DM11_pt7: 
-        title: "DM11 70<p_{t_{#tau}}<200" ###
-    
+    pt1: 
+        title: "20<p_{t_{#tau}}<25"
+    pt2: 
+        title: "25<p_{t_{#tau}}<30"
+    pt3: 
+        title: "30<p_{t_{#tau}}<35"
+    pt4: 
+        title: "35<p_{t_{#tau}}<40" ###
+    pt5: 
+        title: "40<p_{t_{#tau}}<50"
+    pt6: 
+        title: "50<p_{t_{#tau}}<70"
+    pt7: 
+        title: "70<p_{t_{#tau}}" ###
 
 
 observables:
     m_vis:
-        binning: [8, 50, 106]
+        binning: [11, 50, 105]
         title: "m_{vis}"
         extra:
-            cut: "50<m_vis && m_vis<106"
+            cut: "10<m_vis && m_vis<106"
         fitRegions: ["DM0_pt1","DM0_pt2","DM0_pt3","DM0_pt4","DM0_pt5","DM0_pt6","DM0_pt7", "DM1_pt1","DM1_pt2","DM1_pt3","DM1_pt4","DM1_pt5","DM1_pt6","DM1_pt7","DM10_pt1","DM10_pt2","DM10_pt3","DM10_pt4","DM10_pt5","DM10_pt6","DM10_pt7","DM11_pt1","DM11_pt2","DM11_pt3","DM11_pt4","DM11_pt5","DM11_pt6","DM11_pt7"]
-        #fitRegions: ["DM11_pt1","DM11_pt2","DM11_pt3","DM11_pt4","DM11_pt5","DM11_pt6","DM11_pt7"]
-        scanRegions: ["DM0_pt1","DM0_pt2","DM0_pt3","DM0_pt4","DM0_pt5","DM0_pt6","DM0_pt7", "DM1_pt1","DM1_pt2","DM1_pt3","DM1_pt4","DM1_pt5","DM1_pt6","DM1_pt7","DM10_pt1","DM10_pt2","DM10_pt3","DM10_pt4","DM10_pt5","DM10_pt6","DM10_pt7","DM11_pt1","DM11_pt2","DM11_pt3","DM11_pt4","DM11_pt5","DM11_pt6","DM11_pt7"]
-        #scanRegions: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"] #option 4
-        #scanRegions: ["DM0", "DM1", "DM10", "DM11"] #option 5
-        #scanRegions: ["DM11"] #option 5
+        #scanRegions: ["pt1", "pt2", "pt3", "pt4", "pt5", "pt6", "pt7"]
+        scanRegions: ["DM0", "DM1", "DM10", "DM11"] 
 
 
 # Assume that this code is meant to fit TES variations; more options could be added when adding other POIs
 
 TESvariations:
     values: [0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.984, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022, 1.024, 1.026, 1.028, 1.030]
-    #values: [0.970, 0.976, 0.982, 0.988, 0.994, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022, 1.024, 1.026, 1.028, 1.030]
-
-    #values: [0.970, 0.974, 0.978, 0.982, 0.986, 0.990, 0.994, 0.998, 1.002, 1.006, 1.010, 1.014, 1.018, 1.022, 1.026, 1.030]
     #values: [0.970, 0.971, 0.972, 0.973, 0.974, 0.975, 0.976, 0.977, 0.978, 0.979, 0.980, 0.981, 0.982, 0.983, 0.984, 0.985, 0.986, 0.987, 0.988, 0.989,0.990, 0.991, 0.992, 0.993, 0.994, 0.995, 0.996, 0.997, 0.998, 0.999, 1.000, 1.001, 1.002, 1.003, 1.004, 1.005, 1.006, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.013, 1.014, 1.015, 1.016, 1.017, 1.018, 1.019, 1.020, 1.021, 1.022, 1.023, 1.024, 1.025, 1.026, 1.027, 1.028, 1.029, 1.030]
     processes: ["ZTT"]
 
@@ -250,7 +197,6 @@ samples:
 # Processes taken into account in analysis
 
 processes: ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"]
-#processes: ["ZTT","data_obs"]
 
 # Systematic uncertainties: can have effect shape or lnN (normalisation)
 

@@ -13,10 +13,10 @@ channel: mutau
 
 # Tag can be used to differentiate between scenarios
 
-#tag: "_mutau_mt65_noSF_DM_v2"
+tag: "_mutau_mt65_noSF_DM_8bins_baseline"
 #tag: "_mutau_mt65_noSF_DM_stitching_baseline"
 #tag: "_mutau_mt65_noSF_DM_binmvis1000_rebin"
-tag: "_mutau_mt65_noSF_DM"
+#tag: "_mutau_mt65_noSF_DM"
 
 
 baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2p1VSjet_2>=32 && idDeepTau2017v2p1VSe_2>=2 && idDeepTau2017v2p1VSmu_2>=8 && !lepton_vetoes_notau && metfilter"
@@ -29,42 +29,42 @@ baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2017v2
 #     - additional cross section scale factors applied to some processes need to be given in these regions to be considered --> adjust in scaleFactors section
 
 regions:
-    DM0: 
-        definition: "mt_1<65 && dm_2==0"
-        title: "h^{#pm}"
-    DM1: 
-        definition: "mt_1<65 && dm_2==1"
-        title: "h^{#pm}#pi^{0}"
-    DM10: 
-        definition: "mt_1<65 && dm_2==10"
-        title: "h^{#pm}h^{#mp}h^{#pm}"
+    # DM0: 
+    #     definition: "mt_1<65 && dm_2==0"
+    #     title: "h^{#pm}"
+    # DM1: 
+    #     definition: "mt_1<65 && dm_2==1"
+    #     title: "h^{#pm}#pi^{0}"
+    # DM10: 
+    #     definition: "mt_1<65 && dm_2==10"
+    #     title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11: 
         definition: "mt_1<65 && dm_2==11"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
 
-plottingOrder: ["DM11", "DM10","DM1", "DM0"]
+# plottingOrder: ["DM11", "DM10","DM1", "DM0"]
 #plottingOrder: ["DM11"]
 
 
-tesRegions:
-    DM02: 
-        title: "h^{#pm}"
-    DM1: 
-        title: "h^{#pm}#pi^{0}"
-    DM10: 
-        title: "h^{#pm}h^{#mp}h^{#pm}"
-    DM11: 
-        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
+# tesRegions:
+#     DM0: 
+#         title: "h^{#pm}"
+#     DM1: 
+#         title: "h^{#pm}#pi^{0}"
+#     DM10: 
+#         title: "h^{#pm}h^{#mp}h^{#pm}"
+#     DM11: 
+#         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
 
-tid_SFRegions:
-    DM0: 
-        title: "h^{#pm}"
-    DM1: 
-        title: "h^{#pm}#pi^{0}"
-    DM10: 
-        title: "h^{#pm}h^{#mp}h^{#pm}"
-    DM11: 
-        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
+# tid_SFRegions:
+#     DM0: 
+#         title: "h^{#pm}"
+#     DM1: 
+#         title: "h^{#pm}#pi^{0}"
+#     DM10: 
+#         title: "h^{#pm}h^{#mp}h^{#pm}"
+#     DM11: 
+#         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
 
 # Observables to be fitted and plotted
 # binning: as defined in TH1 (nbins, xmin, xmax)
@@ -76,10 +76,10 @@ observables:
         title: "m_{vis}"
         extra:
             cut: "50<m_vis && m_vis<106"
-        fitRegions: [DM0, DM1, DM10, DM11]
-        scanRegions: ["DM0", "DM1", "DM10", "DM11"] 
-        # fitRegions: ["DM11"]
-        # scanRegions: ["DM11"] 
+        # fitRegions: [DM0, DM1, DM10, DM11]
+        # scanRegions: ["DM0", "DM1", "DM10", "DM11"] 
+        fitRegions: ["DM11"]
+        scanRegions: ["DM11"] 
 
 # Assume that this code is meant to fit TES variations; more options could be added when adding other POIs
 
