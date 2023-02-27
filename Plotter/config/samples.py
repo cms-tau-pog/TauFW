@@ -27,7 +27,7 @@ def getsampleset(channel,era,**kwargs):
     
   # SM BACKGROUND MC SAMPLES
   if 'UL' in era: # UltraLegacy
-      expsamples = [ # table of MC samples to be converted to Sample objects
+    expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0  ),
       ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0  ),

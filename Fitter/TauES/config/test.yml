@@ -75,8 +75,8 @@ samples:
 
 # Processes taken into account in analysis
 
+processes: ["ZTT"]
 #processes: ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"]
-processes: ["data_obs"]
 
 
 # Additional scale factors per year for specific processes (correction of xsec, reco SFs, etc.)

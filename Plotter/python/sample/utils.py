@@ -374,28 +374,13 @@ def stitch(samplelist,*searchterms,**kwargs):
   xsec_incl = kwargs.get('xsec',      None           ) # (N)NLO cross section to compute k-factor
   kfactor   = kwargs.get('kfactor',   None           ) # k-factor
 
-####################################################################################
-# Efficiency values should be adapted when removing "quick fix" for mutau flag removing radiating taus!
-####################################################################################
-  effMuTau_incl = kwargs.get('eff_mutau_incl', 0.005086       ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToLL_M-50
-  effMuTau_excl = kwargs.get('eff_mutau_excl', 0.58383   ) # efficiency mutau (pT>18, |eta|<2.5) in DYJetsToMuTauh_M-50
-  effMuTau_njet = dict()
-  effMuTau_njet[1] = kwargs.get('eff_mutau_1jet', 0.005593  ) # efficiency mutau (pT>18, |eta|<2.5) in DY1JetsToLL_M-50
-  effMuTau_njet[2] = kwargs.get('eff_mutau_2jet', 0.006309  ) # efficiency mutau (pT>18, |eta|<2.5) in DY2JetsToLL_M-50
-  effMuTau_njet[3] = kwargs.get('eff_mutau_3jet', 0.006932  ) # efficiency mutau (pT>18, |eta|<2.5) in DY3JetsToLL_M-50
-  effMuTau_njet[4] = kwargs.get('eff_mutau_4jet', 0.007856  ) # efficiency mutau (pT>18, |eta|<2.5) in DY4JetsToLL_M-50
-  effMuTauNjet_incl = dict()
-  effMuTauNjet_incl[0] = kwargs.get('eff_mutau_0orp4jet_incl', 0.0035283673 )
-  effMuTauNjet_incl[1] = kwargs.get('eff_mutau_1jet_incl', 0.0010102964 )
-  effMuTauNjet_incl[2] = kwargs.get('eff_mutau_2jet_incl', 0.0003650867 )
-  effMuTauNjet_incl[3] = kwargs.get('eff_mutau_3jet_incl', 0.0001165299 )
-  effMuTauNjet_incl[4] = kwargs.get('eff_mutau_4jet_incl', 0.0000658845 )
-  effMuTauNjet_excl = dict()
-  effMuTauNjet_excl[0] = kwargs.get('eff_mutau_0orp4jet_excl', 0.40987941 )
-  effMuTauNjet_excl[1] = kwargs.get('eff_mutau_1jet_excl', 0.11475415 )
-  effMuTauNjet_excl[2] = kwargs.get('eff_mutau_2jet_excl', 0.039009160 )
-  effMuTauNjet_excl[3] = kwargs.get('eff_mutau_3jet_excl', 0.012867714 )
-  effMuTauNjet_excl[4] = kwargs.get('eff_mutau_4jet_excl', 0.0073231573 )
+  ###### NanoAOD efficiencies -- currently hard-coded
+  nanoEff_DYll = kwargs.get('eff_nanoAOD_DYll', 0.47435726)
+  nanoEff_DYll_nj[1] = kwargs.get('eff_nanoAOD_DYll_1j', 0.54153996)
+  nanoEff_DYll_nj[2] = kwargs.get('eff_nanoAOD_DYll_2j', 0.59700258)
+  nanoEff_DYll_nj[3] = kwargs.get('eff_nanoAOD_DYll_3j', 0.65562099)
+  nanoEff_DYll_nj[4] = kwargs.get('eff_nanoAOD_DYll_4j', 0.74383978)
+  nanoEff_mutau = kwargs.get('eff_nanoAOD_mutau', 0.82747870)
 
   npartvar  = kwargs.get('npart',     'NUP'          ) # variable name of number of partons in tree; 'NUP', 'LHE_Njets', ...
   LOG.verb("stitch: rescale, reweight and merge %r samples"%(name),verbosity,level=1)
@@ -422,6 +407,24 @@ def stitch(samplelist,*searchterms,**kwargs):
     print "No inclusive sample to stitch... abort"
     return samplelist
 
+  cutflow_incl = sample_incl.getcutflow()
+  effMuTau_incl = cutflow_incl.GetBinContent(18) / cutflow_incl.GetBinContent(17) * nanoEff_DYll
+  effMuTauNjet_incl = dict()
+  effMuTauNjet_incl[0] = cutflow_incl.GetBinContent(19) / cutflow_incl.GetBinContent(17) * nanoEff_DYll
+  effMuTauNjet_incl[1] = cutflow_incl.GetBinContent(20) / cutflow_incl.GetBinContent(17) * nanoEff_DYll
+  effMuTauNjet_incl[2] = cutflow_incl.GetBinContent(21) / cutflow_incl.GetBinContent(17) * nanoEff_DYll
+  effMuTauNjet_incl[3] = cutflow_incl.GetBinContent(22) / cutflow_incl.GetBinContent(17) * nanoEff_DYll
+  effMuTauNjet_incl[4] = cutflow_incl.GetBinContent(23) / cutflow_incl.GetBinContent(17) * nanoEff_DYll
+
+  cutflow_excl = sample_excl.getcutflow()
+  effMuTau_excl = cutflow_excl.GetBinContent(18) / cutflow_excl.GetBinContent(17) * nanoEff_mutau
+  effMuTauNjet_excl = dict()
+  effMuTauNjet_excl[0] = cutflow_excl.GetBinContent(19) / cutflow_excl.GetBinContent(17) * nanoEff_mutau
+  effMuTauNjet_excl[1] = cutflow_excl.GetBinContent(20) / cutflow_excl.GetBinContent(17) * nanoEff_mutau
+  effMuTauNjet_excl[2] = cutflow_excl.GetBinContent(21) / cutflow_excl.GetBinContent(17) * nanoEff_mutau
+  effMuTauNjet_excl[3] = cutflow_excl.GetBinContent(22) / cutflow_excl.GetBinContent(17) * nanoEff_mutau
+  effMuTauNjet_excl[4] = cutflow_excl.GetBinContent(23) / cutflow_excl.GetBinContent(17) * nanoEff_mutau
+
   name  = kwargs.get('name',stitchlist[0].name)
   title = kwargs.get('title',gettitle(name,stitchlist[0].title))
   if not title:
@@ -443,6 +446,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   print "Inclusive weight = %.6g"%wIncl
 
   effIncl_njet = dict()
+  effMuTau_njet = dict()
   wIncl_njet = dict()
   for njets in sample_njet:
     sample = sample_njet[njets]
@@ -452,6 +456,9 @@ def stitch(samplelist,*searchterms,**kwargs):
     print "Lumi = %.6g, xsec = %.6g, sumw = %.6g"%(sample.lumi, sample.xsec, sample.sumweights)
     print "Sample.norm = %.6g"%sample.norm
     print "Inclusive %i jets weight = %.6g"%(njets,wIncl_njet[njets])
+    # mutau efficiency
+    cutflow = sample.getcutflow()
+    effMuTau_njet[njets] = cutflow_excl.GetBinContent(18) / cutflow_excl.GetBinContent(17) * nanoEff_DYll_nj[njets]
 
   wIncl_mutau = ""
   wMuTau_njet = dict()
