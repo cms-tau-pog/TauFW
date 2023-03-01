@@ -3,14 +3,27 @@
     "skim": "skimjob.py", 
     "skim-jec": "skimjob.py --jec-sys",
     "gen": "GenDumper", 
-    "mutau": "ModuleMuTauSimple"
+    "mutau": "ModuleMuTauSimple",
+    "mutau_v10_2p1": "ModuleMuTau_nanoV10_DeepTau2p1",
+    "mutau_v10_2p5": "ModuleMuTau_nanoV10_DeepTau2p5"
   }, 
   "eras": {
     "2016": "examples/samples_2016.py", 
     "2017": "examples/samples_2017.py", 
-    "2018": "examples/samples_2018.py"
+    "2018": "examples/samples_2018.py",
+    "UL2018": "samples_UL2018_nanoV10.py"
   }, 
   "nfilesperjob": 1, 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "basedir": "/home/ucl/cp3/pmastra/TauOfficial/CMSSW_10_6_13/src/TauFW/PicoProducer",
+  "outdir": "/home/ucl/cp3/pmastra/TauOfficial/CMSSW_10_6_13/src/TauFW/PicoProducer/output/$ERA/$CHANNEL/$SAMPLE/",
+  "nanodir": "/nfs/user/pmastra/DeepTau2p5/TauOfficial/nano/$ERA/$DAS",
+  "picodir": "/nfs/user/pmastra/DeepTau2p5/TauOfficial/analysis/$ERA/$CHANNEL/$GROUP/",
+  "tmpskimdir": "",
+  "batch": "SLURM",
+  "queue": "",
+  "maxevtsperjob": 500000,
+  "maxopenfiles": 500,
+  "ncores": 8
 }

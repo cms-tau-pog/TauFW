@@ -20,7 +20,7 @@ function peval { echo ">>> $@"; eval "$@"; }
 # PRINT
 export JOBID=$SLURM_ARRAY_JOB_ID
 export TASKID=$SLURM_ARRAY_TASK_ID
-export WORKDIR="$TMPDIR/$JOBID.$TASKID"
+export WORKDIR="$HOME/$JOBID.$TASKID"
 JOBLIST=$1
 echo "\$JOBID=$JOBID"
 echo "\$TASKID=$TASKID"
@@ -32,7 +32,7 @@ echo "\$WORKDIR=$WORKDIR"
 echo "\$TMPDIR=$TMPDIR"
 echo "\$PWD=$PWD"
 peval 'TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")'
-peval "mkdir -p $WORKDIR"
+peval "mkdir $WORKDIR"
 peval "cd $WORKDIR"
 
 # MAIN FUNCTIONALITY
