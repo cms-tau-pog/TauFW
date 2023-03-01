@@ -151,15 +151,15 @@ if len(outflist)!=len(infiles): # sanity check
 # Temporary solution to reduce file size
 #   https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3734/1.html
 #   https://github.com/cms-nanoAOD/nanoAOD-tools/issues/249
-print(">>> Reduce file size...")
-from TauFW.common.tools.utils import execute
-execute("ls -hlt %s"%(outfname),verb=2)
-for outfile in outflist:
-  tmpfile = outfile.replace(".root","_tmp.root")
-  execute("haddnano.py %s %s"%(tmpfile,outfile),verb=2) # reduce file size
-  execute("ls -hlt %s %s"%(tmpfile,outfile),verb=2)
-  execute("mv %s %s"%(tmpfile,outfile),verb=2)
-execute("ls -hlt %s"%(outfname),verb=2)
+#print(">>> Reduce file size...")
+#from TauFW.common.tools.utils import execute
+#execute("ls -hlt %s"%(outfname),verb=2)
+#for outfile in outflist:
+#  tmpfile = outfile.replace(".root","_tmp.root")
+#  execute("haddnano.py %s %s"%(tmpfile,outfile),verb=2) # reduce file size
+#  execute("ls -hlt %s %s"%(tmpfile,outfile),verb=2)
+#  execute("mv %s %s"%(tmpfile,outfile),verb=2)
+#execute("ls -hlt %s"%(outfname),verb=2)
 
 # COPY
 if copydir and outdir!=copydir:
