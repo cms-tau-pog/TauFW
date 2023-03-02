@@ -3,9 +3,9 @@
 ####### partition/queue
 #SBATCH --partition standard
 ####### the cpu time for this job
-#SBATCH --time 05:30:00
+#SBATCH --time 08:00:00
 ####### the maximum memory usage of this job
-#SBATCH --mem 5500M
+#SBATCH --mem 8000M
 ####### Job Name
 #SBATCH -J test
 ####### transfer environment variable from submission host
@@ -20,7 +20,7 @@ function peval { echo ">>> $@"; eval "$@"; }
 # PRINT
 export JOBID=$SLURM_ARRAY_JOB_ID
 export TASKID=$SLURM_ARRAY_TASK_ID
-export WORKDIR="$HOME/$JOBID.$TASKID"
+export WORKDIR="$JOBID.$TASKID"
 JOBLIST=$1
 echo "\$JOBID=$JOBID"
 echo "\$TASKID=$TASKID"
@@ -32,8 +32,8 @@ echo "\$WORKDIR=$WORKDIR"
 echo "\$TMPDIR=$TMPDIR"
 echo "\$PWD=$PWD"
 peval 'TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")'
-peval "mkdir $WORKDIR"
-peval "cd $WORKDIR"
+peval "mkdir /nfs/user/pmastra/DeepTau2p5/$WORKDIR"
+peval "cd /nfs/user/pmastra/DeepTau2p5/$WORKDIR"
 
 # MAIN FUNCTIONALITY
 #eval $(scramv1 runtime -sh);
@@ -41,7 +41,7 @@ peval "$TASKCMD"
 
 # FINISH
 peval "cd -"
-peval "rm -rf $WORKDIR"
+peval "rm -rf /nfs/user/pmastra/DeepTau2p5/$WORKDIR"
 echo
 END=`date +%s`; RUNTIME=$((END-START))
 echo "Job complete at `date`"

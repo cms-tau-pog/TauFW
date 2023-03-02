@@ -4,14 +4,14 @@
     "skim-jec": "skimjob.py --jec-sys",
     "gen": "GenDumper", 
     "mutau": "ModuleMuTauSimple",
-    "mutau_v10_2p1": "ModuleMuTau_nanoV10_DeepTau2p1",
-    "mutau_v10_2p5": "ModuleMuTau_nanoV10_DeepTau2p5"
+    "mutau_v10_2p1": "ModuleMuTau_nanoV10_DeepTau2p1 jec=False",
+    "mutau_v10_2p5": "ModuleMuTau_nanoV10_DeepTau2p5 jec=False"
   }, 
   "eras": {
     "2016": "examples/samples_2016.py", 
     "2017": "examples/samples_2017.py", 
     "2018": "examples/samples_2018.py",
-    "UL2018": "samples_UL2018_nanoV10.py"
+    "UL2018": "samples_UL2018_nanoV10_Mylocal.py"
   }, 
   "nfilesperjob": 1, 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 

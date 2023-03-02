@@ -10,11 +10,11 @@ from TauFW.PicoProducer.corrections.MuonSFs import *
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
-class ModuleMuTau_DeepTau2p5_2p5Sel_Izaak(ModuleTauPair):
+class ModuleMuTau_nanoV10_DeepTau2p5(ModuleTauPair):
   
   def __init__(self, fname, **kwargs):
     kwargs['channel'] = 'mutau'
-    super(ModuleMuTau_DeepTau2p5_2p5Sel_Izaak,self).__init__(fname,**kwargs)
+    super(ModuleMuTau_nanoV10_DeepTau2p5,self).__init__(fname,**kwargs)
     self.out = TreeProducerMuTau(fname,self)
     
     # TRIGGERS
@@ -36,6 +36,8 @@ class ModuleMuTau_DeepTau2p5_2p5Sel_Izaak(ModuleTauPair):
     # CORRECTIONS
     if self.ismc:
       self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
+
+      #Uncomment the following if you want to apply tau SFs and ES
       #self.tesTool = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
     # #self.fesTool = TauFESTool(tauSFVersion[self.year]) # e -> tau fake negligible
       #self.tauSFsT    = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
@@ -59,7 +61,7 @@ class ModuleMuTau_DeepTau2p5_2p5Sel_Izaak(ModuleTauPair):
   
   def beginJob(self):
     """Before processing any events or files."""
-    super(ModuleMuTau_DeepTau2p5_2p5Sel_Izaak,self).beginJob()
+    super(ModuleMuTau_nanoV10_DeepTau2p5,self).beginJob()
     print ">>> %-12s = %s"%('tauwp',      self.tauwp)
     print ">>> %-12s = %s"%('muonCutPt',  self.muonCutPt)
     print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
@@ -297,6 +299,7 @@ class ModuleMuTau_DeepTau2p5_2p5Sel_Izaak(ModuleTauPair):
         self.out.ltfweightDown_2[0]   = 1.
       
       # TAU WEIGHTS
+      #Uncomment the following if you apply tau SFs
       #if tau.genPartFlav==5: # real tau
       #  self.out.idweight_2[0]        = self.tauSFsT.getSFvsPT(tau.pt)
       #  self.out.idweight_medium_2[0] = self.tauSFsM.getSFvsPT(tau.pt)
