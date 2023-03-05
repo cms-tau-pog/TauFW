@@ -75,6 +75,9 @@ samples  = [
   M('VV','WWTo2L2Nu',
     "/WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8",
     store=storage,url=url,files=filelist,opts="useT1=False"),
+  M('VV','WWTo4Q',
+    "/WWTo4Q",
+    store=storage,url=url,files=filelist,opts="useT1=False"),
 
   M('VV','WZTo1L1Nu2Q',
     "/WZTo1L1Nu2Q",
@@ -113,23 +116,23 @@ samples  = [
    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
  
   # SINGLE ELECTRON
-  D('Data','EGamma_Run2018A',"/EGamma/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','EGamma_Run2018A',"/EGamma_Run2018A",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
-  D('Data','EGamma_Run2018B',"/EGamma/Run2018B-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','EGamma_Run2018B',"/EGamma_Run2018B",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
-  D('Data','EGamma_Run2018C',"/EGamma/Run2018C-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','EGamma_Run2018C',"/EGamma_Run2018C",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
-  D('Data','EGamma_Run2018D',"/EGamma/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','EGamma_Run2018D',"/EGamma_Run2018D",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
 
   # TAU
-  D('Data','Tau_Run2018A',"/Tau/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018A',"/Tau_Run2018A",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'tautau']),
-  D('Data','Tau_Run2018B',"/Tau/Run2018B-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018B',"/Tau_Run2018B",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'tautau']),
-  D('Data','Tau_Run2018C',"/Tau/Run2018C-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018C',"/Tau_Run2018C",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'tautau']),
-  D('Data','Tau_Run2018D',"/Tau/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",
+  D('Data','Tau_Run2018D',"/Tau_Run2018D",
     store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'tautau']),
 
 ]

@@ -45,8 +45,8 @@ def plotParabola(setup,var,region,year,**kwargs):
     canvasname = "%s/parabola_tes_%s_%s-%s%s%s"%(outdir,channel,var,region,tag,plottag)
     ensureDirectory(outdir)
 
-
-    filename     = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,'MDF' if MDFslices else region,tag,era)
+    name_red = channel.replace("_v10_2p5", "")
+    filename     = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,name_red,var,'MDF' if MDFslices else region,tag,era)
     for i, (bdtag,bdtitle) in enumerate(breakdown):
       breakdown[i] = (bdtag, bdtitle,filename.replace("higgsCombine.","higgsCombine.%s-"%bdtag))
     print '>>>   file "%s"'%(filename)
@@ -269,9 +269,9 @@ def plotParabolaMDF(setup,var,year,**kwargs):
     ensureDirectory(outdir)
     
     channel    = setup["channel"].replace("mu","m").replace("tau","t")
-
+    name_red = channel.replace("_v10_2p5", "")
     canvasname = "%s/parabola_tes_%s_%s-%s%s"%(outdir,channel,var,"MDF",tag)
-    filename   = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,'MDF',tag,era)
+    filename   = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,name_red,var,'MDF',tag,era)
     file       = ensureTFile(filename)
     tree       = file.Get('limit')
     ztitle     = "-2#Deltaln(L)"

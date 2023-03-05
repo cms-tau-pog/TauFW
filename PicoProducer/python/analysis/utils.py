@@ -338,7 +338,7 @@ def getlepvetoes(event, electrons, muons, taus, channel):
     if any(muon.DeltaR(tau)<0.4 for tau in taus): continue
     if muon.mediumId and all(m._index!=muon._index for m in muons):
       extramuon_veto = True
-    if muon.pt>15 and muon.isPFcand and muon.isGlobal : #and muon.isTracker:
+    if muon.pt>15 and muon.isPFcand and muon.isGlobal and muon.isTracker:
       looseMuons.append(muon)
   
   # EXTRA ELECTRON VETO

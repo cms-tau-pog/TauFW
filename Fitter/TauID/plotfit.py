@@ -147,22 +147,22 @@ def pullsVertical_noBonly(pulldirs,outdir="plots/pulls_pt"):
   
 
 def main(args):
-  file_new = open('log_pt_20210618')
-  file_prev = open('log_pt_20191114')
+  #file_new = open('log_pt_20210618')
+  #file_prev = open('log_pt_20191114')
   #file = open('log_xs')
   graphs = {}
-  graphs_prev = {}
+  #graphs_prev = {}
   cols = [1,2,4]
   wpdict = { # average pt per pt bins
-      '1':22.553480,
-      '2':27.489354,
-      '3':32.422438,
-      '4':37.331050,
-      '5':43.617665, 
-      '6':56.683825,
-      '7':99.550902,
-      '8':140.393,
-      '9':261.177,
+      1:22.553480,
+      2:27.489354,
+      3:32.422438,
+      4:37.331050,
+      5:43.617665, 
+      6:56.683825,
+      7:99.550902,
+      8:140.393,
+      9:261.177,
       #'8':124,
       #'9':171,
       #'10':258,
@@ -182,15 +182,15 @@ def main(args):
   ####    '10':258,
   ###    }
   wprange = collections.OrderedDict()
-  wprange['1'] = {'low':20, 'up':25}
-  wprange['2'] = {'low':25, 'up':30}
-  wprange['3'] = {'low':30, 'up':35}
-  wprange['4'] = {'low':35, 'up':40}
-  wprange['5'] = {'low':40, 'up':50}
-  wprange['6'] = {'low':50, 'up':70}
-  wprange['7'] = {'low':70, 'up':200}
-  wprange['8'] = {'low':100, 'up':200}
-  wprange['9'] = {'low':200, 'up':500}
+  wprange[1] = {'low':20, 'up':25}
+  wprange[2] = {'low':25, 'up':30}
+  wprange[3] = {'low':30, 'up':35}
+  wprange[4] = {'low':35, 'up':40}
+  wprange[5] = {'low':40, 'up':50}
+  wprange[6] = {'low':50, 'up':70}
+  wprange[7] = {'low':70, 'up':200}
+  wprange[8] = {'low':100, 'up':200}
+  wprange[9] = {'low':200, 'up':500}
   #wprange['8'] = {'low':100, 'up':150}
   #wprange['9'] = {'low':150, 'up':200}
   #wprange['10'] = {'low':200, 'up':500}
@@ -199,22 +199,36 @@ def main(args):
   pulldirs = {}
   #for line in file:
   #    line = lines.rstrip().split()
-  jobdir = 'job/job_2021-08-02-143547/'
-  for year in ['2016_preVFP', '2016_postVFP', '2017', '2018']:
-    #for year in ['2016_preVFP']:
-    for pt in ['1', '2', '3', '4', '5', '6', '7']:
+  #jobdir = 'job/job_2021-08-02-143547/'
+  jobdir = 'log/'
+  #for year in ['2016_preVFP', '2016_postVFP', '2017', '2018']:
+  for year in ['UL2018']:
+    counter = 0
+    for pt in ["20to25", "25to30", "30to35", "35to40", "40to50", "50to70", "70to2000"] :
+      counter+=1
       for wp in ['VVVLoose', 'VVLoose', 'VLoose', 'Loose', 'Medium', 'Tight', 'VTight', 'VVTight']:
         wplabel = year+'_'+wp
         binlabel = year+'_'+wp+'_pt'+pt
-        file = open(jobdir + '/out.'+binlabel)
+        # ex. ztt_VVVLoose_UL2018_pt70to2000.log
+        file = open(jobdir + '/ztt_'+wp+'_'+year+'_pt'+pt+'.log')
         for line in file:
           line = line.rstrip()
           words = line.split()
-          if line.find('setting')!=-1:
+          #if line.find('setting')!=-1:
             #print 'wp', words
             #year = words[1]
             #wp = words[2]
             #pt = words[3].replace('pt','')
+          #  pulldirs[binlabel] = {'titles':[],
+          #                        'vals':[],
+          #                        'errs':[]}
+          #  if year not in year2draw:
+          #    year2draw.append(year)
+          #  if not graphs.has_key(year + '_' + wp):
+          #    graph = TGraphAsymmErrors()
+          #    graphs[year + '_' + wp] = {'count':0, 'graph':graph}
+          if line.find('ZTT_mu')!=-1:
+           
             pulldirs[binlabel] = {'titles':[],
                                   'vals':[],
                                   'errs':[]}
@@ -223,17 +237,17 @@ def main(args):
             if not graphs.has_key(year + '_' + wp):
               graph = TGraphAsymmErrors()
               graphs[year + '_' + wp] = {'count':0, 'graph':graph}
-          if line.find('ZTT_mu')!=-1:
+            
             val = Double(words[2])
             errval_up = Double(words[4])
             errval_down = Double(words[4])
             if len(words)==6:
               errval_up = Double(words[4])
               errval_down = Double(words[5])
-            print year, wp, '(pT = ', wprange[pt]['low'], '-', wprange[pt]['up'], ')', '{0:.3f}'.format(val), '+{0:.3f}'.format(errval_up), ' / -{0:.3f}'.format(errval_down)
-            print 'SetPoint', graphs[year + '_' + wp]['count'], Double(wpdict[pt]), val
-            graphs[year + '_' + wp]['graph'].SetPoint(graphs[year + '_' + wp]['count'], Double(wpdict[pt]), val)
-            graphs[year + '_' + wp]['graph'].SetPointError(graphs[year + '_' + wp]['count'], Double(wpdict[pt]-wprange[pt]['low']), Double(wprange[pt]['up'] - wpdict[pt]), abs(errval_up), abs(errval_down))
+            print year, wp, '(pT = ', wprange[counter]['low'], '-', wprange[counter]['up'], ')', '{0:.3f}'.format(val), '+{0:.3f}'.format(errval_up), ' / -{0:.3f}'.format(errval_down)
+            print 'SetPoint', graphs[year + '_' + wp]['count'], Double(wpdict[counter]), val
+            graphs[year + '_' + wp]['graph'].SetPoint(graphs[year + '_' + wp]['count'], Double(wpdict[counter]), val)
+            graphs[year + '_' + wp]['graph'].SetPointError(graphs[year + '_' + wp]['count'], Double(wpdict[counter]-wprange[counter]['low']), Double(wprange[counter]['up'] - wpdict[counter]), abs(errval_up), abs(errval_down))
             graphs[year + '_' + wp]['count'] += 1
           elif line.find('CMS_')!=-1 or line.find('shape_')!=-1:
              pulldirs[binlabel]['titles'].append(words[0])
@@ -266,31 +280,31 @@ def main(args):
   ##        graphs[year + '_' + wp]['graph'].SetPointError(graphs[year + '_' + wp]['count'], Double(wpdict[pt]-wprange[pt]['low']), Double(wprange[pt]['up'] - wpdict[pt]), abs(errval_up), abs(errval_down))
   ##        graphs[year + '_' + wp]['count'] += 1
   
-  for line in file_prev:
-    line = line.rstrip()
-    words = line.split()
-    if line.find('setting')!=-1:
-      year = words[1]
-      wp = words[2]
-      pt = words[3]
-      wplabel = year+'_'+wp
-      binlabel = year+'_'+wp+'_pt'+pt
-      if not graphs_prev.has_key(year + '_' + wp):
-        graph_prev = TGraphAsymmErrors()
-        graphs_prev[year + '_' + wp] = {'count':0, 'graph':graph_prev}
-    if line.find('ZTT_mu')!=-1:
-      val = Double(words[2])
-      errval_up = Double(words[4])
-      errval_down = Double(words[4])
-      if len(words)==6:
-        errval_up = Double(words[4])
-        errval_down = Double(words[5])
-      #print year, wp, '(pT = ', wprange[pt]['low'], '-', wprange[pt]['up'], ')', '{0:.3f}'.format(val), '+{0:.3f}'.format(errval_up), ' / -{0:.3f}'.format(errval_down)
-      #print 'count = ', graphs[year + '_' + wp]['count'], '(x,y) = ', Double(wpdict[wp]), val, '-', val_down, '+', val_up
-      print 'old ... SetPoint', graphs_prev[wplabel]['count'], Double(wpdict[pt]), val
-      graphs_prev[wplabel]['graph'].SetPoint(graphs_prev[wplabel]['count'], Double(wpdict[pt]), val)
-      graphs_prev[wplabel]['graph'].SetPointError(graphs_prev[wplabel]['count'], Double(wpdict[pt]-wprange[pt]['low']), Double(wprange[pt]['up'] - wpdict[pt]), abs(errval_up), abs(errval_down))
-      graphs_prev[wplabel]['count'] += 1
+  #for line in file_prev:
+  #  line = line.rstrip()
+  #  words = line.split()
+  #  if line.find('setting')!=-1:
+  #    year = words[1]
+  #    wp = words[2]
+  #    pt = words[3]
+  #    wplabel = year+'_'+wp
+  #    binlabel = year+'_'+wp+'_pt'+pt
+  #    if not graphs_prev.has_key(year + '_' + wp):
+  #      graph_prev = TGraphAsymmErrors()
+  #      graphs_prev[year + '_' + wp] = {'count':0, 'graph':graph_prev}
+  #  if line.find('ZTT_mu')!=-1:
+  #    val = Double(words[2])
+  #    errval_up = Double(words[4])
+  #    errval_down = Double(words[4])
+  #    if len(words)==6:
+  #      errval_up = Double(words[4])
+  #      errval_down = Double(words[5])
+  #    #print year, wp, '(pT = ', wprange[pt]['low'], '-', wprange[pt]['up'], ')', '{0:.3f}'.format(val), '+{0:.3f}'.format(errval_up), ' / -{0:.3f}'.format(errval_down)
+  #    #print 'count = ', graphs[year + '_' + wp]['count'], '(x,y) = ', Double(wpdict[wp]), val, '-', val_down, '+', val_up
+  #    print 'old ... SetPoint', graphs_prev[wplabel]['count'], Double(wpdict[pt]), val
+  #    graphs_prev[wplabel]['graph'].SetPoint(graphs_prev[wplabel]['count'], Double(wpdict[pt]), val)
+  #    graphs_prev[wplabel]['graph'].SetPointError(graphs_prev[wplabel]['count'], Double(wpdict[pt]-wprange[pt]['low']), Double(wprange[pt]['up'] - wpdict[pt]), abs(errval_up), abs(errval_down))
+  #    graphs_prev[wplabel]['count'] += 1
   
   #idx = 0
   start=20
@@ -299,11 +313,11 @@ def main(args):
   end=1000
   for idx, year in enumerate(year2draw):
     ensuredir('plots/sf_' + year)
-    sfile = TFile('TauID_SF_pt_DeepTau2017v2p1VSjet_' + year + 'UL.root', 'recreate')
+    sfile = TFile('TauID_SF_pt_DeepTau2018v2p5VSjet_' + year + 'UL.root', 'recreate')
     for wp in ['VVVLoose', 'VVLoose', 'VLoose', 'Loose', 'Medium', 'Tight', 'VTight', 'VVTight']:
       if not graphs.has_key(year + '_' + wp): continue
       wplabel = year+'_'+wp
-      binlabel = year+'_'+wp+'_dm'+dm
+      binlabel = year+'_'+wp#+'_dm'+dm
       canvas = TCanvas('canvas_' + year + '_' + wp)
       canvas.SetLogx()
       frame =  TH2F('frame_' + year + '_' + wp, year + '_' + wp, len(wpdict),start,end,100,0.,1.5)
@@ -360,16 +374,16 @@ def main(args):
       flat_up2.SetLineStyle(3)
       flat_down2.SetLineStyle(3)
       frame.Draw()
-      if args.overlay:
-        yearnew = year.replace('_preVFP', '').replace('_postVFP','')
-        graphs_prev[yearnew + '_' + wp]['graph'].SetLineColor(tt)
-        graphs_prev[yearnew + '_' + wp]['graph'].SetMarkerColor(tt)
-        graphs_prev[yearnew + '_' + wp]['graph'].Draw('pzsame')
-        legend_comp = TLegend(0.18, 0.2, 0.8, 0.3)
-        LegendSettings(legend_comp)
-        legend_comp.AddEntry(graphs[year + '_' + wp]['graph'], 'UL' , 'l')
-        legend_comp.AddEntry(graphs_prev[yearnew + '_' + wp]['graph'], 'previous' , 'l')
-        legend_comp.Draw()
+      #if args.overlay:
+      #  yearnew = year.replace('_preVFP', '').replace('_postVFP','')
+      #  graphs_prev[yearnew + '_' + wp]['graph'].SetLineColor(tt)
+      #  graphs_prev[yearnew + '_' + wp]['graph'].SetMarkerColor(tt)
+      #  graphs_prev[yearnew + '_' + wp]['graph'].Draw('pzsame')
+      #  legend_comp = TLegend(0.18, 0.2, 0.8, 0.3)
+      #  LegendSettings(legend_comp)
+      #  legend_comp.AddEntry(graphs[year + '_' + wp]['graph'], 'UL' , 'l')
+      #  legend_comp.AddEntry(graphs_prev[yearnew + '_' + wp]['graph'], 'previous' , 'l')
+      #  legend_comp.Draw()
       graphs[year + '_' + wp]['graph'].SetLineColor(1)
       graphs[year + '_' + wp]['graph'].SetMarkerColor(1)
       graphs[year + '_' + wp]['graph'].Draw('pzsame')
@@ -423,6 +437,7 @@ def main(args):
   
   
 if __name__ == '__main__':
+  import argparse
   description = '''This script creates plots and ROOT files of the fit results.'''
   parser = ArgumentParser(prog="plotfit_dm",description=description,epilog="Good luck!")
   parser = ArgumentParser(prog="harvesterDatacards",description=description,epilog="Succes!")

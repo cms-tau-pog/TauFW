@@ -75,6 +75,9 @@ samples  = [
   M('VV','WWTo2L2Nu',
     "/WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8",
     store=storage,url=url,files=filelist,opts="useT1=False"),
+  M('VV','WWTo4Q',
+    "/WWTo4Q",
+    store=storage,url=url,files=filelist,opts="useT1=False"),
 
   M('VV','WZTo1L1Nu2Q',
     "/WZTo1L1Nu2Q",
@@ -104,13 +107,13 @@ samples  = [
 
   # SINGLE MUON
   D('Data','SingleMuon_Run2018A',"/SingleMuon_Run2018A",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
   D('Data','SingleMuon_Run2018B',"/SingleMuon_Run2018B",
-    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
+    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
   D('Data','SingleMuon_Run2018C',"/SingleMuon_Run2018C",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
   D('Data','SingleMuon_Run2018D',"/SingleMuon_Run2018D",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
  
   # SINGLE ELECTRON
 #  D('Data','EGamma_Run2018A',"/EGamma/Run2018A-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD",

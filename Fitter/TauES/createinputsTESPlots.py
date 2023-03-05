@@ -5,7 +5,7 @@
 import sys
 from collections import OrderedDict
 sys.path.append("../../../Plotter/") # for config.samples
-from config.samples import *
+from config.samples_v10 import *
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Fitter.plot.datacard import createinputs, plotinputs
 

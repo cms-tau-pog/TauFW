@@ -5,7 +5,7 @@
 import sys
 from collections import OrderedDict
 sys.path.append("../Plotter/") # for config.samples
-from config.samples import *
+from config.samples_v10 import *
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Fitter.plot.datacard import createinputs, plotinputs
 import yaml
@@ -16,7 +16,7 @@ def main(args):
   parallel  = args.parallel
   verbosity = args.verbosity
   setupConfFile = args.config
-  plot      = False
+  plot      = True
   outdir    = ensuredir("input")
   plotdir   = ensuredir(outdir,"plots")
   analysis  = 'ztt'
@@ -152,6 +152,14 @@ def main(args):
         pname  = "%s/%s_$OBS_%s-$BIN-%s$TAG%s.png"%(plotdir,analysis,chshort,era,tag)
         text   = "%s: $BIN"%(channel.replace("mu","#mu").replace("tau","#tau_{h}"))
         groups = [ ] #(['^TT','ST'],'Top'),]
+
+        if "mumu" in channel:
+            varprocs = OrderedDict([
+                       ('Nom',      ['ZLL','W','VV','ST','TT','QCD','data_obs'])])
+        elif "mutau"in channel:
+            varprocs = OrderedDict([
+                       ('Nom',      ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"])])
+
         plotinputs(fname,varprocs,observables,bins,text=text,
                    pname=pname,tag=tag,group=groups)
       

@@ -131,7 +131,8 @@ class ModuleTauPair(Module):
 
     # for v10
     branchesV10 = [
-      #('Electron_mvaFall17V217Iso',        [1.]*32       ), #not available anymore
+      ('Muon_isTracker',                  [True]*32     ),
+      #('Electron_mvaFall17V217Iso',      [1.]*32       ), #not available anymore
       ('Electron_lostHits',               [0]*32        ),
       ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaIso_WPL'    ),
       ('Electron_mvaFall17V2Iso_WP80',   'Electron_mvaIso_WP80'   ),
