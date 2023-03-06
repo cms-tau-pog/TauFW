@@ -4,6 +4,7 @@
     "skim-jec": "skimjob.py --jec-sys", 
     "gen": "GenDumper", 
     "mutau": "ModuleMuTauSimple"
+    "mumu": "ModuleMuMu"
   }, 
   "eras": {
     "2016": "examples/samples_2016.py", 
