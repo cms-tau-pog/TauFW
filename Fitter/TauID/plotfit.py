@@ -47,13 +47,13 @@ def makeLatex(string):
 def pullsVertical_noBonly(pulldirs,outdir="plots/pulls_pt"):
   print 'making pulls ...'
   for yearwp, val in pulldirs.iteritems():
-  #print yearwp
-  titles = val['titles']
-  vals = val['vals']
-  errs = val['errs']
-  if len(titles) != len(vals):
-    print 'ERROR !!!', len(titles), len(vals)
-  nbins, off = len(titles), 0.10
+      #print yearwp
+      titles = val['titles']
+      vals = val['vals']
+      errs = val['errs']
+      if len(titles) != len(vals):
+         print 'ERROR !!!', len(titles), len(vals)
+      nbins, off = len(titles), 0.10
   
   # Graphs
   h_pulls = TH2F("pulls_" + yearwp, "", 6, -3., 3., nbins, 0, nbins)
@@ -320,6 +320,7 @@ def main(args):
       binlabel = year+'_'+wp#+'_dm'+dm
       canvas = TCanvas('canvas_' + year + '_' + wp)
       canvas.SetLogx()
+      ROOT.gStyle.SetOptStat(0)
       frame =  TH2F('frame_' + year + '_' + wp, year + '_' + wp, len(wpdict),start,end,100,0.,1.5)
       frame.SetMinimum(0.5)
       frame.SetMaximum(1.)
@@ -439,8 +440,8 @@ def main(args):
 if __name__ == '__main__':
   import argparse
   description = '''This script creates plots and ROOT files of the fit results.'''
-  parser = ArgumentParser(prog="plotfit_dm",description=description,epilog="Good luck!")
-  parser = ArgumentParser(prog="harvesterDatacards",description=description,epilog="Succes!")
+  parser = argparse.ArgumentParser(prog="plotfit_dm",description=description,epilog="Good luck!")
+  parser = argparse.ArgumentParser(prog="harvesterDatacards",description=description,epilog="Succes!")
   #parser.add_option("-o", "--outName",  action="store", type="string", dest="outName",  default="pulls"    )
   #parser.add_option("-t", "--text",     action="store", type="string", dest="text",     default=""         )
   #parser.add_option('-f', '--fit', action="store_true", default=False, dest='fit')

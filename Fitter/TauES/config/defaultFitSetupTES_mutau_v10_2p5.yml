@@ -15,7 +15,7 @@ channel: mutau_v10_2p5
 
 tag: "_mtlt50"
 
-baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4 && !lepton_vetoes_notau && metfilter"
+baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=6 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4 && !lepton_vetoes_notau && metfilter"
 
 # These regions will be defined when creating inputs or making plots
 # At this point, they do not need to be exclusive; 

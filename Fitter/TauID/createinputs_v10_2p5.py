@@ -236,7 +236,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['UL2017'], action='store',
                                          help="set era" )
-  parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau*','mumu*'], default=['mutau'], action='store',
+  parser.add_argument('-c', '--channel', dest='channels', nargs='*',  default=['mutau'], action='store',
                                          help="set channel" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
                                          help="run Tree::MultiDraw serial instead of in parallel" )
