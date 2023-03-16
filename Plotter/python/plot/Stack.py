@@ -97,6 +97,7 @@ class Stack(Plot):
     ncols        = kwargs.get('ncols',        1               ) # number of columns in legend
     lcolors      = kwargs.get('lcolors',      None            ) or self.lcolors
     fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors
+    resetcolors  = kwargs.get('resetcolors', 'fcolors' in kwargs )
     lstyles      = kwargs.get('lstyle',       None            )
     lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles
     lwidth       = kwargs.get('lwidth',       2               ) # line width
@@ -202,7 +203,7 @@ class Stack(Plot):
     
     # STYLE
     if stack:
-      self.setfillstyle(self.exphists)
+      self.setfillstyle(self.exphists,reset=resetcolors)
       for hist in self.exphists:
         hist.SetMarkerStyle(1)
     if drawsignal:
