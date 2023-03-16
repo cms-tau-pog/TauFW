@@ -36,7 +36,8 @@ class Stack(Plot):
     self.exphists   = ensurelist(exphists)
     self.sighists   = ensurelist(sighists)
     if kwargs.get('clone',False):
-      self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
+      if self.datahist:
+        self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
       self.exphists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.exphists]
       self.sighists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.sighists]
     if self.datahist:

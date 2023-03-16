@@ -178,6 +178,7 @@ class Plot(object):
     ymargin      = kwargs.get('ymargin',      ymargin         ) # margin between hist maximum and plot's top
     logyrange    = kwargs.get('logyrange',    self.logyrange  ) # log(y) range from hist maximum to ymin
     grid         = kwargs.get('grid',         True            )
+    rgrid        = kwargs.get('rgrid',        grid            ) # grid for ratio panel
     tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
@@ -325,7 +326,7 @@ class Plot(object):
       self.canvas.cd(2)
       self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,drawden=drawden,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
-      self.setaxes(self.ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,nxdiv=nxdiv,logx=logx,nydiv=nrdiv,
+      self.setaxes(self.ratio,grid=rgrid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,nxdiv=nxdiv,logx=logx,nydiv=nrdiv,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,ylabelsize=ylabelsize,xtitleoffset=xtitleoffset,
                    center=True,rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,latex=latex)
       for line in self.lines:

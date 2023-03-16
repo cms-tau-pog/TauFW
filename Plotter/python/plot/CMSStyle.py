@@ -51,7 +51,7 @@ lumi_dict      = {
   '7':      5.1,    '2016': 36.3, 'UL2016_preVFP':  19.5, # actually 19.5, update after reprocessing with new JSON
   '8':      19.7,   '2017': 41.5, 'UL2016_postVFP': 16.8, # actually 16.8, update after reprocessing with new JSON
   '2012':   19.7,   '2018': 59.7, 'UL2016': 36.3, # actually 19.5+16.8=36.3
-  'Run2':   137.1,                'UL2017': 41.5, # actually 41.5
+  'Run2':   138,                  'UL2017': 41.5, # actually 41.5
   'Phase2': 3000,                 'UL2018': 59.8, # actually 59.8
 }
 cme_dict       = {
