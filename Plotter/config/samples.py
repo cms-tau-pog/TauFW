@@ -153,7 +153,7 @@ def getsampleset(channel,era,**kwargs):
     ]
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
-  
+
   # OBSERVED DATA SAMPLES
   if   'tautau'   in channel: dataset = "Tau_Run%d?"%year
   elif 'mutau'    in channel: dataset = "SingleMuon_Run%d?"%year
@@ -177,6 +177,8 @@ def getsampleset(channel,era,**kwargs):
   # SAMPLE SET
   if weight=="":
     weight = ""
+  elif channel in ['munu']:
+    weight = "genweight*trigweight*puweight*idisoweight_1*kfactor_mu"
   elif channel in ['mutau','etau']:
     weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
   elif channel in ['tautau','ditau']:
