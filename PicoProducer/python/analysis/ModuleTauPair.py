@@ -128,6 +128,22 @@ class ModuleTauPair(Module):
   def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
     """Before processing a new file."""
     sys.stdout.flush()
+
+    # for v10
+    branchesV10 = [
+      ('Muon_isTracker',                  [True]*32     ),
+      #('Electron_mvaFall17V217Iso',      [1.]*32       ), #not available anymore
+      ('Electron_lostHits',               [0]*32        ),
+      ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaIso_WPL'    ),
+      ('Electron_mvaFall17V2Iso_WP80',   'Electron_mvaIso_WP80'   ),
+      ('Electron_mvaFall17V2Iso_WP90',   'Electron_mvaIso_WP90'   ),
+      ('Electron_mvaFall17V2noIso_WPL',  'Electron_mvaNoIso_WPL'  ),
+      ('Electron_mvaFall17V2noIso_WP80', 'Electron_mvaNoIso_WP80' ),
+      ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaNoIso_WP90' ),
+      ('Tau_idDecayMode',                [True]*32               ), 
+      ('Tau_idDecayModeNewDMs',          [True]*32               ),
+      ]
+    # for v9
     branches = [
       ('Electron_mvaFall17V2Iso',        'Electron_mvaFall17Iso'        ),
       ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaFall17Iso_WPL'    ),
@@ -150,7 +166,14 @@ class ModuleTauPair(Module):
         ('HLT_IsoMu24',          False ),
         ('HLT_IsoTkMu24',        False ),
       ]
-    ensurebranches(inputTree,branches) # make sure Event object has these branches
+ 
+    #check
+    fullbranchlist = inputTree.GetListOfBranches()
+    if 'Electron_mvaFall17Iso_WPL' not in fullbranchlist: #v10
+       ensurebranches(inputTree,branchesV10)
+    else: #v9
+       ensurebranches(inputTree,branches) # make sure Event object has these branches
+
     if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
       redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     

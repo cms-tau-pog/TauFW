@@ -21,8 +21,8 @@ Create histograms
 We use a tensor-flow version of combine, because there were some issues with the default combine tool when including the mumu channel.
 This was likely caused by the large number of events in the single-bin mumu histogram.
 ```
-cmsrel CMSSW_10_3_0_pre2
-cd CMSSW_10_3_0_pre2/src
+cmsrel CMSSW_10_6_13
+cd CMSSW_10_6_13/src
 cmsenv
 git clone https://github.com/bendavid/HiggsAnalysis-CombinedLimit/ HiggsAnalysis/CombinedLimit
 cd HiggsAnalysis/CombinedLimit

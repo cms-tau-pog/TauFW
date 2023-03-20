@@ -20,8 +20,12 @@ function peval { echo ">>> $@"; eval "$@"; }
 # PRINT
 export JOBID=$SLURM_ARRAY_JOB_ID
 export TASKID=$SLURM_ARRAY_TASK_ID
-export WORKDIR="/scratch/$USER/$JOBID.$TASKID"
-export TMPDIR="/scratch/$USER/$JOBID.$TASKID" # using /tmp might destabilize
+if [[ "$HOME" == *"ucl"* ]]
+then 
+   export WORKDIR="/nfs/scratch/fynu/$USER/$JOBID.$TASKID"
+else 
+   export WORKDIR="/scratch/$USER/$JOBID.$TASKID"
+fi
 JOBLIST=$1
 echo "\$JOBID=$JOBID"
 echo "\$TASKID=$TASKID"
@@ -33,7 +37,7 @@ echo "\$WORKDIR=$WORKDIR"
 echo "\$TMPDIR=$TMPDIR"
 echo "\$PWD=$PWD"
 peval 'TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")'
-peval "mkdir -p $WORKDIR"
+peval "mkdir $WORKDIR"
 peval "cd $WORKDIR"
 
 # MAIN FUNCTIONALITY
@@ -41,6 +45,7 @@ peval "cd $WORKDIR"
 peval "$TASKCMD"
 
 # FINISH
+peval "cd -"
 peval "rm -rf $WORKDIR"
 echo
 END=`date +%s`; RUNTIME=$((END-START))
