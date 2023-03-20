@@ -53,6 +53,12 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('rawDeepTau2017v2p1VSe_2',    'f')
     self.addBranch('rawDeepTau2017v2p1VSmu_2',   'f')
     self.addBranch('rawDeepTau2017v2p1VSjet_2',  'f')
+
+    self.addBranch('rawDeepTau2018v2p5VSe_2',    'f')
+    self.addBranch('rawDeepTau2018v2p5VSmu_2',   'f')
+    self.addBranch('rawDeepTau2018v2p5VSjet_2',  'f')
+
+
     #self.addBranch('idAntiEle_2',                'i')
     #self.addBranch('idAntiMu_2',                 'i')
     self.addBranch('idDecayMode_2',              '?', title="oldDecayModeFinding")
@@ -62,6 +68,12 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('idDeepTau2017v2p1VSe_2',     'i')
     self.addBranch('idDeepTau2017v2p1VSmu_2',    'i')
     self.addBranch('idDeepTau2017v2p1VSjet_2',   'i')
+
+    self.addBranch('idDeepTau2018v2p5VSe_2',     'i')
+    self.addBranch('idDeepTau2018v2p5VSmu_2',    'i')
+    self.addBranch('idDeepTau2018v2p5VSjet_2',   'i')
+
+
     self.addBranch('leadTkPtOverTauPt_2',        'f')
     self.addBranch('chargedIso_2',               'f')
     self.addBranch('neutralIso_2',               'f')

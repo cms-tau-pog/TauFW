@@ -5,14 +5,12 @@ set -e # exit when command fails
 
 # SETTINGS
 #WPS="Loose Medium Tight"
-WPS="#VVVLoose #VVLoose #VLoose #Loose #Medium Tight #VTight #VVTight"
+WPS="VVVLoose VVLoose VLoose Loose Medium Tight VTight VVTight"
 ERAS="#UL2016_preVFP #UL2016_postVFP #UL2017 UL2018"
-#ERAS="2018"
-#PTBINS="1 2 3 4 5 6 7"
 PTBINS="20to25 25to30 30to35 35to40 40to50 50to70 70to2000"
 DMBINS="0 1 10 11"
 DCPATH="input" # datacard path
-DOHARV=1
+DOHARV=0
 DOIMPACT=0
 VERB=0 # verbosity
 
@@ -56,7 +54,7 @@ function main {
         LABEL="${wp}_${era}_${bin}"
         CARDTXT="cards/ztt_${LABEL}.card.txt"
         CARDHDF="cards/ztt_${LABEL}.card.hdf5"
-        INPUTS_MT="input/ztt_tid_mvis_${bin}_mt-${era}.inputs.root"
+        INPUTS_MT="input/ztt_tid_mvis_${bin}_mt_v10_2p5-${era}.inputs.root"
         INPUTS_MM="input/ztt_tid_mvis_mm-${era}.inputs.root"
         [ ! -f $INPUTS_MT ] && echo ">>> $INPUTS_MT not found!!" && continue
         [ ! -f $INPUTS_MM ] && echo ">>> $INPUTS_MM not found!!" && continue
@@ -70,10 +68,10 @@ function main {
         
         # COMBINE FIT WITH TENSOR FLOW
         if [[ $DOIMPACT -gt 0 ]]; then # IMPACTS
-          combinetf.py $CARDHDF --binByBinStat --output root/impacts_${LABEL}_impact.root --doImpacts | tee -a ../$LOG
+          combinetf.py $CARDHDF --binByBinStat --output root/impacts_${LABEL}_impact.root --doImpacts | tee -a ./$LOG
         else # MAIN FIT
-          peval "text2hdf5.py $CARDTXT -m 90 -o $CARDHDF" | tee -a ../$LOG
-          peval "combinetf.py $CARDHDF  --binByBinStat --output output/fit_${LABEL}.root --saveHists" | tee -a ../$LOG
+          peval "text2hdf5.py $CARDTXT -m 90 -o $CARDHDF" | tee -a ./$LOG
+          peval "combinetf.py $CARDHDF  --binByBinStat --output output/fit_${LABEL}.root --saveHists" | tee -a ./$LOG
         fi
         
       done
