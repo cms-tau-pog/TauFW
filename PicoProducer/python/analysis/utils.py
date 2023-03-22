@@ -350,11 +350,11 @@ def getlepvetoes(event, electrons, muons, taus, channel):
     if abs(electron.dxy)>0.045: continue
     if electron.pfRelIso03_all>0.3: continue
     if any(electron.DeltaR(tau)<0.4 for tau in taus): continue
-    if electron.convVeto==1 and electron.lostHits<=1 and electron.mvaFall17V2Iso_WP90 and all(e._index!=electron._index for e in electrons):
+    if all(e._index!=electron._index for e in electrons) and electron.convVeto==1 and electron.lostHits<=1 and electron.mvaFall17V2Iso_WP90:
       extraelec_veto = True
     if electron.pt>15 and electron.cutBased>0 and electron.mvaFall17V2Iso_WPL:
       looseElectrons.append(electron)
-  
+ 
   # DILEPTON VETO
   if channel=='mutau':
     for muon1, muon2 in combinations(looseMuons,2):

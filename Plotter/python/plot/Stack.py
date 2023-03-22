@@ -36,7 +36,8 @@ class Stack(Plot):
     self.exphists   = ensurelist(exphists)
     self.sighists   = ensurelist(sighists)
     if kwargs.get('clone',False):
-      self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
+      if self.datahist:
+        self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
       self.exphists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.exphists]
       self.sighists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.sighists]
     if self.datahist:
@@ -52,7 +53,7 @@ class Stack(Plot):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
     # https://root.cern.ch/doc/master/classTHStack.html
     # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
-    verbosity    = LOG.getverbosity(self,kwargs)
+    verbosity    = LOG.getverbosity(self,kwargs) 
     xtitle       = (args[0] if args else self.xtitle) or ""
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
     square       = kwargs.get('square',       False           ) # square canvas
@@ -96,6 +97,7 @@ class Stack(Plot):
     ncols        = kwargs.get('ncols',        1               ) # number of columns in legend
     lcolors      = kwargs.get('lcolors',      None            ) or self.lcolors
     fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors
+    resetcolors  = kwargs.get('resetcolors', 'fcolors' in kwargs )
     lstyles      = kwargs.get('lstyle',       None            )
     lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles
     lwidth       = kwargs.get('lwidth',       2               ) # line width
@@ -201,7 +203,7 @@ class Stack(Plot):
     
     # STYLE
     if stack:
-      self.setfillstyle(self.exphists)
+      self.setfillstyle(self.exphists,reset=resetcolors)
       for hist in self.exphists:
         hist.SetMarkerStyle(1)
     if drawsignal:

@@ -40,37 +40,47 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
   
   # EVENT
   tree_event.addBranch('nbgen',       'i')
-  tree_event.addBranch('nbcut',       'i')
+  tree_event.addBranch('nbgen30',     'i')
+  tree_event.addBranch('nbgen50',     'i')
   tree_event.addBranch('ntgen',       'i')
   tree_event.addBranch('njet',        'i')
+  tree_event.addBranch('njet50',      'i')
   tree_event.addBranch('ncjet',       'i')
   tree_event.addBranch('nlepton',     'i')
   tree_event.addBranch('ntau',        'i')
-  tree_event.addBranch('ntaucut',     'i')
+  tree_event.addBranch('ntau20',      'i')
+  tree_event.addBranch('ntau50',      'i')
   tree_event.addBranch('nnu',         'i')
   tree_event.addBranch('nmoth',       'i')
   tree_event.addBranch('ntau_assoc',  'i')
   tree_event.addBranch('ntau_decay',  'i')
   tree_event.addBranch('nbgen_decay', 'i')
-  tree_event.addBranch('met',         'f')
-  tree_event.addBranch('jpt1',        'f')
-  tree_event.addBranch('jeta1',       'f')
-  tree_event.addBranch('jpt2',        'f')
-  tree_event.addBranch('jeta2',       'f')
-  tree_event.addBranch('sumjet',      'f')
-  tree_event.addBranch('dphi_jj',     'f')
-  tree_event.addBranch('deta_jj',     'f')
-  tree_event.addBranch('dr_jj',       'f')
-  tree_event.addBranch('ncentral',    'i')
-  tree_event.addBranch('mjj',         'f')
   tree_event.addBranch('moth1_mass',  'f')
   tree_event.addBranch('moth2_mass',  'f')
   tree_event.addBranch('moth1_pt',    'f')
   tree_event.addBranch('moth2_pt',    'f')
   tree_event.addBranch('tau1_pt',     'f')
+  tree_event.addBranch('tau1_ptvis',  'f')
   tree_event.addBranch('tau1_eta',    'f')
   tree_event.addBranch('tau2_pt',     'f')
+  tree_event.addBranch('tau2_ptvis',  'f')
   tree_event.addBranch('tau2_eta',    'f')
+  tree_event.addBranch('m_ll',        'f')
+  tree_event.addBranch('mvis_ll',     'f')
+  tree_event.addBranch('dphi_ll',     'f')
+  tree_event.addBranch('deta_ll',     'f')
+  tree_event.addBranch('dr_ll',       'f')
+  tree_event.addBranch('jpt1',        'f')
+  tree_event.addBranch('jeta1',       'f')
+  tree_event.addBranch('jpt2',        'f')
+  tree_event.addBranch('jeta2',       'f')
+  tree_event.addBranch('met',         'f')
+  tree_event.addBranch('sumjet',      'f')
+  tree_event.addBranch('m_jj',        'f')
+  tree_event.addBranch('dphi_jj',     'f')
+  tree_event.addBranch('deta_jj',     'f')
+  tree_event.addBranch('dr_jj',       'f')
+  tree_event.addBranch('ncentral',    'i')
   tree_event.addBranch('st',          'f') # scalar sum pT
   tree_event.addBranch('stmet',       'f') # scalar sum pT with MET
   tree_event.addBranch('weight',      'f')
@@ -169,8 +179,8 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
     gps_mother = [p for p in gps if isFinal(p) and abs(p.pdgId()) in [42]]
     gps_final  = [p for p in gps if isFinal(p) and abs(p.pdgId()) in [5,6,15,16]+mothids]
     gps_mother = [p for p in gps_final if abs(p.pdgId()) in mothids and p.status()>60] #not(moth.numberOfDaughters()==2 and abs(moth.daughter(0).pdgId()) in mothids)
-    gps_bgen   = [p for p in gps_final if abs(p.pdgId())==5 and p.status()==71]
-    gps_bcut   = [p for p in gps_bgen  if p.pt()>20 and abs(p.eta())<2.5]
+    gps_bgen   = [p for p in gps_final if abs(p.pdgId())==5 and p.status()==71] # b quark about to be hadronized (input partons to a hadron)
+    gps_bcut   = [p for p in gps_bgen  if p.pt()>30 and abs(p.eta())<2.5]
     gps_tgen   = [p for p in gps_final if abs(p.pdgId())==6] #[-1:]
     gps_nugen  = [p for p in gps_final if abs(p.pdgId())==16]
     gps_tau    = [p for p in gps_final if abs(p.pdgId())==15 and p.status()==2]
@@ -195,16 +205,15 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
     
     # REMOVE JET-LEPTON OVERLAP
     jets, dummy = cleanObjectCollection(jets,gps_tau,dRmin=0.4)
-    njets  = 0
+    njet50 = 0
     ncjets = 0
     sumjet = 0
-    jets30  = [ ]
+    jets30 = [ ]
     ijet   = 0
     icjet  = 0
     for jet in jets:
-      if jet.pt()>30 and abs(jet.eta())<5:
+      if jet.pt()>30 and abs(jet.eta())<4.7:
         sumjet            += jet.pt()
-        njets             += 1
         tree_jet.pt[0]     = jet.pt()
         tree_jet.eta[0]    = jet.eta()
         tree_jet.phi[0]    = jet.phi()
@@ -213,6 +222,8 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         tree_jet.weight[0] = weight
         tree_jet.Fill()
         jets30.append(jet)
+        if jet.pt()>50:
+          njet50 += 1
         if abs(jet.eta())<2.5:
           ncjets += 1
           tree_jet.cindex[0] = icjet
@@ -220,16 +231,19 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         ijet += 1
     
     # MULTIPLICITIES
-    tree_event.nmoth[0]   = len(gps_mother)
-    tree_event.nbcut[0]   = len(gps_bcut)
-    tree_event.nbgen[0]   = len(gps_bgen)
-    tree_event.ntgen[0]   = len(gps_tgen)
-    tree_event.njet[0]    = njets  # pt>30, abs(eta)<5
-    tree_event.ncjet[0]   = ncjets # pt>30, abs(eta)<2.5
-    tree_event.nlepton[0] = len(gps_tau)
-    tree_event.ntau[0]    = len(gps_tau)
-    tree_event.ntaucut[0] = len(gps_taucut)
-    tree_event.nnu[0]     = len(gps_nugen)
+    tree_event.nmoth[0]     = len(gps_mother)
+    tree_event.nbgen[0]     = len(gps_bgen)
+    tree_event.nbgen30[0]   = len(gps_bcut) # pt > 30 && abs(eta) < 2.5
+    tree_event.nbgen50[0]   = sum(p.pt()>50 for p in gps_bcut) # pt > 50 && abs(eta) < 2.5
+    tree_event.ntgen[0]     = len(gps_tgen)
+    tree_event.njet[0]      = len(jets30)   # pt>30, abs(eta)<4.7
+    tree_event.njet50[0]    = njet50        # pt>50, abs(eta)<4.7
+    tree_event.ncjet[0]     = ncjets        # pt>30, abs(eta)<2.5
+    tree_event.nlepton[0]   = len(gps_tau)
+    tree_event.ntau[0]      = len(gps_tau)
+    tree_event.ntau20[0]    = len(gps_taucut) # pt > 20, abs(eta) < 2.5
+    tree_event.ntau50[0]    = sum(p.pt()>50 for p in gps_taucut) # pt > 50 && abs(eta) < 2.5
+    tree_event.nnu[0]       = len(gps_nugen)
     
     # JETS
     tree_event.met[0]     = met[0].pt()
@@ -248,7 +262,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       tree_event.deta_jj[0] = jets30[0].eta() - jets30[1].eta()
       tree_event.dr_jj[0]   = deltaR(jets30[0].eta(),jets30[0].phi(),jets30[1].eta(),jets30[1].phi())
       dijetp4               = jets30[0].p4() + jets30[1].p4()
-      tree_event.mjj[0]     = dijetp4.M()
+      tree_event.m_jj[0]    = dijetp4.M()
     elif (len(jets30)==1):
       tree_event.jpt1[0]    = jets30[0].pt()
       tree_event.jeta1[0]   = jets30[0].eta()
@@ -257,7 +271,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       tree_event.dphi_jj[0] = -9
       tree_event.deta_jj[0] = -9
       tree_event.dr_jj[0]   = -1
-      tree_event.mjj[0]     = -1
+      tree_event.m_jj[0]    = -1
     else:
       tree_event.jpt1[0]    = -1
       tree_event.jeta1[0]   = -9
@@ -266,32 +280,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       tree_event.dphi_jj[0] = -9
       tree_event.deta_jj[0] = -9
       tree_event.dr_jj[0]   = -1
-      tree_event.mjj[0]     = -1
-    
-    # SCALAR SUM PT
-    if len(gps_taucut)>=2 and len(gps_bcut)>=1:
-      st = 0
-      #gps_taucut.sort(key=lambda p: p.pt(), reverse=True)
-      gps_bcut.sort(key=lambda p: p.pt(), reverse=True)
-      #taus_assoc.sort(key=lambda p: p.pt(), reverse=True)
-      #taus_decay.sort(key=lambda p: p.pt(), reverse=True)
-      #bgen_decay.sort(key=lambda p: p.pt(), reverse=True)
-      for part in gps_taucut[2:]+gps_bcut[1:]:
-        st += part.pt()
-      stmet = st + met[0].pt()
-    else:
-      st    = -1
-      stmet = -1
-    tree_event.tau1_pt[0]   = gps_tau[0].pt()
-    tree_event.tau1_eta[0]  = gps_tau[0].eta()
-    tree_event.tau2_pt[0]   = gps_tau[1].pt()
-    tree_event.tau2_eta[0]  = gps_tau[1].eta()
-    tree_event.st[0]        = st
-    tree_event.stmet[0]     = stmet
-    tree_mother.st[0]       = st
-    tree_mother.stmet[0]    = stmet
-    
-    tree_event.weight[0] = weight
+      tree_event.m_jj[0]    = -1
     
     # TAU
     taus_assoc = [ ]
@@ -300,7 +289,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       while gentau.status()!=2:
         gentau = gentau.daughter(0)
       genfinDaughters = finalDaughters(gentau, [])
-      genptvis = p4sumvis(genfinDaughters).pt()
+      gentau.p4vis = p4sumvis(genfinDaughters)
       
       # CHECK MOTHER
       taumoth   = gentau.mother(0)
@@ -322,7 +311,7 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
       # ASSOC
       if not from_moth:
         tree_assoc.pt[0]     = gentau.pt()
-        tree_assoc.ptvis[0]  = genptvis
+        tree_assoc.ptvis[0]  = gentau.p4vis.pt()
         tree_assoc.eta[0]    = gentau.eta()
         tree_assoc.phi[0]    = gentau.phi()
         tree_assoc.pid[0]    = gentau.pdgId()
@@ -352,6 +341,40 @@ def convertGENSIM(infiles,outfilename,maxevts=-1,isPythia=False,dtier='GENSIM'):
         tree_assoc.moth[0]   = bmoth.pdgId()
         tree_assoc.weight[0] = weight
         tree_assoc.Fill()
+    
+    # EVENT
+    ditau = gps_tau[0].p4() + gps_tau[1].p4()
+    tree_event.tau1_pt[0]    = gps_tau[0].pt()
+    tree_event.tau1_ptvis[0] = gps_tau[0].p4vis.pt()
+    tree_event.tau1_eta[0]   = gps_tau[0].eta()
+    tree_event.tau2_pt[0]    = gps_tau[1].pt()
+    tree_event.tau2_ptvis[0] = gps_tau[1].p4vis.pt()
+    tree_event.tau2_eta[0]   = gps_tau[1].eta()
+    tree_event.m_ll[0]       = ditau.M()
+    tree_event.mvis_ll[0]    = (gps_tau[0].p4vis+gps_tau[1].p4vis).M()
+    tree_event.dphi_ll[0]    = deltaPhi(gps_tau[0].phi(),gps_tau[1].phi())
+    tree_event.deta_ll[0]    = gps_tau[0].eta() - gps_tau[1].eta()
+    tree_event.dr_ll[0]      = deltaR(gps_tau[0].eta(),gps_tau[0].phi(),gps_tau[1].eta(),gps_tau[1].phi())
+    tree_event.weight[0]     = weight
+    
+    # SCALAR SUM PT
+    if len(gps_taucut)>=2 and len(gps_bcut)>=1:
+      st = 0
+      #gps_taucut.sort(key=lambda p: p.pt(), reverse=True)
+      gps_bcut.sort(key=lambda p: p.pt(), reverse=True)
+      #taus_assoc.sort(key=lambda p: p.pt(), reverse=True)
+      #taus_decay.sort(key=lambda p: p.pt(), reverse=True)
+      #bgen_decay.sort(key=lambda p: p.pt(), reverse=True)
+      for part in gps_taucut[2:]+gps_bcut[1:]:
+        st += part.pt()
+      stmet = st + met[0].pt()
+    else:
+      st    = -1
+      stmet = -1
+    tree_event.st[0]        = st
+    tree_event.stmet[0]     = stmet
+    tree_mother.st[0]       = st
+    tree_mother.stmet[0]    = stmet
     
     # MOTHER
     #print '-'*80
@@ -752,4 +775,3 @@ if __name__=='__main__':
   main(args)
   #print ">>> Done"
   
-

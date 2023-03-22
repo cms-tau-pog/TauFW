@@ -168,8 +168,10 @@ def harvest(setup, year, obs, **kwargs):
     
     # WRITER
     print green(">>> writing datacards...")
-    datacardtxt  = "$TAG/$ANALYSIS_$CHANNEL_%s-$BINID%s-$ERA.txt"%(obs,outtag)
-    datacardroot = "$TAG/$ANALYSIS_$CHANNEL_%s%s.input-$ERA.root"%(obs,outtag)
+    name_red = channel.replace("_v10_2p5", "")
+    print("Reduced name of the channel: ", name_red)
+    datacardtxt  = "$TAG/$ANALYSIS_%s_%s-$BINID%s-$ERA.txt"%(name_red,obs,outtag)
+    datacardroot = "$TAG/$ANALYSIS_%s_%s%s.input-$ERA.root"%(name_red,obs,outtag)
     writer = CardWriter(datacardtxt,datacardroot)
     writer.SetVerbosity(verbosity)
     writer.SetWildcardMasses([ ])

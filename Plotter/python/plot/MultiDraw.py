@@ -3,6 +3,7 @@
 # Description: Efficiently draw multiple histograms with one loop over all events in a TTree
 #              This script injects a MultiDraw method into TTree when it is imported.
 # Source: https://github.com/pwaller/minty/blob/master/minty/junk/MultiDraw.py
+from __future__ import print_function
 import os, re, traceback
 from ROOT import gROOT, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
                  TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
@@ -17,7 +18,7 @@ try:
   from ROOT import MultiDraw as _MultiDraw
   from ROOT import MultiDraw2D as _MultiDraw2D
 except:
-  print traceback.format_exc()
+  print(traceback.format_exc())
   raise error('MultiDraw.py: Failed to import the MultiDraw macro "%s"'%macro)
   
 def makeTObjArray(theList):
@@ -64,8 +65,12 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     lastXVar, lastYVar, lastWeight = None, None, None
     
     # A weight common to everything being drawn
+    if not selection:
+      if verbosity>=2:
+        print(">>> MultiDraw: Replacing empty selection (%r) with '1'..."%(selection))
+      selection = '1' # to avoid "Empty String" error
     if verbosity>=3:
-      print ">>> MultiDraw: Preparing common TTreeFormula for selection=%r"%(selection)
+      print(">>> MultiDraw: Preparing common TTreeFormula for selection=%r"%(selection))
     commonFormula = TTreeFormula("commonFormula", selection, self)
     commonFormula.SetQuickLoad(True)
     
@@ -73,7 +78,7 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
       raise error("MultiDraw: TTreeFormula 'selection' did not compile:\n  selection:  %r\n  varexps:    %s"%(selection,varexps))
     
     for i, varexp in enumerate(varexps):
-        #print '  Variable expression: %s'%(varexp,)
+        #print('  Variable expression: %s'%(varexp,))
         yvar = None
         
         # EXPAND varexp
@@ -193,8 +198,8 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     
     # DRAW
     if verbosity>=2:
-      print ">>> MultiDraw: xformulae=%s, yformulae=%s"%([x.GetTitle() for x in xformulae],[y.GetTitle() for y in yformulae])
-      print ">>> MultiDraw: weights=%s, results=%s"%([w.GetTitle() for w in weights],results)
+      print(">>> MultiDraw: xformulae=%s, yformulae=%s"%([x.GetTitle() for x in xformulae],[y.GetTitle() for y in yformulae]))
+      print(">>> MultiDraw: weights=%s, results=%s"%([w.GetTitle() for w in weights],results))
     if len(yformulae)==0:
       _MultiDraw(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae))
     elif len(xformulae)==len(yformulae):

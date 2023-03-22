@@ -22,15 +22,15 @@ class ModuleMuMu(ModuleTauPair):
     if self.year==2016:
       #self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
-      self.muon1CutPt = lambda e: 26
+      self.muon1CutPt = lambda e: 25
       self.muonCutEta = lambda e: 2.4 #if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 26 if e.HLT_IsoMu24 else 29
+      self.muon1CutPt = lambda e: 25 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
     else:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 26
+      self.muon1CutPt = lambda e: 25
       self.muonCutEta = lambda e: 2.4
     self.muon2CutPt   = 15
     self.tauCutPt     = 20
@@ -132,7 +132,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.dz_1[0]       = muon1.dz
     self.out.q_1[0]        = muon1.charge
     self.out.iso_1[0]      = muon1.pfRelIso04_all # relative isolation
-    self.out.tkRelIso_1[0] = muon1.tkRelIso
+    #self.out.tkRelIso_1[0] = muon1.tkRelIso
     self.out.idMedium_1[0] = muon1.mediumId
     self.out.idTight_1[0]  = muon1.tightId
     self.out.idHighPt_1[0] = muon1.highPtId
@@ -148,7 +148,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.dz_2[0]       = muon2.dz
     self.out.q_2[0]        = muon2.charge
     self.out.iso_2[0]      = muon2.pfRelIso04_all # relative isolation
-    self.out.tkRelIso_2[0] = muon2.tkRelIso
+    #self.out.tkRelIso_2[0] = muon2.tkRelIso
     self.out.idMedium_2[0] = muon2.mediumId
     self.out.idTight_2[0]  = muon2.tightId
     self.out.idHighPt_2[0] = muon2.highPtId
@@ -176,14 +176,18 @@ class ModuleMuMu(ModuleTauPair):
       self.out.q_3[0]                      = maxtau.charge
       self.out.dm_3[0]                     = maxtau.decayMode
       self.out.iso_3[0]                    = maxtau.rawIso
-      self.out.idiso_2[0]                  = idIso(maxtau) # cut-based tau isolation (rawIso)
-      self.out.idAntiEle_3[0]              = maxtau.idAntiEle
-      self.out.idAntiMu_3[0]               = maxtau.idAntiMu
-      self.out.idMVAoldDM2017v2_3[0]       = maxtau.idMVAoldDM2017v2
-      self.out.idMVAnewDM2017v2_3[0]       = maxtau.idMVAnewDM2017v2
+      #self.out.idiso_2[0]                  = idIso(maxtau) # cut-based tau isolation (rawIso)
+      #self.out.idAntiEle_3[0]              = maxtau.idAntiEle
+      #self.out.idAntiMu_3[0]               = maxtau.idAntiMu
+      #self.out.idMVAoldDM2017v2_3[0]       = maxtau.idMVAoldDM2017v2
+      #self.out.idMVAnewDM2017v2_3[0]       = maxtau.idMVAnewDM2017v2
       self.out.idDeepTau2017v2p1VSe_3[0]   = maxtau.idDeepTau2017v2p1VSe
       self.out.idDeepTau2017v2p1VSmu_3[0]  = maxtau.idDeepTau2017v2p1VSmu
       self.out.idDeepTau2017v2p1VSjet_3[0] = maxtau.idDeepTau2017v2p1VSjet
+
+      self.out.idDeepTau2018v2p5VSe_3[0]   = maxtau.idDeepTau2018v2p5VSe
+      self.out.idDeepTau2018v2p5VSmu_3[0]  = maxtau.idDeepTau2018v2p5VSmu
+      self.out.idDeepTau2018v2p5VSjet_3[0] = maxtau.idDeepTau2018v2p5VSjet
       if self.ismc:
         self.out.jpt_match_3[0], self.out.jpt_genmatch_3[0] = matchtaujet(event,maxtau,self.ismc)
         self.out.genmatch_3[0]             = maxtau.genPartFlav
@@ -195,13 +199,16 @@ class ModuleMuMu(ModuleTauPair):
       self.out.m_3[0]                      = -1
       self.out.q_3[0]                      =  0
       self.out.dm_3[0]                     = -1
-      self.out.idAntiEle_3[0]              = -1
-      self.out.idAntiMu_3[0]               = -1
-      self.out.idMVAoldDM2017v2_3[0]       = -1
-      self.out.idMVAnewDM2017v2_3[0]       = -1
+      #self.out.idAntiEle_3[0]              = -1
+      #self.out.idAntiMu_3[0]               = -1
+      #self.out.idMVAoldDM2017v2_3[0]       = -1
+      #self.out.idMVAnewDM2017v2_3[0]       = -1
       self.out.idDeepTau2017v2p1VSe_3[0]   = -1
       self.out.idDeepTau2017v2p1VSmu_3[0]  = -1
       self.out.idDeepTau2017v2p1VSjet_3[0] = -1
+      self.out.idDeepTau2018v2p5VSe_3[0]   = -1
+      self.out.idDeepTau2018v2p5VSmu_3[0]  = -1
+      self.out.idDeepTau2018v2p5VSjet_3[0] = -1
       self.out.iso_3[0]                    = -1
       self.out.jpt_match_3[0]              = -1
       if self.ismc:

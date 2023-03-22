@@ -21,12 +21,8 @@ gROOT.SetBatch(True)
 
 # CMS style
 #TGaxis.SetExponentOffset(-0.074,0.015,'y')
-CMSStyle.extraText    = "Preliminary"
-#CMSStyle.cmsTextSize  = 0.75
-#CMSStyle.lumiTextSize = 0.70
-#CMSStyle.relPosX      = 0.12
-CMSStyle.outOfFrame   = True
-CMSStyle.lumi_13TeV   = ""
+CMSStyle.extraText  = "Preliminary"
+CMSStyle.outOfFrame = True
 CMSStyle.setTDRStyle()
 
 # https://root.cern.ch/doc/master/classTColor.html
@@ -173,12 +169,16 @@ class Plot(object):
     xlabelsize   = kwargs.get('xlabelsize',   labelsize       ) # x label size
     ylabelsize   = kwargs.get('ylabelsize',   labelsize       ) # y label size
     ycenter      = kwargs.get('ycenter',      False           ) # center y title
+    nxdiv        = kwargs.get('nxdiv',        None            ) # tick divisions of x axis
+    nydiv        = kwargs.get('nydiv',        None            ) # tick divisions of y axis
+    nrdiv        = kwargs.get('nrdiv',        506             ) # tick divisions of y axis of ratio panel
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymarg',        self.ymargin    ) # alias
     ymargin      = kwargs.get('ymargin',      ymargin         ) # margin between hist maximum and plot's top
     logyrange    = kwargs.get('logyrange',    self.logyrange  ) # log(y) range from hist maximum to ymin
     grid         = kwargs.get('grid',         True            )
+    rgrid        = kwargs.get('rgrid',        grid            ) # grid for ratio panel
     tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
@@ -317,7 +317,7 @@ class Plot(object):
       self.errband.Draw('E2 SAME')
     
     # AXES
-    self.setaxes(self.frame,*hists,main=ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
+    self.setaxes(self.frame,*hists,main=ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,nxdiv=nxdiv,nydiv=nydiv,
                  xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,xlabelsize=xlabelsize,ylabelsize=ylabelsize,
                  center=ycenter,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
     
@@ -326,9 +326,9 @@ class Plot(object):
       self.canvas.cd(2)
       self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,drawden=drawden,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
-      self.setaxes(self.ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,
+      self.setaxes(self.ratio,grid=rgrid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,nxdiv=nxdiv,logx=logx,nydiv=nrdiv,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,ylabelsize=ylabelsize,xtitleoffset=xtitleoffset,
-                   center=True,nydiv=506,rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,latex=latex)
+                   center=True,rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,latex=latex)
       for line in self.lines:
         if line.pad==2:
           line.Draw("LSAME")
@@ -407,13 +407,10 @@ class Plot(object):
     tmargin = kwargs.get('tmargin', 1.    ) # scale top margin
     bmargin = kwargs.get('bmargin', 1.    ) # scale bottom margin
     pads    = kwargs.get('pads',    [ ]   ) # pass list as reference
-    #if not CMSStyle.lumi_13TeV:
-    #  tmargin *= 0.7
     if square:
       lmargin *= 1.15
       tmargin *= 0.90
       #rmargin *= 3.6
-      #CMSStyle.relPosX = 0.15
     if verbosity>=2:
       print ">>> Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
       print ">>> Plot.setcanvas: width=%s, height=%s"%(width,height)
@@ -489,9 +486,9 @@ class Plot(object):
     ytitle        = kwargs.get('ytitle',       None             )
     latex         = kwargs.get('latex',        True             ) # automatically format strings as LaTeX
     grid          = kwargs.get('grid',         False            )
-    ycenter       = kwargs.get('center',       False            )
-    nxdivisions   = kwargs.get('nxdiv',        510              )
-    nydivisions   = kwargs.get('nydiv',        510              )
+    ycenter       = kwargs.get('center',       False            ) # center y title
+    nxdivisions   = kwargs.get('nxdiv',        None             ) or 510 # tick divisions of x axis
+    nydivisions   = kwargs.get('nydiv',        None             ) or 510 # tick divisions of y axis
     main          = kwargs.get('main',         not lower        ) # main panel of ratio plot
     lower         = kwargs.get('lower',        lower            )
     scale         = 600./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC()) # automatic scaling (e.g. for lower panel)
@@ -721,6 +718,7 @@ class Plot(object):
     twidth      = kwargs.get('twidth',      None           ) or 1 # scalefactor for legend width
     theight     = kwargs.get('theight',     None           ) or 1 # scalefactor for legend height
     texts       = kwargs.get('text',        [ ]            ) # extra text below legend
+    margin      = kwargs.get('margin',      1.0            ) # scale legend margin
     ncols       = kwargs.get('ncol',        self.ncols     )
     ncols       = kwargs.get('ncols',       ncols          ) or 1 # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
@@ -846,9 +844,9 @@ class Plot(object):
     
     # MARGIN
     if ncols>=2:
-      margin = 0.090/width
+      margin *= 0.090/width
     else:
-      margin = 0.044/width
+      margin *= 0.044/width
     legend.SetMargin(margin)
     
     # STYLE

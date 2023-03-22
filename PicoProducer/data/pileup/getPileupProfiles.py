@@ -336,7 +336,7 @@ def compareDataMCProfiles(datahists,mchist,era="",minbiases=0.0,tag="",rmin=0.6,
   xtitle = "Mean number of pileup interactions" # 'true' pileup, i.e. Poisson mean
   pname  = "%s/pileup_Data-MC_%s%s"%(outdir,era,tag)
   plot   = Plot(hists,ratio=True,rmin=rmin,rmax=rmax,xmax=xmax)
-  plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="Data / MC",
+  plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="Data / MC",grid=False,
             textsize=0.045,denom=-1,colors=colors,styles=styles)
   plot.drawlegend(position,width=width)
   plot.saveas(pname+".png")
@@ -382,6 +382,7 @@ def main(args):
     pileup     = os.path.join(jsondir,"pileup_latest.txt")
     jname      = getJSON(era)
     CMSStyle.setCMSEra(era,extra="Internal",thesis=False)
+    #CMSStyle.setCMSEra(era,extra="(CMS data/simulation)",thesis=True,cmsTextSize=0.76,relPosX=2.38*0.045)
     samples_bug = [ ] # buggy samples in (pre-UL) 2017 with "old pmx" library
     samples_fix = [ ] # fixed samples in (pre-UL) 2017 with "new pmx" library
     samples = [ # default set of samples
