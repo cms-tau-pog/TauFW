@@ -12,5 +12,5 @@
   }, 
   "nfilesperjob": 1, 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE", 
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
 }
