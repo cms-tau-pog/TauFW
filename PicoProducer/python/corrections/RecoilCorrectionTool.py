@@ -34,7 +34,8 @@ class ZptCorrectionTool:
         elif '2017' in era:
           filename = zptpath+"zptmass_weights_UL2017.root"
         elif '2018' in era:
-          filename = zptpath+"zptmass_weights_UL2018.root"
+          histname = "zptmass_histo"
+          filename = zptpath+"zpt_reweighting_LO.root"  ## Test with Danny's weights  #zptmass_weights_UL2018.root"
       else:
         if '2016' in era:
           filename = zptpath+"zptmass_weights_2016.root"
@@ -53,8 +54,10 @@ class ZptCorrectionTool:
   
   def getZptWeight(self,Zpt,Zmass):
     """Get Z pT weight for a given Z boson pT and mass."""
-    xbin = self.hist.GetXaxis().FindBin(Zpt)
-    ybin = self.hist.GetYaxis().FindBin(Zmass)
+    #xbin = self.hist.GetXaxis().FindBin(Zpt)
+    #ybin = self.hist.GetYaxis().FindBin(Zmass)
+    xbin = self.hist.GetXaxis().FindBin(Zmass) # If using histograms from TauFW code, probably need to revert axes back -- different in Danny's hist than in TauFW...
+    ybin = self.hist.GetYaxis().FindBin(Zpt)
     if xbin==0: xbin = 1 # underflow: use first bin
     elif xbin>self.hist.GetXaxis().GetNbins(): xbin -= 1 # overflow: use last bin
     if ybin==0: ybin = 1 # underflow: use first bin

@@ -6,7 +6,7 @@ from TauFW.PicoProducer.analysis.TreeProducerMuMu import *
 from TauFW.PicoProducer.analysis.ModuleTauPair import *
 from TauFW.PicoProducer.analysis.utils import LeptonPair, idIso, matchtaujet
 from TauFW.PicoProducer.corrections.MuonSFs import *
-#from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
+from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
@@ -39,12 +39,17 @@ class ModuleMuMu(ModuleTauPair):
     # CORRECTIONS
     if self.ismc:
       self.muSFs   = MuonSFs(era=self.era)
+
+    # TRIGGERS
+    jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
+    self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
     self.out.cutflow.addcut('trig',         "trigger"                    )
     self.out.cutflow.addcut('muon',         "muon"                       )
     self.out.cutflow.addcut('pair',         "pair"                       )
+    self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
     
@@ -73,7 +78,8 @@ class ModuleMuMu(ModuleTauPair):
     
     
     ##### TRIGGER ####################################
-    if not self.trigger(event):
+    #if not self.trigger(event):
+    if not self.trigger.fired(event):
       return False
     self.out.cutflow.fill('trig')
     
@@ -109,8 +115,13 @@ class ModuleMuMu(ModuleTauPair):
     muon1.tlv    = muon1.p4()
     muon2.tlv    = muon2.p4()
     self.out.cutflow.fill('pair')
-    
-    
+
+    # ADDED FOR SF CROSS CHECKS!
+    # Only keep events with leading muon triggered
+    if not self.trigger.match(event,muon1): 
+      return False
+    self.out.cutflow.fill('leadTrig')
+
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel)
     self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = extramuon_veto, extraelec_veto, dilepton_veto
