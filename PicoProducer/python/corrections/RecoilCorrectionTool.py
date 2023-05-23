@@ -24,24 +24,8 @@ class ZptCorrectionTool:
     """Load Z pT weights."""
     #assert year in [2016,2017,2018], "ZptCorrectionTool: You must choose a year from: 2016, 2017, or 2018."
     if not filename:
-      if 'UL' in era:
-        #if '2016' in era and 'preVFP' in era:
-        #  filename = zptpath+"Zpt_weights_UL2016_preVFP.root"
-        #elif '2016' in era and 'postVFP' in era:
-        #  filename = zptpath+"Zpt_weights_UL2016_postVFP.root"
-        if '2016' in era:
-          filename = zptpath+"zptmass_weights_UL2016.root"
-        elif '2017' in era:
-          filename = zptpath+"zptmass_weights_UL2017.root"
-        elif '2018' in era:
-          filename = zptpath+"zptmass_weights_UL2018.root"
-      else:
-        if '2016' in era:
-          filename = zptpath+"zptmass_weights_2016.root"
-        elif '2017' in era:
-          filename = zptpath+"zptmass_weights_2017.root"
-        elif '2018' in era:
-          filename = zptpath+"zptmass_weights_2018.root"
+      histname = "zptmass_histo"
+      filename = zptpath+"zpt_reweighting_LO.root"  ## Test with Danny's weights  #zptmass_weights_UL2018.root"
     assert filename, "ZptCorrectionTool.__init__: Did not find filename for %r"%(era)
     print "Loading ZptCorrectionTool for %s:%r..."%(filename,histname)
     file    = ensureTFile(filename,'READ')
@@ -53,8 +37,10 @@ class ZptCorrectionTool:
   
   def getZptWeight(self,Zpt,Zmass):
     """Get Z pT weight for a given Z boson pT and mass."""
-    xbin = self.hist.GetXaxis().FindBin(Zpt)
-    ybin = self.hist.GetYaxis().FindBin(Zmass)
+    #xbin = self.hist.GetXaxis().FindBin(Zpt)
+    #ybin = self.hist.GetYaxis().FindBin(Zmass)
+    xbin = self.hist.GetXaxis().FindBin(Zmass) # If using histograms from TauFW code, probably need to revert axes back -- different in Danny's hist than in TauFW...
+    ybin = self.hist.GetYaxis().FindBin(Zpt)
     if xbin==0: xbin = 1 # underflow: use first bin
     elif xbin>self.hist.GetXaxis().GetNbins(): xbin -= 1 # overflow: use last bin
     if ybin==0: ybin = 1 # underflow: use first bin
