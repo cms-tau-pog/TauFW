@@ -24,25 +24,8 @@ class ZptCorrectionTool:
     """Load Z pT weights."""
     #assert year in [2016,2017,2018], "ZptCorrectionTool: You must choose a year from: 2016, 2017, or 2018."
     if not filename:
-      if 'UL' in era:
-        #if '2016' in era and 'preVFP' in era:
-        #  filename = zptpath+"Zpt_weights_UL2016_preVFP.root"
-        #elif '2016' in era and 'postVFP' in era:
-        #  filename = zptpath+"Zpt_weights_UL2016_postVFP.root"
-        if '2016' in era:
-          filename = zptpath+"zptmass_weights_UL2016.root"
-        elif '2017' in era:
-          filename = zptpath+"zptmass_weights_UL2017.root"
-        elif '2018' in era:
-          histname = "zptmass_histo"
-          filename = zptpath+"zpt_reweighting_LO.root"  ## Test with Danny's weights  #zptmass_weights_UL2018.root"
-      else:
-        if '2016' in era:
-          filename = zptpath+"zptmass_weights_2016.root"
-        elif '2017' in era:
-          filename = zptpath+"zptmass_weights_2017.root"
-        elif '2018' in era:
-          filename = zptpath+"zptmass_weights_2018.root"
+      histname = "zptmass_histo"
+      filename = zptpath+"zpt_reweighting_LO.root"  ## Test with Danny's weights  #zptmass_weights_UL2018.root"
     assert filename, "ZptCorrectionTool.__init__: Did not find filename for %r"%(era)
     print "Loading ZptCorrectionTool for %s:%r..."%(filename,histname)
     file    = ensureTFile(filename,'READ')
