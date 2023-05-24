@@ -50,7 +50,7 @@ class MuonSFs:
         sftool_id         = ScaleFactor(pathPOG+"Run2018UL/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
         sftool_iso        = ScaleFactor(pathPOG+"Run2018UL/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root","NUM_TightRelIso_DEN_MediumID_abseta_pt",'mu_iso',ptvseta=True,verb=verb)
         self.sftool_idiso = sftool_id*sftool_iso
-    else:
+    else: # pre-UL
       if era=='2016':
         # https://gitlab.cern.ch/cms-muonPOG/MuonReferenceEfficiencies/-/tree/master/EfficienciesStudies/2016_trigger
         #self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb)
