@@ -211,9 +211,10 @@ def seterrorbandstyle(hist,**kwargs):
   # 3001 small dots, 3003 large dots, 3004 hatched
   color = kwargs.get('color', None      )
   style = kwargs.get('style', 'hatched' )
-  if   style in 'hatched': style = 3004
-  elif style in 'dots':    style = 3002
-  elif style in 'cross':   style = 3013
+  if isinstance(style,str):
+    if   style in 'hatched': style = 3004
+    elif style in 'dots':    style = 3002
+    elif style in 'cross':   style = 3013
   if color==None:          color = kBlack
   hist.SetLineStyle(1) #0
   hist.SetMarkerSize(0)
@@ -442,11 +443,13 @@ def geterrorband(*hists,**kwargs):
   Returns an TGraphAsymmErrors object."""
   verbosity = LOG.getverbosity(kwargs)
   hists     = unwraplistargs(hists)
-  hists     = [h.GetStack().Last() if isinstance(h,THStack) else h for h in hists]
-  sysvars   = kwargs.get('sysvars',     [ ]    ) # list of tuples with up/cent/down variation histograms
-  name      = kwargs.get('name',        None   ) or "error_"+hists[0].GetName()
-  title     = kwargs.get('title',       None   ) or ("Sys. + stat. unc." if sysvars else "Stat. unc.")
-  color     = kwargs.get('color',       kBlack )
+  hists     = [(h.GetStack().Last() if isinstance(h,THStack) else h) for h in hists]
+  sysvars   = kwargs.get('sysvars', [ ]    ) # list of tuples with up/cent/down variation histograms
+  name      = kwargs.get('name',    None   ) or "error_"+hists[0].GetName()
+  title     = kwargs.get('title',   None   ) or ("Sys. + stat. unc." if sysvars else "Stat. unc.")
+  color     = kwargs.get('color',   kBlack )
+  style     = kwargs.get('style',   'hatched' )
+  yhists    = ensurelist(kwargs.get('yhist', hists )) # histogram with central value
   hist0     = hists[0]
   nbins     = hist0.GetNbinsX()
   if sysvars and isinstance(sysvars,dict):
@@ -465,8 +468,8 @@ def geterrorband(*hists,**kwargs):
     yval = 0
     statlow2, statupp2 = 0, 0
     syslow2,  sysupp2  = 0, 0
-    for hist in hists: # STATISTICS
-      yval     += hist.GetBinContent(ibin)
+    for hist, yhist in zip(hists,yhists): # STATISTICS
+      yval     += yhist.GetBinContent(ibin)
       statlow2 += hist.GetBinErrorLow(ibin)**2
       statupp2 += hist.GetBinErrorUp(ibin)**2
     for histup, hist, histdown in sysvars: # SYSTEMATIC VARIATIONS
@@ -485,7 +488,7 @@ def geterrorband(*hists,**kwargs):
     error.SetPointError(ip,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
     TAB.printrow(ibin,xval,xerr,yval,sqrt(abs(yval)),sqrt(statupp2),sqrt(statlow2),sqrt(sysupp2),sqrt(syslow2),sqrt(yupp2),sqrt(ylow2))
     ip += 1
-  seterrorbandstyle(error,color=color)
+  seterrorbandstyle(error,color=color,style=style)
   #error.SetLineColor(hist0.GetLineColor())
   error.SetLineWidth(hist0.GetLineWidth()) # use draw option 'E2 SAME'
   return error
