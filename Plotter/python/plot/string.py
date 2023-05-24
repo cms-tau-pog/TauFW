@@ -111,7 +111,7 @@ def makelatex(string,**kwargs):
     if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow): # HT
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
-    if strlow[0]=='s' and 't' in strlow[1:3] and 'tw' not in strlow[2:5] and 'chan' not in strlow[2:10]: # scalar sum pT
+    if strlow[0]=='s' and 't' in strlow[1:3] and 'std' not in strlow[:3] and 'tw' not in strlow[2:5] and 'chan' not in strlow[2:10]: # scalar sum pT
       string = re.sub(r"s_?t(?!at)(?![ _-]t[Wc-])",r"S_{T}",string,flags=re.IGNORECASE)
       string = re.sub(r"met",r"^{MET}",string,flags=re.IGNORECASE)
       GeV    = True
