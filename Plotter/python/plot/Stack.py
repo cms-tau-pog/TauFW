@@ -53,7 +53,7 @@ class Stack(Plot):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
     # https://root.cern.ch/doc/master/classTHStack.html
     # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
-    verbosity    = LOG.getverbosity(self,kwargs) 
+    verbosity    = LOG.getverbosity(self,kwargs)
     xtitle       = (args[0] if args else self.xtitle) or ""
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
     square       = kwargs.get('square',       False           ) # square canvas
@@ -66,6 +66,7 @@ class Stack(Plot):
     errbars      = kwargs.get('errbars',      False           ) # add error bars to histogram
     staterr      = kwargs.get('staterr',      True            ) # create stat. error band
     sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
+    multibands   = kwargs.get('multibands',   False           ) # create stat. error band for each histogram in stack
     errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     norm         = kwargs.get('norm',         self.norm       ) # normalize all histograms
     fraction     = kwargs.get('fraction',     False           ) # draw fraction stack in ratio plot
@@ -94,7 +95,6 @@ class Stack(Plot):
     tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
-    ncols        = kwargs.get('ncols',        1               ) # number of columns in legend
     lcolors      = kwargs.get('lcolors',      None            ) or self.lcolors
     fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors
     resetcolors  = kwargs.get('resetcolors', 'fcolors' in kwargs )
@@ -102,8 +102,9 @@ class Stack(Plot):
     lstyles      = kwargs.get('lstyles',      lstyles         ) or self.lstyles
     lwidth       = kwargs.get('lwidth',       2               ) # line width
     mstyle       = kwargs.get('mstyle',       None            ) # marker style
-    option       = kwargs.get('option',       'HIST'          ) # draw option
-    doption      = kwargs.get('doption',      'E1'            ) # draw option for data
+    option       = kwargs.get('option',       'HIST'          ) # draw option for stack
+    soption      = kwargs.get('soption',      'HIST'          ) # draw option for signal histograms
+    doption      = kwargs.get('doption',      'E1'            ) # draw option for data histograms
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       False           ) # no horizontal error bars for CMS style
@@ -145,9 +146,9 @@ class Stack(Plot):
             self.garbage.append(oldhist)
       if self.datahist:
         self.datahist = datahists[0]
-        self.hists    = [self.datahist]+self.exphists+self.sighists
+        self.hists = [self.datahist]+self.exphists+self.sighists
       else:
-        self.hists    = self.exphists+self.sighists
+        self.hists = self.exphists+self.sighists
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
       #  for (histup,hist,histdown) in histlist:
@@ -166,6 +167,15 @@ class Stack(Plot):
     # CANVAS
     self.canvas = self.setcanvas(square=square,lower=ratio,width=cwidth,height=cheight,
                                  lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
+    
+    # STYLE
+    self.setfillstyle(self.exphists,reset=resetcolors) # before adding to THStack!
+    for hist in self.exphists:
+      hist.SetMarkerStyle(1)
+    if drawsignal:
+      self.setlinestyle(self.sighists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
+    if drawdata:
+      self.setmarkerstyle(self.datahist)
     
     # CREATE STACK
     stack = THStack(makehistname('stack',self.name),"") # stack (expected)
@@ -187,11 +197,11 @@ class Stack(Plot):
         line.Draw("LSAME")
     
     # DRAW
-    stack.Draw('HIST SAME')
+    stack.Draw(option+' SAME')
     if drawsignal: # signal
       for hist in self.sighists:
-        hist.Draw(option+" SAME")
-        hist.SetOption(option+" SAME") # for legend and ratio
+        hist.Draw(soption+" SAME")
+        hist.SetOption(soption+" SAME") # for legend and ratio
     if drawdata: # data
       self.datahist.SetFillStyle(0)
       if isinstance(self.datahist,TH1):
@@ -201,16 +211,6 @@ class Stack(Plot):
         self.datahist.Draw(doption+'PE0 SAME')
         self.datahist.GetOption = lambda: 'PE0 SAME' # for legend and ratio
     
-    # STYLE
-    if stack:
-      self.setfillstyle(self.exphists,reset=resetcolors)
-      for hist in self.exphists:
-        hist.SetMarkerStyle(1)
-    if drawsignal:
-      self.setlinestyle(self.sighists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
-    if drawdata:
-      self.setmarkerstyle(self.datahist)
-    
     # CMS STYLE
     if CMSStyle.lumiText:
       CMSStyle.setCMSLumiStyle(gPad,0)
@@ -218,7 +218,14 @@ class Stack(Plot):
     # ERROR BAND
     if staterr or sysvars:
       self.errband = geterrorband(self.exphists,name=makehistname("errband",self.name),title=errtitle,sysvars=sysvars)
-      self.errband.Draw('E2 SAME')
+      if not multibands: # do not draw, but keep for ratio and/or legend
+        self.errband.Draw('E2 SAME')
+    if multibands:
+      for i, hist in enumerate(self.exphists):
+        fstyle = 3004 if i%2==0 else 3005
+        errband = geterrorband(hist,yhist=stack.GetStack().At(i),name=makehistname("errband",hist.GetName()),title=errtitle,style=fstyle)
+        errband.Draw('E2 SAME')
+        self.errbands.append(errband)
     
     # AXES
     self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,
