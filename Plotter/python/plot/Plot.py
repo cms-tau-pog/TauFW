@@ -3,7 +3,7 @@
 # Description: Class to automatically make CMS plot comparing histograms.
 import os, re
 from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
-from TauFW.common.tools.math import log10, magnitude, columnize, scalevec
+from TauFW.common.tools.math import log10, magnitude, columnize, scalevec, ceil
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable, Var
@@ -124,6 +124,7 @@ class Plot(object):
     self.lstyles      = kwargs.get('lstyles',    None                 ) or _lstyles
     self.canvas       = None
     self.legends      = [ ]
+    self.errbands     = [ ]
     self.texts        = [ ] # to save TLatex objects made by drawtext
     self.lines        = [ ]
     self.garbage      = [ ]
@@ -776,7 +777,7 @@ class Plot(object):
     nlines = sum([1+e.count('\n') for e in entries])
     #else:       nlines += 0.80
     if texts:   nlines += sum([1+t.count('\n') for t in texts])
-    if ncols>1: nlines /= float(ncols)
+    if ncols>1: nlines  = int(ceil(nlines/float(ncols)))
     if title:   nlines += 1 + title.count('\n')
     
     # DIMENSIONS
@@ -843,7 +844,9 @@ class Plot(object):
                                position,height,width,x1,y1,x2,y2,X1,Y1,X2,Y2),verbosity,1)
     
     # MARGIN
-    if ncols>=2:
+    if ncols>=3:
+      margin *= 0.045*ncols/width
+    elif ncols==2:
       margin *= 0.090/width
     else:
       margin *= 0.044/width
@@ -1139,8 +1142,9 @@ class Plot(object):
   
   def setfillstyle(self, *hists, **kwargs):
     """Set the fill style for a list of histograms."""
+    verbosity = LOG.getverbosity(self,kwargs)
     hists   = unwraplistargs(hists)
-    reset   = kwargs.get('reset',  False ) # only set if not kBlack or kWhite
+    reset   = kwargs.get('reset',  False ) # if reset==False: only set color if not kBlack or kWhite
     line    = kwargs.get('line',   True  )
     fcolors = kwargs.get('colors', None  ) or self.fcolors
     icol    = 0
@@ -1152,7 +1156,10 @@ class Plot(object):
       color = fcolors[icol%len(fcolors)]
       icol += 1
       hist.SetFillColor(color)
+      if hist.GetFillStyle()<1001:
+        hist.SetFillStyle(1001)
       if line:
         hist.SetLineColor(kBlack)
+      if verbosity>=2:
+        print ">>> Plot.setfillstyle: hist=%r, icol=%s, color=%s"%(hist, icol, color)
     
-  
