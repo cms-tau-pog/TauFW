@@ -34,7 +34,7 @@ def bold(string,**kwargs):
   return kwargs.get('pre',"") + "\033[1m%s\033[0m"%(string)
   
 
-def underlined(string,**kwargs):
+def underline(string,**kwargs):
   return kwargs.get('pre',"") + "\033[4m%s\033[0m"%(string)
   
 
@@ -100,7 +100,7 @@ class Logger(object):
       if col:
         string = color(string,col) if isinstance(col,str) else color(string)
       if ul:
-        string = underlined(string)
+        string = underline(string)
       print pre+string
       return True
     return False
@@ -117,13 +117,13 @@ class Logger(object):
     """Print color."""
     print self.pre+color(*args,**kwargs)
   
-  def underlined(self,*args,**kwargs):
-    """Print underlined."""
-    print self.pre+underlined(*args,**kwargs)
+  def underline(self,*args,**kwargs):
+    """Print underline."""
+    print self.pre+underline(*args,**kwargs)
   
   def ul(self,*args,**kwargs):
-    """Print underlined."""
-    return self.underlined(*args,**kwargs)
+    """Print underline."""
+    return self.underline(*args,**kwargs)
   
   def warning(self,string,trigger=True,**kwargs):
     """Print warning if triggered."""
