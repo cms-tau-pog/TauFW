@@ -49,7 +49,7 @@ class ModuleTauPair(Module):
     self.dotight    = kwargs.get('tight',    self.dotight   ) # store fewer events to save disk space
     self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
-    self.useT1      = kwargs.get('useT1',    False          ) # MET T1
+    self.useT1      = kwargs.get('useT1',    False          ) # MET T1 for backwards compatibility with old nanoAOD-tools JME corrector
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = 30
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5

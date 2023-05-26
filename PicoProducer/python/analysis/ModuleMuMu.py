@@ -115,13 +115,13 @@ class ModuleMuMu(ModuleTauPair):
     muon1.tlv    = muon1.p4()
     muon2.tlv    = muon2.p4()
     self.out.cutflow.fill('pair')
-
+    
     # ADDED FOR SF CROSS CHECKS!
     # Only keep events with leading muon triggered
     if not self.trigger.match(event,muon1): 
       return False
     self.out.cutflow.fill('leadTrig')
-
+    
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel)
     self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = extramuon_veto, extraelec_veto, dilepton_veto
