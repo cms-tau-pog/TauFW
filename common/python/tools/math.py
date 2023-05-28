@@ -72,7 +72,7 @@ def partition(mylist,nparts):
     nleft   -= nnew
     divider -= 1
     findex   = lindex
-    #print nnew
+    #print("partition: nnew=%r"%(nnew))
   return parts
   
 
