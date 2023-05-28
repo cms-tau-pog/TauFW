@@ -28,8 +28,7 @@ class GridKA_NRG(StorageSystem):
     def ensure_local_temp_dir(self, tmpdir, verb):
         """Ensure local tempdir exists."""
         if verb >= 2:
-            print(">>> Creating temp directory {} if not existent yet".format()
-                tmpdir)
+            print(">>> Creating temp directory {} if not existent yet".format(tmpdir))
         if not os.path.exists(tmpdir):
             os.mkdir(tmpdir)
         return True
