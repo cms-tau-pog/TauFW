@@ -64,11 +64,11 @@ class TagAndProbe(PhysicsModelBase):
              elif self.passbin in bin:
                exp_pass += self.DC.exp[bin][param]
              if self.verbose>=3:
-               print ">>> Expected number of %s events in %s bin: %9.1f"%(param,bin,self.DC.exp[bin][param])
+               print(">>> Expected number of %s events in %s bin: %9.1f"%(param,bin,self.DC.exp[bin][param]))
         if self.verbose>=2:
-          print ">>> Expected number of signal events in pass region: %9.1f"%(exp_pass)
-          print ">>> Expected number of signal events in fail region: %9.1f"%(exp_fail)
-          print ">>> SF_fail = (%.2f+(1.-SF)*%.2f)/%.2f"%(exp_fail,exp_pass,exp_fail)
+          print(">>> Expected number of signal events in pass region: %9.1f"%(exp_pass))
+          print(">>> Expected number of signal events in fail region: %9.1f"%(exp_fail))
+          print(">>> SF_fail = (%.2f+(1.-SF)*%.2f)/%.2f"%(exp_fail,exp_pass,exp_fail))
         assert exp_fail, "Fail region has no signal events!"
         
         # DEFINE PARAMETERS
@@ -88,7 +88,7 @@ class TagAndProbe(PhysicsModelBase):
           elif self.passbin in bin:
             scale = 'SF'
           if self.verbose>=1:
-            print ">>> Scaling %3s in %s bin by '%s'"%(process,bin,scale)
+            print(">>> Scaling %3s in %s bin by '%s'"%(process,bin,scale))
           return scale
         return 1
     

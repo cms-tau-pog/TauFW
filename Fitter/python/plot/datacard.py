@@ -85,7 +85,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
     fname_  = repkey(fname,OBS=obsname,TAG=tag) # replace keys
     file    = TFile.Open(fname_,option)
     if recreate:
-      print ">>> created file %s"%(fname_)
+      print(">>> created file %s"%(fname_))
     for selection in bins:
       if not obs.plotfor(selection): continue
       obs.changecontext(selection) # update contextual cuts, binning, name, title, ...
@@ -100,11 +100,11 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   # GET HISTS
   for selection in bins:
     bin = selection.filename # bin name
-    print ">>>\n>>> "+color(" %s "%(bin),'magenta',bold=True,ul=True)
+    print(">>>\n>>> "+color(" %s "%(bin),'magenta',bold=True,ul=True))
     if htag: # hist tag for systematic
-      print ">>> systematic uncertainty: %s"%(color(htag.lstrip('_'),'grey'))
+      print(">>> systematic uncertainty: %s"%(color(htag.lstrip('_'),'grey')))
     if recreate or verbosity>=1:
-      print ">>> %r"%(selection.selection)
+      print(">>> %r"%(selection.selection))
     for obs in obsset: # update contextual cuts, binning, name, title, ...
       obs.changecontext(selection)
     hists = sampleset.gethists(obsset,selection,method=method,split=True,
@@ -132,7 +132,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       hist.GetXaxis().SetTitle(obs.title)
       for i, yval in enumerate(hist):
         if yval<0:
-          print ">>> replace bin %d (%.3f<0) of %r"%(i,yval,hist.GetName())
+          print(">>> replace bin %d (%.3f<0) of %r"%(i,yval,hist.GetName()))
           hist.SetBinContent(i,0)
       if files[obs].cd(bin): # $FILE:$BIN/$PROCESS_$SYSTEMATC
         hist.Write(name,TH1.kOverwrite)
@@ -162,7 +162,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
   groups    = kwargs.get('group',  [ ]     ) # add processes together into one histogram
   verbosity = kwargs.get('verb',   0       )
   ensuredir(outdir)
-  print ">>>\n>>> "+color(" plotting... ",'magenta',bold=True,ul=True)
+  print(">>>\n>>> "+color(" plotting... ",'magenta',bold=True,ul=True))
   if 'Nom' not in varprocs:
     LOG.warning("plotinputs: Cannot make plots because did not find nominal process templates 'Nom'.")
     return
