@@ -115,7 +115,7 @@ def main_run(args):
           filetag  = "_%s_%s%s"%(channel,era,tag)
         if verbosity>=1:
           print(">>> %-12s = %s"%('sample',sample))
-          print(">>> %-12s = %r"%('filetag',filetag) # postfix)
+          print(">>> %-12s = %r"%('filetag',filetag)) # postfix
           print(">>> %-12s = %s"%('extraopts',extraopts_))
         
         # GET FILES

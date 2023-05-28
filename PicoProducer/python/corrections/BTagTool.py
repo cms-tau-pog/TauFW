@@ -190,7 +190,7 @@ class BTagWeightTool:
       raise IOError("Did not recognize %r tagger..."%(tagger))
     
     # LOAD CALIBRATION TOOL
-    print("Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname) #,(", "+sigma) if sigma!='central' else "")
+    print("Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname)) #,(", "+sigma) if sigma!='central' else ""
     calib = BTagCalibration(tagger,csvname)
     if csvname_bc and csvname_bc!=csvname:
       print("  and from %s..."%(csvname_bc))
