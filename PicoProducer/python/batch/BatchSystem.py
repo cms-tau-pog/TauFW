@@ -1,4 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
+from past.builtins import basestring # for python2 compatibility
 #import os, re, shutil
 import os, re
 import importlib
@@ -24,7 +25,7 @@ class BatchSystem(object):
   
   def statuscode(self,code):
     status = '?'
-    for skey, codelist in self.statusdict.iteritems():
+    for skey, codelist in self.statusdict.items():
       if code in codelist:
         status = skey
     return status
@@ -41,7 +42,7 @@ class BatchSystem(object):
     jobs      = JobList([])
     rows      = rows.split('\n')
     if len(rows)>0 and self.verbosity>=1:
-      print ">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args')
+      print(">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args'))
     for row in rows:
       values = row.split()
       if len(values)<5 or not values[1].isdigit() or not values[2].isdigit():
@@ -52,12 +53,12 @@ class BatchSystem(object):
       status = self.statuscode(values[3])
       args   = ' '.join(values[4:])
       if self.verbosity>=1:
-        print ">>> %10s %10s %8s %8s   %s"%(user,jobid,taskid,status,args)
+        print(">>> %10s %10s %8s %8s   %s"%(user,jobid,taskid,status,args))
       job    = Job(self,jobid,taskid=taskid,args=args,status=status)
       jobs.append(job)
     if verbosity>=3:
       for job in jobs:
-        print repr(job)
+        print(repr(job))
     return jobs
   
   @abstractmethod

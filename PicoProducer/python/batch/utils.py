@@ -1,4 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
+from past.builtins import basestring # for python2 compatibility
 import os, re, glob
 import importlib
 from TauFW.common.tools.file import ensureTFile
@@ -29,7 +30,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
   if verb<=0 and len(fnames)>=5:
     bar = LoadingBar(len(fnames),width=20,pre=">>> Checking number of events: ",counter=True,remove=True)
   elif verb>=4:
-    print ">>> chunkify_by_evts: events per file:"
+    print(">>> chunkify_by_evts: events per file:")
   for fname in fnames[:]:
     if evtsplitexp.match(fname): # already split; cannot be split again
       # TODO: add maxevts to ntot ?
@@ -38,7 +39,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
     if evtdict and fname in evtdict: # get number of events from sample's dictionary to speed up
       nevts = evtdict[fname]
       if verb>=4:
-        print ">>> %10d %s (dict)"%(nevts,fname)
+        print(">>> %10d %s (dict)"%(nevts,fname))
     else: # get number of events from file
       file  = ensureTFile(fname,'READ')
       nevts = file.Get('Events').GetEntries()
@@ -46,7 +47,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
       if isinstance(evtdict,dict):
         evtdict[fname] = nevts # store for possible later reuse (if same sample is submitted multiple times)
       if verb>=4:
-        print ">>> %10d %s"%(nevts,fname)
+        print(">>> %10d %s"%(nevts,fname))
     if nevts<maxevts: # split this large file into several chunks
       if nevts<=0:
         LOG.warning("chunkify_by_evts: File %r has %s<=0 events, not including..."%(fname,nevts))
@@ -59,7 +60,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
     if bar:
       bar.count("files")
   if verb>=1:
-    print ">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%(
+    print(">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%()
       len(nsmall),maxevts,len(nlarge),maxevts)
   for nevts in nlarge:
     for fname in nlarge[nevts]: # split large files into several chunks
@@ -68,7 +69,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
         nchunks  = ceil(float(nevts)/maxevts)
         maxevts_ = int(ceil(nevts/nchunks)) # new maxevts per chunk
         if verb>=3:
-          print ">>>   nevts/maxevts = %d/%d = %.2f => make %d chunks with max. %d events"%(
+          print(">>>   nevts/maxevts = %d/%d = %.2f => make %d chunks with max. %d events"%()
             nevts,maxevts,nevts/float(maxevts),nchunks,maxevts_)
       ifirst = 0 # first event to process in first chunk
       while ifirst<nevts:
@@ -88,10 +89,10 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
       nsmall[nevts].remove(fname)
       result[-1].append(fname) #+":%d"%nevts)
   if verb>=4:
-    print ">>> chunkify_by_evts: chunks = ["
+    print(">>> chunkify_by_evts: chunks = [")
     for chunk in result:
-      print ">>>   %s"%(chunk)
-    print ">>> ]"
+      print(">>>   %s"%(chunk))
+    print(">>> ]")
   return ntot, result
 
 
@@ -125,12 +126,12 @@ def getcfgsamples(jobcfgnames,filter=[ ],veto=[ ],dtype=[ ],verb=0):
   samples = [ ]
   if verb>=2:
     if jobcfgs:
-      print ">>> getcfgsamples: Found job config:"
+      print(">>> getcfgsamples: Found job config:")
     else:
-      print ">>> getcfgsamples: Found NO job configs %s"%(jobcfgnames)
+      print(">>> getcfgsamples: Found NO job configs %s"%(jobcfgnames))
   for cfgname in sorted(jobcfgs):
     if verb>=2:
-      print ">>>   %s"%(cfgname)
+      print(">>>   %s"%(cfgname))
     sample = Sample.loadjson(cfgname)
     if filters and not sample.match(filters,verb): continue
     if vetoes and sample.match(vetoes,verb): continue

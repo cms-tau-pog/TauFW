@@ -73,8 +73,8 @@ class SLURM(BatchSystem):
       for match in matches:
         jobids.append(int(match))
     if fail:
-      print ">>> Warning! Submission failed!"
-      print out
+      print(">>> Warning! Submission failed!")
+      print(out)
     jobid = jobids[0] if len(jobids)==1 else jobids if len(jobids)>1 else 0
     return jobid
   
