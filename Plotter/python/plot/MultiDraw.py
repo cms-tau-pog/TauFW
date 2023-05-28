@@ -3,7 +3,7 @@
 # Description: Efficiently draw multiple histograms with one loop over all events in a TTree
 #              This script injects a MultiDraw method into TTree when it is imported.
 # Source: https://github.com/pwaller/minty/blob/master/minty/junk/MultiDraw.py
-from __future__ import print_function
+from __future__ import print_function # for python3 compatibility
 import os, re, traceback
 from ROOT import gROOT, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
                  TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager

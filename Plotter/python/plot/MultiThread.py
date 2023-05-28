@@ -2,6 +2,7 @@
 # Author: Izaak Neutelings (2017)
 # Source: https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python
 #         https://stackoverflow.com/questions/10415028/how-can-i-recover-the-return-value-of-a-function-passed-to-multiprocessing-proce/28799109
+from __future__ import print_function # for python3 compatibility
 #from threading import Thread as _Thread
 from multiprocessing import Process, Pipe, Manager
 manager = Manager()
@@ -15,12 +16,12 @@ class Thread(Process):
       
     def mytarget(self,result,*args,**kwargs):
       result.append(self._target(*self._args,**self._kwargs))
-      print result
+      print(result)
     
     def run(self):
       """Override run method to save result."""
       self.mytarget(self._return,*self._args,**self._kwargs)
-      print self._return
+      print(self._return)
         
     def join(self):
       """Override join method to return result."""
@@ -43,7 +44,7 @@ class MultiProcessor:
       """To loop over processes, and do process.join()."""
       for i, (process, endin, endout) in enumerate(self.procs):
         if self.verbose:
-          print ">>> MultiProcessor.__iter__: i=%s, process=%r, endin=%r, endout=%s, "%(i,process,endin,endout)
+          print(">>> MultiProcessor.__iter__: i=%s, process=%r, endin=%r, endout=%s, "%(i,process,endin,endout))
         yield ReturnProcess(process,endin,endout,verbose=self.verbose)
         if self.max>=1 and self.waiting:
           #print "MultiProcessor.__iter__: starting new process (i=%d, max=%d, waiting=%d)"%(i,self.max,len(self.waiting))
@@ -67,8 +68,8 @@ class MultiProcessor:
         process       = Process(group,mptarget,name,newargs,kwargs)
         process.kwret = kwret
         if verbose:
-          print ">>> MultiProcessor.start: endin=%r, target=%r, args=%r, kwargs=%r, kwret=%r, max=%s"%(
-                                           endin,target,args,kwargs,kwret,self.max)
+          print(">>> MultiProcessor.start: endin=%r, target=%r, args=%r, kwargs=%r, kwret=%r, max=%s"%(
+                                           endin,target,args,kwargs,kwret,self.max))
         if self.max<1 or len(self.procs)<self.max:
           process.start() # start running process in parallel now (or add to queue)
         else:
@@ -121,7 +122,7 @@ class ReturnProcess:
       verbose = kwargs.get('verbose',self.verbose)
       if isinstance(self.process,Process): # parallel process
         if verbose:
-          print ">>> ReturnProcess.join: name=%r, args=%s"%(self.name,args)
+          print(">>> ReturnProcess.join: name=%r, args=%s"%(self.name,args))
         self.process.join(*args) # wait for process to finish
         #if self.endin:
         #  self.endin.close()
@@ -132,12 +133,12 @@ class ReturnProcess:
           elif isinstance(kwretval,list):
             kwargs[kwret].extend(kwretval) # list only
           else:
-            print "Warning! MultiThread.ReturnProcess.join: No implementation for keyword return value '%s' of type %s..."%(kwret,type(kwretval))
+            print("Warning! MultiThread.ReturnProcess.join: No implementation for keyword return value '%s' of type %s..."%(kwret,type(kwretval)))
           return out
         return self.endout.recv()
       else: # serial process
         if verbose:
-          print ">>> ReturnProcess.join: name=%r (serial), args=%s"%(self.name,args)
+          print(">>> ReturnProcess.join: name=%r (serial), args=%s"%(self.name,args))
         if kwret in kwargs:
           kwretval = self.process.kwargs[kwret]
           if isinstance(kwretval,dict):
@@ -145,7 +146,7 @@ class ReturnProcess:
           elif isinstance(kwretval,list):
             kwargs[kwret].extend(kwretval) # list only
           else:
-            print "Warning! MultiThread.ReturnProcess.join: No implementation for keyword return value '%s' of type %s..."%(kwret,type(kwretval))
+            print("Warning! MultiThread.ReturnProcess.join: No implementation for keyword return value '%s' of type %s..."%(kwret,type(kwretval)))
         return self.endout
     
 

@@ -16,7 +16,7 @@ def getenvelope_scalevars(self,variables,selection,**kwargs):
   parallel        = kwargs.get('parallel',  False      )
   if verbosity>=2:
     LOG.header("Varying scale weights for variables %s (%s)"%(self.name,name))
-    print ">>> selection=%r"%(selection.selection)
+    print(">>> selection=%r"%(selection.selection))
   wtags = [ "0p5_0p5", "0p5_1p0", "1p0_0p5", "1p0_2p0", "2p0_1p0", "2p0_2p0", ]
   
   # GET NORMALIZATION SFs from 'qweight' histogram

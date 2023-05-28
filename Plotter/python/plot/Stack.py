@@ -129,8 +129,8 @@ class Stack(Plot):
       for hist in self.exphists+[self.datahist]:
         if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if verbosity>=2:
-      print ">>> Stack.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
-      print ">>> Stack.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax)
+      print(">>> Stack.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle))
+      print(">>> Stack.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
     
     # DIVIDE BY BINSIZE
     if dividebins:

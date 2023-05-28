@@ -167,10 +167,10 @@ class MergedSample(Sample):
     
     # PRINT
     if verbosity>=3:
-      print ">>>\n>>> MergedSample.getentries: %s"%(color(self.name,color="grey"))
-      print ">>>   entries: %d"%(nevents)
-      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
-      print ">>>   %r"%(cuts)
+      print(">>>\n>>> MergedSample.getentries: %s"%(color(self.name,color="grey")))
+      print(">>>   entries: %d"%(nevents))
+      print(">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm))
+      print(">>>   %r"%(cuts))
     
     return nevents
   
@@ -238,8 +238,8 @@ class MergedSample(Sample):
         if sumhist.GetEntries()>nentries:
           nentries = sumhist.GetEntries()
           integral = sumhist.Integral()
-      print ">>>\n>>> MergedSample.gethist - %s"%(color(name,color="grey"))
-      print ">>>    entries: %d (%.2f integral)"%(nentries,integral)
+      print(">>>\n>>> MergedSample.gethist - %s"%(color(name,color="grey")))
+      print(">>>    entries: %d (%.2f integral)"%(nentries,integral))
     
     if issingle:
       return sumhists[0]
@@ -257,7 +257,7 @@ class MergedSample(Sample):
     kwargs['weight'] = joinweights(kwargs.get('weight', ""), self.weight    ) # pass scale down
     kwargs['scale']  = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
     if verbosity>=2:
-      print ">>>\n>>> MergedSample.gethist2D: %s: %s"%(color(name,color="grey"), self.fnameshort)
+      print(">>>\n>>> MergedSample.gethist2D: %s: %s"%(color(name,color="grey"), self.fnameshort))
       #print ">>>    norm=%.4f, scale=%.4f, total %.4f"%(self.norm,kwargs['scale'],self.scale)
     
     # HISTOGRAMS

@@ -54,7 +54,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     else:
       LOG.throw(IOError,"Did not recognize mc row %s"%(info))
     fname = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel,TAG=tag)
-    #print fname
+    #print(fname)
     sample = MC(name,title,fname,xsec,**expkwargs)
     expsamples[i] = sample
   
@@ -86,7 +86,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     datakwargs.update(newkwargs)
   elif datasample:
     LOG.throw(IOError,"Did not recognize data row %s"%(datasample))
-  #print fnames
+  #print(fnames)
   if datasample:
     fpattern = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=dname,CHANNEL=channel,TAG=tag)
     fnames   = glob.glob(fpattern)
@@ -98,7 +98,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
       datasample = MergedSample(dname,'Observed',data=True)
       for fname in fnames:
         setname = namerexp.findall(fname)[0]
-        #print setname
+        #print(setname)
         datasample.add(Data(setname,'Observed',fname,**datakwargs))
     else:
       LOG.throw(IOError,"Did not find data file %r"%(fpattern))
@@ -125,10 +125,10 @@ def getmcsample(group,sample,title,xsec,channel,era,tag="",verb=0,**kwargs):
     picodir = CONFIG['picodir']
   fname_ = repkey(fname,PICODIR=picodir,USER=user,ERA=era,GROUP=group,SAMPLE=sample,CHANNEL=channel,TAG=tag)
   if not os.path.isfile(fname_):
-    print ">>> Did not find %r"%(fname_)
+    print(">>> Did not find %r"%(fname_))
   name = sample+tag
   if verb>=1:
-    print ">>> getmcsample: %s, %s, %s"%(name,sample,fname_)
+    print(">>> getmcsample: %s, %s, %s"%(name,sample,fname_))
   sample = MC(name,title,fname_,xsec,**kwargs)
   return sample
   
@@ -408,7 +408,7 @@ def stitch(samplelist,*searchterms,**kwargs):
                  name,name,len(stitchlist),"', '".join(searchterms)))
     return samplelist
   for s in stitchlist:
-    print ">>>   %s"%s.name
+    print(">>>   %s"%s.name)
 
   sample_incl = None
   sample_mutau = None #"DYJetsToMuTauh_M-50"
@@ -419,7 +419,7 @@ def stitch(samplelist,*searchterms,**kwargs):
     else:
       sample_incl = sample
   if not sample_incl:
-    print "No inclusive sample to stitch... abort"
+    print("No inclusive sample to stitch... abort")
     return samplelist
 
   # Compute k-factor for NLO cross section normalisation
@@ -443,36 +443,36 @@ def stitch(samplelist,*searchterms,**kwargs):
     if sample in samples_jetIncl:
       continue
     else:
-      print sample.name
+      print(sample.name)
       njets = int(sample.name[int(sample.name.find("Jets")-1)])
-      print "...jet multiplcity: %i"%njets
+      print("...jet multiplcity: %i"%njets)
       sample_njet[njets] = sample
 
-  print "Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample_incl.lumi, kfactor, sample_incl.xsec, sample_incl.sumweights)
-  print "Sample_incl.norm = %.6g"%sample_incl.norm
+  print("Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample_incl.lumi, kfactor, sample_incl.xsec, sample_incl.sumweights))
+  print("Sample_incl.norm = %.6g"%sample_incl.norm)
   wIncl = sample_incl.lumi * kfactor * sample_incl.xsec * 1000. / sample_incl.sumweights
-  print "Inclusive weight = %.6g"%wIncl
+  print("Inclusive weight = %.6g"%wIncl)
 
   effIncl_njet = dict()
   wIncl_njet = dict()
   for njets in sample_njet:
     sample = sample_njet[njets]
     effIncl_njet[njets] = sample.xsec/sample_incl.xsec
-    print "%i-jet efficiency in inclusive sample = %.6g"%(njets,effIncl_njet[njets])
+    print("%i-jet efficiency in inclusive sample = %.6g"%(njets,effIncl_njet[njets]))
     wIncl_njet[njets] = sample.lumi * kfactor * sample.xsec * 1000. / (sample.sumweights + effIncl_njet[njets]*sample_incl.sumweights)
-    print "Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample.lumi, kfactor, sample.xsec, sample.sumweights)
-    print "Sample.norm = %.6g"%sample.norm
-    print "Inclusive %i jets weight = %.6g"%(njets,wIncl_njet[njets])
+    print("Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample.lumi, kfactor, sample.xsec, sample.sumweights))
+    print("Sample.norm = %.6g"%sample.norm)
+    print("Inclusive %i jets weight = %.6g"%(njets,wIncl_njet[njets]))
 
   wIncl_mutau = ""
   wMuTau_njet = dict()
   if sample_mutau:
     wIncl_mutau = sample_incl.lumi * kfactor * sample_incl.xsec * 1000. * effMuTau_incl / ( effMuTau_incl*sample_incl.sumweights + effMuTau_excl*sample_mutau.sumweights )
-    print "Inclusive mutau weight = %.6g"%wIncl_mutau
+    print("Inclusive mutau weight = %.6g"%wIncl_mutau)
     for njets in sample_njet:
       sample = sample_njet[njets]
       wMuTau_njet[njets] = sample.lumi * kfactor * sample.xsec * 1000. * effMuTau_njet[njets] / ( effMuTau_njet[njets]*sample.sumweights + effMuTauNjet_excl[njets]*sample_mutau.sumweights + effMuTauNjet_incl[njets]*sample_incl.sumweights )
-      print "Inclusive mutau %i jets weight = %.6g"%(njets,wMuTau_njet[njets])
+      print("Inclusive mutau %i jets weight = %.6g"%(njets,wMuTau_njet[njets]))
 
   conditionalWeight_incl = ""
   if sample_mutau:

@@ -100,30 +100,30 @@ class HistSet(object):
     """Print for debugging purposes."""
     nvars = len(self.vars) if islist(self.vars) else 1
     ndata = len(self.vars) if isinstance(self.vars,dict) else 1
-    print ">>> HistSet: nvars=%d, ndata=%d, nexp=%d, nsig=%d"%(
-                        nvars,ndata,len(self.exp),len(self.signal))
+    print(">>> HistSet: nvars=%d, ndata=%d, nexp=%d, nsig=%d"%(
+                        nvars,ndata,len(self.exp),len(self.signal)))
     if full:
-      print ">>>   vars=%s"%(self.vars)
-      print ">>>   data=%s"%(self.data)
-      print ">>>   exp=%s"%(self.exp)
-      print ">>>   sig=%s"%(self.signal)
+      print(">>>   vars=%s"%(self.vars))
+      print(">>>   data=%s"%(self.data))
+      print(">>>   exp=%s"%(self.exp))
+      print(">>>   sig=%s"%(self.signal))
     else:
-      print ">>>   vars = %s"%((', '.join(repr(str(v)) for v in self.vars) if isinstance(self.vars,list) else self.vars))
+      print(">>>   vars = %s"%((', '.join(repr(str(v)) for v in self.vars) if isinstance(self.vars,list) else self.vars)))
       if self.data and isinstance(self.data,dict):
-        print ">>>   data = { %s }"%(', '.join(repr(h.GetName()) for v,h in self.data.iteritems()))
+        print(">>>   data = { %s }"%(', '.join(repr(h.GetName()) for v,h in self.data.items())))
       elif isinstance(self.data,TH1):
-        print ">>>   data = %r"%(self.data.GetName())
+        print(">>>   data = %r"%(self.data.GetName()))
       else:
-        print ">>>   data = %s"%(self.data)
+        print(">>>   data = %s"%(self.data))
       def printset(dtype,set):
         """Help function to print exp and signal histogram sets (dictionaries or lists)."""
         if isinstance(set,dict):
-          for var, hlist in set.iteritems():
-            print ">>>   %s['%s'] = [ %s ]"%(dtype,var,', '.join(repr(h.GetName()) for h in hlist))
+          for var, hlist in set.items():
+            print(">>>   %s['%s'] = [ %s ]"%(dtype,var,', '.join(repr(h.GetName()) for h in hlist)))
         elif isinstance(set,list) and set:
-          print ">>>   %-4s = [ %s ]"%(dtype,', '.join(repr(h.GetName()) for h in set))
+          print(">>>   %-4s = [ %s ]"%(dtype,', '.join(repr(h.GetName()) for h in set)))
         else:
-          print ">>>   %-4s = %s"%(dtype,set)
+          print(">>>   %-4s = %s"%(dtype,set))
       printset('exp',self.exp)
       printset('sig',self.signal)
   
