@@ -42,7 +42,7 @@ class Cutflow(object):
     ntot  = self.hist.GetBinContent(itot) # number of events before any cuts
     nlast = (-99,ntot)
     #padcut = 3+max(len(c) for c in self.cuts) # padding
-    values = [self.hist.GetBinContent(1+i) for k, i in list(self.cuts.items()) if self.hist.GetBinContent(1+i)>0] # all values > 0
+    values = [self.hist.GetBinContent(1+i) for k, i in self.cuts.items() if self.hist.GetBinContent(1+i)>0] # all values > 0
     maxval = max(abs(x) for x in values)
     padevt = 4+(int(floor(log10(maxval))) if maxval>0 else 0) # pad all numbers of events
     padtot = 3+(int(floor(log10(ntot))) if ntot>0 else 0) # pad total number of events
@@ -50,7 +50,7 @@ class Cutflow(object):
     print(underline("Cutflow:"+' '*(46+padevt+padtot),pre=">>> "))
     print(underline("%5s %5s / %5s = %-8s %-8s  %-23s"%( # header
       '','npass'.rjust(padevt),'ntot'.rjust(padtot),'abseff','releff','cut'),pre=">>> "))
-    for cut, index in sorted(list(self.cuts.items()),key=lambda x: x[1]):
+    for cut, index in sorted(self.cuts.items(),key=lambda x: x[1]):
       nevts = self.hist.GetBinContent(1+index)
       title = self.hist.GetXaxis().GetBinLabel(1+index) or cut
       frac  = " "
