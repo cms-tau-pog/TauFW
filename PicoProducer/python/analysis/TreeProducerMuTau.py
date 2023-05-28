@@ -2,14 +2,14 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
-from TreeProducerTauPair import TreeProducerTauPair
+from .TreeProducerTauPair import TreeProducerTauPair
 
 
 class TreeProducerMuTau(TreeProducerTauPair):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print "Loading TreeProducerMuTau for %r"%(filename)
+    print("Loading TreeProducerMuTau for %r"%(filename))
     super(TreeProducerMuTau,self).__init__(filename,module,**kwargs)
     
     

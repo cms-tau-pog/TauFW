@@ -55,11 +55,11 @@ class ModuleMuTau(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleMuTau,self).beginJob()
-    print ">>> %-12s = %s"%('tauwp',      self.tauwp)
-    print ">>> %-12s = %s"%('muonCutPt',  self.muonCutPt)
-    print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
-    print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
+    print(">>> %-12s = %s"%('tauwp',      self.tauwp))
+    print(">>> %-12s = %s"%('muonCutPt',  self.muonCutPt))
+    print(">>> %-12s = %s"%('muonCutEta', self.muonCutEta))
+    print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
+    print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
     pass
     
   

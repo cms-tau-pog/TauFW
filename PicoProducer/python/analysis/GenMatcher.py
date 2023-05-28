@@ -26,7 +26,7 @@
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
 from ROOT import TH2D, gStyle, kRed
-from TreeProducer import TreeProducer
+from .TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 from TauFW.PicoProducer.analysis.utils import hasbit
@@ -165,9 +165,9 @@ class TreeProducerGenMatcher(TreeProducer):
     # ONLY JOB (no hadd)
     self.localjob = bool(re.search(r"(-\d+|[^\d])$",filename.replace(".root","")))
     self.onlyjob = self.localjob or bool(re.search(r"_0$",filename.replace(".root","")))
-    print ">>> filename = %r"%(filename)
-    print ">>> localjob = %r"%(self.localjob)
-    print ">>> onlyjob  = %r"%(self.onlyjob)
+    print(">>> filename = %r"%(filename))
+    print(">>> localjob = %r"%(self.localjob))
+    print(">>> onlyjob  = %r"%(self.onlyjob))
     
     # CUTFLOW
     self.cutflow.addcut('none', "no cut" )
@@ -256,15 +256,15 @@ def setbinlabels(hist):
   for ix in range(1,nxbins+1): # loop over columns
     hist.GetXaxis().SetBinLabel(ix,str(ix-1)) # set alphanumerical bin label
     if hist.GetBinContent(ix,0)!=0: # check underflow
-      print ">>> WARNING!!! Underflow in (ix,0)=(%s,0) of %r"%(ix,hist.GetName())
+      print(">>> WARNING!!! Underflow in (ix,0)=(%s,0) of %r"%(ix,hist.GetName()))
     if hist.GetBinContent(ix,nybins+1)!=0: # check overflow
-      print ">>> WARNING!!! Overflow in (ix,nybins+1)=(%s,%s) of %r"%(ix,nybins+1,hist.GetName())
+      print(">>> WARNING!!! Overflow in (ix,nybins+1)=(%s,%s) of %r"%(ix,nybins+1,hist.GetName()))
   for iy in range(1,nybins+1): # loop over rows
     hist.GetYaxis().SetBinLabel(iy,str(iy-1)) # set alphanumerical bin label
     if hist.GetBinContent(0,iy)!=0: # check underflow
-      print ">>> WARNING!!! Underflow in (0,iy)=(0,%s) of %r"%(iy,hist.GetName())
+      print(">>> WARNING!!! Underflow in (0,iy)=(0,%s) of %r"%(iy,hist.GetName()))
     if hist.GetBinContent(nxbins+1,iy)!=0: # check overflow
-      print ">>> WARNING!!! Overflow in (nxbins+1,iy)=(%s,%s) of %r"%(nxbins+1,iy,hist.GetName())
+      print(">>> WARNING!!! Overflow in (nxbins+1,iy)=(%s,%s) of %r"%(nxbins+1,iy,hist.GetName()))
   hist.GetXaxis().SetNdivisions(10)
   hist.GetYaxis().SetNdivisions(10)
   return hist
@@ -288,7 +288,7 @@ def normalize(hist,hname=None,direction=None):
           frac = 100.0*hist.GetBinContent(ix,iy)/ntot # fraction of all entries
           hist.SetBinContent(ix,iy,frac) # overwrite number of entries with fraction
     else:
-      print ">>> normalize: Cannot normalize: ntot=%s"%(ntot)
+      print(">>> normalize: Cannot normalize: ntot=%s"%(ntot))
   elif 'row' in direction:
     hist.GetZaxis().SetTitle("Row fraction [%]")
     for iy in range(1,nybins+1): # loop over rows
@@ -339,14 +339,14 @@ if __name__ == '__main__':
     #'h_gm_HTT_vs_nano','h_gm_HTT_nopt_vs_nano', 'h_gm_HTT_stat_vs_nano',
     #'h_gm_HTT_vs_HTT_nopt', 'h_gm_HTT_vs_HTT_stat'
   ]
-  print ">>> Retrieve histograms..."
+  print(">>> Retrieve histograms...")
   for hname in hnames:
     hist = file.Get(hname)
     hist.SetTitle("pt>20 GeV, VVVLoose VSjet, VVVLoose VSe, VLoose VSmu")
     if hist:
       hists.append(hist)
     else:
-      print ">>> WARNING! Could not find histogram %r! Ignoring..."%(hname)
+      print(">>> WARNING! Could not find histogram %r! Ignoring..."%(hname))
   
   # DRAW NEW HISTOGRAMS
   selections = [
@@ -362,7 +362,7 @@ if __name__ == '__main__':
   tree = file.Get('tree')
   for stitle, sstring in selections:
     sname = stitle.replace(' ','').replace(',','-').replace('>','gt').replace('#','').replace('GeV','')
-    print ">>> Drawing %r..."%(stitle) #,sstring)
+    print(">>> Drawing %r..."%(stitle)) #,sstring)
     vars = [ # (xvar, yvar)
       ('genmatch',    'genmatch_HTT'),
       ('genmatch',    'genmatch_HTT_nopt'),
@@ -377,16 +377,16 @@ if __name__ == '__main__':
       dcmd  = "%s:%s >> %s"%(yvar,xvar,hname)
       hist  = TH2D(hname,title,7,0,7,7,0,7)
       #hist.SetDirectory(0)
-      print ">>>   tree.Draw(%r,%r,'gOff')"%(dcmd,sstring)
+      print(">>>   tree.Draw(%r,%r,'gOff')"%(dcmd,sstring))
       out   = tree.Draw(dcmd,sstring,'gOff')
-      print ">>>   %10s taus passed"%(out)
+      print(">>>   %10s taus passed"%(out))
       hists.append(hist)
   
   # PLOT HISTOGRAMS
-  print ">>> Plotting..."
+  print(">>> Plotting...")
   for hist in hists:
     if not hist:
-      print ">>> WARNING!!! Empty hist %r! Ignoring..."%(hist)
+      print(">>> WARNING!!! Empty hist %r! Ignoring..."%(hist))
       continue
     hname  = hist.GetName()
     htitle = hist.GetTitle()
@@ -423,5 +423,5 @@ if __name__ == '__main__':
       canvas.SaveAs(pname+".pdf")
       canvas.Close()
   file.Close()
-  print ">>> Done."
+  print(">>> Done.")
   

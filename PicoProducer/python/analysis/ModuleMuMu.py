@@ -57,12 +57,12 @@ class ModuleMuMu(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleMuMu,self).beginJob()
-    print ">>> %-12s = %s"%('muon1CutPt', self.muon1CutPt)
-    print ">>> %-12s = %s"%('muon2CutPt', self.muon2CutPt)
-    print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
-    print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
-    print ">>> %-12s = %s"%('zwindow',    self.zwindow)
+    print(">>> %-12s = %s"%('muon1CutPt', self.muon1CutPt))
+    print(">>> %-12s = %s"%('muon2CutPt', self.muon2CutPt))
+    print(">>> %-12s = %s"%('muonCutEta', self.muonCutEta))
+    print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
+    print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
+    print(">>> %-12s = %s"%('zwindow',    self.zwindow))
     pass
     
   

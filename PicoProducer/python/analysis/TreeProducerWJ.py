@@ -2,14 +2,14 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
-from TreeProducerHighPT import TreeProducerHighPT
+from .TreeProducerHighPT import TreeProducerHighPT
 
 
 class TreeProducerWJ(TreeProducerHighPT):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print "Loading TreeProducerWJ for %r"%(filename)
+    print("Loading TreeProducerWJ for %r"%(filename))
     super(TreeProducerWJ,self).__init__(filename,module,**kwargs)
         
     ##############

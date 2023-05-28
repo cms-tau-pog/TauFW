@@ -58,10 +58,10 @@ def ensurebranches(tree,branches):
 def redirectbranch(oldbranch,newbranch):
   """Redirect some branch names. newbranch -> oldbranch"""
   if isinstance(oldbranch,str): # rename
-    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
+    print(("redirectbranch: directing %r -> %r"%(newbranch,oldbranch)))
     exec("setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch))
   else: # set default value
-    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
+    print(("redirectbranch: directing %r -> %r"%(newbranch,oldbranch)))
     exec("setattr(Event,newbranch,%s)"%(oldbranch))
   
 

@@ -59,13 +59,13 @@ class ModuleWJ(ModuleHighPT):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleWJ,self).beginJob()
-    print ">>> %-12s = %s"%('muonPtCut', self.muonPtCut)    
-    print ">>> %-12s = %s"%('muonEtaCut', self.muonEtaCut)
-    print ">>> %-12s = %s"%('tauPtCut', self.tauPtCut)    
-    print ">>> %-12s = %s"%('tauEtaCut', self.tauEtaCut)
-    print ">>> %-12s = %s"%('metCut', self.metCut)
-    print ">>> %-12s = %s"%('mtCut', self.mtCut)
-    print ">>> %-12s = %s"%('dphiCut', self.dphiCut)
+    print(">>> %-12s = %s"%('muonPtCut', self.muonPtCut))    
+    print(">>> %-12s = %s"%('muonEtaCut', self.muonEtaCut))
+    print(">>> %-12s = %s"%('tauPtCut', self.tauPtCut))    
+    print(">>> %-12s = %s"%('tauEtaCut', self.tauEtaCut))
+    print(">>> %-12s = %s"%('metCut', self.metCut))
+    print(">>> %-12s = %s"%('mtCut', self.mtCut))
+    print(">>> %-12s = %s"%('dphiCut', self.dphiCut))
    
     pass
     

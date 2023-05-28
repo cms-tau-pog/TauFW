@@ -23,7 +23,7 @@ class ModuleHighPT(Module):
   """Base class the channels of an analysis with muon and neutrino: for munu, taunu, jetjet."""
   
   def __init__(self, fname, **kwargs):
-    print header(self.__class__.__name__)
+    print(header(self.__class__.__name__))
     
     # SETTINGS
     self.filename   = fname # output file name
@@ -80,33 +80,33 @@ class ModuleHighPT(Module):
   
   def beginJob(self):
     """Before processing any events or files."""
-    print '-'*80
-    print ">>> %-12s = %r"%('filename',  self.filename)
-    print ">>> %-12s = %s"%('year',      self.year)
-    print ">>> %-12s = %r"%('dtype',     self.dtype)
-    print ">>> %-12s = %r"%('channel',   self.channel)
-    print ">>> %-12s = %s"%('ismc',      self.ismc)
-    print ">>> %-12s = %s"%('isdata',    self.isdata)
-    print ">>> %-12s = %s"%('isembed',   self.isembed)
+    print('-'*80)
+    print(">>> %-12s = %r"%('filename',  self.filename))
+    print(">>> %-12s = %s"%('year',      self.year))
+    print(">>> %-12s = %r"%('dtype',     self.dtype))
+    print(">>> %-12s = %r"%('channel',   self.channel))
+    print(">>> %-12s = %s"%('ismc',      self.ismc))
+    print(">>> %-12s = %s"%('isdata',    self.isdata))
+    print(">>> %-12s = %s"%('isembed',   self.isembed))
     if self.channel.count('tau')>0:
-      print ">>> %-12s = %s"%('tes',     self.tes)
-      print ">>> %-12s = %r"%('tessys',  self.tessys)
-      print ">>> %-12s = %r"%('fes',     self.fes)
-      print ">>> %-12s = %s"%('ltf',     self.ltf)
-      print ">>> %-12s = %s"%('jtf',     self.jtf)
+      print(">>> %-12s = %s"%('tes',     self.tes))
+      print(">>> %-12s = %r"%('tessys',  self.tessys))
+      print(">>> %-12s = %r"%('fes',     self.fes))
+      print(">>> %-12s = %s"%('ltf',     self.ltf))
+      print(">>> %-12s = %s"%('jtf',     self.jtf))
     #if self.channel.count('ele')>0:
     #  print ">>> %-12s = %s"%('ees',     self.ees)
-    print ">>> %-12s = %s"%('dotoppt',   self.dotoppt)
-    print ">>> %-12s = %s"%('dopdf',     self.dopdf)
-    print ">>> %-12s = %s"%('dozpt',     self.dozpt)
+    print(">>> %-12s = %s"%('dotoppt',   self.dotoppt))
+    print(">>> %-12s = %s"%('dopdf',     self.dopdf))
+    print(">>> %-12s = %s"%('dozpt',     self.dozpt))
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
-    print ">>> %-12s = %s"%('dojec',     self.dojec)
-    print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
-    print ">>> %-12s = %s"%('dosys',     self.dosys)
-    print ">>> %-12s = %s"%('dotight',   self.dotight)
-    print ">>> %-12s = %s"%('useT1',     self.useT1)
-    print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
-    print ">>> %-12s = %s"%('dowmasswgt',self.dowmasswgt)
+    print(">>> %-12s = %s"%('dojec',     self.dojec))
+    print(">>> %-12s = %s"%('dojecsys',  self.dojecsys))
+    print(">>> %-12s = %s"%('dosys',     self.dosys))
+    print(">>> %-12s = %s"%('dotight',   self.dotight))
+    print(">>> %-12s = %s"%('useT1',     self.useT1))
+    print(">>> %-12s = %s"%('jetCutPt',  self.jetCutPt))
+    print(">>> %-12s = %s"%('dowmasswgt',self.dowmasswgt))
     
   
   def endJob(self):
@@ -279,7 +279,7 @@ class ModuleHighPT(Module):
     self.out.metnomu[0] = metNoMu.Pt()
     
     # MET SYSTEMATICS
-    for unc, met_var in met_vars.iteritems():
+    for unc, met_var in met_vars.items():
       getattr(self.out,"met_"+unc)[0]    = met_var.Pt()
       getattr(self.out,"metphi_"+unc)[0] = met_var.Phi()
       dphi = abs(lep1.DeltaPhi(met_var))
