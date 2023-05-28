@@ -36,10 +36,10 @@ class JsonWriter:
     def Print(self, msg, printHeader=False):
         fName = __file__.split("/")[-1]
         if printHeader==True:
-            print "=== ", fName
-            print "\t", msg
+            print("=== ", fName)
+            print("\t", msg)
         else:
-            print "\t", msg
+            print("\t", msg)
             return
 
     def Verbose(self, msg, printHeader=True, verbose=False):
@@ -116,7 +116,7 @@ class JsonWriter:
                 x = self.graphs[key].GetX()
                 y = self.graphs[key].GetY()
                 if 0:
-                    print "\t x = %s, y = %s" % (x[i], y[i])
+                    print("\t x = %s, y = %s" % (x[i], y[i]))
                 comma = ","
                 if i == self.graphs[key].GetN() - 1:
                     comma = ""

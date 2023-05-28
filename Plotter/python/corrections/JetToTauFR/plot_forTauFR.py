@@ -125,7 +125,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   ## ccccccccccccccccccccccccccccccccccccc
 
   for selection in selections:
-    print ">>> Selection %r: %r"%(selection.title,selection.selection)
+    print(">>> Selection %r: %r"%(selection.title,selection.selection))
     ## ccccccccccccccccccccccccccccccccccccc
     if closure:
       #stacks = sampleset.getstack(variables,selection,method='JetToTau_MisID',parallel=parallel)    
@@ -138,11 +138,11 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
-    for stack, variable in stacks.iteritems():
+    for stack, variable in stacks.items():
       ## ccccccccccccccccccccccccccccccccccccc
       if closure:
         stack.datahist.Reset()
-        for stack_Fake, variable_Fake in stacks_Fake.iteritems():
+        for stack_Fake, variable_Fake in stacks_Fake.items():
           if variable_Fake == variable:
             stack.datahist.Add(stack_Fake.datahist)
       ## ccccccccccccccccccccccccccccccccccccc
@@ -217,4 +217,4 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
