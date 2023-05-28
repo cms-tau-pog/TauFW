@@ -60,7 +60,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
     if bar:
       bar.count("files")
   if verb>=1:
-    print(">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%()
+    print(">>> chunkify_by_evts: %d small files (<%d events) and %d large files (>=%d events)"%(
       len(nsmall),maxevts,len(nlarge),maxevts)
   for nevts in nlarge:
     for fname in nlarge[nevts]: # split large files into several chunks
@@ -69,7 +69,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
         nchunks  = ceil(float(nevts)/maxevts)
         maxevts_ = int(ceil(nevts/nchunks)) # new maxevts per chunk
         if verb>=3:
-          print(">>>   nevts/maxevts = %d/%d = %.2f => make %d chunks with max. %d events"%()
+          print(">>>   nevts/maxevts = %d/%d = %.2f => make %d chunks with max. %d events"%(
             nevts,maxevts,nevts/float(maxevts),nchunks,maxevts_)
       ifirst = 0 # first event to process in first chunk
       while ifirst<nevts:
