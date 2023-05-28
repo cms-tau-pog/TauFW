@@ -347,7 +347,7 @@ class ModuleTauPair(Module):
     
     ## FILL JET VARIATION BRANCHES
     #if self.dojecsys:
-    #  for unc, jets_var in jets_vars.iteritems():
+    #  for unc, jets_var in jets_vars.items():
     #    ptvar = 'pt_'+unc
     #    jets_var.sort(key=lambda j: getattr(j,ptvar),reverse=True)
     #    njets_vars[unc] = len(jets_var)

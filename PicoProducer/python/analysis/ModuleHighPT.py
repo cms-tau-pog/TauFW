@@ -336,7 +336,7 @@ class ModuleHighPT(Module):
     
     ## FILL JET VARIATION BRANCHES (Not available in NanoAOD v10)
     #    if self.dojecsys:
-    #      for unc, jets_var in jets_vars.iteritems():
+    #      for unc, jets_var in jets_vars.items():
     #        getattr(self.out,"njets_"+unc)[0] = len(jets_var)
     #        getattr(self.out,"ncjets_"+unc)[0] = ncjets_var
     #        getattr(self.out,"nfjets_"+unc)[0] = nfjets_var
