@@ -1,4 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
+from past.builtins import basestring # for python2 compatibility
 import os, glob
 import getpass, platform
 import importlib
@@ -68,7 +69,7 @@ def getstorage(path,verb=0,ensure=False):
                   "If it is a special system, you need to subclass StorageSystem, see "
                   "https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer#Storage-system")
   if verb>=2:
-    print ">>> storage.utils.getstorage(%r), %r"%(path,storage)
+    print(">>> storage.utils.getstorage(%r), %r"%(path,storage))
   return storage
   
 
@@ -115,7 +116,7 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],das
 def getnevents(fname,treename='Events',verb=0):
   """Help function to get number of entries in a tree."""
   if verb>=3:
-    print ">>> storage.utils.getnevents: opening %s:%r"%(fname,treename)
+    print(">>> storage.utils.getnevents: opening %s:%r"%(fname,treename))
   file = ensureTFile(fname)
   tree = file.Get(treename)
   if not tree:
@@ -160,21 +161,21 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
     if verb>=2:
-      print ">>> storage.utils.itervalid: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
+      print(">>> storage.utils.itervalid: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores))
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
       if not subset: break
       name = "itervalid_%d"%(i)
       processor.start(loopvalid,subset,kwargs,name=name)
     for process in processor:
       if verb>=2:
-        print ">>> storage.utils.itervalid: joining process %r..."%(process.name)
+        print(">>> storage.utils.itervalid: joining process %r..."%(process.name))
       nevtfiles = process.join()
       for nevts, fname in nevtfiles:
         yield nevts, fname
   else:  # run validation in series
     for fname in fnames:
       if verb>=2:
-        print ">>> storage.utils.itervalid:  Validating job output '%s'..."%(fname)
+        print(">>> storage.utils.itervalid:  Validating job output '%s'..."%(fname))
       nevts = isvalid(fname)
       yield nevts, fname
   
@@ -194,7 +195,7 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
     if verb>=2:
-      print ">>> storage.utils.iterevts: partitioning %d files into %d chunks for ncores=%d..."%(len(fnames),nchunks,ncores)
+      print(">>> storage.utils.iterevts: partitioning %d files into %d chunks for ncores=%d..."%(len(fnames),nchunks,ncores))
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
       for fname in subset[:]: # check cache
         if not refresh and fname in filenevts:
@@ -207,13 +208,13 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
       processor.start(loopevts,subset,name=name)
     for process in processor: # collect output from parallel processes
       if verb>=2:
-        print ">>> storage.utils.iterevts: joining process %r..."%(process.name)
+        print(">>> storage.utils.iterevts: joining process %r..."%(process.name))
       nevtfiles = process.join()
       for nevts, fname in nevtfiles:
         yield nevts, fname
   else: # run events check in SERIES
     if verb>=2:
-      print ">>> storage.utils.iterevts: retrieving number of events for %d files (in series)..."%(len(fnames))
+      print(">>> storage.utils.iterevts: retrieving number of events for %d files (in series)..."%(len(fnames)))
     for fname in fnames:
       if refresh or fname not in filenevts:
         nevts = getnevents(fname,tree,verb=verb)
@@ -225,11 +226,11 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
 def print_no_samples(dtype=[],filter=[],veto=[],channel=[],jobdir="",jobcfgs=""):
   """Help function to print that no samples were found."""
   if jobdir and not glob.glob(jobdir): #os.path.exists(jobdir):
-    print ">>> Job output directory %s does not exist!"%(jobdir)
+    print(">>> Job output directory %s does not exist!"%(jobdir))
   elif jobcfgs and not glob.glob(jobcfgs):
-    print ">>> Did not find any job config files %s!"%(jobcfgs)
+    print(">>> Did not find any job config files %s!"%(jobcfgs))
   else:
-    string  = ">>> Did not find any samples"
+    string = ">>> Did not find any samples"
     if filter or veto or (dtype and len(dtype)<3):
       strings = [ ]
       if filter:
@@ -241,6 +242,6 @@ def print_no_samples(dtype=[],filter=[],veto=[],channel=[],jobdir="",jobcfgs="")
       if channel:
         strings.append("channel%s %s"%('s' if len(channel)>1 else "",quotestrs(channel)))
       string += " with "+', '.join(strings)
-    print string
+    print(string)
   print
   

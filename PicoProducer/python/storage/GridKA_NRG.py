@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # Author: Sebastian Brommer (July 2020)
+from past.builtins import basestring # for python2 compatibility
 import os
 from TauFW.common.tools.utils import execute
 from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
@@ -36,7 +37,7 @@ class GridKA_NRG(StorageSystem):
     def remove_local_temp_dir(self, tmpdir, verb):
         """Remove local tempdir."""
         if verb >= 2:
-            print ">>> removing temp directory {}/* ".format(tmpdir)
+            print(">>> removing temp directory {}/* ".format(tmpdir))
         for root, dirs, files in os.walk(tmpdir, topdown=False):
             for name in files:
                 os.remove(os.path.join(root, name))
@@ -67,10 +68,10 @@ class GridKA_NRG(StorageSystem):
                                    os.path.relpath(file, '/store/user/'))
         source = source.strip()
         if verb >= 2:
-            print ">>> %-10s = %r" % ('sources', sources)
-            print ">>> %-10s = %r" % ('source', source)
-            print ">>> %-10s = %r" % ('target', target)
-            print ">>> %-10s = %r" % ('htarget', htarget)
+            print(">>> %-10s = %r" % ('sources', sources))
+            print(">>> %-10s = %r" % ('source', source))
+            print(">>> %-10s = %r" % ('target', target))
+            print(">>> %-10s = %r" % ('htarget', htarget))
         out = self.execute("%s %s %s" % (self.haddcmd, htarget, source),
                            verb=verb)
         if tmpdir:

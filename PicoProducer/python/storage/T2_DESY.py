@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # Author: Andrea Cardini (September 2020)
+from past.builtins import basestring # for python2 compatibility
 import os
 import glob
 from TauFW.common.tools.utils import execute
@@ -51,18 +52,18 @@ class T2_DESY(StorageSystem):
     source=glob.glob(source)
     dryrun = kwargs.get('dry', False)
     verb   = kwargs.get('verb',self.verbosity)
-    print source
-    print target
+    print(source)
+    print(target)
     if isinstance(source,list):
       for source_ in source:
-        print source_
+        print(source_)
         source_ = self.expandpath(source_,url=self.cpurl)
         target = self.expandpath(target,url=self.cpurl)
         self.rm('%s/%s'%(os.path.abspath(target),source_))
         self.execute('srmcp -2 "file:%s srm://dcache-se-cms.desy.de:8443/%s/%s"'%(os.path.abspath(source_),os.path.abspath(target),source_),dry=dryrun,verb=verb)
       return
     else:
-      print source
+      print(source)
       source = self.expandpath(source,url=self.cpurl)
       target = self.expandpath(target,url=self.cpurl)
       self.rm('%s/%s'%(os.path.abspath(target),source))
@@ -89,10 +90,10 @@ class T2_DESY(StorageSystem):
         source += self.expandpath(file,url=fileurl)+' '
     source = source.strip()
     if verb>=2:
-      print ">>> %-10s = %r"%('sources',sources)
-      print ">>> %-10s = %r"%('source',source)
-      print ">>> %-10s = %r"%('target',target)
-      print ">>> %-10s = %r"%('htarget',htarget)
+      print(">>> %-10s = %r"%('sources',sources))
+      print(">>> %-10s = %r"%('source',source))
+      print(">>> %-10s = %r"%('target',target))
+      print(">>> %-10s = %r"%('htarget',htarget))
     out = self.execute("%s %s %s"%(self.haddcmd,htarget,source),dry=dryrun,verb=verb)
     cpout = self.cp(htarget,os.path.dirname(target),dry=dryrun,verb=verb)
     if not dryrun:
