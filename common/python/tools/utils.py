@@ -31,7 +31,7 @@ def execute(command,dry=False,fatal=True,verb=0):
       out = out.strip()
     except Exception as e:
       if verb<1:
-        print(out #">>> Output: %s"%(out))
+        print(out) #">>> Output: %s"%(out)
       print(">>> Failed: %r"%(command))
       raise e
     if retcode and fatal:

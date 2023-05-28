@@ -75,7 +75,7 @@ def ensuremodule(modname,package):
   try:
     module = importlib.import_module(modpath)
   except Exception as err:
-    print traceback.format_exc()
+    print(traceback.format_exc())
     LOG.throw(ImportError,"Importing module '%s' failed. Please check %s! cwd=%r"%(modpath,modfile,os.getcwd()))
   if not hasattr(module,modclass):
     LOG.throw(IOError,"Module '%s' in %s does not have a module named '%s'!"%(module,modfile,modname))
