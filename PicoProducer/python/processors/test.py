@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (April 2020)
 # Description: Speed test of nanoAOD postprocessing
+from __future__ import print_function # for python3 compatibility
 import os, sys
 import time; time0 = time.time()
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
@@ -35,7 +36,7 @@ class TestModule(Module):
         self.time0 = time.time()
         
     def endJob(self):
-        print ">>> endJob: done after %.1f seconds"%(time.time()-self.time0)
+        print(">>> endJob: done after %.1f seconds"%(time.time()-self.time0))
         
     def analyze(self, event):
         """Process event, return True (pass, go to next module) or False (fail, go to next event)."""
@@ -105,17 +106,17 @@ infiles   = args.infiles or [
 if nfiles>0: infiles = infiles[:nfiles]
 
 # PRINT
-print '-'*80
-print ">>> %-10s = %s"%('maxevts',maxevts)
-print ">>> %-10s = %r"%('outdir',outdir)
-print ">>> %-10s = %r"%('postfix',postfix)
-print ">>> %-10s = %s"%('infiles',infiles)
-print ">>> %-10s = %r"%('branchsel',branchsel)
-print '-'*80
+print('-'*80)
+print(">>> %-10s = %s"%('maxevts',maxevts))
+print(">>> %-10s = %r"%('outdir',outdir))
+print(">>> %-10s = %r"%('postfix',postfix))
+print(">>> %-10s = %s"%('infiles',infiles))
+print(">>> %-10s = %r"%('branchsel',branchsel))
+print('-'*80)
 
 # RUN
 module = TestModule()
 p = PostProcessor(outdir,infiles,cut=None,branchsel=branchsel,outputbranchsel=branchsel,noOut=False,
                   modules=[module],provenance=False,postfix=postfix,maxEntries=maxevts)
 p.run()
-print ">>> Done after %.1f seconds"%(time.time()-time0)
+print(">>> Done after %.1f seconds"%(time.time()-time0))
