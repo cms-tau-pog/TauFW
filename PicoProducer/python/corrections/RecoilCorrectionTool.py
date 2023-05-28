@@ -27,7 +27,7 @@ class ZptCorrectionTool:
       histname = "zptmass_histo"
       filename = zptpath+"zpt_reweighting_LO.root"  ## Test with Danny's weights  #zptmass_weights_UL2018.root"
     assert filename, "ZptCorrectionTool.__init__: Did not find filename for %r"%(era)
-    print "Loading ZptCorrectionTool for %s:%r..."%(filename,histname)
+    print("Loading ZptCorrectionTool for %s:%r..."%(filename,histname))
     file    = ensureTFile(filename,'READ')
     hist = file.Get(histname)
     hist.SetDirectory(0)
@@ -61,7 +61,7 @@ class RecoilCorrectionTool:
       filename = rcpath+"Type1_PFMET_2017.root"
     else:
       filename = rcpath+"TypeI-PFMet_Run2018.root"
-    print "Loading RecoilCorrectionTool for %s..."%filename
+    print("Loading RecoilCorrectionTool for %s..."%filename)
     CMSSW_BASE = os.environ.get("CMSSW_BASE",None)
     recoil_h   = "%s/src/HTT-utilities/RecoilCorrections/interface/RecoilCorrector.h"%(CMSSW_BASE)
     assert CMSSW_BASE, "RecoilCorrectionTool: Did not find $CMSSW_BASE"

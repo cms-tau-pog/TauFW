@@ -190,14 +190,14 @@ class BTagWeightTool:
       raise IOError("Did not recognize %r tagger..."%(tagger))
     
     # LOAD CALIBRATION TOOL
-    print "Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname) #,(", "+sigma) if sigma!='central' else ""
+    print("Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname) #,(", "+sigma) if sigma!='central' else "")
     calib = BTagCalibration(tagger,csvname)
     if csvname_bc and csvname_bc!=csvname:
-      print "  and from %s..."%(csvname_bc)
+      print("  and from %s..."%(csvname_bc))
       calib_bc = BTagCalibration(tagger,csvname_bc)
     else:
       calib_bc = calib # use same calibrator
-    print "  with efficiencies from %s..."%(effname)
+    print("  with efficiencies from %s..."%(effname))
     
     # CSV READER
     readers   = { }
@@ -265,9 +265,9 @@ class BTagWeightTool:
     for jet in jets:
       if abs(jet.eta)<self.maxeta:
         weight *= self.getSF(jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),unc=unc)
-        ###print ">>> BTagWeightTool.getWeight: sf=%8.5f pt=%8.3f eta=%6.3f flavor=%2d tagged=%5r score=%8.5f wp=%8.4f"%(
+        ###print(">>> BTagWeightTool.getWeight: sf=%8.5f pt=%8.3f eta=%6.3f flavor=%2d tagged=%5r score=%8.5f wp=%8.4f"%()
         ###  sf,jet.pt,jet.eta,jet.partonFlavour,self.tagged(jet),jet.btagDeepFlavB,self.wp)
-    ###print ">>> BTagWeightTool.getWeight: weight=%.6f"%(weight)
+    ###print(">>> BTagWeightTool.getWeight: weight=%.6f"%(weight))
     return weight
   
   def getHeavyFlavorWeight(self,jets,unc='Nom'):
@@ -325,7 +325,7 @@ class BTagWeightTool:
     elif ybin>hist.GetYaxis().GetNbins(): ybin -= 1
     eff    = hist.GetBinContent(xbin,ybin)
     ###if eff==1:
-    ###  print "Warning! BTagWeightTool.getEff: MC efficiency is 1 for pt=%s, eta=%s, flavor=%s, sf=%s"%(pt,eta,flavor,sf)
+    ###  print("Warning! BTagWeightTool.getEff: MC efficiency is 1 for pt=%s, eta=%s, flavor=%s, sf=%s"%(pt,eta,flavor,sf))
     return eff
   
   def fillEffMaps(self,jets,usejec=False,tag=""):
@@ -381,8 +381,8 @@ def getDefaultEffMap(hname,flavor,wp='medium'):
   else:              eff = 0.60 if flavor=='b' else 0.05 if flavor=='c' else 0.001
   hname = hname.split('/')[-1] + "_default"
   hist     = getJetMap(hname)
-  for xbin in xrange(0,hist.GetXaxis().GetNbins()+2):
-    for ybin in xrange(0,hist.GetYaxis().GetNbins()+2):
+  for xbin in range(0,hist.GetXaxis().GetNbins()+2):
+    for ybin in range(0,hist.GetYaxis().GetNbins()+2):
       hist.SetBinContent(xbin,ybin,eff)
   return hist
   

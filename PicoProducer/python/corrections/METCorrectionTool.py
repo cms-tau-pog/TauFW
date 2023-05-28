@@ -67,13 +67,13 @@ class METCorrectionTool:
       xcorr = self.corrs[0]*npv + self.corrs[1]
       ycorr = self.corrs[2]*npv + self.corrs[3]
     else:
-      for (runa,runb), corrs in self.corrs.iteritems():
+      for (runa,runb), corrs in self.corrs.items():
         if runa<=run<=runb:
           xcorr = corrs[0]*npv + corrs[1]
           ycorr = corrs[2]*npv + corrs[3]
           break
       else:
-        print ">>> METCorrectionTool.correct: Could not find run %d in %s"%(run,self.corrs.keys())
+        print(">>> METCorrectionTool.correct: Could not find run %d in %s"%(run,list(self.corrs.keys())))
         return met, metphi
     
     metx = oldmet*TMath.Cos(oldmetphi) - xcorr

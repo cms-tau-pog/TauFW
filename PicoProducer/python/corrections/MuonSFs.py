@@ -5,7 +5,7 @@
 # https://twiki.cern.ch/twiki/bin/view/CMS/MuonLegacy2016
 import os
 from TauFW.PicoProducer import datadir
-from ScaleFactorTool import ScaleFactor, ScaleFactorHTT
+from .ScaleFactorTool import ScaleFactor, ScaleFactorHTT
 pathPOG = os.path.join(datadir,"lepton/MuonPOG/")
 pathHTT = os.path.join(datadir,"lepton/HTT/Muon/")
 
@@ -74,7 +74,7 @@ class MuonSFs:
         ###sftool_iso        = ScaleFactor(pathPOG+"Run2018/RunABCD_SF_ISO.root","NUM_TightRelIso_DEN_MediumID_pt_abseta",'mu_iso',ptvseta=False)
         ###self.sftool_idiso = sftool_id*sftool_iso
     assert self.sftool_trig!=None and self.sftool_idiso!=None, "MuonSFs.__init__: Did not find muon SF tool for %r"%(era)
-    print "Loading MuonSF for %s, %s"%(self.sftool_trig.filename,self.sftool_idiso.filename)
+    print("Loading MuonSF for %s, %s"%(self.sftool_trig.filename,self.sftool_idiso.filename))
   
   def getTriggerSF(self, pt, eta):
     """Get SF for single muon trigger."""

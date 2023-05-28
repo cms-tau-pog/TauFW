@@ -5,7 +5,7 @@
 # 2018: https://hypernews.cern.ch/HyperNews/CMS/get/higgstautau/1132.html
 import os
 from TauFW.PicoProducer import datadir
-from ScaleFactorTool import ScaleFactor, ScaleFactorHTT
+from .ScaleFactorTool import ScaleFactor, ScaleFactorHTT
 pathPOG = os.path.join(datadir,"lepton/EGammaPOG/")
 pathHTT = os.path.join(datadir,"lepton/HTT/Electron/")
 "UL2017/egammaEffi.txt_EGM2D_MVA90noIso_UL17.root",
