@@ -22,7 +22,7 @@ def preparejobs(args):
   """Help function for (re)submission to iterate over samples per given channel and era
   and prepare job config and list."""
   if args.verbosity>=1:
-    print ">>> preparejobs", args
+    print(">>> preparejobs", args)
   
   resubmit     = args.subcommand=='resubmit'
   eras         = args.eras
@@ -65,15 +65,15 @@ def preparejobs(args):
       skim = 'skim' in channel.lower()
       module, processor, procopts, extrachopts = getmodule(channel,extraopts)
       if verbosity>=1:
-        print '-'*80
-        print ">>> %-12s = %r"%('channel',channel)
-        print ">>> %-12s = %r"%('processor',processor)
-        print ">>> %-12s = %r"%('module',module)
-        print ">>> %-12s = %r"%('procopts',procopts)
-        print ">>> %-12s = %r"%('extrachopts',extrachopts)
-        print ">>> %-12s = %s"%('filters',filters)
-        print ">>> %-12s = %s"%('vetoes',vetoes)
-        print ">>> %-12s = %r"%('dtypes',dtypes)
+        print('-'*80)
+        print(">>> %-12s = %r"%('channel',channel))
+        print(">>> %-12s = %r"%('processor',processor))
+        print(">>> %-12s = %r"%('module',module))
+        print(">>> %-12s = %r"%('procopts',procopts))
+        print(">>> %-12s = %r"%('extrachopts',extrachopts))
+        print(">>> %-12s = %s"%('filters',filters))
+        print(">>> %-12s = %s"%('vetoes',vetoes))
+        print(">>> %-12s = %r"%('dtypes',dtypes))
       
       # GET SAMPLES
       jobdirformat = CONFIG.jobdir # for job config & log files
@@ -86,15 +86,15 @@ def preparejobs(args):
         jobcfgs = repkey(os.path.join(jobdir_,"config/jobconfig_$SAMPLE$TAG_try[0-9]*.json"),
                          ERA=era,SAMPLE='*',CHANNEL=channel,TAG=tag)
         if verbosity>=2:
-          print ">>> %-12s = %s"%('cwd',os.getcwd())
-          print ">>> %-12s = %s"%('jobcfgs',jobcfgs)
+          print(">>> %-12s = %s"%('cwd',os.getcwd()))
+          print(">>> %-12s = %s"%('jobcfgs',jobcfgs))
         samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       else: # get samples from sample list
         LOG.insist(era in CONFIG.eras,"Era '%s' not found in the configuration file. Available: %s"%(era,CONFIG.eras))
         samples = getsamples(era,channel=channel,tag=tag,dtype=dtypes,filter=filters,veto=vetoes,
                              dasfilter=dasfilters,dasveto=dasvetoes,moddict=moddict,verb=verbosity)
       if verbosity>=2:
-        print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
+        print(">>> Found samples: "+", ".join(repr(s.name) for s in samples))
       if testrun:
         samples = samples[:2] # run at most two samples
       
@@ -102,9 +102,9 @@ def preparejobs(args):
       found  = len(samples)>=0
       failed = [ ] # failed samples
       for sample in samples:
-        print ">>> %s"%(bold(sample.name))
+        print(">>> %s"%(bold(sample.name)))
         for path in sample.paths:
-          print ">>> %s"%(bold(path))
+          print(">>> %s"%(bold(path)))
         
         # DIRECTORIES
         subtry     = sample.subtry+1 if resubmit else 1
@@ -136,28 +136,28 @@ def preparejobs(args):
         cfgname    = "%s/jobconfig%s.json"%(cfgdir,jobtag)
         joblist    = '%s/jobarglist%s.txt'%(cfgdir,jobtag)
         if verbosity==1:
-          print ">>> %-12s = %s"%('cfgname',cfgname)
-          print ">>> %-12s = %s"%('joblist',joblist)
+          print(">>> %-12s = %s"%('cfgname',cfgname))
+          print(">>> %-12s = %s"%('joblist',joblist))
         elif verbosity>=2:
-          print '-'*80
-          print ">>> Preparing job %ssubmission for '%s'"%("re" if resubmit else "",sample.name)
-          print ">>> %-12s = %r"%('processor',processor)
-          print ">>> %-12s = %r"%('dtype',dtype)
-          print ">>> %-12s = %r"%('jobname',jobname)
-          print ">>> %-12s = %r"%('jobtag',jobtag)
-          print ">>> %-12s = %r"%('postfix',postfix)
-          print ">>> %-12s = %r"%('outdir',outdir)
-          print ">>> %-12s = %r"%('extraopts',extraopts_)
-          print ">>> %-12s = %r"%('prefetch',prefetch_)
-          print ">>> %-12s = %r"%('preselect',preselect)
-          print ">>> %-12s = %r"%('cfgdir',cfgdir)
-          print ">>> %-12s = %r"%('logdir',logdir)
-          print ">>> %-12s = %r"%('tmpdir',tmpdir)
-          print ">>> %-12s = %r"%('cfgname',cfgname)
-          print ">>> %-12s = %r"%('joblist',joblist)
-          print ">>> %-12s = %s"%('try',subtry)
-          print ">>> %-12s = %r"%('jobids',jobids)
-          print ">>> %-12s = %r"%('queue',queue_)
+          print('-'*80)
+          print(">>> Preparing job %ssubmission for '%s'"%("re" if resubmit else "",sample.name))
+          print(">>> %-12s = %r"%('processor',processor))
+          print(">>> %-12s = %r"%('dtype',dtype))
+          print(">>> %-12s = %r"%('jobname',jobname))
+          print(">>> %-12s = %r"%('jobtag',jobtag))
+          print(">>> %-12s = %r"%('postfix',postfix))
+          print(">>> %-12s = %r"%('outdir',outdir))
+          print(">>> %-12s = %r"%('extraopts',extraopts_))
+          print(">>> %-12s = %r"%('prefetch',prefetch_))
+          print(">>> %-12s = %r"%('preselect',preselect))
+          print(">>> %-12s = %r"%('cfgdir',cfgdir))
+          print(">>> %-12s = %r"%('logdir',logdir))
+          print(">>> %-12s = %r"%('tmpdir',tmpdir))
+          print(">>> %-12s = %r"%('cfgname',cfgname))
+          print(">>> %-12s = %r"%('joblist',joblist))
+          print(">>> %-12s = %s"%('try',subtry))
+          print(">>> %-12s = %r"%('jobids',jobids))
+          print(">>> %-12s = %r"%('queue',queue_))
         
         # CHECKS
         if os.path.isfile(cfgname):
@@ -171,23 +171,23 @@ def preparejobs(args):
             while True:
               submit = raw_input(">>> Submit anyway? [y/n] "%(nchunks))
               if 'f' in submit.lower(): # submit this job, and stop asking
-                print ">>> Force all."
+                print(">>> Force all.")
                 force = True; skip = True; break
               elif 'y' in submit.lower(): # submit this job
-                print ">>> Continue submission..."
+                print(">>> Continue submission...")
                 skip = True; break
               elif 'n' in submit.lower(): # do not submit this job
-                print ">>> Not submitting."
+                print(">>> Not submitting.")
                 break
               else:
-                print ">>> '%s' is not a valid answer, please choose y/n."%submit
+                print(">>> '%s' is not a valid answer, please choose y/n."%submit)
           else:
             skip = True
             LOG.warning("Job configuration %r already exists and might cause conflicting job output! "%(cfgname)+
                         "To submit anyway, please use the --force flag")
           if skip: # do not submit this job
             failed.append(sample)
-            print ""
+            print("")
             continue
         if not resubmit: # check for existing jobss
           cfgpattern = re.sub(r"(?<=try)\d+(?=.json(?:\.gz)?$)",r"*",cfgname)
@@ -214,51 +214,51 @@ def preparejobs(args):
         if testrun:
           infiles = infiles[:4] # only run four files per sample
         if verbosity==1:
-          print ">>> %-12s = %s"%('maxevts',maxevts_)
-          print ">>> %-12s = %s"%('nfilesperjob',nfilesperjob_)
-          print ">>> %-12s = %s"%('nfiles',len(infiles))
+          print(">>> %-12s = %s"%('maxevts',maxevts_))
+          print(">>> %-12s = %s"%('nfilesperjob',nfilesperjob_))
+          print(">>> %-12s = %s"%('nfiles',len(infiles)))
         elif verbosity>=2:
-          print ">>> %-12s = %s"%('maxevts',maxevts_)
-          print ">>> %-12s = %s"%('nfilesperjob',nfilesperjob_)
-          print ">>> %-12s = %s"%('nfiles',len(infiles))
-          print ">>> %-12s = [ "%('infiles')
+          print(">>> %-12s = %s"%('maxevts',maxevts_))
+          print(">>> %-12s = %s"%('nfilesperjob',nfilesperjob_))
+          print(">>> %-12s = %s"%('nfiles',len(infiles)))
+          print(">>> %-12s = [ "%('infiles'))
           for file in infiles:
-            print ">>>   %r"%file
-          print ">>> ]"
+            print(">>>   %r"%file)
+          print(">>> ]")
         
         # CHUNKS - partition/split list 
         infiles.sort() # to have consistent order with resubmission
         chunks    = [ ] # chunk indices
         if maxevts_>1:
           if verbosity>=1:
-            print ">>> Preparing jobs with chunks split by number of events..."
+            print(">>> Preparing jobs with chunks split by number of events...")
           try:
             ntot, fchunks = chunkify_by_evts(infiles,maxevts_,evtdict=sample.filenevts,verb=verbosity) # list of file chunks split by events
             if nevents<=0 and not resubmit:
               nevents = ntot
           except IOError as err: # capture if opening files fail
-            print "IOError: "+err.message
+            print("IOError: "+err.message)
             LOG.warning("Skipping submission...")
             failed.append(sample)
-            print ""
+            print("")
             continue # ignore this submission
           if testrun:
             fchunks = fchunks[:4]
         else:
           if verbosity>=1:
-            print ">>> Preparing jobs with chunks split by number of files..."
+            print(">>> Preparing jobs with chunks split by number of files...")
           fchunks = chunkify(infiles,nfilesperjob_) # list of file chunks split by number of files
         nfiles    = len(infiles)
         nchunks   = len(fchunks)
         if verbosity>=1:
-          print ">>> %-12s = %s"%('nchunks',nchunks)
+          print(">>> %-12s = %s"%('nchunks',nchunks))
         if verbosity>=2:
-          print ">>> %-12s = %s"%('nevents',nevents)
-          print '-'*80
+          print(">>> %-12s = %s"%('nevents',nevents))
+          print('-'*80)
         
         # WRITE JOB LIST with arguments per job
         if args.verbosity>=1:
-          print ">>> Creating job list %s..."%(joblist)
+          print(">>> Creating job list %s..."%(joblist))
         if fchunks:
           with open(joblist,'w') as listfile:
             ichunk = 0
@@ -306,7 +306,7 @@ def preparejobs(args):
                 jobcmd   += " --opt '%s'"%("' '".join(extraopts_))
               jobcmd     += " -i %s"%(jobfiles) # add last
               if args.verbosity>=1:
-                print ">>> chunk=%d, jobcmd=%r"%(ichunk,jobcmd)
+                print(">>> chunk=%d, jobcmd=%r"%(ichunk,jobcmd))
               listfile.write(jobcmd+'\n')
               chunkdict[ichunk] = fchunk
               chunks.append(ichunk)
@@ -332,7 +332,7 @@ def preparejobs(args):
       if not found:
         print_no_samples(dtypes,filters,vetoes,[channel],jobdir_,jobcfgs)
       elif failed and len(failed)!=len(samples):
-        print ">>> %d/%d samples failed: %s\n"%(len(failed),len(samples),', '.join(s.name for s in failed))
+        print(">>> %d/%d samples failed: %s\n"%(len(failed),len(samples),', '.join(s.name for s in failed)))
     
 
 
@@ -389,9 +389,9 @@ def checkchunks(sample,**kwargs):
     ndasevents = sample.getnevents(das=True)
     oldjobcfg['nevents'] = ndasevents
   elif verbosity>=2:
-    print ">>> %-12s = %s"%('ndasevents',ndasevents)
+    print(">>> %-12s = %s"%('ndasevents',ndasevents))
   if verbosity>=3:
-    print ">>> %-12s = %s"%('chunkdict',chunkdict)
+    print(">>> %-12s = %s"%('chunkdict',chunkdict))
   
   # CHECK PENDING JOBS
   if checkqueue<0 or pendjobs:
@@ -411,20 +411,20 @@ def checkchunks(sample,**kwargs):
     if evtsplit:
       fpatterns.append("*%s_[0-9]*.root"%(postfix))
     if verbosity>=2:
-      print ">>> %-12s = %r"%('flagexp',flagexp.pattern)
-      print ">>> %-12s = %r"%('flagexp2',flagexp2.pattern)
-      print ">>> %-12s = %r"%('fpatterns',fpatterns)
-      print ">>> %-12s = %r"%('chunkexp',chunkexp.pattern)
-      print ">>> %-12s = %s"%('checkqueue',checkqueue)
-      print ">>> %-12s = %s"%('pendjobs',pendjobs)
-      print ">>> %-12s = %s"%('jobids',jobids)
+      print(">>> %-12s = %r"%('flagexp',flagexp.pattern))
+      print(">>> %-12s = %r"%('flagexp2',flagexp2.pattern))
+      print(">>> %-12s = %r"%('fpatterns',fpatterns))
+      print(">>> %-12s = %r"%('chunkexp',chunkexp.pattern))
+      print(">>> %-12s = %s"%('checkqueue',checkqueue))
+      print(">>> %-12s = %s"%('pendjobs',pendjobs))
+      print(">>> %-12s = %s"%('jobids',jobids))
     
     # CHECK PENDING JOBS
     pendfiles = [ ]
     if pendjobs:
       for job in pendjobs:
         if verbosity>=3:
-          print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
+          print(">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip()))
         if job.getstatus() in ['q','r']:
           if 'HTCondor' in CONFIG.batch:
             jobarg   = str(job.args)
@@ -435,9 +435,9 @@ def checkchunks(sample,**kwargs):
             matches  = flagexp.findall(jobarg)
             matches2 = flagexp2.findall(jobarg)
           if verbosity>=3:
-            print ">>>   jobarg   =",jobarg.replace('\n','')
-            print ">>>   matches  =",matches
-            print ">>>   matches2 =",matches2
+            print(">>>   jobarg   =",jobarg.replace('\n',''))
+            print(">>>   matches  =",matches)
+            print(">>>   matches2 =",matches2)
           if not matches:
             continue
           infiles = [ ]
@@ -470,12 +470,12 @@ def checkchunks(sample,**kwargs):
       bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",
                        message="files, 0/%d (0%%)"%(ndasevents),counter=True,remove=True)
     elif verbosity>=2:
-      print ">>> %-12s = %s"%('pendchunks',pendchunks)
-      print ">>> %-12s = %s"%('outfiles',outfiles)
+      print(">>> %-12s = %s"%('pendchunks',pendchunks))
+      print(">>> %-12s = %s"%('outfiles',outfiles))
     validated = itervalid(outfiles,checkevts=checkevts,ncores=ncores,verb=verbosity) # get number of events processed & check for corruption
     for nevents, fname in validated: # use validator for parallel processing
       if verbosity>=2:
-        print ">>>   Checking job output '%s'..."%(fname)
+        print(">>>   Checking job output '%s'..."%(fname))
       basename = os.path.basename(fname)
       infile   = chunkexp.sub(r"\1.root",basename) # reconstruct input file without path or postfix
       outmatch = chunkexp.match(basename)
@@ -495,7 +495,7 @@ def checkchunks(sample,**kwargs):
             maxevts  = int(inmatch.group(3))
             if firstevt/maxevts!=ipart: # right file, wrong chunk
               if verbosity>=3:
-                print ">>>   Not in chunk %d, %r"%(i,chunkfile)
+                print(">>>   Not in chunk %d, %r"%(i,chunkfile))
               continue
             if checkexpevts or verbosity>=2:
               filentot = filenevts.get(inmatch.group(1),-1)
@@ -508,11 +508,11 @@ def checkchunks(sample,**kwargs):
           ichunk = i
           if ichunk in pendchunks:
             if verbosity>=2:
-              print ">>>   => Pending..."
+              print(">>>   => Pending...")
             continue
           if nevents<0:
             if verbosity>=2:
-              print ">>>   => Bad nevents=%s..."%(nevents)
+              print(">>>   => Bad nevents=%s..."%(nevents))
             badfiles.append(chunkfile)
           else:
             if checkexpevts and nevtsexp>-1 and nevents!=nevtsexp:
@@ -520,17 +520,17 @@ def checkchunks(sample,**kwargs):
             if verbosity>=2:
               if nevtsexp>0:
                 frac = "%.1f%%"%(100.0*nevents/nevtsexp) if nevtsexp!=0 else ""
-                print ">>>   => Good, nevents=%s/%s %s"%(nevents,nevtsexp,frac)
+                print(">>>   => Good, nevents=%s/%s %s"%(nevents,nevtsexp,frac))
               else:
-                print ">>>   => Good, nevents=%s"%(nevents)
+                print(">>>   => Good, nevents=%s"%(nevents))
             nprocevents += nevents
             goodfiles.append(chunkfile)
       if verbosity>=2:
         if ichunk<0:
           if matches:
-            print ">>>   => No match with input file (ipart=%d, but found in %d chunks; %s)..."%(ipart,len(matches),matches)
+            print(">>>   => No match with input file (ipart=%d, but found in %d chunks; %s)..."%(ipart,len(matches),matches))
           else:
-            print ">>>   => No match with input file..."
+            print(">>>   => No match with input file...")
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
       if bar:
@@ -572,18 +572,18 @@ def checkchunks(sample,**kwargs):
     fpattern   = "*%s_[0-9]*.root"%(postfix) # _$postfix_$chunk
     chunkexp   = re.compile(r".+%s_(\d+)\.root"%(postfix))
     if verbosity>=2:
-      print ">>> %-12s = %r"%('flagexp',flagexp.pattern)
-      print ">>> %-12s = %r"%('fpattern',fpattern)
-      print ">>> %-12s = %r"%('chunkexp',chunkexp.pattern)
-      print ">>> %-12s = %s"%('checkqueue',checkqueue)
-      print ">>> %-12s = %s"%('pendjobs',pendjobs)
-      print ">>> %-12s = %s"%('jobids',jobids)
+      print(">>> %-12s = %r"%('flagexp',flagexp.pattern))
+      print(">>> %-12s = %r"%('fpattern',fpattern))
+      print(">>> %-12s = %r"%('chunkexp',chunkexp.pattern))
+      print(">>> %-12s = %s"%('checkqueue',checkqueue))
+      print(">>> %-12s = %s"%('pendjobs',pendjobs))
+      print(">>> %-12s = %s"%('jobids',jobids))
     
     # CHECK PENDING JOBS
     if pendjobs:
       for job in pendjobs:
         if verbosity>=3:
-          print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
+          print(">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip()))
         if job.getstatus() in ['q','r']:
           if 'HTCondor' in CONFIG.batch:
             jobarg  = str(job.args)
@@ -592,8 +592,8 @@ def checkchunks(sample,**kwargs):
             jobarg  = getline(joblist,job.taskid-1)
             matches = flagexp.findall(jobarg)
           if verbosity>=3:
-            print ">>> jobarg = %r"%(jobarg)
-            print ">>> matches = %s"%(matches)
+            print(">>> jobarg = %r"%(jobarg))
+            print(">>> matches = %s"%(matches))
           if not matches:
             continue
           ichunk = int(matches[0])
@@ -608,11 +608,11 @@ def checkchunks(sample,**kwargs):
       bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",
                        message="files, 0/%d (0%%)"%(ndasevents),counter=True,remove=True)
     elif verbosity>=2:
-      print ">>> %-12s = %s"%('pendchunks',pendchunks)
-      print ">>> %-12s = %s"%('outfiles',outfiles)
+      print(">>> %-12s = %s"%('pendchunks',pendchunks))
+      print(">>> %-12s = %s"%('outfiles',outfiles))
     for fname in outfiles:
       if verbosity>=2:
-        print ">>>   Checking job output '%s'..."%(fname)
+        print(">>>   Checking job output '%s'..."%(fname))
       match = chunkexp.search(fname)
       if match:
         ichunk = int(match.group(1))
@@ -626,7 +626,7 @@ def checkchunks(sample,**kwargs):
       nevents = isvalid(fname) if checkevts else 0 # get number of processed events & check for corruption
       if nevents<0:
         if verbosity>=2:
-          print ">>>   => Bad, nevents=%s"%(nevents)
+          print(">>>   => Bad, nevents=%s"%(nevents))
         badchunks.append(ichunk)
         # TODO: remove file from outdir to avoid conflicting output ?
       else:
@@ -649,9 +649,9 @@ def checkchunks(sample,**kwargs):
         if verbosity>=2:
           if nevtsexp>0:
             frac = "%.1f%%"%(100.0*nevents/nevtsexp) if nevtsexp!=0 else ""
-            print ">>>   => Good, nevents=%d/%d %s"%(nevents,nevtsexp,frac)
+            print(">>>   => Good, nevents=%d/%d %s"%(nevents,nevtsexp,frac))
           else:
-            print ">>>   => Good, nevents=%s"%(nevents)
+            print(">>>   => Good, nevents=%s"%(nevents))
         nprocevents += nevents
         goodchunks.append(ichunk)
       if bar:
@@ -660,7 +660,7 @@ def checkchunks(sample,**kwargs):
     
     # GET FILES for RESUBMISSION + sanity checks
     if verbosity>=2:
-      print ">>> %-12s = %s"%('nprocevents',nprocevents)
+      print(">>> %-12s = %s"%('nprocevents',nprocevents))
     for ichunk in chunkdict.keys():
       count = goodchunks.count(ichunk)+pendchunks.count(ichunk)+badchunks.count(ichunk)
       LOG.insist(count in [0,1],"Found %d times chunk '%d' (good=%d, pending=%d, bad=%d). "%(
@@ -679,7 +679,7 @@ def checkchunks(sample,**kwargs):
   
   ###########################################################################
   
-  # PRINT CHUNKS
+  # print(CHUNKS)
   goodchunks.sort()
   pendchunks.sort()
   badchunks.sort()
@@ -695,9 +695,9 @@ def checkchunks(sample,**kwargs):
        jstr = ": all %s-%s"%(jobden[0],jobden[-1])
      else: # list pending/failed/missing chunks
        jstr = (": "+', '.join(str(j) for j in jobden))
-     print ">>> %s %s - %s%s"%(ratio,label,text,jstr)
+     print(">>> %s %s - %s%s"%(ratio,label,text,jstr))
    #else:
-   #  print ">>> %2d/%d %s - %s"%(len(jobden),len(jobs),label,text)
+   #  print(">>> %2d/%d %s - %s"%(len(jobden),len(jobs),label,text))
   rtext = ""
   if ndasevents>0: # report number of processed events
     if checkevts:
@@ -711,7 +711,7 @@ def checkchunks(sample,**kwargs):
   printchunks(badchunks, 'FAIL', "Chunks with corrupted output in outdir",'red',True)
   printchunks(misschunks,'MISS',"Chunks with no output in outdir",'red',True)
   
-  # PRINT LOG FILES for debugging
+  # print(LOG FILES for debugging)
   if showlogs!=0 and (badchunks or misschunks):
     logglob  = os.path.join(logdir,"*.*.*") #.log
     lognames = sorted(glob.glob(logglob),key=alphanum_key,reverse=True)
@@ -738,7 +738,7 @@ def checkchunks(sample,**kwargs):
           #logexp  = re.compile(".*\.\d{3,}\.%d(?:\.log)?$"%(taskid)) #$JOBNAME.$JOBID.$TASKID.log
           matches = [f for f in lognames if f.endswith(logexp)]
           if matches:
-            print ">>>   %s"%(matches[0])
+            print(">>>   %s"%(matches[0]))
             lognames.remove(matches[0])
             break
       else:
@@ -755,7 +755,7 @@ def checkchunks(sample,**kwargs):
 def main_submit(args):
   """Submit or resubmit jobs to the batch system."""
   if args.verbosity>=1:
-    print ">>> main_submit", args
+    print(">>> main_submit", args)
   
   verbosity = args.verbosity
   resubmit  = args.subcommand=='resubmit'
@@ -782,7 +782,7 @@ def main_submit(args):
       'short': (testrun>0), 'queue':queue, 'time':time
     }
     if nchunks<=0:
-      print ">>>   Nothing to %ssubmit!"%('re' if resubmit else '')
+      print(">>>   Nothing to %ssubmit!"%('re' if resubmit else ''))
       continue
     if batch.system=='HTCondor':
       # use specific settings for KIT condor
@@ -807,20 +807,20 @@ def main_submit(args):
       while True:
         submit = raw_input(">>> Do you want to submit %d jobs to the batch system? [y/n] "%(nchunks))
         if any(s in submit.lower() for s in ['q','exit']): # quit this script
-          print ">>> Quitting..."
+          print(">>> Quitting...")
           exit(0)
         elif any(s in submit.lower() for s in ['f','all']):
-          print ">>> Force submission..."
+          print(">>> Force submission...")
           submit = 'y'
           args.prompt = False # stop asking for next samples
         if 'y' in submit.lower(): # submit this job
           jobid = batch.submit(script,joblist,**jkwargs)
           break
         elif 'n' in submit.lower(): # do not submit this job
-          print ">>> Not submitting."
+          print(">>> Not submitting.")
           break
         else:
-          print ">>> '%s' is not a valid answer, please choose y/n."%submit
+          print(">>> '%s' is not a valid answer, please choose y/n."%submit)
     else:
       jobid = batch.submit(script,joblist,**jkwargs)
     
@@ -828,7 +828,7 @@ def main_submit(args):
     if jobid!=None:
       jobcfg['jobids'].append(jobid)
       if verbosity>=1:
-        print ">>> Creating config file '%s'..."%(cfgname)
+        print(">>> Creating config file '%s'..."%(cfgname))
       if cfgname.endswith(".json.gz"):
         with gzip.open(cfgname,'wt') as file:
           file.write(json.dump(jobcfg),indent=2)
@@ -845,7 +845,7 @@ def main_submit(args):
 def main_status(args):
   """Check status of jobs (succesful/pending/failed/missing), or hadd job output."""
   if args.verbosity>=1:
-    print ">>> main_status", args
+    print(">>> main_status", args)
   
   # SETTING
   eras           = args.eras         # eras to loop over and run
@@ -890,15 +890,15 @@ def main_status(args):
       jobcfgs = repkey(os.path.join(jobdir_,"config/jobconfig_$CHANNEL$TAG_try[0-9]*.json"),
                        ERA=era,SAMPLE='*',GROUP='*',CHANNEL=channel,TAG=tag) # get ALL job configs
       if verbosity>=1:
-        print ">>> %-12s = %s"%('cwd',os.getcwd())
-        print ">>> %-12s = %s"%('jobdir',jobdir_)
-        print ">>> %-12s = %s"%('jobcfgs',jobcfgs)
-        print ">>> %-12s = %s"%('filters',filters)
-        print ">>> %-12s = %s"%('vetoes',vetoes)
-        print ">>> %-12s = %s"%('dtypes',dtypes)
+        print(">>> %-12s = %s"%('cwd',os.getcwd()))
+        print(">>> %-12s = %s"%('jobdir',jobdir_))
+        print(">>> %-12s = %s"%('jobcfgs',jobcfgs))
+        print(">>> %-12s = %s"%('filters',filters))
+        print(">>> %-12s = %s"%('vetoes',vetoes))
+        print(">>> %-12s = %s"%('dtypes',dtypes))
       samples = getcfgsamples(jobcfgs,filter=filters,veto=vetoes,dtype=dtypes,verb=verbosity)
       if verbosity>=2:
-        print ">>> Found samples: "+", ".join(repr(s.name) for s in samples)
+        print(">>> Found samples: "+", ".join(repr(s.name) for s in samples))
       if subcmd in ['hadd','haddclean'] and 'skim' in channel.lower():
         LOG.warning("Hadding into one file not available for skimming...")
         print
@@ -915,9 +915,9 @@ def main_status(args):
         elif sample.channels and channel_ not in sample.channels:
           continue
         found = True
-        print ">>> %s"%(bold(sample.name))
+        print(">>> %s"%(bold(sample.name)))
         for path in sample.paths:
-          print ">>> %s"%(bold(path))
+          print(">>> %s"%(bold(path)))
         
         # CHECK JOBS ONLY ONCE
         if checkqueue==1 and jobs!=None:
@@ -940,15 +940,15 @@ def main_status(args):
           cfgfiles = os.path.join(cfgdir,'job*%s_try[0-9]*.*'%(postfix))
           logfiles = os.path.join(logdir,'*%s*.*.log'%(postfix))
           if verbosity>=1:
-            print ">>> %sing job output for '%s'"%(subcmd.capitalize(),sample.name)
-            print ">>> %-12s = %r"%('cfgname',cfgname)
-            print ">>> %-12s = %r"%('jobdir',jobdir)
-            print ">>> %-12s = %r"%('cfgdir',cfgdir)
-            print ">>> %-12s = %r"%('outdir',outdir)
-            print ">>> %-12s = %r"%('storedir',storedir)
-            print ">>> %-12s = %s"%('infiles',infiles)
+            print(">>> %sing job output for '%s'"%(subcmd.capitalize(),sample.name))
+            print(">>> %-12s = %r"%('cfgname',cfgname))
+            print(">>> %-12s = %r"%('jobdir',jobdir))
+            print(">>> %-12s = %r"%('cfgdir',cfgdir))
+            print(">>> %-12s = %r"%('outdir',outdir))
+            print(">>> %-12s = %r"%('storedir',storedir))
+            print(">>> %-12s = %s"%('infiles',infiles))
             if subcmd in ['hadd','haddclean']:
-              print ">>> %-12s = %r"%('outfile',outfile)
+              print(">>> %-12s = %r"%('outfile',outfile))
           resubfiles, chunkdict, npend = checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
                                                      das=checkdas,checkexpevts=checkexpevts,ncores=ncores,verb=verbosity)
           if (len(resubfiles)>0 or npend>0) and not force: # only clean or hadd if all jobs were successful
@@ -970,7 +970,7 @@ def main_status(args):
             rmcmd   = None
             if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check for other jobs
               if verbosity>=2:
-                print ">>> %-12s = %s"%('cfgfiles',cfgfiles)
+                print(">>> %-12s = %s"%('cfgfiles',cfgfiles))
               rmcmd = "rm -r %s"%(jobdir) # remove whole job directory
             else: # only remove files related to this job (era/channel/sample)
               rmfiles   = [ ]
@@ -979,8 +979,8 @@ def main_status(args):
                 if len(glob.glob(files))>0:
                   rmfiles.append(files)
               if verbosity>=2:
-                print ">>> %-12s = %s"%('cfgfiles',cfgfiles)
-                print ">>> %-12s = %s"%('rmfileset',rmfileset)
+                print(">>> %-12s = %s"%('cfgfiles',cfgfiles))
+                print(">>> %-12s = %s"%('rmfileset',rmfileset))
               if rmfiles:
                 rmcmd = "rm %s"%(' '.join(rmfiles))
             if rmcmd:
@@ -996,11 +996,11 @@ def main_status(args):
           outdir   = sample.jobcfg['outdir']
           logdir   = sample.jobcfg['logdir']
           if verbosity>=1:
-            print ">>> Checking job status for '%s'"%(sample.name)
-            print ">>> %-12s = %r"%('cfgname',cfgname)
-            print ">>> %-12s = %r"%('jobdir',jobdir)
-            print ">>> %-12s = %r"%('outdir',outdir)
-            print ">>> %-12s = %r"%('logdir',logdir)
+            print(">>> Checking job status for '%s'"%(sample.name))
+            print(">>> %-12s = %r"%('cfgname',cfgname))
+            print(">>> %-12s = %r"%('jobdir',jobdir))
+            print(">>> %-12s = %r"%('outdir',outdir))
+            print(">>> %-12s = %r"%('logdir',logdir))
           checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,showlogs=showlogs,checkqueue=checkqueue,
                       checkevts=checkevts,das=checkdas,ncores=ncores,verb=verbosity)
         

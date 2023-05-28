@@ -14,7 +14,7 @@ from TauFW.PicoProducer.pico.common import *
 def main_run(args):
   """Run given module locally."""
   if args.verbosity>=1:
-    print ">>> main_run", args
+    print(">>> main_run", args)
   eras       = args.eras       # eras to loop over and run
   channels   = args.channels   # channels to loop over and run
   tag        = args.tag        # extra tag for output file
@@ -39,9 +39,9 @@ def main_run(args):
   
   # LOOP over ERAS
   if not eras:
-    print ">>> Please specify a valid era (-y)."
+    print(">>> Please specify a valid era (-y).")
   if not channels:
-    print ">>> Please specify a valid channel (-c)."
+    print(">>> Please specify a valid channel (-c).")
   for era in eras:
     moddict = { } # save time by loading samples and get their files only once
     
@@ -55,27 +55,27 @@ def main_run(args):
       
       # VERBOSE
       if verbosity>=1:
-        print '-'*80
-        print ">>> Running %r"%(channel)
-        print ">>> %-12s = %r"%('channel',channel)
-        print ">>> %-12s = %r"%('module',module)
-        print ">>> %-12s = %r"%('processor',processor)
-        print ">>> %-12s = %r"%('procopts',procopts)
-        print ">>> %-12s = %r"%('extrachopts',extrachopts)
-        print ">>> %-12s = %r"%('prefetch',prefetch)
-        print ">>> %-12s = %r"%('preselect',preselect)
-        print ">>> %-12s = %s"%('filters',filters)
-        print ">>> %-12s = %s"%('vetoes',vetoes)
-        print ">>> %-12s = %r"%('dtypes',dtypes)
-        print ">>> %-12s = %r"%('userfiles',userfiles)
-        print ">>> %-12s = %r"%('outdir',outdir)
+        print('-'*80)
+        print(">>> Running %r"%(channel))
+        print(">>> %-12s = %r"%('channel',channel))
+        print(">>> %-12s = %r"%('module',module))
+        print(">>> %-12s = %r"%('processor',processor))
+        print(">>> %-12s = %r"%('procopts',procopts))
+        print(">>> %-12s = %r"%('extrachopts',extrachopts))
+        print(">>> %-12s = %r"%('prefetch',prefetch))
+        print(">>> %-12s = %r"%('preselect',preselect))
+        print(">>> %-12s = %s"%('filters',filters))
+        print(">>> %-12s = %s"%('vetoes',vetoes))
+        print(">>> %-12s = %r"%('dtypes',dtypes))
+        print(">>> %-12s = %r"%('userfiles',userfiles))
+        print(">>> %-12s = %r"%('outdir',outdir))
       
       # LOOP over FILTERS
       samples = [ ]
       for filter in filters:
         filters_ = [filter] if filter else [ ]
         if verbosity>=2:
-          print ">>> Checking filters=%s, vetoes=%s, dtypes=%s..."%(filters_,vetoes,dtypes)
+          print(">>> Checking filters=%s, vetoes=%s, dtypes=%s..."%(filters_,vetoes,dtypes))
         
         # GET SAMPLES
         if not userfiles and (filters_ or vetoes or dtypes):
@@ -93,16 +93,16 @@ def main_run(args):
         if not userfiles and (filters_ or vetoes or dtypes):
           print_no_samples(dtypes,filters_,vetoes,[channel])
       if verbosity>=1:
-        print ">>> %-12s = %r"%('samples',samples)
-        print '-'*80
+        print(">>> %-12s = %r"%('samples',samples))
+        print('-'*80)
       
       # LOOP over SAMPLES
       for sample in samples:
         if sample:
-          print ">>> %s"%(bold(sample.name))
+          print(">>> %s"%(bold(sample.name)))
           if verbosity>=1:
             for path in sample.paths:
-              print ">>> %s"%(bold(path))
+              print(">>> %s"%(bold(path)))
         
         # SETTINGS
         dtype      = None
@@ -114,9 +114,9 @@ def main_run(args):
         else:
           filetag  = "_%s_%s%s"%(channel,era,tag)
         if verbosity>=1:
-          print ">>> %-12s = %s"%('sample',sample)
-          print ">>> %-12s = %r"%('filetag',filetag) # postfix
-          print ">>> %-12s = %s"%('extraopts',extraopts_)
+          print(">>> %-12s = %s"%('sample',sample))
+          print(">>> %-12s = %r"%('filetag',filetag) # postfix)
+          print(">>> %-12s = %s"%('extraopts',extraopts_))
         
         # GET FILES
         infiles = [ ]
@@ -129,12 +129,12 @@ def main_run(args):
           if nfiles>0:
             infiles = infiles[:nfiles]
           if verbosity==1:
-            print ">>> %-12s = %r"%('dtype',dtype)
-            print ">>> %-12s = %s"%('nfiles',len(infiles))
-            print ">>> %-12s = [ "%('infiles')
+            print(">>> %-12s = %r"%('dtype',dtype))
+            print(">>> %-12s = %s"%('nfiles',len(infiles)))
+            print(">>> %-12s = [ "%('infiles'))
             for file in infiles:
-              print ">>>   %r"%file
-            print ">>> ]"
+              print(">>>   %r"%file)
+            print(">>> ]")
         
         # RUN
         runcmd = processor
@@ -162,7 +162,7 @@ def main_run(args):
           runcmd += " --opt '%s'"%("' '".join(extraopts_))
         #elif nfiles:
         #  runcmd += " --nfiles %s"%(nfiles)
-        print ">>> Executing: "+bold(runcmd)
+        print(">>> Executing: "+bold(runcmd))
         if not dryrun:
           #execute(runcmd,dry=dryrun,verb=verbosity+1) # real-time print out does not work well with python script 
           os.system(runcmd)

@@ -21,7 +21,7 @@ def main_install(args):
   #  - set defaults of config file
   #  - outside CMSSW: create symlinks for standalone
   if args.verbosity>=1:
-    print ">>> main_install", args
+    print(">>> main_install", args)
   verbosity = args.verbosity
   
 
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     from TauFW.PicoProducer.pico.job import main_status
     main_status(args)
   else:
-    print ">>> subcommand '%s' not implemented!"%(args.subcommand)
+    print(">>> subcommand '%s' not implemented!"%(args.subcommand))
   
-  print ">>> Done!"
+  print(">>> Done!")
   
