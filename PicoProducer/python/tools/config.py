@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
+from past.builtins import basestring # for python2 compatibility
 import os, sys, re, glob, json
 from datetime import datetime
 import importlib
@@ -67,8 +68,8 @@ def getconfig(verb=0,refresh=False):
   cfgname  = os.path.join(cfgdir,"config.json")
   bkpname  = os.path.join(cfgdir,"config.json.bkp") # back up to recover config if reset
   cfgdict  = _cfgdefaults.copy()
-  rqdstrs  = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,basestring)]
-  rqddicts = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,dict)]
+  rqdstrs  = [k for k,v in _cfgdefaults.items() if isinstance(v,basestring)]
+  rqddicts = [k for k,v in _cfgdefaults.items() if isinstance(v,dict)]
   
   # GET CONFIG
   if os.path.isfile(cfgname):
@@ -76,7 +77,7 @@ def getconfig(verb=0,refresh=False):
       cfgdict = json.load(file,object_pairs_hook=OrderedDict)
     nmiss = len([0 for k in _cfgdefaults.keys() if k not in cfgdict]) # count missing keys
     if nmiss>=5 and os.path.isfile(bkpname): # recover reset config file
-      print ">>> Config file may have been reset. Opening backup %s..."%(bkpname)
+      print(">>> Config file may have been reset. Opening backup %s..."%(bkpname))
       with open(bkpname,'r') as file:
         bkpcfgdict = json.load(file,object_pairs_hook=OrderedDict)
       for key in bkpcfgdict.keys(): # check for missing keys
@@ -90,7 +91,7 @@ def getconfig(verb=0,refresh=False):
           LOG.warning("Key '%s' not set in config file %s. Setting to default %r"%(key,os.path.relpath(cfgname),_cfgdefaults[key]))
           cfgdict[key] = _cfgdefaults[key]
           nmiss += 1
-      print ">>> Saving updated keys..."
+      print(">>> Saving updated keys...")
       with open(cfgname,'w') as file:
         json.dump(cfgdict,file,indent=2)
   else:
@@ -110,11 +111,11 @@ def getconfig(verb=0,refresh=False):
   
   # RETURN
   if verb>=1:
-    print '-'*80
-    print ">>> Reading config JSON file '%s'"%cfgname
-    for key, value in cfgdict.iteritems():
-      print ">>> %-13s = %s"%(key,value)
-    print '-'*80
+    print('-'*80)
+    print(">>> Reading config JSON file '%s'"%cfgname)
+    for key, value in cfgdict.items():
+      print(">>> %-13s = %s"%(key,value))
+    print('-'*80)
   
   CONFIG = Config(cfgdict,cfgname)
   return CONFIG
@@ -190,7 +191,11 @@ class Config(object):
     return iter(self._dict)
   
   def iteritems(self):
-    for x in self._dict.iteritems():
+    for x in self._dict.items():
+      yield x
+  
+  def items(self):
+    for x in self._dict.items():
       yield x
   
   def __len__(self):
