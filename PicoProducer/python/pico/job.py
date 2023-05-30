@@ -538,7 +538,7 @@ def checkchunks(sample,**kwargs):
         bar.count(status)
     
     # GET FILES for RESUBMISSION + sanity checks
-    for ichunk in chunkdict.keys(): # chuckdict length might be changed (popped)
+    for ichunk in list(chunkdict.keys()): # chuckdict length might be changed (popped)
       if ichunk in pendchunks: # output still pending
         continue
       chunkfiles = chunkdict[ichunk]
@@ -616,7 +616,7 @@ def checkchunks(sample,**kwargs):
       match = chunkexp.search(fname)
       if match:
         ichunk = int(match.group(1))
-        LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for file %s! Chunkdict has %s"%(ichunk,fname,sorted(chunkdict.keys()))+
+        LOG.insist(ichunk in chunkdict,"Found an impossible chunk %d for file %s! Chunkdict has %s"%(ichunk,fname,list(sorted(chunkdict.keys())))+
                                        " Possible overcounting or conflicting job output file format! Check %s"%(oldcfgname))
         if ichunk in pendchunks:
           continue
@@ -661,7 +661,7 @@ def checkchunks(sample,**kwargs):
     # GET FILES for RESUBMISSION + sanity checks
     if verbosity>=2:
       print(">>> %-12s = %s"%('nprocevents',nprocevents))
-    for ichunk in chunkdict.keys():
+    for ichunk in list(chunkdict.keys()):
       count = goodchunks.count(ichunk)+pendchunks.count(ichunk)+badchunks.count(ichunk)
       LOG.insist(count in [0,1],"Found %d times chunk '%d' (good=%d, pending=%d, bad=%d). "%(
                                 count,ichunk,goodchunks.count(ichunk),pendchunks.count(ichunk),badchunks.count(ichunk))+

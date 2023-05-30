@@ -6,6 +6,7 @@
 #   root://t3dcachedb.psi.ch:1094/ # PSI T3
 #   root://storage01.lcg.cscs.ch/  # PSI T2
 #   root://cmseos.fnal.gov/        # Fermi lab
+from past.builtins import basestring, unicode # for python2 compatibility
 import os, re, json
 import gzip
 import importlib
@@ -214,7 +215,7 @@ class Sample(object):
       if copy:
         sample = deepcopy(self)
       sample.paths = paths
-      for path in sample.pathfiles.keys():
+      for path in list(sample.pathfiles.keys()):
         if path not in paths:
           sample.pathfiles.pop(path)
     return sample
@@ -372,7 +373,7 @@ class Sample(object):
           else:
             print(">>> Write %s files to list %r..."%(len(files),listname_))
           for i, path in enumerate(self.paths):
-            assert path in self.pathfiles, "self.pathfiles.keys()=%s"%(self.pathfiles.keys())
+            assert path in self.pathfiles, "self.pathfiles.keys()=%s"%(list(self.pathfiles.keys()))
             print(">>>   %3s files for %s..."%(len(self.pathfiles[path]),path))
             lfile.write("DASPATH=%s\n"%(path)) # write special line to text file, which loadfiles() can parse
             for infile in self.pathfiles[path]: # loop over this list (general list is sorted)

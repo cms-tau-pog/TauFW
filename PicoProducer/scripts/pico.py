@@ -2,13 +2,19 @@
 # Author: Izaak Neutelings (April 2020)
 import os, sys, glob, json
 #import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from TauFW.common.tools.file import ensurefile, ensureinit
-from TauFW.common.tools.string import repkey, rreplace
-from TauFW.PicoProducer.analysis.utils import ensuremodule
-from TauFW.PicoProducer.storage.utils import getsamples
-from TauFW.PicoProducer.pico.common import *
-
-
+try:
+  from TauFW.common.tools.file import ensurefile, ensureinit
+  from TauFW.common.tools.string import repkey, rreplace
+  from TauFW.PicoProducer.analysis.utils import ensuremodule
+  from TauFW.PicoProducer.storage.utils import getsamples
+  from TauFW.PicoProducer.pico.common import *
+except ImportError as err:
+  print("\033[1m\033[31mImportError for TauFW modules: Please check if you compiled with `scram b`.")
+  if sys.version_info[0]<3:
+    print("For CMSSW_12_X and higher, please check if you have the correct python version by default,\n"
+          "for which you can try this hack: `python() { python3 $@; }; export -f python`.\033[0m")
+  raise err
+  
 
 ###############
 #   INSTALL   #
@@ -137,7 +143,7 @@ if __name__ == "__main__":
   parser_hdc = subparsers.add_parser('haddclean',parents=[parser_hdd_], help=help_hdc, description=help_hdc)
   parser_cln = subparsers.add_parser('clean',    parents=[parser_chk],  help=help_cln, description=help_cln)
   #parser_get.add_argument('variable',           help='variable to change in the config file')
-  parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+CONFIG.keys())
+  parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+list(CONFIG.keys()))
   parser_set.add_argument('variable',           help="variable to set or change in the config file")
   parser_set.add_argument('key',                help="channel or era key name", nargs='?', default=None)
   parser_set.add_argument('value',              help="value for given value")
@@ -204,6 +210,9 @@ if __name__ == "__main__":
   args = parser.parse_args(args)
   if hasattr(args,'tag') and len(args.tag)>=1 and args.tag[0]!='_':
     args.tag = '_'+args.tag
+  if args.subcommand==None:
+    parser.print_help()
+    exit(0)
     
   # VERBOSITY
   if args.verbosity>=2:

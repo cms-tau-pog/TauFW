@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
-from past.builtins import basestring # for python2 compatibility
+from past.builtins import basestring, unicode # for python2 compatibility
 import os, sys, re, glob, json
 from datetime import datetime
 import importlib
@@ -142,11 +142,11 @@ class Config(object):
     """Container class for a global configuration."""
     self._dict = cfgdict
     self._path    = path
-    for key in self._dict.keys():
+    for key in list(self._dict.keys()):
       if isinstance(self._dict[key],unicode):
         self._dict[str(key)] = str(self._dict[key]) # convert unicode to str
       elif isinstance(self._dict[key],dict):
-        for subkey in self._dict[key].keys():
+        for subkey in list(self._dict[key].keys()):
           item = self._dict[key][subkey]
           if isinstance(item,unicode):
             item = str(item)
