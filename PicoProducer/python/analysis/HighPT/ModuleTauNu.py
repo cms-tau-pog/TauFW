@@ -229,7 +229,7 @@ class ModuleTauNu(ModuleHighPT):
     # WEIGHTS
     self.out.weight[0] = 1.0 # for data
     if self.ismc:
-      self.fillCommonCorrBraches(event)
+      self.fillCommonCorrBranches(event)
       self.out.trigweight[0] = self.trig_corr.getWeight(self.out.metnomu[0],self.out.mhtnomu[0])
       self.out.idisoweight_1[0] = 1.0    
 

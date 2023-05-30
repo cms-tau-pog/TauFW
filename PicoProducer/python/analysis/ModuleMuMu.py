@@ -238,7 +238,7 @@ class ModuleMuMu(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if muon1.pfRelIso04_all<0.50 and muon2.pfRelIso04_all<0.50:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       

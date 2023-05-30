@@ -139,7 +139,7 @@ class ModuleDiJet(ModuleHighPT):
     # WEIGHTS
     self.out.weight[0] = 1.0 # for data
     if self.ismc:
-      self.fillCommonCorrBraches(event)      
+      self.fillCommonCorrBranches(event)      
       self.out.trigweight[0] = 1.0
       self.out.weight[0] = self.out.trigweight[0]*self.out.puweight[0]*self.out.genweight[0]*self.out.idisoweight_1[0]
       if self.dozpt:

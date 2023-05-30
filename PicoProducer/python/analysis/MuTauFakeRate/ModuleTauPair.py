@@ -297,7 +297,7 @@ class ModuleTauPair(Module):
     return jets, metnom, njets_vars, met_vars
     
   
-  def fillCommonCorrBraches(self, event, jets, met, njets_vars, met_vars):
+  def fillCommonCorrBranches(self, event, jets, met, njets_vars, met_vars):
     """Help function to apply common corrections, and fill weight branches."""
     
     #if self.dorecoil:

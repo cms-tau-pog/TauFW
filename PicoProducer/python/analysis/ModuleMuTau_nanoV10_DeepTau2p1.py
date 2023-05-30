@@ -275,7 +275,7 @@ class ModuleMuTau_nanoV10_DeepTau2p1(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if muon.pfRelIso04_all<0.50 and tau.idDeepTau2017v2p1VSjet>=2:
       #if muon.pfRelIso04_all<0.50 and tau.idDeepTau2018v2p5VSjet>=2:
          self.btagTool.fillEffMaps(jets,usejec=self.dojec)

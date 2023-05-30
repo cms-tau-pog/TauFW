@@ -344,7 +344,7 @@ class ModuleHighPT(Module):
     return jets, ht_muons, met, met_vars
     
   
-  def fillCommonCorrBraches(self, event):
+  def fillCommonCorrBranches(self, event):
     """Help function to apply common corrections, and fill weight branches."""
     
     #if self.dorecoil:

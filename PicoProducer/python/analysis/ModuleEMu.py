@@ -240,7 +240,7 @@ class ModuleEMu(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if electron.pfRelIso03_all<0.50 and muon.pfRelIso04_all<0.50:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       

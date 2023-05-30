@@ -189,7 +189,7 @@ class ModuleWJ(ModuleHighPT):
     # WEIGHTS
     self.out.weight[0] = 1.0 # for data
     if self.ismc:
-      self.fillCommonCorrBraches(event)      
+      self.fillCommonCorrBranches(event)      
       # MUON WEIGHTS
       self.out.trigweight[0]    = self.muSFs.getTriggerSF(muon1.pt,muon1.eta) # muon trigger SF
       self.out.idisoweight_1[0] = self.muSFs.getIdIsoSF(muon1.pt,muon1.eta) # muon Id/iso SF

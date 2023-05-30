@@ -224,7 +224,7 @@ class ModuleTauTau(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if tau1.idDeepTau2017v2p1VSjet>=2 and tau2.idDeepTau2017v2p1VSjet>=2:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       self.out.trigweight[0]             = self.trigTool.getSFPair(tau1,tau2)
