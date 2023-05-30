@@ -90,6 +90,8 @@ To create JSON files for
 [`correctionlib`](https://github.com/cms-nanoAOD/correctionlib),
 please follow the instructions
 [here](https://gitlab.cern.ch/cms-tau-pog/jsonpog-integration/-/blob/TauPOG_v2/POG/TAU/README4UPDATES.md).
+From at least `CMSSW_11_3_X`, `correctionlib` should be pre-installed.
+
 
 To create ROOT files including the measured SFs please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauFW/#picoproducer) as illustrated above.
 Modify the `TauIDSFs/utils/createSFFiles.py` script to include your measured SFs into the script. 
