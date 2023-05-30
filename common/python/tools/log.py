@@ -5,7 +5,7 @@ tcol_dict = { 'black':  30,  'red':     31, 'green': 32,
               'yellow': 33,  'orange':  33, 'blue':  34,
               'purple': 35,  'magenta': 36, 'white': 37,
               'grey':   90,  'none':     0 }
-bcol_dict = {k: (10+v if v else v) for k,v in tcol_dict.iteritems()}
+bcol_dict = {k: (10+v if v else v) for k,v in tcol_dict.items()}
 
 
 def color(string,c='green',b=False,ul=False,**kwargs):

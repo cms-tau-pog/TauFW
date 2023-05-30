@@ -140,7 +140,7 @@ if __name__ == '__main__':
     # PLOT 2D HISTOGRAMS
     for hname in hnames_2d:
       hist = file.Get(hname)
-      assert hist, "Did not find %s:%s"(file.GetName(),hname)
+      assert hist, "Did not find %s:%s"%(file.GetName(),hname)
       hist.SetTitle(title)
       nevts = hist.Integral()
       if nevts>0: # normalize
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     hists = [ ]
     for title, file in files:
       hist = file.Get(hname)
-      assert hist, "Did not find %s:%s"(file.GetName(),hname)
+      assert hist, "Did not find %s:%s"%(file.GetName(),hname)
       hist.SetTitle(title)
       nevts = hist.Integral()
       if nevts>0: # normalize
