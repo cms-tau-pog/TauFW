@@ -238,12 +238,14 @@ class Sample(object):
       for daspath in self.paths: # loop over DAS dataset paths
         pathfiles[daspath] = [ ]
         if (self.storage and not das) or (not self.instance): # get files from storage system
+          LOG.verb("Sample.getfiles: Retrieving files from storage system %r..."%(self.storage),verb,2)
           postfix = self.postfix+'.root'
           sepath  = repkey(self.storepath,PATH=daspath,DAS=daspath).replace('//','/')
           outlist = self.storage.getfiles(sepath,url=url,verb=verb-1)
         else: # get files from DAS
           postfix = '.root'
           outlist = getdasfiles(daspath,instance=self.instance,limit=limit,verb=verb-1)
+        LOG.verb("Sample.getfiles: outlist=%r"%(outlist),verb,4)
         for line in outlist: # filter ROOT files
           line = line.strip()
           if line.endswith(postfix) and not any(f.endswith(line) for f in self.blacklist):

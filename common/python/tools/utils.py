@@ -16,18 +16,14 @@ def execute(command,dry=False,fatal=True,verb=0):
     if verb>=1:
       print(">>> Executing: %r"%(command))
     try:
-      #process = Popen(command.split(),stdout=PIPE,stderr=STDOUT) #,shell=True)
-      process = Popen(command,stdout=PIPE,stderr=STDOUT,bufsize=1,shell=True) #,universal_newlines=True
-      for line in iter(process.stdout.readline,""):
+      process = Popen(command,stdout=PIPE,stderr=STDOUT,bufsize=0,shell=True) #,universal_newlines=True
+      for line in iter(process.stdout.readline,b''): # read line by line
+        line = str(line.decode('utf-8')) # decode/convert binary to str
         if verb>=1: # real time print out (does not work for python scripts without flush)
           print(line.rstrip())
         out += line
       process.stdout.close()
       retcode = process.wait()
-      ##print(0, process.communicate())
-      ##out     = process.stdout.read()
-      ##err     = process.stderr.read()
-      ##print(out)
       out = out.strip()
     except Exception as e:
       if verb<1:

@@ -1,5 +1,6 @@
 # Author: Izaak Neutelings (May 2020)
 from __future__ import print_function # for python3 compatibility
+from past.builtins import long # for python2 compatibility
 
 tcol_dict = { 'black':  30,  'red':     31, 'green': 32,
               'yellow': 33,  'orange':  33, 'blue':  34,
