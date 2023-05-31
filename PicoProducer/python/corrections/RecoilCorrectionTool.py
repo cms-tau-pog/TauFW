@@ -12,7 +12,7 @@ from TauFW.common.tools.file import ensureTFile
 from TauFW.PicoProducer.analysis.utils import hasbit
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 import ROOT
-from ROOT import TLorentzVector, gROOT, gSystem, gInterpreter, Double
+from ROOT import TLorentzVector, gROOT, gSystem, gInterpreter #, Double
 rcpath  = "HTT-utilities/RecoilCorrections/data/"
 zptpath = os.path.join(datadir,"zpt/")
 
