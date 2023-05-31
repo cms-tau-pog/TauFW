@@ -286,7 +286,7 @@ def preparejobs(args):
               
               # BUILD COMMAND
               python      = "python2" if sys.version_info.major<3 else "python3"
-              runcmd      = "%s %s"%(python,processor)
+              jobcmd      = "%s %s"%(python,processor)
               if procopts:
                 jobcmd   += " %s"%(procopts)
               if skim:

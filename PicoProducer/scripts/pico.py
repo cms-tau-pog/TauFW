@@ -10,8 +10,7 @@ try:
   from TauFW.PicoProducer.pico.common import *
 except ImportError as err:
   print("\033[1m\033[31mImportError for TauFW modules: Please check if you compiled with `scram b`.")
-  if sys.version_info[0]<3:
-    print("For releases older than CMSSW_12_X, please use pico2.py with python2.\033[0m")
+        "For releases older than CMSSW_12_X, please use pico2.py with python2.\033[0m")
   raise err
   
 
