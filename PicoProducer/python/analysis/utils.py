@@ -248,16 +248,15 @@ def getmet(era,var="",useT1=False,verb=0):
     branch += "_T1"
     if var=='nom':
       var = ""
-  pt      = '%s_pt'%(branch)
-  phi     = '%s_phi'%(branch)
+  pt  = '%s_pt'%(branch)
+  phi = '%s_phi'%(branch)
   if var:
-    pt   += '_'+var
-    phi  += '_'+var
-  funcstr = "func = lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
-  if verb>=1:
+    pt  += '_'+var
+    phi += '_'+var
+  funcstr = "lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
+  if verb+2>=1:
     LOG.verb(">>> getmet: %r"%(funcstr))
-  exec(funcstr) #in locals()
-  return func
+  return eval(funcstr)
   
 
 def correctmet(met,dp):
@@ -296,11 +295,10 @@ def getmetfilters(era,isdata,verb=0):
     filters.extend(['Flag_eeBadScFilter']) # eeBadScFilter "not suggested" for MC
   if ('2017' in era or '2018' in era) and ('UL' not in era):
     filters.extend(['Flag_ecalBadCalibFilterV2']) # under review for change in Ultra Legacy
-  funcstr = "func = lambda e: e."+' and e.'.join(filters)
+  funcstr = "lambda e: e."+' and e.'.join(filters)
   if verb>=1:
     LOG.verb(">>> getmetfilters: %r"%(funcstr))
-  exec(funcstr) #in locals()
-  return func
+  return eval(funcstr)
   
 
 def loosestIso(tau):
