@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (April 2020)
-import os, re, glob, json
+import os, sys, re, glob, json
 from datetime import datetime
 from collections import OrderedDict
 from TauFW.common.tools.file import ensuredir, getline
@@ -285,7 +285,7 @@ def preparejobs(args):
                 filetag  += "_%d"%(firstevt/maxevts__)
               
               # BUILD COMMAND
-              python      = "python2" if sys.version<3 else "python3"
+              python      = "python2" if sys.version_info.major<3 else "python3"
               runcmd      = "%s %s"%(python,processor)
               if procopts:
                 jobcmd   += " %s"%(procopts)

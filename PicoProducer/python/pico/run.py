@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (April 2020)
-import os
+import os, sys
 from TauFW.common.tools.utils import execute
 from TauFW.PicoProducer.analysis.utils import ensuremodule
 from TauFW.PicoProducer.storage.utils import getsamples, print_no_samples
@@ -137,7 +137,7 @@ def main_run(args):
             print(">>> ]")
         
         # RUN
-        python = "python2" if sys.version<3 else "python3"
+        python = "python2" if sys.version_info.major<3 else "python3"
         runcmd = "%s %s"%(python,processor)
         if procopts:
           runcmd += " %s"%(procopts)
