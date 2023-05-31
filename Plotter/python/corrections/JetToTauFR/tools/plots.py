@@ -15,6 +15,7 @@ there is absolutely no problem in doing so.
 #================================================================================================
 # Import Modules
 #================================================================================================
+from __future__ import print_function # for python3 compatibility
 from past.builtins import basestring # for python2 compatibility
 import sys
 import array

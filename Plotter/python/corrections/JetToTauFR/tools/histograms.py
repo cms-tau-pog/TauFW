@@ -8,6 +8,7 @@
 #================================================================================================   
 # Import modules
 #================================================================================================   
+from __future__ import print_function # for python3 compatibility
 from past.builtins import basestring # for python2 compatibility
 import os, sys
 import glob
