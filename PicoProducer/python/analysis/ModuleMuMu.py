@@ -7,7 +7,7 @@ from TauFW.PicoProducer.analysis.ModuleTauPair import *
 from TauFW.PicoProducer.analysis.utils import LeptonPair, idIso, matchtaujet
 from TauFW.PicoProducer.corrections.MuonSFs import *
 from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
-from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
+#from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
 class ModuleMuMu(ModuleTauPair):
