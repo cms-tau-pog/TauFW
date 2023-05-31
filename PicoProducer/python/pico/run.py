@@ -137,7 +137,8 @@ def main_run(args):
             print(">>> ]")
         
         # RUN
-        runcmd = processor
+        python = "python2" if sys.version<3 else "python3"
+        runcmd = "%s %s"%(python,processor)
         if procopts:
           runcmd += " %s"%(procopts)
         if skim:

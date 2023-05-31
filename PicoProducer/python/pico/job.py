@@ -226,7 +226,7 @@ def preparejobs(args):
             print(">>>   %r"%file)
           print(">>> ]")
         
-        # CHUNKS - partition/split list 
+        # CHUNKS - partition/split list of input files
         infiles.sort() # to have consistent order with resubmission
         chunks    = [ ] # chunk indices
         if maxevts_>1:
@@ -262,6 +262,8 @@ def preparejobs(args):
         if fchunks:
           with open(joblist,'w') as listfile:
             ichunk = 0
+            
+            # PREPARE JOB per input chunk
             for fchunk in fchunks:
               while ichunk in chunkdict:
                 ichunk   += 1 # allows for different nfilesperjob on resubmission
@@ -281,7 +283,10 @@ def preparejobs(args):
                 filetag  += "_%d"%(ichunk)
               elif firstevt>=0:
                 filetag  += "_%d"%(firstevt/maxevts__)
-              jobcmd      = processor
+              
+              # BUILD COMMAND
+              python      = "python2" if sys.version<3 else "python3"
+              runcmd      = "%s %s"%(python,processor)
               if procopts:
                 jobcmd   += " %s"%(procopts)
               if skim:

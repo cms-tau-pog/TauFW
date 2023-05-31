@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (April 2020)
 import os, sys, glob, json
 #import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -11,8 +11,7 @@ try:
 except ImportError as err:
   print("\033[1m\033[31mImportError for TauFW modules: Please check if you compiled with `scram b`.")
   if sys.version_info[0]<3:
-    print("For CMSSW_12_X and higher, please check if you have the correct python version by default,\n"
-          "for which you can try this hack: `python() { python3 $@; }; export -f python`.\033[0m")
+    print("For releases older than CMSSW_12_X, please use pico2.py with python2.\033[0m")
   raise err
   
 
