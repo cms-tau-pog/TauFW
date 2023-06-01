@@ -3,14 +3,31 @@
     "skim": "skimjob.py", 
     "skim-jec": "skimjob.py --jec-sys",
     "gen": "GenDumper", 
-    "mutau": "ModuleMuTauSimple"
+    "mutau": "ModuleMuTau_nanoV10_DeepTau2p5",
+    "mutau_LTFUp": "ModuleMuTau_nanoV10_DeepTau2p5 ltf=1.030", 
+    "mutau_LTFDown": "ModuleMuTau_nanoV10_DeepTau2p5 ltf=0.970", 
+    "mutau_JTFUp": "ModuleMuTau_nanoV10_DeepTau2p5 jtf=1.100", 
+    "mutau_JTFDown": "ModuleMuTau_nanoV10_DeepTau2p5 jtf=0.900",
+    "mumu": "ModuleMuMu"
   }, 
   "eras": {
     "2016": "examples/samples_2016.py", 
     "2017": "examples/samples_2017.py", 
-    "2018": "examples/samples_2018.py"
+    "2018": "examples/samples_2018.py",
+    "UL2018": "samples_UL2018.py",
+    "UL2018_v10": "samples_UL2018_nanoV10.py"
   }, 
-  "nfilesperjob": 1, 
+  "nfilesperjob": 20, 
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "basedir": "/afs/cern.ch/user/s/smonig/afsWorkspace/CMS/TauPOG/TauFW/CMSSW_10_6_13/src/TauFW/PicoProducer", 
+  "outdir": "/eos/user/s/smonig/TauPOG/DeepTauv2p5_SFchecks_v2/output/$ERA/$CHANNEL/$SAMPLE", 
+  "nanodir": "/eos/user/s/smonig/TauPOG/DeepTauv2p5_SFchecks_v2/samples/nano/$ERA/$DAS", 
+  "picodir": "/eos/user/s/smonig/TauPOG/DeepTauv2p5_SFchecks_v2/analysis/$ERA/$GROUP", 
+  "tmpskimdir": "", 
+  "batch": "HTCondor", 
+  "queue": "tomorrow", 
+  "maxevtsperjob": 500000, 
+  "maxopenfiles": 500, 
+  "ncores": 4
 }

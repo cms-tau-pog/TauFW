@@ -642,28 +642,23 @@ def main(args):
   plotdir   = "weights/$ERA"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   tag       = ""
+
+  # Adding all years together -- ZpT is generator correction
+  samples = SampleSet()
   for era in eras:
-    ###if 'UL' in era: # Summer19UL has no DY*JetsToLL_M-10to50
-    ###  global Zmbins0, Zmbins1, baseline
-    ###  print ">>> Editing Zmbins0, Zmbins1, and baseline!"
-    ###  if 10 in Zmbins0: Zmbins0.remove(10)
-    ###  if 10 in Zmbins1: Zmbins1.remove(10)
-    ###  baseline = baseline.replace("m_ll>20","m_ll>50")
-    ###  print ">>> Zmbins0 = %s"%(Zmbins0)
-    ###  print ">>> Zmbins1 = %s"%(Zmbins1)
-    ###  print ">>> baseline = %r"%(baseline)
     setera(era) # set era for plot style and lumi-xsec normalization
     tag_     = tag+'_'+era
     outdir_  = ensuredir(repkey(outdir,ERA=era))
     plotdir_ = ensuredir(repkey(plotdir,ERA=era))
-    samples  = getsampleset(channel,era,fname=fname,dyweight="",dy=dytype)
-    if 1 in methods:
-      measureZpt_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,
-                        tag=tag_,verb=verbosity) # 1D
-    if 2 in methods:
-      measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,
-                            tag=tag_,yvar=yvar,dy=dytype,syst=syst,verb=verbosity) # 2D
-    samples.close() # close all sample files to clean memory
+    samples  += getsampleset(channel,era,fname=fname,dyweight="",dy=dytype)
+
+  if 1 in methods:
+    measureZpt_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,
+                      tag=tag_,verb=verbosity) # 1D
+  if 2 in methods:
+    measureZptmass_unfold(samples,outdir=outdir_,plotdir=plotdir_,parallel=parallel,
+                      tag=tag_,yvar=yvar,dy=dytype,syst=syst,verb=verbosity) # 2D
+  samples.close() # close all sample files to clean memory
   
 
 if __name__ == "__main__":
