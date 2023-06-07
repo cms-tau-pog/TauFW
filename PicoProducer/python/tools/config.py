@@ -51,7 +51,7 @@ _cfgdefaults   = OrderedDict([                    # ordered dictionary with defa
   ('batch',_batchsystem), ('queue',_queue),
   ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
   ('filelistdir',_filelistdir),
-  ('maxopenfiles',_maxopenfiles),
+  ('maxopenfiles',_maxopenfiles), ('haddcmd', "" ), # for pico.py hadd
   ('ncores',_ncores),
 ])
 sys.path.append(basedir)
@@ -119,7 +119,7 @@ def getconfig(verb=0,refresh=False):
   
   CONFIG = Config(cfgdict,cfgname)
   return CONFIG
-
+  
 
 def setdefaultconfig(verb=0):
   """Set configuration to default values."""

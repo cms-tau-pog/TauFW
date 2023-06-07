@@ -106,7 +106,9 @@ if __name__ == "__main__":
   parser_job.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
                                                 help="for skimming only: temporary output directory befor copying to outdir")
   parser_hdd_.add_argument('-m','--maxopenfiles',dest='maxopenfiles', type=int, default=CONFIG.maxopenfiles,
-                           metavar='NFILES',     help="maximum numbers to be opened during hadd, default=%(default)d")
+                           metavar='NFILES',    help="maximum numbers to be opened during hadd, default=%(default)d")
+  parser_hdd_.add_argument('--haddcmd',         dest='haddcmd', default=CONFIG.haddcmd,
+                                                help="alternative hadd command, e.g. haddnano.py")
   
   # SUBCOMMANDS
   subparsers = parser.add_subparsers(title="sub-commands",dest='subcommand',help="sub-command help")

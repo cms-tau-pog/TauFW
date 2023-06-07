@@ -867,6 +867,7 @@ def main_status(args):
   dasfilters     = args.dasfilters   # filter (only include) these das paths (glob patterns)
   vetoes         = args.vetoes       # exclude these sample (glob patterns)
   dasvetoes      = args.dasvetoes    # exclude these DAS paths (glob patterns)
+  haddcmd        = args.haddcmd      # alternative hadd command, e.g. haddnano.py
   force          = args.force
   subcmd         = args.subcommand
   cleanup        = subcmd=='clean' or (subcmd=='hadd' and args.cleanup) or subcmd=='haddclean'
@@ -941,7 +942,7 @@ def main_status(args):
           postfix  = sample.jobcfg['postfix']
           storedir = repkey(storedirformat,ERA=era,CHANNEL=channel_,TAG=tag,SAMPLE=sample.name,
                                            DAS=sample.paths[0].strip('/'),GROUP=sample.group)
-          storage  = getstorage(storedir,ensure=True,verb=verbosity)
+          storage  = getstorage(storedir,ensure=True,haddcmd=haddcmd,verb=verbosity)
           outfile  = '%s_%s%s.root'%(sample.name,channel_,tag)
           infiles  = os.path.join(outdir,'*%s_[0-9]*.root'%(postfix))
           cfgfiles = os.path.join(cfgdir,'job*%s_try[0-9]*.*'%(postfix))
@@ -964,11 +965,8 @@ def main_status(args):
             continue
           
           if subcmd in ['hadd','haddclean']:
-            #haddcmd = 'hadd -f %s %s'%(outfile,infiles)
-            #haddout = execute(haddcmd,dry=dryrun,verb=max(1,verbosity))
             haddout = storage.hadd(infiles,outfile,dry=dryrun,verb=cmdverb,maxopenfiles=maxopenfiles)
             # TODO: add option to print out cutflow for outfile
-            #os.system(haddcmd)
           
           # CLEAN UP
           # TODO: check if hadd was succesful with isvalid

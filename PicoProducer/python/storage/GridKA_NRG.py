@@ -11,16 +11,16 @@ class GridKA_NRG(StorageSystem):
     def __init__(self, path, verb=0, ensure=False):
         """NRG Storage at GridKA"""
         super(GridKA_NRG, self).__init__(path, verb=verb, ensure=False)
-        self.lscmd = "xrdfs"
-        self.lsurl = "root://cmsxrootd-kit.gridka.de/ ls "
-        self.rmcmd = "xrdfs"
-        self.rmurl = "root://cmsxrootd-kit.gridka.de/ ls "
-        self.mkdrcmd = "xrdfs"
-        self.mkdrurl = 'root://cmsxrootd-kit.gridka.de/ mkdir -p '
-        self.cpcmd = 'xrdcp -f'
-        self.cpurl = "root://cmsxrootd-kit.gridka.de/"
-        self.tmpdir = '/tmp/'
-        self.fileurl = "root://cmsxrootd-kit.gridka.de/"
+        self.lscmd      = "xrdfs"
+        self.lsurl      = "root://cmsxrootd-kit.gridka.de/ ls "
+        self.rmcmd      = "xrdfs"
+        self.rmurl      = "root://cmsxrootd-kit.gridka.de/ ls "
+        self.mkdrcmd    = "xrdfs"
+        self.mkdrurl    = 'root://cmsxrootd-kit.gridka.de/ mkdir -p '
+        self.cpcmd      = 'xrdcp -f'
+        self.cpurl      = "root://cmsxrootd-kit.gridka.de/"
+        self.tmpdir     = '/tmp/'
+        self.fileurl    = "root://cmsxrootd-kit.gridka.de/"
         self.localmount = "/storage/gridka-nrg/"
         if ensure:
             self.ensuredir(self.path)
@@ -46,11 +46,11 @@ class GridKA_NRG(StorageSystem):
 
     def hadd(self, sources, target, **kwargs):
         """
-    Hadd files. For NRG we use the local mountpoint at 
-    /storage/gridka-nrg for this, merge locally 
-    and then move the file back to NRG.
-    os.path.relpath(old_path, '/abc/dfg/')
-    """
+        Hadd files. For NRG we use the local mountpoint at 
+        /storage/gridka-nrg for this, merge locally 
+        and then move the file back to NRG.
+        os.path.relpath(old_path, '/abc/dfg/')
+        """
         target = self.expandpath(target, here=True)
         verb = kwargs.get('verb', self.verbosity)
         tmpdir = kwargs.get('tmpdir', target.startswith(self.parent))

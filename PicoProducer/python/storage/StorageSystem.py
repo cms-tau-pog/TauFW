@@ -12,7 +12,7 @@ import getpass, platform
 
 class StorageSystem(object):
   
-  def __init__(self,path,verb=0,ensure=False):
+  def __init__(self,path,ensure=False,verb=0,**kwargs):
     self.path    = path.rstrip('/')
     self.lscmd   = 'ls'
     self.lsurl   = ''
@@ -28,7 +28,7 @@ class StorageSystem(object):
     self.chmdprm = '777'
     self.chmdcmd = 'chmod'
     self.chmdurl = ''
-    self.haddcmd = 'hadd -f'
+    self.haddcmd = kwargs.get('haddcmd',None) or 'hadd -f'
     self.tmpdir  = '/tmp/$USER/' # $TMPDIR # mounted temporary directory
     self.fileurl = ""
     self.verbosity = verb
@@ -196,7 +196,7 @@ class StorageSystem(object):
       print(">>> %-10s = %r"%('htarget',htarget))
       print(">>> %-10s = %r"%('maxopen',maxopen))
     haddcmd = self.haddcmd
-    if maxopen>=1:
+    if maxopen>=1 and 'haddnano.py' not in haddcmd:
       haddcmd += " -n %s"%(maxopen)
     out = self.execute("%s %s %s"%(haddcmd,htarget,source),dry=dryrun,verb=verb)
     if tmpdir: # copy hadd target and remove temporary file
