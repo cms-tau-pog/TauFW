@@ -9,9 +9,9 @@ from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
 
 class T2_DESY(StorageSystem):
   
-  def __init__(self,path,verb=0,ensure=False):
+  def __init__(self,path,verb=0,ensure=False,**kwargs):
     """dCache at DESY"""
-    super(T2_DESY,self).__init__(path,verb=verb,ensure=False)
+    super(T2_DESY,self).__init__(path,verb=verb,ensure=False,**kwargs)
     self.lscmd   = "ls"
     self.lsurl   = ""
     self.rmcmd   = "srmrm"

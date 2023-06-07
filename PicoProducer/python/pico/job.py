@@ -867,11 +867,14 @@ def main_status(args):
   dasfilters     = args.dasfilters   # filter (only include) these das paths (glob patterns)
   vetoes         = args.vetoes       # exclude these sample (glob patterns)
   dasvetoes      = args.dasvetoes    # exclude these DAS paths (glob patterns)
-  haddcmd        = args.haddcmd      # alternative hadd command, e.g. haddnano.py
   force          = args.force
   subcmd         = args.subcommand
   cleanup        = subcmd=='clean' or (subcmd=='hadd' and args.cleanup) or subcmd=='haddclean'
-  maxopenfiles   = args.maxopenfiles if subcmd=='hadd' else 0 # maximum number of files opened during hadd, via -n option
+  haddcmd        = ""
+  maxopenfiles   = 0
+  if 'hadd' in subcmd:
+    haddcmd      = args.haddcmd      # alternative hadd command, e.g. haddnano.py
+    maxopenfiles = args.maxopenfiles # maximum number of files opened during hadd, via -n option
   dryrun         = args.dryrun       # run through routine without actually executing hadd, rm, ...
   ncores         = args.ncores       # number of cores; validate output files in parallel
   verbosity      = args.verbosity

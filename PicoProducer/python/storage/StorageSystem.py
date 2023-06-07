@@ -12,7 +12,7 @@ import getpass, platform
 
 class StorageSystem(object):
   
-  def __init__(self,path,ensure=False,verb=0,**kwargs):
+  def __init__(self,path,verb=0,**kwargs):
     self.path    = path.rstrip('/')
     self.lscmd   = 'ls'
     self.lsurl   = ''

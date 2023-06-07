@@ -40,30 +40,31 @@ def gettmpdirs():
   return tmpskimdir, tmphadddir
   
 
-def getstorage(path,verb=0,ensure=False):
+def getstorage(path,**kwargs):
   """Guess the storage system based on the path."""
+  verb = kwargs.get('verb',0)
   if path.startswith('/eos/'):
     from TauFW.PicoProducer.storage.EOS import EOS
-    storage = EOS(path,ensure=ensure,verb=verb)
+    storage = EOS(path,**kwargs)
   #elif path.startswith('/castor/'):
-  #  storage = Castor(path,verb=verb)
+  #  storage = Castor(path,**kwargs)
   elif path.startswith('/pnfs/psi.ch/'):
     from TauFW.PicoProducer.storage.T3_PSI import T3_PSI
-    storage = T3_PSI(path,ensure=ensure,verb=verb)
+    storage = T3_PSI(path,**kwargs)
   elif path.startswith('/pnfs/desy.de/'):
     from TauFW.PicoProducer.storage.T2_DESY import T2_DESY
-    storage = T2_DESY(path,ensure=ensure,verb=verb)
+    storage = T2_DESY(path,**kwargs)
   elif path.startswith("/store/user") and ("etp" in host and "ekp" in host):
     from TauFW.PicoProducer.storage.GridKA_NRG import GridKA_NRG
-    storage = GridKA_NRG(path,ensure=ensure,verb=verb)
+    storage = GridKA_NRG(path,**kwargs)
   elif path.startswith('/pnfs/lcg.cscs.ch/'):
     from TauFW.PicoProducer.storage.T2_PSI import T2_PSI
-    storage = T2_PSI(path,ensure=ensure,verb=verb)
+    storage = T2_PSI(path,**kwargs)
   #elif path.startswith('/pnfs/iihe/'):
-  #  return T2_IIHE(path,verb=verb)
+  #  return T2_IIHE(path,**kwargs)
   else:
     from TauFW.PicoProducer.storage.StorageSystem import Local
-    storage = Local(path,ensure=ensure,verb=verb)
+    storage = Local(path,**kwargs)
     if not os.path.exists(path):
       LOG.warning("Could not find storage directory %r. Make sure it exists and is mounted. "%(path)+\
                   "If it is a special system, you need to subclass StorageSystem, see "

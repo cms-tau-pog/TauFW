@@ -8,9 +8,9 @@ import getpass, platform
 
 
 class GridKA_NRG(StorageSystem):
-    def __init__(self, path, verb=0, ensure=False):
+    def __init__(self,path,verb=0,ensure=False,**kwargs):
         """NRG Storage at GridKA"""
-        super(GridKA_NRG, self).__init__(path, verb=verb, ensure=False)
+        super(GridKA_NRG, self).__init__(path,verb=verb,ensure=False,**kwargs)
         self.lscmd      = "xrdfs"
         self.lsurl      = "root://cmsxrootd-kit.gridka.de/ ls "
         self.rmcmd      = "xrdfs"
