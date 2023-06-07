@@ -15,7 +15,7 @@ parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ],
 parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
 parser.add_argument('-C', '--copydir',  dest='copydir',   type=str, default=None)
 parser.add_argument('-s', '--firstevt', dest='firstevt',  type=int, default=0)
-parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=-1)
+parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=None)
 parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="")
 parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
 parser.add_argument('-y','-e','--era',  dest='era',       type=str, default='2018')
@@ -47,7 +47,7 @@ outdir    = ensuredir(args.outdir) # directory to create output
 copydir   = args.copydir           # directory to copy output to at end
 firstevt  = args.firstevt          # index of first event to run
 maxevts   = args.maxevts           # maximum number of events to run
-nfiles    = 1 if maxevts>0 else -1 # maximum number of files to run
+nfiles    = 1 if (maxevts!=None and maxevts>0) else -1 # maximum number of files to run
 tag       = args.tag               # postfix tag of job output file
 if tag:
   tag     = ('' if tag.startswith('_') else '_') + tag
