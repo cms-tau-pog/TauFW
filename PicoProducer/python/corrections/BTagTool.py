@@ -193,7 +193,7 @@ class BTagWeightTool:
     print("Loading BTagWeightTool for %s (%s WP) %s..."%(tagger,wp,csvname)) #,(", "+sigma) if sigma!='central' else ""
     if 'validate' in BTagCalibration.__init__.__doc__: # for CMSSW_12_X
       calib = BTagCalibration(tagger,csvname,False) # validate=False to speed up
-    else: # for older than CMSSW_12_X
+    else: # for older than CMSSW_12_X ('validate' argument not available)
       calib = BTagCalibration(tagger,csvname)
     if csvname_bc and csvname_bc!=csvname:
       print("  and from %s..."%(csvname_bc))

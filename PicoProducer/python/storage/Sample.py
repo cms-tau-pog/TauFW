@@ -89,7 +89,7 @@ class Sample(object):
     self.refreshable  = not self.files                       # allow refresh of file list in getfiles()
     
     # CHECK PATH FORMAT
-    if not self.storepath and not self.files:
+    if not self.storepath: #and not self.files:
       for path in self.paths:
         if path.count('/')<3 or not path.startswith('/'):
           LOG.warn("DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/TIER."%(path))

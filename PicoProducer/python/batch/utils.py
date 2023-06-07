@@ -20,7 +20,7 @@ def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
   and update input fnames to bookkeep first event and maximum events.
   E.g. ['nano_1.root','nano_2.root','nano_3.root','nano_4.root']
         -> [ ['nano_1.root:0:1000'], ['nano_1.root:1000:1000'], # 'fname:firstevt:maxevts'
-             ['nano_2.root','nano_3.root','nano_4.root'] ]
+             ['nano_2.root','nano_3.root','nano_4.root'] ] # group files with <maxevts events each
   """ 
   result   = [ ] # list of chunks
   nlarge   = { }

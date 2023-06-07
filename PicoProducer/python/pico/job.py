@@ -122,7 +122,7 @@ def preparejobs(args):
         maxevts_   = maxevts if maxevts!=None else sample.maxevts if sample.maxevts!=None else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
           nfilesperjob_ = int(max(1,nfilesperjob_/float(split_nfpj)))
-        elif resubmit and maxevts<=0: # reuse previous maxevts settings if maxevts not set by user
+        elif resubmit and (maxevts==None or maxevts<=0): # reuse previous maxevts settings if maxevts not set by user
           maxevts_ = sample.jobcfg.get('maxevts',maxevts_)
           if nfilesperjob<=0: # reuse previous nfilesperjob settings if nfilesperjob not set by user
             nfilesperjob_ = sample.jobcfg.get('nfilesperjob',nfilesperjob_)
@@ -397,6 +397,7 @@ def checkchunks(sample,**kwargs):
     print(">>> %-12s = %s"%('ndasevents',ndasevents))
   if verbosity>=3:
     print(">>> %-12s = %s"%('chunkdict',chunkdict))
+    print(">>> %-12s = %s"%('ncores',ncores))
   
   # CHECK PENDING JOBS
   if checkqueue<0 or pendjobs:
@@ -472,8 +473,9 @@ def checkchunks(sample,**kwargs):
     goodfiles = [ ]
     bar       = None # loading bar
     if verbosity<=1 and len(outfiles)>=15:
+      status = "files, 0/%d events (0%%)"%(ndasevents) if ndasevents>0 else "files"
       bar = LoadingBar(len(outfiles),width=20,pre=">>> Checking output files: ",
-                       message="files, 0/%d (0%%)"%(ndasevents),counter=True,remove=True)
+                       message=status,counter=True,remove=True)
     elif verbosity>=2:
       print(">>> %-12s = %s"%('pendchunks',pendchunks))
       print(">>> %-12s = %s"%('outfiles',outfiles))
@@ -539,7 +541,7 @@ def checkchunks(sample,**kwargs):
         #LOG.warning("Did not recognize output file '%s'!"%(fname))
         continue
       if bar:
-        status = "files, %s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else ""
+        status = "files, %s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else "files"
         bar.count(status)
     
     # GET FILES for RESUBMISSION + sanity checks
@@ -708,7 +710,7 @@ def checkchunks(sample,**kwargs):
     if checkevts:
       ratio = 100.0*nprocevents/ndasevents
       rcol  = 'green' if ratio>90. else 'yellow' if ratio>80. else 'red'
-      rtext = ": "+color("%d/%d (%d%%)"%(nprocevents,ndasevents,ratio),rcol,bold=True)
+      rtext = ": "+color("%d/%d events (%d%%)"%(nprocevents,ndasevents,ratio),rcol,bold=True)
     else:
       rtext = ": expect %d events"%(ndasevents)
   printchunks(goodchunks,'SUCCESS', "Chunks with output in outdir"+rtext,'green')

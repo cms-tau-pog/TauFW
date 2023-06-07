@@ -130,16 +130,24 @@ def getnevents(fname,treename='Events',verb=0):
 def isvalid(fname,hname='cutflow',bin=1):
   """Check if a given file is valid, or corrupt."""
   nevts = -1
-  file  = TFile.Open(fname,'READ')
+  try:
+    file = TFile.Open(fname,'READ')
+  except OSError as err:
+    print(err)
+    file = None
   if file and not file.IsZombie():
     if file.GetListOfKeys().Contains('Events'): # NANOAOD
       nevts = file.Get('Events').GetEntries()
       if nevts<=0:
         LOG.warning("'Events' tree of file %r has nevts=%s<=0..."%(fname,nevts))
     elif file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains(hname): # pico
-      nevts = file.Get(hname).GetBinContent(bin)
-      if nevts<=0:
-        LOG.warning("Cutflow of file %r has nevts=%s<=0..."%(fname,nevts))
+      hist = file.Get(hname)
+      if hist:
+        nevts = hist.GetBinContent(bin)
+        if nevts<=0:
+          LOG.warning("Cutflow of file %r has nevts=%s<=0..."%(fname,nevts))
+      else: # corrupted ?
+        LOG.warning("Could not open cutflow %s:%s..."%(fname,hname))
   return nevts
   
 
