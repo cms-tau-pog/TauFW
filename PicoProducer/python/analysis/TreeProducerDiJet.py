@@ -2,7 +2,7 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
-from .TreeProducerHighPT import TreeProducerHighPT
+from TauFW.PicoProducer.analysis.TreeProducerHighPT import TreeProducerHighPT
 
 
 class TreeProducerDiJet(TreeProducerHighPT):

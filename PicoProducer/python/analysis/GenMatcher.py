@@ -26,7 +26,7 @@
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
 from ROOT import TH2D, gStyle, kRed
-from .TreeProducer import TreeProducer
+from TauFW.PicoProducer.analysis.TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 from TauFW.PicoProducer.analysis.utils import hasbit

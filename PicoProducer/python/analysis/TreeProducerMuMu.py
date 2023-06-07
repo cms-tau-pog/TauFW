@@ -2,7 +2,7 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
-from .TreeProducerTauPair import TreeProducerTauPair
+from TauFW.PicoProducer.analysis.TreeProducerTauPair import TreeProducerTauPair
 
 
 class TreeProducerMuMu(TreeProducerTauPair):
