@@ -4,7 +4,6 @@ import os, re, glob
 import importlib
 import platform
 from TauFW.common.tools.file import ensureTFile
-import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.PicoProducer.batch import moddir
 from TauFW.common.tools.log import Logger
 from TauFW.common.tools.file import ensurefile, ensureTFile
