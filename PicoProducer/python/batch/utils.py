@@ -20,9 +20,7 @@ def guess_batch():
   """Guess the batch system for a host."""
   host = platform.node()
   batch = "HTCondor"
-  if 'lxplus' in host:
-    batch = "HTCondor"
-  elif "etp" in host:
+  if "etp" in host:
     batch = "HTCondor_KIT"
   ###elif "etp" in host:
   ###  batch = "HTCondor_DESY"
@@ -30,7 +28,7 @@ def guess_batch():
   ###  batch = "HTCondor_NAF"
   elif "t3" in host and "psi.ch" in host:
     batch = "SLURM"
-  return sedir
+  return batch
   
 
 def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):

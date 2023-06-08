@@ -84,5 +84,5 @@ if __name__ == '__main__':
   p = PostProcessor(outdir,infiles,cut=None,branchsel=None,maxEntries=maxevts,
                     modules=modules,postfix=postfix,noOut=False)
   p.run()
-  print((">>> TestModule.py done after %.1f seconds"%(time.time()-time0)))
+  print(">>> TestModule.py done after %.1f seconds"%(time.time()-time0))
   

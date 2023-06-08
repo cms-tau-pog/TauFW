@@ -5,7 +5,7 @@
 # https://twiki.cern.ch/twiki/bin/view/CMS/MuonLegacy2016
 import os
 from TauFW.PicoProducer import datadir
-from .ScaleFactorTool import ScaleFactor, ScaleFactorHTT
+from TauFW.PicoProducer.corrections.ScaleFactorTool import ScaleFactor, ScaleFactorHTT
 pathPOG = os.path.join(datadir,"lepton/MuonPOG/")
 pathHTT = os.path.join(datadir,"lepton/HTT/Muon/")
 

@@ -80,20 +80,20 @@ class HTCondor(BatchSystem):
     rows      = self.execute(subcmd,verb=verbosity)
     jobs      = JobList()
     if rows and self.verbosity>=1:
-      print((">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args')))
+      print(">>> %10s %10s %8s %8s   %s"%('user','jobid','taskid','status','args'))
     for row in rows.split('\n'):
       values = row.split()
       if len(values)<5:
         continue
       if verbosity>=3:
-        print((">>> job row: %s"%(row)))
+        print(">>> job row: %s"%(row))
       user   = values[0]
       jobid  = values[1]
       taskid = values[2]
       status = self.statusdict.get(int(values[3]),'?')
       args   = ' '.join(values[4:])
       if self.verbosity>=1:
-        print((">>> %10s %10s %8s %8s   %s"%(user,jobid,taskid,status,args)))
+        print(">>> %10s %10s %8s %8s   %s"%(user,jobid,taskid,status,args))
       job    = Job(self,jobid,taskid=taskid,args=args,status=status)
       jobs.append(job)
     return jobs

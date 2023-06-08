@@ -58,10 +58,10 @@ def ensurebranches(tree,branches):
 def redirectbranch(oldbranch,newbranch):
   """Redirect some branch names. newbranch -> oldbranch"""
   if isinstance(oldbranch,str): # rename
-    print(("redirectbranch: directing %r -> %r"%(newbranch,oldbranch)))
+    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
     exec("setattr(Event,newbranch,property(lambda self: self._tree.readBranch(%r)))"%(oldbranch))
   else: # set default value
-    print(("redirectbranch: directing %r -> %r"%(newbranch,oldbranch)))
+    print("redirectbranch: directing %r -> %r"%(newbranch,oldbranch))
     exec("setattr(Event,newbranch,%s)"%(oldbranch))
   
 
@@ -254,7 +254,7 @@ def getmet(era,var="",useT1=False,verb=0):
     pt  += '_'+var
     phi += '_'+var
   funcstr = "lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
-  if verb+2>=1:
+  if verb>=1:
     LOG.verb(">>> getmet: %r"%(funcstr))
   return eval(funcstr)
   

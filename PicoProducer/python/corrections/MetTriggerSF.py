@@ -13,7 +13,7 @@ class METTriggerSF:
     self.histo = { } 
     for label in self.labels: 
       self.histo[label] = self.rootfile.Get(label)
-      print((label,self.histo[label]))
+      print(label,self.histo[label])
 
   def getWeight(self,metnomu,mhtnomu):
 

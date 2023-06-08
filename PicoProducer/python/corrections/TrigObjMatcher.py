@@ -123,13 +123,12 @@ class Trigger:
     patheval      =  "e."+path
     if runrange:
       patheval    = "e.run>=%d and e.run<=%d and %s"%(runrange[0],runrange[1],patheval)
-    self.filters  = filters                             # list of trigger filters, one per leg
-    self.runrange = runrange                            # range of run for this trigger formatted as (first,last); for data only
-    self.path     = path                                # human readable trigger combination
-    self.patheval = patheval                            # trigger evaluation per event 'e'
-    self.fireddef = "self.fired = lambda e: "+patheval  # exact definition of 'fired' function
-    exec(self.fireddef, locals())                      # method to check if trigger was fired for a given event
-    #self.fired = lambda e: any(e.p for p in self.paths)
+    self.filters  = filters               # list of trigger filters, one per leg
+    self.runrange = runrange              # range of run for this trigger formatted as (first,last); for data only
+    self.path     = path                  # human readable trigger combination
+    self.patheval = patheval              # trigger evaluation per event 'e'
+    self.fireddef = "lambda e: "+patheval # exact definition of 'fired' function
+    self.fired    = eval(self.fireddef)   # method to check if trigger was fired for a given event
   
   def __repr__(self):
     """Returns string representation of Trigger object."""
@@ -264,8 +263,8 @@ class TrigObjMatcher:
         patheval += '('+trigger.patheval+')'
       else:
         patheval += trigger.patheval
-    path    = patheval.replace("e.",'').replace(" or "," || ").replace(" and "," && ")
-    firedef = "self.fired = lambda e: "+patheval
+    path = patheval.replace("e.",'').replace(" or "," || ").replace(" and "," && ")
+    fireddef = "lambda e: "+patheval
     
     self.triggers = triggers       # list of triggers
     self.nlegs    = nlegs          # number of legs = number of filters
@@ -275,8 +274,8 @@ class TrigObjMatcher:
     self.bits     = bits           # bitwise 'OR'-combination of all filter bits
     self.path     = path           # human readable trigger combination
     self.patheval = patheval       # trigger evaluation per event 'e'
-    self.fireddef = firedef        # exact definition of 'fired' function
-    exec(self.fireddef, locals()) # method to check if any of the triggers was fired for a given event
+    self.fireddef = fireddef       # exact definition of 'fired' function
+    self.fired    = eval(fireddef) # method to check if any of the triggers was fired for a given event
   
   def __repr__(self):
     """Returns string representation of TriggerFilter object."""
