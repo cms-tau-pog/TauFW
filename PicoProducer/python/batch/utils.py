@@ -2,6 +2,7 @@
 from past.builtins import basestring # for python2 compatibility
 import os, re, glob
 import importlib
+import platform
 from TauFW.common.tools.file import ensureTFile
 import TauFW.PicoProducer.tools.config as GLOB
 from TauFW.PicoProducer.batch import moddir
@@ -14,6 +15,23 @@ from TauFW.PicoProducer.storage.Sample import Sample
 LOG = Logger('Storage')
 evtsplitexp = re.compile(r"(.+\.root):(\d+):(\d+)$") # input file split by events
 
+
+def guess_batch():
+  """Guess the batch system for a host."""
+  host = platform.node()
+  batch = "HTCondor"
+  if 'lxplus' in host:
+    batch = "HTCondor"
+  elif "etp" in host:
+    batch = "HTCondor_KIT"
+  ###elif "etp" in host:
+  ###  batch = "HTCondor_DESY"
+  ###elif "etp" in host:
+  ###  batch = "HTCondor_NAF"
+  elif "t3" in host and "psi.ch" in host:
+    batch = "SLURM"
+  return sedir
+  
 
 def chunkify_by_evts(fnames,maxevts,evenly=True,evtdict=None,verb=0):
   """Split list of files into chunks with total events per chunks less than given maximum,

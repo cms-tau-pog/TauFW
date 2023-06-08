@@ -14,7 +14,7 @@ class HTCondor(BatchSystem):
     self.statusdict = { 'q': ['1'], 'r': ['2','3'], 'f': ['4','5','6'], 'c': ['5'] }
     self.jobidrexp  = re.compile("submitted to cluster (\d+).")
   
-  def submit(self,script,taskfile=None,**kwargs):
+  def submit(self,script=None,taskfile=None,**kwargs):
     """Submit a script with some optional parameters."""
     #jobname   = kwargs.get('name',  'job'           )
     #queue     = kwargs.get('queue', 'microcentury'  )
@@ -30,6 +30,8 @@ class HTCondor(BatchSystem):
     failflags = ["no jobs queued"]
     jobids    = [ ]
     subcmd    = "condor_submit"
+    if script==None:
+      script = self.script
     if not isinstance(appcmds,list):
       appcmds = [appcmds]
     if name:

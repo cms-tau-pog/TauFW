@@ -11,7 +11,8 @@ from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples, chunkify_by_
 from TauFW.PicoProducer.storage.utils import getstorage, getsamples, isvalid, itervalid, print_no_samples
 from TauFW.PicoProducer.pico.run import getmodule
 from TauFW.PicoProducer.pico.common import *
-
+if sys.version_info.major<3: # for compatiblity with python2
+  input = raw_input
 
 
 ####################
@@ -169,7 +170,7 @@ def preparejobs(args):
           elif args.prompt:
             LOG.warning("Job configuration %r already exists and might cause conflicting job output!"%(cfgname))
             while True:
-              submit = raw_input(">>> Submit anyway? [y/n] "%(nchunks))
+              submit = input(">>> Submit anyway? [y/n] "%(nchunks))
               if 'f' in submit.lower(): # submit this job, and stop asking
                 print(">>> Force all.")
                 force = True; skip = True; break
@@ -332,7 +333,7 @@ def preparejobs(args):
         
         # YIELD
         yield jobcfg
-        print
+        print()
       
       if not found:
         print_no_samples(dtypes,filters,vetoes,[channel],jobdir_,jobcfgs)
@@ -791,17 +792,12 @@ def main_submit(args):
     if nchunks<=0:
       print(">>>   Nothing to %ssubmit!"%('re' if resubmit else ''))
       continue
+    script = batch.script
     if batch.system=='HTCondor':
-      # use specific settings for KIT condor
-      if 'etp' in GLOB.host:
-        script = "python/batch/submit_HTCondor_KIT.sub"
-      else:
-        script = "python/batch/submit_HTCondor.sub"
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
       jkwargs.update({ 'app': appcmds })
     elif batch.system=='SLURM':
-      script  = "python/batch/submit_SLURM.sh"
       logfile = os.path.join(logdir,"%x.%A.%a.log") # $JOBNAME.o$JOBID.$TASKID.log
       jkwargs.update({ 'log': logfile, 'array': nchunks })
     #elif batch.system=='SGE':
@@ -812,7 +808,7 @@ def main_submit(args):
     # SUBMIT
     if args.prompt: # ask user confirmation before submitting
       while True:
-        submit = raw_input(">>> Do you want to submit %d jobs to the batch system? [y/n] "%(nchunks))
+        submit = input(">>> Do you want to submit %d jobs to the batch system? [y/n] "%(nchunks))
         if any(s in submit.lower() for s in ['q','exit']): # quit this script
           print(">>> Quitting...")
           exit(0)
@@ -821,7 +817,7 @@ def main_submit(args):
           submit = 'y'
           args.prompt = False # stop asking for next samples
         if 'y' in submit.lower(): # submit this job
-          jobid = batch.submit(script,joblist,**jkwargs)
+          jobid = batch.submit(script,taskfile=joblist,**jkwargs)
           break
         elif 'n' in submit.lower(): # do not submit this job
           print(">>> Not submitting.")
@@ -829,7 +825,7 @@ def main_submit(args):
         else:
           print(">>> '%s' is not a valid answer, please choose y/n."%submit)
     else:
-      jobid = batch.submit(script,joblist,**jkwargs)
+      jobid = batch.submit(script,taskfile=joblist,**jkwargs)
     
     # WRITE JOBCONFIG
     if jobid!=None:
@@ -912,7 +908,7 @@ def main_status(args):
         print(">>> Found samples: "+", ".join(repr(s.name) for s in samples))
       if subcmd in ['hadd','haddclean'] and 'skim' in channel.lower():
         LOG.warning("Hadding into one file not available for skimming...")
-        print
+        print()
         continue
       
       # SAMPLE over SAMPLES
@@ -1012,7 +1008,7 @@ def main_status(args):
           checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,showlogs=showlogs,checkqueue=checkqueue,
                       checkevts=checkevts,das=checkdas,ncores=ncores,verb=verbosity)
         
-        print
+        print()
       
       if not found:
         print_no_samples(dtypes,filters,vetoes,[channel],jobdir_,jobcfgs)

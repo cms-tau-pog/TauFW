@@ -13,7 +13,7 @@ LOG  = Logger('Storage')
 host = platform.node()
 
 
-def getsedir():
+def guess_sedir():
   """Guess the storage element path for a given user and host."""
   user  = getpass.getuser()
   sedir = ""
@@ -26,7 +26,7 @@ def getsedir():
   return sedir
   
 
-def gettmpdirs():
+def guess_tmpdirs():
   """Guess the temporary directory for a given user and host."""
   user  = getpass.getuser()
   tmphadddir = "/tmp/%s/"%(user) # temporary dir for creating intermediate hadd files
@@ -252,5 +252,5 @@ def print_no_samples(dtype=[],filter=[],veto=[],channel=[],jobdir="",jobcfgs="")
         strings.append("channel%s %s"%('s' if len(channel)>1 else "",quotestrs(channel)))
       string += " with "+', '.join(strings)
     print(string)
-  print
+  print()
   

@@ -14,7 +14,7 @@ class SLURM(BatchSystem):
     self.jobidrexp  = re.compile("Submitted batch job (\d+)")
     self.user       = getpass.getuser()
   
-  def submit(self,script,taskfile=None,**kwargs):
+  def submit(self,script=None,taskfile=None,**kwargs):
     """Submit a script with some optional parameters."""
     name      = kwargs.get('name',   None           )
     array     = kwargs.get('array',  None           )
@@ -30,6 +30,8 @@ class SLURM(BatchSystem):
     failflags = ["error"]
     jobids    = [ ]
     subcmd    = "sbatch"
+    if script==None:
+      script = self.script
     if name:
       subcmd += " -J %s"%(name)
     if array:

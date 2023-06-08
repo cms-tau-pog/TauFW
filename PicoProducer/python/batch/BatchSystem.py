@@ -16,6 +16,7 @@ class BatchSystem(object):
     self.verbosity  = verb
     self.statusdict = { }
     self.system     = self.__class__.__name__
+    self.script     = "python/batch/submit_%s.sub"%(self.system)
   
   def __str__(self):
     return self.system
@@ -62,7 +63,7 @@ class BatchSystem(object):
     return jobs
   
   @abstractmethod
-  def submit(self,script,taskfile=None,**kwargs):
+  def submit(self,script=None,taskfile=None,**kwargs):
     """Submit a script with some optional parameters."""
     raise NotImplementedError("BatchSystem.submit is an abstract method. Please implement in a subclass.")
   

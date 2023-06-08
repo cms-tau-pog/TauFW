@@ -10,7 +10,7 @@ from TauFW.PicoProducer.batch.utils import LOG, getbatch
 
 def createtasks(fname,ntasks=2,pause=10):
   with open(fname,'w') as file:
-    for i in xrange(ntasks):
+    for i in range(ntasks):
       file.write("echo 'This is task number %d with environment:'; sleep %d; env\n"%(i,pause))
   return fname
   
@@ -35,18 +35,18 @@ def testBatch(path,verb=0):
   LOG.header("__init__")
   #batch = ensuremodule(system,"PicoProducer.batch."+batch)
   batch     = getbatch(args.batch,verb=verbosity+1)
-  print ">>> %r"%(batch)
-  print ">>> %-10s = %s"%('jobname',jobname)
-  print ">>> %-10s = %s"%('ntasks',ntasks)
-  print ">>> %-10s = %s"%('nchecks',nchecks)
-  print ">>> %-10s = %s"%('outdir',outdir)
-  print ">>> %-10s = %s"%('logdir',logdir)
-  print ">>> %-10s = %s"%('dryrun',dryrun)
-  print ">>> %-10s = %s"%('queue',queue)
-  print ">>> %-10s = %s"%('time',time)
-  print ">>> %-10s = %s"%('batchopts',batchopts)
-  print ">>> %-10s = %s"%('verbosity',verbosity)
-  print ">>> "
+  print(">>> %r"%(batch))
+  print(">>> %-10s = %s"%('jobname',jobname))
+  print(">>> %-10s = %s"%('ntasks',ntasks))
+  print(">>> %-10s = %s"%('nchecks',nchecks))
+  print(">>> %-10s = %s"%('outdir',outdir))
+  print(">>> %-10s = %s"%('logdir',logdir))
+  print(">>> %-10s = %s"%('dryrun',dryrun))
+  print(">>> %-10s = %s"%('queue',queue))
+  print(">>> %-10s = %s"%('time',time))
+  print(">>> %-10s = %s"%('batchopts',batchopts))
+  print(">>> %-10s = %s"%('verbosity',verbosity))
+  print(">>> ")
   
   # PREPARE JOBS
   createtasks(tasklist,ntasks)
@@ -75,17 +75,17 @@ def testBatch(path,verb=0):
   else:
     LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
   jobid = batch.submit(script,tasklist,**jkwargs)
-  print ">>> jobid: %s"%(jobid)
+  print(">>> jobid: %s"%(jobid))
   
   # CHECK JOBS
   LOG.header("Check jobs")
-  for i in xrange(nchecks):
+  for i in range(nchecks):
     jobs = batch.jobs(jobid,verb=verbosity-1) # get refreshed job list
     #jobs = batch.jobs(verb=verbosity-1) # get refreshed job list
-    print ">>>   job objects: %r"%(jobs)
-    print ">>>   "
+    print(">>>   job objects: %r"%(jobs))
+    print(">>>   ")
     #for job in jobs:
-    #  print ">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip())
+    #  print(">>> Found job %r, status=%r, args=%r"%(job,job.getstatus(),job.args.rstrip()))
     if i<nchecks-1:
       sleep(2)
   
@@ -122,5 +122,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

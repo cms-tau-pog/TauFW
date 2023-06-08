@@ -224,8 +224,8 @@ class StorageSystem(object):
 
 class Local(StorageSystem):
   
-  def __init__(self,path,verb=0,ensure=False):
-    super(Local,self).__init__(path,verb=verb,ensure=ensure)
+  def __init__(self,path,verb=0,ensure=False,**kwargs):
+    super(Local,self).__init__(path,verb=verb,ensure=ensure,**kwargs)
     if ensure:
       self.ensuredir(self.path,verb=verb)
   
