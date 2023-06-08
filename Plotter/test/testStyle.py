@@ -20,7 +20,7 @@ def testCMSera():
     eras   = ensurelist(eras)
     args   = ','.join(repr(y) for y in eras)
     result = CMSStyle.setCMSEra(*eras)
-    print ">>> CMSStyle.setCMSera(%s) = %r"%(args,result)
+    print(">>> CMSStyle.setCMSera(%s) = %r"%(args,result))
   
 
 def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0.06,out=True,**kwargs):
@@ -46,17 +46,17 @@ def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0
   # https://root.cern.ch/doc/master/classTPad.html
   H, W = canvas.GetWh()*canvas.GetHNDC(), canvas.GetWw()*canvas.GetWNDC()
   R, M, m = H/W, max(H,W), min(H,W)
-  print ">>> %6s: %8s %8s %8s %8s %8s %8s  %8s"%('pad','Wh','HNDC','Wh*HNDC','Ww','WNDC','Ww*WNDC','Wh*HNDC/Ww*WNDC')
-  print ">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f"%(
+  print(">>> %6s: %8s %8s %8s %8s %8s %8s  %8s"%('pad','Wh','HNDC','Wh*HNDC','Ww','WNDC','Ww*WNDC','Wh*HNDC/Ww*WNDC'))
+  print(">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f"%(
              'canvas',canvas.GetWh(),canvas.GetHNDC(),canvas.GetWh()*canvas.GetHNDC(),
-                      canvas.GetWw(),canvas.GetWNDC(),canvas.GetWw()*canvas.GetWNDC())
+                      canvas.GetWw(),canvas.GetWNDC(),canvas.GetWw()*canvas.GetWNDC()))
   
   # HIST
   hist = TH1F('hist','hist',10,0,100)
   hist.GetXaxis().SetTitle("X title")
   hist.GetYaxis().SetTitle("Y title")
-  print ">>> hist.GetXaxis().GetTitleOffset()=%.4f"%(hist.GetXaxis().GetTitleOffset())
-  print ">>> hist.GetYaxis().GetTitleOffset()=%.4f"%(hist.GetYaxis().GetTitleOffset())
+  print(">>> hist.GetXaxis().GetTitleOffset()=%.4f"%(hist.GetXaxis().GetTitleOffset()))
+  print(">>> hist.GetYaxis().GetTitleOffset()=%.4f"%(hist.GetYaxis().GetTitleOffset()))
   hist.GetXaxis().SetTitleSize(0.045)
   hist.GetYaxis().SetTitleSize(0.045)
   hist.GetXaxis().SetLabelSize(0.040)
@@ -71,7 +71,7 @@ def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0
   # FINISH
   canvas.SaveAs(fname)
   canvas.Close()
-  print ">>> "
+  print(">>> ")
   
 
 def checklegend(samples,tag=""):
@@ -85,7 +85,7 @@ def checklegend(samples,tag=""):
   ydim   = 50*(len(samples)+2)
   #width  = 0.4
   #x1, y1 = 0.1, 0.9
-  print ">>> Canvas: %sx%s (nsamples=%d)"%(xdim,ydim,len(samples))
+  print(">>> Canvas: %sx%s (nsamples=%d)"%(xdim,ydim,len(samples)))
   canvas = TCanvas('canvas','canvas',xdim,ydim)
   #legend = TLegend(x1,y1,x1+width,y1-height)
   legend = TLegend(0,0,1,1)
@@ -147,5 +147,5 @@ def main():
 
 if __name__ == "__main__":
   main()
-  print ">>>\n>>> Done."
+  print(">>>\n>>> Done.")
   

@@ -76,7 +76,7 @@ def compare(fnames,variables,**kwargs):
     plot.drawtext(text)
     plot.saveas(fname)
     plot.close()
-    print
+    print()
     
 
 def main(args):

@@ -86,7 +86,7 @@ if __name__ == "__main__":
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()
-  print
+  print()
   main()
-  print
+  print()
   

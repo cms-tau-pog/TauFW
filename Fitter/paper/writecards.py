@@ -240,7 +240,7 @@ def main():
   
 
 if __name__ == '__main__':
-  print
+  print()
   main()
   print ">>>\n>>> Done harvesting\n"
   

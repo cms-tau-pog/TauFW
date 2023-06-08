@@ -89,9 +89,9 @@ class Selection(object):
     result = None
     weight = joinweights(self.weight,weight)
     if isinstance(weight,str):
-      result = Selection("%s (%s)"(self.name,weight),joincuts(self.selection,weight=weight))
+      result = Selection("%s (%s)"%(self.name,weight),joincuts(self.selection,weight=weight))
     else:
-      result = Selection("%s (%s)"(self.name,weight.title),joincuts(self.selection,weight=weight))
+      result = Selection("%s (%s)"%(self.name,weight.title),joincuts(self.selection,weight=weight))
     return result
   
   def contains(self, string, **kwargs):

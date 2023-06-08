@@ -30,7 +30,7 @@ def makeTColorWheel():
   canvas.SaveAs("TColorWheel.pdf")
 
 
-def drawColorTable(clist=range(0,50),nrow=None,ncol=None,cmax=10,tag="",label=False,RBG=False,newRBG=True,div=2):
+def drawColorTable(clist=list(range(0,50)),nrow=None,ncol=None,cmax=10,tag="",label=False,RBG=False,newRBG=True,div=2):
     # https://root.cern.ch/doc/master/src_2TPad_8cxx_source.html#l01611
     
     if not ncol:
@@ -139,7 +139,7 @@ def findClosestExistingColor(*args,**kwargs):
   return imin, cmin, dmin
   
 def findNonWhiteColors(N=924):
-  for i in xrange(0,N):
+  for i in range(0,N):
     color = gROOT.GetColor(i)
     if i==kWhite:
       yield kWhite, color

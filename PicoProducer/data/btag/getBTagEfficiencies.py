@@ -87,7 +87,7 @@ def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",effdir=Non
   print ">>>   writing to %s..."%(outfname)
   file = TFile(outfname,'UPDATE') #RECREATE
   ensureTDirectory(file,channel)
-  for hname, hist in hists.iteritems():
+  for hname, hist in hists.items():
     if 'all' in hname:
       continue
     hname_all = hname+'_all'
@@ -264,7 +264,7 @@ def createEff1D(histnum2D,histden2D):
     "1.5 < |#eta| < 2.5": [(1,1),(4,4)],
   }
   hists = [ ]
-  for etatitle, bins in etabins.iteritems():
+  for etatitle, bins in etabins.items():
     histnum  = None
     histden  = None
     for bin1, bin2 in bins:
@@ -279,7 +279,7 @@ def createEff1D(histnum2D,histden2D):
     histnum.SetTitle(etatitle)
     hists.append(histnum)
     gDirectory.Delete(histden.GetName())
-    #for i in xrange(0,histnum.GetXaxis().GetNbins()+1):
+    #for i in range(0,histnum.GetXaxis().GetNbins()+1):
     #  print i, histnum.GetBinContent(i)
   return hists
   
@@ -432,7 +432,7 @@ def main():
   
 
 if __name__ == '__main__':
-  print
+  print()
   main()
   print ">>> done\n"
   

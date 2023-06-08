@@ -167,7 +167,7 @@ def main_run(args):
         if not dryrun:
           #execute(runcmd,dry=dryrun,verb=verbosity+1) # real-time print out does not work well with python script 
           os.system(runcmd)
-        print
+        print()
       
 
       

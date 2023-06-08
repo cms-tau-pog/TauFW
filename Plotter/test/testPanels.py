@@ -49,16 +49,16 @@ def plotpanels(ratio,**kwargs):
   BM     = max(BH,BW)
   Tm     = min(TH,TW)
   Bm     = min(BH,BW)
-  print ">>> %6s: %8s %8s %8s %8s %8s %8s  %8s"%('pad','Wh','HNDC','Wh*HNDC','Ww','WNDC','Ww*WNDC','Wh*HNDC/Ww*WNDC')
-  print ">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f"%(
+  print(">>> %6s: %8s %8s %8s %8s %8s %8s  %8s"%('pad','Wh','HNDC','Wh*HNDC','Ww','WNDC','Ww*WNDC','Wh*HNDC/Ww*WNDC'))
+  print(">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f"%(
              'canvas',canvas.GetWh(),canvas.GetHNDC(),canvas.GetWh()*canvas.GetHNDC(),
-                      canvas.GetWw(),canvas.GetWNDC(),canvas.GetWw()*canvas.GetWNDC())
-  print ">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f %10.3f"%(
+                      canvas.GetWw(),canvas.GetWNDC(),canvas.GetWw()*canvas.GetWNDC()))
+  print(">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f %10.3f"%(
              'pad1',pad1.GetWh(),pad1.GetHNDC(),pad1.GetWh()*pad1.GetHNDC(),
-                    pad1.GetWw(),pad1.GetWNDC(),pad1.GetWw()*pad1.GetWNDC(),TR)
-  print ">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f %10.3f"%(
+                    pad1.GetWw(),pad1.GetWNDC(),pad1.GetWw()*pad1.GetWNDC(),TR))
+  print(">>> %6s: %8.1f %8.3f %8.1f %8.1f %8.3f %8.1f %10.3f"%(
              'pad2',pad2.GetWh(),pad2.GetHNDC(),pad2.GetWh()*pad2.GetHNDC(),
-                    pad2.GetWw(),pad2.GetWNDC(),pad2.GetWw()*pad2.GetWNDC(),BR)
+                    pad2.GetWw(),pad2.GetWNDC(),pad2.GetWw()*pad2.GetWNDC(),BR))
   #scale   = 1.0
   #scale   = 1./ratio
   #scale   = (1.-ratio)/ratio
@@ -72,18 +72,18 @@ def plotpanels(ratio,**kwargs):
   toffset = 1.2
   boffset = toffset*oscale
   #boffset = 1.0+(toffset-1)*oscale
-  print ">>> 1/r=%.4f, (1-r)/r=%.4f, HNDC1/HNDC2=%.4f, WNDC1/WNDC2=%.4f, TR/BR=%.4f, TM/BM=%.4f, Tm/Bm=%.4f"%(
-             1./ratio,(1.-ratio)/ratio,pad1.GetHNDC()/pad2.GetHNDC(),pad1.GetWNDC()/pad2.GetWNDC(),TR/BR,TM/BM,Tm/Bm)
-  print ">>> tsize=%.4f, bsize=%.4f, scale=%.4f"%(tsize,bsize,scale)
-  print ">>> toffset=%.4f, boffset=%.4f, scale=%.4f"%(toffset,boffset,oscale)
+  print(">>> 1/r=%.4f, (1-r)/r=%.4f, HNDC1/HNDC2=%.4f, WNDC1/WNDC2=%.4f, TR/BR=%.4f, TM/BM=%.4f, Tm/Bm=%.4f"%(
+             1./ratio,(1.-ratio)/ratio,pad1.GetHNDC()/pad2.GetHNDC(),pad1.GetWNDC()/pad2.GetWNDC(),TR/BR,TM/BM,Tm/Bm))
+  print(">>> tsize=%.4f, bsize=%.4f, scale=%.4f"%(tsize,bsize,scale))
+  print(">>> toffset=%.4f, boffset=%.4f, scale=%.4f"%(toffset,boffset,oscale))
   
   # TOP HIST
   canvas.cd(1)
   thist = TH1D('top','top',10,0,100)
   thist.GetXaxis().SetTitle("X title")
   thist.GetYaxis().SetTitle("Y title")
-  print ">>> thist.GetXaxis().GetTitleOffset()=%.4f"%(thist.GetXaxis().GetTitleOffset())
-  print ">>> thist.GetYaxis().GetTitleOffset()=%.4f"%(thist.GetYaxis().GetTitleOffset())
+  print(">>> thist.GetXaxis().GetTitleOffset()=%.4f"%(thist.GetXaxis().GetTitleOffset()))
+  print(">>> thist.GetYaxis().GetTitleOffset()=%.4f"%(thist.GetYaxis().GetTitleOffset()))
   thist.GetXaxis().SetTitleSize(tsize)
   thist.GetYaxis().SetTitleSize(tsize)
   #thist.GetXaxis().SetTitleOffset(toffset)
@@ -107,7 +107,7 @@ def plotpanels(ratio,**kwargs):
   # FINISH
   canvas.SaveAs(fname)
   canvas.Close()
-  print ">>> "
+  print(">>> ")
   
 
 def main():

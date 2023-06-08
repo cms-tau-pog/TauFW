@@ -228,7 +228,7 @@ def parse_evts(evts,verb=0):
 #  print nevts
 #  vec_lumi = tree.GetV1()
 #  tally = { }
-#  for i in xrange(nevts):
+#  for i in range(nevts):
 #    lumi = float(vec_lumi[i])
 #    if lumi in tally:
 #      tally[lumi] += 1
@@ -256,7 +256,7 @@ def pickevts(fnames,evtstr,verb=0):
     vec_evt  = tree.GetV3()
     if nevts>0:
       print ">>> %s"%(fname)
-      for i in xrange(nevts):
+      for i in range(nevts):
         run  = int(vec_run[i])
         lumi = int(vec_lumi[i])
         evt  = int(vec_evt[i])

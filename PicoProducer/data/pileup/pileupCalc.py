@@ -251,7 +251,7 @@ if __name__ == '__main__':
         # now, we have to find the information for the input runs and LumiSections 
         # in the Lumi/Pileup list. First, loop over inputs
         
-        for (run, lslist) in sorted(six.iteritems(inputRange)):
+        for (run, lslist) in sorted(six.items(inputRange)):
             # now, look for matching run, then match lumi sections
             if options.verbose:
                 print("Searching for run %d..."%(run))

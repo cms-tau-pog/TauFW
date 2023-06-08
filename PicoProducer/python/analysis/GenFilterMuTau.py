@@ -418,7 +418,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     ###gStyle.SetPaintTextFormat(".0f")
     ###for ix in range(1,nxbins+1): # loop over columns
     ###  ntot = hist.GetBinContent(ix,ix)
-    ###  key  = [k for k, v in statusflags_dict.iteritems() if v==ix-1][0]
+    ###  key  = [k for k, v in statusflags_dict.items() if v==ix-1][0]
     ###  hist.GetXaxis().SetBinLabel(ix,key)
     ###  hist.GetYaxis().SetBinLabel(ix,key)
     ###  for iy in range(1,nybins+1): # normalize rows

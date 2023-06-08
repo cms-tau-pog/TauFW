@@ -223,7 +223,7 @@ def getFlatProfile(outfname,max=75,nbins=100,xmin=0,xmax=100):
   hist = TH1F('pileup','pileup',nbins,xmin,xmax)
   hist.Sumw2()
   binc = 1./max
-  for i in xrange(1,max+1):
+  for i in range(1,max+1):
     hist.SetBinContent(i,binc)
   hist.Scale(1./hist.Integral())
   file = TFile(outfname,'RECREATE')
@@ -521,7 +521,7 @@ def main(args):
     # DATA
     datahists = { period: [ ] for period in jsons }
     if 'data' in types: #and False:
-      for period, json in jsons.iteritems():
+      for period, json in jsons.items():
         for minbias in minbiases:
           filename = "Data_PileUp_%s_%s.root"%(period,str(minbias).replace('.','p'))
           datahist = getDataProfile(filename,json,pileup,100,era,minbias)
@@ -590,7 +590,7 @@ if __name__ == '__main__':
   parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0,
                                            help="set verbosity" )
   args = parser.parse_args()
-  print
+  print()
   main(args)
   print ">>> Done!\n"
   

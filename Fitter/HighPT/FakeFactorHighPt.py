@@ -50,7 +50,7 @@ def FitMass(x,par):
 ###########################
 def DrawFF(hist,era,channel,label,WP,**kwargs):
 
-    print
+    print()
     print('fitting FF histo >>>',era,channel,label)
 
     isdata = kwargs.get('isdata',True)
@@ -139,16 +139,16 @@ def main(outputfile,dataSamples,mcSamples,sigSamples,**kwargs):
     channel = kwargs.get("channel","wjets")
     mode = kwargs.get("mode",0)
 
-    print
+    print()
     print("+++++++++++++++++++++++++++++++++++++++++++")
-    print
+    print()
     if mode==0: 
         print('Computing FF as a function of tau pT in bins of pt_tau/pt_jet',era,wp,channel)
     elif mode==1: 
         print('Computing FF as a function of tau mass in bins of DM',era,wp,channel)
     else: 
         print('Computing FF as a function of tau pT in bins of (pt_tau/pt_jet,DM)',era,wp,channel)
-    print
+    print()
         
     cutTauDen = "idDeepTau2017v2p1VSjet_2<4"
     cutTauNum = "idDeepTau2017v2p1VSjet_2>=" + utils.tauWPs[wp]
@@ -179,10 +179,10 @@ def main(outputfile,dataSamples,mcSamples,sigSamples,**kwargs):
     histssig = {}
     for label in binCuts:
         xbins = []
-        print
+        print()
         print('***************************')
         print('Running over',label)
-        print
+        print()
  
         if mode==0: xbins=utils.xbinsPt
         elif mode==1: xbins=utils.xbinsMass[label]
@@ -256,7 +256,7 @@ if __name__ == "__main__":
         singlemuSamples[singlemuName] = utils.sampleHighPt(basefolder,args.era,
                                                            "wjets",singlemuName,True)
 
-    print
+    print()
     print('initializing JetHT samples >>>')
     jethtSamples = {} # data samples disctionary
     jethtNames = utils.jetht[args.era]
@@ -264,7 +264,7 @@ if __name__ == "__main__":
         jethtSamples[jethtName] = utils.sampleHighPt(basefolder,args.era,
                                                      "dijets",jethtName,True)
 
-    print
+    print()
     print('initializing MC samples >>>')
     mcSamples = {} # mc samples dictionary
     for mcSampleName in mcSampleNames:
@@ -274,7 +274,7 @@ if __name__ == "__main__":
         else:
             mcSamples[mcSampleName] = utils.sampleHighPt(basefolder,args.era,"wjets",mcSampleName,
                                                          False)
-    print
+    print()
     print('initializing W+Jets samples >>>') 
     sigSamples = {} # wjets samples dictionary
     for sigSampleName in sigSampleNames:

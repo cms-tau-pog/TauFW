@@ -262,23 +262,6 @@ class Sample(object):
           print(">>> Sample.gethist_from_file:   %sbin 5 = %s after normalization"%(indent,hist.GetBinContent(5)))
     return hist
   
-  @property
-  def tree(self):
-    if not self.file: # file does not exist: open & get tree
-      LOG.verb("Sample.tree: Opening file %s to get tree %r..."%(self.filename,self.treename),level=3)
-      self._tree = self.getfile()
-    elif self._tree and isinstance(self._tree,TTree): # file & tree do exist
-      LOG.verb("Sample.tree: Getting existing tree %s..."%(self._tree),level=3)
-    else: # file does exist, but tree does not: get tree
-      LOG.verb("Sample.tree: No valid tree (%s). Retrieving tree %r from file %s..."%(self._tree,self.treename,self.filename),level=3)
-      self._tree = self.file.Get(self.treename)
-    setaliases(self._tree,self.aliases)
-    return self._tree
-  
-  @tree.setter
-  def tree(self, value):
-    self._tree = value
-  
   def __copy__(self):
     cls = self.__class__
     result = cls.__new__(cls)
@@ -669,9 +652,9 @@ class Sample(object):
     # GET NUMBER OF EVENTS
     file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
     nevents    = tree.GetEntries(cuts)
-    if scale:
-     nevents  *= scale
     file.Close()
+    if scale:
+      nevents  *= scale
     
     # PRINT
     if verbosity>=3:

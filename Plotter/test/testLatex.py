@@ -15,7 +15,7 @@ def checklatex(texts,tag=""):
   fname  = "%s/testLatex%s"%(output,tag)
   xdim   = 500
   ydim   = 50*(len(texts)+2.5)
-  print ">>> Canvas: %sx%s (nlines=%d)"%(xdim,ydim,len(texts))
+  print(">>> Canvas: %sx%s (nlines=%d)"%(xdim,ydim,len(texts)))
   canvas = TCanvas('canvas','canvas',xdim,int(ydim))
   #pave1  = TPaveText(0.0,0,0.5,1,'ARC') #,'BR')
   pave2  = TPaveText(0.04,0.04,0.96,0.96) #'ARC') #,'BR')
@@ -34,7 +34,7 @@ def checklatex(texts,tag=""):
   #pave2.Copy(pave1)
   for line in texts:
     latex = makelatex(line)
-    print ">>> %r -> %r"%(line,latex)
+    print(">>> %r -> %r"%(line,latex))
     #pave1.AddText(line)
     pave2.AddText(latex)
   #pave1.Draw()
@@ -105,5 +105,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main()
-  print ">>>\n>>> Done."
+  print(">>>\n>>> Done.")
   

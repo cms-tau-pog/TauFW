@@ -47,50 +47,50 @@ def testSample(args):
   listname = "test/files/$ERA/$SAMPLE.txt"
   for sample in samples:
     LOG.header(sample.name)
-    print ">>> %-14s = %r"%("group",sample.group)
-    print ">>> %-14s = %r"%("name",sample.name)
-    print ">>> %-14s = %r"%("paths",sample.paths)
-    print ">>> %-14s = %r"%("url",sample.url)
-    print ">>> %-14s = %r"%("era",sample.era)
-    print ">>> %-14s = %r"%("channels",sample.channels)
-    print ">>> %-14s = %r"%("storage",sample.storage)
-    print ">>> %-14s = %r"%("extraopts",sample.extraopts)
-    print ">>> %-14s = %r"%("nfilesperjob",sample.nfilesperjob)
-    print ">>> %-14s = %r"%("files",sample.files)
-    print ">>> %-14s = %r"%("nevents",sample.nevents)
+    print(">>> %-14s = %r"%("group",sample.group))
+    print(">>> %-14s = %r"%("name",sample.name))
+    print(">>> %-14s = %r"%("paths",sample.paths))
+    print(">>> %-14s = %r"%("url",sample.url))
+    print(">>> %-14s = %r"%("era",sample.era))
+    print(">>> %-14s = %r"%("channels",sample.channels))
+    print(">>> %-14s = %r"%("storage",sample.storage))
+    print(">>> %-14s = %r"%("extraopts",sample.extraopts))
+    print(">>> %-14s = %r"%("nfilesperjob",sample.nfilesperjob))
+    print(">>> %-14s = %r"%("files",sample.files))
+    print(">>> %-14s = %r"%("nevents",sample.nevents))
     
     # MATCH
-    print ">>> Testing matching:"
+    print(">>> Testing matching:")
     for term in terms:
       match = sample.match(term,verb=verbosity)
       match = color('YES','green',b=True) if match else color('NO','red',b=True)
-      print ">>> %r matches to %r: %s"%(sample.name,term,match)
+      print(">>> %r matches to %r: %s"%(sample.name,term,match))
     if filters and not all(sample.match(f,verb=verbosity) for f in filters):
       continue
     
     # WRITE
     fname = repkey(listname,ERA=era)
-    print ">>>\n>>> Write..."
+    print(">>>\n>>> Write...")
     sample.writefiles(fname,nevts=True) # write Sample.files to txt file
-    print ">>> %-14s = %r"%("listname",fname)
-    #print ">>> %-14s = %r"%("files",sample.files)
-    print ">>> %-14s = %r"%("nfiles",len(sample.files))
-    print ">>> %-14s = %r"%("nevents",sample.nevents)
+    print(">>> %-14s = %r"%("listname",fname))
+    #print(">>> %-14s = %r"%("files",sample.files))
+    print(">>> %-14s = %r"%("nfiles",len(sample.files)))
+    print(">>> %-14s = %r"%("nevents",sample.nevents))
     
     # LOAD
-    print ">>>\n>>> Reset..."
+    print(">>>\n>>> Reset...")
     newsample = Sample(sample.group,sample.name,*sample.paths,
                        store=storage,url=url,files=fname,opts=sample.extraopts)
-    print ">>> %-14s = %r"%("listname",fname)
-    print ">>> %-14s = %r"%("files",newsample.files)
-    print ">>> %-14s = %r"%("nfiles",len(newsample.files))
-    print ">>> %-14s = %r"%("nevents",newsample.nevents)
-    print ">>> Call Sample.getfiles..." # load Sample.files from txt file
+    print(">>> %-14s = %r"%("listname",fname))
+    print(">>> %-14s = %r"%("files",newsample.files))
+    print(">>> %-14s = %r"%("nfiles",len(newsample.files)))
+    print(">>> %-14s = %r"%("nevents",newsample.nevents))
+    print(">>> Call Sample.getfiles..." # load Sample.files from txt file)
     files = newsample.getfiles()
-    print ">>> %-14s = %r"%("files",newsample.files)
-    print ">>> %-14s = %r"%("nfiles",len(newsample.files))
-    print ">>> %-14s = %r"%("nevents",newsample.nevents)
-    print ">>> %-14s = %r"%("filenevts",newsample.filenevts)
+    print(">>> %-14s = %r"%("files",newsample.files))
+    print(">>> %-14s = %r"%("nfiles",len(newsample.files)))
+    print(">>> %-14s = %r"%("nevents",newsample.nevents))
+    print(">>> %-14s = %r"%("filenevts",newsample.filenevts))
     
 
 def testModule(era):
@@ -117,5 +117,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   
