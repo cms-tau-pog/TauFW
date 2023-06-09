@@ -245,6 +245,7 @@ def main_write(args):
 
 def main_set(args):
   """Set variables in the config file."""
+  global CONFIG
   if args.verbosity>=1:
     print(">>> main_set", args)
   variable  = args.variable
@@ -266,7 +267,8 @@ def main_set(args):
     print('-'*80)
   if variable=='all':
     if 'default' in value:
-      GLOB.setdefaultconfig(verb=verb)
+      CONFIG = GLOB.setdefaultconfig(verb=args.verbosity)
+      CONFIG.write(backup=False)
     else:
       LOG.warning("Did not recognize value '%s'. Did you mean 'default'?"%(value))
   elif variable in ['nfilesperjob','maxevtsperjob','ncores']:

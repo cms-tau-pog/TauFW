@@ -11,11 +11,11 @@ from TauFW.common.tools.string import repkey, isglob, quotestrs
 from ROOT import TFile
 LOG  = Logger('Storage')
 host = platform.node()
+user = getpass.getuser()
 
 
 def guess_sedir():
   """Guess the storage element path for a given user and host."""
-  user  = getpass.getuser()
   sedir = ""
   if 'lxplus' in host:
     sedir = "/eos/user/%s/%s/"%(user[0],user)
@@ -28,7 +28,6 @@ def guess_sedir():
 
 def guess_tmpdirs():
   """Guess the temporary directory for a given user and host."""
-  user  = getpass.getuser()
   tmphadddir = "/tmp/%s/"%(user) # temporary dir for creating intermediate hadd files
   tmpskimdir = ""                # temporary dir for creating skimmed file before copying to outdir
   if 'lxplus' in host:
