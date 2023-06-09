@@ -41,7 +41,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None):
   #plot.saveas(fname+".png",fname+".C")
   #plot.saveas(fname,ext=['png','pdf'])
   plot.close()
-  print()
+  print('')
   
 
 def createhists(nhist=3):

@@ -68,7 +68,7 @@ def main(args):
       print(">>> context: '%s'"%color(sel,'grey'))
       print(">>>   plotfor=%s, name='%s', title='%s'"%(var.plotfor(sel),color(var.name),color(var.title)))
       print(">>>   (nbins,xmin,xmax)=(%s,%s,%s), bins=%s, cut=%r"%(var.nbins,var.xmin,var.xmax,var.bins,var.cut))
-    print()
+    print('')
   
 
 if __name__ == "__main__":

@@ -333,7 +333,7 @@ def preparejobs(args):
         
         # YIELD
         yield jobcfg
-        print()
+        print('')
       
       if not found:
         print_no_samples(dtypes,filters,vetoes,[channel],jobdir_,jobcfgs)
@@ -908,7 +908,7 @@ def main_status(args):
         print(">>> Found samples: "+", ".join(repr(s.name) for s in samples))
       if subcmd in ['hadd','haddclean'] and 'skim' in channel.lower():
         LOG.warning("Hadding into one file not available for skimming...")
-        print()
+        print('')
         continue
       
       # SAMPLE over SAMPLES
@@ -1008,7 +1008,7 @@ def main_status(args):
           checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,showlogs=showlogs,checkqueue=checkqueue,
                       checkevts=checkevts,das=checkdas,ncores=ncores,verb=verbosity)
         
-        print()
+        print('')
       
       if not found:
         print_no_samples(dtypes,filters,vetoes,[channel],jobdir_,jobcfgs)

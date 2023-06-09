@@ -251,5 +251,5 @@ def print_no_samples(dtype=[],filter=[],veto=[],channel=[],jobdir="",jobcfgs="")
         strings.append("channel%s %s"%('s' if len(channel)>1 else "",quotestrs(channel)))
       string += " with "+', '.join(strings)
     print(string)
-  print()
+  print('')
   

@@ -46,7 +46,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,fraction=Fal
   #plot.saveas(fname+".png",fname+".C")
   #plot.saveas(fname,ext=['png','pdf'])
   plot.close()
-  print()
+  print('')
   
 
 def createhists(procs,binning,nevts):

@@ -71,7 +71,7 @@ def testProcess(N=5):
   for thread in threads:
     result = thread.join()
   print(">>> Took %.1f seconds"%(time.time()-start))
-  print()
+  print('')
   
 
 def testMultiProcessor(N=5):
@@ -95,7 +95,7 @@ def testMultiProcessor(N=5):
     result = process.join() # wait for processes to end
     print(">>>   foo returns:", result)
   print(">>> Took %.1f seconds"%(time.time()-start))
-  print()
+  print('')
   
 
 def testMultiProcessorWithDraw(N=5):
@@ -120,7 +120,7 @@ def testMultiProcessorWithDraw(N=5):
     result = process.join() # wait for processes to end
     print(">>>   draw returns:", result)
   print(">>> Took %.1f seconds"%(time.time()-start))
-  print()
+  print('')
   
 
 def testThread(N=5):
@@ -146,7 +146,7 @@ def testThread(N=5):
     result = thread.join()
     print(">>>   %s done, foo returns: %s"%(thread.name,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
-  print()
+  print('')
   
 
 def testThreadWithDraw(N=5):
@@ -174,7 +174,7 @@ def testThreadWithDraw(N=5):
     thread.join()
     print(">>>  %s done"%(thread.name))
   print("Took %.1f seconds"%(time.time()-start))
-  print()
+  print('')
   
 
 
@@ -205,7 +205,7 @@ def testThreadWithSharedTFile(N=5):
     thread.join()
     print(">>>  %s done"%(thread.name))
   print("Took %.1f seconds"%(time.time()-start))
-  print()
+  print('')
   
 
 def main():

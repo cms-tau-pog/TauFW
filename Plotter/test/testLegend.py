@@ -37,7 +37,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,tag="",**kwargs):
   plot.saveas(fname+".png")
   #plot.saveas(fname+".pdf")
   plot.close(keep=False)
-  print()
+  print('')
   
 
 def testposition():

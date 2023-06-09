@@ -2,7 +2,7 @@
 # Author: Izaak Neutelings (December 2018)
 import time
 start0 = time.time()
-print()
+print('')
 print(">>> importing modules...")
 from TauFW.common.tools.log import Logger
 LOG = Logger("testSF")
@@ -230,4 +230,4 @@ if __name__ == "__main__":
   pileupSFs('UL2017')
   print(">>> ")
   print(">>> done after %.1f seconds"%(time.time()-start0))
-  print()
+  print('')
