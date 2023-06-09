@@ -2,7 +2,7 @@
 from past.builtins import basestring # for python2 compatibility
 import os, glob, json
 from TauFW.common.tools.file import ensurefile, ensureinit
-from TauFW.common.tools.string import repkey, rreplace
+from TauFW.common.tools.string import repkey, rreplace, lreplace
 from TauFW.PicoProducer.analysis.utils import ensuremodule
 from TauFW.PicoProducer.storage.utils import getsamples
 from TauFW.PicoProducer.pico.common import *
@@ -326,15 +326,17 @@ def main_link(args):
         module = module.split('python/analysis/')[-1].replace('/','.')
       module = rreplace(module,'.py')
       path   = os.path.join('python/analysis/','/'.join(module.split('.')[:-1]))
-      ensureinit(path,by="pico.py")
-      ensuremodule(module)
+      ensureinit(path,by="pico.py") # ensure an __init__.py exists in path
+      modobj = ensuremodule(module)
+      modpath = lreplace(os.path.relpath(modobj.__file__),"../../../python/TauFW/PicoProducer/")
+      print(">>> Linked to %s"%(modpath))
       value  = ' '.join([module]+parts[1:])
   elif varkey=='eras':
     if 'samples/' in value: # useful for tab completion
       value = ''.join(value.split('samples/')[1:])
     path = os.path.join("samples",repkey(value,ERA='*',CHANNEL='*',TAG='*'))
     LOG.insist(glob.glob(path),"Did not find any sample lists '%s'"%(path))
-    ensureinit(os.path.dirname(path),by="pico.py")
+    ensureinit(os.path.dirname(path),by="pico.py") # ensure an __init__.py exists in path
   if value!=oldval:
     print(">>> Converted '%s' to '%s'"%(oldval,value))
   CONFIG[varkey][key] = value

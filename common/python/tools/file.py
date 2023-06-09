@@ -154,7 +154,7 @@ def ensureTDirectory(file,dirname,cd=True,verb=0):
   
 
 def ensureinit(*paths,**kwargs):
-  """Ensure an __init__.py exists, other wise, create one."""
+  """Check if an __init__.py exists. Create one if it does not exist."""
   init   = os.path.join(os.path.join(*paths),'__init__.py')
   script = kwargs.get('by',"")
   if not os.path.isfile(init):
