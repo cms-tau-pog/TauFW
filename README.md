@@ -7,11 +7,18 @@ Framework for tau analysis using NanoAOD at CMS. Three main packages are
 
 ## Installation
 
+### Table of Contents  
+* [CMSSW environment](#CMSSW-environment)<br>
+* [TauFW](#TauFW-1)<br>
+* [PicoProducer](#PicoProducer)<br>
+* [Combine](#Combine)<br>
+* [TauID](#TauPOG-corrections)<br>
+
 ### CMSSW environment
 First, setup a CMSSW release, for example,
 <table>
 <tr>
-<td> nanoAODv10 (`python3`) </td> <td> Older versions (`python2`) </td>
+<td> nanoAODv10 (python3) </td> <td> Older versions (python2) </td>
 </tr>
 <tr>
 <td>
@@ -39,9 +46,10 @@ cmsenv
 
 On a Linux 8 node like `lxplus8`, you can use the `el8_amd64_gcc10` architecture instead of `slc7_*`.
 
-Which CMSSW version should not really matter for post-processing of nanoAOD,
-but if you like to use Combine in the same repository, it is better to use at least the
-[recommended version](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation).
+Which CMSSW release should not really matter for post-processing of nanoAOD,
+but if you like to use `combine` in the same repository, it is better to use at least the
+[recommended release for the latest Combine version](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation),
+see below.
 
 ### TauFW
 To install `TauFW`:
@@ -72,9 +80,10 @@ cmsenv
 scram b -j4
 ```
 
-### Fitter and Combine tools
-If you want to use the `Combine` tools in `Fitter`, install
-[`Combine`](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation),
+### Combine
+If you want to use the `combine` tools in `Fitter`, install combine following the
+[latest instructions](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation),
+for example
 ```
 cd $CMSSW_BASE/src
 git clone https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git HiggsAnalysis/CombinedLimit
@@ -91,15 +100,14 @@ scramv1 b clean; scramv1 b
 git checkout v2.0.0 # for CMSSW_11_X only
 ```
 
-### TauID Scale Factor (SF) JSON and ROOT files creation
-To create JSON files for
+### TauPOG corrections
+For TauPOG-internal work: To create JSON files with TauPOG corrections for
 [`correctionlib`](https://github.com/cms-nanoAOD/correctionlib),
 please follow the instructions
 [here](https://gitlab.cern.ch/cms-tau-pog/jsonpog-integration/-/blob/TauPOG_v2/POG/TAU/README4UPDATES.md).
 From at least `CMSSW_11_3_X`, `correctionlib` should be pre-installed.
 
-
-To create ROOT files including the measured SFs please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauFW/#picoproducer) as illustrated above.
+To create ROOT files including the measured SFs please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauIDSFs).
 Modify the `TauIDSFs/utils/createSFFiles.py` script to include your measured SFs into the script. 
 Finally, run the `TauFW/scripts/tau_createROOT.sh` to generate your ROOT files. They will be created into `TauFW/scripts/data/`
 IMPORTANT: please comment and do not delete older SFs
