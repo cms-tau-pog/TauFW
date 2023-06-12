@@ -11,7 +11,7 @@ Framework for tau analysis using NanoAOD at CMS. Three main packages are
 First, setup a CMSSW release, for example,
 <table>
 <tr>
-<td> nanoAODv10 </td> <td> older versions </td>
+<td> nanoAODv10 (`python3`) </td> <td> Older versions (`python2`) </td>
 </tr>
 <tr>
 <td>
@@ -27,8 +27,8 @@ cmsenv
 <td>
 
 ```bash
-export CMSSW=CMSSW_10_6_13
-export SCRAM_ARCH=slc7_amd64_gcc700
+export CMSSW=CMSSW_11_3_4
+export SCRAM_ARCH=slc7_amd64_gcc900
 cmsrel $CMSSW
 cd $CMSSW/src
 cmsenv
