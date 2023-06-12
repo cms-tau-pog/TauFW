@@ -39,9 +39,9 @@ cmsenv
 
 On a Linux 8 node like `lxplus8`, you can use the `el8_amd64_gcc10` architecture instead of `slc7_*`.
 
-Which CMSSW version should matter for post-processing of nanoAOD,
-but if you like to use Combine in the same repository,
-it is better to use at least the [recommended version](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation).
+Which CMSSW version should not really matter for post-processing of nanoAOD,
+but if you like to use Combine in the same repository, it is better to use at least the
+[recommended version](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation).
 
 ### TauFW
 To install `TauFW`:
