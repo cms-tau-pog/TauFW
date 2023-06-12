@@ -9,8 +9,8 @@ Framework for tau analysis using NanoAOD at CMS. Three main packages are
 
 First, setup a CMSSW release, for example,
 ```
-export CMSSW=CMSSW_10_6_13
-export SCRAM_ARCH=slc7_amd64_gcc700
+export CMSSW=CMSSW_11_3_4
+export SCRAM_ARCH=slc7_amd64_gcc900
 cmsrel $CMSSW
 cd $CMSSW/src
 cmsenv
@@ -26,7 +26,7 @@ scram b -j4
 ```
 With each new session, do
 ```
-export SCRAM_ARCH=slc7_amd64_gcc700
+export SCRAM_ARCH=slc7_amd64_gcc900
 cd $CMSSW/src
 cmsenv
 ```
