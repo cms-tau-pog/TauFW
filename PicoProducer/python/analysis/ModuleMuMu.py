@@ -195,10 +195,9 @@ class ModuleMuMu(ModuleTauPair):
       self.out.idDeepTau2017v2p1VSe_3[0]   = maxtau.idDeepTau2017v2p1VSe
       self.out.idDeepTau2017v2p1VSmu_3[0]  = maxtau.idDeepTau2017v2p1VSmu
       self.out.idDeepTau2017v2p1VSjet_3[0] = maxtau.idDeepTau2017v2p1VSjet
-
-      self.out.idDeepTau2018v2p5VSe_3[0]   = maxtau.idDeepTau2018v2p5VSe
-      self.out.idDeepTau2018v2p5VSmu_3[0]  = maxtau.idDeepTau2018v2p5VSmu
-      self.out.idDeepTau2018v2p5VSjet_3[0] = maxtau.idDeepTau2018v2p5VSjet
+      #self.out.idDeepTau2018v2p5VSe_3[0]   = maxtau.idDeepTau2018v2p5VSe
+      #self.out.idDeepTau2018v2p5VSmu_3[0]  = maxtau.idDeepTau2018v2p5VSmu
+      #self.out.idDeepTau2018v2p5VSjet_3[0] = maxtau.idDeepTau2018v2p5VSjet
       if self.ismc:
         self.out.jpt_match_3[0], self.out.jpt_genmatch_3[0] = matchtaujet(event,maxtau,self.ismc)
         self.out.genmatch_3[0]             = maxtau.genPartFlav
