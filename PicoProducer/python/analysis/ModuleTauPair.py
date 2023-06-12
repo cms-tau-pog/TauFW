@@ -173,9 +173,6 @@ class ModuleTauPair(Module):
        ensurebranches(inputTree,branchesV10)
     else: #v9
        ensurebranches(inputTree,branches) # make sure Event object has these branches
-
-    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
-      redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
   
   def fillhists(self,event):
