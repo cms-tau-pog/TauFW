@@ -6,6 +6,8 @@ Framework for tau analysis using NanoAOD at CMS. Three main packages are
 3. [`Fitter`](Fitter): Tools for measurements and fits in combine. [Under development.]
 
 ## Installation
+
+### CMSSW environment
 First, setup a CMSSW release, for example,
 <table>
 <tr>
@@ -16,7 +18,7 @@ First, setup a CMSSW release, for example,
 
 ```bash
 export CMSSW=CMSSW_12_4_8
-export SCRAM_ARCH=el8_amd64_gcc10
+export SCRAM_ARCH=slc7_amd64_gcc10
 cmsrel $CMSSW
 cd $CMSSW/src
 cmsenv
@@ -35,10 +37,14 @@ cmsenv
 </tr>
 </table>
 
+On a Linux 8 node like `lxplus8`, you can use the `el8_amd64_gcc10` architecture instead of `slc7_*`.
+
 Which CMSSW version should matter for post-processing of nanoAOD,
 but if you like to use Combine in the same repository,
 it is better to use at least the [recommended version](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation).
-Then, install `TauFW`:
+
+### TauFW
+To install `TauFW`:
 ```
 cd $CMSSW_BASE/src/
 git clone https://github.com/cms-tau-pog/TauFW TauFW
