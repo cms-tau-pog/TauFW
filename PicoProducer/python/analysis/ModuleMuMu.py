@@ -180,7 +180,7 @@ class ModuleMuMu(ModuleTauPair):
       #if ord(tau.idDeepTau2017v2p1VSmu)<1: continue # VLoose
       maxtau = tau
       ptmax  = tau.pt
-    if maxtau>-1:
+    if maxtau!=None:
       self.out.pt_3[0]                     = maxtau.pt
       self.out.eta_3[0]                    = maxtau.eta
       self.out.m_3[0]                      = maxtau.mass
