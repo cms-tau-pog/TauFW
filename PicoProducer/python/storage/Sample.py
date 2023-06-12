@@ -215,7 +215,7 @@ class Sample(object):
       if copy:
         sample = deepcopy(self)
       sample.paths = paths
-      for path in list(sample.pathfiles.keys()):
+      for path in sample.pathfiles.keys():
         if path not in paths:
           sample.pathfiles.pop(path)
     return sample
