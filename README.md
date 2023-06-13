@@ -12,7 +12,7 @@ Framework for tau analysis using NanoAOD at CMS. Three main packages are
 * [TauFW](#TauFW-1)<br>
 * [PicoProducer](#PicoProducer)<br>
 * [Combine](#Combine)<br>
-* [TauID](#TauPOG-corrections)<br>
+* [TauPOG corrections](#TauPOG-corrections)<br>
 
 ### CMSSW environment
 First, setup a CMSSW release, for example,
