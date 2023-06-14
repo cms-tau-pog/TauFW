@@ -6,6 +6,7 @@
 #   root://t3dcachedb.psi.ch:1094/ # PSI T3
 #   root://storage01.lcg.cscs.ch/  # PSI T2
 #   root://cmseos.fnal.gov/        # Fermi lab
+from past.builtins import basestring, unicode # for python2 compatibility
 import os, re, json
 import gzip
 import importlib
@@ -88,7 +89,7 @@ class Sample(object):
     self.refreshable  = not self.files                       # allow refresh of file list in getfiles()
     
     # CHECK PATH FORMAT
-    if not self.storepath and not self.files:
+    if not self.storepath: #and not self.files:
       for path in self.paths:
         if path.count('/')<3 or not path.startswith('/'):
           LOG.warn("DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/TIER."%(path))
@@ -119,14 +120,14 @@ class Sample(object):
     
     # VERBOSITY
     if self.verbosity>=3:
-      print ">>> Sample.__init__: %r from group %r and type %r"%(self.name,self.group,self.dtype)
-      print ">>>   %-11s = %s"%('paths',self.paths)
-      print ">>>   %-11s = %r"%('storage',self.storage)
-      print ">>>   %-11s = %r, %r"%('url, dasurl',self.url,self.dasurl)
-      print ">>>   %-11s = %r"%('filelist',self.filelist)
-      print ">>>   %-11s = %s"%('filenevts',self.filenevts)
-      print ">>>   %-11s = %s"%('nevents',self.nevents)
-      print ">>>   %-11s = %r"%('extraopts',self.extraopts)
+      print(">>> Sample.__init__: %r from group %r and type %r"%(self.name,self.group,self.dtype))
+      print(">>>   %-11s = %s"%('paths',self.paths))
+      print(">>>   %-11s = %r"%('storage',self.storage))
+      print(">>>   %-11s = %r, %r"%('url, dasurl',self.url,self.dasurl))
+      print(">>>   %-11s = %r"%('filelist',self.filelist))
+      print(">>>   %-11s = %s"%('filenevts',self.filenevts))
+      print(">>>   %-11s = %s"%('nevents',self.nevents))
+      print(">>>   %-11s = %r"%('extraopts',self.extraopts))
   
   def __str__(self):
     return self.name
@@ -150,7 +151,7 @@ class Sample(object):
     for key in ['group','name','paths','try','channel','chunkdict','dtype','extraopts']:
       LOG.insist(key in jobcfg,"Did not find key '%s' in job configuration %s"%(key,cfgname))
     jobcfg['config']    = str(cfgname)
-    jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].iteritems() }
+    jobcfg['chunkdict'] = { int(k): v for k, v in jobcfg['chunkdict'].items() }
     nfilesperjob        = int(jobcfg['nfilesperjob'])
     filenevts = jobcfg.get('filenevts',{ })
     dtype     = jobcfg['dtype']
@@ -193,9 +194,9 @@ class Sample(object):
           break
     if verb>=2:
       if match_:
-        print ">>> Sample.match: '%s' match to '%s'!"%(sample,pattern)
+        print(">>> Sample.match: '%s' match to '%s'!"%(sample,pattern))
       else:
-        print ">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern)
+        print(">>> Sample.match: NO '%s' match to '%s'!"%(sample,pattern))
     return match_
   
   def filterpath(self,filter=[],veto=[],copy=False,verb=0):
@@ -209,7 +210,7 @@ class Sample(object):
       if keep:
         paths.append(path)
     if verb>=1:
-      print ">>> Sample.filterpath: filters=%s, vetoes=%s, %s -> %s"%(filter,veto,self.paths,paths)
+      print(">>> Sample.filterpath: filters=%s, vetoes=%s, %s -> %s"%(filter,veto,self.paths,paths))
     if len(paths)!=len(self.paths):
       if copy:
         sample = deepcopy(self)
@@ -237,12 +238,14 @@ class Sample(object):
       for daspath in self.paths: # loop over DAS dataset paths
         pathfiles[daspath] = [ ]
         if (self.storage and not das) or (not self.instance): # get files from storage system
+          LOG.verb("Sample.getfiles: Retrieving files from storage system %r..."%(self.storage),verb,2)
           postfix = self.postfix+'.root'
           sepath  = repkey(self.storepath,PATH=daspath,DAS=daspath).replace('//','/')
           outlist = self.storage.getfiles(sepath,url=url,verb=verb-1)
         else: # get files from DAS
           postfix = '.root'
           outlist = getdasfiles(daspath,instance=self.instance,limit=limit,verb=verb-1)
+        LOG.verb("Sample.getfiles: outlist=%r"%(outlist),verb,4)
         for line in outlist: # filter ROOT files
           line = line.strip()
           if line.endswith(postfix) and not any(f.endswith(line) for f in self.blacklist):
@@ -345,7 +348,7 @@ class Sample(object):
           nevts = getnevents(fname,treename) # get nevents from file
         if nevts<1:
           if skipempty:
-            print ">>> Sample.writefiles: Skip %s with %s events..."%(fname,nevts)
+            print(">>> Sample.writefiles: Skip %s with %s events..."%(fname,nevts))
             return
           else:
             self.nempty += 1
@@ -356,24 +359,24 @@ class Sample(object):
       listname_ = repkey(listname,PATH=path.strip('/').replace('/','__'))
       with open(listname_,'w+') as lfile:
         if '$PATH' in listname: # write only the file list of this path to this text file
-          print ">>> Write %s files to list %r..."%(len(self.pathfiles[path]),listname_)
+          print(">>> Write %s files to list %r..."%(len(self.pathfiles[path]),listname_))
           for infile in self.pathfiles[path]:
             _writefile(lfile,infile)
         elif len(self.paths)<=1: # write file list for the only path
           if self.nevents>0:
-            print ">>> Write %s files to list %r..."%(len(files),listname_)
+            print(">>> Write %s files to list %r..."%(len(files),listname_))
           else:
-            print ">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_)
+            print(">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_))
           for infile in files:
             _writefile(lfile,infile)
         else: # divide up list per DAS dataset path
           if self.nevents>0:
-            print ">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_)
+            print(">>> Write %s files (%d events) to list %r..."%(len(files),self.nevents,listname_))
           else:
-            print ">>> Write %s files to list %r..."%(len(files),listname_)
+            print(">>> Write %s files to list %r..."%(len(files),listname_))
           for i, path in enumerate(self.paths):
-            assert path in self.pathfiles, "self.pathfiles.keys()=%s"%(self.pathfiles.keys())
-            print ">>>   %3s files for %s..."%(len(self.pathfiles[path]),path)
+            assert path in self.pathfiles, "self.pathfiles.keys()=%s"%(list(self.pathfiles.keys()))
+            print(">>>   %3s files for %s..."%(len(self.pathfiles[path]),path))
             lfile.write("DASPATH=%s\n"%(path)) # write special line to text file, which loadfiles() can parse
             for infile in self.pathfiles[path]: # loop over this list (general list is sorted)
               LOG.insist(infile in files,"Did not find file %s in general list! %s"%(infile,files))
@@ -397,7 +400,7 @@ class Sample(object):
     for path in paths:
       listname_ = repkey(listname,PATH=path.strip('/').replace('/','__'))
       if self.verbosity>=1:
-        print ">>> Sample.loadfiles: Loading sample files from %r..."%(listname_)
+        print(">>> Sample.loadfiles: Loading sample files from %r..."%(listname_))
       self.pathfiles[path] = [ ]
       if os.path.isfile(listname_):
         skip = False
@@ -429,7 +432,7 @@ class Sample(object):
                 filenevts[infile] = nevts # store/cache in dictionary
                 nevents += nevts
                 if self.verbosity>=3:
-                  print ">>> %7d events for %s"%(nevts,infile)
+                  print(">>> %7d events for %s"%(nevts,infile))
               filelist.append(infile)
               self.pathfiles[path].append(infile)
         if not filelist:

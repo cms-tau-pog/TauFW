@@ -47,7 +47,7 @@ def DrawEfficiency(histdata,histmc,era,legend):
 def main(args):
 
     era = args.era
-    print
+    print()
 
     channel = "munu"
     basefolder = utils.picoFolder
@@ -71,7 +71,7 @@ def main(args):
         dataSamples[dataSampleName] = utils.sampleHighPt(basefolder,era,channel,
                                                          dataSampleName,True)
 
-    print
+    print()
     mcSamples = {} # mc samples dictionary
     print('Initializing W+Jets MC samples>>>')
     for mcSampleName in mcSampleNames:
@@ -81,7 +81,7 @@ def main(args):
         else:
             mcSamples[mcSampleName] = utils.sampleHighPt(basefolder,era,channel,
                                                          mcSampleName,False)
-    print
+    print()
     histsdata = {} # data histo dictionary
     histsmc = {} # mc histo dictionary
 

@@ -21,7 +21,7 @@ class TestModule(Module):
         self.time0 = time.time()
     
     def endJob(self):
-        print ">>> endJob: done after %.1f seconds"%(time.time()-self.time0)
+        print(">>> endJob: done after %.1f seconds"%(time.time()-self.time0))
     
     def analyze(self, event):
         """Process event, return True (pass, go to next module) or False (fail, go to next event)."""

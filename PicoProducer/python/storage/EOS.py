@@ -9,9 +9,9 @@ import getpass, platform
 
 class EOS(StorageSystem):
   
-  def __init__(self,path,verb=0,ensure=False,eos=False):
+  def __init__(self,path,verb=0,ensure=False,eos=False,**kwargs):
     """EOS is mounted on lxplus, so no special override are necessary."""
-    super(EOS,self).__init__(path,verb=verb,ensure=False)
+    super(EOS,self).__init__(path,verb=verb,ensure=False,**kwargs)
     if not self.mounted: # EOS is mounted on lxplus
       if eos: # use EOS command
         # https://cern.service-now.com/service-portal?id=kb_article&n=KB0001998

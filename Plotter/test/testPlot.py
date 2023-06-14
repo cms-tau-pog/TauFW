@@ -41,7 +41,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None):
   #plot.saveas(fname+".png",fname+".C")
   #plot.saveas(fname,ext=['png','pdf'])
   plot.close()
-  print
+  print('')
   
 
 def createhists(nhist=3):
@@ -52,13 +52,13 @@ def createhists(nhist=3):
   rrange   = 0.5
   hists    = [ ]
   gRandom.SetSeed(1777)
-  for i in xrange(1,nhist+1):
+  for i in range(1,nhist+1):
     mu     = 48+i
     sigma  = 10
     hname  = "hist%d"%(i)
     htitle = "#mu = %s, #sigma = %s"%(mu,sigma)
     hist   = TH1D(hname,hname,nbins,xmin,xmax)
-    for j in xrange(nevts):
+    for j in range(nevts):
       hist.Fill(gRandom.Gaus(mu,sigma))
     hists.append(hist)
   return hists

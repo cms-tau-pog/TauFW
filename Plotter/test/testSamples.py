@@ -54,7 +54,7 @@ def plotsamples(datasample,expsamples,tag=""):
     for sample in [datasample]+expsamples:
       hists = sample.gethist(variables,selection)
       histdict[sample] = hists
-      print ">>> %r: %s"%(sample.name,[repr(h.GetName()) for h in hists])
+      print(">>> %r: %s"%(sample.name,[repr(h.GetName()) for h in hists]))
     
     # PLOT
     for i, variable in enumerate(variables):
@@ -77,24 +77,24 @@ def plotsamples2D(datasample,expsamples):
     for sample in [datasample]+expsamples:
       hists = sample.gethist2D(variables2D,selection)
       histdict[sample] = hists
-      print ">>> %r: %s"%(sample.name,[repr(h.GetName()) for h in hists])
+      print(">>> %r: %s"%(sample.name,[repr(h.GetName()) for h in hists]))
   
 
 def testMergedSamples(datasample,expsamples):
   """Test MergedSample class: join samples, print out, and plot."""
   LOG.header("testMergedSamples")
-  print ">>> Joining samples %s"%(expsamples)
+  print(">>> Joining samples %s"%(expsamples))
   #color      = expsamples[0].fillcolor
   STYLE.sample_colors['Exp'] = STYLE.kOrange
   STYLE.sample_colors['Bkg'] = STYLE.kOrange
   bkgsample  = MergedSample("Bkg","Background",expsamples[1:]) #,color=color)
   expsamples = [expsamples[0],bkgsample]
   expsample  = MergedSample("Exp","Expected",expsamples) #,color=color)
-  print ">>> "
+  print(">>> ")
   expsample.printheader()
   expsample.printrow()
   expsample.printobjs()
-  print ">>> "
+  print(">>> ")
   plotsamples(datasample,[expsample],tag='_merged')
   
 
@@ -147,5 +147,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity-1
   main(args)
-  print ">>>\n>>> Done."
+  print(">>>\n>>> Done.")
   

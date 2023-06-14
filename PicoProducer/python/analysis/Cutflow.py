@@ -18,7 +18,7 @@ class Cutflow(object):
     if index==None:
       index = self.nextidx
       self.nextidx += 1
-    assert all(index!=i for n,i in self.cuts.iteritems()), "Index %d for %r already in use! Taken: %s"%(index,name,self.cuts)
+    assert all(index!=i for n,i in self.cuts.items()), "Index %d for %r already in use! Taken: %s"%(index,name,self.cuts)
     #assert not hasattr(self,name), "%s already has attribute '%s'!"%(self,name)
     #setattr(self,name,index)
     bin = 1+index # range 0-ncuts, bin numbers 1-(ncuts+1)
@@ -47,9 +47,9 @@ class Cutflow(object):
     padevt = 4+(int(floor(log10(maxval))) if maxval>0 else 0) # pad all numbers of events
     padtot = 3+(int(floor(log10(ntot))) if ntot>0 else 0) # pad total number of events
     denstr = str(ntot).rjust(padtot) if ntot else " 0"
-    print underline("Cutflow:"+' '*(46+padevt+padtot),pre=">>> ")
-    print underline("%5s %5s / %5s = %-8s %-8s  %-23s"%( # header
-      '','npass'.rjust(padevt),'ntot'.rjust(padtot),'abseff','releff','cut'),pre=">>> ")
+    print(underline("Cutflow:"+' '*(46+padevt+padtot),pre=">>> "))
+    print(underline("%5s %5s / %5s = %-8s %-8s  %-23s"%( # header
+      '','npass'.rjust(padevt),'ntot'.rjust(padtot),'abseff','releff','cut'),pre=">>> "))
     for cut, index in sorted(self.cuts.items(),key=lambda x: x[1]):
       nevts = self.hist.GetBinContent(1+index)
       title = self.hist.GetXaxis().GetBinLabel(1+index) or cut
@@ -60,11 +60,11 @@ class Cutflow(object):
         frac2 = "%4.2f%%"%(100.0*(nevts/nlast[1])) if nlast[1] and index==nlast[0]+1 else ' '  # relative efficiency w.r.t. last cut
       nomstr = ("%.1f"%nevts).rjust(padevt)
       #print ">>> %4d: %s / %s %s   %s"%(index,nomstr,denstr,frac,title) # without rel. eff.
-      print ">>> %4d: %5s / %5s %s %8s   %s"%(index,nomstr,denstr,frac,frac2,title) # with rel. eff.
+      print(">>> %4d: %5s / %5s %s %8s   %s"%(index,nomstr,denstr,frac,frac2,title)) # with rel. eff.
       nlast = (index,nevts) # for next iteration
     if nfinal!=None:
       frac  = "= %6.2f%%"%(100.0*nfinal/ntot) if ntot else ' '
       nomstr = str(float(nfinal)).rjust(padevt)
-      print underline("%5s %5s / %5s %s %8s   %-23s"%('',nomstr,denstr,frac,'',final),pre=">>> ")
+      print(underline("%5s %5s / %5s %s %8s   %-23s"%('',nomstr,denstr,frac,'',final),pre=">>> "))
     
   

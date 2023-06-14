@@ -21,7 +21,7 @@ class ModuleTauPair(Module):
   """Base class the channels of an analysis with two tau leptons: for mutau, etau, tautau, emu, mumu, ee."""
   
   def __init__(self, fname, **kwargs):
-    print header(self.__class__.__name__)
+    print(header(self.__class__.__name__))
     
     # SETTINGS
     self.filename   = fname # output file name
@@ -89,33 +89,33 @@ class ModuleTauPair(Module):
   
   def beginJob(self):
     """Before processing any events or files."""
-    print '-'*80
-    print ">>> %-12s = %r"%('filename',  self.filename)
-    print ">>> %-12s = %s"%('year',      self.year)
-    print ">>> %-12s = %r"%('dtype',     self.dtype)
-    print ">>> %-12s = %r"%('channel',   self.channel)
-    print ">>> %-12s = %s"%('ismc',      self.ismc)
-    print ">>> %-12s = %s"%('isdata',    self.isdata)
-    print ">>> %-12s = %s"%('isembed',   self.isembed)
+    print('-'*80)
+    print(">>> %-12s = %r"%('filename',  self.filename))
+    print(">>> %-12s = %s"%('year',      self.year))
+    print(">>> %-12s = %r"%('dtype',     self.dtype))
+    print(">>> %-12s = %r"%('channel',   self.channel))
+    print(">>> %-12s = %s"%('ismc',      self.ismc))
+    print(">>> %-12s = %s"%('isdata',    self.isdata))
+    print(">>> %-12s = %s"%('isembed',   self.isembed))
     if self.channel.count('tau')>0:
-      print ">>> %-12s = %s"%('tes',     self.tes)
-      print ">>> %-12s = %r"%('tessys',  self.tessys)
-      print ">>> %-12s = %r"%('fes',     self.fes)
-      print ">>> %-12s = %s"%('ltf',     self.ltf)
-      print ">>> %-12s = %s"%('jtf',     self.jtf)
+      print(">>> %-12s = %s"%('tes',     self.tes))
+      print(">>> %-12s = %r"%('tessys',  self.tessys))
+      print(">>> %-12s = %r"%('fes',     self.fes))
+      print(">>> %-12s = %s"%('ltf',     self.ltf))
+      print(">>> %-12s = %s"%('jtf',     self.jtf))
     #if self.channel.count('ele')>0:
     #  print ">>> %-12s = %s"%('ees',     self.ees)
-    print ">>> %-12s = %s"%('dotoppt',   self.dotoppt)
-    print ">>> %-12s = %s"%('dopdf',     self.dopdf)
-    print ">>> %-12s = %s"%('dozpt',     self.dozpt)
+    print(">>> %-12s = %s"%('dotoppt',   self.dotoppt))
+    print(">>> %-12s = %s"%('dopdf',     self.dopdf))
+    print(">>> %-12s = %s"%('dozpt',     self.dozpt))
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
-    print ">>> %-12s = %s"%('dojec',     self.dojec)
-    print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
-    print ">>> %-12s = %s"%('dosys',     self.dosys)
-    print ">>> %-12s = %s"%('dotight',   self.dotight)
-    print ">>> %-12s = %s"%('useT1',     self.useT1)
-    print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
-    print ">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta)
+    print(">>> %-12s = %s"%('dojec',     self.dojec))
+    print(">>> %-12s = %s"%('dojecsys',  self.dojecsys))
+    print(">>> %-12s = %s"%('dosys',     self.dosys))
+    print(">>> %-12s = %s"%('dotight',   self.dotight))
+    print(">>> %-12s = %s"%('useT1',     self.useT1))
+    print(">>> %-12s = %s"%('jetCutPt',  self.jetCutPt))
+    print(">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta))
     
   
   def endJob(self):
@@ -173,9 +173,6 @@ class ModuleTauPair(Module):
        ensurebranches(inputTree,branchesV10)
     else: #v9
        ensurebranches(inputTree,branches) # make sure Event object has these branches
-
-    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
-      redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
   
   def fillhists(self,event):
@@ -347,7 +344,7 @@ class ModuleTauPair(Module):
     
     ## FILL JET VARIATION BRANCHES
     #if self.dojecsys:
-    #  for unc, jets_var in jets_vars.iteritems():
+    #  for unc, jets_var in jets_vars.items():
     #    ptvar = 'pt_'+unc
     #    jets_var.sort(key=lambda j: getattr(j,ptvar),reverse=True)
     #    njets_vars[unc] = len(jets_var)
@@ -360,7 +357,7 @@ class ModuleTauPair(Module):
     return jets, metnom, njets_vars, met_vars
     
   
-  def fillCommonCorrBraches(self, event, jets, met, njets_vars, met_vars):
+  def fillCommonCorrBranches(self, event, jets, met, njets_vars, met_vars):
     """Help function to apply common corrections, and fill weight branches."""
     
     #if self.dorecoil:
@@ -449,7 +446,7 @@ class ModuleTauPair(Module):
     self.out.dzeta[0]     = pzetamiss - 0.85*pzetavis
     
     # MET SYSTEMATICS
-    for unc, met_var in met_vars.iteritems():
+    for unc, met_var in met_vars.items():
       getattr(self.out,"met_"+unc)[0]    = met_var.Pt()
       getattr(self.out,"metphi_"+unc)[0] = met_var.Phi()
       getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2 * self.out.pt_1[0] * met_var.Pt() * ( 1 - cos(deltaPhi(self.out.phi_1[0],met_var.Phi())) ))

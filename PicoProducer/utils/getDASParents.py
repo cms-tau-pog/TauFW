@@ -86,7 +86,7 @@ def main(args):
     #    if i<len(lineage) and lineage[i] not in kids:
     #      kids.append(lineage[i])
     #for root in roots[:]:
-    #  if any(root in k for l, k in family.iteritems()):
+    #  if any(root in k for l, k in family.items()):
     #    roots.remove(root) # not a common ancestor
     #    continue
     #  printfamily(root,family,mark=datasets,verb=verbosity)

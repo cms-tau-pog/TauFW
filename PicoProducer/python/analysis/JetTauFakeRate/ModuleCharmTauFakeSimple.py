@@ -95,7 +95,7 @@ class ModuleCharmTauFakeSimple(Module):
     
     # MATCH
     # https://pdg.lbl.gov/2019/reviews/rpp2019-rev-monte-carlo-numbering.pdf
-    print '-'*80
+    print('-'*80)
     D_pids = [4,411,421,413,423,415,425,431,433,435,10411,10421,10413,10423,]
     Dparts = [ ]
     for genpart in genparts:

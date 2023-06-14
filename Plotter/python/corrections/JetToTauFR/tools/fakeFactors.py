@@ -59,8 +59,8 @@ def Print(msg, printHeader=True):
     '''
     fName = __file__.split("/")[-1]
     if printHeader:
-        print "=== ", fName
-    print "\t", msg
+        print("=== ", fName)
+    print("\t", msg)
     return
 
 def setStyle(graph):
@@ -121,16 +121,16 @@ class FakeFactors:
 
     def Print(self, msg, printHeader=False):
         if printHeader==True:
-            print "=== ", self._GetFName()
-            print "\t", msg
+            print("=== ", self._GetFName())
+            print("\t", msg)
         else:
-            print "\t", msg
+            print("\t", msg)
         return
 
     def PrintFlushed(self, msg, printHeader=True):
         msg = "\r\t" + msg
         if printHeader:
-            print "=== ", self._GetFName()
+            print("=== ", self._GetFName())
         sys.stdout.write(msg)
         sys.stdout.flush()
         sys.stdout.write("\033[K") #clear line
@@ -398,7 +398,7 @@ class FakeFactors:
         table.append(hLine)
         table.append(header)
         table.append(hLine)
-        for i in xrange(len(self.mass_string)):
+        for i in range(len(self.mass_string)):
             mass = self.mass_string[i]
             observed = precision % (self.observed_string[i])
             median       = precision % (self.expectedMedian_string[i])
@@ -467,7 +467,7 @@ class FakeFactors:
                 s += "\\hline \n"
 
         # Get the limit values
-        for i in xrange(len(self.mass_string)):
+        for i in range(len(self.mass_string)):
             mass     = self.mass_string[i]
             eMinus2  = float( precision % (self.expectedMinus2_string[i]) )
             eMinus1  = float( precision % (self.expectedMinus1_string[i]) )
@@ -520,7 +520,7 @@ class FakeFactors:
                 
         for pt in ptRange:
             ptLow, ptAv, ptHigh = self.GetPtAsFloat(pt)
-            # print "%s, %s, %s" % (ptLow, ptAv, ptHigh)
+            # print("%s, %s, %s" % (ptLow, ptAv, ptHigh))
             ptLowList.append(ptAv-ptLow)
             ptAvList.append(ptAv)
             ptHighList.append(ptHigh-ptAv)
@@ -593,7 +593,7 @@ def divideGraph(num, denom):
      \return new TGraph as the ratio of the two TGraphs
      '''
     gr = ROOT.TGraph(num)
-    for i in xrange(gr.GetN()):
+    for i in range(gr.GetN()):
         y = denom.GetY()[i]
         val = 0
         if y != 0:
@@ -611,7 +611,7 @@ def subtractGraph(minuend, subtrahend):
     \return new TGraph as the difference of the two TGraphs
     '''
     gr = ROOT.TGraph(minuend)
-    for i in xrange(gr.GetN()):
+    for i in range(gr.GetN()):
         val = gr.GetY() - subtrahend.GetY()[i]
         gr.SetPoint(i, gr.GetX()[i], val)
     return 

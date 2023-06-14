@@ -6,9 +6,9 @@ from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
 
 class T2_PSI(StorageSystem):
   
-  def __init__(self,path,verb=0,ensure=False):
+  def __init__(self,path,verb=0,ensure=False,**kwargs):
     """T2 SE on PSI."""
-    super(T2_PSI,self).__init__(path,verb=verb,ensure=False)
+    super(T2_PSI,self).__init__(path,verb=verb,ensure=False,**kwargs)
     self.lscmd   = "uberftp -ls"
     self.lsurl   = "gsiftp://storage01.lcg.cscs.ch/"
     #self.rmcmd   = "uberftp -rm"

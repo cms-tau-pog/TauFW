@@ -22,7 +22,7 @@ gStyle.SetPalette(100,kMyTemperature)
 
 def plotCorrelationHist(fname,**kwargs):
   """Draw correlation of nuisance parameters from FitDiagnostics output."""
-  print green("\n>>> plotCorrelationHist")
+  print(green("\n>>> plotCorrelationHist"))
   pois       = kwargs.get('poi',    "r"        )
   filters    = kwargs.get('filter', [ ]        )
   nbins      = kwargs.get('nbins',  40         )
@@ -56,7 +56,7 @@ def plotCorrelationHist(fname,**kwargs):
   cuts  = { c: 0 for c in [0.10,0.25,0.5,0.75] }
   pcut  = 0.15 # for printing
   for fitname, fittitle in fits:
-    print ">>> File %s:%s"%(fname,fitname)
+    print(">>> File %s:%s"%(fname,fitname))
     fit   = file.Get(fitname) # fit results
     if not fit:
       warning(">>>   Could not get %r!"%(fit))
@@ -68,7 +68,7 @@ def plotCorrelationHist(fname,**kwargs):
     rpars = [ ] # list of POIs for correlation computation
     for poi in pois:
       npars_ = 0
-      print ">>> Looking for %r..."%(poi)
+      print(">>> Looking for %r..."%(poi))
       if any(c in poi for c in '.*+()[]'): # assume regexp
         exp_poi = re.compile(poi)
         for i in range(npars): # find all matches to POI regexp
@@ -77,11 +77,11 @@ def plotCorrelationHist(fname,**kwargs):
           if not exp_poi.search(rpar.GetName()): continue # no match
           rpars.append(rpar)
           npars_ += 1
-        print ">>> Found %d parameters for %r"%(npars_,poi)
+        print(">>> Found %d parameters for %r"%(npars_,poi))
       else: # find by exact name
         rpar = fpars.find(poi)
         rpars.append(rpar)
-    print ">>> Number of POIs for correlation: %d"%(len(rpars))
+    print(">>> Number of POIs for correlation: %d"%(len(rpars)))
     #corrs = fit.correlation(rpar)
     #corrs = fit.correlation(poi)
     for i in range(npars):
@@ -90,7 +90,7 @@ def plotCorrelationHist(fname,**kwargs):
       npar = fpars.at(i)
       if filters and not any(f.search(npar.GetName()) for f in filters): continue
       ridx = rpars.index(npar)+1 if npar in rpars else 0 # avoid double counting multiple POIs (assume same order)
-      #print len(rpars[ridx:]), ridx, npar.GetName()
+      #print(len(rpars[ridx:]), ridx, npar.GetName())
       for rpar in rpars[ridx:]: # get correlation to each POI
         #if npar==rpar: continue # redundant with ridx
         corr = fit.correlation(rpar,npar)
@@ -98,9 +98,9 @@ def plotCorrelationHist(fname,**kwargs):
           if abs(corr)>cut:
             cuts[cut] += 1
         if abs(corr)>pcut: # print
-          print ">>>   %+6.3f > %.2f:  %s to %s"%(corr,pcut,npar.GetName(),rpar.GetName())
+          print(">>>   %+6.3f > %.2f:  %s to %s"%(corr,pcut,npar.GetName(),rpar.GetName()))
         #corr = corrs.at(i)
-        #print i, corr, rpar, npar
+        #print(i, corr, rpar, npar)
         hist.Fill(corr)
   
   ymargin = 1.15
@@ -207,7 +207,7 @@ def plotCorrelationHist(fname,**kwargs):
 
 def drawCorrelationMatrix(hist,pname,**kwargs):
   """Help function to plot correlation matrix."""
-  print ">>> drawCorrelationMatrix(%r)"%(pname)
+  print(">>> drawCorrelationMatrix(%r)"%(pname))
   zmin   = kwargs.get('zmin',   -100.0     )
   zmax   = kwargs.get('zmax',   100.0      )
   title  = kwargs.get('title',  ""         )
@@ -240,8 +240,8 @@ def drawCorrelationMatrix(hist,pname,**kwargs):
   xlsize   = min(0.050*scaleF,0.03) # x label size
   ylsize   = min(0.056*scaleF,0.03) # x label size
   dsize    = min(0.15*scaleF,0.03) # divider size
-  print ">>>   canvas %d x %d"%(canvasW,canvasH)
-  print ">>>   scaleF=%.5g, scaleH=%.5g, scaleW=%.5g"%(scaleF,scaleH,scaleW)
+  print(">>>   canvas %d x %d"%(canvasW,canvasH))
+  print(">>>   scaleF=%.5g, scaleH=%.5g, scaleW=%.5g"%(scaleF,scaleH,scaleW))
   
   canvas = TCanvas('canvas','canvas',100,100,canvasW,canvasH)
   canvas.SetFillColor(0)
@@ -291,8 +291,8 @@ def drawCorrelationMatrix(hist,pname,**kwargs):
   ybody = 1.-tmargin-bmargin
   dx    = (4.9*xlsize+0.6*dsize)*nxbins/xbody
   dy    = (4.2*ylsize+0.7*dsize)*nybins/ybody
-  #print ">>> dsize=%s, xlsize=%s, nxbins=%s, xbody=%s => dx=%s"%(dsize,xlsize,nxbins,xbody,dx)
-  #print ">>> dsize=%s, ylsize=%s, nybins=%s, ybody=%s => dy=%s"%(dsize,ylsize,nybins,ybody,dy)
+  #print(">>> dsize=%s, xlsize=%s, nxbins=%s, xbody=%s => dx=%s"%(dsize,xlsize,nxbins,xbody,dx))
+  #print(">>> dsize=%s, ylsize=%s, nybins=%s, ybody=%s => dy=%s"%(dsize,ylsize,nybins,ybody,dy))
   if xcats:
     latex = TLatex()
     latex.SetTextSize(dsize)

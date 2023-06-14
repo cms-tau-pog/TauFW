@@ -47,7 +47,7 @@ outdir    = ensuredir(args.outdir) # directory to create output
 copydir   = args.copydir           # directory to copy output to at end
 firstevt  = args.firstevt          # index of first event to run
 maxevts   = args.maxevts           # maximum number of events to run
-nfiles    = 1 if maxevts>0 else -1 # maximum number of files to run
+nfiles    = 1 if (maxevts!=None and maxevts>0) else -1 # maximum number of files to run
 tag       = args.tag               # postfix tag of job output file
 if tag:
   tag     = ('' if tag.startswith('_') else '_') + tag

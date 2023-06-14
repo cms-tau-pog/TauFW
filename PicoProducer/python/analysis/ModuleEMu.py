@@ -54,12 +54,12 @@ class ModuleEMu(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleEMu,self).beginJob()
-    print ">>> %-12s = %s"%('muonCutPt',  self.muonCutPt)
-    print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
-    print ">>> %-12s = %s"%('eleCutPt',   self.eleCutPt)
-    print ">>> %-12s = %s"%('eleCutEta',  self.eleCutEta)
-    print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
+    print(">>> %-12s = %s"%('muonCutPt',  self.muonCutPt))
+    print(">>> %-12s = %s"%('muonCutEta', self.muonCutEta))
+    print(">>> %-12s = %s"%('eleCutPt',   self.eleCutPt))
+    print(">>> %-12s = %s"%('eleCutEta',  self.eleCutEta))
+    print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
+    print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
     pass
     
   
@@ -188,7 +188,7 @@ class ModuleEMu(ModuleTauPair):
       #if ord(tau.idDeepTau2017v2p1VSmu)<1: continue # VLoose
       maxtau = tau
       ptmax  = tau.pt
-    if maxtau>-1:
+    if maxtau!=None:
       self.out.pt_3[0]                     = maxtau.pt
       self.out.eta_3[0]                    = maxtau.eta
       self.out.m_3[0]                      = maxtau.mass
@@ -240,7 +240,7 @@ class ModuleEMu(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if electron.pfRelIso03_all<0.50 and muon.pfRelIso04_all<0.50:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       

@@ -1,11 +1,16 @@
 # Author: Izaak Neutelings (May 2020)
+from __future__ import print_function # for python3 compatibility
+from past.builtins import long # for python2 compatibility
 
 tcol_dict = { 'black':  30,  'red':     31, 'green': 32,
               'yellow': 33,  'orange':  33, 'blue':  34,
               'purple': 35,  'magenta': 36, 'white': 37,
               'grey':   90,  'none':     0 }
-bcol_dict = {k: (10+v if v else v) for k,v in tcol_dict.iteritems()}
+bcol_dict = {k: (10+v if v else v) for k,v in tcol_dict.items()}
+
+
 def color(string,c='green',b=False,ul=False,**kwargs):
+  """Give string color in shell print out."""
   tcol_key   = kwargs.get('color',     c       )
   bcol_key   = kwargs.get('bg',        None    )
   bcol_key   = kwargs.get('background',bcol_key)
@@ -84,7 +89,7 @@ class Logger(object):
   
   def info(self,string,**kwargs):
     """Info"""
-    print self.pre+string
+    print(self.pre+string)
   
   def verbose(self,string,verb=None,level=1,**kwargs):
     """Check verbosity and print if verbosity level is matched."""
@@ -101,7 +106,7 @@ class Logger(object):
         string = color(string,col) if isinstance(col,str) else color(string)
       if ul:
         string = underline(string)
-      print pre+string
+      print(pre+string)
       return True
     return False
   
@@ -115,11 +120,11 @@ class Logger(object):
   
   def color(self,*args,**kwargs):
     """Print color."""
-    print self.pre+color(*args,**kwargs)
+    print(self.pre+color(*args,**kwargs))
   
   def underline(self,*args,**kwargs):
     """Print underline."""
-    print self.pre+underline(*args,**kwargs)
+    print(self.pre+underline(*args,**kwargs))
   
   def ul(self,*args,**kwargs):
     """Print underline."""
@@ -130,24 +135,24 @@ class Logger(object):
     if trigger:
       exclam  = color(kwargs.get('exclam',"Warning! "),'yellow',b=True,pre=self.pre+kwargs.get('pre',""))
       message = color(string,'yellow',pre="")
-      print exclam+message
+      print(exclam+message)
   
   def warn(self,*args,**kwargs):
     """Alias for Logger.warn."""
     return self.warning(*args,**kwargs)
   
   def title(self,*args,**kwargs):
-    print header(*args,**kwargs)
+    print(header(*args,**kwargs))
   
   def header(self,*args,**kwargs):
-    print header(*args,**kwargs)
+    print(header(*args,**kwargs))
   
   def error(self,string,trigger=True,**kwargs):
     """Print error if triggered without throwing an exception."""
     if trigger:
       exclam  = color(kwargs.get('exclam',"ERROR! "),'red',b=True,pre=self.pre+kwargs.get('pre',""))
       message = color(string,'red',pre="")
-      print exclam+message
+      print(exclam+message)
     return trigger
   
   def fatal(self,string,trigger=True,**kwargs):

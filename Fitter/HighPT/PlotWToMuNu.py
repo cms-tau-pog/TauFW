@@ -98,7 +98,7 @@ def Plot(h_data_input,h_tot_input,h_bkg_input,h_sig_input,era,var,postFit):
     canvas.cd()
     canvas.SetSelected(canvas)
     canvas.Update()
-    print
+    print()
     print('Creating control plot')
     if postFit:
         canvas.Print(utils.figuresFolderWMuNu+"/wmunu_"+era+"_postFit.png")

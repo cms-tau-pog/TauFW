@@ -34,19 +34,19 @@ def main():
   
   for selection in selections:
     LOG.header(selection.name)
-    print ">>> name='%s', filename='%s', title='%s', cut='%s'"%(color(selection.name),color(selection.filename),color(selection.title),color(selection.selection))
-    print ">>> weight=%r, drawcmd=%r"%(selection.weight,selection.drawcmd())
+    print(">>> name='%s', filename='%s', title='%s', cut='%s'"%(color(selection.name),color(selection.filename),color(selection.title),color(selection.selection)))
+    print(">>> weight=%r, drawcmd=%r"%(selection.weight,selection.drawcmd()))
     sum1 = selection + "dzeta>-40"
-    print '>>> sum1 = selection + "dzeta>-40"'
-    print ">>>   name=%r, filename=%r, title=%r"%(sum1.name,sum1.filename,sum1.title)
-    print ">>>   cut=%r"%(sum1.selection)
+    print('>>> sum1 = selection + "dzeta>-40"')
+    print(">>>   name=%r, filename=%r, title=%r"%(sum1.name,sum1.filename,sum1.title))
+    print(">>>   cut=%r"%(sum1.selection))
     sum2 = selection + Selection("dzeta","dzeta>-40")
-    print '>>> sum2 = selection + Selection("dzeta","dzeta>-40")'
-    print ">>>   name=%r, filename=%r, title=%r"%(sum2.name,sum2.filename,sum2.title)
-    print ">>>   cut=%r"%(sum2.selection)
+    print('>>> sum2 = selection + Selection("dzeta","dzeta>-40")')
+    print(">>>   name=%r, filename=%r, title=%r"%(sum2.name,sum2.filename,sum2.title))
+    print(">>>   cut=%r"%(sum2.selection))
   
 
 if __name__ == "__main__":
   main()
-  print
+  print('')
   

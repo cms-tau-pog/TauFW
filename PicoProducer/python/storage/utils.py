@@ -1,4 +1,5 @@
 # Author: Izaak Neutelings (May 2020)
+from past.builtins import basestring # for python2 compatibility
 import os, glob
 import getpass, platform
 import importlib
@@ -10,11 +11,11 @@ from TauFW.common.tools.string import repkey, isglob, quotestrs
 from ROOT import TFile
 LOG  = Logger('Storage')
 host = platform.node()
+user = getpass.getuser()
 
 
-def getsedir():
+def guess_sedir():
   """Guess the storage element path for a given user and host."""
-  user  = getpass.getuser()
   sedir = ""
   if 'lxplus' in host:
     sedir = "/eos/user/%s/%s/"%(user[0],user)
@@ -25,9 +26,8 @@ def getsedir():
   return sedir
   
 
-def gettmpdirs():
+def guess_tmpdirs():
   """Guess the temporary directory for a given user and host."""
-  user  = getpass.getuser()
   tmphadddir = "/tmp/%s/"%(user) # temporary dir for creating intermediate hadd files
   tmpskimdir = ""                # temporary dir for creating skimmed file before copying to outdir
   if 'lxplus' in host:
@@ -39,36 +39,37 @@ def gettmpdirs():
   return tmpskimdir, tmphadddir
   
 
-def getstorage(path,verb=0,ensure=False):
+def getstorage(path,**kwargs):
   """Guess the storage system based on the path."""
+  verb = kwargs.get('verb',0)
   if path.startswith('/eos/'):
     from TauFW.PicoProducer.storage.EOS import EOS
-    storage = EOS(path,ensure=ensure,verb=verb)
+    storage = EOS(path,**kwargs)
   #elif path.startswith('/castor/'):
-  #  storage = Castor(path,verb=verb)
+  #  storage = Castor(path,**kwargs)
   elif path.startswith('/pnfs/psi.ch/'):
     from TauFW.PicoProducer.storage.T3_PSI import T3_PSI
-    storage = T3_PSI(path,ensure=ensure,verb=verb)
+    storage = T3_PSI(path,**kwargs)
   elif path.startswith('/pnfs/desy.de/'):
     from TauFW.PicoProducer.storage.T2_DESY import T2_DESY
-    storage = T2_DESY(path,ensure=ensure,verb=verb)
+    storage = T2_DESY(path,**kwargs)
   elif path.startswith("/store/user") and ("etp" in host and "ekp" in host):
     from TauFW.PicoProducer.storage.GridKA_NRG import GridKA_NRG
-    storage = GridKA_NRG(path,ensure=ensure,verb=verb)
+    storage = GridKA_NRG(path,**kwargs)
   elif path.startswith('/pnfs/lcg.cscs.ch/'):
     from TauFW.PicoProducer.storage.T2_PSI import T2_PSI
-    storage = T2_PSI(path,ensure=ensure,verb=verb)
+    storage = T2_PSI(path,**kwargs)
   #elif path.startswith('/pnfs/iihe/'):
-  #  return T2_IIHE(path,verb=verb)
+  #  return T2_IIHE(path,**kwargs)
   else:
     from TauFW.PicoProducer.storage.StorageSystem import Local
-    storage = Local(path,ensure=ensure,verb=verb)
+    storage = Local(path,**kwargs)
     if not os.path.exists(path):
       LOG.warning("Could not find storage directory %r. Make sure it exists and is mounted. "%(path)+\
                   "If it is a special system, you need to subclass StorageSystem, see "
                   "https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer#Storage-system")
   if verb>=2:
-    print ">>> storage.utils.getstorage(%r), %r"%(path,storage)
+    print(">>> storage.utils.getstorage(%r), %r"%(path,storage))
   return storage
   
 
@@ -115,7 +116,7 @@ def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],das
 def getnevents(fname,treename='Events',verb=0):
   """Help function to get number of entries in a tree."""
   if verb>=3:
-    print ">>> storage.utils.getnevents: opening %s:%r"%(fname,treename)
+    print(">>> storage.utils.getnevents: opening %s:%r"%(fname,treename))
   file = ensureTFile(fname)
   tree = file.Get(treename)
   if not tree:
@@ -129,16 +130,24 @@ def getnevents(fname,treename='Events',verb=0):
 def isvalid(fname,hname='cutflow',bin=1):
   """Check if a given file is valid, or corrupt."""
   nevts = -1
-  file  = TFile.Open(fname,'READ')
+  try:
+    file = TFile.Open(fname,'READ')
+  except OSError as err:
+    print(err)
+    file = None
   if file and not file.IsZombie():
     if file.GetListOfKeys().Contains('Events'): # NANOAOD
       nevts = file.Get('Events').GetEntries()
       if nevts<=0:
         LOG.warning("'Events' tree of file %r has nevts=%s<=0..."%(fname,nevts))
     elif file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains(hname): # pico
-      nevts = file.Get(hname).GetBinContent(bin)
-      if nevts<=0:
-        LOG.warning("Cutflow of file %r has nevts=%s<=0..."%(fname,nevts))
+      hist = file.Get(hname)
+      if hist:
+        nevts = hist.GetBinContent(bin)
+        if nevts<=0:
+          LOG.warning("Cutflow of file %r has nevts=%s<=0..."%(fname,nevts))
+      else: # corrupted ?
+        LOG.warning("Could not open cutflow %s:%s..."%(fname,hname))
   return nevts
   
 
@@ -160,21 +169,21 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
     if verb>=2:
-      print ">>> storage.utils.itervalid: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores)
+      print(">>> storage.utils.itervalid: partitioning %d files into %d chunks for ncores=%d"%(len(fnames),nchunks,ncores))
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
       if not subset: break
       name = "itervalid_%d"%(i)
       processor.start(loopvalid,subset,kwargs,name=name)
     for process in processor:
       if verb>=2:
-        print ">>> storage.utils.itervalid: joining process %r..."%(process.name)
+        print(">>> storage.utils.itervalid: joining process %r..."%(process.name))
       nevtfiles = process.join()
       for nevts, fname in nevtfiles:
         yield nevts, fname
   else:  # run validation in series
     for fname in fnames:
       if verb>=2:
-        print ">>> storage.utils.itervalid:  Validating job output '%s'..."%(fname)
+        print(">>> storage.utils.itervalid:  Validating job output '%s'..."%(fname))
       nevts = isvalid(fname)
       yield nevts, fname
   
@@ -194,7 +203,7 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
     if nchunks>=len(fnames):
       nchunks = len(fnames)-1
     if verb>=2:
-      print ">>> storage.utils.iterevts: partitioning %d files into %d chunks for ncores=%d..."%(len(fnames),nchunks,ncores)
+      print(">>> storage.utils.iterevts: partitioning %d files into %d chunks for ncores=%d..."%(len(fnames),nchunks,ncores))
     for i, subset in enumerate(partition(fnames,nchunks)): # process in ncores chunks
       for fname in subset[:]: # check cache
         if not refresh and fname in filenevts:
@@ -207,13 +216,13 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
       processor.start(loopevts,subset,name=name)
     for process in processor: # collect output from parallel processes
       if verb>=2:
-        print ">>> storage.utils.iterevts: joining process %r..."%(process.name)
+        print(">>> storage.utils.iterevts: joining process %r..."%(process.name))
       nevtfiles = process.join()
       for nevts, fname in nevtfiles:
         yield nevts, fname
   else: # run events check in SERIES
     if verb>=2:
-      print ">>> storage.utils.iterevts: retrieving number of events for %d files (in series)..."%(len(fnames))
+      print(">>> storage.utils.iterevts: retrieving number of events for %d files (in series)..."%(len(fnames)))
     for fname in fnames:
       if refresh or fname not in filenevts:
         nevts = getnevents(fname,tree,verb=verb)
@@ -225,11 +234,11 @@ def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
 def print_no_samples(dtype=[],filter=[],veto=[],channel=[],jobdir="",jobcfgs=""):
   """Help function to print that no samples were found."""
   if jobdir and not glob.glob(jobdir): #os.path.exists(jobdir):
-    print ">>> Job output directory %s does not exist!"%(jobdir)
+    print(">>> Job output directory %s does not exist!"%(jobdir))
   elif jobcfgs and not glob.glob(jobcfgs):
-    print ">>> Did not find any job config files %s!"%(jobcfgs)
+    print(">>> Did not find any job config files %s!"%(jobcfgs))
   else:
-    string  = ">>> Did not find any samples"
+    string = ">>> Did not find any samples"
     if filter or veto or (dtype and len(dtype)<3):
       strings = [ ]
       if filter:
@@ -241,6 +250,6 @@ def print_no_samples(dtype=[],filter=[],veto=[],channel=[],jobdir="",jobcfgs="")
       if channel:
         strings.append("channel%s %s"%('s' if len(channel)>1 else "",quotestrs(channel)))
       string += " with "+', '.join(strings)
-    print string
-  print
+    print(string)
+  print('')
   

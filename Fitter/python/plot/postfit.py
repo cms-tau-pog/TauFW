@@ -12,7 +12,7 @@ import TauFW.Plotter.sample.SampleStyle as STYLE
 
 def drawpostfit(fname,bin,procs,**kwargs):
   """Plot pre- and post-fit plots PostFitShapesFromWorkspace."""
-  print '>>>\n>>> drawpostfit("%s","%s")'%(fname,bin)
+  print(">>>\n>>> drawpostfit(%r,%r)"%(fname,bin))
   outdir    = kwargs.get('outdir',  ""         )
   pname     = kwargs.get('pname',   "$FIT.png" ) # replace $FIT = 'prefit', 'postfit'
   ratio     = kwargs.get('ratio',   True       )

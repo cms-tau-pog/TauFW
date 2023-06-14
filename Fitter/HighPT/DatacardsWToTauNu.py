@@ -25,7 +25,7 @@ def FitConst(x,par):
 def ComputeFake(h_wjets,h_dijets,h_fraction,name):
     nbins = h_wjets.GetNbinsX()
     hist = h_wjets.Clone(name)
-    print
+    print()
     print('Computing fake histogram ->',name)
     for i in range(1,nbins+1):
         x_wjets = h_wjets.GetBinContent(i)
@@ -53,7 +53,7 @@ def ComputeFake(h_wjets,h_dijets,h_fraction,name):
 ##################################
 def ComputeEWKFraction(h_data,h_mc):
 
-    print
+    print()
     print('Computing EWK fraction')
     nbins = h_data.GetNbinsX()
     h_fraction = h_data.Clone('fraction')
@@ -85,7 +85,7 @@ def ComputeEWKFraction(h_data,h_mc):
 ############################
 def PlotClosure(h_data,h_models,wp,era,var):
 
-    print
+    print()
     print("Plotting closure")
     h_model = h_models["bkg_fake_mc_wjets"]    
 
@@ -305,7 +305,7 @@ def PlotWToTauNu(h_data_input,h_fake_input,h_bkg_input,h_sig_input,wp,era,var):
     canvas.cd()
     canvas.SetSelected(canvas)
     canvas.Update()
-    print
+    print()
     print('Creating control plot')
     canvas.Print(utils.figuresFolderWTauNu+"/wtaunu_"+wp+"_"+era+".png")
 
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     uncert_names = ["JES","Unclustered","taues_1pr","taues_1pr1pi0","taues_3pr","taues_3pr1pi0"]
     #    uncert_names = ["JES","Unclustered","taues"]
 
-    print
+    print()
     print('initializing data samples >>>')
     metSamples = {} # data samples dictionary
     metNames = utils.met[args.era]
@@ -391,7 +391,7 @@ if __name__ == "__main__":
                                                       "taunu",metName,True)
         metSamples[metName].SetTauNuConfig(fakeFactor,args.wp,wtaunuCuts)
 
-    print
+    print()
     print('initializing background samples >>>')
     bkgSamples = {} # MC bkg samples dictionary 
     for bkgSampleName in bkgSampleNames:
@@ -399,7 +399,7 @@ if __name__ == "__main__":
                                                        "taunu",bkgSampleName,False)
         bkgSamples[bkgSampleName].SetTauNuConfig(fakeFactor,args.wp,wtaunuCuts)
 
-    print
+    print()
     print('initializing signal samples >>>')
     sigSamples = {} # MC signal samples dictionary 
     for sigSampleName in sigSampleNames:
@@ -411,7 +411,7 @@ if __name__ == "__main__":
     hists_sig_notFake = utils.RunSamplesTauNu(sigSamples,var,"",xbins,"_notFake","sig")
 
     # running on signal samples (central template and unceertainties)
-    print
+    print()
     print('Running on signal samples >>>')
     hists_sig_shape = {}
     commonCut = "metfilter>0.5&&mettrigger>0.5&&extraelec_veto<0.5&&extramuon_veto<0.5&&extratau_veto<0.5&&njets==0&&idDeepTau2017v2p1VSmu_1>=1&&idDeepTau2017v2p1VSe_1>=4&&genmatch_1==5&&idDeepTau2017v2p1VSjet_1>=" + utils.tauWPs[args.wp]
@@ -450,12 +450,12 @@ if __name__ == "__main__":
         
 
     # running selection on data 
-    print
+    print()
     print('Running on data samples >>>')
     hists_data        = utils.RunSamplesTauNu(metSamples,var,"",xbins,"","data")
 
     # running selection on bkgd samples
-    print
+    print()
     print('Running on background samples >>>')
     hists_bkg_fake    = utils.RunSamplesTauNu(bkgSamples,var,"",xbins,"_fake","bkg")
     hists_bkg_notFake = utils.RunSamplesTauNu(bkgSamples,var,"",xbins,"_notFake","bkg")
@@ -524,7 +524,7 @@ if __name__ == "__main__":
 
     # saving histograms to datacard file datacards
     outputFileName = utils.datacardsFolder + "/taunu_" + args.wp + "_" + args.era
-    print
+    print()
     print("Saving histograms to RooT file",outputFileName+".root")
     fileOutput = ROOT.TFile(outputFileName+".root","recreate")
     fileOutput.mkdir("taunu")

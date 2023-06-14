@@ -1,4 +1,6 @@
 # Author: Izaak Neutelings (May 2020)
+from __future__ import print_function # for python3 compatibility
+from past.builtins import basestring # for python2 compatibility
 import os, re, shutil, glob
 import importlib, traceback
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -37,9 +39,9 @@ def ensuredir(*dirnames,**kwargs):
   elif not os.path.exists(dirname):
     os.makedirs(dirname)
     if verbosity>=1:
-      print '>>> Made directory "%s"'%(dirname)
+      print(">>> Made directory %r"%(dirname))
     if not os.path.exists(dirname):
-      print '>>> Failed to make directory "%s"'%(dirname)
+      print(">>> Failed to make directory %r"%(dirname))
   elif empty:
     for filename in os.listdir(dirname):
       filepath = os.path.join(dirname,filename)
@@ -59,7 +61,7 @@ def ensurefile(*paths,**kwargs):
     if fatal:
       raise IOError("Did not find file %s."%(path))
     else:
-      print ">>> Warning! Did not find file %s."%(path)
+      print(">>> Warning! Did not find file %s."%(path))
     #path = None
   return path
   
@@ -74,7 +76,7 @@ def ensuremodule(modname,package):
   try:
     module = importlib.import_module(modpath)
   except Exception as err:
-    print traceback.format_exc()
+    print(traceback.format_exc())
     LOG.throw(ImportError,"Importing module '%s' failed. Please check %s! cwd=%r"%(modpath,modfile,os.getcwd()))
   if not hasattr(module,modclass):
     LOG.throw(IOError,"Module '%s' in %s does not have a module named '%s'!"%(module,modfile,modname))
@@ -88,7 +90,7 @@ def expandfiles(files,verb=0):
     if isglob(fname):
       fnames = glob.glob(fname) # expand glob pattern
       if verb>=1:
-        print ">>> expandfiles: %r -> %s"%(fname,fnames)
+        print(">>> expandfiles: %r -> %s"%(fname,fnames))
       index = files.index(fname)
       files = files[:index] + fnames + files[index+1:] # insert expanded list
   return files
@@ -106,10 +108,10 @@ def rmfile(filepaths,verb=0):
   for filepath in filepaths:
     if os.path.isfile(filepath):
       if verb>=2:
-        print ">>> rmfile: Removing %r..."%(filepath)
+        print(">>> rmfile: Removing %r..."%(filepath))
       os.unlink(filepath)
     elif verb>=2:
-      print ">>> rmfile: Did not find %r..."%(filepath)
+      print(">>> rmfile: Did not find %r..."%(filepath))
   
 
 def getline(fname,iline):
@@ -145,18 +147,18 @@ def ensureTDirectory(file,dirname,cd=True,verb=0):
   if not directory:
     directory = file.mkdir(dirname)
     if verb>=1:
-      print ">>> created directory %s in %s"%(dirname,file.GetPath())
+      print(">>> Created directory %s in %s"%(dirname,file.GetPath()))
   if cd:
     directory.cd()
   return directory
   
 
 def ensureinit(*paths,**kwargs):
-  """Ensure an __init__.py exists, other wise, create one."""
+  """Check if an __init__.py exists. Create one if it does not exist."""
   init   = os.path.join(os.path.join(*paths),'__init__.py')
   script = kwargs.get('by',"")
   if not os.path.isfile(init):
-    print ">>> Creating '%s' to allow import of module..."%(init)
+    print(">>> Creating '%s' to allow import of module..."%(init))
     with open(init,'w') as file:
       if script:
         script = "by "+script
@@ -170,13 +172,13 @@ def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True,warn=T
     if close==None:
       close = not retfile
   if not file or file.IsZombie():
-    LOG.throw(IOError,'Could not open file by name "%s"'%(filename))
+    LOG.throw(IOError,"Could not open file by name %r"%(filename))
   hist = file.Get(histname)
   if not hist:
     if fatal:
-      LOG.throw(IOError,'Did not find histogram %r in file %s!'%(histname,file.GetPath()))
+      LOG.throw(IOError,"Did not find histogram %r in file %r!"%(histname,file.GetPath()))
     elif warn:
-      LOG.warning('Did not find histogram %r in file %s!'%(histname,file.GetPath()))
+      LOG.warn("Did not find histogram %r in file %r!"%(histname,file.GetPath()))
   if (close or setdir) and isinstance(hist,ROOT.TH1):
     hist.SetDirectory(0)
   if close: # close TFile

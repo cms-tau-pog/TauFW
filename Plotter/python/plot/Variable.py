@@ -78,14 +78,14 @@ class Variable(object):
     if self.latex:
       self.title = makelatex(self.title,units=self.units)
       if 'ctitle' in kwargs:
-        for ckey, title in kwargs['ctitle'].iteritems():
+        for ckey, title in kwargs['ctitle'].items():
           kwargs['ctitle'][ckey] = makelatex(title,units=self.units)
     if self.only:
       self.only = ensurelist(self.only)
     if self.veto:
       self.veto = ensurelist(self.veto)
     if self.binlabels and len(self.binlabels)<self.nbins:
-      LOG.warning("Variable.init: len(binlabels)=%d < %d=nbins"%(len(self.binlabels),self.nbins))
+      LOG.warn("Variable.init: len(binlabels)=%d < %d=nbins"%(len(self.binlabels),self.nbins))
     if self._addoverflow:
       self.addoverflow()
     if islist(self.blindcuts):
@@ -135,7 +135,7 @@ class Variable(object):
     strargs = tuple([a for a in args if isinstance(a,str)]) # string arguments: name, title
     binargs = tuple([a for a in args if not isinstance(a,str)])
     if verbosity>=2:
-      print ">>> Variable.clone: Old strargs=%r, binargs=%r, kwargs=%r"%(strargs,binargs,kwargs)
+      print(">>> Variable.clone: Old strargs=%r, binargs=%r, kwargs=%r"%(strargs,binargs,kwargs))
     if not strargs:
       strargs = (kwargs.pop('name',self.name),) # default name
     if not binargs: # get binning
@@ -144,7 +144,7 @@ class Variable(object):
       if cut and self.ctxbins: # change context based on extra cut
         bins = self.ctxbins.getcontext(cut) # get bins in this context
         if binargs!=bins and verbosity>=2:
-          print ">>> Variable.clone: Changing binning %r -> %r because of context %r"%(binargs,bins,cut)
+          print(">>> Variable.clone: Changing binning %r -> %r because of context %r"%(binargs,bins,cut))
         binargs = bins
       if isinstance(binargs,list): # assume list is bin edges
         binargs = (binargs,) # force list in tuple
@@ -166,11 +166,11 @@ class Variable(object):
       newdict['ctxbins'].default = binargs # change default context
     newargs = strargs+binargs
     if verbosity>=2:
-      print ">>> Variable.clone: New args=%r, kwargs=%r"%(newargs,kwargs)
+      print(">>> Variable.clone: New args=%r, kwargs=%r"%(newargs,kwargs))
     newvar = Variable(*newargs,**kwargs)
     newvar.__dict__.update(newdict)
     if verbosity>=2:
-      print ">>> Variable.clone: Cloned %r -> %r"%(self,newvar)
+      print(">>> Variable.clone: Cloned %r -> %r"%(self,newvar))
     return newvar
   
   def issame(self,ovar,**kwargs):
@@ -208,7 +208,7 @@ class Variable(object):
     if self.hasvariablebins():
       return self.bins
     elif full: # get binedges
-      return [self.min+i*(self.max-self.min)/self.nbins for i in xrange(self.nbins+1)]
+      return [self.min+i*(self.max-self.min)/self.nbins for i in range(self.nbins+1)]
     else:
       return (self.nbins,self.min,self.max)
   
@@ -240,21 +240,21 @@ class Variable(object):
       title = self.ctxtitle.getcontext(*args)
       if title!=None:
         if verbosity>=3:
-          print ">>> Variable.changecontext: ctxtitle=%s, args=%r"%(self.ctxtitle.context,args)
-          print ">>> Variable.changecontext: title=%r -> %r"%(self.title,title)
+          print(">>> Variable.changecontext: ctxtitle=%s, args=%r"%(self.ctxtitle.context,args))
+          print(">>> Variable.changecontext: title=%r -> %r"%(self.title,title))
         self.title = title
       elif verbosity>=3:
-        print ">>> Variable.changecontext: ctxtitle=%s, args=%r, title=%r (no change)"%(self.ctxtitle.context,args,self.title)
+        print(">>> Variable.changecontext: ctxtitle=%s, args=%r, title=%r (no change)"%(self.ctxtitle.context,args,self.title))
     if self.ctxbins:
       bins = self.ctxbins.getcontext(*args)
       if isinstance(bins,list):
         bins = (bins,)
       if bins!=None:
         if verbosity>=3:
-          print ">>> Variable.changecontext: ctxbins=%s, args=%r"%(self.ctxbins.context,args)
-          print ">>> Variable.changecontext: bins=%r -> %r"%(self.bins,bins)
+          print(">>> Variable.changecontext: ctxbins=%s, args=%r"%(self.ctxbins.context,args))
+          print(">>> Variable.changecontext: bins=%r -> %r"%(self.bins,bins))
         elif verbosity>=3:
-          print ">>> Variable.changecontext: ctxbins=%s, args=%r, bins=%r (no change)"%(self.ctxbins.context,args,self.bins)
+          print(">>> Variable.changecontext: ctxbins=%s, args=%r, bins=%r (no change)"%(self.ctxbins.context,args,self.bins))
         self.setbins(*bins)
       if self._addoverflow:
         self.addoverflow() # in case the last bin changed
@@ -275,11 +275,11 @@ class Variable(object):
       cut = self.ctxcut.getcontext(*args)
       if cut!=None:
         if verbosity>=3:
-          print ">>> Variable.changecontext: ctxcut=%s, args=%r"%(self.ctxcut.context,args)
-          print ">>> Variable.changecontext: cut=%r -> %r"%(self.cut,cut)
+          print(">>> Variable.changecontext: ctxcut=%s, args=%r"%(self.ctxcut.context,args))
+          print(">>> Variable.changecontext: cut=%r -> %r"%(self.cut,cut))
         self.cut = cut
       elif verbosity>=3:
-        print ">>> Variable.changecontext: ctxcut=%s, args=%r, cut=%r (no change)"%(self.ctxcut.context,args,self.cut)
+        print(">>> Variable.changecontext: ctxcut=%s, args=%r, cut=%r (no change)"%(self.ctxcut.context,args,self.cut))
     if self.ctxweight:
       weight = self.ctxweight.getcontext(*args)
       if weight!=None:
@@ -427,7 +427,7 @@ class Variable(object):
       newvar.cut = shiftjme(newvar.cut,jshift,**kwargs)
       LOG.verb("Variable.shiftjme: extra cut = %r -> %r"%(self.cut,newvar.cut),verbosity,2)
     if newvar.ctxcut:
-      for key, cut in newvar.ctxcut.context.iteritems():
+      for key, cut in newvar.ctxcut.context.items():
         newvar.ctxcut.context[key] = shiftjme(cut,jshift,**kwargs)
       newvar.ctxcut.default = shiftjme(newvar.ctxcut.default,jshift,**kwargs)
     return newvar
@@ -492,7 +492,7 @@ def wrapvariable(*args,**kwargs):
     return Variable(args) # (xvar,nxbins,xmin,xmax)
   elif len(args)==1 and isinstance(args[0],Variable):
     return args[0]
-  LOG.warning('wrapvariable: Could not unwrap arguments "%s" to a Variable object. Returning None.'%args)
+  LOG.warn('wrapvariable: Could not unwrap arguments "%s" to a Variable object. Returning None.'%args)
   return None
   
 

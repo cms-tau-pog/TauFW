@@ -11,6 +11,8 @@ dataset management, but are placed here due to some dependencies.
 #================================================================================================
 # Import modules
 #================================================================================================
+from __future__ import print_function # for python3 compatibility
+from past.builtins import basestring # for python2 compatibility
 import glob, os, sys, re
 import math
 import copy
@@ -89,10 +91,10 @@ def Print(msg, printHeader=True):
     '''
     fName = __file__.split("/")[-1]
     if printHeader==True:
-        print "=== ", fName
-        print "\t", msg
+        print("=== ", fName)
+        print("\t", msg)
     else:
-        print "\t", msg
+        print("\t", msg)
     return
 
 
@@ -103,7 +105,7 @@ def PrintFlushed(msg, printHeader=True):
     msg = "\r\t" + msg
     ERASE_LINE = '\x1b[2K'
     if printHeader:
-        print "=== " + GetSelfName()
+        print("=== " + GetSelfName())
     sys.stdout.write(ERASE_LINE)
     sys.stdout.write(msg)
     sys.stdout.flush()
@@ -305,7 +307,7 @@ def readFromCrabDirs(taskdirs, emptyDatasetsAsNone=False, **kwargs):
             files = glob.glob(os.path.join(d, "results", inputFile))        
             name = name.replace("crab_", "")
         if len(files) == 0:
-            print >> sys.stderr, "Ignoring dataset %s: no files matched to '%s' in task directory %s" % (d, inputFile, os.path.join(d, "res"))
+            print("Ignoring dataset %s: no files matched to '%s' in task directory %s"%(d, inputFile, os.path.join(d, "res")),file=sys.stderr)
             noFiles = True
             continue
         
@@ -314,9 +316,9 @@ def readFromCrabDirs(taskdirs, emptyDatasetsAsNone=False, **kwargs):
         dlist.append( (name+postfix, files) )
 
     if noFiles:
-        print >> sys.stderr, ""
-        print >> sys.stderr, "  There were datasets without files. Have you merged the files with hplusMergeHistograms.py?"
-        print >> sys.stderr, ""
+        print("",file=sys.stderr)
+        print("  There were datasets without files. Have you merged the files with hplusMergeHistograms.py?",file=sys.stderr)
+        print("",file=sys.stderr)
         if len(dlist) == 0:
             raise Exception("No datasets. Have you merged the files with hplusMergeHistograms.py?")
 
@@ -441,13 +443,13 @@ class Settings:
         self.data = copy.deepcopy(defaults)
 
     def set(self, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if not key in self.data:
                 raise Exception("Not allowed to insert '%s', available settings: %s" % (key, ", ".join(self.data.keys())))
             self.data[key] = value
 
     def append(self, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if not key in self.data:
                 raise Exception("Not allowed to insert '%s', available settings: %s" % (key, ", ".join(self.data.keys())))
             try:
@@ -595,7 +597,7 @@ def divideBinomial(countPassed, countTotal):
 def _histoToCounter(histo):
     ret = []
 
-    for bin in xrange(1, histo.GetNbinsX()+1):
+    for bin in range(1, histo.GetNbinsX()+1):
         ret.append( (histo.GetXaxis().GetBinLabel(bin),
                      Count(float(histo.GetBinContent(bin)),
                            float(histo.GetBinError(bin)))) )
@@ -618,7 +620,7 @@ def _counterToHisto(name, counter):
 
 ## Transform histogram (TH1) to a list of values
 def histoToList(histo):
-    return [histo.GetBinContent(bin) for bin in xrange(1, histo.GetNbinsX()+1)]
+    return [histo.GetBinContent(bin) for bin in range(1, histo.GetNbinsX()+1)]
 
 
 ## Transform histogram (TH1) to a dictionary.
@@ -628,7 +630,7 @@ def histoToList(histo):
 def _histoToDict(histo):
     ret = {}
 
-    for bin in xrange(1, histo.GetNbinsX()+1):
+    for bin in range(1, histo.GetNbinsX()+1):
         ret[histo.GetXaxis().GetBinLabel(bin)] = histo.GetBinContent(bin)
 
     return ret
@@ -639,7 +641,7 @@ def histoIntegrateToCount(histo):
     if histo is None:
         return count
 
-    for bin in xrange(0, histo.GetNbinsX()+2):
+    for bin in range(0, histo.GetNbinsX()+2):
         count.add(Count(histo.GetBinContent(bin), histo.GetBinError(bin)))
     return count
 
@@ -661,7 +663,7 @@ def _rescaleInfo(d):
     factor = 1/d["control"]
 
     ret = {}
-    for k, v in d.iteritems():
+    for k, v in d.items():
         if k in ["isPileupReweighted","isTopPtReweighted"]:
             ret[k] = v
         else:
@@ -763,7 +765,7 @@ def _mergeStackHelper(datasetList, nameList, task, allowMissingDatasets=False):
             del dlist[ind]
         message = "Tried to %s '"%task + ", ".join(dlist) +"' which don't exist"
         if allowMissingDatasets:
-            print >> sys.stderr, "WARNING: "+message
+            print("WARNING: "+message,file=sys.stderr)
         else:
             raise Exception(message)
 
@@ -893,7 +895,7 @@ class TreeDraw:
             raise Exception("Error when calling TTree.Draw with the following parameters for dataset %s, nentries=%d\ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (dataset.getName(), nentries, treeName, varexp, selection, option))
         h = tree.GetHistogram()
         if h == None: # need '==' to compare null TH1
-            print >>sys.stderr, "WARNING: TTree.Draw with the following parameters returned null histogram for dataset %s (%d entries)\ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (dataset.getName(), nentries, treeName, varexp, selection, option)
+            print("WARNING: TTree.Draw with the following parameters returned null histogram for dataset %s (%d entries)\ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (dataset.getName(), nentries, treeName, varexp, selection, option),file=sys.stderr)
             return None
 
         h.SetName(dataset.getName()+"_"+h.GetName())
@@ -970,7 +972,7 @@ class TreeScan:
 
         tree.Draw(">>elist", self.selection)
         elist = ROOT.gDirectory.Get("elist")
-        for ientry in xrange(elist.GetN()):
+        for ientry in range(elist.GetN()):
             tree.GetEntry(elist.GetEntry(ientry))
             self.function(tree)
 
@@ -1020,10 +1022,10 @@ class TreeDrawCompound:
         h = None
         datasetName = dataset.getName()
         if datasetName in self.datasetMap:
-            #print "Dataset %s in datasetMap" % datasetName, self.datasetMap[datasetName].selection
+            #print("Dataset %s in datasetMap" % datasetName, self.datasetMap[datasetName].selection)
             h = self.datasetMap[datasetName].draw(dataset)
         else:
-            #print "Dataset %s with default" % datasetName, self.default.selection
+            #print("Dataset %s with default" % datasetName, self.default.selection)
             h = self.default.draw(dataset)
         return h
 
@@ -1035,7 +1037,7 @@ class TreeDrawCompound:
     # are cloned with the given keyword arguments.
     def clone(self, **kwargs):
         ret = TreeDrawCompound(self.default.clone(**kwargs))
-        for name, td in self.datasetMap.iteritems():
+        for name, td in self.datasetMap.items():
             ret.datasetMap[name] = td.clone(**kwargs)
         return ret
 
@@ -1061,7 +1063,7 @@ def _treeDrawToNumEntriesSingle(treeDraw):
 def treeDrawToNumEntries(treeDraw):
     if isinstance(treeDraw, TreeDrawCompound):
         td = TreeDrawCompound(_treeDrawToNumEntriesSingle(treeDraw.default))
-        for name, td2 in treeDraw.datasetMap.iteritems():
+        for name, td2 in treeDraw.datasetMap.items():
             td.add(name, _treeDrawToNumEntriesSingle(td2))
         return td
     else:
@@ -1203,23 +1205,23 @@ class SystematicsHelper:
     def addUncertainties(self, dset, rootHistoWithUncertainties, modify=None):
         verbose = self._settings.get("verbose")
         if verbose:
-            print "Adding uncertainties to histogram '%s' of dataset '%s'" % (self._histoName, dset.getName())
+            print("Adding uncertainties to histogram '%s' of dataset '%s'" % (self._histoName, dset.getName()))
 
         onlyFor = self._settings.get("applyToDatasets")
         if dset.isMC():
             if onlyFor is Systematics.OnlyForPseudo:
                 if verbose:
-                    print "  Dataset is MC, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
+                    print("  Dataset is MC, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__)
                 return
         elif dset.isPseudo():
             if onlyFor is Systematics.OnlyForMC:
                 if verbose:
-                    print "  Dataset is pseudo, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
+                    print("  Dataset is pseudo, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__)
                 return
         elif dset.isData():
             if onlyFor is not Systematics.All:
                 if verbose:
-                    print "  Dataset is data, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
+                    print("  Dataset is data, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__)
                 return
         else:
             raise Exception("Internal error (unknown dataset type)")
@@ -1230,14 +1232,14 @@ class SystematicsHelper:
         if self._settings.get("allShapes"):
             shapes = allShapes
             if verbose:
-                print "  Using all available shape variations (%s)" % ",".join(shapes)
+                print("  Using all available shape variations (%s)" % ",".join(shapes))
         else:
             shapes = self._settings.get("shapes")
             #for s in self._settings.get("shapes"):
             #    if s in allShapes:
             #        shapes.append(s)
             if verbose:
-                print "  Using explicitly specified shape variations (%s)" % ",".join(shapes)
+                print("  Using explicitly specified shape variations (%s)" % ",".join(shapes))
         for source in shapes:
             plus = None
             minus = None
@@ -1254,8 +1256,8 @@ class SystematicsHelper:
         additShapes = self._settings.get("additionalShapes")
         if len(additShapes) > 0:
             if verbose:
-                print "  Adding additional shape variations %s" % ",".join(additShapes.keys())
-            for source, (th1plus, th1minus) in additShapes.iteritems():
+                print("  Adding additional shape variations %s" % ",".join(additShapes.keys()))
+            for source, (th1plus, th1minus) in additShapes.items():
                 hp = th1plus
                 hm = th1minus
                 if not isinstance(th1plus, ROOT.TH1):
@@ -1272,36 +1274,36 @@ class SystematicsHelper:
         relShapes = self._settings.get("additionalShapesRelative")
         if len(relShapes) > 0:
             if verbose:
-                print "  Adding additional bin-wise relative uncertainties %s" % ",".join(relShapes.keys())
-            for source, th1 in relShapes.iteritems():
+                print("  Adding additional bin-wise relative uncertainties %s" % ",".join(relShapes.keys()))
+            for source, th1 in relShapes.items():
                 rootHistoWithUncertainties.addShapeUncertaintyFromVariationRelative(source, th1)
 
         # Add normalization uncertainties given the selection step
         normSel = self._settings.get("normalizationSelections")
         if len(normSel) > 0:
             if verbose:
-                print "  Adding normalization uncertainties after selections %s" % ",".join(normSel)
+                print("  Adding normalization uncertainties after selections %s" % ",".join(normSel))
             raise Exception("Normalization uncertainties given the set of selections is not supported yet")
 
         # Add any user-supplied normalization uncertainties
         additNorm = self._settings.get("additionalNormalizations")
         if len(additNorm) > 0:
             if verbose:
-                print "  Adding additional relative normalization uncertainties %s" % ",".join(additNorm.keys())
-            for source, value in additNorm.iteritems():
+                print("  Adding additional relative normalization uncertainties %s" % ",".join(additNorm.keys()))
+            for source, value in additNorm.items():
                 rootHistoWithUncertainties.addNormalizationUncertaintyRelative(source, value)
 
         # Add any user-supplied dataset-specific normalization uncertainties
         additNorm = self._settings.get("additionalDatasetNormalizations")
         if len(additNorm) > 0:
             if verbose:
-                print "  Adding additional dataset-specific (for %s) relative normalization uncertainties %s" % (dset.getName(), ",".join(additNorm.keys()))
-            for source, func in additNorm.iteritems():
+                print("  Adding additional dataset-specific (for %s) relative normalization uncertainties %s" % (dset.getName(), ",".join(additNorm.keys())))
+            for source, func in additNorm.items():
                 value = func(dset.getName())
                 rootHistoWithUncertainties.addNormalizationUncertaintyRelative(source, value)
 
         if verbose:
-            print "  Below is the final set of uncertainties for this histogram"
+            print("  Below is the final set of uncertainties for this histogram")
             rootHistoWithUncertainties.printUncertainties()
 
         
@@ -1344,8 +1346,8 @@ class RootHistoWithUncertainties:
         fName = __file__.split("/")[-1]
         fName = fName.replace(".pyc", ".py")
         if printHeader:
-            print "=== ", fName
-        print "\t", msg
+            print("=== ", fName)
+        print("\t", msg)
         return
 
     def _checkConsistency(self, name, th1):
@@ -1396,7 +1398,7 @@ class RootHistoWithUncertainties:
         if not self._flowBinsVisibleStatus:
             raise Exception("getRate(): The under/overflow bins might not be not empty! Did you forget to call makeFlowBinsVisible() before getRate()?")
         if len(self._treatShapesAsStat) > 0:
-            print "WARNING: some shapes are treated as statistical uncertainty, but they have not been implemented yet to getRateStatUncertainty()!"
+            print("WARNING: some shapes are treated as statistical uncertainty, but they have not been implemented yet to getRateStatUncertainty()!")
         mySum = 0.0
         if isinstance(self._rootHisto, ROOT.TH2):
             raise Exception("getRateStatUncertainty() supported currently only for TH1!")
@@ -1425,7 +1427,7 @@ class RootHistoWithUncertainties:
         #    return
         self._flowBinsVisibleStatus = True
         # Update systematics histograms first
-        for key, (hPlus, hMinus) in self._shapeUncertainties.iteritems():
+        for key, (hPlus, hMinus) in self._shapeUncertainties.items():
             histogramsExtras.makeFlowBinsVisible(hPlus)
             histogramsExtras.makeFlowBinsVisible(hMinus)
         # Update nominal histogram
@@ -1443,7 +1445,7 @@ class RootHistoWithUncertainties:
             if self._rootHisto.GetBinError(i+1) < minimumStatUncertainty:
                 self._rootHisto.SetBinError(i+1, minimumStatUncertainty)
         # Treat negative bins in variations
-        for key, (hPlus, hMinus) in self._shapeUncertainties.iteritems():
+        for key, (hPlus, hMinus) in self._shapeUncertainties.items():
             treatBins(hPlus)
             treatBins(hMinus)
 
@@ -1540,7 +1542,7 @@ class RootHistoWithUncertainties:
             hminus = aux.Clone(th1Plus)
             hminus.Scale(-1)
 
-        for bin in xrange(1, self._rootHisto.GetNbinsX()+1):
+        for bin in range(1, self._rootHisto.GetNbinsX()+1):
             myRate = self._rootHisto.GetBinContent(bin)
             hplus.SetBinContent(bin, myRate * hplus.GetBinContent(bin))
             hminus.SetBinContent(bin, myRate * hminus.GetBinContent(bin))
@@ -1562,7 +1564,7 @@ class RootHistoWithUncertainties:
         hplus = aux.Clone(self._rootHisto)
         hplus.Reset()
         hminus = aux.Clone(hplus)
-        for bin in xrange(1, self._rootHisto.GetNbinsX()+1):
+        for bin in range(1, self._rootHisto.GetNbinsX()+1):
             myRate = self._rootHisto.GetBinContent(bin)
             hplus.SetBinContent(bin, myRate * uncertaintyPlus)
             if uncertaintyMinus == None:
@@ -1674,9 +1676,9 @@ class RootHistoWithUncertainties:
             shapes = self._shapeUncertainties.values()
 
         #shapes.sort()
-        #print addStatistical, addSystematic, "\n  ".join([x[0].GetName() for x in shapes])
+        #print(addStatistical, addSystematic, "\n  ".join([x[0].GetName() for x in shapes]))
 
-        for i in xrange(wrapper.begin(), wrapper.end()):
+        for i in range(wrapper.begin(), wrapper.end()):
             (xval, xlow, xhigh) = wrapper.xvalues(i)
 
             yval = wrapper.y(i)
@@ -1711,11 +1713,11 @@ class RootHistoWithUncertainties:
         '''
         Print associated systematic uncertainties
         '''
-        print "Shape uncertainties (%d):" % len(self._shapeUncertainties)
+        print("Shape uncertainties (%d):" % len(self._shapeUncertainties))
         keys = self._shapeUncertainties.keys()
         keys.sort()
         for key in keys:
-            print "  %s" % key
+            print("  %s" % key)
 
     #### Below are methods for "better" implementation for some ROOT TH1 methods
     def integral(self):
@@ -1795,7 +1797,7 @@ class RootHistoWithUncertainties:
         '''
         if self._rootHisto is None:
             return None
-        return [self._rootHisto.GetBinWidth(i) for i in xrange(1, self._rootHisto.GetNbinsX()+1)]
+        return [self._rootHisto.GetBinWidth(i) for i in range(1, self._rootHisto.GetNbinsX()+1)]
 
     #### Below are methods for ROOT TH1 compatibility (only selected methods are implemented)
     def GetNbinsX(self):
@@ -1964,12 +1966,12 @@ class RootHistoWithUncertainties:
         (plus, minus) = self._shapeUncertainties[name]
         plus.Scale(value)
         minus.Scale(value)
-        #for i in xrange(0, self._rootHisto.GetNbinsX()+2):
+        #for i in range(0, self._rootHisto.GetNbinsX()+2):
             #if abs(self._rootHisto.GetBinContent(i)) > 0.0:
                 #oldValue = (plus.GetBinContent(i),self._rootHisto.GetBinContent(i))
                 #plus.SetBinContent(i, plus.GetBinContent(i)*value)
                 #minus.SetBinContent(i, minus.GetBinContent(i)*value)
-                #print oldValue, plus.GetBinContent(i)
+                #print(oldValue, plus.GetBinContent(i))
         self._shapeUncertainties[name] = (plus, minus)
 
     def Clone(self):
@@ -1980,7 +1982,7 @@ class RootHistoWithUncertainties:
         histograms, th1.SetDirectory(0) is called.
         '''
         clone = RootHistoWithUncertainties(aux.Clone(self._rootHisto))
-        for key, value in self._shapeUncertainties.iteritems():
+        for key, value in self._shapeUncertainties.items():
             (plus, minus) = (aux.Clone(value[0]), aux.Clone(value[1]))
             clone._shapeUncertainties[key] = (plus, minus)
         clone._treatShapesAsStat = set(self._treatShapesAsStat)
@@ -2083,8 +2085,8 @@ class RootHistoWithUncertainties:
         rows.append( align.format("Rate_syst_uncert_up"  , graphErrors(self.getSystematicUncertaintyGraph(), True)) )
         rows.append( align.format("Rate_syst_uncert_down", graphErrors(self.getSystematicUncertaintyGraph(), False)) )
 
-        #print ",%s"%sUp
-        #print "rate_syst_uncert_down,%s\n"%sDown
+        #print(",%s"%sUp)
+        #print("rate_syst_uncert_down,%s\n"%sDown)
 
         # Print all rows in a loop to get the table
         rows.append(hLine)
@@ -2812,7 +2814,7 @@ class Dataset:
         self.info = None
         self.dataVersion = None
         def assertInfo(refInfo, newInfo, refFile, newFile, name):
-            for key, value in refInfo.iteritems():
+            for key, value in refInfo.items():
                 valnew = info[key]
                 if isinstance(value, basestring):
                     if value == valnew:
@@ -2916,7 +2918,7 @@ class Dataset:
                     assertInfo(updateInfo, info, self.files[0], f, realDirName+"/configinfo")
             if "energy" in updateInfo:
                 #raise Exception("You may not set 'energy' in analysis directory specific configinfo histogram. Please fix %s." % realName)
-                print "WARNING: 'energy' has been set in analysis directory specific configinfo histogram (%s), it will be ignored. Please fix your pseudomulticrab code." % (realName+"/configinfo")
+                print("WARNING: 'energy' has been set in analysis directory specific configinfo histogram (%s), it will be ignored. Please fix your pseudomulticrab code." % (realName+"/configinfo"))
                 del updateInfo["energy"]
             self.info.update(updateInfo)
 
@@ -2927,7 +2929,7 @@ class Dataset:
 
         # Update Nallevents to weighted one
         if "isPileupReweighted" in self.info and self.info["isPileupReweighted"]:
-            #print "%s: is pileup-reweighted, calling updateNAllEventsToPUWeighted()" % self.name
+            #print("%s: is pileup-reweighted, calling updateNAllEventsToPUWeighted()" % self.name)
             self.updateNAllEventsToPUWeighted()
 
         # Set cross section, if MC and we know the energy
@@ -2935,7 +2937,7 @@ class Dataset:
             if "energy" in self.info:
                 crosssection.setBackgroundCrossSectionForDataset(self, quietMode=(self._systematicVariation != None or self._optimizationMode != None))
             else:
-                print "%s is MC but has no energy set in configInfo/configinfo, not setting its cross section automatically" % self.name
+                print("%s is MC but has no energy set in configInfo/configinfo, not setting its cross section automatically" % self.name)
 
         # For some reason clearing the in-memory representations of
         # the files increases the reading (object lookup?) performance
@@ -2944,7 +2946,7 @@ class Dataset:
         for f in self.files:
             # Skip this step if on OS X (crashes)
             if _platform == "darwin":
-                #print "=== dataset.py: Skip the clearing the in-memory representations of the files in macOS (causes crash)"
+                #print("=== dataset.py: Skip the clearing the in-memory representations of the files in macOS (causes crash)")
                 continue
 #            else:
 #                f.Clear() # uncommented by Santeri in order to avoid segmentation faults
@@ -3053,7 +3055,7 @@ class Dataset:
     def getRootHisto(self, name, **kwargs):
         if hasattr(name, "draw"):
             if len(kwargs) > 0:
-                print >>sys.stderr, "WARNING: You gave keyword arguments to getDatasetRootHisto() together with object with draw() method. The keyword arguments are not passed to the draw() call. This may or may not be what you want."
+                print("WARNING: You gave keyword arguments to getDatasetRootHisto() together with object with draw() method. The keyword arguments are not passed to the draw() call. This may or may not be what you want.",file=sys.stderr)
             h = name.draw(self)
             realName = None
         else:
@@ -3150,12 +3152,12 @@ class Dataset:
             ctr = _histoToCounter(counter)
             self.nAllEventsUnweighted = ctr[0][1].value() # first counter, second element of the tuple, corresponds to ttree: skimCounterAll
             if _debugCounters: # Debug print
-                print "DEBUG: Unweighted counters, Dataset name: "+self.getName()
+                print("DEBUG: Unweighted counters, Dataset name: "+self.getName())
                 for i in range(counter.GetNbinsX()+1):
                     if counter.GetXaxis().GetBinLabel(i) == "Base::AllEvents":
                         allEventsBin = i
-                    print "bin %d, label: %s, content: = %s"%(i, counter.GetXaxis().GetBinLabel(i), counter.GetBinContent(i))
-                print "\n\n"
+                    print("bin %d, label: %s, content: = %s"%(i, counter.GetXaxis().GetBinLabel(i), counter.GetBinContent(i)))
+                print("\n\n")
             # Normalization check (to spot e.g. PROOF problems), based on weighted counters
             (counter, realName) = self.getRootHisto(self.counterDir+"/weighted/counter") # weighted
             allEventsBin = None
@@ -3168,9 +3170,9 @@ class Dataset:
                     nPUReEvts = counter.GetBinContent(allEventsBin+1)
                     normalizationCheckStatus = False
             if _debugNAllEvents: # Debug print
-                print "DEBUG: self.nAllEventsUnweighted = "+str(self.nAllEventsUnweighted)
+                print("DEBUG: self.nAllEventsUnweighted = "+str(self.nAllEventsUnweighted))
         # If reading unweighted counters fail
-        except HistogramNotFoundException, e:
+        except HistogramNotFoundException as e:
             if not self._weightedCounters:
                 raise Exception("Could not find counter histogram, message: %s" % str(e))
             self.nAllEventsUnweighted = -1
@@ -3188,17 +3190,17 @@ class Dataset:
                 (counter, realName) = self.getRootHisto(self.counterDir+"/counter") # weighted
                 ctr = _histoToCounter(counter)
                 self.nAllEventsWeighted = ctr[0][1].value() # first counter, second element of the tuple, corresponds to ttree: skimCounterAll
-            except HistogramNotFoundException, e:
+            except HistogramNotFoundException as e:
                 raise Exception("Could not find counter histogram, message: %s" % str(e))
             if _debugNAllEvents: # Debug print
-                print "DEBUG: self.nAllEventsWeighted = "+str(self.nAllEventsWeighted)
+                print("DEBUG: self.nAllEventsWeighted = "+str(self.nAllEventsWeighted))
 
 
         # Set nAllEvents to unweighted value (corresponding to ttree: skimCounterAll)  
         # The corresponding value in the weighted counter is 0, so we don't want to use that
         self.nAllEvents = self.nAllEventsUnweighted
         if _debugNAllEvents: # Debug print
-            print "DEBUG: self.nAllEvents = "+str(self.nAllEvents)
+            print("DEBUG: self.nAllEvents = "+str(self.nAllEvents))
 
     def getName(self):
         return self.name
@@ -3325,7 +3327,7 @@ class Dataset:
                 delta = (self.info["isPileupReweighted"] - self.nAllEvents) / self.nAllEvents
                 ratio = ratio * self.info["isPileupReweighted"] / self.nAllEvents
             if _debugNAllEvents and abs(delta) > 0.00001:
-                print "dataset (%s): Updated NAllEvents to pileUpReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0)
+                print("dataset (%s): Updated NAllEvents to pileUpReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0))
         if not "isTopPtReweighted" in self.info.keys():
             raise Exception("Key 'isTopPtReweighted' missing in configinfo histogram!")
         if self.info["isTopPtReweighted"] > 0.0:
@@ -3334,7 +3336,7 @@ class Dataset:
                 delta = (self.info["isTopPtReweighted"] - self.nAllEvents) / self.nAllEvents
                 ratio = ratio * self.info["isTopPtReweighted"] / self.nAllEvents
             if _debugNAllEvents and abs(delta) > 0.00001:
-                print "dataset (%s): Updated NAllEvents to isTopPtReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0)
+                    print(message,file=sys.stderr)
         self.nAllEvents = ratio * self.nAllEvents
 
     def getNAllEvents(self):
@@ -3410,7 +3412,7 @@ class Dataset:
         #h = None
         # if hasattr(name, "draw"):
         #     if len(kwargs) > 0:
-        #         print >>sys.stderr, "WARNING: You gave keyword arguments to getDatasetRootHisto() together with object with draw() method. The keyword arguments are not passed to the draw() call. This may or may not be what you want."
+        #         print("WARNING: You gave keyword arguments to getDatasetRootHisto() together with object with draw() method. The keyword arguments are not passed to the draw() call. This may or may not be what you want.",file=sys.stderr)
         #     h = name.draw(self)
         # else:
         (h, realName) = self.getRootHisto(name, **kwargs)
@@ -4057,7 +4059,7 @@ class DatasetManager:
             try:
                 selected.append(self.datasetMap[name])
             except KeyError:
-                print >> sys.stderr, "WARNING: Dataset selectAndReorder: dataset %s doesn't exist" % name
+                print("WARNING: Dataset selectAndReorder: dataset %s doesn't exist" % name,file=sys.stderr)
 
         self.datasets = selected
         self._populateMap()
@@ -4099,7 +4101,7 @@ class DatasetManager:
     #
     # \see rename()
     def renameMany(self, nameMap, silent=False):
-        for oldName, newName in nameMap.iteritems():
+        for oldName, newName in nameMap.items():
             if oldName == newName:
                 continue
 
@@ -4108,7 +4110,7 @@ class DatasetManager:
 
             try:
                 self.datasetMap[oldName].setName(newName)
-            except KeyError, e:
+            except KeyError as e:
                 if not silent:
                     raise Exception("Trying to rename dataset '%s' to '%s', but '%s' doesn't exist!" % (oldName, newName, oldName))
         self._populateMap()
@@ -4162,7 +4164,7 @@ class DatasetManager:
                 else:
                     toMerge[newName] = [d.getName()]
 
-        for newName, nameList in toMerge.iteritems():
+        for newName, nameList in toMerge.items():
             self.merge(newName, nameList, *args, **kwargs)
         return
 
@@ -4193,7 +4195,7 @@ class DatasetManager:
 
             if allowMissingDatasets:
                 if not silent:
-                    print >> sys.stderr, message
+                    print(message,file=sys.stderr)
                     #Print(message, True)
             else:
                 raise Exception(message)
@@ -4201,7 +4203,7 @@ class DatasetManager:
         elif len(selected) == 1 and not keepSources:
             if not silent:
                 message = "Dataset merge, one dataset '" + selected[0].getName() + "' found from list '" + ", ".join(nameList)+"'. Renaming it to '%s'" % newName
-                print >> sys.stderr, message
+                print(message,file=sys.stderr)
                 #Print(message, True)
             self.rename(selected[0].getName(), newName)
             return
@@ -4256,7 +4258,7 @@ class DatasetManager:
 
 ### Alexandros: Needs to be nested?
 #                # For-loop: All Dataset-Lumi pairs in dictionary
-#                for name, value in data.iteritems():
+#                for name, value in data.items():
 #                    Print("%s has %s pb"  % (name, value), False)
 #                    if self.hasDataset(name):
 #                        Print("%s, setting lumi to %s" % (name, value), False)
@@ -4266,7 +4268,7 @@ class DatasetManager:
 ### Alexandros: Needs to be nested?
 
         # For-loop: All Dataset-Lumi pairs in dictionary
-        for name, value in data.iteritems():
+        for name, value in data.items():
             Verbose("%s has %s pb"  % (name, value), False)
             if self.hasDataset(name):
                 Verbose("%s, setting lumi to %s" % (name, value), False)
@@ -4278,10 +4280,10 @@ class DatasetManager:
 ####            fname = os.path.join(self.basedir, fname)
 ####
 ####        if not os.path.exists(fname):
-####            print >> sys.stderr, "WARNING: luminosity json file '%s' doesn't exist!" % fname
+####            print("WARNING: luminosity json file '%s' doesn't exist!" % fname,file=sys.stderr)
 ####
 ####        data = json.load(open(fname))
-####        for name, value in data.iteritems():
+####        for name, value in data.items():
 ####            if self.hasDataset(name):
 ####                self.getDataset(name).setLuminosity(value)
         return
@@ -4468,7 +4470,7 @@ class DatasetManager:
                 myDatasets[d.getName()] = d.getCrossSection()
             else:
                 pass
-            # print d.getLuminosity()
+            # print(d.getLuminosity())
 
         index = 0
         # For-loop: All keys in dataset-xsection map (sorted by descending xsection value)
@@ -4526,7 +4528,7 @@ class DatasetManager:
 
     ## Print dataset information.
     def printInfo(self):
-        print self.formatInfo()
+        print(self.formatInfo())
 
 
     def formatDatasetTree(self):
@@ -4538,7 +4540,7 @@ class DatasetManager:
 
 
     def printDatasetTree(self):
-        print self.formatDatasetTree()
+        print(self.formatDatasetTree())
 
     ## Prints the parameterSet of some Dataset
     #
@@ -4546,12 +4548,12 @@ class DatasetManager:
     # from will not be given.
     def printSelections(self):
         namePSets = self.datasets[0].forEach(lambda d: (d.getName(), d.getParameterSet()))
-        print "ParameterSet for dataset", namePSets[0][0]
-        print namePSets[0][1]
+        print("ParameterSet for dataset", namePSets[0][0])
+        print(namePSets[0][1])
 
     def getSelections(self):
         namePSets = self.datasets[0].forEach(lambda d: (d.getName(), d.getParameterSet()))
-        #print "ParameterSet for dataset", namePSets[0][0]
+        #print("ParameterSet for dataset", namePSets[0][0])
         return namePSets[0][1]
 
     ## \var datasets
@@ -4620,7 +4622,7 @@ class DatasetPrecursor:
             # Get the data version (e.g. 80Xdata or 80Xmc)
             dv = aux.Get(rf, "configInfo/dataVersion")
             if dv == None:
-                print "Unable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name
+                print("Unable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name)
                 continue                
             if self._dataVersion is None:
                 self._dataVersion = dv.GetTitle()
@@ -4653,7 +4655,7 @@ class DatasetPrecursor:
                         # pileup (up)
                         pileup_up = aux.Get(rf, "configInfo/pileup_up")
                         if pileup_up == None:
-                            print "Unable to find 'configInfo/pileup_up' from ROOT file '%s'" % name
+                            print("Unable to find 'configInfo/pileup_up' from ROOT file '%s'" % name)
                         if self._pileup_up is None:
                             if pileup_up != None:
                                 self._pileup_up = pileup_up
@@ -4662,7 +4664,7 @@ class DatasetPrecursor:
                         # pileup (down)
                         pileup_down = aux.Get(rf, "configInfo/pileup_down")
                         if pileup_down == None:
-                            print "Unable to find 'configInfo/pileup_down' from ROOT file '%s'" % name
+                            print("Unable to find 'configInfo/pileup_down' from ROOT file '%s'" % name)
                         if self._pileup_down is None:
                             if pileup_down != None:
                                 self._pileup_down = pileup_down
@@ -4678,7 +4680,7 @@ class DatasetPrecursor:
                             raise Exception("Error: The first bin of the counters histogram should be the all events bin!")
                         self._nAllEvents += counters.GetBinContent(1)
                 if self._nAllEvents == 0.0:
-                    print "Warning (DatasetPrecursor): N(allEvents) = 0 !!!"
+                    print("Warning (DatasetPrecursor): N(allEvents) = 0 !!!")
 
 #            rf.Close()
 
@@ -4968,7 +4970,7 @@ class DatasetManagerCreator:
                     dset = Dataset(precursor.getName(), precursor.getFiles(), **_args)
                 else:
                     dset = Dataset(precursor.getName(), precursor.getFiles(), availableSystematicVariationSources=self._systematicVariationSources, **_args)
-            except AnalysisNotFoundException, e:
+            except AnalysisNotFoundException as e:
                 msg = str(e)+"\n"
                 helpFound = False
                 for arg, attr in [("analysisName", "getAnalyses"),
@@ -5036,49 +5038,49 @@ class DatasetManagerCreator:
         return self._systematicVariationSources
 
     def printAnalyses(self):
-        print "Analyses (analysisName):"
+        print("Analyses (analysisName):")
         for a in self._analyses:
-            print "  "+a
+            print("  "+a)
         print
 
         if len(self._searchModes) == 0:
-            print "No search modes"
+            print("No search modes")
         else:
-            print "Search modes (searchMode):"
+            print("Search modes (searchMode):")
             for s in self._searchModes:
-                print "  "+s
+                print("  "+s)
         print
         
         if len(self._mcDataEras) == 0:
-            print "No data eras in MC"
+            print("No data eras in MC")
         else:
-            print "Data eras (in MC) (dataEra):"
+            print("Data eras (in MC) (dataEra):")
             for d in self._mcDataEras:
-                print "  "+d
+                print("  "+d)
         print
 
         if len(self._dataDataEras) == 0:
-            print "No data eras in data"
+            print("No data eras in data")
         else:
-            print "Data eras (in data, the letters can be combined in almost any way) (dataEra):"
+            print("Data eras (in data, the letters can be combined in almost any way) (dataEra):")
             for d in self._dataDataEras:
-                print "  "+d
+                print("  "+d)
         print
 
         if len(self._optimizationModes) == 0:
-            print "No optimization modes"
+            print("No optimization modes")
         else:
-            print "Optimization modes (optimizationMode):"
+            print("Optimization modes (optimizationMode):")
             for o in self._optimizationModes:
-                print "  "+o
+                print("  "+o)
         print
 
         if len(self._systematicVariations) == 0:
-            print "No systematic variations"
+            print("No systematic variations")
         else:
-            print "Systematic variations (systematicVariation):"
+            print("Systematic variations (systematicVariation):")
             for s in self._systematicVariations:
-                print "  "+s
+                print("  "+s)
         print
 
     ## Close the ROOT files
@@ -5253,7 +5255,7 @@ class NtupleCache:
         selector.setPrintStatus(self.printStatus)
         directories = [directory]
 
-        for name, (selecName, selecArgs) in self.additionalSelectors.iteritems():
+        for name, (selecName, selecArgs) in self.additionalSelectors.items():
             directory = getSelectorDir(name).mkdir(datasetName)
             directory.cd()
             argsNamed = ROOT.TNamed("selectorArgs", str(selectorArgs))
@@ -5262,7 +5264,7 @@ class NtupleCache:
             selector.addSelector(name, getattr(ROOT, selecName)(*selectorArgs), directory)
             directories.append(directory)
 
-        print "Processing dataset", datasetName
+        print("Processing dataset", datasetName)
         
         # Setup cache
         useCache = True
@@ -5287,7 +5289,7 @@ class NtupleCache:
         cpuTime = clockStop-clockStart
         realTime = timeStop-timeStart
         readMbytes = float(readBytesStop-readBytesStart)/1024/1024
-        print "Real time %.2f, CPU time %.2f (%.1f %%), read %.2f MB (%d calls), read speed %.2f MB/s" % (realTime, cpuTime, cpuTime/realTime*100, readMbytes, readCallsStop-readCallsStart, readMbytes/realTime)
+        print("Real time %.2f, CPU time %.2f (%.1f %%), read %.2f MB (%d calls), read speed %.2f MB/s" % (realTime, cpuTime, cpuTime/realTime*100, readMbytes, readCallsStop-readCallsStart, readMbytes/realTime))
         for d in directories:
             d.Write()
 
@@ -5342,7 +5344,7 @@ class SelectorArgs:
         return c
 
     def set(self, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if not hasattr(self, key):
                 raise Exception("This SelectorArgs does not have property %s" % key)
             setattr(self, key, value)

@@ -74,7 +74,7 @@ def comparefiles(fnamesets,vars,**kwargs):
     plot.drawtext(text)
     plot.saveas(fname)
     plot.close()
-    print
+    print('')
   
   #for tree in trees:
   #  tree.Close()
@@ -141,7 +141,7 @@ def comparevars(fnames,varsets,**kwargs):
     plot.drawtext(text)
     plot.saveas(fname)
     plot.close()
-    print
+    print('')
     
 
 def main(args):
