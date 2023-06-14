@@ -140,6 +140,8 @@ class TreeProducer(object):
     return branch
   
   def setAlias(self,newbranch,oldbranch):
+    """Set an alias for a variable or mathematical expression of the other branches."""
+    # https://root.cern.ch/doc/master/classTTree.html#a7c505db0d8ed56b5581e683375eb78e1
     if self.verbosity>=1:
       print(">>> TreeProducer.setAlias: %r -> %r..."%(oldbranch,newbranch))
     self.tree.SetAlias(newbranch,oldbranch)

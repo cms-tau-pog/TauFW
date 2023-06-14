@@ -2,7 +2,7 @@
 
 Framework for tau analysis using NanoAOD at CMS. Three main packages are
 1. [`PicoProducer`](PicoProducer): Tools to process nanoAOD and make custom analysis ntuples.
-2. [`Plotter`](Plotter): Tools for further analysis, auxiliary measurements, validation and plotting. [Under development.]
+2. [`Plotter`](Plotter): Tools for further analysis, auxiliary measurements, validation and plotting.
 3. [`Fitter`](Fitter): Tools for measurements and fits in combine. [Under development.]
 
 ## Installation
@@ -12,10 +12,10 @@ Framework for tau analysis using NanoAOD at CMS. Three main packages are
 * [TauFW](#TauFW-1)<br>
 * [PicoProducer](#PicoProducer)<br>
 * [Combine](#Combine)<br>
-* [TauID](#TauPOG-corrections)<br>
+* [TauPOG corrections](#TauPOG-corrections)<br>
 
 ### CMSSW environment
-First, setup a CMSSW release, for example,
+First, setup a CMSSW release. For example,
 <table>
 <tr>
 <td> nanoAODv10 (python3) </td> <td> Older versions (python2) </td>
