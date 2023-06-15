@@ -12,13 +12,29 @@ class ScaleFactor:
     self.name     = name
     self.ptvseta  = ptvseta
     self.filename = filename
-    LOG.verb("ScaleFactor(%s): Opening %s:%r..."%(self.name,filename,histname),verb,1)
-    self.file     = ensureTFile(filename)
-    self.hist     = self.file.Get(histname)
-    LOG.insist(self.hist,"ScaleFactor(%s): histogram %r does not exist in %s"%(self.name,histname,filename))
-    self.hist.SetDirectory(0)
-    self.file.Close()
-    self.getSF = self.getSF_ptvseta if ptvseta else self.getSF_etavspt
+    self.file, self.hist = self.gethist(filename,histname,verb=verb)
+    self.getSF    = self.getSF_ptvseta if ptvseta else self.getSF_etavspt
+  
+  def gethist(self,filename,histname,verb=0):
+    """Help function to retrieve histogram from ROOT file and check axis assignment."""
+    LOG.verb("ScaleFactor.gethist(%s): Opening %s:%r..."%(self.name,filename,histname),verb,1)
+    file = ensureTFile(filename)
+    hist = file.Get(histname)
+    LOG.insist(hist,"ScaleFactor(%s): Histogram %r does not exist in %s"%(self.name,histname,filename))
+    hist.SetDirectory(0)
+    xmin, xmax = hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax()
+    ymin, ymax = hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax()
+    LOG.verb("ScaleFactor.gethist(%s): xmin=%s, xmax=%s, ymin=%s, ymax=%s, ptvseta=%s"%(self.name,xmin,xmax,ymin,ymax,self.ptvseta),verb+2,2)
+    if self.ptvseta: # x=eta, y=pt
+      if xmax>7: # expect x=eta < 7
+        LOG.warn("ScaleFactor.gethist(%s): Please check if x/y axes are assigned correctly as eta/pt (ptvseta=%r)! "%(self.name,self.ptvseta)+
+                 "Found limits x=[%s,%s], y=[%s,%s]"%(xmin,xmax,ymin,ymax))
+    else: # eta vs. pt: x=pt, y=eta
+      if ymax>7: # expect y=eta < 7
+        LOG.warn("ScaleFactor.gethist(%s): Please check if x/y axes are assigned correctly as pt/eta (ptvseta=%r)! "%(self.name,self.ptvseta)+
+                 "Found limits x=[%s,%s], y=[%s,%s]"%(xmin,xmax,ymin,ymax))
+    file.Close()
+    return file, hist
   
   def __mul__(self, oScaleFactor):
     return ScaleFactorProduct(self, oScaleFactor)

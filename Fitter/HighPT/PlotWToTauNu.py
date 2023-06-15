@@ -112,7 +112,7 @@ def Plot(h_data_input,h_tot_input,h_fake_input,h_bkg_input,h_sig_input,wp,era,va
     canvas.cd()
     canvas.SetSelected(canvas)
     canvas.Update()
-    print
+    print()
     print('Creating control plot')
     if postFit:
         canvas.Print(utils.figuresFolderWTauNu+"/wtaunu_"+wp+"_"+era+"_postFit.png")

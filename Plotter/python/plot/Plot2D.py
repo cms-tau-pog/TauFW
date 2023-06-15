@@ -27,9 +27,9 @@ class Plot2D(Plot):
       if kwargs.get('clone',False):
         hist = hist.Clone(hist.GetName()+"_clone_Plot2D")
     else:
-      LOG.warning("Plot2D.__init__: Did not recognize input: %s"%(args,))
+      LOG.warn("Plot2D.__init__: Did not recognize input: %s"%(args,))
     if len(vars)==1:
-      LOG.warning("Plot2D.__init__: Need  one more variable!")
+      LOG.warn("Plot2D.__init__: Need  one more variable!")
     if len(vars)>=2:
       xvariable   = vars[0]
       yvariable   = vars[1]
@@ -140,11 +140,11 @@ class Plot2D(Plot):
     resetx = logx and hist.GetXaxis().GetBinLowEdge(1)<=0 and xmax>0
     resety = logy and hist.GetYaxis().GetBinLowEdge(1)<=0 and ymax>0
     if verbosity>=2:
-      print ">>> Plot2D.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, zmin=%s, zmax=%s"%(xmin,xmax,ymin,ymax,zmin,zmax)
-      print ">>> Plot2D.draw: logx=%s, logy=%s, logz=%s, resetx=%r, resety=%r"%(logx,logy,logz,resetx,resety)
-      print ">>> Plot2D.draw: tmargin=%s, bmargin=%s, lmargin=%s, rmargin=%s"%(tmargin,bmargin,lmargin,rmargin)
-      print ">>> Plot2D.draw: xoffset=%s, yoffset=%s, zoffset=%s"%(xoffset,yoffset,zoffset)
-      print ">>> Plot2D.draw: xlabeloffset=%s, xlabeloffset=%s, xlabeloffset=%s"%(xlabeloffset,ylabeloffset,zlabeloffset)
+      print(">>> Plot2D.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, zmin=%s, zmax=%s"%(xmin,xmax,ymin,ymax,zmin,zmax))
+      print(">>> Plot2D.draw: logx=%s, logy=%s, logz=%s, resetx=%r, resety=%r"%(logx,logy,logz,resetx,resety))
+      print(">>> Plot2D.draw: tmargin=%s, bmargin=%s, lmargin=%s, rmargin=%s"%(tmargin,bmargin,lmargin,rmargin))
+      print(">>> Plot2D.draw: xoffset=%s, yoffset=%s, zoffset=%s"%(xoffset,yoffset,zoffset))
+      print(">>> Plot2D.draw: xlabeloffset=%s, xlabeloffset=%s, xlabeloffset=%s"%(xlabeloffset,ylabeloffset,zlabeloffset))
     
     # CANVAS
     canvas = TCanvas("canvas","canvas",100,100,int(cwidth),int(cheight))
@@ -221,13 +221,13 @@ class Plot2D(Plot):
     if xbinlabels:
       nxbins = hist.GetXaxis().GetNbins()
       if len(xbinlabels)<nxbins:
-        LOG.warning("Plot2D.plot: len(xbinlabels)=%d < %d=nxbins"%(len(xbinlabels),nxbins))
+        LOG.warn("Plot2D.plot: len(xbinlabels)=%d < %d=nxbins"%(len(xbinlabels),nxbins))
       for i, xbinlabels in zip(range(1,nxbins+1),xbinlabels):
         hist.GetXaxis().SetBinLabel(i,makelatex(xbinlabels,units=False))
     if ybinlabels:
       nybins = hist.GetYaxis().GetNbins()
       if len(ybinlabels)<nybins:
-        LOG.warning("Plot2D.plot: len(ybinlabels)=%d < %d=nybins"%(len(ybinlabels),nybins))
+        LOG.warn("Plot2D.plot: len(ybinlabels)=%d < %d=nybins"%(len(ybinlabels),nybins))
       for i, ybinlabels in zip(range(1,nybins+1),ybinlabels):
         hist.GetYaxis().SetBinLabel(i,makelatex(ybinlabels,units=False))
     if xlabeloption: # https://root.cern.ch/doc/master/classTAxis.html#a05dd3c5b4c3a1e32213544e35a33597c

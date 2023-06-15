@@ -10,7 +10,7 @@
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
 from ROOT import TLorentzVector, TH1D, TH2D, gStyle, kRed
-from TreeProducer import TreeProducer
+from TauFW.PicoProducer.analysis.TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 from TauFW.PicoProducer.analysis.utils import hasbit, filtermutau, statusflags_dict, dumpgenpart, getdecaychain, getmother, deltaPhi
@@ -25,7 +25,7 @@ class GenFilterMuTau(Module):
   def __init__(self,fname,**kwargs):
     self.out = TreeProducerGenFilterMuTau(fname,self)
     self.verb = kwargs.get('verb',0)
-    print ">>> verb = %r"%(self.verb)
+    print(">>> verb = %r"%(self.verb))
     
   def endJob(self):
     """Wrap up after running on all events and files"""
@@ -203,10 +203,10 @@ class GenFilterMuTau(Module):
     
     # CHECK FOR MISSING DECAYS
     if self.verb>=2 and len(taus_hard)>=2 and len(elecs_tau)+len(muons_tau)+ntauhs<2:
-      print ">>> MISSING DITAU DECAY? electrons=%d (%d), muons=%d (%d), tauh=%d"%(
-        len(elecs_tau),len(elecs),len(muons_tau),len(muons),ntauhs)
+      print(">>> MISSING DITAU DECAY? electrons=%d (%d), muons=%d (%d), tauh=%d"%(
+        len(elecs_tau),len(elecs),len(muons_tau),len(muons),ntauhs))
       for tau in taus_hard:
-        print getdecaychain(tau,particles)
+        print(getdecaychain(tau,particles))
       for particle in particles:
         pid = abs(particle.pdgId)
         if pid in [11,13,15,16]:
@@ -226,7 +226,7 @@ class GenFilterMuTau(Module):
     if len(taus_hard)>=2:
       moth_pid2 = abs(getmother(taus_hard[1],particles))
       if moth_pid!=moth_pid2:
-        print ">>> Mother of ditau does not match! %s vs %s"%(moth_pid,moth_pid2)
+        print(">>> Mother of ditau does not match! %s vs %s"%(moth_pid,moth_pid2))
     self.out.h_mothpid.Fill(moth_pid)
     
     # FILL TREE BRANCHES
@@ -394,14 +394,14 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     if ntau>0:
       for tag, title in [('',''),('_hard',' from hard process with tau pT > 18 GeV')]:
         ntau_decay = sum(self.cutflow.getbincontent(b+tag) for b, e in bins)
-        print ">>> Ditau decays%s:"%(title)
+        print(">>> Ditau decays%s:"%(title))
         for bin, exp in bins:
           nbin = self.cutflow.getbincontent(bin+tag)
-          print ">>> %8d / %5d = %5.2f%%   %6d / %d = %5.2f%%   %s, expect %s%%"%(
-            nbin,ntau,100.0*nbin/ntau,nbin,ntau_decay,100.0*nbin/ntau_decay,bin,exp)
-        print ">>> %8d / %5d = %5.2f%%   found ditau decays / all tau pairs"%(ntau_decay,ntau,100.0*ntau_decay/ntau)
+          print(">>> %8d / %5d = %5.2f%%   %6d / %d = %5.2f%%   %s, expect %s%%"%(
+            nbin,ntau,100.0*nbin/ntau,nbin,ntau_decay,100.0*nbin/ntau_decay,bin,exp))
+        print(">>> %8d / %5d = %5.2f%%   found ditau decays / all tau pairs"%(ntau_decay,ntau,100.0*ntau_decay/ntau))
     else:
-      print ">>> No ditau..."
+      print(">>> No ditau...")
     
     # MUTAU FILTERS
     getfiltereff(self.h_mutaufilter)
@@ -418,7 +418,7 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     ###gStyle.SetPaintTextFormat(".0f")
     ###for ix in range(1,nxbins+1): # loop over columns
     ###  ntot = hist.GetBinContent(ix,ix)
-    ###  key  = [k for k, v in statusflags_dict.iteritems() if v==ix-1][0]
+    ###  key  = [k for k, v in statusflags_dict.items() if v==ix-1][0]
     ###  hist.GetXaxis().SetBinLabel(ix,key)
     ###  hist.GetYaxis().SetBinLabel(ix,key)
     ###  for iy in range(1,nybins+1): # normalize rows
@@ -429,9 +429,9 @@ class TreeProducerGenFilterMuTau(TreeProducer):
     super(TreeProducerGenFilterMuTau,self).endJob()
   
   def fillStatusFlag(self,particle):
-    for xbit in xrange(0,15):
+    for xbit in range(0,15):
       if not hasbit(particle.statusFlags,xbit): continue
-      for ybit in xrange(0,15):
+      for ybit in range(0,15):
         if not hasbit(particle.statusFlags,ybit): continue
         self.h_statusflags.Fill(xbit,ybit)
   
@@ -444,10 +444,10 @@ def getfiltereff(hist):
   if ntot>0:
     # https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007&page=0
     eff = npass/ntot
-    print ">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):"
-    print ">>> %8d / %5d = %5.3f%%"%(npass,ntot,100.0*npass/ntot)
-    print ">>> Expect ~ 0.888 % = B(ll->tautau) * eff(Z -> mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)" # = 1.815e+03 / 5343.0 * 0.02615
-    print ">>> Expect ~ 0.519 % = B(ll->tautau) * eff(Z -> mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5, no FSR)" # = 1.815e+03 / 5343.0 * 0.02615 * 0.5841
+    print(">>> Efficiency of custom mutau gen-filter (pT>18, |eta|<2.5):")
+    print(">>> %8d / %5d = %5.3f%%"%(npass,ntot,100.0*npass/ntot))
+    print(">>> Expect ~ 0.888 % = B(ll->tautau) * eff(Z -> mutau) for DYJetsToLL_M-50 (pT>16, muon |eta|<2.5, tau |eta|<2.7)") # = 1.815e+03 / 5343.0 * 0.02615
+    print(">>> Expect ~ 0.519 % = B(ll->tautau) * eff(Z -> mutau) for DYJetsToLL_M-50 (pT>18, |eta|<2.5, no FSR)") # = 1.815e+03 / 5343.0 * 0.02615 * 0.5841
   return eff
   
 
@@ -472,7 +472,7 @@ if __name__ == '__main__':
       title, fname = fname.split('=')
     else:
       title = fname.replace('.root','')
-    print ">>> Opening %s (%s)"%(fname,title)
+    print(">>> Opening %s (%s)"%(fname,title))
     file = TFile.Open(fname,'READ')
     tree = file.Get('tree')
     tree.title = title
@@ -513,7 +513,7 @@ if __name__ == '__main__':
   ]
   for stitle, sstring in selections:
     sname = stitle.replace(' ','').replace(',','-').replace('>','gt').replace('#','').replace('GeV','').replace('fromhardprocess','_hard')
-    print ">>> Drawing %r..."%(stitle) #,sstring)
+    print(">>> Drawing %r..."%(stitle)) #,sstring)
     for xvar, nbins, xmin, xmax in vars:
       xtitle = trees[0].GetBranch(xvar).GetTitle() #xvar
       pname  = "%s_%s%s"%(xvar,sname,args.tag)
@@ -524,14 +524,14 @@ if __name__ == '__main__':
         dcmd   = "%s >> %s"%(xvar,hname)
         hist   = TH1D(hname,title,nbins,xmin,xmax)
         out    = tree.Draw(dcmd,sstring,'gOff')
-        print ">>>  %8s = tree.Draw(%r,%r,'gOff')"%(out,dcmd,sstring)
+        print(">>>  %8s = tree.Draw(%r,%r,'gOff')"%(out,dcmd,sstring))
         nevts  = hist.Integral()
         if nevts:
           hist.Scale(1./nevts)
         hists.append(hist)
       
       # PLOT HISTOGRAMS
-      print ">>> Plotting..."
+      print(">>> Plotting...")
       plot = Plot(xtitle,hists,clone=True)
       plot.draw(ratio=True,lstyle=1)
       plot.drawlegend()
@@ -540,5 +540,5 @@ if __name__ == '__main__':
       plot.close()
   for tree in trees:
     tree.file.Close()
-  print ">>> Done."
+  print(">>> Done.")
   

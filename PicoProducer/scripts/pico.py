@@ -1,14 +1,18 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (April 2020)
 import os, sys, glob, json
 #import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from TauFW.common.tools.file import ensurefile, ensureinit
-from TauFW.common.tools.string import repkey, rreplace
-from TauFW.PicoProducer.analysis.utils import ensuremodule
-from TauFW.PicoProducer.storage.utils import getsamples
-from TauFW.PicoProducer.pico.common import *
-
-
+try:
+  from TauFW.common.tools.file import ensurefile, ensureinit
+  from TauFW.common.tools.string import repkey, rreplace
+  from TauFW.PicoProducer.analysis.utils import ensuremodule
+  from TauFW.PicoProducer.storage.utils import getsamples
+  from TauFW.PicoProducer.pico.common import *
+except ImportError as err:
+  print("\033[1m\033[31mImportError for TauFW modules: Please check if you compiled with `scram b`."
+        "For releases older than CMSSW_12_X, please use pico2.py with python2.\033[0m")
+  raise err
+  
 
 ###############
 #   INSTALL   #
@@ -21,7 +25,7 @@ def main_install(args):
   #  - set defaults of config file
   #  - outside CMSSW: create symlinks for standalone
   if args.verbosity>=1:
-    print ">>> main_install", args
+    print(">>> main_install", args)
   verbosity = args.verbosity
   
 
@@ -101,8 +105,10 @@ if __name__ == "__main__":
                           metavar='NFILES',     help="divide default number of files per job, default=%(const)d")
   parser_job.add_argument('--tmpdir',           dest='tmpdir', type=str, default=None,
                                                 help="for skimming only: temporary output directory befor copying to outdir")
+  parser_hdd_.add_argument('--haddcmd',         dest='haddcmd', default=CONFIG.haddcmd,
+                                                help="alternative hadd command, e.g. haddnano.py")
   parser_hdd_.add_argument('-m','--maxopenfiles',dest='maxopenfiles', type=int, default=CONFIG.maxopenfiles,
-                           metavar='NFILES',     help="maximum numbers to be opened during hadd, default=%(default)d")
+                           metavar='NFILES',    help="maximum numbers to be opened during hadd, default=%(default)d")
   
   # SUBCOMMANDS
   subparsers = parser.add_subparsers(title="sub-commands",dest='subcommand',help="sub-command help")
@@ -137,7 +143,7 @@ if __name__ == "__main__":
   parser_hdc = subparsers.add_parser('haddclean',parents=[parser_hdd_], help=help_hdc, description=help_hdc)
   parser_cln = subparsers.add_parser('clean',    parents=[parser_chk],  help=help_cln, description=help_cln)
   #parser_get.add_argument('variable',           help='variable to change in the config file')
-  parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+CONFIG.keys())
+  parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+list(CONFIG.keys()))
   parser_set.add_argument('variable',           help="variable to set or change in the config file")
   parser_set.add_argument('key',                help="channel or era key name", nargs='?', default=None)
   parser_set.add_argument('value',              help="value for given value")
@@ -204,7 +210,10 @@ if __name__ == "__main__":
   args = parser.parse_args(args)
   if hasattr(args,'tag') and len(args.tag)>=1 and args.tag[0]!='_':
     args.tag = '_'+args.tag
-    
+  if args.subcommand==None:
+    parser.print_help()
+    exit(0)
+  
   # VERBOSITY
   if args.verbosity>=2:
     SLOG.setverbosity(args.verbosity-1)
@@ -241,7 +250,7 @@ if __name__ == "__main__":
     from TauFW.PicoProducer.pico.job import main_status
     main_status(args)
   else:
-    print ">>> subcommand '%s' not implemented!"%(args.subcommand)
+    print(">>> subcommand '%s' not implemented!"%(args.subcommand))
   
-  print ">>> Done!"
+  print(">>> Done!")
   

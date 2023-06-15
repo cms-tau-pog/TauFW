@@ -77,7 +77,7 @@ def plotSampleSet(channel,sampleset,tag="",outdir="plots"):
   fname    = "%s/plotPico_$VAR%s"%(outdir,tag)
   for selection in selections:
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',parallel=parallel)
-    for stack, variable in stacks.iteritems():
+    for stack, variable in stacks.items():
       #position = "" #variable.position or 'topright'
       stack.draw()
       stack.drawlegend() #position)
@@ -104,5 +104,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main()
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

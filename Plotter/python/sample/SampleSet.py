@@ -12,7 +12,6 @@ from TauFW.Plotter.plot.MultiThread import MultiProcessor
 from TauFW.common.tools.LoadingBar import LoadingBar
 
 
-
 class SampleSet(object):
   """Collect samples into one set to draw histgrams from trees for data/MC comparisons,
   and allow data-driven background estimations.
@@ -99,13 +98,13 @@ class SampleSet(object):
     import TauFW.Plotter.sample.utils as GLOB
     if not title:
       name = self.name+" samples" if self.name else "Samples"
-      print ">>>\n>>> %s with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(name,GLOB.lumi)
+      print(">>>\n>>> %s with integrated luminosity L = %s / fb at sqrt(s) = 13 TeV"%(name,GLOB.lumi))
     justname  = 2+max(s.get_max_name_len() for s in self.samples)
     justtitle = 2+max(s.get_max_title_len() for s in self.samples)
     Sample.printheader(title,justname=justname,justtitle=justtitle,merged=merged)
     for sample in self.samples:
       sample.printrow(justname=justname,justtitle=justtitle,merged=merged,split=split)
-    print ">>> "
+    print(">>> ")
   
   def __iter__(self):
     """Start iteration over samples."""
@@ -343,9 +342,9 @@ class SampleSet(object):
     """Create and fill histograms for all samples and return lists of histograms."""
     verbosity     = LOG.getverbosity(kwargs,self)
     if verbosity>=1:
-      print ">>> gethists"
+      print(">>> gethists")
     variables, selection, issingle = unwrap_gethist_args(*args)
-    datavars      = filter(lambda v: v.data,variables)    # filter out gen-level variables
+    datavars      = [v for v in variables if v.data]      # filter out gen-level variables
     dodata        = kwargs.get('data',          True    ) # create data hists
     domc          = kwargs.get('mc',            True    ) # create expected (SM background) hists
     doexp         = kwargs.get('exp',           domc    ) # create expected (SM background) hists
@@ -413,9 +412,9 @@ class SampleSet(object):
     if verbosity>=2:
       if not ('QCD' in task or 'JFR' in task):
         LOG.header("Creating histograms for %s"%selection) #.title
-      print ">>> variables: %s"%(quotestrs([v.filename for v in variables]))
-      #print ">>> split=%s, makeQCD=%s, makeJTF=%s, nojtf=%s, keepWJ=%s"%(split,makeQCD,makeJTF,nojtf,keepWJ)
-      print '>>>   with extra weights "%s" for MC and "%s" for data'%(weight,dataweight)
+      print(">>> variables: %s"%(quotestrs([v.filename for v in variables])))
+      #print(">>> split=%s, makeQCD=%s, makeJTF=%s, nojtf=%s, keepWJ=%s"%(split,makeQCD,makeJTF,nojtf,keepWJ))
+      print('>>>   with extra weights "%s" for MC and "%s" for data'%(weight,dataweight))
     elif self.loadingbar and verbosity<=1:
       bar = LoadingBar(len(samples),width=16,pre=">>> %s: "%(task),counter=True,remove=True) # %s: selection.title
     
@@ -485,9 +484,9 @@ class SampleSet(object):
     # YIELDS
     if verbosity>=2 and len(variables)>0:
       var = variables[0]
-      print ">>> selection:"
-      print ">>>  %r"%(selection.selection)
-      print ">>> yields: "
+      print(">>> selection:")
+      print(">>>  %r"%(selection.selection))
+      print(">>> yields: ")
       TAB = LOG.table("%11.1f %11.2f    %r")
       TAB.printheader("entries","integral","hist name")
       totint = 0
@@ -568,7 +567,7 @@ class SampleSet(object):
     
     ## ADD JTF
     #if makeJTF:
-    #    print "CHECK IMPLEMENTATION!"
+    #    print("CHECK IMPLEMENTATION!")
     #    hists = self.jetFakeRate2D(*args,tag=tag,weight=weight,verbosity=verbosity)
     #    for variable, hist in zip(variables,hists):
     #      histsB[variable].insert(0,hist)

@@ -37,8 +37,8 @@ echo "\$WORKDIR=$WORKDIR"
 echo "\$TMPDIR=$TMPDIR"
 echo "\$PWD=$PWD"
 peval 'TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")'
-peval "mkdir $WORKDIR"
-peval "cd $WORKDIR"
+peval "mkdir -pv $WORKDIR" || exit 1
+peval "cd $WORKDIR" || exit 1
 
 # MAIN FUNCTIONALITY
 #eval $(scramv1 runtime -sh);

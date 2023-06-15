@@ -46,7 +46,7 @@ def red(string):
 def test_unroll(fname,xvars,yvars,cut="",verb=0):
   """Test unrolling of 2D histogram and create 4D response matrix."""
   if verb>=1:
-    print ">>> test_unroll(%s)"%(fname)
+    print(">>> test_unroll(%s)"%(fname))
   start  = time()
   file   = TFile(fname,'READ')
   assert file and not file.IsZombie(), "Could not open %s"%(fname)
@@ -105,16 +105,16 @@ def test_unroll(fname,xvars,yvars,cut="",verb=0):
   nx, ny = 2*nxbins, 2*nybins # number of points to scan
   xbinw = float(xmax-xmin)/nx
   ybinw = float(ymax-ymin)/ny
-  print ">>> nxbins=%s, xmin=%s, xmax=%s"%(nxbins,xmin,xmax)
-  print ">>> nybins=%s, ymin=%s, ymax=%s"%(nybins,ymin,ymax)
-  print ">>> nx=%s, xbinw=%s, ny=%s, ybinw=%s"%(nx,xbinw,ny,ybinw)
+  print(">>> nxbins=%s, xmin=%s, xmax=%s"%(nxbins,xmin,xmax))
+  print(">>> nybins=%s, ymin=%s, ymax=%s"%(nybins,ymin,ymax))
+  print(">>> nx=%s, xbinw=%s, ny=%s, ybinw=%s"%(nx,xbinw,ny,ybinw))
   xvals = [xmin+xbinw*i for i in range(-2,nx+3)]
   yvals = [ymin+ybinw*i for i in range(-2,ny+3)]
   #xvals = [-1,0,1,10,50,100,200]
   #yvals = [-1,0,1,10,50,100,200]
-  print ">>>"
-  print ">>> %7s |"%(r'y\x') + ' '.join("%6s"%x for x in xvals)
-  print ">>> %8s+"%('-'*7) + '-'*7*len(xvals)
+  print(">>>")
+  print(">>> %7s |"%(r'y\x') + ' '.join("%6s"%x for x in xvals))
+  print(">>> %8s+"%('-'*7) + '-'*7*len(xvals))
   for y in yvals:
     #print ">>> %7s |"%x+' '.join("%6s"%(Unroll.GetBin(x,y)) for x in xvals)
     row = ">>> %7s |"%y
@@ -124,10 +124,10 @@ def test_unroll(fname,xvars,yvars,cut="",verb=0):
       if bin<1 or bin>=nxbins*nybins+1:
         str = red(str)
       row += str
-    print row
-  print ">>>"
+    print(row)
+  print(">>>")
   
-  print ">>> Took %.2fs"%(time()-start)
+  print(">>> Took %.2fs"%(time()-start))
   
 
 def draw(hist,xtitle,nbins=0):
@@ -239,5 +239,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print ">>> Done"
+    print(">>> Done")
     

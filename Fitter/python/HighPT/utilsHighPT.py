@@ -276,7 +276,7 @@ def extractBinLabels(pt,ptratio):
 
 # Run over set of samples and create histogram
 def RunSamples(samples,var,weight,cut,xbins,name):
-    print
+    print('')
     print("Running",name,var,weight,cut)
     nbins = len(xbins)-1
     hist = ROOT.TH1D(name,"",nbins,array('d',list(xbins)))
@@ -289,7 +289,7 @@ def RunSamples(samples,var,weight,cut,xbins,name):
 # Run over set of samples and create histograms for W*->tau+v channel
 # for each sample loop over Tree entries is performed
 def RunSamplesTauNu(samples,var,unc,xbins,selection,name):
-    print
+    print('')
     print("Running",name,var,unc,selection)
     nbins = len(xbins)-1
     hists = {} # discionary of histograms
@@ -418,7 +418,7 @@ class TauNuCuts:
 class FakeFactorHighPt:
 
     def __init__(self,filename):
-        print
+        print('')
         print('Loading fake factors from file',filename," >>>>>")
         self.fileName = filename
         self.fileFF = ROOT.TFile(self.fileName,"READ")

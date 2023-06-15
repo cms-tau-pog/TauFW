@@ -5,9 +5,9 @@ from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
 
 class T3_PSI(StorageSystem):
   
-  def __init__(self,path,verb=0,ensure=False):
+  def __init__(self,path,verb=0,ensure=False,**kwargs):
     """T3 SE on PSI."""
-    super(T3_PSI,self).__init__(path,verb=verb,ensure=False)
+    super(T3_PSI,self).__init__(path,verb=verb,ensure=False,**kwargs)
     self.rmcmd   = 'uberftp -rm'
     self.rmurl   = 'gsiftp://t3se01.psi.ch/'
     self.mkdrcmd = "LD_LIBRARY_PATH='' PYTHONPATH='' gfal-mkdir -p"

@@ -150,7 +150,7 @@ def makesamples(nevts=10000,**kwargs):
     if sample in vardict[var]: return vardict[var][sample]
     else: return vardict[var]['*']
   def fill(sample,tree,nevts): # help function to fill trees
-    for i in xrange(nevts):
+    for i in range(nevts):
       genmatch_2[0] = 5 if gRandom.Uniform(1.)<getgenerator('genmatch_2',sample) else 0
       m_vis[0]      = getgenerator('m_vis',sample)(genmatch_2[0])
       pt_1[0]       = getgenerator('pt_1', sample)()
@@ -166,7 +166,7 @@ def makesamples(nevts=10000,**kwargs):
       tree.Fill()
   
   # PSEUDO MC
-  print ">>> Generating pseudo MC..."
+  print(">>> Generating pseudo MC...")
   #time0 = time.time()
   for sample in samples:
     if sample=='Data': continue
@@ -180,7 +180,7 @@ def makesamples(nevts=10000,**kwargs):
   
   # PSEUDO DATA
   if 'Data' in samples:
-    print ">>> Generating pseudo data..."
+    print(">>> Generating pseudo data...")
     file, tree = filedict['Data']
     file.cd()
     #time0 = time.time()

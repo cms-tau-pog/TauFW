@@ -14,7 +14,7 @@ class Context(object):
   
   def __init__(self, context_dict, *args, **kwargs):
     if not isinstance(context_dict,dict):
-      LOG.warning("Context.init: No dictionary given!")
+      LOG.warn("Context.init: No dictionary given!")
     self.context = context_dict
     self.default = args[0] if len(args)>0 else context_dict.get('default',None)
     self.regex   = kwargs.get('regex',False)
@@ -37,10 +37,10 @@ class Context(object):
     
     # CHECK
     if len(args)==0:
-      LOG.warning("Context.getcontext: No arguments given!")
+      LOG.warn("Context.getcontext: No arguments given!")
       return self.default
     if not self.context:
-      LOG.warning("Context.getcontext: No context dictionary!")
+      LOG.warn("Context.getcontext: No context dictionary!")
       return None
     
     # MATCH

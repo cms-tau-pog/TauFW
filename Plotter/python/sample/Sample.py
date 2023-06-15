@@ -110,18 +110,18 @@ class Sample(object):
   @staticmethod
   def printheader(title=None,merged=True,justname=25,justtitle=25):
     if title!=None:
-      print ">>> %s"%(title)
+      print(">>> %s"%(title))
     name   = "Sample name".ljust(justname)
     title  = "title".ljust(justtitle)
     if merged:
-      print ">>> \033[4m%s %s %10s %12s %17s %9s  %s\033[0m"%(
-                 name,title,"xsec [pb]","nevents","sumweights","norm","weight"+' '*8)
+      print(">>> \033[4m%s %s %10s %12s %17s %9s  %s\033[0m"%(
+                 name,title,"xsec [pb]","nevents","sumweights","norm","weight"+' '*8))
     else:
-      print ">>> \033[4m%s %s %s\033[0m"%(name,title+' '*5,"Extra cut"+' '*18)
+      print(">>> \033[4m%s %s %s\033[0m"%(name,title+' '*5,"Extra cut"+' '*18))
     
   
   def printrow(self,**kwargs):
-    print self.row(**kwargs)
+    print(self.row(**kwargs))
   
   def row(self,pre="",indent=0,justname=25,justtitle=25,merged=True,split=True,colpass=False):
     """Returns string that can be used as a row in a samples summary table"""
@@ -148,15 +148,15 @@ class Sample(object):
   def printobjs(self,title="",file=False):
     """Print all sample objects recursively."""
     if isinstance(self,MergedSample):
-      print ">>> %s%r"%(title,self)
+      print(">>> %s%r"%(title,self))
       for sample in self.samples:
         sample.printobjs(title+"  ",file=file)
     elif file:
-      print ">>> %s%r %s"%(title,self,self.filename)
+      print(">>> %s%r %s"%(title,self,self.filename))
     else:
-      print ">>> %s%r"%(title,self)
+      print(">>> %s%r"%(title,self))
     if self.splitsamples:
-      print ">>> %s  Split samples:"%(title)
+      print(">>> %s  Split samples:"%(title))
       for sample in self.splitsamples:
         sample.printobjs(title+"    ",file=file)
   
@@ -214,12 +214,12 @@ class Sample(object):
     mode   = kwargs.get('mode',   None ) # if mode=='sumw': add samples together with normalized weights
     hist   = None
     if verbosity>=2:
-      print ">>> Sample.gethist_from_file: %s%r, %r, mode=%r, incl=%r"%(indent,self.name,hname,mode,incl)
+      print(">>> Sample.gethist_from_file: %s%r, %r, mode=%r, incl=%r"%(indent,self.name,hname,mode,incl))
     if isinstance(self,MergedSample):
-      #print ">>> Sample.getHistFromFile: %sincl=%r, sample_incl=%r"%(indent,incl,self.sample_incl)
+      #print(">>> Sample.getHistFromFile: %sincl=%r, sample_incl=%r"%(indent,incl,self.sample_incl))
       if incl and self.sample_incl: # only get histogram from inclusive sample
         if verbosity>=2:
-          print ">>> Sample.gethist_from_file: %sOnly use inclusive sample %r!"%(indent,self.sample_incl.name)
+          print(">>> Sample.gethist_from_file: %sOnly use inclusive sample %r!"%(indent,self.sample_incl.name))
         hist = self.sample_incl.gethist_from_file(hname,tag=tag,indent=indent+"  ",incl=False,verb=verbosity)
         hist.SetDirectory(0)
       else: # add histograms from each sub sample
@@ -249,35 +249,18 @@ class Sample(object):
         hist.SetName(hname+tag)
         hist.SetDirectory(0)
       else:
-        #print file, hist
+        #print(file, hist)
         LOG.warning("Sample.gethist_from_file: Could not find %r in %s!"%(hname,self.filename))
       if file and close:
         file.Close()
       if hist and mode=='sumw' and norm>0:
         if verbosity>=2:
-          print ">>> Sample.gethist_from_file:   %s%r: scale=%s, norm=%s, %s"%(indent,self.name,scale,norm,fname) #,hist)
-          print ">>> Sample.gethist_from_file:   %sbin 5 = %s, xsec=%s, nevts=%s, sumw=%s"%(indent,hist.GetBinContent(5),self.xsec,self.nevents,self.sumweights)
+          print(">>> Sample.gethist_from_file:   %s%r: scale=%s, norm=%s, %s"%(indent,self.name,scale,norm,fname)) #,hist)
+          print(">>> Sample.gethist_from_file:   %sbin 5 = %s, xsec=%s, nevts=%s, sumw=%s"%(indent,hist.GetBinContent(5),self.xsec,self.nevents,self.sumweights))
         hist.Scale(scale*norm)
         if verbosity>=2:
-          print ">>> Sample.gethist_from_file:   %sbin 5 = %s after normalization"%(indent,hist.GetBinContent(5))
+          print(">>> Sample.gethist_from_file:   %sbin 5 = %s after normalization"%(indent,hist.GetBinContent(5)))
     return hist
-  
-  @property
-  def tree(self):
-    if not self.file: # file does not exist: open & get tree
-      LOG.verb("Sample.tree: Opening file %s to get tree %r..."%(self.filename,self.treename),level=3)
-      self._tree = self.getfile()
-    elif self._tree and isinstance(self._tree,TTree): # file & tree do exist
-      LOG.verb("Sample.tree: Getting existing tree %s..."%(self._tree),level=3)
-    else: # file does exist, but tree does not: get tree
-      LOG.verb("Sample.tree: No valid tree (%s). Retrieving tree %r from file %s..."%(self._tree,self.treename,self.filename),level=3)
-      self._tree = self.file.Get(self.treename)
-    setaliases(self._tree,self.aliases)
-    return self._tree
-  
-  @tree.setter
-  def tree(self, value):
-    self._tree = value
   
   def __copy__(self):
     cls = self.__class__
@@ -376,7 +359,7 @@ class Sample(object):
     verbosity = LOG.getverbosity(kwargs)
     if self.file:
       if verbosity>=4:
-        print "Sample.reload: closing and deleting %s with content:"%(self.file.GetName())
+        print("Sample.reload: closing and deleting %s with content:"%(self.file.GetName()))
         self.file.ls()
       self.file.Close()
       del self._file
@@ -399,7 +382,7 @@ class Sample(object):
     verbosity = LOG.getverbosity(kwargs)
     if self._file:
       if verbosity>=4:
-        print "Sample.close: closing and deleting %s with content:"%(self._file.GetName())
+        print("Sample.close: closing and deleting %s with content:"%(self._file.GetName()))
         self._file.ls()
       self._file.Close()
       del self._file
@@ -669,16 +652,16 @@ class Sample(object):
     # GET NUMBER OF EVENTS
     file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
     nevents    = tree.GetEntries(cuts)
-    if scale:
-     nevents  *= scale
     file.Close()
+    if scale:
+      nevents  *= scale
     
     # PRINT
     if verbosity>=3:
-      print ">>>\n>>> Sample.getentries: %s, %s"%(color(self.name,color="grey"),self.fnameshort)
-      print ">>>   entries: %d"%(nevents)
-      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
-      print ">>>   %r"%(cuts)
+      print(">>>\n>>> Sample.getentries: %s, %s"%(color(self.name,color="grey"),self.fnameshort))
+      print(">>>   entries: %d"%(nevents))
+      print(">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm))
+      print(">>>   %r"%(cuts))
     
     return nevents
   
@@ -785,16 +768,16 @@ class Sample(object):
     
     # PRINT
     if verbosity>=3:
-      print ">>>\n>>> Sample.gethist: %s, %s"%(color(self.name,color="grey"),self.fnameshort)
-      print ">>>   entries: %d (%.2f integral)"%(nentries,integral)
-      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights)
+      print(">>>\n>>> Sample.gethist: %s, %s"%(color(self.name,color="grey"),self.fnameshort))
+      print(">>>   entries: %d (%.2f integral)"%(nentries,integral))
+      print(">>>   scale: %.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights))
       if verbosity>=4:
-        print ">>>   self.weight=%r, self.extraweight=%r, kwargs.get('weight','')=%r, "%(self.weight,self.extraweight,kwargs.get('weight',""))
-      print ">>>   %r"%(cuts)
+        print(">>>   self.weight=%r, self.extraweight=%r, kwargs.get('weight','')=%r, "%(self.weight,self.extraweight,kwargs.get('weight',"")))
+      print(">>>   %r"%(cuts))
       if verbosity>=4:
         for var, varexp, hist in zip(variables,varexps,hists):
-          print '>>>   entries=%d (%.1f integral) for variable %r, varexp=%r'%(hist.GetEntries(),hist.Integral(),var.name,varexp)
-          #print '>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp)
+          print('>>>   entries=%d (%.1f integral) for variable %r, varexp=%r'%(hist.GetEntries(),hist.Integral(),var.name,varexp))
+          #print('>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp))
           if verbosity>=5:
             printhist(hist,pre=">>>   ")
       
@@ -868,14 +851,14 @@ class Sample(object):
     
     # PRINT
     if verbosity>=2:
-      print ">>>\n>>> Sample.gethist2D - %s: %s"%(color(name,color="grey"),self.fnameshort)
-      print ">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm)
-      print ">>>   entries: %d (%.2f integral)"%(nentries,integral)
-      print ">>>   %s"%cuts
+      print(">>>\n>>> Sample.gethist2D - %s: %s"%(color(name,color="grey"),self.fnameshort))
+      print(">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm))
+      print(">>>   entries: %d (%.2f integral)"%(nentries,integral))
+      print(">>>   %s"%cuts)
       if verbosity>=4:
         for var, varexp, hist in zip(variables,varexps,hists):
-          print '>>>   Variables (%r,%r): varexp=%r, entries=%d, integral=%d'%(var[0].name,var[1].name,varexp,hist.GetEntries(),hist.Integral())
-          #print '>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp)
+          print('>>>   Variables (%r,%r): varexp=%r, entries=%d, integral=%d'%(var[0].name,var[1].name,varexp,hist.GetEntries(),hist.Integral()))
+          #print('>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp))
           if verbosity>=5:
             printhist(hist,pre=">>>   ")
     

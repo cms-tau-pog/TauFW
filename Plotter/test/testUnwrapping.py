@@ -19,9 +19,9 @@ def colvar(string):
 
 
 def printIO(name,func,*args):
-  print colvar(">>> %s(%s) returns "%(name,','.join(repr(a) for a in args)))
+  print(colvar(">>> %s(%s) returns "%(name,','.join(repr(a) for a in args))))
   for result in func(*args):
-    print ">>>  ",colvar(repr(result))
+    print(">>>  ",colvar(repr(result)))
   
 
 def main():
@@ -57,7 +57,7 @@ def main():
     printIO(name,func,xvar,selection)
     printIO(name,func,varlist1,selection)
     printIO(name,func,varlist2,selection)
-    print ">>> "
+    print(">>> ")
   
   # UNWRAP args to gethist2D
   LOG.header("unwrap_gethist2D_args")
@@ -72,11 +72,11 @@ def main():
     printIO(name,func,[(xvar,yvar)],selection)
     printIO(name,func,xvarlist1,yvarlist1,selection)
     printIO(name,func,xvarlist2,yvarlist2,selection)
-    printIO(name,func,zip(xvarlist1,yvarlist1),selection)
-    print ">>> "
+    printIO(name,func,list(zip(xvarlist1,yvarlist1)),selection)
+    print(">>> ")
   
 
 if __name__ == "__main__":
   main()
-  print
+  print('')
   

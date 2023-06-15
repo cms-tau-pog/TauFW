@@ -53,12 +53,12 @@ class ModuleETau(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleETau,self).beginJob()
-    print ">>> %-12s = %s"%('tauwp',      self.tauwp)
-    print ">>> %-12s = %s"%('eleCutPt',   self.eleCutPt)
-    print ">>> %-12s = %s"%('eleCutEta',  self.eleCutEta)
-    print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
-    print ">>> %-12s = %s"%('ZpeekReso',  self.resoScale)
+    print(">>> %-12s = %s"%('tauwp',      self.tauwp))
+    print(">>> %-12s = %s"%('eleCutPt',   self.eleCutPt))
+    print(">>> %-12s = %s"%('eleCutEta',  self.eleCutEta))
+    print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
+    print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
+    print(">>> %-12s = %s"%('ZpeekReso',  self.resoScale))
     pass
     
   
@@ -273,7 +273,7 @@ class ModuleETau(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if electron.pfRelIso03_all<0.50 and tau.idDeepTau2017v2p1VSjet>=2:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       

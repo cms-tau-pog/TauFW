@@ -54,21 +54,21 @@ def main(args):
   
   for var in variables:
     LOG.header(var.name)
-    print ">>> string=%s, repr=%r"%(var,var)
-    print ">>> name='%s', filename='%s', title='%s'"%(color(var.name),color(var.filename),color(var.title))
-    print ">>> (nbins,xmin,xmax)=(%s,%s,%s), bins=%s"%(var.nbins,var.xmin,var.xmax,var.bins)
-    print ">>> hasintbins=%s, hasvariablebins=%s"%(var.hasintbins(),var.hasvariablebins())
-    print ">>> cut=%r, blindcuts=%r, blind(50,60)=%r"%(var.cut,var.blindcuts,var.blind(50,60))
+    print(">>> string=%s, repr=%r"%(var,var))
+    print(">>> name='%s', filename='%s', title='%s'"%(color(var.name),color(var.filename),color(var.title)))
+    print(">>> (nbins,xmin,xmax)=(%s,%s,%s), bins=%s"%(var.nbins,var.xmin,var.xmax,var.bins))
+    print(">>> hasintbins=%s, hasvariablebins=%s"%(var.hasintbins(),var.hasvariablebins()))
+    print(">>> cut=%r, blindcuts=%r, blind(50,60)=%r"%(var.cut,var.blindcuts,var.blind(50,60)))
     hist = var.gethist()
-    print ">>> hist=%s, (nbins,xmin,xmax)=(%s,%s,%s), variable=%s"%(
-               hist,hist.GetXaxis().GetNbins(),hist.GetXaxis().GetXmin(),hist.GetXaxis().GetXmax(),hist.GetXaxis().IsVariableBinSize())
+    print(">>> hist=%s, (nbins,xmin,xmax)=(%s,%s,%s), variable=%s"%(
+               hist,hist.GetXaxis().GetNbins(),hist.GetXaxis().GetXmin(),hist.GetXaxis().GetXmax(),hist.GetXaxis().IsVariableBinSize()))
     gDirectory.Delete(hist.GetName())
     for sel in selections: # context-dependent attributes
       var.changecontext(sel)
-      print ">>> context: '%s'"%color(sel,'grey')
-      print ">>>   plotfor=%s, name='%s', title='%s'"%(var.plotfor(sel),color(var.name),color(var.title))
-      print ">>>   (nbins,xmin,xmax)=(%s,%s,%s), bins=%s, cut=%r"%(var.nbins,var.xmin,var.xmax,var.bins,var.cut)
-    print
+      print(">>> context: '%s'"%color(sel,'grey'))
+      print(">>>   plotfor=%s, name='%s', title='%s'"%(var.plotfor(sel),color(var.name),color(var.title)))
+      print(">>>   (nbins,xmin,xmax)=(%s,%s,%s), bins=%s, cut=%r"%(var.nbins,var.xmin,var.xmax,var.bins,var.cut))
+    print('')
   
 
 if __name__ == "__main__":

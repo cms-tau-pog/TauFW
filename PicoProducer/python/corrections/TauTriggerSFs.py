@@ -12,7 +12,7 @@ class TauTriggerSFs(object):
         
     def __init__(self, trigger, wp='Medium', id='DeepTau2017v2p1', year=2016):
         """Load tau trigger histograms from files."""
-        print "Loading %s trigger SFs for  %s WP of %s ID for year %d..."%(trigger,wp,id,year)
+        print("Loading %s trigger SFs for  %s WP of %s ID for year %d..."%(trigger,wp,id,year))
         
         # CHECKS
         dms      = [0,1,10,11]
@@ -83,12 +83,12 @@ class TauTriggerSFs(object):
         if unc=='All':
           for eff in eff_mc:
             if eff < 1e-5:
-              print "MC eff. is suspiciously low! MC eff=%s, trigger=%s, ID=%s, WP=%s, pt=%s"%(eff,self.trigger,self.id,self.wp,pt)
+              print("MC eff. is suspiciously low! MC eff=%s, trigger=%s, ID=%s, WP=%s, pt=%s"%(eff,self.trigger,self.id,self.wp,pt))
               return 0.0, 0.0, 0.0
           return eff_data[0]/eff_mc[0], eff_data[1]/eff_mc[1], eff_data[2]/eff_mc[2]
         else:
           if eff_mc < 1e-5:
-            print "MC eff. is suspiciously low! MC eff=%s, trigger=%s, ID=%s, WP=%s, pt=%s"%(eff_mc,self.trigger,self.id,self.wp,pt)
+            print("MC eff. is suspiciously low! MC eff=%s, trigger=%s, ID=%s, WP=%s, pt=%s"%(eff_mc,self.trigger,self.id,self.wp,pt))
             return 0.0
         sf = eff_data / eff_mc
         return sf

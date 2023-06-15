@@ -46,7 +46,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,fraction=Fal
   #plot.saveas(fname+".png",fname+".C")
   #plot.saveas(fname,ext=['png','pdf'])
   plot.close()
-  print
+  print('')
   
 
 def createhists(procs,binning,nevts):
@@ -68,7 +68,7 @@ def createhists(procs,binning,nevts):
   for hname, htitle, scale, generator, args in procs:
     hist = TH1D(hname,htitle,*binning)
     hist.Sumw2()
-    for j in xrange(nevts):
+    for j in range(nevts):
       hist.Fill(generator(*args))
     hist.Scale(scale)
     hist.SetFillColor(coldict.get(hname,kWhite))
@@ -82,11 +82,11 @@ def createhists(procs,binning,nevts):
   datahist = TH1D('data','Observed',*binning)
   datahist.SetBinErrorOption(TH1D.kPoisson)
   if LOG.verbosity>=1:
-    print ">>> createhists: Creating pseudo data:"
+    print(">>> createhists: Creating pseudo data:")
     TAB = LOG.table("%5s [%5s, %5s]      %-14s   %-20s",
                     "%5d [%5s, %5s] %8.1f +- %5.1f %8d +%5.1f -%5.1f")
     TAB.printheader('bin','xlow','xup','exp','data')
-  for ibin in xrange(0,nbins+2):
+  for ibin in range(0,nbins+2):
     exp    = tothist.GetBinContent(ibin)
     xlow   = hist.GetXaxis().GetBinLowEdge(ibin)
     xup    = hist.GetXaxis().GetBinUpEdge(ibin)

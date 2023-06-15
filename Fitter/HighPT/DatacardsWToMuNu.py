@@ -123,7 +123,7 @@ def PlotWToMuNu(h_data_input,h_bkg_input,h_sig_input,era,var):
     canvas.cd()
     canvas.SetSelected(canvas)
     canvas.Update()
-    print
+    print()
     print('Creating control plot')
     canvas.Print(utils.figuresFolderWMuNu+"/wmunu_"+era+".png")
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     basefolder = utils.picoFolder
     var = args.variable    
     
-    print
+    print()
     print('initializing SingleMuon samples >>>')
     singlemuSamples = {} # data samples dictionary
     singlemuNames = utils.singlemu[args.era]
@@ -184,14 +184,14 @@ if __name__ == "__main__":
         singlemuSamples[singlemuName] = utils.sampleHighPt(basefolder,args.era,
                                                            "munu",singlemuName,True)
 
-    print
+    print()
     print('initializing background samples >>>')
     bkgSamples = {} # MC bkg samples dictionary 
     for bkgSampleName in bkgSampleNames:
         bkgSamples[bkgSampleName] = utils.sampleHighPt(basefolder,args.era,
                                                        "munu",bkgSampleName,False)
 
-    print
+    print()
     print('initializing signal samples >>>')
     sigSamples = {} # MC signal samples dictionary 
     for sigSampleName in sigSampleNames:

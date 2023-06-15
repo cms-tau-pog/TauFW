@@ -27,7 +27,7 @@ def getjson(era,dtype='data'):
         json = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
       elif year==2018:
         json = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
-      print "Warning! Using outdated certified run JSON file %s for era %s... Please move to UltraLegacy (UL)!"%(json,era)
+      print("Warning! Using outdated certified run JSON file %s for era %s... Please move to UltraLegacy (UL)!"%(json,era))
     assert json!=None, "getjson: Did not find certified run JSON for era %r, year %r"%(era,year)
   json = ensurefile(datadir,'json',str(year),json)
   return json
@@ -42,9 +42,9 @@ def getperiod(filename,year=None,dtype='data'):
       filename = filename[0]
     matches = re.findall(r"Run(20[0-4][0-9])([A-Z]+)",filename)
     if not matches:
-      print "Warning! Could not find an era in %s"%filename
+      print("Warning! Could not find an era in %s"%filename)
     elif year and str(year)!=matches[0][0]:
-      print "Warning! Given year (%r) does not match the data file %s (%r)"%(year,filename,''.join(matches[0]))
+      print("Warning! Given year (%r) does not match the data file %s (%r)"%(year,filename,''.join(matches[0])))
     else:
       period = matches[0][1]
   return period

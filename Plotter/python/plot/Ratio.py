@@ -32,7 +32,7 @@ class Ratio(object):
     
     # SETUP NUMERATOR/DENOMINATOR
     if len(histnums)==0:
-      LOG.warning("Ratio.init: No histogram to compare with!")
+      LOG.warn("Ratio.init: No histogram to compare with!")
     elif denom not in [0,1,None]: # change denominator histogram
       histnums.insert(0,histden)
       if denom>1:
@@ -62,7 +62,7 @@ class Ratio(object):
       if isinstance(histnum,TH1) or isinstance(histnum,THStack):
         ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       elif isinstance(histnum,TGraph):
-        LOG.warning("Ratio.init: TGraph ratio not validated! Please check verbose output...")
+        LOG.warn("Ratio.init: TGraph ratio not validated! Please check verbose output...")
         ratio = getgraphratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       #elif isinstance(hist,TProfile):
       #  histtemp = hist.ProjectionX(hist.GetName()+"_projx",'E')

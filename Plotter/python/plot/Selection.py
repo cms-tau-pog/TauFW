@@ -53,7 +53,7 @@ class Selection(object):
     self.filename      = kwargs.get('filename', self.filename ) # name for files, histograms
     self.weight        = kwargs.get('weight',   self.weight   )
     #if self.selection=="":
-    #   LOG.warning('Selection::Selection - No selection string given for %r!'%(self.name))
+    #   LOG.warn('Selection::Selection - No selection string given for %r!'%(self.name))
     self.context       = getcontext(kwargs,self.selection) # context-dependent channel selections
     self.only          = kwargs.get('only',     [ ]           )
     self.veto          = kwargs.get('veto',     [ ]           )
@@ -89,9 +89,9 @@ class Selection(object):
     result = None
     weight = joinweights(self.weight,weight)
     if isinstance(weight,str):
-      result = Selection("%s (%s)"(self.name,weight),joincuts(self.selection,weight=weight))
+      result = Selection("%s (%s)"%(self.name,weight),joincuts(self.selection,weight=weight))
     else:
-      result = Selection("%s (%s)"(self.name,weight.title),joincuts(self.selection,weight=weight))
+      result = Selection("%s (%s)"%(self.name,weight.title),joincuts(self.selection,weight=weight))
     return result
   
   def contains(self, string, **kwargs):

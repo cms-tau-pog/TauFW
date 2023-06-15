@@ -10,7 +10,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 TriggerData = namedtuple('TriggerData',['trigdict','combdict']) # simple container class
 objectTypes = { 1: 'Jet', 6: 'FatJet', 2: 'MET', 3: 'HT', 4: 'MHT',
                 11: 'Electron', 13: 'Muon', 15: 'Tau', 22: 'Photon', } 
-objectIds   = { t: i for i,t in objectTypes.iteritems() }
+objectIds   = { t: i for i,t in objectTypes.items() }
 objects     = [ 'Electron', 'Muon', 'Tau', 'Photon', 'Jet', 'FatJet', 'MET', 'HT', 'MHT' ]
 
 
@@ -42,7 +42,7 @@ def loadTriggerDataFromJSON(filename,channel=None,isdata=True,verbose=False):
       combdict = dict of channel -> list of combined triggers ('Trigger' object)
     """
     if verbose:
-      print ">>> loadTriggerDataFromJSON: loading '%s'"%(filename)
+      print(">>> loadTriggerDataFromJSON: loading '%s'"%(filename))
     datatype = 'data' if isdata else 'mc'
     channel_ = channel
     triggers = [ ]
@@ -59,7 +59,7 @@ def loadTriggerDataFromJSON(filename,channel=None,isdata=True,verbose=False):
     bitdict = data['filterbits']
     
     # HLT PATHS with corresponding filter bits, pt, eta cut
-    for path, trigobjdict in data['hltpaths'].iteritems():
+    for path, trigobjdict in data['hltpaths'].items():
       runrange     = trigobjdict.get('runrange',None) if isdata else None
       filters      = [ ]
       for obj in objects: # ensure order
@@ -81,8 +81,8 @@ def loadTriggerDataFromJSON(filename,channel=None,isdata=True,verbose=False):
     # COMBINATIONS OF HLT PATHS
     if 'hltcombs' in data:
       if channel_:
-        assert channel_ in data['hltcombs'][datatype], "Did not find channel '%s' in JSON file! Available: '%s'"%(channel_,"', '".join(data['hltcombs'][datatype].keys()))
-      for channel, paths in data['hltcombs'][datatype].iteritems():
+        assert channel_ in data['hltcombs'][datatype], "Did not find channel '%s' in JSON file! Available: '%s'"%(channel_,"', '".join(list(data['hltcombs'][datatype].keys())))
+      for channel, paths in data['hltcombs'][datatype].items():
         if channel_ and channel!=channel_: continue
         #combtrigs = [trigdict[p] for p in paths]
         combdict[channel] = [trigdict[p] for p in paths] #TriggerCombination(combtrigs)
@@ -90,21 +90,21 @@ def loadTriggerDataFromJSON(filename,channel=None,isdata=True,verbose=False):
     # PRINT
     triggers.sort(key=lambda t: t.path)
     if verbose:
-      print ">>> triggers & filters:"
+      print(">>> triggers & filters:")
       for trigger in triggers:
         if channel_ and trigger not in combdict[channel_]: continue
-        print ">>>   %s"%(trigger.path)
+        print(">>>   %s"%(trigger.path))
         for filter in trigger.filters:
-          print ">>>     %-9s %r"%(filter.type+':',filter.name) #,"bits=%s"%filter.bits
-      print ">>> trigger combinations for %s:"%datatype
-      for channel, triglist in combdict.iteritems():
+          print(">>>     %-9s %r"%(filter.type+':',filter.name)) #,"bits=%s"%filter.bits
+      print(">>> trigger combinations for %s:"%datatype)
+      for channel, triglist in combdict.items():
         if channel_ and channel!=channel_: continue
-        print ">>>   %s"%(channel)
+        print(">>>   %s"%(channel))
         for trigger in triglist:
           path     = "'%s'"%trigger.path
           if trigger.runrange:
             path += ", %d <= run <= %d"%(trigger.runrange[0],trigger.runrange[1])
-          print ">>>     "+path
+          print(">>>     "+path)
     
     return TriggerData(trigdict,combdict)
   
@@ -123,13 +123,12 @@ class Trigger:
     patheval      =  "e."+path
     if runrange:
       patheval    = "e.run>=%d and e.run<=%d and %s"%(runrange[0],runrange[1],patheval)
-    self.filters  = filters                             # list of trigger filters, one per leg
-    self.runrange = runrange                            # range of run for this trigger formatted as (first,last); for data only
-    self.path     = path                                # human readable trigger combination
-    self.patheval = patheval                            # trigger evaluation per event 'e'
-    self.fireddef = "self.fired = lambda e: "+patheval  # exact definition of 'fired' function
-    exec self.fireddef in locals()                      # method to check if trigger was fired for a given event
-    #self.fired = lambda e: any(e.p for p in self.paths)
+    self.filters  = filters               # list of trigger filters, one per leg
+    self.runrange = runrange              # range of run for this trigger formatted as (first,last); for data only
+    self.path     = path                  # human readable trigger combination
+    self.patheval = patheval              # trigger evaluation per event 'e'
+    self.fireddef = "lambda e: "+patheval # exact definition of 'fired' function
+    self.fired    = eval(self.fireddef)   # method to check if trigger was fired for a given event
   
   def __repr__(self):
     """Returns string representation of Trigger object."""
@@ -140,7 +139,7 @@ class Trigger:
     trigstr = "'%s'"%self.path
     if self.runrange:
       trigstr += ", %d <= run <= %d"%(self.runrange[0],self.runrange[1])
-    print trigstr
+    print(trigstr)
   
 
 ###class TriggerCombination:
@@ -264,8 +263,8 @@ class TrigObjMatcher:
         patheval += '('+trigger.patheval+')'
       else:
         patheval += trigger.patheval
-    path    = patheval.replace("e.",'').replace(" or "," || ").replace(" and "," && ")
-    firedef = "self.fired = lambda e: "+patheval
+    path = patheval.replace("e.",'').replace(" or "," || ").replace(" and "," && ")
+    fireddef = "lambda e: "+patheval
     
     self.triggers = triggers       # list of triggers
     self.nlegs    = nlegs          # number of legs = number of filters
@@ -275,8 +274,8 @@ class TrigObjMatcher:
     self.bits     = bits           # bitwise 'OR'-combination of all filter bits
     self.path     = path           # human readable trigger combination
     self.patheval = patheval       # trigger evaluation per event 'e'
-    self.fireddef = firedef        # exact definition of 'fired' function
-    exec self.fireddef in locals() # method to check if any of the triggers was fired for a given event
+    self.fireddef = fireddef       # exact definition of 'fired' function
+    self.fired    = eval(fireddef) # method to check if any of the triggers was fired for a given event
   
   def __repr__(self):
     """Returns string representation of TriggerFilter object."""
@@ -288,9 +287,9 @@ class TrigObjMatcher:
       trigstr = indent + "'%s'"%trigger.path
       if trigger.runrange:
         trigstr += ", %d <= run <= %d"%(trigger.runrange[0],trigger.runrange[1])
-      print trigstr
+      print(trigstr)
       for i, filter in enumerate(trigger.filters,1):
-        print "%s  leg %d: %s, %r"%(indent,i,filter.type,filter.name)
+        print("%s  leg %d: %s, %r"%(indent,i,filter.type,filter.name))
   
   def match(self,event,recoObj,leg=1,dR=0.2):
     """Match given reconstructed object to trigger objects."""

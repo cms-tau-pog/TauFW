@@ -79,8 +79,8 @@ def Print(msg, printHeader=True):
     '''
     fName = __file__.split("/")[-1]
     if printHeader:
-        print "=== ", fName
-    print "\t", msg
+        print("=== ", fName)
+    print("\t", msg)
     return
 
 def getLumiByYear(year):
@@ -118,10 +118,10 @@ def doCompareJson(dirList, name, **kwargs):
             myFakeFactorsData       = fakeFactors.FakeFactors(dirList, "Data"      , nProng, eta, None, opts.analysisType, opts.verbose)
             myFakeFactorsSimulation = fakeFactors.FakeFactors(dirList, "Simulation", nProng, eta, None, opts.analysisType, opts.verbose)
             #myFakeFactors = fakeFactors.FakeFactors(dirList, opts.dataType, eta, nProng, None, "mumutau", opts.verbose)
-            #print "nProng = ", nProng
-            #print "eta = ", eta
-            #print "myFakeFactorsData ="      , myFakeFactorsData
-            #print "myFakeFactorsSimulation =", myFakeFactorsSimulation
+            #print("nProng = ", nProng)
+            #print("eta = ", eta)
+            #print("myFakeFactorsData ="      , myFakeFactorsData)
+            #print("myFakeFactorsSimulation =", myFakeFactorsSimulation)
             
             Verbose("Creating the comparison plot (%s, %s)" % (nProng, eta), True)
             jsonToGraphDict = doPlots(myFakeFactorsData, myFakeFactorsSimulation, nProng, eta, opts.name, opts) 
@@ -527,7 +527,7 @@ if __name__ == "__main__":
 
     # Sanity check
     #if len(opts.dirList) < 2:
-    #    print opts.dirList
+    #    print(opts.dirList)
     #    msg = "Only %d directories provided. Need at least 2 for comparison plots:\n\t%s" % (len(opts.dirList), "\n\t".join(opts.dirList))
     #    raise Exception(es + msg + ns)
 

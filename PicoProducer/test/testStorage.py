@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 def createdummy(fname):
-  print ">>> Creating dummy file %r..."%(fname)
+  print(">>> Creating dummy file %r..."%(fname))
   with open(fname,'w') as file:
     file.write("# This is a dummy file for TauFW/PicoProducer/test/testStorage.py")
     file.write("# If you read this, it has probably not been removed correctly.")
@@ -21,7 +21,7 @@ def createdummy(fname):
   
 
 def createdummyroot(fname,nevts=10000):
-  print ">>> Creating dummy ROOT file %r..."%(fname)
+  print(">>> Creating dummy ROOT file %r..."%(fname))
   file = TFile(fname,'RECREATE')
   tree = TTree('tree','tree')
   hist = TH1F('hist','hist',50,-2,2)
@@ -29,7 +29,7 @@ def createdummyroot(fname,nevts=10000):
   phi = array('d',[0])
   tree.Branch("pt",  pt,  'normal/D')
   tree.Branch("phi", phi, 'uniform/D')
-  for i in xrange(nevts):
+  for i in range(nevts):
     pt[0]  = gRandom.Landau(40,20)
     phi[0] = gRandom.Uniform(-1.57,1.57)
     hist.Fill(gRandom.Landau(0,1))
@@ -45,14 +45,14 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
   LOG.header("__init__")
   #storage = ensuremodule(system,"PicoProducer.storage"
   storage = getstorage(path,ensure=True,verb=verb)
-  print ">>> %r"%(storage)
-  print ">>> %-10s = %s"%('path',storage.path)
-  print ">>> %-10s = %s"%('rmcmd',storage.rmcmd)
-  print ">>> %-10s = %s"%('lscmd',storage.lscmd)
-  print ">>> %-10s = %s"%('mkdrcmd',storage.mkdrcmd)
-  print ">>> %-10s = %s"%('cpcmd',storage.cpcmd)
-  print ">>> %-10s = %s"%('tmpdir',storage.tmpdir)
-  print ">>> "
+  print(">>> %r"%(storage))
+  print(">>> %-10s = %s"%('path',storage.path))
+  print(">>> %-10s = %s"%('rmcmd',storage.rmcmd))
+  print(">>> %-10s = %s"%('lscmd',storage.lscmd))
+  print(">>> %-10s = %s"%('mkdrcmd',storage.mkdrcmd))
+  print(">>> %-10s = %s"%('cpcmd',storage.cpcmd))
+  print(">>> %-10s = %s"%('tmpdir',storage.tmpdir))
+  print(">>> ")
   
   # EXPAND PATH
   LOG.header("expandpath")
@@ -67,36 +67,36 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
   ]
   for patharg in pathargs:
     for pathkwarg in pathkwargs:
-      LOG.color("storage.expandpath(%s,%s)"%(','.join(repr(a) for a in patharg),','.join("%s=%r"%(k,v) for k,v in pathkwarg.iteritems())))
+      LOG.color("storage.expandpath(%s,%s)"%(','.join(repr(a) for a in patharg),','.join("%s=%r"%(k,v) for k,v in pathkwarg.items())))
       result = storage.expandpath(*patharg,**pathkwarg)
-      print ">>>   %r"%(result)
+      print(">>>   %r"%(result))
   
   # LS
   LOG.header("ls")
   LOG.color("storage.ls(verb=%d)"%(verb))
   contents = storage.ls(verb=verb)
-  print ">>> Found %d items"%(len(contents))
-  print ">>> Contents: %s"%(contents)
+  print(">>> Found %d items"%(len(contents)))
+  print(">>> Contents: %s"%(contents))
   
   # FILES
   LOG.header("getfiles")
   LOG.color("storage.getfiles(verb=%d)"%(verb))
   contents = storage.getfiles(verb=verb)
-  print ">>> Found %d items"%(len(contents))
-  print ">>> Contents: %s"%(contents)
-  print ">>> "
+  print(">>> Found %d items"%(len(contents)))
+  print(">>> Contents: %s"%(contents))
+  print(">>> ")
   LOG.color("storage.getfiles(filter='*.*',verb=%d)"%(verb))
   contents = storage.getfiles(filter='*.*',verb=verb)
-  print ">>> Found %d files"%(len(contents))
-  print ">>> Contents: %s"%(contents)
-  print ">>> "
+  print(">>> Found %d files"%(len(contents)))
+  print(">>> Contents: %s"%(contents))
+  print(">>> ")
   LOG.color("storage.getfiles(filter='*.*',url=None,verb=%d)"%(verb))
   contents = storage.getfiles(filter='*.*',url=None,verb=verb)
-  print ">>> Found %d files"%(len(contents))
-  print ">>> Contents: %s"%(contents)
+  print(">>> Found %d files"%(len(contents)))
+  print(">>> Contents: %s"%(contents))
   
   if readonly:
-    print ">>> Read only. Skip test for cp, rm, mkdir, hadd..."
+    print(">>> Read only. Skip test for cp, rm, mkdir, hadd...")
     return
   
   # CP
@@ -110,7 +110,7 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
   LOG.header("exists")
   LOG.color("storage.exists(%r,verb=%d)"%(fname,verb))
   result = storage.exists(fname,verb=verb)
-  print ">>> Exists: %r"%(result)
+  print(">>> Exists: %r"%(result))
   storage.ls(verb=verb)
   
   # RM
@@ -119,7 +119,7 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
   try:
     storage.rm(fname,verb=verb)
   except Exception as error:
-    print error
+    print(error)
   storage.ls(verb=verb)
   
   # MKDIR
@@ -131,20 +131,20 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
     storage.ls(verb=verb)
     storage.ls(dirname,here=True,verb=verb)
     result = storage.exists(dirname,verb=verb)
-    print ">>> Exists: %r"%(result)
+    print(">>> Exists: %r"%(result))
   except Exception as error:
-    print error
+    print(error)
   
   # RM DIRECTORY
   LOG.header("rm directory")
-  submit = raw_input(">>> Careful! Do you really want to remove %r? [y/n] "%(storage.expandpath(dirname,here=True)))
+  submit = input(">>> Careful! Do you really want to remove %r? [y/n] "%(storage.expandpath(dirname,here=True)))
   if submit=='y':
     LOG.color("storage.rm(%r,verb=%d)"%(dirname,verb))
     try:
       storage.rm(dirname,verb=verb)
       storage.ls(verb=verb)
     except Exception as error:
-      print error
+      print(error)
   
   # HADD
   if hadd:
@@ -158,7 +158,7 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
         storage.ls(verb=verb)
         storage.rm(outfile,verb=verb)
       except Exception as error:
-        print error
+        print(error)
   
 
 def main(args):
@@ -177,5 +177,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

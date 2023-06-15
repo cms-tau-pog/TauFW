@@ -12,7 +12,7 @@ There are two modes:
 
 A central script called [`pico.py`](scripts/pico.py) allows you to run both modes of nanoAOD processing,
 either locally or on a batch system.
-You can link several skimming or analysis codes to _channels_.
+You can link several skimming or analysis modules to so-called _channels_.
 
 <img src="../docs/PicoProducer_workflow.png" alt="TauFW PicoProducer workflow" max-width="800"/>
 
@@ -48,6 +48,7 @@ pico.py --help
 If CMSSW is compiled correctly with `scram b`, then the `pico.py` script should have been
 automatically copied from `scripts/` to `$CMSSW_BASE/bin/$SCRAM_ARCH`,
 and should be available as a command via `$PATH`.
+To run with `python2`, please use `pico2.py` instead.
 
 If you need to access DAS for getting file lists of nanoAOD samples,
 make sure you have a GRID certificate installed, and a VOMS proxy setup

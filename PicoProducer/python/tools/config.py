@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
+from past.builtins import basestring, unicode # for python2 compatibility
 import os, sys, re, glob, json
 from datetime import datetime
 import importlib
@@ -8,57 +9,70 @@ from collections import OrderedDict
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.file import ensuredir, ensurefile
 from TauFW.common.tools.log import Logger, color, bold, header
-from TauFW.PicoProducer.storage.utils import getsedir, gettmpdirs
 
 
 # DEFAULTS
-LOG            = Logger('GLOB')
-CONFIG         = None
-user           = getpass.getuser()
-host           = platform.node()
-#basedir       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-dtypes         = ['mc','data','embed']
-_eras          = OrderedDict([
-  ('2016','samples_2016.py'),
-  ('2017','samples_2017.py'),
-  ('2018','samples_2018.py')
-])
-_channels      = OrderedDict([
-  ('skim','skimjob.py'),
-  ('test','test.py'),
-  ('mutau','ModuleMuTauSimple')
-])
-_sedir         = getsedir()                       # guess storage element on current host
-_tmpskimdir, _tmphadddir = gettmpdirs()           # _tmphadddir: temporary dir for creating intermediate hadd files
-                                                  # _tmpskimdir: temporary dir for creating skimmed file before copying to outdir
-_jobdir        = "output/$ERA/$CHANNEL/$SAMPLE"   # for job config and log files
-_outdir        = _tmphadddir+_jobdir              # for job output
-_picodir       = _sedir+"analysis/$ERA/$GROUP"    # for storage of analysis ("pico") tuples after hadd
-_nanodir       = _sedir+"samples/nano/$ERA/$DAS"  # for storage of (skimmed) nanoAOD
-_filelistdir   = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
-_batchsystem   = 'HTCondor'                       # batch system (HTCondor, SLURM, ...)
-_queue         = ""                               # batch queue / job flavor
-_nfilesperjob  = 1                                # group files per job
-_maxevtsperjob = -1                               # maximum number of events per job (split large files)
-_maxopenfiles  = 500                              # maximum number of open files during hadd
-_ncores        = 4                                # number of cores for parallel event counting & validating of files
-_cfgdefaults   = OrderedDict([                    # ordered dictionary with defaults
-  ('channels',_channels), ('eras',_eras),
-  ('basedir',basedir),
-  ('jobdir',_jobdir),     ('outdir',_outdir), ('nanodir',_nanodir), ('picodir',_picodir),
-  ('tmpskimdir',_tmpskimdir),
-  ('batch',_batchsystem), ('queue',_queue),
-  ('nfilesperjob',_nfilesperjob), ('maxevtsperjob',_maxevtsperjob),
-  ('filelistdir',_filelistdir),
-  ('maxopenfiles',_maxopenfiles),
-  ('ncores',_ncores),
-])
+LOG          = Logger('GLOB')
+CONFIG       = None
+user         = getpass.getuser()
+host         = platform.node()
+dtypes       = ['mc','data','embed']
 sys.path.append(basedir)
+_cfgdefaults = OrderedDict() # initiate once with getdefaultconfig
 
+
+def getdefaultconfig(verb=0):
+  """Get default configuration dictionary. Initiate if it does not exist yet."""
+  global _cfgdefaults, basedir
+  if _cfgdefaults: # initiate
+    LOG.verb(">>> getdefaultconfig: _cfgdefaults already initiated",verb,level=3)
+  else:
+    LOG.verb(">>> getdefaultconfig: Initiating _cfgdefaults...",verb,level=3)
+    from TauFW.PicoProducer.storage.utils import guess_sedir, guess_tmpdirs
+    from TauFW.PicoProducer.batch.utils import guess_batch
+    eras          = OrderedDict([
+      ('2016','samples_2016.py'),
+      ('2017','samples_2017.py'),
+      ('2018','samples_2018.py')
+    ])
+    channels      = OrderedDict([
+      ('skim','skimjob.py'),
+      ('test','test.py'),
+      ('mutau','ModuleMuTauSimple')
+    ])
+    sedir         = guess_sedir()                    # guess storage element on current host
+    tmpskimdir, tmphadddir = guess_tmpdirs()         # tmphadddir: temporary dir for creating intermediate hadd files
+                                                     # tmpskimdir: temporary dir for creating skimmed file before copying to outdir
+    jobdir        = "output/$ERA/$CHANNEL/$SAMPLE"   # for job config and log files
+    outdir        = tmphadddir+jobdir                # for job output
+    picodir       = sedir+"analysis/$ERA/$GROUP"     # for storage of analysis ("pico") tuples after hadd
+    nanodir       = sedir+"samples/nano/$ERA/$DAS"   # for storage of (skimmed) nanoAOD
+    filelistdir   = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
+    batchsystem   = guess_batch()                    # batch system (HTCondor, SLURM, ...)
+    queue         = ""                               # batch queue / job flavor
+    nfilesperjob  = 1                                # group files per job
+    maxevtsperjob = -1                               # maximum number of events per job (split large files)
+    maxopenfiles  = 500                              # maximum number of open files during hadd
+    ncores        = 4                                # number of cores for parallel event counting & validating of files
+    haddcmd       = ""                               # alternative command for hadd'ing, e.g. 'python3 /.../.../haddnano.py'
+    _cfgdefaults  = OrderedDict([                    # ordered dictionary with defaults
+      ('channels',channels), ('eras',eras),
+      ('basedir',basedir),
+      ('jobdir',jobdir),     ('outdir',outdir), ('nanodir',nanodir), ('picodir',picodir),
+      ('tmpskimdir',tmpskimdir),
+      ('batch',batchsystem), ('queue',queue),
+      ('nfilesperjob',nfilesperjob), ('maxevtsperjob',maxevtsperjob),
+      ('filelistdir',filelistdir),
+      ('maxopenfiles',maxopenfiles), ('haddcmd', haddcmd ), # for pico.py hadd
+      ('ncores',ncores),
+    ])
+  return _cfgdefaults
+  
 
 def getconfig(verb=0,refresh=False):
   """Get configuration from JSON file."""
-  global _cfgdefaults, basedir, CONFIG
+  global basedir, CONFIG
+  cfgdefaults = getdefaultconfig(verb=verb)
   if CONFIG and not refresh:
     return CONFIG
   
@@ -66,17 +80,17 @@ def getconfig(verb=0,refresh=False):
   cfgdir   = ensuredir(basedir,"config")
   cfgname  = os.path.join(cfgdir,"config.json")
   bkpname  = os.path.join(cfgdir,"config.json.bkp") # back up to recover config if reset
-  cfgdict  = _cfgdefaults.copy()
-  rqdstrs  = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,basestring)]
-  rqddicts = [k for k,v in _cfgdefaults.iteritems() if isinstance(v,dict)]
+  cfgdict  = cfgdefaults.copy()
+  rqdstrs  = [k for k,v in cfgdefaults.items() if isinstance(v,basestring)] # required string type
+  rqddicts = [k for k,v in cfgdefaults.items() if isinstance(v,dict)] # required dictionary type
   
   # GET CONFIG
   if os.path.isfile(cfgname):
     with open(cfgname,'r') as file:
       cfgdict = json.load(file,object_pairs_hook=OrderedDict)
-    nmiss = len([0 for k in _cfgdefaults.keys() if k not in cfgdict]) # count missing keys
+    nmiss = len([0 for k in cfgdefaults.keys() if k not in cfgdict]) # count missing keys
     if nmiss>=5 and os.path.isfile(bkpname): # recover reset config file
-      print ">>> Config file may have been reset. Opening backup %s..."%(bkpname)
+      print(">>> Config file may have been reset. Opening backup %s..."%(bkpname))
       with open(bkpname,'r') as file:
         bkpcfgdict = json.load(file,object_pairs_hook=OrderedDict)
       for key in bkpcfgdict.keys(): # check for missing keys
@@ -85,12 +99,12 @@ def getconfig(verb=0,refresh=False):
           cfgdict[key] = bkpcfgdict[key]
           nmiss += 1
     if nmiss>0:
-      for key in _cfgdefaults.keys(): # check for missing keys
+      for key in cfgdefaults.keys(): # check for missing keys
         if key not in cfgdict:
-          LOG.warning("Key '%s' not set in config file %s. Setting to default %r"%(key,os.path.relpath(cfgname),_cfgdefaults[key]))
-          cfgdict[key] = _cfgdefaults[key]
+          LOG.warning("Key '%s' not set in config file %s. Setting to default %r"%(key,os.path.relpath(cfgname),cfgdefaults[key]))
+          cfgdict[key] = cfgdefaults[key]
           nmiss += 1
-      print ">>> Saving updated keys..."
+      print(">>> Saving updated keys...")
       with open(cfgname,'w') as file:
         json.dump(cfgdict,file,indent=2)
   else:
@@ -110,28 +124,27 @@ def getconfig(verb=0,refresh=False):
   
   # RETURN
   if verb>=1:
-    print '-'*80
-    print ">>> Reading config JSON file '%s'"%cfgname
-    for key, value in cfgdict.iteritems():
-      print ">>> %-13s = %s"%(key,value)
-    print '-'*80
+    print('-'*80)
+    print(">>> Reading config JSON file '%s'"%cfgname)
+    for key, value in cfgdict.items():
+      print(">>> %-13s = %s"%(key,value))
+    print('-'*80)
   
   CONFIG = Config(cfgdict,cfgname)
   return CONFIG
-
+  
 
 def setdefaultconfig(verb=0):
   """Set configuration to default values."""
-  global _cfgdefaults, basedir, CONFIG
-  
-  # SETTING
+  global basedir, CONFIG
+  cfgdefaults = getdefaultconfig(verb=verb)
   cfgdir  = ensuredir(basedir,"config")
   cfgname = os.path.join(cfgdir,"config.json")
-  cfgdict = _cfgdefaults.copy()
+  cfgdict = cfgdefaults.copy()
   if os.path.isfile(cfgname):
     LOG.warning("Config file '%s' already exists. Overwriting with defaults..."%(cfgname))
   CONFIG  = Config(cfgdict,cfgname)
-  CONFIG.write(backup=False)
+  CONFIG.write(backup=False,verb=verb)
   return CONFIG
   
 
@@ -141,11 +154,11 @@ class Config(object):
     """Container class for a global configuration."""
     self._dict = cfgdict
     self._path    = path
-    for key in self._dict.keys():
+    for key in list(self._dict.keys()):
       if isinstance(self._dict[key],unicode):
         self._dict[str(key)] = str(self._dict[key]) # convert unicode to str
       elif isinstance(self._dict[key],dict):
-        for subkey in self._dict[key].keys():
+        for subkey in list(self._dict[key].keys()):
           item = self._dict[key][subkey]
           if isinstance(item,unicode):
             item = str(item)
@@ -190,7 +203,11 @@ class Config(object):
     return iter(self._dict)
   
   def iteritems(self):
-    for x in self._dict.iteritems():
+    for x in self._dict.items():
+      yield x
+  
+  def items(self):
+    for x in self._dict.items():
       yield x
   
   def __len__(self):
@@ -217,13 +234,16 @@ class Config(object):
   def pop(self,*args,**kwargs):
     return self._dict.pop(*args,**kwargs)
   
-  def write(self,path=None,backup=False):
+  def write(self,path=None,backup=False,verb=0):
     if path==None:
       path = self._path
+    LOG.verb(">>> Config.write: Writing %r (backup=%r)"%(path,backup),verb,3)
     with open(path,'w') as outfile:
       json.dump(self._dict,outfile,indent=2)
     if backup: # backup to recover if config was reset
-      with open(path+'.bkp','w') as outfile:
+      pathbkp = path+'.bkp'
+      LOG.verb(">>> Config.write: Making back up in %r"%(pathbkp),verb,2)
+      with open(pathbkp,'w') as outfile:
         json.dump(self._dict,outfile,indent=2)
     return path
   

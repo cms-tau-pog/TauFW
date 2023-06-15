@@ -731,7 +731,7 @@ def getABCDStyle(region):
     elif region == "CR4" or region == "CRfour":
         return FakeBStyle6
     else:
-        print "Invalid region \"%s\". Returning qcd style" % (region)
+        print("Invalid region \"%s\". Returning qcd style" % (region))
         return qcdStyle
 
 def getBaselineStyle():
@@ -813,7 +813,7 @@ def getSignalStyleHToTB_M(myMass):
     elif mass == "10000":
         return signalStyleHToTB3000
     else:
-        print "Invalid mass point \"%s\". Returning default style" % (mass)
+        print("Invalid mass point \"%s\". Returning default style" % (mass))
     return signalStyleHToTB500        
 
 def getErrorStyle():

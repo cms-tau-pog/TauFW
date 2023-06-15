@@ -6,8 +6,8 @@ from TauFW.PicoProducer.analysis.TreeProducerMuMu import *
 from TauFW.PicoProducer.analysis.ModuleTauPair import *
 from TauFW.PicoProducer.analysis.utils import LeptonPair, idIso, matchtaujet
 from TauFW.PicoProducer.corrections.MuonSFs import *
-#from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
-from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
+from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
+#from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
 class ModuleMuMu(ModuleTauPair):
@@ -39,12 +39,17 @@ class ModuleMuMu(ModuleTauPair):
     # CORRECTIONS
     if self.ismc:
       self.muSFs   = MuonSFs(era=self.era)
+
+    # TRIGGERS
+    jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
+    self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
     self.out.cutflow.addcut('trig',         "trigger"                    )
     self.out.cutflow.addcut('muon',         "muon"                       )
     self.out.cutflow.addcut('pair',         "pair"                       )
+    self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
     
@@ -52,12 +57,12 @@ class ModuleMuMu(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleMuMu,self).beginJob()
-    print ">>> %-12s = %s"%('muon1CutPt', self.muon1CutPt)
-    print ">>> %-12s = %s"%('muon2CutPt', self.muon2CutPt)
-    print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
-    print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
-    print ">>> %-12s = %s"%('zwindow',    self.zwindow)
+    print(">>> %-12s = %s"%('muon1CutPt', self.muon1CutPt))
+    print(">>> %-12s = %s"%('muon2CutPt', self.muon2CutPt))
+    print(">>> %-12s = %s"%('muonCutEta', self.muonCutEta))
+    print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
+    print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
+    print(">>> %-12s = %s"%('zwindow',    self.zwindow))
     pass
     
   
@@ -73,7 +78,8 @@ class ModuleMuMu(ModuleTauPair):
     
     
     ##### TRIGGER ####################################
-    if not self.trigger(event):
+    #if not self.trigger(event):
+    if not self.trigger.fired(event):
       return False
     self.out.cutflow.fill('trig')
     
@@ -110,6 +116,11 @@ class ModuleMuMu(ModuleTauPair):
     muon2.tlv    = muon2.p4()
     self.out.cutflow.fill('pair')
     
+    # ADDED FOR SF CROSS CHECKS!
+    # Only keep events with leading muon triggered
+    if not self.trigger.match(event,muon1): 
+      return False
+    self.out.cutflow.fill('leadTrig')
     
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel)
@@ -169,7 +180,7 @@ class ModuleMuMu(ModuleTauPair):
       #if ord(tau.idDeepTau2017v2p1VSmu)<1: continue # VLoose
       maxtau = tau
       ptmax  = tau.pt
-    if maxtau>-1:
+    if maxtau!=None:
       self.out.pt_3[0]                     = maxtau.pt
       self.out.eta_3[0]                    = maxtau.eta
       self.out.m_3[0]                      = maxtau.mass
@@ -184,10 +195,9 @@ class ModuleMuMu(ModuleTauPair):
       self.out.idDeepTau2017v2p1VSe_3[0]   = maxtau.idDeepTau2017v2p1VSe
       self.out.idDeepTau2017v2p1VSmu_3[0]  = maxtau.idDeepTau2017v2p1VSmu
       self.out.idDeepTau2017v2p1VSjet_3[0] = maxtau.idDeepTau2017v2p1VSjet
-
-      self.out.idDeepTau2018v2p5VSe_3[0]   = maxtau.idDeepTau2018v2p5VSe
-      self.out.idDeepTau2018v2p5VSmu_3[0]  = maxtau.idDeepTau2018v2p5VSmu
-      self.out.idDeepTau2018v2p5VSjet_3[0] = maxtau.idDeepTau2018v2p5VSjet
+      #self.out.idDeepTau2018v2p5VSe_3[0]   = maxtau.idDeepTau2018v2p5VSe
+      #self.out.idDeepTau2018v2p5VSmu_3[0]  = maxtau.idDeepTau2018v2p5VSmu
+      #self.out.idDeepTau2018v2p5VSjet_3[0] = maxtau.idDeepTau2018v2p5VSjet
       if self.ismc:
         self.out.jpt_match_3[0], self.out.jpt_genmatch_3[0] = matchtaujet(event,maxtau,self.ismc)
         self.out.genmatch_3[0]             = maxtau.genPartFlav
@@ -227,7 +237,7 @@ class ModuleMuMu(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if muon1.pfRelIso04_all<0.50 and muon2.pfRelIso04_all<0.50:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
