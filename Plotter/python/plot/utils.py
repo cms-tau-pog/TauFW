@@ -3,13 +3,14 @@
 import os, re
 from math import sqrt, floor
 from array import array
+import ctypes # for passing by reference
 from TauFW.common.tools.file import ensuredir, ensureTFile
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs
 from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, TH2, TH1D, TH2D, THStack, TGraph, TGraphErrors, TGraphAsymmErrors, Double,\
+from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, TH2, TH1D, TH2D, THStack, TGraph, TGraphErrors, TGraphAsymmErrors,\
                  kSolid, kDashed, kDotted, kBlack, kWhite
 #moddir = os.path.dirname(__file__)
 gROOT.SetBatch(True)
@@ -171,14 +172,14 @@ def getTGraphRange(graphs,min=+10e10,max=-10e10,margin=0.0,axis='y'):
   vmin, vmax = min, max
   graphs = ensurelist(graphs)
   if axis=='y':
-    getUp  = lambda g,i: y+graph.GetErrorYhigh(i)
-    getLow = lambda g,i: y-graph.GetErrorYlow(i)
+    getUp  = lambda g,i: y.value+graph.GetErrorYhigh(i)
+    getLow = lambda g,i: y.value-graph.GetErrorYlow(i)
   else:
-    getUp  = lambda g,i: x+graph.GetErrorXhigh(i)
-    getLow = lambda g,i: x-graph.GetErrorXlow(i)
+    getUp  = lambda g,i: x.value+graph.GetErrorXhigh(i)
+    getLow = lambda g,i: x.value-graph.GetErrorXlow(i)
   for graph in graphs:
     npoints = graph.GetN()
-    x, y = Double(), Double()
+    x, y = ctypes.c_double(), ctypes.c_double()
     for i in range(0,npoints):
       graph.GetPoint(i,x,y)
       vup  = getUp(graph,i)
@@ -241,10 +242,10 @@ def getbinedges(hist,**kwargs):
       bins.append((low,up))
   else:
     for i in range(0,hist.GetN()):
-      x, y = Double(), Double()
+      x, y = ctypes.c_double(), ctypes.c_double()
       hist.GetPoint(i,x,y)
-      low  = round(x-hist.GetErrorXlow(i),9)
-      up   = round(x+hist.GetErrorXhigh(i),9)
+      low  = round(x.value-hist.GetErrorXlow(i),9)
+      up   = round(x.value+hist.GetErrorXhigh(i),9)
       bins.append((low,up))
     bins.sort()
   return bins

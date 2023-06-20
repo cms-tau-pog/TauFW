@@ -2,6 +2,7 @@
 # Author: Izaak Neutelings (June 2020)
 # Description: Class to automatically make CMS plot comparing histograms.
 import os, re
+#import ctypes # for passing by reference
 from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
 from TauFW.common.tools.math import log10, magnitude, columnize, scalevec, ceil
 from TauFW.Plotter.plot.utils import *
@@ -11,7 +12,7 @@ from TauFW.Plotter.plot.Ratio import Ratio
 import ROOT
 from ROOT import gDirectory, gROOT, gPad, gStyle, TFile, TCanvas,\
                  TH1, TH1D, TH2, TH2F, THStack, TGraph, TGraphAsymmErrors, TLine, TProfile,\
-                 TLegend, TAxis, TGaxis, Double, TLatex, TBox, TColor,\
+                 TLegend, TAxis, TGaxis, TLatex, TBox, TColor,\
                  kBlack, kGray, kWhite, kRed, kBlue, kGreen, kYellow, kAzure, kCyan, kMagenta,\
                  kOrange, kPink, kSpring, kTeal, kViolet, kSolid, kDashed, kDotted
 gROOT.SetBatch(True)

@@ -6,7 +6,7 @@ from math import ceil, sqrt
 # import CMS_lumi as CMS_lumi, tdrstyle as tdrstyle
 import ROOT
 from ROOT import gROOT, gPad, gStyle, TGaxis,\
-                 TCanvas, TBox, TText, TLatex, Double,\
+                 TCanvas, TBox, TText, TLatex,\
                  TColor, kBlack, kWhite, kGray,\
                  kBlue, kAzure, kCyan, kTeal, kGreen, kSpring, kYellow, kOrange, kRed, kPink, kMagenta, kViolet
 ROOT.gROOT.SetBatch(ROOT.kTRUE)
