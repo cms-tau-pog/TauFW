@@ -35,7 +35,7 @@ class Sample:
     for i, fname in enumerate(fnames): # expand glob patterns
       if any(c in fname for c in ['*','[',']']):
         if verb>=2:
-          print ">>> Sample.__init__: Expanding %r..."%(fname)
+          print(">>> Sample.__init__: Expanding %r..."%(fname))
         fnames.insert(i,glob.glob(fname))
     if nfilemax>0 and len(fnames)>nfilemax:
       fnames    = fnames[:nfilemax]
@@ -48,9 +48,9 @@ class Sample:
     self.scale  = scale
     self.isdata = data
     if verb>=1:
-      print ">>> Sample %r (%r):"%(self.name,self.title)
+      print(">>> Sample %r (%r):"%(self.name,self.title))
       for fname in fnames:
-        print ">>>   %s"%(fname)
+        print(">>>   %s"%(fname))
     if tree:
       self.gettree(tname,verb=verb)
   
@@ -63,10 +63,10 @@ class Sample:
       yield file
   
   def closefiles(self,verb=0):
-    for fname, file in self.files.iteritems():
+    for fname, file in self.files.items():
       if file:
         if verb>=1:
-          print ">>> Sample.close: Closing %s..."%(file.GetPath())
+          print(">>> Sample.close: Closing %s..."%(file.GetPath()))
         file.Close()
     self.files = { } # reset
   
@@ -75,14 +75,14 @@ class Sample:
       return self.tree
     chain = TChain(tname)
     if verb>=1:
-      print ">>> gettree(%r)"%(tname)
+      print(">>> gettree(%r)"%(tname))
     for fname in self.fnames:
       if verb>=1:
-        print ">>>   Adding %s..."%(fname)
+        print(">>>   Adding %s..."%(fname))
       chain.Add(fname)
     self.tree = chain
     if verb>=2:
-      print ">>> Sample.gettree: Number of entries: %5s over %s files for %s"%(self.tree.GetEntries(),len(self.fnames),self.name)
+      print(">>> Sample.gettree: Number of entries: %5s over %s files for %s"%(self.tree.GetEntries(),len(self.fnames),self.name))
     return chain
   
   def gethist_from_file(self,hname,title=None,verb=0):
@@ -113,7 +113,7 @@ class Sample:
     if self.cut:
       selection += " && "+self.cut
     if verb>=1:
-      print ">>> %s.Draw(%r,%r)"%(tree.GetName(),varexp,selection)
+      print(">>> %s.Draw(%r,%r)"%(tree.GetName(),varexp,selection))
     out = self.tree.Draw(varexp,selection,'HIST')
     if self.scale!=1:
       hist.Scale(self.scale)
@@ -134,7 +134,7 @@ class Sample:
       hists.append(hist)
       varexps.append(varexp)
       if verb>=2:
-        print ">>> Sample.gethists:   %r, %r"%(varexp,selection)
+        print(">>> Sample.gethists:   %r, %r"%(varexp,selection))
     out = self.tree.MultiDraw(varexps,selection,'HIST',hists=hists,verbosity=verb)
     if self.scale!=1:
       for hist in hists:
@@ -144,18 +144,18 @@ class Sample:
 
 # VARIABLES
 qlabels = ['','#minus1','','#plus1','','','']
-bins_st    = range(0,300,100) + [300,500,1000,2000]
-bins_met1  = range(0,400,40) + [400,450,500,600,700,800,1000]
-bins_met2  = range(0,600,50) + [600,700,800,1000]
-bins_met3  = range(0,800,50) + [900,1000,1200,1500]
-bins_jpt1  = range(0,1200,100) + [1200,1500,2500]
-bins_jpt2  = range(10,50,10) + [50,70,100,150,300] #,1500,2500]
-bins_tpt1  = range(0,1200,200) + [1200,1500,2000,2800]
-bins_pt1   = range(0,780,60) + [780,860,1000,1400]
-bins_pt2   = range(0,1040,80) + [1040,1200,1600]
-bins_pt3   = range(0,1040,80) + [1040,1200,1500,1600,2000]
-bins_pt    = range(0,600,60) + range(600,1000,100) + [1000,1200,1500,2000]
-bins_ptvis = range(0,200,40) + range(200,400,50) + [400,500,800,1000,1500]
+bins_st    = list(range(0,300,100)) + [300,500,1000,2000]
+bins_met1  = list(range(0,400,40)) + [400,450,500,600,700,800,1000]
+bins_met2  = list(range(0,600,50)) + [600,700,800,1000]
+bins_met3  = list(range(0,800,50)) + [900,1000,1200,1500]
+bins_jpt1  = list(range(0,1200,100)) + [1200,1500,2500]
+bins_jpt2  = list(range(10,50,10)) + [50,70,100,150,300] #,1500,2500]
+bins_tpt1  = list(range(0,1200,200)) + [1200,1500,2000,2800]
+bins_pt1   = list(range(0,780,60)) + [780,860,1000,1400]
+bins_pt2   = list(range(0,1040,80)) + [1040,1200,1600]
+bins_pt3   = list(range(0,1040,80)) + [1040,1200,1500,1600,2000]
+bins_pt    = list(range(0,600,60)) + list(range(600,1000,100)) + [1000,1200,1500,2000]
+bins_ptvis = list(range(0,200,40)) + list(range(200,400,50)) + [400,500,800,1000,1500]
 bins_eta   = [-6.0,-4.0] + frange(-2.5,2.5,0.5) + [2.5,4.0,6.0]
 bins_dR    = [0,0.5,1.0,1.4,1.7] + frange(2.0,4.0,0.2) + [4.0,4.3,4.7,5.2,6.0] 
 bins_dphi  = [-3.15,-2.8,-2.6,-2.4,-2.2,-2.0,-1.7,-1.3,-0.9,-0.3,0.3,0.9,1.3,1.7,2.0,2.2,2.4,2.6,2.8,3.15]
@@ -314,7 +314,7 @@ def compare_LQ(name,title,samples,tag="",**kwargs):
   for treename, selsets in varsets:
     if 'LQ-t' in samples[0].name and any(s in treename for s in ['decay','mother']):
       continue
-    print ">>>\n>>> "+bold("Using tree %r for %r"%(treename,title))
+    print(">>>\n>>> "+bold("Using tree %r for %r"%(treename,title)))
     trees = { }
     for sample in samples:
       sample.gettree(treename,refresh=True,verb=verb-1)
@@ -322,7 +322,7 @@ def compare_LQ(name,title,samples,tag="",**kwargs):
       ###for selection in selections:
       if 'assoc' in treename and '==15' in selection.selection and any('LQ-'+p in samples[0].name for p in 'pt'):
         continue
-      print ">>> %s: %r"%(selection.title,selection.selection)
+      print(">>> %s: %r"%(selection.title,selection.selection))
       hdict = { }
       text  = ', '.join([title,selection.title]) #.replace('tau',"tau_{#lower[-0.2]{h}}")
       if 'nonres' in title.lower():
@@ -330,11 +330,11 @@ def compare_LQ(name,title,samples,tag="",**kwargs):
       #vars  = [v for v in varset if v.plotfor(selection) and selection.plotfor(v)]
       for sample in samples:
         if verb>=1:
-          print ">>> compare_LQ: Getting histogram from %s"%(sample.name)
+          print(">>> compare_LQ: Getting histogram from %s"%(sample.name))
         hists = sample.gethists(varset,selection,verb=verb)
         for var, hist in zip(varset,hists):
           hdict.setdefault(var,[ ]).append(hist)
-      for var, hists in hdict.iteritems():
+      for var, hists in hdict.items():
         for norm in norms:
           ntag  = '_norm' if norm else "_lumi"
           fname = "%s/$VAR_%s_%s%s%s"%(outdir,name,selection.filename,tag,ntag)
@@ -375,7 +375,7 @@ def compare_LQ(name,title,samples,tag="",**kwargs):
           plot.saveas(fname.replace('__','_'),ext=exts) #,tag=ntag,'pdf'
           plot.close()
         deletehist(hists)
-  print ">>> "
+  print(">>> ")
   
 
 def main(args):
@@ -430,5 +430,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

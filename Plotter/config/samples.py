@@ -248,6 +248,6 @@ def getsampleset(channel,era,**kwargs):
   
   if table:
     sampleset.printtable(merged=True,split=True)
-  print ">>> common weight: %r"%(weight)
+  print(">>> common weight: %r"%(weight))
   return sampleset
   
