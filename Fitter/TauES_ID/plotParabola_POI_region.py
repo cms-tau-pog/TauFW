@@ -127,7 +127,7 @@ def plotParabola(setup,var,region,year,**kwargs):
     poi_bbb, poi_stat = -1., -1.
     for i, (tag_bd, title_bd, filename_bd) in enumerate(breakdown):
       print '>>>   file "%s" (breakdown)'%(filename_bd)
-      graph_bd, poi_bd = createParabola(filename_bd)
+      graph_bd, poi_bd = createParabola(filename_bd, poi, region)
       graph_bd.SetMarkerColor(colors_bd[i])
       graph_bd.SetLineColor(colors_bd[i])
       graph_bd.SetLineWidth(2)
@@ -149,15 +149,15 @@ def plotParabola(setup,var,region,year,**kwargs):
     canvas.SetLeftMargin( 0.12 ); canvas.SetRightMargin(  0.04 )
     canvas.cd()
     
-    if poi == 'tid_SF':
-          xmin, xmax = 0.7, 1.05
-    else :
+    if poi == 'tid_SF' or poi == 'trackedParam_tid_SF':
+          xmin, xmax = 0.7, 1.1
+    if poi == 'tes' :
           xmin, xmax = min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]) 
     ymin, ymax   = 0.0,  10.
     fontsize     = 0.044
     lineheight   = 0.05
     xtext, ytext = 0.90, 0.405
-    if poi == 'tid_SF':
+    if poi == 'tid_SF' or poi == 'trackedParam_tid_SF':
       title = "tau id scale factor"
     elif poi == 'tes':
       title = "tau energy scale"
@@ -297,8 +297,9 @@ def plotParabolaMDF(setup,var,year,**kwargs):
     tree       = file.Get('limit')
     ztitle     = "-2#Deltaln(L)"
     pois       = [b.GetName() for b in tree.GetListOfBranches() if 'poi_DM' in b.GetName()]
-    pmin, pmax = 0.97, 1.03
-    
+    # pmin, pmax = 0.97, 1.03
+    pmin, pmax = 0.7, 1.1
+
     for poi1, poi2 in combinations(pois,2):
       
       if len(pois)>2:
@@ -496,7 +497,7 @@ def createParabolaFromLists(list_poi,list_dnll,fit=False):
       graph.SetPointError(i,0.0,0.0,error,error)
     return graph
     
-def createParabola(filename):
+def createParabola(filename, poi, region):
     """Create TGraph of DeltaNLL parabola vs. poi from MultiDimFit file."""
     file = ensureTFile(filename)
     tree = file.Get('limit')
@@ -504,8 +505,8 @@ def createParabola(filename):
     for i, event in enumerate(tree):
       if i==0: continue
       #poi.append(tree.poi)
-      poiname = "poi_%s"%region #combine DM 
-      poi.append(getattr(tree,poiname)) #combine DM
+      poi_name = "%s_%s"%(poi,region) #combine DM 
+      poi.append(getattr(tree,poi_name)) #combine DM
       nll.append(2*tree.deltaNLL)
     file.Close()
     minnll = min(nll)
@@ -544,7 +545,7 @@ def measurepoi(filename,poi,region,unc=False,fit=False,asymmetric=True,**kwargs)
 
     """Create TGraph of DeltaNLL parabola vs. poi from MultiDimFit file."""
     if fit:
-       return measurepoi_fit(filename,poi=poi,asymmetric=asymmetric,unc=unc)
+       return measurepoi_fit(filename,poi=poi,region=region,asymmetric=asymmetric,unc=unc)
     file = ensureTFile(filename)
     tree = file.Get('limit')
     poi_list, nll = [ ], [ ]
@@ -589,7 +590,7 @@ def measurepoi(filename,poi,region,unc=False,fit=False,asymmetric=True,**kwargs)
     
 
 
-def measurepoi_fit(filename,poi,asymmetric=True,unc=False):
+def measurepoi_fit(filename,poi,region,asymmetric=True,unc=False):
     """Create TGraph of DeltaNLL parabola vs. poi from MultiDimFit file."""
     file = ensureTFile(filename)
     tree = file.Get('limit')
@@ -812,9 +813,10 @@ def plotMeasurements(setup, measurements,binsOrder,**kwargs):
       xtext  = xmin-0.02*(xmax-xmin)
     for i, name in enumerate(binsOrder):
       ytext = i+0.5
-      if poi == "tes":
+
+      if poi == 'tes':
         text = setup["tesRegions"][name]["title"] if "title" in setup["tesRegions"][name] else name
-      elif poi == "tid_SF":
+      elif poi == 'tid_SF' or poi == 'trackedParam_tid_SF':
         text = setup["tid_SFRegions"][name]["title"] if "title" in setup["tid_SFRegions"][name] else name
       else:
         text = setup["regions"][name]["title"] if "title" in setup["regions"][name] else name     
@@ -835,194 +837,6 @@ def plotMeasurements(setup, measurements,binsOrder,**kwargs):
       canvas.SaveAs(canvasname)
     
     canvas.Close()
-
-
-# def plotidSF_pt(setup, measurements,binsOrder,**kwargs):
-#     """Plot pt_dependant id SF.
-#     """
-#     npoints      = len(measurements)
-#     minB         = 0.13
-#     colors       = [ kBlack, kBlue, kRed, kOrange, kGreen, kMagenta ]
-#     poi          = kwargs.get('poi',          ""                  )
-#     title        = kwargs.get('title',       ""                   )
-#     text         = kwargs.get('text',        ""                   )
-#     ctext        = kwargs.get('ctext',       ""                   ) # corner text
-#     entries      = kwargs.get('entries',     [ ]                  )
-#     emargin      = kwargs.get('emargin',     None                 )
-#     plottag      = kwargs.get('tag',         ""                   )
-#     xtitle       = kwargs.get('xtitle',      ""                   )
-#     xminu        = kwargs.get('xmin',        None                 )
-#     xmaxu        = kwargs.get('xmax',        None                 )
-#     rangemargin  = kwargs.get('rangemargin', 0.18                 )
-#     colors       = kwargs.get('colors',      colors               )
-#     position     = kwargs.get('position',    ''                   ).lower() # legend
-#     cposition    = kwargs.get('cposition',   'topright'           ).lower() # cornertext
-#     ctextsize    = kwargs.get('ctextsize',   0.040                )
-#     width        = kwargs.get('width',       0.22                 )
-#     align        = kwargs.get('align',       "center"             ).lower() # category labels
-#     heigtPerCat  = kwargs.get('h',           55                   )
-#     canvasH      = kwargs.get('H',           max(400,120+heigtPerCat*npoints) )
-#     canvasW      = kwargs.get('W',           800                  )
-#     canvasL      = kwargs.get('L',           0.20                 )
-#     canvasB      = kwargs.get('B',           minB                 )
-#     canvasname   = kwargs.get('canvas',      "%s/measurements_idSF" %(outdir) )
-#     canvasname   = kwargs.get('name',        canvasname           )
-#     exts         = kwargs.get('ext',         ['png']              )
-#     exts         = kwargs.get('exts',        exts                 )
-#     xmin, xmax   = None, None
-#     maxpoints    = 0
-#     exts         = ensureList(exts)
-#     ctext        = ensureList(ctext)
-    
-#     # MAKE GRAPH
-#     graphs        = [ ]
-
-#     for ptregion in setup["tid_SFRegions"]:
-#       print("region = %s" %(ptregion))
-#       # pt width and average value 
-#       title = setup["tid_SFRegions"][ptregion]["title"]
-#       str_pt_lo = title.split("<")[0].split(" ")[-1]
-#       str_pt_hi = title.split("<")[-1].split(" ")[0]
-#       pt_hi = float(str_pt_hi)
-#       pt_lo = float(str_pt_lo)
-#       pt_avg = (pt_hi + pt_lo) / 2.0
-#       pt_error = pt_avg - pt_lo
-#       print("pt average = %f and pt error = %s" %(pt_avg, pt_error))
-#       # id_SF values and error 
-#       points = []
-#       while len(points)>maxpoints:
-#         maxpoints += 1
-#         graphs.append(TGraphAsymmErrors())
-#       for j, point in enumerate(points):
-#         if point==None: continue
-#         if len(point)==3:
-#           x, xErrLow, xErrUp,  = point
-#         elif len(point)==2:
-#           x, xErrLow = point
-#           xErrUp = xErrLow
-#         else:
-#           x, xErrLow, xErrUp = point[0], 0, 0
-#         graph = graphs[j]
-#         graph.SetPoint(i,pt_avg,x)
-#         #graph.SetPoint(i,x,1+i-(j+1)*offset)
-#         #graph.SetPointError(i,xErrLow,xErrUp,pt_error,pt_error)
-#         graph.SetPointError(i,pt_error,pt_error, xErrLow,xErrUp)
-
-#         if xmin==None or x-xErrLow < xmin: xmin = x-xErrLow
-#         if xmax==None or x+xErrUp  > xmax: xmax = x+xErrUp
-#     if xminu or xmaxu:
-#       if xminu: xmin = xminu
-#       if xmaxu: xmax = xmaxu
-#     else:
-#       range = xmax - xmin
-#       xmin -= rangemargin*range
-#       xmax += rangemargin*range
-    
-
-#     # DRAW
-#     canvasB  = min(canvasB,minB)
-#     canvasH  = int(canvasH/(1.-minB+canvasB))
-#     scale    = 600./canvasH
-#     canvasT  = 0.07*scale
-#     canvasB  = minB*(scale-1)+canvasB
-#     canvasR  = 0.04
-#     canvas   = TCanvas("canvas","canvas",100,100,canvasW,canvasH)
-#     canvas.SetTopMargin(  canvasT ); canvas.SetBottomMargin( canvasB )
-#     canvas.SetLeftMargin( canvasL ); canvas.SetRightMargin(  canvasR )
-#     canvas.SetGrid(1,0)
-#     canvas.cd()
-    
-#     # LEGEND
-#     legend = None
-#     if entries:
-#       legtextsize = 0.052*scale
-#       height      = legtextsize*1.08*len([o for o in [title,text]+zip(graphs,entries) if o])
-#       if 'out' in position:
-#         x1 = 0.008; x2 = x1+width
-#         y1 = 0.018; y2 = y1+height
-#       else:
-#         if 'right'  in position:  x1 = 0.95;            x2 = x1-width
-#         elif 'left' in position:  x1 = canvasL+0.04;    x2 = x1+width
-#         else:                     x1 = 0.88;            x2 = x1-width 
-#         if 'bottom' in position:  y1 = 0.04+0.13*scale; y2 = y1+height
-#         else:                     y1 = 0.96-0.07*scale; y2 = y1-height
-#       legend = TLegend(x1,y1,x2,y2)
-#       legend.SetTextSize(legtextsize)
-#       legend.SetBorderSize(0)
-#       legend.SetFillStyle(0)
-#       legend.SetFillColor(0)
-#       if title:
-#         legend.SetTextFont(62)
-#         legend.SetHeader(title)
-#       legend.SetTextFont(42)
-    
-#     frame  = canvas.DrawFrame(xmin,0.0,xmax,float(npoints))
-#     frame.GetYaxis().SetLabelSize(0.0)
-#     frame.GetXaxis().SetLabelSize(0.052*scale)
-#     frame.GetXaxis().SetTitleSize(0.060*scale)
-#     frame.GetXaxis().SetTitleOffset(0.98)
-#     frame.GetYaxis().SetNdivisions(npoints,0,0,False)
-#     frame.GetXaxis().SetTitle(xtitle)
-    
-#     for i, graph in enumerate(graphs):
-#       color = colors[i%len(colors)]
-#       graph.SetLineColor(color)
-#       graph.SetMarkerColor(color)
-#       graph.SetLineStyle(1)
-#       graph.SetMarkerStyle(20)
-#       graph.SetLineWidth(2)
-#       graph.SetMarkerSize(1)
-#       graph.Draw('PSAME')
-#       if legend and i<len(entries):
-#         legend.AddEntry(graph,entries[i],'lep')
-#     if legend:
-#       if text:
-#         legend.AddEntry(graph,entries[i],'lep')
-#       legend.Draw()
-    
-#     # CORNERTEXT
-#     if ctext:
-#       ctextsize *= scale
-#       ctext = writeText(ctext,position=cposition,textsize=ctextsize)
-    
-#     # CATEGORY LABELS
-#     labelfontsize = 0.050*scale
-#     latex = TLatex()
-#     latex.SetTextSize(labelfontsize)
-#     latex.SetTextFont(62)
-#     if align=='center':
-#       latex.SetTextAlign(22)
-#       margin = emargin #0.02 #+ stringWidth(*categories)*labelfontsize/2. # width strings
-#       xtext  = marginCenter(canvas,frame.GetXaxis(),margin=margin) # automatic
-#     else:
-#       latex.SetTextAlign(32)
-#       xtext  = xmin-0.02*(xmax-xmin)
-#     for i, name in enumerate(binsOrder):
-#       ytext = i+0.5
-#       if poi == "tes":
-#         text = setup["tesRegions"][name]["title"] if "title" in setup["tesRegions"][name] else name
-#       elif poi == "tid_SF":
-#         text = setup["tid_SFRegions"][name]["title"] if "title" in setup["tid_SFRegions"][name] else name
-#       else:
-#         text = setup["regions"][name]["title"] if "title" in setup["regions"][name] else name     
-#       latex.DrawLatex(xtext,ytext,text)
-    
-#     CMSStyle.setCMSLumiStyle(canvas,0)
-#     CMSStyle.cmsTextSize  = 0.85
-#     CMSStyle.lumiTextSize = 0.80
-#     CMSStyle.relPosX      = 0.13*800*0.76/(1.-canvasL-canvasR)/canvasW
-    
-#     # SAVE
-#     if exts:
-#       for ext in exts:
-#         if '.' not in ext[0]: ext = '.'+ext
-#         print(canvasname)
-#         canvasname1 = re.sub(r"\.?(png|pdf|jpg|gif|eps|tiff?)?$",ext,canvasname,re.IGNORECASE)
-#         canvas.SaveAs(canvasname1)
-#     else:
-#       canvas.SaveAs(canvasname)
-    
-#     canvas.Close()
 
 
 def combineMeasurements(measurements):
@@ -1293,10 +1107,10 @@ def main(args):
           
             if len(points)>1 and not breakdown:
                 print green("write results to file",pre="\n>>> ")
-                filename = "%s/measurement_poi_%s%s"%(outdir,channel,tag)
+                filename = "%s/measurement_%s_%s%s"%(outdir,poi,channel,tag)
                 writeMeasurement(filename,allRegions,points)
             if args.fit:
-                filename = "%s/measurement_poi_%s%s"%(outdir,channel,tag)
+                filename = "%s/measurement_%s_%s%s"%(outdir,poi,channel,tag)
                 writeMeasurement(filename+fittag,allRegions,points_fit)
     
     # SUMMARY plot
@@ -1304,15 +1118,16 @@ def main(args):
         print green("make summary plot for %s"%(tag),pre="\n>>> ")
         ftags = [ tag, tag+fittag ] if args.fit else [ tag ]
         for ftag in ftags:
-            canvas = "%s/measurement_poi_%s%s"%(outdir,channel,ftag)
+            canvas = "%s/measurement_%s_%s%s"%(outdir,poi,channel,ftag)
             measurements = readMeasurement(canvas)
 
-
-            if poi == 'tid_SF':
-                  plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau id scale factor",xmin=0.7,xmax=1.05,L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
+            if poi == 'tid_SF' or poi == 'trackedParam_tid_SF':
+              plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau id scale factor",xmin=0.7,xmax=1.05,L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
             #defaut case = tes 
+            elif poi == 'tes':
+              plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau energy scale",xmin=min(setup["TESvariations"]["values"]),xmax=max(setup["TESvariations"]["values"]),L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
             else:
-                  plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau energy scale",xmin=min(setup["TESvariations"]["values"]),xmax=max(setup["TESvariations"]["values"]),L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
+              plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau energy scale",xmin=min(setup["TESvariations"]["values"]),xmax=max(setup["TESvariations"]["values"]),L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
 
             #plotidSF_pt(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions),xtitle="tau id scale factor",xmin=0.7,xmax=1.05,L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
 
@@ -1325,7 +1140,7 @@ if __name__ == '__main__':
     argv = sys.argv
     description = '''Plot parabolas.'''
     parser = ArgumentParser(prog="plotParabola",description=description,epilog="Succes!")
-    parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], type=str, default='2017', action='store', help="select year")
+    parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018', 'UL2018_v10'], type=str, default='2017', action='store', help="select year")
     parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetuppoi_mutau.yml', action='store', help="set config file containing sample & fit setup" )
     parser.add_argument('-e', '--extra-tag',   dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
     parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store', metavar='RANGE',       help="range of poi shifts")
