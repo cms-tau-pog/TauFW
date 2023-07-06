@@ -22,7 +22,7 @@ def printhist(nevts=10000,verb=0):
   table.printheader('ibin','content','error')
   for ibin in range(0,hist.GetXaxis().GetNbins()+1):
     table.printrow(ibin,hist.GetBinContent(ibin),hist.GetBinError(ibin))
-  print
+  print('')
   
   # SIMPLE TABLE
   print ">>> Table from hist"
@@ -45,7 +45,7 @@ def main(args):
   table.printrow(1,3.0,9.0)
   table.printrow(1,4.0)       # missing column
   table.printrow(1,5.0,25,-1) # surprise extra column
-  print
+  print('')
   
   # SIMPLE TABLE
   print ">>> Simple table with custom width"
@@ -56,7 +56,7 @@ def main(args):
   table.printrow(1,3.0,9.0)
   table.printrow(1,4.0)       # missing column
   table.printrow(1,5.0,25,-1) # surprise extra column
-  print
+  print('')
   
   # TABLE with extra symbols
   print ">>> Table with extra symbols"
@@ -68,7 +68,7 @@ def main(args):
   table.printrow(1,16.0,2.8)        # missing columns
   table.printrow(1,25.0)            # missing column
   table.printrow(1,36.0,4.5,3.5,-1) # surprise extra column
-  print
+  print('')
   
   # TABLE from LOG
   level = 2
@@ -78,7 +78,7 @@ def main(args):
   TAB.printrow(1,1.0,1.0)
   TAB.printrow(1,2.0,4.0)
   TAB.printrow(1,3.0,9.0)
-  print
+  print('')
   
   # TABLE of histogram
   printhist(verb=verbosity)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
                                          help="set verbosity" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
-  print
+  print('')
   main(args)
-  print
+  print('')
   

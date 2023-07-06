@@ -93,14 +93,14 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
   TightMCGenuineHists = []
   
   for selection in selections:
-    print ">>> Selection %r: %r"%(selection.title,selection.selection)
+    print(">>> Selection %r: %r"%(selection.title,selection.selection))
     stacks = sampleset.getstack(variables,selection,method='',parallel=parallel)        
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
 
-    for stack, variable in stacks.iteritems():
+    for stack, variable in stacks.items():
       for h in stack.hists:
         if "_pt" in selection.filename : continue # make sure you choose only the files related to the FR measurement
         if("SingleMuon" not in h.GetName() and "SingleElectron" not in h.GetName() and "EGamma" not in h.GetName() and "Simulation" not in h.GetName()) : continue
@@ -219,14 +219,14 @@ def GetEfficiencyHisto(numHisto, denHisto, dsetType, outdir, era, channel, ptLis
   # First determine the bin number [Bin# 0 contains the underflow. The Last bin (bin# nbins+1) contains the overflow.]
   #for j in range(1, nBinsX+1):
   for j in range(1, nBinsX+1):
-    print "nBinsX is = ", nBinsX
-    print "and j now is =", j
+    print("nBinsX is = ", nBinsX)
+    print("and j now is =", j)
     # Get the denominator
     denValue   = ctypes.c_double(0.0)
     denError_  = ctypes.c_double(0.0)
     denValue   = denHisto.IntegralAndError(j, j, denError_)
-    print "HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR DENVALUE"
-    print denValue
+    print("HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR DENVALUE")
+    print(denValue)
     denError   = denError_.value
     
     # Get the denominator
@@ -234,8 +234,8 @@ def GetEfficiencyHisto(numHisto, denHisto, dsetType, outdir, era, channel, ptLis
     numError_  = ctypes.c_double(0.0)
     numValue   = numHisto.IntegralAndError(j, j, numError_)
     numError   = numError_.value
-    print "HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR NUMVALUE"
-    print numValue
+    print("HELOOOOOOOOOOOOOOOOOOOOOO, HERE IS YOUR NUMVALUE")
+    print(numValue)
     effValue   = 0.0
     effError   = 0.0
     histoName  = numHisto.GetName()
@@ -269,8 +269,8 @@ def GetEfficiencyHisto(numHisto, denHisto, dsetType, outdir, era, channel, ptLis
     hDen.SetBinContent(1, denValue)
     hDen.SetBinError(1, denError)
 
-    #print hNum.GetNbinsX()
-    #print hDen.GetNbinsX()
+    #print(hNum.GetNbinsX())
+    #print(hDen.GetNbinsX())
 
     # Sanity check
     if not (ROOT.TEfficiency.CheckConsistency(hNum, hDen)):
@@ -326,7 +326,7 @@ def GetEfficiencyHisto(numHisto, denHisto, dsetType, outdir, era, channel, ptLis
 
     # For json file 
     json  = "%s__%.1f__%.1f__%.5f__%.5f__%.5f__%.5f__%.5f__%.5f" % (ptRange, numValue, denValue, effValue, effError, effErrorUp, effErrorLow, numValue, denValue)
-    #print "json = ", json.replace("__", jsonInfoDelimiter)
+    #print("json = ", json.replace("__", jsonInfoDelimiter))
     jsonList.append(json.replace("__", jsonInfoDelimiter))
       
     # Reset histos 
@@ -355,7 +355,7 @@ def WriteJsonInfoToFile(jsonFileInfoDict,outdir,era,channel,verbose):
   usedKeys = []
   for i, key in enumerate(jsonFileInfoDict.keys(), 1):
     infoList = jsonFileInfoDict[key]
-    if verbose : print infoList
+    if verbose : print(infoList)
     usedKey  = "-".join(key.split("-")[:-1])
 
     # For-loop: All info rows
@@ -380,24 +380,24 @@ def _ConvertInfoToJsonParameter(keyString, infoString, verbose, firstIndex=False
 
   jsonInfoDelimiter = " & "
   #self.Verbose("keyString = %s" % (keyString), True)
-  if verbose: print "keystring = ", keyString
+  if verbose: print("keystring = ", keyString)
   inputDir  = keyString.split(":")[0]
-  if verbose: print "inputDir = ", inputDir
+  if verbose: print("inputDir = ", inputDir)
   
-  if verbose: print " keyString.split(:)[-1].split(-)" ,keyString.split(":")[-1].split("-")
-  if verbose: print " len keyString.split(:)[-1].split(-)" ,len( keyString.split(":")[-1].split("-") )
+  if verbose: print(" keyString.split(:)[-1].split(-)" ,keyString.split(":")[-1].split("-"))
+  if verbose: print(" len keyString.split(:)[-1].split(-)" ,len( keyString.split(":")[-1].split("-") ))
 
   if len(keyString.split(":")[-1].split("-")) > 1:
-    #if verbose: print " keyString.split(:)[-1].split(-)" ,keyString.split(":")[-1].split("-")
+    #if verbose: print(" keyString.split(:)[-1].split(-)" ,keyString.split(":")[-1].split("-"))
     ptRatio   = keyString.split("-")[0] #it was 2 
-    #if verbose: print "ptRatio =  " , ptRatio
+    #if verbose: print("ptRatio =  " , ptRatio)
     dataType  = keyString.split(":")[-1].split("-")[1] # it was 3
-    #if verbose: print "dataType = ", dataType
+    #if verbose: print("dataType = ", dataType)
   else:
     ptRatio   = "N/A"
-    #if verbose: print "ptRatio =  " , ptRatio
+    #if verbose: print("ptRatio =  " , ptRatio)
     dataType  = keyString.split(":")[-1].split("-")[1] # it was 2
-    #if verbose: print "dataType = ", dataType
+    #if verbose: print("dataType = ", dataType)
     #self.Verbose("keyString.split(\"-\") = %s" %  (keyString.split("-")), True)
   
   #self.Verbose("InputDir = %s, DM = %s, etaRegion = %s, ptRatio = %s, dataType = %s" % (inputDir, decayMode, etaRegion, ptRatio, dataType), True)
@@ -456,11 +456,11 @@ def ConvertToFriendlySavename(text):
 #  return fName
 def Print(msg, printHeader=False):
   if printHeader==True:
-    #print "=== ", _GetFName()
-    print "=== ", __file__.split("/")[-1].replace("pyc", "py")    
-    print "\t", msg
+    #print("=== ", _GetFName())
+    print("=== ", __file__.split("/")[-1].replace("pyc", "py")    )
+    print("\t", msg)
   else:
-    print "\t", msg
+    print("\t", msg)
   return
 #################
 
@@ -526,4 +526,4 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")

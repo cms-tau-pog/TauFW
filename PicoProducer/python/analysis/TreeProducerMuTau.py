@@ -2,14 +2,14 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
-from TreeProducerTauPair import TreeProducerTauPair
+from TauFW.PicoProducer.analysis.TreeProducerTauPair import TreeProducerTauPair
 
 
 class TreeProducerMuTau(TreeProducerTauPair):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print "Loading TreeProducerMuTau for %r"%(filename)
+    print("Loading TreeProducerMuTau for %r"%(filename))
     super(TreeProducerMuTau,self).__init__(filename,module,**kwargs)
     
     
@@ -53,6 +53,12 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('rawDeepTau2017v2p1VSe_2',    'f')
     self.addBranch('rawDeepTau2017v2p1VSmu_2',   'f')
     self.addBranch('rawDeepTau2017v2p1VSjet_2',  'f')
+
+    self.addBranch('rawDeepTau2018v2p5VSe_2',    'f')
+    self.addBranch('rawDeepTau2018v2p5VSmu_2',   'f')
+    self.addBranch('rawDeepTau2018v2p5VSjet_2',  'f')
+
+
     #self.addBranch('idAntiEle_2',                'i')
     #self.addBranch('idAntiMu_2',                 'i')
     self.addBranch('idDecayMode_2',              '?', title="oldDecayModeFinding")
@@ -62,6 +68,12 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('idDeepTau2017v2p1VSe_2',     'i')
     self.addBranch('idDeepTau2017v2p1VSmu_2',    'i')
     self.addBranch('idDeepTau2017v2p1VSjet_2',   'i')
+
+    self.addBranch('idDeepTau2018v2p5VSe_2',     'i')
+    self.addBranch('idDeepTau2018v2p5VSmu_2',    'i')
+    self.addBranch('idDeepTau2018v2p5VSjet_2',   'i')
+
+
     self.addBranch('leadTkPtOverTauPt_2',        'f')
     self.addBranch('chargedIso_2',               'f')
     self.addBranch('neutralIso_2',               'f')

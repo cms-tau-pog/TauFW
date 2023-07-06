@@ -118,7 +118,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
 
-    for stack, variable in stacks.iteritems():
+    for stack, variable in stacks.items():
       for h in stack.hists:
         if "_pt" in selection.filename : continue # make sure you choose only the files related to the FR measurement
         #if "eta" not in selection.filename : continue # make sure you choose only the files related to the FR measurement
@@ -150,7 +150,7 @@ def plot(sampleset,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       stack.saveas(fname,ext=exts,tag=tag)
       stack.close()        
 
-  print len(LooseDataHists), len(LooseMCHists), len(TightDataHists), len(TightMCHists)
+  print(len(LooseDataHists), len(LooseMCHists), len(TightDataHists), len(TightMCHists))
 
   # calcuate jet->tau FR
   jsonList         = []
@@ -376,9 +376,9 @@ def WriteJsonInfoToFile(jsonFileInfoDict,outdir,era,channel,verbose):
   jsonWr = jsonWriter.JsonWriter(outdir, verbose)
 
   usedKeys = []
-  for i, key in enumerate(jsonFileInfoDict.keys(), 1):
+  for i, key in enumerate(jsonFileInfoDict.keys(),1):
     infoList = jsonFileInfoDict[key]
-    if verbose : print infoList
+    if verbose : print(infoList)
     usedKey  = "-".join(key.split("-")[:-1])
 
     # For-loop: All info rows
@@ -403,12 +403,12 @@ def _ConvertInfoToJsonParameter(keyString, infoString, verbose, firstIndex=False
 
   jsonInfoDelimiter = " & "
   #self.Verbose("keyString = %s" % (keyString), True)
-  if verbose: print "keystring = ", keyString
+  if verbose: print("keystring = ", keyString)
   inputDir  = keyString.split(":")[0]
-  if verbose: print "inputDir = ", inputDir
+  if verbose: print("inputDir = ", inputDir)
   
-  if verbose: print " keyString.split(:)[-1].split(-)" ,keyString.split(":")[-1].split("-")
-  if verbose: print " len keyString.split(:)[-1].split(-)" ,len( keyString.split(":")[-1].split("-") )
+  if verbose: print(" keyString.split(:)[-1].split(-)" ,keyString.split(":")[-1].split("-"))
+  if verbose: print(" len keyString.split(:)[-1].split(-)" ,len( keyString.split(":")[-1].split("-") ))
 
   if len(keyString.split(":")[-1].split("-")) > 1:
     #if verbose: print " keyString.split(:)[-1].split(-)" ,keyString.split(":")[-1].split("-")
@@ -480,10 +480,10 @@ def ConvertToFriendlySavename(text):
 def Print(msg, printHeader=False):
   if printHeader==True:
     #print "=== ", _GetFName()
-    print "=== ", __file__.split("/")[-1].replace("pyc", "py")    
-    print "\t", msg
+    print("=== ", __file__.split("/")[-1].replace("pyc", "py"))    
+    print("\t", msg)
   else:
-    print "\t", msg
+    print("\t", msg)
   return
 #################
 
@@ -549,4 +549,4 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")

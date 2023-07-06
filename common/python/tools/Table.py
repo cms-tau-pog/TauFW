@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
+from __future__ import print_function # for python3 compatibility
 import re
 
 formatrexp = re.compile(r"(%(-?\d*)\.?\d*[sfgdir])")
@@ -59,8 +60,8 @@ class Table(object):
       self.columnformats.insert(0,self.rowformat[icol:ilast])
       ilast = icol
     if self.verbosity>=self.level+3:
-      print ">>> headerformat=%r, rowformat=%r"%(self.headerformat,self.rowformat)
-      print ">>> columnformats=%s, ncols=%r"%(self.columnformats,self.ncols)
+      print(">>> headerformat=%r, rowformat=%r"%(self.headerformat,self.rowformat))
+      print(">>> columnformats=%s, ncols=%r"%(self.columnformats,self.ncols))
   
   def __str__(self):
     return '\n'.join(self.rows)
@@ -68,17 +69,17 @@ class Table(object):
   def printtable(self):
     """Print full table."""
     for r in self.rows:
-      print r
+      print(r)
   
   def printheader(self,*args,**kwargs):
     """Print row."""
     if self.verbosity>=self.level:
-      print self.header(*args,**kwargs)
+      print(self.header(*args,**kwargs))
   
   def printrow(self,*args,**kwargs):
     """Print row."""
     if self.verbosity>=self.level:
-      print self.row(*args,**kwargs)
+      print(self.row(*args,**kwargs))
   
   def header(self,*args,**kwargs):
     """Header for table which is assumed to be all strings."""

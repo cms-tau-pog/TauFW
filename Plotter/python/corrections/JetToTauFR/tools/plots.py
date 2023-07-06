@@ -15,6 +15,8 @@ there is absolutely no problem in doing so.
 #================================================================================================
 # Import Modules
 #================================================================================================
+from __future__ import print_function # for python3 compatibility
+from past.builtins import basestring # for python2 compatibility
 import sys
 import array
 import math
@@ -220,7 +222,7 @@ def _createRatioErrorPropagation(histo1, histo2, ytitle, returnHisto=False):
         ratio.SetDirectory(0)
         ratio.Divide(histo2)
         if histograms.uncertaintyMode.equal(histograms.Uncertainty.SystOnly):
-            for i in xrange(0, ratio.GetNbinsX()+2):
+            for i in range(0, ratio.GetNbinsX()+2):
                 ratio.SetBinError(i, 0)
 
         _plotStyles["Ratio"].apply(ratio)
@@ -237,7 +239,7 @@ def _createRatioErrorPropagation(histo1, histo2, ytitle, returnHisto=False):
         xvalues = []
         yvalues = []
         yerrs = []
-        for i in xrange(0, histo1.GetN()):
+        for i in range(0, histo1.GetN()):
             yval = histo2.GetY()[i]
             if yval == 0:
                 continue
@@ -276,7 +278,7 @@ def _createRatioErrorPropagation(histo1, histo2, ytitle, returnHisto=False):
         unc1 = histo1.getSystematicUncertaintyGraph(addStatistical=addStat)
         unc2 = histo2.getSystematicUncertaintyGraph(addStatistical=addStat)
 
-        for i in xrange(0, unc1.GetN()):
+        for i in range(0, unc1.GetN()):
             yval1 = unc1.GetY()[i]
             yval2 = unc2.GetY()[i]
             if yval2 == 0.0:
@@ -370,7 +372,7 @@ def _createRatioBinomial(histo1, histo2, ytitle):
     '''
     if isinstance(histo1, ROOT.TH1) and isinstance(histo2, ROOT.TH1):
         if histograms.uncertaintyNode != histograms.Uncertainty.StatOnly:
-            print >>sys.stderr, "Warning: uncertainty mode is not 'StatOnly' (but %s). Nevertheless, the binomial uncertainty is calculated incorporating the uncertainty from the number of events in the input histograms" % (histograms.uncertaintyMode.getName())
+            print("Warning: uncertainty mode is not 'StatOnly' (but %s). Nevertheless, the binomial uncertainty is calculated incorporating the uncertainty from the number of events in the input histograms" % (histograms.uncertaintyMode.getName()),file=sys.stderr)
 
         eff = ROOT.TGraphAsymmErrors(rootHisto1, rootHisto2)
         styles.getDataStyle().apply(eff)
@@ -529,7 +531,7 @@ def _createRatioHistosErrorScale(histo1, histo2, ytitle, numeratorStatSyst=True,
         yerrhigh = []
         yerrlow  = []
         # statistical uncertainty (stat. unc.), normally represented by shaded gray area in ratio pad
-        for bin in xrange(h2.begin(), h2.end()): # important to use h2 because of TGraph logic
+        for bin in range(h2.begin(), h2.end()): # important to use h2 because of TGraph logic
             (scale, ylow, yhigh) = h2.yvalues(bin)
             (xval, xlow, xhigh)  = h2.xvalues(bin)
             ratioWrapped.divide(bin, scale, xval)
@@ -582,7 +584,7 @@ def _createRatioHistosErrorScale(histo1, histo2, ytitle, numeratorStatSyst=True,
         ratioSyst1 = histo1.getSystematicUncertaintyGraph(addStatistical=histograms.uncertaintyMode.addStatToSyst())
         ratioSyst2 = histo2.getSystematicUncertaintyGraph(addStatistical=histograms.uncertaintyMode.addStatToSyst())
         removes = []
-        for i in xrange(0, ratioSyst2.GetN()):
+        for i in range(0, ratioSyst2.GetN()):
             yval = ratioSyst2.GetY()[i]
             if yval == 0.0:
                 removes.append(i)
@@ -595,7 +597,7 @@ def _createRatioHistosErrorScale(histo1, histo2, ytitle, numeratorStatSyst=True,
             ratioSyst2.SetPoint(i, ratioSyst2.GetX()[i], 1)
             ratioSyst2.SetPointEYhigh(i, ratioSyst2.GetErrorYhigh(i)/yval)
             ratioSyst2.SetPointEYlow(i, ratioSyst2.GetErrorYlow(i)/yval)
-#            print i, ratioSyst2.GetX()[i], ratioSyst2.GetErrorXlow(i), ratioSyst2.GetErrorXhigh(i), yval, ratioSyst2.GetY()[i], ratioSyst2.GetErrorYhigh(i), ratioSyst2.GetErrorYlow(i)
+#            print(i, ratioSyst2.GetX()[i], ratioSyst2.GetErrorXlow(i), ratioSyst2.GetErrorXhigh(i), yval, ratioSyst2.GetY()[i], ratioSyst2.GetErrorYhigh(i), ratioSyst2.GetErrorYlow(i))
         removes.reverse()
         for i in removes:
             ratioSyst1.RemovePoint(i)
@@ -1339,7 +1341,7 @@ class PlotRatioBase:
         if ratioIsBinomial:
             if ratioType is not None:
                 raise Exception("You should not set (deprecated) ratioIsBinomial=True, and give ratioType (%s)." % ratioType)
-            print "WARNING: ratioIsBinomial is deprepcated, please yse ratioType='binomial' instead"
+            print("WARNING: ratioIsBinomial is deprepcated, please yse ratioType='binomial' instead")
             ratioType = "binomial"
 
         ratioHistos = _createRatioHistos(num, denom, ytitle, ratioType=ratioType, ratioErrorOptions=ratioErrorOptions)
@@ -1393,7 +1395,7 @@ class PlotRatioBase:
         if ratioIsBinomial:
             if ratioType is not None:
                 raise Exception("You should not set (deprecated) ratioIsBinomial=True, and give ratioType (%s)." % ratioType)
-            print "WARNING: ratioIsBinomial is deprepcated, please yse ratioType='binomial' instead"
+            print("WARNING: ratioIsBinomial is deprepcated, please yse ratioType='binomial' instead")
             ratioType = "binomial"
 
         self.ratioHistoMgr.removeAllHistos()
@@ -1766,7 +1768,7 @@ class DataMCPlot(PlotSameBase, PlotRatioBase):
     # \param kwargs       Keyword arguments, forwarded to PlotSameBase.createFrame() or PlotRatioBase._createFrameRatio()
     def createFrame(self, filename, createRatio=False, **kwargs):
         if createRatio and not self.histoMgr.hasHisto("Data"):
-            print >> sys.stderr, "Warning: Trying to create data/MC ratio, but there is no 'Data' histogram."
+            print("Warning: Trying to create data/MC ratio, but there is no 'Data' histogram.",file=sys.stderr)
             createRatio = False
 
         if not createRatio:
@@ -1791,7 +1793,7 @@ class DataMCPlot(PlotSameBase, PlotRatioBase):
     # \param filename   Name for TCanvas (becomes the file name)
     # \param kwargs     Keyword arguments, forwarded to createFrame()
     def createFrameFraction(self, filename, **kwargs):
-        print "Please move to use createFrame(..., createRatio=True) instead of createFrameFraction()"
+        print("Please move to use createFrame(..., createRatio=True) instead of createFrameFraction()")
         self.createFrame(filename, createRatio=True, **kwargs)
 
     ## Add cut box and/or line
@@ -2277,7 +2279,7 @@ class PlotDrawer:
     #
     # \param kwargs   Keyword arguments (same arguments as for __init__())
     def setDefaults(self, **kwargs):
-        for name, value in kwargs.iteritems():
+        for name, value in kwargs.items():
             if not hasattr(self, name+"Default"):
                 raise Exception("No default value for '%s'"%name)
             setattr(self, name+"Default", value)
@@ -2383,9 +2385,9 @@ class PlotDrawer:
             if rebinX is not None and rebinToWidthX is not None:
                 raise Exception("Only one of 'rebinX' and 'rebinToWidthX' may be given as an argument.")
             if rebinX is not None:
-                print "Plot '%s', argument 'rebinX=%s' overrides the default 'rebinToWidthX=%s'" % (name, str(rebinX), str(self.rebinToWidthXDefault))
+                print("Plot '%s', argument 'rebinX=%s' overrides the default 'rebinToWidthX=%s'" % (name, str(rebinX), str(self.rebinToWidthXDefault)))
             if rebinToWidthX is not None:
-                print "Plot '%s', argument 'rebinToWidthX=%s' overrides the default 'rebinX=%s'" % (name, str(rebinToWidthX), str(self.rebinXDefault))
+                print("Plot '%s', argument 'rebinToWidthX=%s' overrides the default 'rebinX=%s'" % (name, str(rebinToWidthX), str(self.rebinXDefault)))
         if rebinY is not None and rebinToWidthY is not None:
             if "rebinY" in kwargs:
                 rebinToWidthY = None
@@ -2395,9 +2397,9 @@ class PlotDrawer:
             if rebinY is not None and rebinToWidthY is not None:
                 raise Exception("Only one of 'rebinY' and 'rebinToWidthY' may be given as an argument.")
             if rebinY is not None:
-                print "Plot '%s', argument 'rebinY=%s' overrides the default 'rebinToWidthY=%s'" % (name, str(rebinY), str(self.rebinToWidthYDefault))
+                print("Plot '%s', argument 'rebinY=%s' overrides the default 'rebinToWidthY=%s'" % (name, str(rebinY), str(self.rebinToWidthYDefault)))
             if rebinToWidthY is not None:
-                print "Plot '%s', argument 'rebinToWidthY=%s' overrides the default 'rebinY=%s'" % (name, str(rebinToWidthY), str(self.rebinYDefault))
+                print("Plot '%s', argument 'rebinToWidthY=%s' overrides the default 'rebinY=%s'" % (name, str(rebinToWidthY), str(self.rebinYDefault)))
 
 
         rebinFunction = None
@@ -2408,7 +2410,7 @@ class PlotDrawer:
             def rebinList(h):
                 rhwu = h.getRootHistoWithUncertainties()
                 if hasattr(rhwu.getRootHisto(), "Rebin2D"):
-                    print >>sys.stderr, "WARNING: Plot '%s', trying to rebin TH2 histogram '%s' with nonequal bin sizes" % (name, h.getName())
+                    print("WARNING: Plot '%s', trying to rebin TH2 histogram '%s' with nonequal bin sizes" % (name, h.getName()),file=sys.stderr)
                     return
                 rhwu.Rebin(n, rhwu.GetName(), array.array("d", rebinX))
 
@@ -2426,7 +2428,7 @@ class PlotDrawer:
                 # Check that the number of bins is integer
                 diff = abs(intbins - nbins)
                 if diff > 1e-3:
-                    print >>sys.stderr, "WARNING: Trying to rebin histogram '%s' of plot '%s' for bin width %g, the X axis minimum is %g, maximum %g => number of bins would be %g, which is not integer (diff is %g)" % (h.getName(), name, rebinToWidthX, xmin, xmax, nbins, diff)
+                    print("WARNING: Trying to rebin histogram '%s' of plot '%s' for bin width %g, the X axis minimum is %g, maximum %g => number of bins would be %g, which is not integer (diff is %g)" % (h.getName(), name, rebinToWidthX, xmin, xmax, nbins, diff),file=sys.stderr)
                     return
 
                 nbins = intbins
@@ -2461,7 +2463,7 @@ class PlotDrawer:
                     # Check that the requested binning makes sense
                     remainderX = th.GetNbinsX() % intbinsx
                     if remainderX != 0:
-                        print >>sys.stderr, "WARNING: Trying to rebin histogram '%s' of plot '%s' for X bin width %g, the X axis minimum is %g, maximum %g => number of bins would be %g, which is not divisor of the number of bins %d, remainder is %d" % (h.getName(), name, rebinToWidthX, xmin, xmax, nbinsx, th.GetNbinsX(), remainderX)
+                        print("WARNING: Trying to rebin histogram '%s' of plot '%s' for X bin width %g, the X axis minimum is %g, maximum %g => number of bins would be %g, which is not divisor of the number of bins %d, remainder is %d" % (h.getName(), name, rebinToWidthX, xmin, xmax, nbinsx, th.GetNbinsX(), remainderX),file=sys.stderr)
                         return
                     rex = th.GetNbinsX()/intbinsx
                 if rebinToWidthY is not None:
@@ -2473,7 +2475,7 @@ class PlotDrawer:
                     # Check that the requested binning makes sense
                     remainderY = th.GetNbinsY() % intbinsy
                     if remainderY != 0:
-                        print >>sys.stderr, "WARNING: Trying to rebin histogram '%s' of plot '%s' for Y bin width %g, the Y axis minimum is %g, maximum %g => number of bins would be %g, which is not divisor of the number of bins %d, remainder is %d" % (h.getName(), name, rebinToWidthY, ymin, ymax, nbinsy, th.GetNbinsY(), remainderY)
+                        print("WARNING: Trying to rebin histogram '%s' of plot '%s' for Y bin width %g, the Y axis minimum is %g, maximum %g => number of bins would be %g, which is not divisor of the number of bins %d, remainder is %d" % (h.getName(), name, rebinToWidthY, ymin, ymax, nbinsy, th.GetNbinsY(), remainderY),file=sys.stderr)
                         return
                     rey = th.GetNbinsY()/intbinsy
 
@@ -2492,7 +2494,7 @@ class PlotDrawer:
                 msg  = "=== plots.py\n\tWARNING! Tried to \"DivideByBinWidth\" but failed." 
                 msg += "\n\tLikely reason is that one of the RooHistoWithUncertainties is a THGraphAsymmErrors instead of TH1."
                 msg += "\n\tThis is a workaround to that problem. Ugly but ~works"
-                #print msg
+                #print(msg)
 
                 types = ["TH1F", "TGraphAsymmErrors", "THStack"]
                 p.histoMgr.forEachHisto(lambda h: h.getRootHistoWithUncertainties().Scale(1, "width") if type(h.getRootHisto()).__name__ in ["TH1F", "THStack"] else True)
@@ -2509,15 +2511,15 @@ class PlotDrawer:
                         raise Exception("Unsupported type(rh) = %s. EXIT" % (str(type(rh))), True)
 
                     if rh_type == "TGraphAsymmErrors":
-                        for i in xrange(0, rh.GetN()): # start from 0 bin, not 1!
+                        for i in range(0, rh.GetN()): # start from 0 bin, not 1!
                             # Get bin-width and divide all values
                             # https://root-forum.cern.ch/t/tgraph-and-scale/6255/3
                             # https://github.com/root-project/root/pull/8143/files
                             dx = rh.GetErrorX(i)*2 # same as: rh.GetEXlow()[i]*2
                             # Debugging
                             if 0: 
-                                #print "name = %s, type = %s" % (rh_name, rh_type)
-                                print "bin#%d:  x = %s +/- %s,  y = %s + %s - %s" % (i, rh.GetX()[i], dx, rh.GetY()[i], rh.GetEYlow()[i], rh.GetEYhigh()[i])
+                                #print("name = %s, type = %s" % (rh_name, rh_type))
+                                print("bin#%d:  x = %s +/- %s,  y = %s + %s - %s" % (i, rh.GetX()[i], dx, rh.GetY()[i], rh.GetEYlow()[i], rh.GetEYhigh()[i]))
 
                             # Do the division by the bin width
                             rh.GetY()[i]      *= 1/dx

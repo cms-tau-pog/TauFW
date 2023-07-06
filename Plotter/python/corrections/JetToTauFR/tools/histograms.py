@@ -8,6 +8,8 @@
 #================================================================================================   
 # Import modules
 #================================================================================================   
+from __future__ import print_function # for python3 compatibility
+from past.builtins import basestring # for python2 compatibility
 import os, sys
 import glob
 import array
@@ -129,7 +131,7 @@ class TextDefaults:
          \li \a y     Y coordinate
          \li \a size  Font size
         '''
-        for x, value in kwargs.iteritems():
+        for x, value in kwargs.items():
             setattr(self, name+"_"+x, value)
             
     ## Modify the default position of "CMS Preliminary" text
@@ -349,13 +351,13 @@ class PlotTextBox:
 
 def _printTextDeprecationWarning(oldFunctionName, newFunctionName="histograms.addStandardTexts()"):
     import traceback
-    print "#################### WARNING ####################"
+    print("#################### WARNING ####################")
     print
-    print "%s is deprecated, please use %s instead" % (oldFunctionName, newFunctionName)
-    print "Traceback (most recent call last):"
+    print("%s is deprecated, please use %s instead" % (oldFunctionName, newFunctionName))
+    print("Traceback (most recent call last):")
     stack = traceback.extract_stack()[:-2] # take out calls to this and the caller
-    print "".join(traceback.format_list(stack))
-    print "#################################################"
+    print("".join(traceback.format_list(stack)))
+    print("#################################################")
     return
 
 def addCmsPreliminaryText(x=None, y=None, text=None):
@@ -643,7 +645,7 @@ class LegendCreator:
     # \li \a fillStyle   Fill style
     # \li \a fillColor   Fill color
     def setDefaults(self, **kwargs):
-        for x, value in kwargs.iteritems():
+        for x, value in kwargs.items():
             setattr(self, x, value)
 
     ## Move the default position/width/height
@@ -809,7 +811,7 @@ def drawNonVisibleErrorsTH1(th1):
     pad_ymax = ROOT.gPad.GetUymax()
 
     ret = []
-    for i in xrange(1, th1.GetNbinsX()+1):
+    for i in range(1, th1.GetNbinsX()+1):
         x = th1.GetBinCenter(i)
         y = th1.GetBinContent(i)
         ymin = y - th1.GetBinError(i)
@@ -832,11 +834,11 @@ def drawNonVisibleErrorsTGraph(tgraph):
     # Get the Y-axis min/max from pad
     pad_ymin = ROOT.gPad.GetYmin()
     pad_ymax = ROOT.gPad.GetYmax()
-#    print "FOO", ROOT.gPad.GetUxmin(), ROOT.gPad.GetUxmax(),ROOT.gPad.GetUymin(), ROOT.gPad.GetUymax()
-    for i in xrange(0, tgraph.GetN()):
+#    print("FOO", ROOT.gPad.GetUxmin(), ROOT.gPad.GetUxmax(),ROOT.gPad.GetUymin(), ROOT.gPad.GetUymax())
+    for i in range(0, tgraph.GetN()):
         ymin = tgraph.GetY()[i]-tgraph.GetErrorYhigh(i)
         ymax = tgraph.GetErrorYhigh(i)+tgraph.GetY()[i]
-        print ymin, tgraph.GetY()[i], ymax
+        print(ymin, tgraph.GetY()[i], ymax)
     raise Exception("This function is not finished because of lack of need")
 
 ## Helper function for lessThan/greaterThan argument handling
@@ -884,7 +886,7 @@ def dist2pass(hdist, **kwargs):
     # Here we assume that all the bins in hdist have equal widths. If
     # this doesn't hold, the output must be TGraph
     bw = hdist.GetBinWidth(1);
-    for bin in xrange(2, hdist.GetNbinsX()+1):
+    for bin in range(2, hdist.GetNbinsX()+1):
         if abs(bw - hdist.GetBinWidth(bin))/bw > 0.01:
             raise Exception("Input histogram with variable bin width is not supported (yet). The bin width of bin1 was %f, and bin width of bin %d was %f" % (bw, bin, hdist.GetBinWidth(bin)))
 
@@ -904,7 +906,7 @@ def dist2pass(hdist, **kwargs):
     if lessThan:
         passedCumulative = 0
         passedCumulativeErrSq = 0
-        for bin in xrange(0, hdist.GetNbinsX()+2):
+        for bin in range(0, hdist.GetNbinsX()+2):
             passedCumulative += hdist.GetBinContent(bin)
             err = hdist.GetBinError(bin)
             passedCumulativeErrSq += err*err
@@ -914,7 +916,7 @@ def dist2pass(hdist, **kwargs):
     else:
         passedCumulative = 0
         passedCumulativeErrSq = 0
-        for bin in xrange(hdist.GetNbinsX()+1, -1, -1):
+        for bin in range(hdist.GetNbinsX()+1, -1, -1):
             passedCumulative += hdist.GetBinContent(bin)
             err = hdist.GetBinError(bin)
             passedCumulativeErrSq += err*err
@@ -929,11 +931,11 @@ def dist2pass(hdist, **kwargs):
 # \param th1       TH1 object
 # \param function  Function taking a number as an input, and returning a number
 def th1ApplyBin(th1, function):
-    for bin in xrange(0, th1.GetNbinsX()+2):
+    for bin in range(0, th1.GetNbinsX()+2):
         th1.SetBinContent(bin, function(th1.GetBinContent(bin)))
 
 def th1ApplyBinError(th1, function):
-    for bin in xrange(0, th1.GetNbinsX()+2):
+    for bin in range(0, th1.GetNbinsX()+2):
         th1.SetBinError(bin, function(th1.GetBinError(bin)))
                 
 ## Convert TH1 distribution to TH1 of efficiency as a function of cut value
@@ -1150,7 +1152,7 @@ class CanvasFrame:
                 opts["nbinsx"] = int((opts["xmax"]-opts["xmin"])/binWidth +0.5)
             except:
                 # Added to allow for use with TH2 (for some reason 'hasBinLabels' does not get the instancec right
-                # print type(rootHisto)
+                # print(type(rootHisto))
                 binWidth = None
                 opts["nbinsx"] = None
 
@@ -1162,11 +1164,11 @@ class CanvasFrame:
         if hasBinLabels:
             try:
                 firstBin = rootHisto.FindFixBin(opts["xmin"])
-                for i in xrange(0, opts["nbinsx"]):
+                for i in range(0, opts["nbinsx"]):
                     self.frame.GetXaxis().SetBinLabel(i+1, rootHisto.GetXaxis().GetBinLabel(firstBin+i))
             except:
                 # Added to allow for use with TH2 (for some reason 'hasBinLabels' does not get the instancec right
-                # print type(rootHisto)
+                # print(type(rootHisto))
                 pass
         return
 
@@ -1349,7 +1351,7 @@ class CanvasFrameTwo:
         # Copy the bin labels
         if hasBinLabels:
             firstBin = rootHisto.FindFixBin(opts1["xmin"])
-            for i in xrange(0, opts1["nbinsx"]):
+            for i in range(0, opts1["nbinsx"]):
                 self.frame.GetXaxis().SetBinLabel(i+1, rootHisto.GetXaxis().GetBinLabel(firstBin+i))
 
     ## \var frame1
@@ -1575,7 +1577,7 @@ class Histo:
             return
         h = self.getRootHisto()
         if h is None:
-            print >>sys.stderr, "WARNING: Trying to add Histo %s to the legend, but rootHisto is None" % self.getName()
+            print("WARNING: Trying to add Histo %s to the legend, but rootHisto is None" % self.getName(),file=sys.stderr)
             return
 
         cloned = False
@@ -1591,7 +1593,7 @@ class Histo:
                 h.SetFillStyle(3345)
             else:
                 info = inspect.getframeinfo(inspect.currentframe())
-                print >>sys.stderr, 'WARNING: encountered fill styles %d and %d for stat and syst uncertainties, and there is no support yet for "combining" them for stat. Consider adding your case to %s near line %d' % (fillStyles[0], fillStyles[1], info.filename, info.lineno)
+                print('WARNING: encountered fill styles %d and %d for stat and syst uncertainties, and there is no support yet for "combining" them for stat. Consider adding your case to %s near line %d' % (fillStyles[0], fillStyles[1], info.filename, info.lineno),file=sys.stderr)
 
         # Keep reference to avoid segfault
         self.rootHistoForLegend = addToLegend(legend, h, self.legendLabel, self.legendStyle, canModify=cloned)
@@ -1626,7 +1628,7 @@ class Histo:
     def draw(self, opt):
         h = self.getRootHisto()
         if h is None:
-            print >>sys.stderr, "WARNING: Trying to draw Histo %s, but rootHisto is None" % self.getName()
+            print("WARNING: Trying to draw Histo %s, but rootHisto is None" % self.getName(),file=sys.stderr)
             return
         if self._uncertaintyDrawStyle is not None:
             unc = self.getSystematicUncertaintyGraph()
@@ -1878,7 +1880,7 @@ class HistoGraph(Histo):
         self.setRootHisto(rootGraph)
 
     def _values(self, values, func):
-        return [func(values[i], i) for i in xrange(0, self.getRootGraph().GetN())]
+        return [func(values[i], i) for i in range(0, self.getRootGraph().GetN())]
 
     def getXmin(self):
         if isinstance(self.getRootGraph(), ROOT.TGraphErrors) or isinstance(self.getRootGraph(), ROOT.TGraphAsymmErrors):
@@ -1986,7 +1988,7 @@ class HistoEfficiency(Histo):
 
     def _values(self, function):
         ret = []
-        for bin in xrange(1, self.getRootPassedHisto().GetNbinsX()+1):
+        for bin in range(1, self.getRootPassedHisto().GetNbinsX()+1):
             ret.append(function(self.getRootEfficiency(), bin))
         return ret
 
@@ -2199,7 +2201,7 @@ class HistoManagerImpl:
         try:
             self.nameHistoMap[name].call(func)
         except KeyError:
-            print >> sys.stderr, "WARNING: Tried to call a function for histogram '%s', which doesn't exist." % name
+            print("WARNING: Tried to call a function for histogram '%s', which doesn't exist." % name,file=sys.stderr)
 
     ## Call each MC histograms.Histo with a function.
     #
@@ -2255,11 +2257,11 @@ class HistoManagerImpl:
     #
     # \param nameMap   Dictionary with name->label mappings
     def setHistoLegendLabelMany(self, nameMap):
-        for name, label in nameMap.iteritems():
+        for name, label in nameMap.items():
             try:
                 self.nameHistoMap[name].setLegendLabel(label)
             except KeyError:
-                print >> sys.stderr, "WARNING: Tried to set legend label for histogram '%s', which doesn't exist." % name
+                print("WARNING: Tried to set legend label for histogram '%s', which doesn't exist." % name,file=sys.stderr)
 
     ## Set the legend style for a given histogram.
     #
@@ -2269,7 +2271,7 @@ class HistoManagerImpl:
         try:
             self.nameHistoMap[name].setLegendStyle(style)
         except KeyError:
-            print >> sys.stderr, "WARNING: Tried to set legend style for histogram '%s', which doesn't exist." % name
+            print("WARNING: Tried to set legend style for histogram '%s', which doesn't exist." % name,file=sys.stderr)
 
     ## Set the legend style for all histograms.
     #
@@ -2286,7 +2288,7 @@ class HistoManagerImpl:
         try:
             self.nameHistoMap[name].setDrawStyle(style)
         except KeyError:
-            print >> sys.stderr, "WARNING: Tried to set draw style for histogram '%s', which doesn't exist." % name
+            print("WARNING: Tried to set draw style for histogram '%s', which doesn't exist." % name,file=sys.stderr)
 
     ## Set the histogram drawing style for all histograms.
     #
@@ -2355,13 +2357,13 @@ class HistoManagerImpl:
     def addMCUncertainty(self, style, name="MCuncertainty", legendLabel="Sim. stat. unc.", uncertaintyLegendLabel=None, nameList=None):
         mcHistos = filter(lambda x: x.isMC(), self.drawList)
         if len(mcHistos) == 0:
-            print >> sys.stderr, "WARNING: Tried to create MC uncertainty histogram, but there are not MC histograms!"
+            print("WARNING: Tried to create MC uncertainty histogram, but there are not MC histograms!",file=sys.stderr)
             return
 
         if nameList != None:
             mcHistos = filter(lambda x: x.getName() in nameList, mcHistos)
         if len(mcHistos) == 0:
-            print >>sys.stderr, "WARNING: No MC histograms to use for uncertainty band"
+            print("WARNING: No MC histograms to use for uncertainty band",file=sys.stderr)
             return
 
         hse = HistoTotalUncertainty(mcHistos, name)

@@ -3,7 +3,7 @@
 # Description: Class to automatically make CMS plot comparing histograms.
 import os, re
 from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
-from TauFW.common.tools.math import log10, magnitude, columnize, scalevec
+from TauFW.common.tools.math import log10, magnitude, columnize, scalevec, ceil
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable, Var
@@ -21,12 +21,8 @@ gROOT.SetBatch(True)
 
 # CMS style
 #TGaxis.SetExponentOffset(-0.074,0.015,'y')
-CMSStyle.extraText    = "Preliminary"
-#CMSStyle.cmsTextSize  = 0.75
-#CMSStyle.lumiTextSize = 0.70
-#CMSStyle.relPosX      = 0.12
-CMSStyle.outOfFrame   = True
-CMSStyle.lumi_13TeV   = ""
+CMSStyle.extraText  = "Preliminary"
+CMSStyle.outOfFrame = True
 CMSStyle.setTDRStyle()
 
 # https://root.cern.ch/doc/master/classTColor.html
@@ -128,6 +124,7 @@ class Plot(object):
     self.lstyles      = kwargs.get('lstyles',    None                 ) or _lstyles
     self.canvas       = None
     self.legends      = [ ]
+    self.errbands     = [ ]
     self.texts        = [ ] # to save TLatex objects made by drawtext
     self.lines        = [ ]
     self.garbage      = [ ]
@@ -173,12 +170,16 @@ class Plot(object):
     xlabelsize   = kwargs.get('xlabelsize',   labelsize       ) # x label size
     ylabelsize   = kwargs.get('ylabelsize',   labelsize       ) # y label size
     ycenter      = kwargs.get('ycenter',      False           ) # center y title
+    nxdiv        = kwargs.get('nxdiv',        None            ) # tick divisions of x axis
+    nydiv        = kwargs.get('nydiv',        None            ) # tick divisions of y axis
+    nrdiv        = kwargs.get('nrdiv',        506             ) # tick divisions of y axis of ratio panel
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymarg',        self.ymargin    ) # alias
     ymargin      = kwargs.get('ymargin',      ymargin         ) # margin between hist maximum and plot's top
     logyrange    = kwargs.get('logyrange',    self.logyrange  ) # log(y) range from hist maximum to ymin
     grid         = kwargs.get('grid',         True            )
+    rgrid        = kwargs.get('rgrid',        grid            ) # grid for ratio panel
     tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
@@ -221,10 +222,10 @@ class Plot(object):
       for hist in hists:
         if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if verbosity>=1:
-      print ">>> Plot.draw: hists=%s, norm=%r, dividebins=%r"%(self.hists,norm,dividebins)
-      print ">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle)
+      print(">>> Plot.draw: hists=%s, norm=%r, dividebins=%r"%(self.hists,norm,dividebins))
+      print(">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle))
     if verbosity>=2:
-      print ">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax)
+      print(">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
     
     # NORMALIZE
     if norm:
@@ -317,7 +318,7 @@ class Plot(object):
       self.errband.Draw('E2 SAME')
     
     # AXES
-    self.setaxes(self.frame,*hists,main=ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,
+    self.setaxes(self.frame,*hists,main=ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,nxdiv=nxdiv,nydiv=nydiv,
                  xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,xlabelsize=xlabelsize,ylabelsize=ylabelsize,
                  center=ycenter,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
     
@@ -326,9 +327,9 @@ class Plot(object):
       self.canvas.cd(2)
       self.ratio = Ratio(*hists,errband=self.errband,denom=denom,drawzero=True,drawden=drawden,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
-      self.setaxes(self.ratio,grid=grid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,
+      self.setaxes(self.ratio,grid=rgrid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,nxdiv=nxdiv,logx=logx,nydiv=nrdiv,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,ylabelsize=ylabelsize,xtitleoffset=xtitleoffset,
-                   center=True,nydiv=506,rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,latex=latex)
+                   center=True,rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,latex=latex)
       for line in self.lines:
         if line.pad==2:
           line.Draw("LSAME")
@@ -374,7 +375,7 @@ class Plot(object):
     if not keep: # do not keep histograms
       if verbosity>=3:
         hlist = ', '.join(repr(h) for h in self.hists)
-        print ">>> Plot.close: Deleting histograms: %s..."%(hlist)
+        print(">>> Plot.close: Deleting histograms: %s..."%(hlist))
       for hist in self.hists:
         deletehist(hist,**kwargs)
     if self.errband:
@@ -407,17 +408,14 @@ class Plot(object):
     tmargin = kwargs.get('tmargin', 1.    ) # scale top margin
     bmargin = kwargs.get('bmargin', 1.    ) # scale bottom margin
     pads    = kwargs.get('pads',    [ ]   ) # pass list as reference
-    #if not CMSStyle.lumi_13TeV:
-    #  tmargin *= 0.7
     if square:
       lmargin *= 1.15
       tmargin *= 0.90
       #rmargin *= 3.6
-      #CMSStyle.relPosX = 0.15
     if verbosity>=2:
-      print ">>> Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split)
-      print ">>> Plot.setcanvas: width=%s, height=%s"%(width,height)
-      print ">>> Plot.setcanvas: lmargin=%.5g, rmargin=%.5g, tmargin=%.5g, bmargin=%.5g"%(lmargin,rmargin,tmargin,bmargin)
+      print(">>> Plot.setcanvas: square=%r, lower=%r, split=%r"%(square,lower,split))
+      print(">>> Plot.setcanvas: width=%s, height=%s"%(width,height))
+      print(">>> Plot.setcanvas: lmargin=%.5g, rmargin=%.5g, tmargin=%.5g, bmargin=%.5g"%(lmargin,rmargin,tmargin,bmargin))
     canvas = TCanvas('canvas','canvas',100,100,int(width),int(height))
     canvas.SetFillColor(0)
     #canvas.SetFillStyle(0)
@@ -462,7 +460,7 @@ class Plot(object):
       elif isnumber(arg):
         binning.append(arg)
     if not hists:
-      LOG.warning("Plot.setaxes: No objects (TH1, TGraph, ...) given in args %s to set axis..."%(args))
+      LOG.warn("Plot.setaxes: No objects (TH1, TGraph, ...) given in args %s to set axis..."%(args))
       return 0, 0, 100, 100
     frame         = hists[0]
     if len(binning)>=2:
@@ -489,9 +487,9 @@ class Plot(object):
     ytitle        = kwargs.get('ytitle',       None             )
     latex         = kwargs.get('latex',        True             ) # automatically format strings as LaTeX
     grid          = kwargs.get('grid',         False            )
-    ycenter       = kwargs.get('center',       False            )
-    nxdivisions   = kwargs.get('nxdiv',        510              )
-    nydivisions   = kwargs.get('nydiv',        510              )
+    ycenter       = kwargs.get('center',       False            ) # center y title
+    nxdivisions   = kwargs.get('nxdiv',        None             ) or 510 # tick divisions of x axis
+    nydivisions   = kwargs.get('nydiv',        None             ) or 510 # tick divisions of y axis
     main          = kwargs.get('main',         not lower        ) # main panel of ratio plot
     lower         = kwargs.get('lower',        lower            )
     scale         = 600./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC()) # automatic scaling (e.g. for lower panel)
@@ -511,9 +509,9 @@ class Plot(object):
       xtitle      = makelatex(xtitle)
     LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f), frame=%s"%(nbins,xmin,xmax,frame),verbosity,2)
     if verbosity>=3:
-      print ">>> Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex)
-      print ">>> Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r, nxdiv=%s, nydiv=%s"%(logx,logy,ycenter,intbins,nxdivisions,nydivisions)
-      print ">>> Plot.setaxes: lmargin=%.5g, _lmargin=%.5g, scale=%s, yscale=%s"%(gPad.GetLeftMargin(),_lmargin,scale,yscale)
+      print(">>> Plot.setaxes: main=%r, lower=%r, grid=%r, latex=%r"%(main,lower,grid,latex))
+      print(">>> Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r, nxdiv=%s, nydiv=%s"%(logx,logy,ycenter,intbins,nxdivisions,nydivisions))
+      print(">>> Plot.setaxes: lmargin=%.5g, _lmargin=%.5g, scale=%s, yscale=%s"%(gPad.GetLeftMargin(),_lmargin,scale,yscale))
     
     if ratiorange:
       ymin, ymax  = 1.-ratiorange, 1.+ratiorange
@@ -532,8 +530,8 @@ class Plot(object):
     if binlabels:
       nxdivisions = 15
     if verbosity>=3:
-      print ">>> Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g, xlabelsize=%.5g, ylabelsize=%.5g"%(xtitlesize,ytitlesize,xlabelsize,ylabelsize)
-      print ">>> Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset)
+      print(">>> Plot.setaxes: xtitlesize=%.5g, ytitlesize=%.5g, xlabelsize=%.5g, ylabelsize=%.5g"%(xtitlesize,ytitlesize,xlabelsize,ylabelsize))
+      print(">>> Plot.setaxes: xtitleoffset=%.5g, ytitleoffset=%.5g, xlabeloffset=%.5g"%(xtitleoffset,ytitleoffset,xlabeloffset))
     
     # GET HIST MAX
     hmaxs = [ ]
@@ -618,7 +616,7 @@ class Plot(object):
     # alphanumerical bin labels
     if binlabels:
       if len(binlabels)<nbins:
-        LOG.warning("Plot.setaxes: len(binlabels)=%d < %d=nbins"%(len(binlabels),nbins))
+        LOG.warn("Plot.setaxes: len(binlabels)=%d < %d=nbins"%(len(binlabels),nbins))
       for i, binlabel in zip(range(1,nbins+1),binlabels):
         frame.GetXaxis().SetBinLabel(i,binlabel)
       if labeloption: # https://root.cern.ch/doc/master/classTAxis.html#a05dd3c5b4c3a1e32213544e35a33597c
@@ -646,21 +644,21 @@ class Plot(object):
     gPad.Update()
     
     if verbosity>=1:
-      print ">>> Plot.setaxes: xtitle=%r, [hmin,hmax] = [%.6g,%.6g], [xmin,xmax] = [%.6g,%.6g], [ymin,ymax] = [%.6g,%.6g]"%(
-                               xtitle,hmin,hmax,xmin,xmax,ymin,ymax)
+      print(">>> Plot.setaxes: xtitle=%r, [hmin,hmax] = [%.6g,%.6g], [xmin,xmax] = [%.6g,%.6g], [ymin,ymax] = [%.6g,%.6g]"%(
+                               xtitle,hmin,hmax,xmin,xmax,ymin,ymax))
     elif verbosity>=2:
-      print ">>> Plot.setaxes: frame=%s"%(frame)
-      print ">>> Plot.setaxes: hists=%s"%(hists)
-      print ">>> Plot.setaxes: [hmin,hmax] = [%.6g,%.6g], [xmin,xmax] = [%.6g,%.6g], [ymin,ymax] = [%.6g,%.6g]"%(hmin,hmax,xmin,xmax,ymin,ymax)
-      print ">>> Plot.setaxes: xtitlesize=%4.4g, xlabelsize=%4.4g, xtitleoffset=%4.4g, xtitle=%r"%(xtitlesize,xlabelsize,xtitleoffset,xtitle)
-      print ">>> Plot.setaxes: ytitlesize=%4.4g, ylabelsize=%4.4g, ytitleoffset=%4.4g, ytitle=%r"%(ytitlesize,ylabelsize,ytitleoffset,ytitle)
-      print ">>> Plot.setaxes: scale=%4.4g, nxdivisions=%s, nydivisions=%s, ymargin=%.3f, logyrange=%.3f"%(scale,nxdivisions,nydivisions,ymargin,logyrange)
+      print(">>> Plot.setaxes: frame=%s"%(frame))
+      print(">>> Plot.setaxes: hists=%s"%(hists))
+      print(">>> Plot.setaxes: [hmin,hmax] = [%.6g,%.6g], [xmin,xmax] = [%.6g,%.6g], [ymin,ymax] = [%.6g,%.6g]"%(hmin,hmax,xmin,xmax,ymin,ymax))
+      print(">>> Plot.setaxes: xtitlesize=%4.4g, xlabelsize=%4.4g, xtitleoffset=%4.4g, xtitle=%r"%(xtitlesize,xlabelsize,xtitleoffset,xtitle))
+      print(">>> Plot.setaxes: ytitlesize=%4.4g, ylabelsize=%4.4g, ytitleoffset=%4.4g, ytitle=%r"%(ytitlesize,ylabelsize,ytitleoffset,ytitle))
+      print(">>> Plot.setaxes: scale=%4.4g, nxdivisions=%s, nydivisions=%s, ymargin=%.3f, logyrange=%.3f"%(scale,nxdivisions,nydivisions,ymargin,logyrange))
     if main or not lower:
       #if any(a!=None and a!=b for a, b in [(self.xmin,xmin),(self.xmax,xmax)]):
-      #  LOG.warning("Plot.setaxes: x axis range changed: [xmin,xmax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
+      #  LOG.warn("Plot.setaxes: x axis range changed: [xmin,xmax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
       #              self.xmin,self.xmax,xmin,xmax))
       #if any(a!=None and a!=b for a, b in [(self.ymin,ymin),(self.ymax,ymax)]):
-      #  LOG.warning("Plot.setaxes: y axis range changed: [ymin,ymax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
+      #  LOG.warn("Plot.setaxes: y axis range changed: [ymin,ymax] = [%6.6g,%6.6g] -> [%6.6g,%6.6g]"%(
       #              self.ymin,self.ymax,ymin,ymax))
       self.xmin, self.xmax = xmin, xmax
       self.ymin, self.ymax = ymin, ymax
@@ -721,6 +719,7 @@ class Plot(object):
     twidth      = kwargs.get('twidth',      None           ) or 1 # scalefactor for legend width
     theight     = kwargs.get('theight',     None           ) or 1 # scalefactor for legend height
     texts       = kwargs.get('text',        [ ]            ) # extra text below legend
+    margin      = kwargs.get('margin',      1.0            ) # scale legend margin
     ncols       = kwargs.get('ncol',        self.ncols     )
     ncols       = kwargs.get('ncols',       ncols          ) or 1 # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
@@ -778,7 +777,7 @@ class Plot(object):
     nlines = sum([1+e.count('\n') for e in entries])
     #else:       nlines += 0.80
     if texts:   nlines += sum([1+t.count('\n') for t in texts])
-    if ncols>1: nlines /= float(ncols)
+    if ncols>1: nlines  = int(ceil(nlines/float(ncols)))
     if title:   nlines += 1 + title.count('\n')
     
     # DIMENSIONS
@@ -845,10 +844,12 @@ class Plot(object):
                                position,height,width,x1,y1,x2,y2,X1,Y1,X2,Y2),verbosity,1)
     
     # MARGIN
-    if ncols>=2:
-      margin = 0.090/width
+    if ncols>=3:
+      margin *= 0.045*ncols/width
+    elif ncols==2:
+      margin *= 0.090/width
     else:
-      margin = 0.044/width
+      margin *= 0.044/width
     legend.SetMargin(margin)
     
     # STYLE
@@ -888,12 +889,12 @@ class Plot(object):
       legend.AddEntry(0,line,'')
     
     if verbosity>=2:
-      print ">>> Plot.drawlegend: title=%r, texts=%s, latex=%s"%(title,texts,latex)
-      print ">>> Plot.drawlegend: hists=%s"%(hists)
-      print ">>> Plot.drawlegend: entries=%s"%(entries)
-      print ">>> Plot.drawlegend: styles=%s, style=%s, errstyle=%s"%(styles,style,errstyle)
-      print ">>> Plot.drawlegend: nlines=%s, len(hists)=%s, len(texts)=%s, ncols=%s, margin=%s, xscale=%s"%(
-                                  nlines,len(hists),len(texts),ncols,margin,xscale)
+      print(">>> Plot.drawlegend: title=%r, texts=%s, latex=%s"%(title,texts,latex))
+      print(">>> Plot.drawlegend: hists=%s"%(hists))
+      print(">>> Plot.drawlegend: entries=%s"%(entries))
+      print(">>> Plot.drawlegend: styles=%s, style=%s, errstyle=%s"%(styles,style,errstyle))
+      print(">>> Plot.drawlegend: nlines=%s, len(hists)=%s, len(texts)=%s, ncols=%s, margin=%s, xscale=%s"%(
+                                  nlines,len(hists),len(texts),ncols,margin,xscale))
     
     legend.Draw(option)
     self.legends.append(legend)
@@ -1141,20 +1142,24 @@ class Plot(object):
   
   def setfillstyle(self, *hists, **kwargs):
     """Set the fill style for a list of histograms."""
+    verbosity = LOG.getverbosity(self,kwargs)
     hists   = unwraplistargs(hists)
-    reset   = kwargs.get('reset',  False ) # only set if not kBlack or kWhite
+    reset   = kwargs.get('reset',  False ) # if reset==False: only set color if not kBlack or kWhite
     line    = kwargs.get('line',   True  )
     fcolors = kwargs.get('colors', None  ) or self.fcolors
     icol    = 0
     for hist in hists:
-      #print hist.GetFillColor()
+      #print(hist.GetFillColor())
       if not reset and hist.GetFillColor() not in [kBlack,kWhite]:
         continue
       #color = getColor(hist.GetName() )
       color = fcolors[icol%len(fcolors)]
       icol += 1
       hist.SetFillColor(color)
+      if hist.GetFillStyle()<1001:
+        hist.SetFillStyle(1001)
       if line:
         hist.SetLineColor(kBlack)
+      if verbosity>=2:
+        print(">>> Plot.setfillstyle: hist=%r, icol=%s, color=%s"%(hist, icol, color))
     
-  

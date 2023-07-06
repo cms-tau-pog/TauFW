@@ -6,8 +6,8 @@ from TauFW.PicoProducer.analysis.TreeProducerMuMu import *
 from TauFW.PicoProducer.analysis.ModuleTauPair import *
 from TauFW.PicoProducer.analysis.utils import LeptonPair, idIso, matchtaujet
 from TauFW.PicoProducer.corrections.MuonSFs import *
-#from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
-from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
+from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
+#from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
 class ModuleMuMu(ModuleTauPair):
@@ -22,15 +22,15 @@ class ModuleMuMu(ModuleTauPair):
     if self.year==2016:
       #self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
-      self.muon1CutPt = lambda e: 26
+      self.muon1CutPt = lambda e: 25
       self.muonCutEta = lambda e: 2.4 #if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 26 if e.HLT_IsoMu24 else 29
+      self.muon1CutPt = lambda e: 25 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
     else:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 26
+      self.muon1CutPt = lambda e: 25
       self.muonCutEta = lambda e: 2.4
     self.muon2CutPt   = 15
     self.tauCutPt     = 20
@@ -39,12 +39,17 @@ class ModuleMuMu(ModuleTauPair):
     # CORRECTIONS
     if self.ismc:
       self.muSFs   = MuonSFs(era=self.era)
+
+    # TRIGGERS
+    jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
+    self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
     self.out.cutflow.addcut('trig',         "trigger"                    )
     self.out.cutflow.addcut('muon',         "muon"                       )
     self.out.cutflow.addcut('pair',         "pair"                       )
+    self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
     
@@ -52,12 +57,12 @@ class ModuleMuMu(ModuleTauPair):
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleMuMu,self).beginJob()
-    print ">>> %-12s = %s"%('muon1CutPt', self.muon1CutPt)
-    print ">>> %-12s = %s"%('muon2CutPt', self.muon2CutPt)
-    print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
-    print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
-    print ">>> %-12s = %s"%('zwindow',    self.zwindow)
+    print(">>> %-12s = %s"%('muon1CutPt', self.muon1CutPt))
+    print(">>> %-12s = %s"%('muon2CutPt', self.muon2CutPt))
+    print(">>> %-12s = %s"%('muonCutEta', self.muonCutEta))
+    print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
+    print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
+    print(">>> %-12s = %s"%('zwindow',    self.zwindow))
     pass
     
   
@@ -73,7 +78,8 @@ class ModuleMuMu(ModuleTauPair):
     
     
     ##### TRIGGER ####################################
-    if not self.trigger(event):
+    #if not self.trigger(event):
+    if not self.trigger.fired(event):
       return False
     self.out.cutflow.fill('trig')
     
@@ -110,6 +116,11 @@ class ModuleMuMu(ModuleTauPair):
     muon2.tlv    = muon2.p4()
     self.out.cutflow.fill('pair')
     
+    # ADDED FOR SF CROSS CHECKS!
+    # Only keep events with leading muon triggered
+    if not self.trigger.match(event,muon1): 
+      return False
+    self.out.cutflow.fill('leadTrig')
     
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel)
@@ -132,7 +143,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.dz_1[0]       = muon1.dz
     self.out.q_1[0]        = muon1.charge
     self.out.iso_1[0]      = muon1.pfRelIso04_all # relative isolation
-    self.out.tkRelIso_1[0] = muon1.tkRelIso
+    #self.out.tkRelIso_1[0] = muon1.tkRelIso
     self.out.idMedium_1[0] = muon1.mediumId
     self.out.idTight_1[0]  = muon1.tightId
     self.out.idHighPt_1[0] = muon1.highPtId
@@ -148,7 +159,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.dz_2[0]       = muon2.dz
     self.out.q_2[0]        = muon2.charge
     self.out.iso_2[0]      = muon2.pfRelIso04_all # relative isolation
-    self.out.tkRelIso_2[0] = muon2.tkRelIso
+    #self.out.tkRelIso_2[0] = muon2.tkRelIso
     self.out.idMedium_2[0] = muon2.mediumId
     self.out.idTight_2[0]  = muon2.tightId
     self.out.idHighPt_2[0] = muon2.highPtId
@@ -169,21 +180,24 @@ class ModuleMuMu(ModuleTauPair):
       #if ord(tau.idDeepTau2017v2p1VSmu)<1: continue # VLoose
       maxtau = tau
       ptmax  = tau.pt
-    if maxtau>-1:
+    if maxtau!=None:
       self.out.pt_3[0]                     = maxtau.pt
       self.out.eta_3[0]                    = maxtau.eta
       self.out.m_3[0]                      = maxtau.mass
       self.out.q_3[0]                      = maxtau.charge
       self.out.dm_3[0]                     = maxtau.decayMode
       self.out.iso_3[0]                    = maxtau.rawIso
-      self.out.idiso_2[0]                  = idIso(maxtau) # cut-based tau isolation (rawIso)
-      self.out.idAntiEle_3[0]              = maxtau.idAntiEle
-      self.out.idAntiMu_3[0]               = maxtau.idAntiMu
-      self.out.idMVAoldDM2017v2_3[0]       = maxtau.idMVAoldDM2017v2
-      self.out.idMVAnewDM2017v2_3[0]       = maxtau.idMVAnewDM2017v2
+      #self.out.idiso_2[0]                  = idIso(maxtau) # cut-based tau isolation (rawIso)
+      #self.out.idAntiEle_3[0]              = maxtau.idAntiEle
+      #self.out.idAntiMu_3[0]               = maxtau.idAntiMu
+      #self.out.idMVAoldDM2017v2_3[0]       = maxtau.idMVAoldDM2017v2
+      #self.out.idMVAnewDM2017v2_3[0]       = maxtau.idMVAnewDM2017v2
       self.out.idDeepTau2017v2p1VSe_3[0]   = maxtau.idDeepTau2017v2p1VSe
       self.out.idDeepTau2017v2p1VSmu_3[0]  = maxtau.idDeepTau2017v2p1VSmu
       self.out.idDeepTau2017v2p1VSjet_3[0] = maxtau.idDeepTau2017v2p1VSjet
+      #self.out.idDeepTau2018v2p5VSe_3[0]   = maxtau.idDeepTau2018v2p5VSe
+      #self.out.idDeepTau2018v2p5VSmu_3[0]  = maxtau.idDeepTau2018v2p5VSmu
+      #self.out.idDeepTau2018v2p5VSjet_3[0] = maxtau.idDeepTau2018v2p5VSjet
       if self.ismc:
         self.out.jpt_match_3[0], self.out.jpt_genmatch_3[0] = matchtaujet(event,maxtau,self.ismc)
         self.out.genmatch_3[0]             = maxtau.genPartFlav
@@ -195,13 +209,16 @@ class ModuleMuMu(ModuleTauPair):
       self.out.m_3[0]                      = -1
       self.out.q_3[0]                      =  0
       self.out.dm_3[0]                     = -1
-      self.out.idAntiEle_3[0]              = -1
-      self.out.idAntiMu_3[0]               = -1
-      self.out.idMVAoldDM2017v2_3[0]       = -1
-      self.out.idMVAnewDM2017v2_3[0]       = -1
+      #self.out.idAntiEle_3[0]              = -1
+      #self.out.idAntiMu_3[0]               = -1
+      #self.out.idMVAoldDM2017v2_3[0]       = -1
+      #self.out.idMVAnewDM2017v2_3[0]       = -1
       self.out.idDeepTau2017v2p1VSe_3[0]   = -1
       self.out.idDeepTau2017v2p1VSmu_3[0]  = -1
       self.out.idDeepTau2017v2p1VSjet_3[0] = -1
+      self.out.idDeepTau2018v2p5VSe_3[0]   = -1
+      self.out.idDeepTau2018v2p5VSmu_3[0]  = -1
+      self.out.idDeepTau2018v2p5VSjet_3[0] = -1
       self.out.iso_3[0]                    = -1
       self.out.jpt_match_3[0]              = -1
       if self.ismc:
@@ -220,7 +237,7 @@ class ModuleMuMu(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if muon1.pfRelIso04_all<0.50 and muon2.pfRelIso04_all<0.50:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       

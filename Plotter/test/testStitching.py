@@ -8,9 +8,9 @@ from pseudoSamples import makesamples
 
 def printsamples(samples,title=None):
   if title:
-    print ">>> %s:"%(title)
+    print(">>> %s:"%(title))
   for sample in samples:
-    print ">>>   %r: %r"%(sample.name,sample)
+    print(">>>   %r: %r"%(sample.name,sample))
   
 
 def joinsamples(samples,tag="",outdir="plots"):
@@ -32,7 +32,7 @@ def joinSampleSet(samples,tag="",outdir="plots"):
   samples = SampleSet(samples)
   samples.printtable("Before:")
   samples.join("DY*Jets",name=name)
-  print ">>> "
+  print(">>> ")
   samples.printtable("After:")
   
 
@@ -44,7 +44,7 @@ def stitchSampleSet(samples,tag="",outdir="plots",xsec=1.00):
   samples = SampleSet(samples)
   samples.printtable("Before:")
   samples.stitch("DY*Jets",incl='DYJ',name="DY",title="Drell-Yan",xsec=1.00)
-  print ">>> "
+  print(">>> ")
   samples.printtable("After:")
   
 
@@ -89,5 +89,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main()
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

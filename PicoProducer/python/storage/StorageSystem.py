@@ -1,6 +1,7 @@
 # Author: Izaak Neutelings (May 2020)
 # Description: Superclass of a generic storage system with common operations like
 #              ls, cp, rm, mkdir, etc. to allow for easy implementation of storage system plug-ins.
+from past.builtins import basestring # for python2 compatibility
 import os
 from fnmatch import fnmatch # for glob pattern
 from TauFW.common.tools.utils import execute, ensurelist
@@ -11,7 +12,7 @@ import getpass, platform
 
 class StorageSystem(object):
   
-  def __init__(self,path,verb=0,ensure=False):
+  def __init__(self,path,verb=0,**kwargs):
     self.path    = path.rstrip('/')
     self.lscmd   = 'ls'
     self.lsurl   = ''
@@ -27,7 +28,7 @@ class StorageSystem(object):
     self.chmdprm = '777'
     self.chmdcmd = 'chmod'
     self.chmdurl = ''
-    self.haddcmd = 'hadd -f'
+    self.haddcmd = kwargs.get('haddcmd',None) or 'hadd -f'
     self.tmpdir  = '/tmp/$USER/' # $TMPDIR # mounted temporary directory
     self.fileurl = ""
     self.verbosity = verb
@@ -37,17 +38,17 @@ class StorageSystem(object):
       self.parent = '/'+'/'.join(path.split('/')[:3])
     self.mounted  = os.path.exists(self.parent)
     if verb>=3:
-      print ">>> EOS.__init__:"
-      print ">>> %-10s = %r"%('path',self.path)
-      print ">>> %-10s = %r"%('parent',self.parent)
-      print ">>> %-10s = %r"%('tmpdir',self.tmpdir)
-      print ">>> %-10s = %r"%('mounted',self.mounted)
-      print ">>> %-10s = %r"%('lscmd',self.lscmd)
-      print ">>> %-10s = %r"%('lsurl',self.lsurl)
-      print ">>> %-10s = %r"%('rmcmd',self.rmcmd)
-      print ">>> %-10s = %r"%('rmurl',self.rmurl)
-      print ">>> %-10s = %r"%('mkdrcmd',self.mkdrcmd)
-      print ">>> %-10s = %r"%('mkdrurl',self.mkdrurl)
+      print(">>> EOS.__init__:")
+      print(">>> %-10s = %r"%('path',self.path))
+      print(">>> %-10s = %r"%('parent',self.parent))
+      print(">>> %-10s = %r"%('tmpdir',self.tmpdir))
+      print(">>> %-10s = %r"%('mounted',self.mounted))
+      print(">>> %-10s = %r"%('lscmd',self.lscmd))
+      print(">>> %-10s = %r"%('lsurl',self.lsurl))
+      print(">>> %-10s = %r"%('rmcmd',self.rmcmd))
+      print(">>> %-10s = %r"%('rmurl',self.rmurl))
+      print(">>> %-10s = %r"%('mkdrcmd',self.mkdrcmd))
+      print(">>> %-10s = %r"%('mkdrurl',self.mkdrurl))
   
   def __str__(self):
     return self.path
@@ -189,13 +190,13 @@ class StorageSystem(object):
         source += self.expandpath(file,url=fileurl)+' '
     source = source.strip()
     if verb>=2:
-      print ">>> %-10s = %r"%('sources',sources)
-      print ">>> %-10s = %r"%('source',source)
-      print ">>> %-10s = %r"%('target',target)
-      print ">>> %-10s = %r"%('htarget',htarget)
-      print ">>> %-10s = %r"%('maxopen',maxopen)
+      print(">>> %-10s = %r"%('sources',sources))
+      print(">>> %-10s = %r"%('source',source))
+      print(">>> %-10s = %r"%('target',target))
+      print(">>> %-10s = %r"%('htarget',htarget))
+      print(">>> %-10s = %r"%('maxopen',maxopen))
     haddcmd = self.haddcmd
-    if maxopen>=1:
+    if maxopen>=1 and 'haddnano.py' not in haddcmd:
       haddcmd += " -n %s"%(maxopen)
     out = self.execute("%s %s %s"%(haddcmd,htarget,source),dry=dryrun,verb=verb)
     if tmpdir: # copy hadd target and remove temporary file
@@ -223,8 +224,8 @@ class StorageSystem(object):
 
 class Local(StorageSystem):
   
-  def __init__(self,path,verb=0,ensure=False):
-    super(Local,self).__init__(path,verb=verb,ensure=ensure)
+  def __init__(self,path,verb=0,ensure=False,**kwargs):
+    super(Local,self).__init__(path,verb=verb,ensure=ensure,**kwargs)
     if ensure:
       self.ensuredir(self.path,verb=verb)
   

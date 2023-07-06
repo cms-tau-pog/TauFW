@@ -9,7 +9,7 @@ def main():
   methods = [ 'QCD_OSSS' ]
   for method in methods:
     methodmod = ensuremodule(method,'Plotter.methods')
-    print ">>> hasattr(SampleSet,%r) = %s, module=%s"%(method,hasattr(SampleSet,method),methodmod)
+    print(">>> hasattr(SampleSet,%r) = %s, module=%s"%(method,hasattr(SampleSet,method),methodmod))
   
 
 if __name__ == "__main__":
@@ -21,5 +21,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main()
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

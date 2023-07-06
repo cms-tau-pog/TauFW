@@ -8,14 +8,14 @@ samples:
     join: ["VV","TT","ST"]
     rename:
         WJ: "W"
-        DY_M50: "ZLL"
+        DY: "ZLL"
     data: "data_obs"
 
 baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter"
 
 regions:
     ZMM: 
-        definition: "true"
+        definition: "q_1*q_2<0"
 
 observables:
     m_vis:

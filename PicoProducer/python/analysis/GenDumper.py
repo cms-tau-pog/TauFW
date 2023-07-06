@@ -45,15 +45,15 @@ class GenDumper(Module):
   
   def analyze(self,event):
     """Dump gen information for each gen particle in given event."""
-    print "\n%s event %s %s"%('-'*10,event.event,'-'*68)
+    print("\n%s event %s %s"%('-'*10,event.event,'-'*68))
     self.nevents += 1
     leptonic  = False
     particles = Collection(event,'GenPart')
     #particles = Collection(event,'LHEPart')
     seeds     = [ ] # seeds for decay chain
     chain     = { } # decay chain
-    print " \033[4m%7s %8s %8s %8s %8s %8s %8s %8s %9s %10s  \033[0m"%(
-      "index","pdgId","moth","mothid","dR","pt","eta","status","prompt","last copy")
+    print(" \033[4m%7s %8s %8s %8s %8s %8s %8s %8s %9s %10s  \033[0m"%(
+      "index","pdgId","moth","mothid","dR","pt","eta","status","prompt","last copy"))
     for i, particle in enumerate(particles):
       mothidx  = particle.genPartIdxMother
       if 0<=mothidx<len(particles):
@@ -68,8 +68,8 @@ class GenDumper(Module):
       lastcopy  = particle.statusflag('isLastCopy') #hasbit(particle.statusFlags,13)
       #bothflags = (particle.statusFlags & 8193)==8193 # test both bits simultaneously: 2^0 + 2^13 = 8193
       #assert (prompt and lastcopy)==bothflags
-      print " %7d %8d %8d %8d %8.2f %8.2f %8.2f %8d %9s %10s"%(
-        i,particle.pdgId,mothidx,mothpid,mothdR,particle.pt,eta,particle.status,prompt,lastcopy)#,bothflags
+      print(" %7d %8d %8d %8d %8.2f %8.2f %8.2f %8d %9s %10s"%(
+        i,particle.pdgId,mothidx,mothpid,mothdR,particle.pt,eta,particle.status,prompt,lastcopy))#,bothflags
       if abs(particle.pdgId) in [11,13,15]:
         leptonic = True
       if mothidx in chain: # add to decay chain
@@ -80,11 +80,11 @@ class GenDumper(Module):
         chain[i] = [ ] # daughters
     if leptonic:
       self.nleptons += 1
-    print parsechain(particles,seeds,chain) # print decay chain
+    print(parsechain(particles,seeds,chain)) # print decay chain
   
   def endJob(self):
-    print '\n'+'-'*80
+    print('\n'+'-'*80)
     if self.nevents>0:
-      print "  %-10s %4d / %-4d (%.1f%%)"%('leptonic:',self.nleptons,self.nevents,100.0*self.nleptons/self.nevents)
-    print "%s done %s\n"%('-'*10,'-'*64)
+      print("  %-10s %4d / %-4d (%.1f%%)"%('leptonic:',self.nleptons,self.nevents,100.0*self.nleptons/self.nevents))
+    print("%s done %s\n"%('-'*10,'-'*64))
   

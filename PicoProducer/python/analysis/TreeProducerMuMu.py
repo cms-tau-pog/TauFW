@@ -2,14 +2,14 @@
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
-from TreeProducerTauPair import TreeProducerTauPair
+from TauFW.PicoProducer.analysis.TreeProducerTauPair import TreeProducerTauPair
 
 
 class TreeProducerMuMu(TreeProducerTauPair):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print "Loading TreeProducerMuMu for %r"%(filename)
+    print("Loading TreeProducerMuMu for %r"%(filename))
     super(TreeProducerMuMu,self).__init__(filename,module,**kwargs)
     
     
@@ -26,7 +26,7 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('dz_1',       'f')
     self.addBranch('q_1',        'i')
     self.addBranch('iso_1',      'f', title="relative isolation, pfRelIso04_all")
-    self.addBranch('tkRelIso_1', 'f')
+    #self.addBranch('tkRelIso_1', 'f')
     self.addBranch('idMedium_1', '?')
     self.addBranch('idTight_1',  '?')
     self.addBranch('idHighPt_1', 'i')
@@ -45,7 +45,7 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('dz_2',       'f')
     self.addBranch('q_2',        'i')
     self.addBranch('iso_2',      'f', title="relative isolation, pfRelIso04_all")
-    self.addBranch('tkRelIso_2', 'f')
+    #self.addBranch('tkRelIso_2', 'f')
     self.addBranch('idMedium_2', '?')
     self.addBranch('idTight_2',  '?')
     self.addBranch('idHighPt_2', 'i')
@@ -62,13 +62,16 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('dm_3',                     'f')
     self.addBranch('iso_3',                    'i', title="rawIso")
     self.addBranch('idiso_3',                  'i', title="rawIso WPs")
-    self.addBranch('idAntiEle_3',              'i')
-    self.addBranch('idAntiMu_3',               'i')
-    self.addBranch('idMVAoldDM2017v2_3',       'i')
-    self.addBranch('idMVAnewDM2017v2_3',       'i')
+    #self.addBranch('idAntiEle_3',              'i')
+    #self.addBranch('idAntiMu_3',               'i')
+    #self.addBranch('idMVAoldDM2017v2_3',       'i')
+    #self.addBranch('idMVAnewDM2017v2_3',       'i')
     self.addBranch('idDeepTau2017v2p1VSe_3',   'i')
     self.addBranch('idDeepTau2017v2p1VSmu_3',  'i')
     self.addBranch('idDeepTau2017v2p1VSjet_3', 'i')
+    self.addBranch('idDeepTau2018v2p5VSe_3',   'i')
+    self.addBranch('idDeepTau2018v2p5VSmu_3',  'i')
+    self.addBranch('idDeepTau2018v2p5VSjet_3', 'i')
     self.addBranch('jpt_match_3',              'i', title="pt of jet matching tau")
     
     

@@ -16,7 +16,7 @@ def main(args):
   parallel  = args.parallel
   verbosity = args.verbosity
   setupConfFile = args.config
-  plot      = False
+  plot      = True
   outdir    = ensuredir("input")
   plotdir   = ensuredir(outdir,"plots")
   analysis  = 'ztt'
@@ -152,6 +152,14 @@ def main(args):
         pname  = "%s/%s_$OBS_%s-$BIN-%s$TAG%s.png"%(plotdir,analysis,chshort,era,tag)
         text   = "%s: $BIN"%(channel.replace("mu","#mu").replace("tau","#tau_{h}"))
         groups = [ ] #(['^TT','ST'],'Top'),]
+
+        if "mumu" in channel:
+            varprocs = OrderedDict([
+                       ('Nom',      ['ZLL','W','VV','ST','TT','QCD','data_obs'])])
+        elif "mutau"in channel:
+            varprocs = OrderedDict([
+                       ('Nom',      ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"])])
+
         plotinputs(fname,varprocs,observables,bins,text=text,
                    pname=pname,tag=tag,group=groups)
       
@@ -161,7 +169,7 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018'], default=['UL2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v2p5'], default=['UL2017'], action='store',
                                          help="set era" )
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
                                          help="set config file containing sample & fit setup" )

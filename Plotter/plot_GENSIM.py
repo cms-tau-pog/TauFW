@@ -10,12 +10,20 @@
 #   cd ../../Plotter/
 #   ./plot_GENSIM.py
 import os
+from TauFW.common.tools.log import bold
+from TauFW.common.tools.math import frange
 import TauFW.Plotter.plot.Plot as _Plot
+import TauFW.Plotter.plot.CMSStyle as CMSStyle
 from TauFW.Plotter.plot.Plot import Plot, deletehist
 from TauFW.Plotter.plot.Plot import LOG as PLOG
 from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, ensurelist, ensureTFile,\
                                        setera, Sel, Var
-from ROOT import TChain
+from ROOT import TChain, kBlack, kRed, kBlue, kAzure, kGreen, kOrange, kMagenta, kYellow
+
+colors = [ kRed+1, kBlue, kGreen+2, ]
+# colors = [ kBlack, kRed+1, kAzure+5, kGreen+2, kOrange+1, kMagenta-4, kAzure+10, kOrange+10,
+#            kRed+2, kAzure+5, kOrange-5, kGreen+2, kMagenta+2, kYellow+2,
+#            kRed-7, kAzure-4, kOrange+6, kGreen-2, kMagenta-3, kYellow-2 ] #kViolet
 
 
 class Sample:
@@ -62,8 +70,8 @@ class Sample:
         file.Close()
     self.files = { } # reset
   
-  def gettree(self,tname='Events',verb=0):
-    if self.tree:
+  def gettree(self,tname='Events',refresh=False,verb=0):
+    if not refresh and self.tree:
       return self.tree
     chain = TChain(tname)
     if verb>=1:
@@ -73,7 +81,7 @@ class Sample:
         print ">>>   Adding %s..."%(fname)
       chain.Add(fname)
     self.tree = chain
-    if verb+2>=2:
+    if verb>=2:
       print ">>> Sample.gettree: Number of entries: %5s over %s files for %s"%(self.tree.GetEntries(),len(self.fnames),self.name)
     return chain
   
@@ -130,201 +138,275 @@ class Sample:
     out = self.tree.MultiDraw(varexps,selection,'HIST',hists=hists,verbosity=verb)
     if self.scale!=1:
       for hist in hists:
-        #print ">>> Sample.gethists:   Scaling histograms %s by %s"%(hname,self.scale)
         hist.Scale(self.scale)
     return hists
   
 
-def compare_mutau(tag="",**kwargs):
+# VARIABLES
+qlabels = ['','#minus1','','#plus1','','','']
+bins_st    = range(0,300,100) + [300,500,1000,2000]
+bins_met1  = range(0,400,40) + [400,450,500,600,700,800,1000]
+bins_met2  = range(0,600,50) + [600,700,800,1000]
+bins_met3  = range(0,800,50) + [900,1000,1200,1500]
+bins_jpt1  = range(0,1200,100) + [1200,1500,2500]
+bins_jpt2  = range(10,50,10) + [50,70,100,150,300] #,1500,2500]
+bins_tpt1  = range(0,1200,200) + [1200,1500,2000,2800]
+bins_pt1   = range(0,780,60) + [780,860,1000,1400]
+bins_pt2   = range(0,1040,80) + [1040,1200,1600]
+bins_pt3   = range(0,1040,80) + [1040,1200,1500,1600,2000]
+bins_pt    = range(0,600,60) + range(600,1000,100) + [1000,1200,1500,2000]
+bins_ptvis = range(0,200,40) + range(200,400,50) + [400,500,800,1000,1500]
+bins_eta   = [-6.0,-4.0] + frange(-2.5,2.5,0.5) + [2.5,4.0,6.0]
+bins_dR    = [0,0.5,1.0,1.4,1.7] + frange(2.0,4.0,0.2) + [4.0,4.3,4.7,5.2,6.0] 
+bins_dphi  = [-3.15,-2.8,-2.6,-2.4,-2.2,-2.0,-1.7,-1.3,-0.9,-0.3,0.3,0.9,1.3,1.7,2.0,2.2,2.4,2.6,2.8,3.15]
+pt = "p_{#lower[-0.25]{T}}"
+#pt2 = "p_{#kern[-0.2]{#lower[-0.25]{T}}}"
+jpt = "p_{#lower[-0.32]{T}}^{#lower[0.24]{jet}}"
+sumjet = "#lower[-0.40]{#scale[0.68]{#sum}}#kern[0.009]{#lower[-0.09]{%s (%s > 30 GeV, |#eta| < 4.7) [GeV]}}"%(jpt,jpt)
+comvars = [ # common variables
+#   Var('ntau',         7,   0,    7, title="Number of #tau leptons", ),
+#   ###Var('ntgen',       7,    0,    7, title="Number of top quarks", ),
+#   Var('ntau20',       7,   0,    7, title="Number of #tau leptons (%s > 20 GeV, |#eta| < 2.5)"%pt ),
+#   Var('ntau50',       7,   0,    7, title="Number of #tau leptons (%s > 50 GeV, |#eta| < 2.5)"%pt ),
+#   Var('tau1_pt',     20,   0, 1200, title="Leading tau "+pt ),
+#   Var('tau1_pt',     15,   0,  600, title="Leading tau "+pt, fname="$VAR_zoom" ),
+#   Var('tau1_pt',         bins_tpt1, title="Leading tau "+pt, logy=True, ymin=1e-7, fname="$VAR_log" ),
+#   Var('tau1_ptvis',  20,   0, 1200, title="Leading tau %s^{#lower[0.25]{vis}}"%pt ),
+#   Var('tau1_ptvis',  15,   0,  600, title="Leading tau %s^{#lower[0.25]{vis}}"%pt, fname="$VAR_zoom" ),
+#   Var('tau2_pt',     20,   0, 1200, title="Subleading tau "+pt ),
+#   Var('tau2_pt',     15,   0,  600, title="Subleading tau "+pt, fname="$VAR_zoom" ),
+#   Var('tau2_pt',         bins_tpt1, title="Subleading tau "+pt, logy=True, ymin=1e-7, fname="$VAR_log" ),
+#   Var('tau2_ptvis',  20,   0, 1200, title="Subleading tau %s^{#lower[0.25]{vis}}"%pt ),
+#   Var('tau2_ptvis',  15,   0,  600, title="Subleading tau %s^{#lower[0.25]{vis}}"%pt, fname="$VAR_zoom" ),
+#   Var('tau1_eta',    24,  -6,    6, title="Leading #tau lepton eta", ymargin=1.44, ncol=2, pos='LL' ),
+#   Var('tau1_eta',         bins_eta, title="Leading #tau lepton eta", ymargin=1.44, ncol=2, pos='LL', fname="$VAR_rebin" ),
+#   Var('abs(tau1_eta)', 10, 0,    5, title="Leading #tau lepton |eta|", fname="tau1_eta_abs" ),
+#   Var('tau2_eta',    24,  -6,    6, title="Subleading #tau lepton eta", ymargin=1.44, ncol=2, pos='LL' ),
+#   Var('tau2_eta',         bins_eta, title="Subleading #tau lepton eta", ymargin=1.44, ncol=2, pos='LL', fname="$VAR_rebin" ),
+#   Var('abs(tau2_eta)', 10, 0,    5, title="Subleading #tau lepton |eta|", fname="tau2_eta_abs" ),
+#   Var('m_ll',        25,   0, 2500, title="m_{#lower[-0.06]{#tau#tau}}", units='GeV' ),
+#   Var('m_ll',        20,   0, 1200, title="m_{#lower[-0.06]{#tau#tau}}", units='GeV', fname="$VAR_zoom" ),
+#   Var('mvis_ll',     25,   0, 2500, title="m^{#lower[0.15]{vis}}_{#lower[-0.06]{#tau#tau}}", units='GeV' ),
+#   Var('mvis_ll',     20,   0, 1200, title="m^{#lower[0.15]{vis}}_{#lower[-0.06]{#tau#tau}}", units='GeV', fname="$VAR_zoom" ),
+#   Var('dr_ll',             bins_dR, title="#DeltaR_{#lower[-0.15]{#tau#tau}}", ymargin=1.44, ncol=2, pos='LL' ),
+#   Var('deta_ll',          bins_eta, title="#Delta#eta_{#lower[-0.25]{#tau#tau}}", ymargin=1.44, ncol=2, pos='LL' ),
+#   Var('dphi_ll', 15, -3.142, 3.142, title="#Delta#phi_{#lower[-0.25]{#tau#tau}}", ymargin=1.2, pos='Cy=0.85' ),
+#   Var('nbgen',        7,   0,    7, title="Number of b quarks" ),
+#   Var('nbgen30',      7,   0,    7, title="Number of b quarks (%s > 30 GeV, |#eta| < 2.5)"%pt ),
+#   Var('nbgen50',      7,   0,    7, title="Number of b quarks (%s > 50 GeV, |#eta| < 2.5)"%pt ),
+  Var('njet',         9,   0,    9, title="Number of gen. jets (%s > 30 GeV, |eta| < 4.7)"%pt ),
+  Var('njet50',       9,   0,    9, title="Number of gen. jets (%s > 50 GeV, |eta| < 4.7)"%pt ),
+  Var('ncjet',        9,   0,    9, title="Number of gen. jets (%s > 30 GeV, |eta| < 2.5)"%pt ),
+#   Var('jpt1',        40,   0, 2000, title="Leading gen. jet "+pt ),
+#   Var('jpt1',        30,   0, 1200, title="Leading gen. jet "+pt, fname="$VAR_zoom" ),
+#   Var('jpt1',        20,   0,  400, title="Leading gen. jet "+pt, fname="$VAR_zoom2" ),
+#   ###Var('jpt1',           bins_jpt2, title="Leading gen. jet "+pt, fname="$VAR_zoom2" ),
+#   ###Var('jpt1',           bins_jpt1, title="Leading gen. jet "+pt, logy=True, ymin=1e-5, fname="$VAR_log" ),
+#   Var('jeta1',       24,  -6,    6, title="Leading gen. jet eta", ymargin=1.44, ncol=2, pos='LL' ),
+#   Var('jeta1',            bins_eta, title="Leading gen. jet eta", ymargin=1.44, ncol=2, pos='LL', fname="$VAR_rebin" ),
+#   Var('abs(jeta1)',  10,   0,    5, title="Leading gen. jet |eta|", fname="jeta1_abs" ),
+#   Var('jpt2',        40,   0, 2000, title="Subleading gen. jet "+pt ),
+#   Var('jpt2',        30,   0, 1200, title="Subleading gen. jet "+pt, fname="$VAR_zoom" ),
+#   Var('jpt2',        20,   0,  400, title="Subleading gen. jet "+pt, fname="$VAR_zoom2" ),
+#   ###Var('jpt2',            bins_jpt2, title="Subleading gen. jet "+pt, fname="$VAR_zoom2" ),
+#   ###Var('jpt2',            bins_jpt1, title="Subleading gen. jet "+pt, logy=True, logyrange=6, fname="$VAR_log" ),
+#   Var('jeta2',       24,  -6,    6, title="Subleading gen. jet eta", ymargin=1.44, ncol=2, pos='LL' ),
+#   Var('jeta2',            bins_eta, title="Subleading gen. jet eta", ymargin=1.44, ncol=2, pos='LL', fname="$VAR_rebin" ),
+#   Var('abs(jeta2)',  10,   0,    5, title="Subleading gen. jet |eta|", fname="jeta2_abs" ),
+#   Var('met',         25,   0, 1000, title="MET" ),
+#   Var('met',         26,   0,  400, title="MET", fname="$VAR_zoom" ),
+#   Var('sumjet',      50,   0, 4000, title=sumjet, units=False ),
+#   Var('sumjet',      20,   0,  400, title=sumjet, units=False, fname="$VAR_zoom" ),
+#   Var('st',                bins_st, title="S_{#lower[-0.2]{T}}", logy=True, ymin=1e-8, addOverflowToLastBin=True ),
+#   Var('stmet',             bins_st, title="S_{#lower[-0.2]{T}}^{MET}", logy=True, ymin=1e-8, addOverflowToLastBin=True ),
+]
+jetvars =  [
+  Var('pt',     bins_pt1, title="Generator jet "+pt, fname="jet_pt" ),
+  Var('pt',  30, 0, 1200, title="Generator jet "+pt, fname="jet_pt_zoom" ),
+  Var('eta',    bins_eta, title="Generator jet eta", fname="jet_eta", ymargin=1.44, ncol=2, pos='LL' ),
+]
+varsets = [  
+#   ( 'event', [
+#     ( Sel("ntgen==0",title="LQ -> btau",weight='weight',fname=""),
+#       comvars),
+#     ###( Sel("ntgen==0 && tau1_ptvis>50 && tau2_ptvis>50 && jpt1>50 && mvis_ll>100", 
+#     ###                 title="LQ -> btau, %s>50, %s>50"%(pt,jpt),weight='weight',fname=""),
+#     ###  comvars),
+#     ]),
+  ( 'mother', [
+    ( Sel("abs(dau)==5",title="LQ -> btau",weight='weight',fname=""), [
+        ###Var('ndau',     15,    0,   15, title="Number of daughters", fname="LQ_ndau" ),
+        ###Var('dau',      40,  -20,   20, title="LQ quark daughters",  fname="LQ_dau" ),
+        Var('mass',     65,    0, 2600, title="LQ mass",             fname="LQ_mass", ymargin=1.44, ncol=2, pos='x=0.04', rmax=2.5, logy=True ),
+        Var('pt',       37,    0, 2220, title="LQ "+pt,              fname="LQ_pt" ),
+        Var('pt',              bins_pt, title="LQ "+pt,              fname="LQ_pt_rebin" ),
+        ###var('pt',              bins_pt, title="LQ pT (low mass)",    fname="LQ_pt_lowmass", cut="mass < 500" ),
+        Var('eta',      24,   -6,    6, title="LQ eta",              fname="LQ_eta", ymargin=1.44, ncol=2, pos='x=0.04' ), #pos='BC'
+        ###Var('eta',            bins_eta, title="LQ eta",              fname="LQ_eta_rebin", ymargin=1.44, ncol=2, pos='L' ), #pos='BC'
+        ###Var('phi',       8, -3.2,  3.2, title="LQ phi",              fname="LQ_phi", pos='BC' ),
+        Var('dr_ll',           bins_dR, title="#DeltaR_{#lower[-0.15]{btau}}", fname="LQ_dr_btau", ymargin=1.44, ncol=2, pos='x=0.04' ),
+        Var('deta_ll',        bins_eta, title="#Delta#eta_{#lower[-0.25]{btau}}", fname="LQ_deta_btau", ymargin=1.44, ncol=2, pos='x=0.04' ),
+        Var('dphi_ll', 15, -3.142, 3.142, title="#Delta#phi_{#lower[-0.25]{btau}}", fname="LQ_dphi_btau", ymargin=1.24, pos='Cy=0.85' ),
+        ###Var('dphi_ll',       bins_dphi, title="#Delta#phi_{#lower[-0.2]{btau}}", fname="LQ_dphi_btau", ymargin=1.3, pos='Cy=0.89' ),
+      ]),
+    ]),
+#   ( 'decay', [
+#     ( Sel("",title="LQ -> btau",weight='weight',fname=""), [
+#         Var('pid',     36,  -18,   18, title="LQ daughters", fname="decay_PID", ymargin=1.44, ncol=2, pos='x=0.04' ),
+#       ]),
+#     ( Sel("abs(pid)==15",title="LQ -> btau",weight='weight',fname=""), [
+#         Var('pt',      40,    0, 1600, title="#tau lepton (from LQ decay) "+pt, fname="decay_pt_tau" ),
+#         Var('ptvis',   40,    0, 1200, title="#tau lepton (from LQ decay) %s^{#lower[0.25]{vis}}"%pt, fname="decay_ptvis_tau", ),
+#         Var('ptvis',       bins_ptvis, title="#tau lepton (from LQ decay) %s^{#lower[0.25]{vis}}"%pt, fname="decay_ptvis_tau_rebin", ),
+#         Var('eta',           bins_eta, title="#tau lepton (from LQ decay) eta", fname="decay_eta_tau", ymargin=1.44, ncol=2, pos='x=0.04' ),
+#         ###Var('phi',      8, -3.2,  3.2, title="#tau lepton (from LQ decay) phi", fname="decay_phi_tau", pos='BC' ),
+#       ]),
+#     ( Sel("abs(pid)==5",title="LQ -> btau",weight='weight',fname=""), [
+#         Var('pt',      40,    0, 1600, title="b quark (from LQ decay) "+pt, fname="decay_pt_b" ),
+#         Var('pt',            bins_pt1, title="b quark (from LQ decay) "+pt, fname="decay_pt_b_rebin" ),
+#         Var('eta',     24,   -6,    6, title="b quark (from LQ decay) eta", fname="decay_eta_b", ymargin=1.44, ncol=2, pos='x=0.04' ),
+#         Var('eta',           bins_eta, title="b quark (from LQ decay) eta", fname="decay_eta_b_rebin", ymargin=1.44, ncol=2, pos='x=0.04' ),
+#         ###Var('phi',      8, -3.2,  3.2, title="b quark (from LQ decay) phi", fname="decay_phi_b", pos='BC' ),
+#       ]),
+#     ]),
+#   ( 'assoc', [
+#     ( Sel("abs(pid)==15",title="pp -> LQtau",weight='weight',fname=""), [
+#         Var('pt',      40,    0, 1200, title="#tau lepton (not from LQ decay) "+pt, fname="decay_pt_tau" ),
+#         Var('pt',            bins_pt1, title="#tau lepton (not from LQ decay) "+pt, fname="assoc_pt_tau_rebin" ),
+#         Var('ptvis',   25,    0, 1000, title="#tau lepton (not from LQ decay) %s^{#lower[0.2]{vis}}"%pt, fname="assoc_ptvis_tau" ),
+#         Var('eta',     24,   -6,    6, title="#tau lepton (not from LQ decay) eta", fname="assoc_eta_tau", ymargin=1.44, ncol=2, pos='x=0.04' ),
+#         Var('eta',           bins_eta, title="#tau lepton (not from LQ decay) eta", fname="assoc_eta_tau_rebin", ymargin=1.44, ncol=2, pos='x=0.04' ),
+#         ###Var('phi',      8, -3.2,  3.2, title="#tau lepton (not from LQ decay) phi", fname="assoc_phi_tau", pos='BC' ),
+#       ]),
+#     ( Sel("abs(pid)==5",title="LQ -> btau",weight='weight',fname=""), [
+#         Var('pt',      25,    0,  250, title="b quark (not from LQ decay) "+pt, fname="assoc_pt_b" ),
+#         Var('eta',     20,   -6,    6, title="b quark (not from LQ decay) eta", fname="assoc_eta_b", ymargin=1.2, ncol=1, pos='BC' ),
+#         ###Var('phi',     16, -3.2,  3.2, title="b quark (not from LQ decay) phi", fname="assoc_phi_b", pos='BC' ),
+#       ])
+#     ]),
+#   ( 'jet', [
+#     ( Sel("",title="all jets",weight='weight',fname=""), jetvars ),
+#     ( Sel("pt>20 && abs(eta)<2.5",title="central jets (|#eta| < 2.5)",weight='weight',fname="central"), jetvars ),
+#     ]),
+]
+
+def compare_LQ(name,title,samples,tag="",**kwargs):
   """Compare list of samples."""
-  LOG.header("compare_mutau",pre=">>>")
+  LOG.header("compare_LQ",pre=">>>")
   outdir   = kwargs.get('outdir', "plots/GENSIM" )
-  norms    = kwargs.get('norm',   [False,True]   )
-  #entries  = kwargs.get('entries', [str(e) for e in eras] ) # for legend
+  norms    = kwargs.get('norm',   [True]         )
   exts     = kwargs.get('ext',    ['png']        ) # figure file extensions
   verb     = kwargs.get('verb',   0              )
   ensuredir(outdir)
   norms    = ensurelist(norms)
+  CMSStyle.setCMSEra(era='Run 2',lumi=None,cme=13,thesis=True,extra="(CMS simulation)",verb=verb) #extra="Preliminary")
   #setera(era) # set era for plot style and lumi-xsec normalization
-  
-  # SAMPLE SETS
-  eosdir = "/eos/user/i/ineuteli/GENSIM/"
-  sname  = "DYJetsToTauTauToMuTauh"
-  header = "DYJetsToTauTauToMuTauh"
-  ratio  = 2 # denominator w.r.t. patch
-  sampleset = [
-    Sample("buggy","10.6.19 (buggy FSR)",       eosdir+"GENSIM_converted_buggy.root",   scale=1,verb=verb), # 2e6
-    Sample("patch","10.6.30_patch1",            eosdir+"GENSIM_converted_patch.root",   scale=1,verb=verb), # 2e6
-    #Sample("debug","10.6.30_patch1, incl. DY",  eosdir+"GENSIM_converted_debug.root",   scale=1,verb=verb), # 2e6
-    Sample("debug","10.6.30_patch1, incl. DY",  eosdir+"GENSIM_converted_debug2.root",  scale=1,verb=verb), # 2e6
-    #Sample("nocut","10.6.30_patch1, no cuts",   eosdir+"GENSIM_converted_noptcut.root", scale=4,verb=verb), # 5e5 # redundant
-    Sample("nofil","10.6.30_patch1, no filter", eosdir+"GENSIM_converted_nofilter.root",scale=4,verb=verb), # 5e5
-  ]
-  
-  hnames = [ # ready-made histograms
-    ('h_nmoth',          "Number of Z bosons"),
-    ('h_ntau_all',       "Number of gen. #tau leptons (incl. copies)"),
-    ('h_ntau_all2',      "Number of gen. #tau leptons (incl. copies)"),
-    ('h_ntau_copy',      "Number of gen. #tau copies"),
-    ('h_ntau_copy2',     "Number of gen. #tau copies"),
-    ('h_ntau_fromZ',     "Number of gen. #tau leptons from Z -> #tau#tau"),
-    ('h_ntau_fromZ2',    "Number of gen. #tau leptons from Z -> #tau#tau"),
-    #('h_ntau_fromHard',  "Number of gen. #tau leptons from hard process" ),
-    ('h_ntau_hard',      "Number of gen. #taus from hard process" ),
-    ('h_ntau_prompt',    "Number of prompt gen. #taus"),
-    ('h_ntau_brem',      "Number of gen. #tau leptons that radiate"),
-    ('h_nelec_tau',      "Number of gen. electrons from tau decay"),
-    ('h_nmuon_tau',      "Number of gen. muons from tau decay"),
-    ('h_nmuon_tau2',     "Number of gen. muons from tau decay"),
-    ('h_tau_brem_q',     "Gen. #tau lepton (that radiate) charge"),
-    ('h_muon_tau_q',     "Gen. muons (from #tau decay) charge"),
-    ('h_muon_tau_q2',    "Gen. muons (from #tau decay) charge"),
-    ('h_muon_tau_brem_q',"Gen. muons (from radiating #tau) charge"),
-  ]
+  ratio    = True and False
+  denom    = 3 # use Scalar, M = 1400 GeV in denominator
+  rrange   = 1.0 # ratio range
   
   # SELECTIONS
   selections = [
-    #Sel('nocuts', "", ),
-    Sel('mutau', "ntau_hard>=2 && nmuon_tau>=1 && ntauh_hard>=1" ),
-    Sel('mutau, pt > 16 GeV, |eta| < 2.5', "ntau_hard>=2 && nmuon_tau>=1 && ntauh_hard>=1 && muon_pt>16 && tauh_ptvis>16 && abs(muon_eta)<2.5 && abs(tauh_etavis)<2.5" ),
-    Sel('mutau, pt > 18 GeV, |eta| < 2.5', "ntau_hard>=2 && nmuon_tau>=1 && ntauh_hard>=1 && muon_pt>18 && tauh_ptvis>18 && abs(muon_eta)<2.5 && abs(tauh_etavis)<2.5" ),
-    #Sel('mutau, pt > 20 GeV, |eta| < 2.5', "ntau_hard>=2 && nmuon_tau>=1 && ntauh_hard>=1 && muon_pt>20 && tauh_ptvis>20 && abs(muon_eta)<2.5 && abs(tauh_etavis)<2.5" ),
-    #Sel('mutau, pt > 18 GeV, |eta| < 2.5, from radiating tau', "ntau_hard>=2 && nmuon_tau>=1 && ntauh_hard>=1 && muon_pt>18 && tauh_ptvis>18 && abs(muon_eta)<2.5 && abs(tauh_etavis)<2.5 && muon_tau_brem", only=['muon'] ),
-    #Sel('gen. mutaufilter', "mutaufilter", fname="baseline-genfilter"),
+    #Sel('mutau', "ntau_hard>=2 && nmuon_tau>=1 && ntauh_hard>=1" ),
   ]
-  
-  # VARIABLES
-  ptbins  = range(0,40,4) + range(40,60,5) + range(60,100,10) + [100,120,140]
-  #ptbins  = range(10,50,2) + range(50,70,4) + range(70,100,10) + [100,120,140]
-  Zptbins = range(0,40,4) + range(40,60,5) + range(60,100,10) + range(100,140,20) + [140,170,200]
-  #Zptbins = range(0,60,3) + range(60,100,10) + range(100,140,20) + [140,170,200]
-  Zmbins  = [0,50,70,76,81,85,88,91,94,97,101,106,112,130,150]
-  qlabels = ['','#minus1','','#plus1','','','']
-  variables = [
-    Var('nmoth',       5, 0,   5, "Number of generator Z bosons"),
-    Var('nmuon',       5, 0,   5, "Number of generator muons"),
-    Var('nmuon_tau',   5, 0,   5, "Number of generator muons from tau decay"),
-    Var('ntau',        8, 0,   8, "Number of generator tau leptons"),
-    Var('ntau_all',   12, 0,  12, "Number of generator tau leptons (incl. copies)",logy=True,logyrange=3.8),
-    Var('ntau_hard',   5, 0,   5, "Number of generator tau leptons from hard process"),
-    Var('ntau_brem',   5, 0,   5, "Number of radiating tau leptons"),
-    #Var('ntauh',       5, 0,   5, "Number of generator tauh "),
-    Var('ntauh_hard'  ,5, 0,   5, "Number of generator tauh from hard process"),
-    Var('muon_pt',    30,10, 130, "Muon pt", fname="$VAR" ),
-    Var('muon_pt',        ptbins, "Muon pt", fname="$VAR_coarse" ),
-    Var('muon_eta',   20,-3,   5, "Muon eta" ),
-    Var('muon_q',      7,-2,   5, "Muon charge",labels=qlabels,ymarg=1.6,pos='y=0.96'),
-    Var('tauh_pt',    30,10, 130, "tau_h pt", fname="$VAR" ),
-    Var('tauh_pt',        ptbins, "tau_h pt", fname="$VAR_coarse" ),
-    Var('tauh_ptvis', 30,10, 130, "Visible tau_h pt", fname="$VAR" ),
-    Var('tauh_ptvis',     ptbins, "Visible tau_h pt", fname="$VAR_coarse" ),
-    Var('tauh_eta',   20,-3,   5, "tau_h eta" ),
-    Var('tauh_etavis',20,-3,   5, "Visible tau_h eta" ),
-    Var('tauh_q',      7,-2,   5, "tau_h charge",labels=qlabels,ymarg=1.6,pos='y=0.96'),
-    Var('tau1_pt',    30,10, 130, "Leading tau pt", fname="$VAR" ),
-    Var('tau1_pt',        ptbins, "Leading tau pt", fname="$VAR_coarse" ),
-    Var('tau1_eta',   20,-3,   5, "Leading tau eta" ),
-    Var('tau2_pt',    30,10, 130, "Subleading tau pt", fname="$VAR" ),
-    Var('tau2_pt',        ptbins, "Subleading tau pt", fname="$VAR_coarse" ),
-    Var('tau2_eta',   20,-3,   5, "Subleading tau eta" ),
-    Var('moth_pid',   50,-25, 25, "Mother PDG ID", pos='Ly=0.85',fname="$VAR_log",logy=True,logyrange=4),
-    #Var('moth_m',     50, 0, 150, "Gen. Z boson mass", pos='Ly=0.83'),
-    #Var('moth_m',     50, 0, 150, "Gen. Z boson mass", pos='Ly=0.83', fname="$VAR_log",logy=True,logyrange=3.8),
-    Var('moth_m',     25, 0, 150, "Gen. Z boson mass", pos='Ly=0.83', fname="$VAR_coarse",logy=True,logyrange=3.8),
-    Var('moth_m',         Zmbins, "Gen. Z boson mass", pos='Ly=0.83', fname="$VAR_rebin",logy=True,logyrange=3.8),
-    #Var('m_ll',       50, 0, 150, "Gen. Z boson mass", pos='Ly=0.83'),
-    #Var('m_ll',       50, 0, 150, "Gen. Z boson mass", pos='Ly=0.83', fname="$VAR_log",logy=True,logyrange=3.8),
-    Var('m_ll',       25, 0, 150, "Gen. Z boson mass", pos='Ly=0.83', fname="$VAR_coarse",logy=True,logyrange=3.8),
-    Var('m_ll',           Zmbins, "Gen. Z boson mass", pos='Ly=0.83', fname="$VAR_rebin",logy=True,logyrange=3.8),
-    #Var('moth_pt',    50, 0, 150, "Gen. Z boson pt", pos='y=0.78'),
-    #Var('moth_pt',    50, 0, 150, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_log",logy=True,logyrange=3.2),
-    Var('moth_pt',    20, 0, 160, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_coarse",logy=True,logyrange=3.2),
-    Var('moth_pt',       Zptbins, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_rebin",logy=True,logyrange=3.2),
-    #Var('pt_ll',      50, 0, 150, "Gen. Z boson pt", pos='y=0.78'),
-    #Var('pt_ll',      50, 0, 150, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_log",logy=True,logyrange=3.2),
-    Var('pt_ll',      20, 0, 160, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_coarse",logy=True,logyrange=3.2),
-    Var('pt_ll',         Zptbins, "Gen. Z boson pt", pos='y=0.78',fname="$VAR_rebin",logy=True,logyrange=3.2),
-  ]
-  
-  # PLOT from pre-made histograms
-  for hname, xtitle in hnames:
-    text  = xtitle.replace('tau',"tau_{#lower[-0.2]{h}}")
-    fname = "%s/compare_GENSIM_%s%s$TAG"%(outdir,hname,tag)
-    hists = [ ]
-    for sample in sampleset:
-      if verb>=1:
-        print ">>> compare_mutau: Getting histogram from %s"%(sample.name)
-      hist = sample.gethist_from_file(hname,sample.title,verb=verb)
-      hists.append(hist)
-    for norm in norms:
-      ntag = '_norm' if norm else "_lumi"
-      logy = False
-      if '_q' in hname:
-        pos     = 'L'
-        lsize   = _Plot._lsize*1.1
-        labels  = ['','#minus1','','#plus1',''] # 5,-2,3
-        ymargin = 1.35 if 'h_muon_tau_brem_q' in hname else 1.52
-      else:
-        pos     = None
-        lsize   = _Plot._lsize
-        labels  = None
-        ymargin = None
-      if any(n in hname for n in ['ntau_all','ntau_copy']):
-        logy    = True
-      style = 1 #[1,1,2,1,1,1]
-      plot  = Plot(xtitle,hists,norm=norm,clone=True)
-      plot.draw(ratio=ratio,style=style,xlabelsize=lsize,
-                binlabels=labels,ymargin=ymargin,logy=logy)
-      plot.drawlegend(pos,header=None) #,entries=entries)
-      plot.drawtext(header)
-      plot.saveas(fname,ext=exts,tag=ntag) #,'pdf'
-      plot.close()
-    deletehist(hists)
-  for sample in sampleset:
-    sample.closefiles() # close files
-  print ">>> "
   
   # PLOT from trees
-  for selection in selections:
-    print ">>> %s: %r"%(selection,selection.selection)
-    hdict = { }
-    text  = selection.title.replace('tau',"tau_{#lower[-0.2]{h}}")
-    fname = "%s/compare_GENSIM_$VAR_%s_%s%s$TAG"%(outdir,sname,selection.filename,tag)
-    vars  = [v for v in variables if v.plotfor(selection) and selection.plotfor(v)]
-    for sample in sampleset:
-      if verb>=1:
-        print ">>> compare_mutau: Getting histogram from %s"%(sample.name)
-      hists = sample.gethists(vars,selection,verb=verb)
-      for variable, hist in zip(variables,hists):
-        hdict.setdefault(variable,[ ]).append(hist)
-    for variable, hists in hdict.iteritems():
-      for norm in norms:
-        ntag  = '_norm' if norm else "_lumi"
-        lsize = _Plot._lsize*(1.5 if variable.name.endswith('_q') else 1)
-        style = 1 #[1,1,2,1,1,1]
-        plot  = Plot(variable,hists,norm=norm,clone=True)
-        plot.draw(ratio=ratio,style=style,xlabelsize=lsize,rrange=0.62)
-        plot.drawlegend(header=header) #,entries=entries)
-        plot.drawtext(text)
-        plot.saveas(fname,ext=exts,tag=ntag) #,'pdf'
-        plot.close()
-      deletehist(hists)
+  for treename, selsets in varsets:
+    if 'LQ-t' in samples[0].name and any(s in treename for s in ['decay','mother']):
+      continue
+    print ">>>\n>>> "+bold("Using tree %r for %r"%(treename,title))
+    trees = { }
+    for sample in samples:
+      sample.gettree(treename,refresh=True,verb=verb-1)
+    for selection, varset in selsets:
+      ###for selection in selections:
+      if 'assoc' in treename and '==15' in selection.selection and any('LQ-'+p in samples[0].name for p in 'pt'):
+        continue
+      print ">>> %s: %r"%(selection.title,selection.selection)
+      hdict = { }
+      text  = ', '.join([title,selection.title]) #.replace('tau',"tau_{#lower[-0.2]{h}}")
+      if 'nonres' in title.lower():
+        text = text.replace(", LQ -> btau","")
+      #vars  = [v for v in varset if v.plotfor(selection) and selection.plotfor(v)]
+      for sample in samples:
+        if verb>=1:
+          print ">>> compare_LQ: Getting histogram from %s"%(sample.name)
+        hists = sample.gethists(varset,selection,verb=verb)
+        for var, hist in zip(varset,hists):
+          hdict.setdefault(var,[ ]).append(hist)
+      for var, hists in hdict.iteritems():
+        for norm in norms:
+          ntag  = '_norm' if norm else "_lumi"
+          fname = "%s/$VAR_%s_%s%s%s"%(outdir,name,selection.filename,tag,ntag)
+          lsize = _Plot._lsize*(1.5 if var.name.endswith('_q') else 1)
+          style = 1 #[1,1,2,1,1,1]
+          ###ncol  = 1
+          nxdiv = 510
+          pos   = var.position
+          logyrange = var.logyrange
+          ymargin = var.ymargin
+          twidth = 1.04 if var.ncols==1 else 1.0
+          if var.xmax>=2000:
+            nxdiv = 508
+          if 'LQ-p' in samples[0].name: # Pair
+            if any(s in var.filename for s in ['njet','ncjet']):
+              pos = 'R'
+              ymargin = 1.45 if var.filename=='njet' else 1.34
+          elif 'LQ-s' in samples[0].name: # Single
+            if var.logy and "LQ_eta" in var.filename:
+              ymargin = 1.2
+              pos = 'BC'
+          elif 'LQ-t' in samples[0].name: # NonRes
+            if var.logy and "jpt" in var.filename:
+              logyrange = 7
+          ###if (var.name=='eta' or '_eta' in var.name) and 'L' in pos:
+          ###  ncol = 2
+          ###  ###print var.name, ncol
+          if not pos:
+            pos = 'y=0.85'
+            twidth *= 1.1
+          elif not any(s in pos for s in 'yTB'):
+            pos += 'y=0.89'
+          plot  = Plot(var,hists,norm=norm,clone=True,ratio=ratio)
+          plot.draw(xlabelsize=lsize,pair=True,ymargin=ymargin,denom=denom,colors=colors,
+                    rrange=rrange,logyrange=logyrange,nxdiv=nxdiv,grid=False,width=700) #style=style,
+          plot.drawlegend(margin=1.2,pos=pos,twidth=twidth) #header=title) #,entries=entries)
+          plot.drawtext(text)
+          plot.saveas(fname.replace('__','_'),ext=exts) #,tag=ntag,'pdf'
+          plot.close()
+        deletehist(hists)
   print ">>> "
   
 
 def main(args):
-  fname    = None #"$PICODIR/$SAMPLE_$CHANNEL.root" # fname pattern
+  fname     = None #"$PICODIR/$SAMPLE_$CHANNEL.root" # fname pattern
   parallel  = args.parallel
   varfilter = args.varfilter
   selfilter = args.selfilter
   pdf       = args.pdf
   outdir    = "plots/GENSIM"
   tag       = args.tag
+  exts      = ['png','pdf'] if pdf else ['png']
   verbosity = args.verbosity
-  if pdf:
-    exts = ['png','pdf']
   
-  compare_mutau(tag=tag,outdir=outdir,ext=exts,verb=verbosity)
+  # SAMPLE SETS
+  indir  = "../PicoProducer/utils/"
+  samset = [
+    ('LQ_Single','s',"Single LQ production"),
+    ('LQ_Pair',  'p',"LQ pair production"),
+    ('LQ_NonRes','t',"Nonres. tautau production via LQ exchange"),
+  ]
+  for name, prod, title in samset:
+    #title  = "LQ -> btau, "+title
+    samples = [
+      Sample('SLQ-%s_M600'%(prod), "Scalar, M = 600 GeV", indir+"GENSIM_converted_SLQ-%s_M600_L1p0.root"%(prod), verb=verbosity),
+      Sample('VLQ-%s_M600'%(prod), "Vector, M = 600 GeV", indir+"GENSIM_converted_VLQ-%s_M600_L1p0.root"%(prod), verb=verbosity),
+      Sample('SLQ-%s_M1400'%(prod),"Scalar, M = 1400 GeV",indir+"GENSIM_converted_SLQ-%s_M1400_L1p0.root"%(prod),verb=verbosity),
+      Sample('VLQ-%s_M1400'%(prod),"Vector, M = 1400 GeV",indir+"GENSIM_converted_VLQ-%s_M1400_L1p0.root"%(prod),verb=verbosity),
+      Sample('SLQ-%s_M2000'%(prod),"Scalar, M = 2000 GeV",indir+"GENSIM_converted_SLQ-%s_M2000_L1p0.root"%(prod),verb=verbosity),
+      Sample('VLQ-%s_M2000'%(prod),"Vector, M = 2000 GeV",indir+"GENSIM_converted_VLQ-%s_M2000_L1p0.root"%(prod),verb=verbosity),
+    ]
+    compare_LQ(name,title,samples,tag=tag,outdir=outdir,ext=exts,verb=verbosity)
   
 
 if __name__ == "__main__":

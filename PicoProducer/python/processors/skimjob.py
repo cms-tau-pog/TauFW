@@ -39,7 +39,7 @@ outdir    = ensuredir(args.outdir)  # directory to create output
 copydir   = args.copydir            # directory to copy output to at end
 firstevt  = args.firstevt           # index of first event to run
 maxevts   = args.maxevts            # maximum number of events to run
-nfiles    = -1 if maxevts>0 else -1 # maximum number of files to run
+nfiles    = 1 if (maxevts!=None and maxevts>0) else -1 # maximum number of files to run
 tag       = args.tag                # postfix tag of job output file
 tag       = ('' if not tag or tag.startswith('_') else '_') + tag
 postfix   = tag
@@ -151,15 +151,15 @@ if len(outflist)!=len(infiles): # sanity check
 # Temporary solution to reduce file size
 #   https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3734/1.html
 #   https://github.com/cms-nanoAOD/nanoAOD-tools/issues/249
-print(">>> Reduce file size...")
-from TauFW.common.tools.utils import execute
-execute("ls -hlt %s"%(outfname),verb=2)
-for outfile in outflist:
-  tmpfile = outfile.replace(".root","_tmp.root")
-  execute("haddnano.py %s %s"%(tmpfile,outfile),verb=2) # reduce file size
-  execute("ls -hlt %s %s"%(tmpfile,outfile),verb=2)
-  execute("mv %s %s"%(tmpfile,outfile),verb=2)
-execute("ls -hlt %s"%(outfname),verb=2)
+#print(">>> Reduce file size...")
+#from TauFW.common.tools.utils import execute
+#execute("ls -hlt %s"%(outfname),verb=2)
+#for outfile in outflist:
+#  tmpfile = outfile.replace(".root","_tmp.root")
+#  execute("haddnano.py %s %s"%(tmpfile,outfile),verb=2) # reduce file size
+#  execute("ls -hlt %s %s"%(tmpfile,outfile),verb=2)
+#  execute("mv %s %s"%(tmpfile,outfile),verb=2)
+#execute("ls -hlt %s"%(outfname),verb=2)
 
 # COPY
 if copydir and outdir!=copydir:

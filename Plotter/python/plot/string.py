@@ -111,7 +111,7 @@ def makelatex(string,**kwargs):
     if re.search(r"(?<!weig)(?<!daug)ht(?!au)",strlow): # HT
       string = re.sub(r"\b(h)t\b",r"\1_{T}",string,flags=re.IGNORECASE)
       GeV    = True
-    if strlow[0]=='s' and 't' in strlow[1:3] and 'tw' not in strlow[2:5] and 'chan' not in strlow[2:10]: # scalar sum pT
+    if strlow[0]=='s' and 't' in strlow[1:3] and 'std' not in strlow[:3] and 'tw' not in strlow[2:5] and 'chan' not in strlow[2:10]: # scalar sum pT
       string = re.sub(r"s_?t(?!at)(?![ _-]t[Wc-])",r"S_{T}",string,flags=re.IGNORECASE)
       string = re.sub(r"met",r"^{MET}",string,flags=re.IGNORECASE)
       GeV    = True
@@ -185,11 +185,11 @@ def makelatex(string,**kwargs):
       if "GeV" not in string:
         string += " [GeV]"
       if cm:
-        LOG.warning("makelatex: Flagged units are both GeV and cm!")
+        LOG.warn("makelatex: Flagged units are both GeV and cm!")
     elif cm: #or 'd_' in string
       string += " [cm]"
   if (verbosity>=2 and string!=oldstr) or verbosity>=3:
-    print ">>> makelatex: %r -> %r"%(oldstr,string)
+    print(">>> makelatex: %r -> %r"%(oldstr,string))
   return string
   
 
@@ -340,7 +340,7 @@ def joincuts(*cuts,**kwargs):
   cuts      = [c for c in cuts if c and isinstance(c,str)]
   weight    = kwargs.get('weight', False)
   if any('||' in c and not ('(' in c and ')' in c) for c in cuts):
-    LOG.warning('joincuts: Be careful with those "or" statements in %s! Not sure how to join...'%(cuts,))
+    LOG.warn('joincuts: Be careful with those "or" statements in %s! Not sure how to join...'%(cuts,))
     for i, cut in enumerate(cuts):
       if '||' in cut and not ('(' in cut and ')' in cut):
         cuts[i] = "(%s)"%(cut)
@@ -383,7 +383,7 @@ def shift(oldstr,shifttag,vars=["\w+"],**kwargs):
   newstr    = oldstr
   vars      = ensurelist(vars)
   if re.search(r"(Up|Down)",oldstr):
-    print "shift: already shifts in %r"%(oldstr)
+    print("shift: already shifts in %r"%(oldstr))
   if kwargs.get('us',True) and len(shifttag)>0 and shifttag[0]!='_': # ensure underscore in front
     shifttag = '_'+shifttag
   for oldvar in vars: # shift each jet/MET variable
@@ -398,7 +398,7 @@ def shift(oldstr,shifttag,vars=["\w+"],**kwargs):
       verbstr += "\n>>>   %r -> %r"%(oldstr,newstr)
     else:
       verbstr += "\n>>>   %r\n>>>   -> %r"%(oldstr,newstr)
-    print verbstr
+    print(verbstr)
   return newstr
   
 
@@ -425,7 +425,7 @@ def invertcharge(oldcuts,target='SS',**kwargs):
     LOG.verbose("invertcharge: oldcuts=%r"%(oldcuts),verbosity,2)
     LOG.verbose("invertcharge: matchOS=%r, matchSS=%r"%(matchOS,matchSS),verbosity,2)
     if (len(matchOS)+len(matchSS))>1:
-      LOG.warning('invertcharge: more than one charge match (%d OS, %d SS) in %r'%(len(matchOS),len(matchSS),oldcuts))
+      LOG.warn('invertcharge: more than one charge match (%d OS, %d SS) in %r'%(len(matchOS),len(matchSS),oldcuts))
     if target=='OS':
       for match in matchSS: newcuts = oldcuts.replace(match,"q_1*q_2<0") # invert SS to OS
     elif target=='SS':
@@ -456,15 +456,15 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###  
 ###  # REPLACE
 ###  if match_iso_1 and match_iso_2:
-###    if len(match_iso_1)>1: LOG.warning("invertIsolationNanoAOD: More than one iso_1 match! cuts=%s"%cuts)
-###    if len(match_iso_2)>1: LOG.warning("invertIsolationNanoAOD: More than one iso_2 match! cuts=%s"%cuts)
+###    if len(match_iso_1)>1: LOG.warn("invertIsolationNanoAOD: More than one iso_1 match! cuts=%s"%cuts)
+###    if len(match_iso_2)>1: LOG.warn("invertIsolationNanoAOD: More than one iso_2 match! cuts=%s"%cuts)
 ###    if remove1:
 ###      cuts = cuts.replace(match_iso_1[0],'')
 ###    cuts = cuts.replace(match_iso_2[0],'')
 ###    if iso_relaxed:
 ###      cuts = combineCuts(cuts,iso_relaxed)
 ###  elif cuts and match_iso_1 or match_iso_2:
-###      LOG.warning('invertIsolationNanoAOD: %d iso_1 and %d iso_2 matches! cuts=%r'%(len(match_iso_1),len(match_iso_2),cuts))
+###      LOG.warn('invertIsolationNanoAOD: %d iso_1 and %d iso_2 matches! cuts=%r'%(len(match_iso_1),len(match_iso_2),cuts))
 ###  cuts = cleanBooleans(cuts)
 ###  
 ###  LOG.verbose('  %r\n>>>   -> %r\n>>>'%(cuts0,cuts),verbosity,level=2)
@@ -488,8 +488,8 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###  cjets  = re.findall(r"&* *ncjets(?:20)? *[<=>]=? *\d+ *",cuts)
 ###  cjets += re.findall(r"&* *nc?btag(?:20)? *[<=>]=? *ncjets(?:20)? *",cuts)
 ###  LOG.verbose('relaxJetSelection:\n>>>   btags = %s\n>>>   cjets = %r' % (btags,cjets),verbosity,level=2)
-###  if len(btags)>1: LOG.warning('relaxJetSelection: More than one btags match! Only using first instance in cuts %r'%cuts)
-###  if len(cjets)>1: LOG.warning('relaxJetSelection: More than one cjets match! Only using first instance in cuts %r'%cuts)
+###  if len(btags)>1: LOG.warn('relaxJetSelection: More than one btags match! Only using first instance in cuts %r'%cuts)
+###  if len(cjets)>1: LOG.warn('relaxJetSelection: More than one cjets match! Only using first instance in cuts %r'%cuts)
 ###  
 ###  # REPLACE
 ###  #if len(btags):
@@ -504,7 +504,7 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###      if btags_relaxed: cuts = "%s && %s && %s" % (cuts,btags_relaxed,cjets_relaxed)
 ###      else:             cuts = "%s && %s"       % (cuts,              cjets_relaxed)
 ###  #elif len(btags) or len(cjets):
-###  #    LOG.warning("relaxJetSelection: %d btags and %d cjets matches! cuts=%s"%(len(btags),len(cjets),cuts))
+###  #    LOG.warn("relaxJetSelection: %d btags and %d cjets matches! cuts=%s"%(len(btags),len(cjets),cuts))
 ###  cuts = cuts.lstrip(' ').lstrip('&').lstrip(' ')
 ###  
 ###  LOG.verbose('  %r\n>>>   -> %r\n>>>'%(cuts0,cuts),verbosity,level=2)
@@ -567,9 +567,9 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###    elif len(match)>1:
 ###      for match, genmatch in match:
 ###        if '>0' in genmatch.replace(' ','') or '!=0' in genmatch.replace(' ',''):
-###          LOG.warning('vetojtf: more than one "genmatch" match (%d) in %r, ignoring...'%(len(match),cuts))
+###          LOG.warn('vetojtf: more than one "genmatch" match (%d) in %r, ignoring...'%(len(match),cuts))
 ###          return cuts
-###      LOG.warning('vetojtf: more than one "genmatch" match (%d) in %r, only looking at first match...'%(len(match),cuts))
+###      LOG.warn('vetojtf: more than one "genmatch" match (%d) in %r, only looking at first match...'%(len(match),cuts))
 ###    match, genmatch = match[0]
 ###    genmatch = genmatch.replace(' ','')
 ###    subcuts0 = stripWeights(cuts)
@@ -581,7 +581,7 @@ def invertcharge(oldcuts,target='SS',**kwargs):
 ###      elif not '0' in genmatch: # "genmatch_2!=*"
 ###        subcuts1 = combineCuts(subcuts0,"genmatch_2>0")
 ###    elif "=0" in genmatch: # "genmatch_2*=6"
-###        LOG.warning('vetojtf: selection %r with %r set to "0"!'%(cuts,genmatch)) 
+###        LOG.warn('vetojtf: selection %r with %r set to "0"!'%(cuts,genmatch)) 
 ###        subcuts1 = "0"
 ###    elif '<' in genmatch: # "genmatch_2>*"
 ###        subcuts1 = combineCuts(subcuts0,"genmatch_2>0")

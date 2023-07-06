@@ -53,16 +53,23 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.addcut('pair',         "pair"                       )
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization; bug in pre-UL 2017 caused small fraction of events with nPU<=0
-    
+    ## Important cutflow entries to make stitching with exclusive mutauh sample
+    self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )    
+    self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
+
   
   def beginJob(self):
     """Before processing any events or files."""
     super(ModuleMuTau,self).beginJob()
-    print ">>> %-12s = %s"%('tauwp',      self.tauwp)
-    print ">>> %-12s = %s"%('muonCutPt',  self.muonCutPt)
-    print ">>> %-12s = %s"%('muonCutEta', self.muonCutEta)
-    print ">>> %-12s = %s"%('tauCutPt',   self.tauCutPt)
-    print ">>> %-12s = %s"%('tauCutEta',  self.tauCutEta)
+    print(">>> %-12s = %s"%('tauwp',      self.tauwp))
+    print(">>> %-12s = %s"%('muonCutPt',  self.muonCutPt))
+    print(">>> %-12s = %s"%('muonCutEta', self.muonCutEta))
+    print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
+    print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
     pass
     
   
@@ -75,7 +82,7 @@ class ModuleMuTau(ModuleTauPair):
     ##### NO CUT #####################################
     if not self.fillhists(event):
       return False
-    
+
     
     ##### TRIGGER ####################################
     if not self.trigger(event):
@@ -250,7 +257,7 @@ class ModuleMuTau(ModuleTauPair):
     
     # WEIGHTS
     if self.ismc:
-      self.fillCommonCorrBraches(event,jets,met,njets_vars,met_vars)
+      self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
       if muon.pfRelIso04_all<0.50 and tau.idDeepTau2017v2p1VSjet>=2:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       

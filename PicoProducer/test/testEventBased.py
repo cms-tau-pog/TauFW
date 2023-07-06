@@ -28,7 +28,7 @@ def chunkify_by_evts(fnames,nmax,evenly=True):
     file  = ensureTFile(fname,'READ')
     nevts = file.Get('Events').GetEntries()
     file.Close()
-    print "%10d %s"%(nevts,fname)
+    print("%10d %s"%(nevts,fname))
     if nevts<nmax:
       nsmall.setdefault(nevts,[ ]).append(fname)
     else:
@@ -46,15 +46,15 @@ def chunkify_by_evts(fnames,nmax,evenly=True):
   #     50000: ['nano_8.root', 'nano_9.root', 'nano_10.root'],
   #     20000: ['nano_11.root','nano_12.root','nano_13.root'],
   #}
-  print 'nlarge =',nlarge
-  print 'nsmall =',nsmall
+  print('nlarge =',nlarge)
+  print('nsmall =',nsmall)
   for nevts in nlarge:
     for fname in nlarge[nevts]:
       nmax_ = nmax
       if evenly:
         nchunks = ceil(float(nevts)/nmax)
         nmax_   = int(ceil(nevts/nchunks))
-        print nevts,nmax,nmax_,nchunks
+        print(nevts,nmax,nmax_,nchunks)
       ifirst = 0
       while ifirst<nevts:
         result.append(["%s:%d:%d"%(fname,ifirst,nmax_)])
@@ -90,11 +90,11 @@ def testEventBased(args,verb=0):
     #),
   ]
   for sample in samples:
-    print sample
+    print(sample)
     files = sample.getfiles()[:8]
     chunks = chunkify_by_evts(files,nmax=100000)
     for chunk in chunks:
-      print chunk
+      print(chunk)
   
 
 def gettree(fname,tree='tree'):
@@ -113,7 +113,7 @@ def gettree(fname,tree='tree'):
 
 def compare_output(args,verb=0):
   """Quick comparison between job output."""
-  print ">>> Compare job output..."
+  print(">>> Compare job output...")
   nbins  = 100000
   fname1 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau.root"      # file-based split
   fname2 = "/scratch/ineuteli/analysis/2016/DY/DYJetsToLL_M-2000to3000_tautau_test.root" # event-based split
@@ -121,24 +121,24 @@ def compare_output(args,verb=0):
     fname1, fname2 = args.infiles[:2]
   tname = args.tree
   ename = args.evt
-  print ">>>  %s"%(fname1)
-  print ">>>  %s"%(fname2)
+  print(">>>  %s"%(fname1))
+  print(">>>  %s"%(fname2))
   file1, tree1 = gettree(fname1,tname)
   file2, tree2 = gettree(fname2,tname)
   hist1  = TH1F('h1','h1',nbins,0,1000000)
   hist2  = TH1F('h2','h2',nbins,0,1000000)
   tree1.Draw("%s >> h1"%(ename),"","gOff")
   tree2.Draw("%s >> h2"%(ename),"","gOff")
-  print ">>>   tree1: %9d, hist1: %9d"%(tree1.GetEntries(),hist1.GetEntries())
-  print ">>>   tree2: %9d, hist2: %9d"%(tree2.GetEntries(),hist2.GetEntries())
+  print(">>>   tree1: %9d, hist1: %9d"%(tree1.GetEntries(),hist1.GetEntries()))
+  print(">>>   tree2: %9d, hist2: %9d"%(tree2.GetEntries(),hist2.GetEntries()))
   hist1.Add(hist2,-1)
   nfound = 0
   for i in range(0,nbins+2):
     if nfound==20:
-      print ">>>   BREAK! Already found 20 different bins"
+      print(">>>   BREAK! Already found 20 different bins")
       break
     if hist1.GetBinContent(i)!=0.0:
-      print ">>>   difference %3d in bin %3d, [%3d,%3d]!"%(i,hist1.GetBinContent(i),hist1.GetXaxis().GetBinLowEdge(i),hist1.GetXaxis().GetBinUpEdge(i))
+      print(">>>   difference %3d in bin %3d, [%3d,%3d]!"%(i,hist1.GetBinContent(i),hist1.GetXaxis().GetBinLowEdge(i),hist1.GetXaxis().GetBinUpEdge(i)))
       nfound += 1
   if file1:
     file1.Close()
@@ -170,5 +170,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

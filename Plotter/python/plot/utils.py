@@ -28,7 +28,7 @@ def normalize(*hists,**kwargs):
     if integral:
       hist.Scale(scale/integral)
     else:
-      LOG.warning("norm: Could not normalize; integral = 0!")
+      LOG.warn("norm: Could not normalize; integral = 0!")
   
 
 def getframe(pad,hist,xmin=None,xmax=None,**kwargs):
@@ -60,7 +60,7 @@ def close(*hists,**kwargs):
   for hist in hists:
     if isinstance(hist,THStack):
       if verbosity>1:
-        print '>>> close: Deleting histograms from stack "%s"...'%(hist.GetName())
+        print('>>> close: Deleting histograms from stack "%s"...'%(hist.GetName()))
       for subhist in hist.GetStack():
         deletehist(subhist,**kwargs)
       deletehist(hist,**kwargs)
@@ -79,10 +79,10 @@ def gethist(hists,*searchterms,**kwargs):
     if match(searchterms,hist.GetName(),**kwargs):
       matches.append(hist)
   if not matches and warning:
-    LOG.warning("gethist: Did not find a historgram with searchterms %s..."%(quotestrs(searchterms)))
+    LOG.warn("gethist: Did not find a historgram with searchterms %s..."%(quotestrs(searchterms)))
   elif unique:
     if len(matches)>1:
-      LOG.warning("gethist: Found more than one match to %s. Using first match only: %s"%(
+      LOG.warn("gethist: Found more than one match to %s. Using first match only: %s"%(
                   quotestrs(searchterms),quotestrs(h.GetName() for h in matches)))
     return matches[0]
   return matches
@@ -104,9 +104,9 @@ def deletehist(*hists,**kwargs):
       elif hname:
         gDirectory.Delete(hist.GetName())
       else:
-        LOG.warning("deletehist: %s %s has no name!"%(hclass,hist))
+        LOG.warn("deletehist: %s %s has no name!"%(hclass,hist))
     elif warn:
-      LOG.warning("deletehist: %s is already %s"%(hclass,hist))
+      LOG.warn("deletehist: %s is already %s"%(hclass,hist))
     #except AttributeError:
     #  print ">>> AttributeError: "
     #  raise AttributeError
@@ -158,7 +158,7 @@ def grouphists(hists,searchterms,name=None,title=None,color=None,**kwargs):
         if close:
           deletehist(hist)
   else:
-    LOG.warning("grouphists: Did not find a histogram with searchterms %s..."%(quotestrs(searchterms)))
+    LOG.warn("grouphists: Did not find a histogram with searchterms %s..."%(quotestrs(searchterms)))
   return histsum
   
 
@@ -179,7 +179,7 @@ def getTGraphRange(graphs,min=+10e10,max=-10e10,margin=0.0,axis='y'):
   for graph in graphs:
     npoints = graph.GetN()
     x, y = Double(), Double()
-    for i in xrange(0,npoints):
+    for i in range(0,npoints):
       graph.GetPoint(i,x,y)
       vup  = getUp(graph,i)
       vlow = getLow(graph,i)
@@ -211,9 +211,10 @@ def seterrorbandstyle(hist,**kwargs):
   # 3001 small dots, 3003 large dots, 3004 hatched
   color = kwargs.get('color', None      )
   style = kwargs.get('style', 'hatched' )
-  if   style in 'hatched': style = 3004
-  elif style in 'dots':    style = 3002
-  elif style in 'cross':   style = 3013
+  if isinstance(style,str):
+    if   style in 'hatched': style = 3004
+    elif style in 'dots':    style = 3002
+    elif style in 'cross':   style = 3013
   if color==None:          color = kBlack
   hist.SetLineStyle(1) #0
   hist.SetMarkerSize(0)
@@ -234,12 +235,12 @@ def getbinedges(hist,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
   bins      = [ ]
   if isinstance(hist,TH1):
-    for i in xrange(1,hist.GetXaxis().GetNbins()+1):
+    for i in range(1,hist.GetXaxis().GetNbins()+1):
       low  = round(hist.GetXaxis().GetBinLowEdge(i),9)
       up   = round(hist.GetXaxis().GetBinUpEdge(i),9)
       bins.append((low,up))
   else:
-    for i in xrange(0,hist.GetN()):
+    for i in range(0,hist.GetN()):
       x, y = Double(), Double()
       hist.GetPoint(i,x,y)
       low  = round(x-hist.GetErrorXlow(i),9)
@@ -259,7 +260,7 @@ def havesamebins(hist1,hist2,**kwargs):
       xbins2 = hist2.GetXaxis().GetXbins()
       if xbins1.GetSize()!=xbins2.GetSize():
         return False
-      for i in xrange(xbins1.GetSize()):
+      for i in range(xbins1.GetSize()):
         #print xbins1[i]
         if xbins1[i]!=xbins2[i]:
           return False
@@ -275,8 +276,8 @@ def havesamebins(hist1,hist2,**kwargs):
       bins1 = [ (a+b)/2 for a,b in bins1]
       bins2 = [ (a+b)/2 for a,b in bins2]
     if bins1!=bins2:
-      print "bins1 =",bins1
-      print "bins2 =",bins2
+      print("bins1 =",bins1)
+      print("bins2 =",bins2)
     return bins1==bins2
   
 
@@ -302,7 +303,7 @@ def gethistratio(histnum,histden,**kwargs):
     #rhist.Divide(histden)
     TAB = LOG.table("%5d %9.3f %9.3f %9.3f %9.3f +- %7.3f",verb=verbosity,level=3)
     TAB.printheader("ibin","xval","yden","ynum","ratio","error")
-    for ibin in xrange(0,ncells+1):
+    for ibin in range(0,ncells+1):
       yden    = histden.GetBinContent(ibin)
       ynum    = histnum.GetBinContent(ibin)
       enum    = histnum.GetBinError(ibin) #max(histnum.GetBinErrorLow(ibin),histnum.GetBinErrorUp(ibin))
@@ -318,7 +319,7 @@ def gethistratio(histnum,histden,**kwargs):
       rhist.SetBinContent(ibin,ratio)
       rhist.SetBinError(ibin,erat)
   else: # works only for TH1
-    LOG.warning("gethistratio: %r and %r do not have the same bins..."%(histnum,histden))
+    LOG.warn("gethistratio: %r and %r do not have the same bins..."%(histnum,histden))
     TAB = LOG.table("%5d %9.3f %9.3f %5d %9.3f %9.3f %5d %8.3f +- %7.3f",verb=verbosity,level=3)
     TAB.printheader("iden","xval","yden","inum","xval","ynum","ratio","error")
     for iden in range(0,ncells+1):
@@ -442,15 +443,17 @@ def geterrorband(*hists,**kwargs):
   Returns an TGraphAsymmErrors object."""
   verbosity = LOG.getverbosity(kwargs)
   hists     = unwraplistargs(hists)
-  hists     = [h.GetStack().Last() if isinstance(h,THStack) else h for h in hists]
-  sysvars   = kwargs.get('sysvars',     [ ]    ) # list of tuples with up/cent/down variation histograms
-  name      = kwargs.get('name',        None   ) or "error_"+hists[0].GetName()
-  title     = kwargs.get('title',       None   ) or ("Sys. + stat. unc." if sysvars else "Stat. unc.")
-  color     = kwargs.get('color',       kBlack )
+  hists     = [(h.GetStack().Last() if isinstance(h,THStack) else h) for h in hists]
+  sysvars   = kwargs.get('sysvars', [ ]    ) # list of tuples with up/cent/down variation histograms
+  name      = kwargs.get('name',    None   ) or "error_"+hists[0].GetName()
+  title     = kwargs.get('title',   None   ) or ("Sys. + stat. unc." if sysvars else "Stat. unc.")
+  color     = kwargs.get('color',   kBlack )
+  style     = kwargs.get('style',   'hatched' )
+  yhists    = ensurelist(kwargs.get('yhist', hists )) # histogram with central value
   hist0     = hists[0]
   nbins     = hist0.GetNbinsX()
   if sysvars and isinstance(sysvars,dict):
-    sysvars = [v for k, v in sysvars.iteritems()]
+    sysvars = [v for k, v in sysvars.items()]
   error = TGraphAsymmErrors()
   error.SetName(name)
   error.SetTitle(title)
@@ -465,8 +468,8 @@ def geterrorband(*hists,**kwargs):
     yval = 0
     statlow2, statupp2 = 0, 0
     syslow2,  sysupp2  = 0, 0
-    for hist in hists: # STATISTICS
-      yval     += hist.GetBinContent(ibin)
+    for hist, yhist in zip(hists,yhists): # STATISTICS
+      yval     += yhist.GetBinContent(ibin)
       statlow2 += hist.GetBinErrorLow(ibin)**2
       statupp2 += hist.GetBinErrorUp(ibin)**2
     for histup, hist, histdown in sysvars: # SYSTEMATIC VARIATIONS
@@ -485,7 +488,7 @@ def geterrorband(*hists,**kwargs):
     error.SetPointError(ip,xerr,xerr,sqrt(ylow2),sqrt(yupp2))
     TAB.printrow(ibin,xval,xerr,yval,sqrt(abs(yval)),sqrt(statupp2),sqrt(statlow2),sqrt(sysupp2),sqrt(syslow2),sqrt(yupp2),sqrt(ylow2))
     ip += 1
-  seterrorbandstyle(error,color=color)
+  seterrorbandstyle(error,color=color,style=style)
   #error.SetLineColor(hist0.GetLineColor())
   error.SetLineWidth(hist0.GetLineWidth()) # use draw option 'E2 SAME'
   return error
@@ -509,7 +512,7 @@ def dividebybinsize(hist,**kwargs):
     graph.SetTitle(hist.GetTitle())
     copystyle(graph,hist)
     ip = 0 # skip zero bins if not zero
-    for ibin in xrange(1,nbins+1):
+    for ibin in range(1,nbins+1):
       xval  = hist.GetXaxis().GetBinCenter(ibin)
       width = hist.GetXaxis().GetBinWidth(ibin)
       xerr  = width/2 if errorX else 0
@@ -529,7 +532,7 @@ def dividebybinsize(hist,**kwargs):
         ip += 1
     return graph
   else:
-    for ibin in xrange(0,nbins+2):
+    for ibin in range(0,nbins+2):
       xval  = hist.GetXaxis().GetBinCenter(ibin)
       width = hist.GetXaxis().GetBinWidth(ibin)
       yval  = hist.GetBinContent(ibin)
@@ -552,7 +555,7 @@ def normalizebins(oldstack,**kwargs):
   for oldhist in oldstack.GetHists():
     hname = "%s_%s"%(oldhist.GetName(),tag) 
     newhist = oldhist.Clone(hname)
-    for ibin in xrange(0,nbins+2):
+    for ibin in range(0,nbins+2):
       ytot = oldstack.GetStack().Last().GetBinContent(ibin)
       if ytot>0:
         newhist.SetBinContent(ibin,newhist.GetBinContent(ibin)/ytot)
@@ -570,7 +573,7 @@ def getconstanthist(oldhist,yval=1,**kwargs):
   LOG.verbose('getconstanthist: %r -> %r'%(oldhist.GetName(),hname),verbosity,2)
   newhist = oldhist.Clone(hname)
   newhist.Reset()
-  for ibin in xrange(0,oldhist.GetXaxis().GetNbins()+2):
+  for ibin in range(0,oldhist.GetXaxis().GetNbins()+2):
     newhist.SetBinContent(ibin,yval) # set to same value
     newhist.SetBinError(ibin,yerr) # set to same value
   return newhist
@@ -653,7 +656,7 @@ def capoff(hist,ymin=None,ymax=None,verb=0):
     hist.SetBinContent(i,yval)
     hist.SetBinError(i,yerr)
   if verb>=2:
-    print ">>> capoff: Found %d/%d values < %s, and %d/%d values > %s for histogram %s"%(nmin,ntot,ymin,nmax,ntot,ymax,hist)
+    print(">>> capoff: Found %d/%d values < %s, and %d/%d values > %s for histogram %s"%(nmin,ntot,ymin,nmax,ntot,ymax,hist))
   return nmin+nmax # number of reset bins
   
 
@@ -688,30 +691,30 @@ def reducehist2d(oldhist,**kwargs):
   # FIND INDICES TO KEEP
   if xlabels:
     if verb>=1:
-      print ">>> reducehist2d:   Filter xlabels..."
-    for ix in xrange(1,oldnxbins+1): # x axis
+      print(">>> reducehist2d:   Filter xlabels...")
+    for ix in range(1,oldnxbins+1): # x axis
       if ix in ix_rm: continue
       label = oldhist.GetXaxis().GetBinLabel(ix)
       if any(s.match(label) for s in xlabels):
         ix_keep.add(ix)
   elif not ix_keep: # remove bins
-    ix_keep = set(i for i in xrange(1,oldnxbins+1) if i not in ix_rm)
+    ix_keep = set(i for i in range(1,oldnxbins+1) if i not in ix_rm)
   if ylabels:
     if verb>=1:
-      print ">>> reducehist2d:   Filter ylabels..."
-    for iy in xrange(1,oldnybins+1): # y axis
+      print(">>> reducehist2d:   Filter ylabels...")
+    for iy in range(1,oldnybins+1): # y axis
       if iy in iy_rm: continue
       label = oldhist.GetYaxis().GetBinLabel(iy)
       if any(s.match(label) for s in ylabels):
         iy_keep.add(iy)
   elif not iy_keep: # remove bins
-    iy_keep = set(i for i in xrange(1,oldnybins+1) if i not in iy_rm)
+    iy_keep = set(i for i in range(1,oldnybins+1) if i not in iy_rm)
   
   # SANITY CHECK
   newnxbins = len(ix_keep)
   newnybins = len(iy_keep)
   if newnxbins==0 or newnybins==0:
-    print ">>> reducehist2d:   Cannot create new histogram with %d x %d dimensions! Ignoring..."%(newnxbins,newnybins)
+    print(">>> reducehist2d:   Cannot create new histogram with %d x %d dimensions! Ignoring..."%(newnxbins,newnybins))
     return None
   
   # SORT
@@ -724,12 +727,12 @@ def reducehist2d(oldhist,**kwargs):
   
   # CREATE & FILL REDUCED HISTOGRAM
   if verb>=1:
-    print ">>> reducehist2d:   Reduce %dx%d to %dx%d histogram %r..."%(oldnxbins,oldnybins,newnxbins,newnybins,newhname)
+    print(">>> reducehist2d:   Reduce %dx%d to %dx%d histogram %r..."%(oldnxbins,oldnybins,newnxbins,newnybins,newhname))
   newhist = TH2F(newhname,newhname,newnxbins,0,newnxbins,newnybins,0,newnybins)
   for ix_new, ix_old in enumerate(ix_keep,1): # x axis
     label = oldhist.GetXaxis().GetBinLabel(ix_old)
     if verb>=2:
-      print ">>> reducehist2d:  ix=%d -> %d, %r"%(ix_old,ix_new,label)
+      print(">>> reducehist2d:  ix=%d -> %d, %r"%(ix_old,ix_new,label))
     newhist.GetXaxis().SetBinLabel(ix_new,label)
     for iy_new, iy_old in enumerate(iy_keep,1): # y axis
       zval = oldhist.GetBinContent(ix_old,iy_old)
@@ -737,7 +740,7 @@ def reducehist2d(oldhist,**kwargs):
   for iy_new, iy_old in enumerate(iy_keep,1): # y axis
     label = oldhist.GetYaxis().GetBinLabel(iy_old)
     if verb>=2:
-      print ">>> reducehist2d:  iy=%d -> %d, %r"%(iy_old,iy_new,label)
+      print(">>> reducehist2d:  iy=%d -> %d, %r"%(iy_old,iy_new,label))
     newhist.GetYaxis().SetBinLabel(iy_new,label)
   return newhist
   
@@ -819,15 +822,15 @@ def resetrange(oldhist,xmin=None,xmax=None,ymin=None,ymax=None,**kwargs):
     try:
       newhist = TH2D(hname,hname,*bins)
     except TypeError as err:
-      print ">>> resetrange: hname=%r bins=%r"%(hname,bins)
+      print(">>> resetrange: hname=%r bins=%r"%(hname,bins))
       raise err
     if verbosity>=1:
-      print ">>> resetrange: (nxbins,xmin,xmax) = (%s,%s,%s) -> (%s,%s,%s)"%(
+      print(">>> resetrange: (nxbins,xmin,xmax) = (%s,%s,%s) -> (%s,%s,%s)"%(
         oldhist.GetXaxis().GetNbins(),oldhist.GetXaxis().GetXmin(),oldhist.GetXaxis().GetXmax(),
-        newhist.GetXaxis().GetNbins(),newhist.GetXaxis().GetXmin(),newhist.GetXaxis().GetXmax())
-      print ">>> resetrange: (nybins,ymin,ymax) = (%s,%s,%s) -> (%s,%s,%s)"%(
+        newhist.GetXaxis().GetNbins(),newhist.GetXaxis().GetXmin(),newhist.GetXaxis().GetXmax()))
+      print(">>> resetrange: (nybins,ymin,ymax) = (%s,%s,%s) -> (%s,%s,%s)"%(
         oldhist.GetYaxis().GetNbins(),oldhist.GetYaxis().GetXmin(),oldhist.GetYaxis().GetXmax(),
-        newhist.GetYaxis().GetNbins(),newhist.GetYaxis().GetXmin(),newhist.GetYaxis().GetXmax())
+        newhist.GetYaxis().GetNbins(),newhist.GetYaxis().GetXmin(),newhist.GetYaxis().GetXmax()))
     for iyold in range(0,oldhist.GetYaxis().GetNbins()+2):
       for ixold in range(0,oldhist.GetXaxis().GetNbins()+2):
         xval  = getbincenter(oldhist.GetXaxis(),ixold,xmin,xmax)

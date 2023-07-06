@@ -53,7 +53,7 @@ def makeSampleSet(sampleset,filedict,join=False):
       datasample = sample
     else:
       expsamples.append(sample)
-  print ">>> Joining samples into one set"%(expsamples)
+  print(">>> Joining samples into one set"%(expsamples))
   if join:
     color      = expsamples[0].fillcolor
     bkgsample  = MergedSample('Bkg',"Background",expsamples[1:],color=color)
@@ -65,11 +65,11 @@ def makeSampleSet(sampleset,filedict,join=False):
     ('TTT',"ttbar real tau_{h}","genmatch_2==5"),
     ('TTJ',"ttbar fake tau_{h}","genmatch_2!=5"),
   ],start=True)
-  print ">>> samples=%s"%samples
-  print ">>> "
+  print(">>> samples=%s"%samples)
+  print(">>> ")
   samples.printtable()
   samples.printobjs()
-  print ">>> "
+  print(">>> ")
   return samples
   
 
@@ -80,32 +80,32 @@ def testget(samples):
   for regex in [True,False]:
     for unique in [True,False]:
       kwargs = { 'unique':unique, 'incl':incl, 'regex':regex }
-      print ">>> unique=%s, incl=%s, regex=%s"%(LOG.getcolor(unique),incl,LOG.getcolor(regex))
-      print ">>>   SampleSet.get('DY', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('DY',**kwargs))
-      print ">>>   SampleSet.get('ZTT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('ZTT',**kwargs))
-      print ">>>   SampleSet.get('WJ', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('WJ',**kwargs))
-      print ">>>   SampleSet.get('TT', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('TT',**kwargs))
+      print(">>> unique=%s, incl=%s, regex=%s"%(LOG.getcolor(unique),incl,LOG.getcolor(regex)))
+      print(">>>   SampleSet.get('DY', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('DY',**kwargs)))
+      print(">>>   SampleSet.get('ZTT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('ZTT',**kwargs)))
+      print(">>>   SampleSet.get('WJ', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('WJ',**kwargs)))
+      print(">>>   SampleSet.get('TT', unique=%s,regex=%s):  %r"%(unique,regex,samples.get('TT',**kwargs)))
       if not regex:
-        print ">>>   SampleSet.get('*TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('*TT',**kwargs))
-        print ">>>   SampleSet.get('?TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('?TT',**kwargs))
+        print(">>>   SampleSet.get('*TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('*TT',**kwargs)))
+        print(">>>   SampleSet.get('?TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('?TT',**kwargs)))
       else:
-        print ">>>   SampleSet.get('.*TT',unique=%s,regex=%s): %r"%(unique,regex,samples.get('.*TT',**kwargs))
-        print ">>>   SampleSet.get('.TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('.TT', **kwargs))
-      print ">>> "
+        print(">>>   SampleSet.get('.*TT',unique=%s,regex=%s): %r"%(unique,regex,samples.get('.*TT',**kwargs)))
+        print(">>>   SampleSet.get('.TT',unique=%s,regex=%s):  %r"%(unique,regex,samples.get('.TT', **kwargs)))
+      print(">>> ")
   regex  = False
   for incl in [True,False]:
     for unique in [True,False]:
       kwargs = { 'unique':unique, 'incl':incl, 'regex':regex }
-      print ">>> unique=%s, incl=%s, regex=%s"%(LOG.getcolor(unique),LOG.getcolor(incl),regex)
-      print ">>>   SampleSet.get('ZTT','TT',unique=%s,incl=%s): %r"%(unique,incl,samples.get('ZTT','TT',**kwargs))
-      print ">>>   SampleSet.get('QCD','WJ',unique=%s,incl=%s): %r"%(unique,incl,samples.get('QCD','WJ',**kwargs))
-      print ">>> "
-  print ">>> SampleSet.get('TT?',unique=False,regex=False,split=True): %r"%(samples.get('TT?',unique=False,regex=False,split=True))
-  print ">>> SampleSet.getexp():     %r"%(samples.getexp())
-  print ">>> SampleSet.getexp('TT'): %r"%(samples.getexp('TT'))
+      print(">>> unique=%s, incl=%s, regex=%s"%(LOG.getcolor(unique),LOG.getcolor(incl),regex))
+      print(">>>   SampleSet.get('ZTT','TT',unique=%s,incl=%s): %r"%(unique,incl,samples.get('ZTT','TT',**kwargs)))
+      print(">>>   SampleSet.get('QCD','WJ',unique=%s,incl=%s): %r"%(unique,incl,samples.get('QCD','WJ',**kwargs)))
+      print(">>> ")
+  print(">>> SampleSet.get('TT?',unique=False,regex=False,split=True): %r"%(samples.get('TT?',unique=False,regex=False,split=True)))
+  print(">>> SampleSet.getexp():     %r"%(samples.getexp()))
+  print(">>> SampleSet.getexp('TT'): %r"%(samples.getexp('TT')))
   #print ">>> SampleSet.getmc():   %r"%(samples.getmc())
   #print ">>> SampleSet.getdata():   %r"%(samples.getdata())
-  print ">>> "
+  print(">>> ")
   
 
 def plotSampleSet(samples,tag="",singlevar=False):
@@ -180,5 +180,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity-1
   main(args)
-  print ">>>\n>>> Done."
+  print(">>>\n>>> Done.")
   

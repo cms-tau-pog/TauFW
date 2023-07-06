@@ -28,9 +28,9 @@ class StitchEffs(Module):
     self.outfile = TFile(fname,'RECREATE') # make custom file with only few histograms
     self.verb    = kwargs.get('verb', 0    )
     self.domutau = kwargs.get('mutau',False)
-    print ">>> fname   = %r"%(self.fname)
-    print ">>> domutau = %r"%(self.domutau)
-    print ">>> verb    = %r"%(self.verb)
+    print(">>> fname   = %r"%(self.fname))
+    print(">>> domutau = %r"%(self.domutau))
+    print(">>> verb    = %r"%(self.verb))
     
     # HISTOGRAMS
     self.outfile.cd()
@@ -88,7 +88,7 @@ def printtable(hist,norm=False):
     else:
       xstr = "%.4g-%.4g"%(hist.GetXaxis().GetBinLowEdge(xbin),hist.GetXaxis().GetBinUpEdge(xbin))
     header += " %10s"%(xstr)
-  print header
+  print(header)
   for ybin in range(1,nybins+1):
     if yint:
       ystr = "%5.2g"%(hist.GetYaxis().GetBinLowEdge(ybin))
@@ -100,7 +100,7 @@ def printtable(hist,norm=False):
       if norm and nevts>0:
         zval /= nevts
       row += " %10.5f"%(zval)
-    print row
+    print(row)
   
 
 # QUICK PLOTTING SCRIPT
@@ -113,7 +113,7 @@ if __name__ == '__main__':
   gStyle.SetOptTitle(False) # don't make title on top of histogram
   gStyle.SetOptStat(False)  # don't make stat. box
   description = """Make histograms from output file."""
-  parser = ArgumentParser(prog="GenMatcher",description=description,epilog="Good luck!")
+  parser = ArgumentParser(prog="StitchEffs",description=description,epilog="Good luck!")
   parser.add_argument('files', nargs='+', help="final (hadd'ed) ROOT file")
   parser.add_argument('-m',"--mutau", action='store_true', help="plot mutau filter")
   parser.add_argument('-p',"--pdf", action='store_true', help="create PDF version as well")
@@ -133,19 +133,19 @@ if __name__ == '__main__':
       title, fname = fname.split('=')
     else:
       title = fname.split('/')[-1].replace('.root','')
-    print ">>> Opening %s (%s)"%(fname,title)
+    print(">>> Opening %s (%s)"%(fname,title))
     file = TFile.Open(fname,'READ')
     files.append((title,file))
     
     # PLOT 2D HISTOGRAMS
     for hname in hnames_2d:
       hist = file.Get(hname)
-      assert hist, "Did not find %s:%s"(file.GetName(),hname)
+      assert hist, "Did not find %s:%s"%(file.GetName(),hname)
       hist.SetTitle(title)
       nevts = hist.Integral()
       if nevts>0: # normalize
         hist.Scale(100./nevts)
-      print ">>> Efficiencies for %s in %s:"%(hname[2:],title)
+      print(">>> Efficiencies for %s in %s:"%(hname[2:],title))
       printtable(hist,norm=True)
       xtitle = formattitle(hist.GetXaxis().GetTitle())
       ytitle = formattitle(hist.GetYaxis().GetTitle())
@@ -165,12 +165,12 @@ if __name__ == '__main__':
       plot.close()
   
   # PLOT HISTOGRAM COMPARISONS
-  print ">>> Plot comparisons..."
+  print(">>> Plot comparisons...")
   for hname in hnames:
     hists = [ ]
     for title, file in files:
       hist = file.Get(hname)
-      assert hist, "Did not find %s:%s"(file.GetName(),hname)
+      assert hist, "Did not find %s:%s"%(file.GetName(),hname)
       hist.SetTitle(title)
       nevts = hist.Integral()
       if nevts>0: # normalize
@@ -199,5 +199,5 @@ if __name__ == '__main__':
   for _, file in files:
     file.Close()
   
-  print ">>> Done."
+  print(">>> Done.")
   

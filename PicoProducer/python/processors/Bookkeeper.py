@@ -1,5 +1,6 @@
 # Author: Izaak Neutelings (July 2022)
 # Description: Keep track of number of events and sum of weights before and after skimming
+from __future__ import print_function # for python3 compatibility
 import time
 import ROOT
 from ROOT import TH1D

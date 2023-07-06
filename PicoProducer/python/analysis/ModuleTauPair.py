@@ -11,7 +11,7 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 #from TauFW.PicoProducer.corrections.PreFireTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
-from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes
+from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, filtermutau
 __metaclass__ = type # to use super() with subclasses from CommonProducer
 tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco' }
 
@@ -21,7 +21,7 @@ class ModuleTauPair(Module):
   """Base class the channels of an analysis with two tau leptons: for mutau, etau, tautau, emu, mumu, ee."""
   
   def __init__(self, fname, **kwargs):
-    print header(self.__class__.__name__)
+    print(header(self.__class__.__name__))
     
     # SETTINGS
     self.filename   = fname # output file name
@@ -49,7 +49,7 @@ class ModuleTauPair(Module):
     self.dotight    = kwargs.get('tight',    self.dotight   ) # store fewer events to save disk space
     self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
-    self.useT1      = kwargs.get('useT1',    False          ) # MET T1
+    self.useT1      = kwargs.get('useT1',    False          ) # MET T1 for backwards compatibility with old nanoAOD-tools JME corrector
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = 30
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
@@ -89,33 +89,33 @@ class ModuleTauPair(Module):
   
   def beginJob(self):
     """Before processing any events or files."""
-    print '-'*80
-    print ">>> %-12s = %r"%('filename',  self.filename)
-    print ">>> %-12s = %s"%('year',      self.year)
-    print ">>> %-12s = %r"%('dtype',     self.dtype)
-    print ">>> %-12s = %r"%('channel',   self.channel)
-    print ">>> %-12s = %s"%('ismc',      self.ismc)
-    print ">>> %-12s = %s"%('isdata',    self.isdata)
-    print ">>> %-12s = %s"%('isembed',   self.isembed)
+    print('-'*80)
+    print(">>> %-12s = %r"%('filename',  self.filename))
+    print(">>> %-12s = %s"%('year',      self.year))
+    print(">>> %-12s = %r"%('dtype',     self.dtype))
+    print(">>> %-12s = %r"%('channel',   self.channel))
+    print(">>> %-12s = %s"%('ismc',      self.ismc))
+    print(">>> %-12s = %s"%('isdata',    self.isdata))
+    print(">>> %-12s = %s"%('isembed',   self.isembed))
     if self.channel.count('tau')>0:
-      print ">>> %-12s = %s"%('tes',     self.tes)
-      print ">>> %-12s = %r"%('tessys',  self.tessys)
-      print ">>> %-12s = %r"%('fes',     self.fes)
-      print ">>> %-12s = %s"%('ltf',     self.ltf)
-      print ">>> %-12s = %s"%('jtf',     self.jtf)
+      print(">>> %-12s = %s"%('tes',     self.tes))
+      print(">>> %-12s = %r"%('tessys',  self.tessys))
+      print(">>> %-12s = %r"%('fes',     self.fes))
+      print(">>> %-12s = %s"%('ltf',     self.ltf))
+      print(">>> %-12s = %s"%('jtf',     self.jtf))
     #if self.channel.count('ele')>0:
     #  print ">>> %-12s = %s"%('ees',     self.ees)
-    print ">>> %-12s = %s"%('dotoppt',   self.dotoppt)
-    print ">>> %-12s = %s"%('dopdf',     self.dopdf)
-    print ">>> %-12s = %s"%('dozpt',     self.dozpt)
+    print(">>> %-12s = %s"%('dotoppt',   self.dotoppt))
+    print(">>> %-12s = %s"%('dopdf',     self.dopdf))
+    print(">>> %-12s = %s"%('dozpt',     self.dozpt))
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
-    print ">>> %-12s = %s"%('dojec',     self.dojec)
-    print ">>> %-12s = %s"%('dojecsys',  self.dojecsys)
-    print ">>> %-12s = %s"%('dosys',     self.dosys)
-    print ">>> %-12s = %s"%('dotight',   self.dotight)
-    print ">>> %-12s = %s"%('useT1',     self.useT1)
-    print ">>> %-12s = %s"%('jetCutPt',  self.jetCutPt)
-    print ">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta)
+    print(">>> %-12s = %s"%('dojec',     self.dojec))
+    print(">>> %-12s = %s"%('dojecsys',  self.dojecsys))
+    print(">>> %-12s = %s"%('dosys',     self.dosys))
+    print(">>> %-12s = %s"%('dotight',   self.dotight))
+    print(">>> %-12s = %s"%('useT1',     self.useT1))
+    print(">>> %-12s = %s"%('jetCutPt',  self.jetCutPt))
+    print(">>> %-12s = %s"%('bjetCutEta',self.bjetCutEta))
     
   
   def endJob(self):
@@ -128,6 +128,22 @@ class ModuleTauPair(Module):
   def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
     """Before processing a new file."""
     sys.stdout.flush()
+
+    # for v10
+    branchesV10 = [
+      ('Muon_isTracker',                  [True]*32     ),
+      #('Electron_mvaFall17V217Iso',      [1.]*32       ), #not available anymore
+      ('Electron_lostHits',               [0]*32        ),
+      ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaIso_WPL'    ),
+      ('Electron_mvaFall17V2Iso_WP80',   'Electron_mvaIso_WP80'   ),
+      ('Electron_mvaFall17V2Iso_WP90',   'Electron_mvaIso_WP90'   ),
+      ('Electron_mvaFall17V2noIso_WPL',  'Electron_mvaNoIso_WPL'  ),
+      ('Electron_mvaFall17V2noIso_WP80', 'Electron_mvaNoIso_WP80' ),
+      ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaNoIso_WP90' ),
+      ('Tau_idDecayMode',                [True]*32               ), 
+      ('Tau_idDecayModeNewDMs',          [True]*32               ),
+      ]
+    # for v9
     branches = [
       ('Electron_mvaFall17V2Iso',        'Electron_mvaFall17Iso'        ),
       ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaFall17Iso_WPL'    ),
@@ -150,9 +166,13 @@ class ModuleTauPair(Module):
         ('HLT_IsoMu24',          False ),
         ('HLT_IsoTkMu24',        False ),
       ]
-    ensurebranches(inputTree,branches) # make sure Event object has these branches
-    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
-      redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
+ 
+    #check
+    fullbranchlist = inputTree.GetListOfBranches()
+    if 'Electron_mvaFall17Iso_WPL' not in fullbranchlist: #v10
+       ensurebranches(inputTree,branchesV10)
+    else: #v9
+       ensurebranches(inputTree,branches) # make sure Event object has these branches
     
   
   def fillhists(self,event):
@@ -167,21 +187,26 @@ class ModuleTauPair(Module):
     else:
       self.out.cutflow.fill('weight',event.genWeight)
       self.out.pileup.Fill(event.Pileup_nTrueInt)
-      #if self.dosys and event.nLHEScaleWeight>0:
-      #idxs = [(0,0),(1,5),(2,10),(3,15),(4,20),(5,24),(6,29),(7,34),(8,39)] if event.nLHEScaleWeight>40 else\
-      #       [(0,0),(1,1),(2,2),(3,3),(5,4),(6,5),(7,6),(8,7)] if event.nLHEScaleWeight==8 else\
-      #       [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8)]
-      #if event.nLHEScaleWeight==8:
-      #  self.out.h_muweight.Fill(4,event.LHEWeight_originalXWGTUP)
-      #  self.out.h_muweight_genw.Fill(4,event.LHEWeight_originalXWGTUP*event.genWeight)
-      #for ibin, idx in idxs: # Ren. & fact. scale
-      #  if idx>=event.nLHEScaleWeight: break
-      #  self.out.h_muweight.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx])
-      #  self.out.h_muweight_genw.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx]*event.genWeight)
       if event.Pileup_nTrueInt>0:
         self.out.cutflow.fill('weight_no0PU',event.genWeight)
       else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
         return False
+      # Specific selections to compute mutau filter efficiencies for stitching of different DY samples
+      isMuTau = filtermutau(event)
+      self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
+      if event.LHE_Njets==0 or event.LHE_Njets>4:
+        self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
+      elif event.LHE_Njets==1:
+        self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
+      elif event.LHE_Njets==2:
+        self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
+      elif event.LHE_Njets==3:
+        self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
+      elif event.LHE_Njets==4:
+        self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
+
+      self.out.pileup.Fill(event.Pileup_nTrueInt)
+    
     return True
     
   
@@ -324,7 +349,7 @@ class ModuleTauPair(Module):
     
     ## FILL JET VARIATION BRANCHES
     #if self.dojecsys:
-    #  for unc, jets_var in jets_vars.iteritems():
+    #  for unc, jets_var in jets_vars.items():
     #    ptvar = 'pt_'+unc
     #    jets_var.sort(key=lambda j: getattr(j,ptvar),reverse=True)
     #    njets_vars[unc] = len(jets_var)
@@ -337,7 +362,7 @@ class ModuleTauPair(Module):
     return jets, metnom, njets_vars, met_vars
     
   
-  def fillCommonCorrBraches(self, event, jets, met, njets_vars, met_vars):
+  def fillCommonCorrBranches(self, event, jets, met, njets_vars, met_vars):
     """Help function to apply common corrections, and fill weight branches."""
     
     #if self.dorecoil:
@@ -426,7 +451,7 @@ class ModuleTauPair(Module):
     self.out.dzeta[0]     = pzetamiss - 0.85*pzetavis
     
     # MET SYSTEMATICS
-    for unc, met_var in met_vars.iteritems():
+    for unc, met_var in met_vars.items():
       getattr(self.out,"met_"+unc)[0]    = met_var.Pt()
       getattr(self.out,"metphi_"+unc)[0] = met_var.Phi()
       getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2 * self.out.pt_1[0] * met_var.Pt() * ( 1 - cos(deltaPhi(self.out.phi_1[0],met_var.Phi())) ))

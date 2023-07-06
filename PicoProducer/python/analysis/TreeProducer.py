@@ -37,7 +37,7 @@ class TreeProducer(object):
   def __init__(self, filename, module, **kwargs):
     self.verbosity = kwargs.get('verb',getattr(module,'verbosity',False) or getattr(module,'verb',False))
     if self.verbosity>=1:
-      print ">>> TreeProducer.__init__: %r, %r, kwargs=%s..."%(filename,module,kwargs)
+      print(">>> TreeProducer.__init__: %r, %r, kwargs=%s..."%(filename,module,kwargs))
     self.filename  = filename
     self.module    = module
     self.outfile   = TFile(filename,'RECREATE')
@@ -81,13 +81,13 @@ class TreeProducer(object):
     else:
       raise IOError("TreeProducer.addHist: Could not parse histogram arguments: %r, args=%r"%(name,args))
     if self.verbosity+2>=1:
-      print ">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins)
+      print(">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins))
     self.hists[name] = hist
     if dname: # make subdirectory
       subdir = self.outfile.GetDirectory(dname)
       if not subdir: # create directory for the first time
         if self.verbosity+2>=1:
-          print ">>> TreeProducer.addHist: Creating subdirectory %s..."%(dname) 
+          print(">>> TreeProducer.addHist: Creating subdirectory %s..."%(dname)) 
         subdir = self.outfile.mkdir(dname) #,'',True)
       hist.SetDirectory(subdir)
     return hist
@@ -110,16 +110,16 @@ class TreeProducer(object):
       arrstr = ""
     if isinstance(dtype,str): # Set correct data type for numpy:
       if dtype=='F':          # 'F' = 'complex64', which do not work for filling float branches
-        print ">>> TreeProducer.addBranch: Warning! Converting numpy data type 'F' (complex64) to 'f' (float32, Float_t)"
+        print(">>> TreeProducer.addBranch: Warning! Converting numpy data type 'F' (complex64) to 'f' (float32, Float_t)")
         dtype = 'float32'     # 'f' = 'float32' -> 'F' -> Float_t
       elif dtype=='D':        # 'D' = 'complex128', which do not work for filling float branches
-        print ">>> TreeProducer.addBranch: Warning! Converting numpy data type 'D' (complex128) to 'd' (float64, Double_t)"
+        print(">>> TreeProducer.addBranch: Warning! Converting numpy data type 'D' (complex128) to 'd' (float64, Double_t)")
         dtype = 'float64'     # 'd' = 'float64' -> 'D' -> Double_t
     address = np.zeros(maxlen,dtype=dtype) # array address to be filled during event loop
     setattr(self,arrname,address)
     leaflist = "%s%s/%s"%(name,arrstr,root_dtype[dtype])
     if self.verbosity>=1:
-      print ">>> TreeProducer.addBranch: tree.Branch(%r,%s,%r), %s=%r, maxlen=%s, default=%s"%(name,arrname,leaflist,arrname,address,maxlen,default)
+      print(">>> TreeProducer.addBranch: tree.Branch(%r,%s,%r), %s=%r, maxlen=%s, default=%s"%(name,arrname,leaflist,arrname,address,maxlen,default))
     branch = self.tree.Branch(name,address,leaflist)
     if default!=None:
       if hasattr(default,'__getitem__'): # vector/array/list/tuple
@@ -129,19 +129,21 @@ class TreeProducer(object):
         for i in range(len(default)):
           address[i] = default[i]
         if self.verbosity>=2:
-          print ">>> TreeProducer.addBranch: Set default value %s to list %r: %r"%(arrname,default,address)
+          print(">>> TreeProducer.addBranch: Set default value %s to list %r: %r"%(arrname,default,address))
       else: # single value, like float or int
         for i in range(len(address)):
           address[i] = default
         if self.verbosity>=2:
-          print ">>> TreeProducer.addBranch: Set default value %s to single value %r: %r"%(arrname,default,address)
+          print(">>> TreeProducer.addBranch: Set default value %s to single value %r: %r"%(arrname,default,address))
     if title:
       branch.SetTitle(title)
     return branch
   
   def setAlias(self,newbranch,oldbranch):
+    """Set an alias for a variable or mathematical expression of the other branches."""
+    # https://root.cern.ch/doc/master/classTTree.html#a7c505db0d8ed56b5581e683375eb78e1
     if self.verbosity>=1:
-      print ">>> TreeProducer.setAlias: %r -> %r..."%(oldbranch,newbranch)
+      print(">>> TreeProducer.setAlias: %r -> %r..."%(oldbranch,newbranch))
     self.tree.SetAlias(newbranch,oldbranch)
     return newbranch
   
@@ -157,7 +159,7 @@ class TreeProducer(object):
     if self.cutflow and self.display:
       nfinal = self.tree.GetEntries() if self.tree else None
       self.cutflow.display(nfinal=nfinal,final="stored in tree")
-      print ">>> Write %s..."%(self.outfile.GetName())
+      print(">>> Write %s..."%(self.outfile.GetName()))
     self.outfile.Write()
     self.outfile.Close()
   

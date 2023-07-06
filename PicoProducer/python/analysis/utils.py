@@ -152,12 +152,15 @@ def filtermutau(event):
     MuHadCut = cms.string('Mu.Pt > 16 && Had.Pt > 16 && Mu.Eta < 2.5 && Had.Eta < 2.7')
     https://cms-pdmv.cern.ch/mcm/edit?db_name=requests&prepid=TAU-RunIISummer19UL18wmLHEGEN-00007
     https://github.com/cms-sw/cmssw/blob/master/GeneratorInterface/Core/src/EmbeddingHepMCFilter.cc
+  Pythia8 gen filter bug fix:
+    https://github.com/cms-sw/cmssw/pull/38829
+    https://indico.cern.ch/event/1170879/#2-validation-of-exclusive-dy-t
   """
   ###print '-'*80
   particles = Collection(event,'GenPart')
   muon = None
   taus = [ ]
-  hasZ = False # Z boson required in DYJetsToTauTauToMuTauh Pythia8 filter
+  ###hasZ = False # Z boson required in the buggy DYJetsToTauTauToMuTauh Pythia8 filter
   for particle in particles:
     pid = abs(particle.pdgId)
     if pid==13 and (particle.statusflag('isHardProcessTauDecayProduct') or particle.statusflag('isDirectHardProcessTauDecayProduct')):
@@ -170,27 +173,27 @@ def filtermutau(event):
         ###print getprodchain(particle,particles)
         particle.pvis = TLorentzVector() # visible 4-momentum
         taus.append(particle)
-      else: # particle.status==23
-        # QUICK FIX to exclude events with taus radiating FSR photons due to bug in EmbeddingHepMCFilter
-        # pre-CMSSW_10_6_30_patch1 affecting Summer19 and Summer20 UL
-        # => loss of ~20% events in DYJetsToTauTauToMuTauh
-        ###dumpgenpart(particle,genparts=particles,flags=['fromHardProcess','isHardProcessTauDecayProduct','isDirectHardProcessTauDecayProduct','isLastCopy'])
-        ###print(getdecaychain(particle,particles))
-        return False # no radiating taus !
-    elif pid==23:
-      hasZ = True # Z boson required in DYJetsToTauTauToMuTauh Pythia8 filter
+      ###else: # particle.status==23
+      ###  # QUICK FIX to exclude events with taus radiating FSR photons due to bug in EmbeddingHepMCFilter
+      ###  # pre-CMSSW_10_6_30_patch1 affecting Summer19 and Summer20 UL
+      ###  # => loss of ~20% events in DYJetsToTauTauToMuTauh
+      ###  ###dumpgenpart(particle,genparts=particles,flags=['fromHardProcess','isHardProcessTauDecayProduct','isDirectHardProcessTauDecayProduct','isLastCopy'])
+      ###  ###print(getdecaychain(particle,particles))
+      ###  return False # veto events with radiating taus !
+    ###elif pid==23:
+    ###  hasZ = True # Z boson required in buggy DYJetsToTauTauToMuTauh Pythia8 filter
     elif pid>16: # ignore neutrinos and charged leptons
       for tau in taus:
         if tau._index==particle.genPartIdxMother: # non-leptonic tau decay product
           ###print(">>> add %+d to %+d"%(particle.pdgId,tau.pdgId))
           tau.pvis += particle.p4() # add visible tau decay product
-  if hasZ and len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
+  if len(taus)==2 and muon and muon.pt>18. and abs(muon.eta)<2.5:
     if any(tau.pdgId*muon.pdgId<0 and tau.pvis.Pt()>18 and abs(tau.pvis.Eta())<2.5 for tau in taus):
       return True
-  #for genvistau in Collection(event,'GenVisTau'): # not complete...
-  #  ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
-  #  if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0: #and any(genvistau.DeltaR(t)<0.5 for t in taus)
-  #    return True
+  ###for genvistau in Collection(event,'GenVisTau'): # not complete...
+  ###  ###print ">>> genvistau: pt=%.1f, eta=%.2f"%(genvistau.pt,genvistau.eta)
+  ###  if genvistau.pt>18 and abs(genvistau.eta)<2.5 and genvistau.charge*muon.pdgId>0: #and any(genvistau.DeltaR(t)<0.5 for t in taus)
+  ###    return True
   return False
   
 
@@ -245,16 +248,15 @@ def getmet(era,var="",useT1=False,verb=0):
     branch += "_T1"
     if var=='nom':
       var = ""
-  pt      = '%s_pt'%(branch)
-  phi     = '%s_phi'%(branch)
+  pt  = '%s_pt'%(branch)
+  phi = '%s_phi'%(branch)
   if var:
-    pt   += '_'+var
-    phi  += '_'+var
-  funcstr = "func = lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
+    pt  += '_'+var
+    phi += '_'+var
+  funcstr = "lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
   if verb>=1:
     LOG.verb(">>> getmet: %r"%(funcstr))
-  exec(funcstr) #in locals()
-  return func
+  return eval(funcstr)
   
 
 def correctmet(met,dp):
@@ -293,11 +295,10 @@ def getmetfilters(era,isdata,verb=0):
     filters.extend(['Flag_eeBadScFilter']) # eeBadScFilter "not suggested" for MC
   if ('2017' in era or '2018' in era) and ('UL' not in era):
     filters.extend(['Flag_ecalBadCalibFilterV2']) # under review for change in Ultra Legacy
-  funcstr = "func = lambda e: e."+' and e.'.join(filters)
+  funcstr = "lambda e: e."+' and e.'.join(filters)
   if verb>=1:
     LOG.verb(">>> getmetfilters: %r"%(funcstr))
-  exec(funcstr) #in locals()
-  return func
+  return eval(funcstr)
   
 
 def loosestIso(tau):
@@ -347,11 +348,11 @@ def getlepvetoes(event, electrons, muons, taus, channel):
     if abs(electron.dxy)>0.045: continue
     if electron.pfRelIso03_all>0.3: continue
     if any(electron.DeltaR(tau)<0.4 for tau in taus): continue
-    if electron.convVeto==1 and electron.lostHits<=1 and electron.mvaFall17V2Iso_WP90 and all(e._index!=electron._index for e in electrons):
+    if all(e._index!=electron._index for e in electrons) and electron.convVeto==1 and electron.lostHits<=1 and electron.mvaFall17V2Iso_WP90:
       extraelec_veto = True
     if electron.pt>15 and electron.cutBased>0 and electron.mvaFall17V2Iso_WPL:
       looseElectrons.append(electron)
-  
+ 
   # DILEPTON VETO
   if channel=='mutau':
     for muon1, muon2 in combinations(looseMuons,2):

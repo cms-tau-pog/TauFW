@@ -49,7 +49,8 @@ def plotCorrelation(channel,var,region,year,*parameters,**kwargs):
     plotlabel   = kwargs.get('plotlabel', ""                )
     order       = kwargs.get('order',     False             )
     era         = "%s-13TeV"%year
-    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
+    name_red = channel.replace("_v10_2p5", "")
+    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,name_red,var,region,tag,era)
     ensureDirectory(outdir)
     print '>>>   file "%s"'%(filename)
     
@@ -212,7 +213,8 @@ def plotPostFitValues(channel,var,region,year,*parameters,**kwargs):
     compareFD   = kwargs.get('compareFD', False ) and N==1
     era         = "%s-13TeV"%year
     isBBB       = any("_bin_" in p for p in parameters)
-    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
+    name_red = channel.replace("_v10_2p5", "")
+    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,name_red,var,region,tag,era)
     filenamesFD = '%s/fitDiagnostics.%s_%s-%s%s-%s_TES*p*.root'%(indir,channel,var,region,tag,era)
     ensureDirectory(outdir)
     if not name:
@@ -499,7 +501,8 @@ def getBBBList(channel,var,region,year,process,**kwargs):
     indir    = kwargs.get('indir', "output_%s"%year)
     era      = "%s-13TeV"%year
     tag      = kwargs.get('tag', "" )
-    filename = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
+    name_red = channel.replace("_v10_2p5", "")
+    filename = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,name_red,var,region,tag,era)
     bbblist  = findBranches(filename,process) #[int(re.findall(r"\d+",b)[-1]) for b in findBranches(filename,process)]
     return bbblist
     

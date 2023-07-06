@@ -21,7 +21,7 @@ def dasgoclient(query,**kwargs):
     LOG.verb(repr(dascmd),verbosity)
     cmdout    = execute(dascmd,verb=verbosity-1)
   except CalledProcessError as e:
-    print
+    print('')
     LOG.error("Failed to call 'dasgoclient' command. Please make sure:\n"
               "  1) 'dasgoclient' command exists.\n"
               "  2) You have a valid VOMS proxy. Use 'voms-proxy-init -voms cms -valid 200:0' or 'source utils/setupVOMS.sh'.\n"
@@ -54,7 +54,7 @@ def expanddas(*datasets,**kwargs):
   """Get full list of datasets for a list of DAS dataset patterns."""
   verbosity = kwargs.get('verb', 0)
   if verbosity>=1:
-    print ">>> expanddas(%r)"%(datasets)
+    print(">>> expanddas(%r)"%(datasets))
   datasets = unwraplistargs(datasets)
   for dataset in datasets[:]:
     if '*' not in dataset: continue
@@ -73,7 +73,7 @@ def expanddas(*datasets,**kwargs):
 def getparent(dataset,depth=0,verb=0):
   """Recursively get full ancestory of DAS dataset."""
   if verb>=1:
-    print ">>> getparent(%r)"%(dataset)
+    print(">>> getparent(%r)"%(dataset))
   query    = "parent dataset=%s"%(dataset)
   if dataset.endswith('USER'):
     query += " instance=prod/phys03"
