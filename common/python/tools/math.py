@@ -3,7 +3,7 @@
 from TauFW.common.math_helper import sqrt, log10, ceil, floor
 
 
-def frange(start,end,step):
+def frange(start,end,step,scale=1000):
   """Return a list of numbers between start and end, for a given stepsize."""
   flist = [start]
   next = start+step
@@ -11,7 +11,7 @@ def frange(start,end,step):
   while next<end:
     i += 1
     flist.append(next)
-    next = start+i*step # safer against rounding errors than next += step
+    next = start+(scale*i)*step/scale # safer against rounding errors than next += step
   return flist
   
 
@@ -59,8 +59,12 @@ def columnize(oldlist,ncol=2):
   return collist
   
 
-def partition(mylist,nparts):
+def partition(mylist,nparts=None,nmax=None):
   """Partion list into given number of chunks, as evenly sized as possible."""
+  if nmax!=None:
+    nparts = ceil(len(mylist)/float(nmax)) # chunk can contain nmax elements at most 
+  elif nparts==None:
+    raise IOError("partition: Please pass nparts or nmax (both are None)!")
   nleft    = len(mylist)
   divider  = float(nparts)
   parts    = [ ]

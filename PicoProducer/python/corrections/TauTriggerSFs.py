@@ -4,7 +4,7 @@
 # Run2: https://github.com/cms-tau-pog/TauTriggerSFs/blob/run2_SFs/python/getTauTriggerSFs.py
 import os
 from TauFW.PicoProducer import datadir
-from TauFW.common.tools.file import ensureTFile, gethist
+from TauFW.common.tools.root import ensureTFile, gethist
 datadir = os.path.join(datadir,"trigger")
 
 

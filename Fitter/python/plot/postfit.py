@@ -2,7 +2,8 @@
 # Author: Izaak Neutelings (Februari 2021)
 import os, sys, re
 #sys.path.append('../plots')
-from TauFW.common.tools.file import ensuredir, ensureTFile #, gethist
+from TauFW.common.tools.file import ensuredir
+from TauFW.common.tools.root import ensureTFile #, gethist
 from TauFW.common.tools.utils import repkey
 from TauFW.Plotter.plot.utils import LOG, grouphists
 from TauFW.Plotter.plot.Stack import Stack # Var

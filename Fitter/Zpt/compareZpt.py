@@ -3,7 +3,8 @@
 # Description: Script to compare Z pT plots from the ROOT files
 from TauFW.Plotter.sample.utils import setera
 from TauFW.Plotter.plot.Plot import Plot, Var, LOG, close #, getconstanthist
-from TauFW.common.tools.file import ensuredir, ensureTFile, ensureTDirectory
+from TauFW.common.tools.file import ensuredir
+from TauFW.common.tools.root import ensureTFile, ensureTDirectory
 from TauFW.common.tools.string import repkey
 from ROOT import gStyle, gROOT, gSystem, gDirectory, kRed, kBlue, kDashed
 ptitle   = "p_{#kern[-0.1]{#lower[-0.1]{T}}}"

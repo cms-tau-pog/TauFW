@@ -202,7 +202,7 @@ class Sample(object):
     tree = file.Get(self.treename)
     if not tree or not isinstance(tree,TTree):
       LOG.throw(IOError,'Sample.get_newfile_and_tree: Could not find tree %r for %r in %s!'%(self.treename,self.name,self.filename))
-    setaliases(tree,self.aliases)
+    setaliases(tree,verb=0,**self.aliases)
     return file, tree
     
   def gethist_from_file(self,hname,tag="",close=True,**kwargs):
@@ -609,6 +609,16 @@ class Sample(object):
       self.aliases[alias] = formula
       LOG.verb('Sample.addalias: %r: aliases = %s'%(self,self.aliases),verbosity,4)
   
+  def addaliases(self, verb=0, **aliases):
+    """Add (dictionary of) aliases for TTree."""
+    if isinstance(self,MergedSample):
+      for sample in self.samples:
+        sample.addaliases(verb=verb,**aliases)
+    else:
+      LOG.verb('Sample.addaliases: %r: new aliases = %r'%(self,aliases),verb,2)
+      self.aliases.update(aliases)
+      LOG.verb('Sample.addaliases: %r: updated aliases = %r'%(self,self.aliases),verb,4)
+  
   def split(self,*splitlist,**kwargs):
     """Split sample into different components with some cuts, e.g.
       sample.split(('ZTT',"Real tau","genmatch_2==5"),
@@ -685,6 +695,7 @@ class Sample(object):
     undoshifts = kwargs.get('undoshifts', undoshifts   ) # remove up/down from variable names
     drawopt = 'E0' if self.isdata else 'HIST'
     drawopt = kwargs.get('option', drawopt ) + 'gOff'
+    LOG.verb("Sample.gethist: name=%r, title=%r, scale=%r"%(name,title,scale),verbosity,4)
     
     # SELECTION STRING & WEIGHTS
     if self.isdata:
@@ -746,12 +757,15 @@ class Sample(object):
     LOG.insist(len(variables)==len(varexps)==len(hists),
                "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
     if varexps:
+      LOG.verb('Sample.gethist: varexps=%s'%(varexps),verbosity,5)
       try:
         file, tree = self.get_newfile_and_tree() # create new file and tree for thread safety
-        out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists)
+        out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists,verb=verbosity-3)
         file.Close()
       except KeyboardInterrupt:
         LOG.throw(KeyboardInterrupt,"Interrupted Sample.gethist for %r (%d histogram%s)"%(self.name,len(varexps),'' if len(varexps)==1 else 's'))
+    else:
+      LOG.verb('Sample.gethist: No varexps: isdata=%r, varcut=%s, variables=%s'%(self.isdata,varcut,variables),verbosity,3)
     
     # FINISH
     nentries = 0
@@ -780,7 +794,6 @@ class Sample(object):
           #print('>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp))
           if verbosity>=5:
             printhist(hist,pre=">>>   ")
-      
     
     if issingle:
       return hists[0]

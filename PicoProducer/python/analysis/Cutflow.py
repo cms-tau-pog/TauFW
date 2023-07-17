@@ -43,7 +43,7 @@ class Cutflow(object):
     nlast = (-99,ntot)
     #padcut = 3+max(len(c) for c in self.cuts) # padding
     values = [self.hist.GetBinContent(1+i) for k, i in self.cuts.items() if self.hist.GetBinContent(1+i)>0] # all values > 0
-    maxval = max(abs(x) for x in values)
+    maxval = max(abs(x) for x in values) if values else 0
     padevt = 4+(int(floor(log10(maxval))) if maxval>0 else 0) # pad all numbers of events
     padtot = 3+(int(floor(log10(ntot))) if ntot>0 else 0) # pad total number of events
     denstr = str(ntot).rjust(padtot) if ntot else " 0"

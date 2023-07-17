@@ -13,7 +13,8 @@ import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
 from TauFW.common.tools.utils import repkey, ensurelist, isglob
-from TauFW.common.tools.file import ensuredir, ensurefile, ensureTFile
+from TauFW.common.tools.file import ensuredir, ensurefile
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.LoadingBar import LoadingBar
 import TauFW.PicoProducer.tools.config as GLOB
 #from TauFW.PicoProducer.tools.config import user

@@ -357,7 +357,7 @@ def checkchunks(sample,**kwargs):
   checkexpevts = kwargs.get('checkexpevts', False ) # compare actual to expected number of processed events
   pendjobs     = kwargs.get('jobs',         None  )
   checkdas     = kwargs.get('das',          True  ) # check number of events from DAS
-  showlogs     = kwargs.get('showlogs',     False ) # print log files of failed jobs
+  showlogs     = kwargs.get('showlogs',     False ) # print log files of failed jobs for debugging
   ncores       = kwargs.get('ncores',       4     ) # validate files in parallel
   verbosity    = kwargs.get('verb',         0     )
   oldjobcfg    = sample.jobcfg # job config from last job
@@ -741,7 +741,7 @@ def checkchunks(sample,**kwargs):
             chunks = jobcfg.get('chunks',[ ])
             chunkset[jobid] = chunks
         if chunks and chunk in chunks:
-          taskid  = chunks.index(chunk)+1
+          taskid  = chunks.index(chunk)+(0 if 'HTCondor' in CONFIG.batch else 1)
           logexp  = "%d.%d.log"%(jobid,taskid)
           #logexp  = re.compile(".*\.\d{3,}\.%d(?:\.log)?$"%(taskid)) #$JOBNAME.$JOBID.$TASKID.log
           matches = [f for f in lognames if f.endswith(logexp)]

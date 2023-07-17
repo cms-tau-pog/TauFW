@@ -4,7 +4,8 @@
 import os, re
 from collections import OrderedDict
 from TauFW.common.tools.utils import ensurelist, repkey, lreplace #, rreplace
-from TauFW.common.tools.file import ensuredir, ensureTDirectory, ensureTFile, gethist
+from TauFW.common.tools.file import ensuredir
+from TauFW.common.tools.root import ensureTDirectory, ensureTFile, gethist
 from TauFW.common.tools.log import color
 from TauFW.Plotter.plot.utils import LOG, deletehist, grouphists
 from TauFW.Plotter.plot.Stack import Stack

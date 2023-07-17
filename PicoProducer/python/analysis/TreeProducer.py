@@ -13,6 +13,7 @@
 #   Double_t  'D'     'd'/'float64'/float  64-bit float
 import numpy as np
 from ROOT import TTree, TFile, TH1D, TH2D, gDirectory
+from TauFW.common.tools.root import ensureTFile
 from TauFW.PicoProducer.analysis.Cutflow import Cutflow
 
 root_dtype = { # python/numpy -> root data type
@@ -36,11 +37,12 @@ class TreeProducer(object):
   
   def __init__(self, filename, module, **kwargs):
     self.verbosity = kwargs.get('verb',getattr(module,'verbosity',False) or getattr(module,'verb',False))
+    compression    = kwargs.get('compress',None)
     if self.verbosity>=1:
       print(">>> TreeProducer.__init__: %r, %r, kwargs=%s..."%(filename,module,kwargs))
     self.filename  = filename
     self.module    = module
-    self.outfile   = TFile(filename,'RECREATE')
+    self.outfile   = ensureTFile(filename,'RECREATE',compress=compression)
     ncuts          = kwargs.get('ncuts',25)
     self.cutflow   = Cutflow('cutflow',ncuts) if ncuts>0 else None
     self.display   = kwargs.get('display',True) # display cutflow at the end
@@ -49,10 +51,16 @@ class TreeProducer(object):
     self.hists     = { } #OrderedDict() # extra histograms to be drawn
   
   def addHist(self,name,*args):
-    """Add a histogram."""
+    """Add a histogram. Call as
+         self.addHist(name,title,nxbins,xmin,xmax) # constant binning
+         self.addHist(name,title,[xmin,...,xmax])  # variable binning via list of edges
+         self.addHist(name,title,nxbins,xmin,xmax,nybins,ymin,ymax) # TH2D: constant binning
+         self.addHist(name,title,[xmin,...,xmax],nybins,ymin,ymax)  # TH2D: variable x binning
+         self.addHist(name,title,nxbins,xmin,xmax,[ymin,...,ymax])  # TH2D: variable y binning
+    """
     dname = ""
     hname = name
-    if '/' in name: # make subdirectory
+    if '/' in name: # make subdirectory in file
       dname = '/'.join(name.split('/')[:-1])
       hname = name.split('/')[-1]
     if args and isinstance(args[0],str):
@@ -61,32 +69,34 @@ class TreeProducer(object):
     else:
       title = hname
       bins  = args
-    if len(bins)==1 and isinstance(bins[0],list): # list of binedges
+    if len(bins)==1 and isinstance(bins[0],list): # TH1D: variable binning: list of binedges
       edges = np.array(bins[0],'f')
       hist = TH1D(hname,title,len(edges)-1,edges)
-    elif len(bins)==3: # nbins, xmin, xmax
+    elif len(bins)==3: # TH1D: constant binning: nbins, xmin, xmax
       hist = TH1D(hname,title,*bins)
-    elif len(bins)==2 and isinstance(bins[0],list) and isinstance(bins[1],list): # list of binedges
+    elif len(bins)==2 and isinstance(bins[0],list) and isinstance(bins[1],list): # TH2D: list of x and y binedges
       xedges = np.array(bins[0],'d')
       yedges = np.array(bins[1],'d')
       hist = TH2D(hname,title,len(xedges)-1,xedges,len(yedges)-1,yedges)
-    elif len(bins)==4 and isinstance(bins[0],list): # list of binedges
+    elif len(bins)==4 and isinstance(bins[0],list): # TH2D: list of x binedges
       binning = (len(bins[0])-1,np.array(bins[0],'d'))+bins[1:]
       hist = TH2D(hname,title,*binning)
-    elif len(bins)==4 and isinstance(bins[3],list): # list of binedges
+    elif len(bins)==4 and isinstance(bins[3],list): # TH2D: list of y binedges
       binning = bins[:3]+(len(bins[3])-1,np.array(bins[3],'d'))
       hist = TH2D(hname,title,*binning)
-    elif len(bins)==6: # nxbins, xmin, xmax, nybins, ymin, ymax
+    elif len(bins)==6: # TH2D: constant binning: nxbins, xmin, xmax, nybins, ymin, ymax
       hist = TH2D(hname,title,*bins)
     else:
       raise IOError("TreeProducer.addHist: Could not parse histogram arguments: %r, args=%r"%(name,args))
-    if self.verbosity+2>=1:
+    if self.verbosity>=1:
       print(">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins))
     self.hists[name] = hist
+    if isinstance(hist,TH2D):
+      hist.SetOption('COLZ') # for display in TBrowser
     if dname: # make subdirectory
       subdir = self.outfile.GetDirectory(dname)
       if not subdir: # create directory for the first time
-        if self.verbosity+2>=1:
+        if self.verbosity>=1:
           print(">>> TreeProducer.addHist: Creating subdirectory %s..."%(dname)) 
         subdir = self.outfile.mkdir(dname) #,'',True)
       hist.SetDirectory(subdir)

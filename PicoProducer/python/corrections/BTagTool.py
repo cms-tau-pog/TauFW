@@ -10,9 +10,9 @@ from array import array
 import ROOT
 #ROOT.gROOT.ProcessLine('.L ./BTagCalibrationStandalone.cpp+')
 from TauFW.PicoProducer import datadir
-from TauFW.common.tools.file import ensureTFile
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.log import Logger
-from ROOT import TH2F, BTagCalibration, BTagCalibrationReader
+from ROOT import TH2D, BTagCalibration, BTagCalibrationReader
 from ROOT.BTagEntry import OP_LOOSE, OP_MEDIUM, OP_TIGHT, OP_RESHAPING # enum 0, 1, 2, 3
 from ROOT.BTagEntry import FLAV_B, FLAV_C, FLAV_UDSG # enum: 0, 1, 2
 datadir = os.path.join(datadir,"btag/")
@@ -342,7 +342,7 @@ class BTagWeightTool:
       self.jetmaps[tag][flavor+'_all'].Fill(jetpt,jet.eta)
   
   def setDir(self,directory,subdirname='btag'):
-    """Set directory of histograms (efficiency map) before writing."""
+    """Set directory (TDirectory, e.g. TFile) of histograms (efficiency map) before writing."""
     if subdirname:
       subdir = directory.Get(subdirname)
       if not subdir:
@@ -351,6 +351,7 @@ class BTagWeightTool:
     for tag, hists in self.jetmaps.items():
       for hname, hist in hists.items():
         hist.SetDirectory(directory)
+    return directory
   
 
 def flavorToFLAV(flavor):
@@ -369,9 +370,10 @@ def getJetMap(hname,maxeta=2.5):
   ptbins  = array('d',[10,20,30,50,70,100,140,200,300,500,1000,2000])
   etabins = array('d',[-maxeta,-1.5,0.0,1.5,maxeta])
   bins    = (len(ptbins)-1,ptbins,len(etabins)-1,etabins)
-  hist    = TH2F(hname,hname,*bins)
+  hist    = TH2D(hname,hname,*bins)
   hist.GetXaxis().SetTitle("Jet p_{T} [GeV]")
   hist.GetYaxis().SetTitle("Jet #eta")
+  hist.SetOption('COLZ') # for display in TBrowser
   hist.SetDirectory(0)
   return hist
   

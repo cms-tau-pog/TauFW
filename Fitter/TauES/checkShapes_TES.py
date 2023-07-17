@@ -6,7 +6,8 @@ from TauFW.Plotter.plot.utils import LOG, grouphists
 from TauFW.Plotter.plot.Stack import Stack
 from TauFW.Plotter.plot.Plot import Plot
 from TauFW.common.tools.utils import islist, ensurelist, repkey
-from TauFW.common.tools.file import ensuredir, ensureTFile
+from TauFW.common.tools.file import ensuredir
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.log import color, warning, error
 from TauFW.Fitter.plot.datacard import plotinputs
 import TauFW.Plotter.sample.SampleStyle as STYLE

@@ -32,7 +32,8 @@ class TreeProducerTauPair(TreeProducer):
     self.addBranch('run',                 'i')
     self.addBranch('lumi',                'i')
     self.addBranch('evt',                 'L') # uint64 -> ULong64_t
-    self.addBranch('data',                '?', module.isdata)
+    #self.addBranch('data',                '?', module.isdata) # boolean
+    self.setAlias('data','1' if module.isdata else '0') # save as alias to storage space
     self.setAlias("year",str(module.year)) # save as alias to storage space
     
     self.addBranch('npv',                 'i', title="number of offline primary vertices")

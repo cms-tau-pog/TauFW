@@ -1,9 +1,7 @@
 # Author: Izaak Neutelings (May 2020)
 from __future__ import print_function # for python3 compatibility
-from past.builtins import basestring # for python2 compatibility
 import os, re, shutil, glob
 import importlib, traceback
-import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from TauFW.common.tools.log import LOG
 from TauFW.common.tools.utils import ensurelist, isglob
 basedir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
@@ -124,35 +122,6 @@ def getline(fname,iline):
   return target
   
 
-def ensureTFile(filename,option='READ',verb=0):
-  """Open TFile, checking if the file in the given path exists."""
-  if isinstance(filename,basestring):
-    if option=='READ' and ':' not in filename and not os.path.isfile(filename):
-      LOG.throw(IOError,'File in path "%s" does not exist!'%(filename))
-      exit(1)
-    file = ROOT.TFile.Open(filename,option)
-    if not file or file.IsZombie():
-      LOG.throw(IOError,'Could not open file by name %r!'%(filename))
-    LOG.verb("Opened file %s..."%(filename),verb,1)
-  else:
-    file = filename
-    if not file or (hasattr(file,'IsZombie') and file.IsZombie()):
-      LOG.throw(IOError,'Could not open file %r!'%(file))
-  return file
-  
-
-def ensureTDirectory(file,dirname,cd=True,verb=0):
-  """Make TDirectory in a file (or other TDirectory) if it does not yet exist."""
-  directory = file.GetDirectory(dirname)
-  if not directory:
-    directory = file.mkdir(dirname)
-    if verb>=1:
-      print(">>> Created directory %s in %s"%(dirname,file.GetPath()))
-  if cd:
-    directory.cd()
-  return directory
-  
-
 def ensureinit(*paths,**kwargs):
   """Check if an __init__.py exists. Create one if it does not exist."""
   init   = os.path.join(os.path.join(*paths),'__init__.py')
@@ -163,27 +132,4 @@ def ensureinit(*paths,**kwargs):
       if script:
         script = "by "+script
       file.write("# Generated%s to allow import of the sample list modules\n"%(script))
-  
-
-def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True,warn=True):
-  """Get histogram from a given file."""
-  if isinstance(file,basestring): # open TFile
-    file = ensureTFile(file)
-    if close==None:
-      close = not retfile
-  if not file or file.IsZombie():
-    LOG.throw(IOError,"Could not open file by name %r"%(filename))
-  hist = file.Get(histname)
-  if not hist:
-    if fatal:
-      LOG.throw(IOError,"Did not find histogram %r in file %r!"%(histname,file.GetPath()))
-    elif warn:
-      LOG.warn("Did not find histogram %r in file %r!"%(histname,file.GetPath()))
-  if (close or setdir) and isinstance(hist,ROOT.TH1):
-    hist.SetDirectory(0)
-  if close: # close TFile
-    file.Close()
-  if retfile:
-    return file, hist
-  return hist
   
