@@ -163,7 +163,7 @@ def makelatex(string,**kwargs):
       #string = string.replace("mu","#mu").replace("Mu","#mu")
       #string = string.replace("si#mulation","simulation")
     if "nu" in strlow:
-      string = re.sub(r"nu(?![pm])",r"#nu",string)
+      string = re.sub(r"(?<!mi)nu(?![pm])",r"#nu",string)
     if "ttbar" in strlow:
       string = re.sub(r"ttbar","t#bar{t}",string,flags=re.IGNORECASE)
     if "npv" in strlow:

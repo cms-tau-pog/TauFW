@@ -2,13 +2,15 @@
 # Author: Izaak Neutelings (June 2020)
 import os, re, glob
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs, repkey, getyear
-from TauFW.common.tools.file import ensuredir, ensureTFile, ensuremodule
+from TauFW.common.tools.file import ensuredir, ensuremodule
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.log import Logger, color
 from TauFW.Plotter.plot.Variable import Variable, Var, ensurevar
 from TauFW.Plotter.plot.Selection import Selection, Sel
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gDirectory, gROOT, TH1, THStack, kDotted, kBlack, kWhite
+print(">>> TauFW.sample: Done.")
 gROOT.SetBatch(True)
 LOG  = Logger('Sample')
 era  = None # data period: 2016, 2017, 2018, ...
@@ -548,10 +550,17 @@ def getxsec_nlo(*searchterms,**kwargs):
   return xsec_nlo
   
 
-def setaliases(tree,aliases):
+def setaliases(tree,verb=0,**aliases):
+  """Add alias to TTree. E.g.
+       setaliases(tree,deta='abs(eta1-eta2)',stmet='pt_1+pt_2+jpt_1+met',isdata='0')
+       aliases = { 'deta':'abs(eta1-eta2)', 'stmet':'pt_1+pt_2+jpt_1+met', 'isdata':'0' }
+       setaliases(tree,**aliases)
+  """
   if not tree or not aliases:
     return None
   for alias, formula in aliases.items():
+    formula = str(formula)
+    LOG.verb("setaliases: Adding alias to tree %r: %r -> %r"%(tree.GetName(),alias,formula),verb,level=5)
     tree.SetAlias(alias,formula)
   return tree
   

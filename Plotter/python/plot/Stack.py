@@ -19,8 +19,8 @@ class Stack(Plot):
     with 
     - variable: string or Variable object
     - datahist: single TH1 or TGraph object
-    - exphists: list of TH1s for expected processes
-    - sighists: list of TH1s for signals
+    - exphists: list of TH1 objects for expected processes
+    - sighists: list of TH1 objects for signals
     """
     self.verbosity = LOG.getverbosity(kwargs)
     #variable       = None
@@ -47,6 +47,10 @@ class Stack(Plot):
     kwargs['clone'] = False
     self.ratio      = kwargs.setdefault('ratio', bool(self.datahist) )
     super(Stack,self).__init__(variable,self.hists,**kwargs)
+    if isinstance(variable,Variable):
+      self.dividebins = kwargs.get('dividebins', variable.dividebins  ) # divide each histogram bins by it bin size
+    else:
+      self.dividebins = kwargs.get('dividebins', self.hists[0].GetXaxis().IsVariableBinSize() ) # divide each histogram bins by it bin size
     
   
   def draw(self,*args,**kwargs):
@@ -108,7 +112,7 @@ class Stack(Plot):
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       False           ) # no horizontal error bars for CMS style
-    dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide each histogram bins by it bin size
+    dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide content / y values by bin size
     drawdata     = kwargs.get('drawdata',     True            ) and bool(self.datahist)
     drawsignal   = kwargs.get('drawsignal',   True            ) and bool(self.sighists)
     lcolors      = ensurelist(lcolors)
@@ -174,8 +178,8 @@ class Stack(Plot):
       hist.SetMarkerStyle(1)
     if drawsignal:
       self.setlinestyle(self.sighists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
-    if drawdata:
-      self.setmarkerstyle(self.datahist)
+    #if drawdata:
+    #  self.setmarkerstyle(self.datahist)
     
     # CREATE STACK
     stack = THStack(makehistname('stack',self.name),"") # stack (expected)
@@ -228,16 +232,16 @@ class Stack(Plot):
         self.errbands.append(errband)
     
     # AXES
-    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,
+    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,
                  xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
-                 binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,grid=grid,latex=latex)
+                 dividebins=dividebins,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
     
     # RATIO
     if ratio:
       self.canvas.cd(2)
-      histden    = stack
-      histnums   = [self.datahist]+self.sighists
-      self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,errorX=errorX,option=roption,fraction=fraction)
+      histnums   = [self.datahist]+self.sighists # numerator
+      histden    = stack # denominator
+      self.ratio = Ratio(histnums,histden,errband=self.errband,drawzero=True,errorX=errorX,option=roption,fraction=fraction)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
       self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,center=True,nydiv=506,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
