@@ -10,7 +10,6 @@ from TauFW.Plotter.plot.Selection import Selection, Sel
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gDirectory, gROOT, TH1, THStack, kDotted, kBlack, kWhite
-print(">>> TauFW.sample: Done.")
 gROOT.SetBatch(True)
 LOG  = Logger('Sample')
 era  = None # data period: 2016, 2017, 2018, ...

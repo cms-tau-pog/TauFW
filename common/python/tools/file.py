@@ -1,5 +1,6 @@
 # Author: Izaak Neutelings (May 2020)
 from __future__ import print_function # for python3 compatibility
+from past.builtins import basestring # for python2 compatibility
 import os, re, shutil, glob
 import importlib, traceback
 from TauFW.common.tools.log import LOG

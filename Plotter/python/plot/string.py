@@ -180,7 +180,7 @@ def makelatex(string,**kwargs):
       string += " "+units.strip()
     else:
       string += " [%s]"%units.strip()
-  elif units and not '/' in string:
+  elif units and not '/' in string: # set unit automatically (except for ratio)
     if GeV or "mass" in string or "p_{T}" in string or "S_{T}" in string or (any(m in string.lower() for m in ["met","p_{t}^{miss}"]) and not any(p in string for p in ["phi","parameter"])):
       if "GeV" not in string:
         string += " [GeV]"

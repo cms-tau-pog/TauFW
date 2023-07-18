@@ -191,6 +191,7 @@ class Plot(object):
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
     lcolors      = kwargs.get('colors',       None            )
+    docols       = kwargs.get('docols',       True            ) # set line colors (automatically)
     lcolors      = kwargs.get('lcolors',      lcolors         ) or self.lcolors # line colors
     fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors # fill colors
     lstyles      = kwargs.get('style',        None            ) # line styles
@@ -286,7 +287,7 @@ class Plot(object):
     ###    lhists.append(hist)
     ###  else: # keep for marker style below
     ###    mhists.append(hist)
-    self.setlinestyle(hists,colors=lcolors,styles=lstyles,mstyle=mstyles,width=lwidth,pair=pair,triple=triple)
+    self.setlinestyle(hists,colors=lcolors,styles=lstyles,mstyle=mstyles,width=lwidth,pair=pair,triple=triple,docols=docols)
     if mstyles:
       self.setmarkerstyle(*hists,mstyle=mstyles)
     
@@ -351,7 +352,8 @@ class Plot(object):
     close  = kwargs.get('close',  False )
     outdir = kwargs.get('outdir', ""    ) # output directory
     tag    = kwargs.get('tag',    ""    ) # extra tag for output file
-    exts   = kwargs.get('ext',    [ ]   ) # [".png"]
+    exts   = kwargs.get('ext',    [ ]   ) # list of extension [".png"]
+    exts   = kwargs.get('exts',   exts  ) # alias
     pdf    = kwargs.get('pdf',    False )
     exts   = ensurelist(exts)
     if pdf:
@@ -1112,6 +1114,7 @@ class Plot(object):
     triple       = kwargs.get('triple',       False  )
     colors       = kwargs.get('color',        None   )
     colors       = kwargs.get('colors',       colors ) or self.lcolors
+    docols       = kwargs.get('docols',       True   )
     style        = kwargs.get('style',        True   )
     styles       = style if islist(style) else None
     styles       = kwargs.get('styles',       styles ) or self.lstyles # alias
@@ -1123,7 +1126,8 @@ class Plot(object):
     for i, hist in enumerate(hists):
       hist.SetFillStyle(0)
       if triple:
-        hist.SetLineColor(colors[(i//3)%len(colors)])
+        if docols:
+          hist.SetLineColor(colors[(i//3)%len(colors)])
         hist.SetLineStyle(styles[i%3])
         hist.SetMarkerSize(0.6)
         hist.SetMarkerColor(hist.GetLineColor()+1)
@@ -1131,15 +1135,17 @@ class Plot(object):
         color = colors[(i//2)%len(colors)]
         if color>300 and i%2==1:
           color += 1 # make darker
-        hist.SetLineColor(colors[(i//2)%len(colors)])
+        if docols:
+          hist.SetLineColor(colors[(i//2)%len(colors)])
         hist.SetLineStyle(styles[i%2])
         hist.SetMarkerColor(color)
         if i%2==1: hist.SetMarkerSize(0.6)
         else:      hist.SetMarkerSize(0.0)
       else:
-        hist.SetLineColor(colors[i%len(colors)])
-        hist.SetMarkerSize(0.6)
-        hist.SetMarkerColor(hist.GetLineColor()+1)
+        if docols:
+          hist.SetLineColor(colors[i%len(colors)])
+          hist.SetMarkerSize(0.6)
+          hist.SetMarkerColor(hist.GetLineColor()+1)
         if style:
           if isinstance(style,bool):
             hist.SetLineStyle(styles[i%len(styles)])

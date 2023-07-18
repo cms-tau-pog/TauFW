@@ -9,6 +9,7 @@ from ROOT import gROOT, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
                  TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
 moddir = os.path.dirname(os.path.realpath(__file__))
 macro  = os.path.join(moddir,"MultiDraw.cxx")
+
 def error(string): # raise RuntimeError in red color
   return RuntimeError("\033[31m"+string+"\033[0m")
 
