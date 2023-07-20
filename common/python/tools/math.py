@@ -47,6 +47,8 @@ def columnize(oldlist,ncol=2):
   e.g. [1,2,3,4,5,6,7] -> [1,5,2,6,3,7,4] for ncol=2."""
   if ncol<2:
     return oldlist
+  if not isinstance(oldlist,(tuple,list)):
+    oldlist = list(oldlist)
   parts   = partition(oldlist,ncol)
   collist = [ ]
   row     = 0
@@ -61,6 +63,8 @@ def columnize(oldlist,ncol=2):
 
 def partition(mylist,nparts=None,nmax=None):
   """Partion list into given number of chunks, as evenly sized as possible."""
+  if not isinstance(mylist,(tuple,list)):
+    mylist = list(mylist)
   if nmax!=None:
     nparts = ceil(len(mylist)/float(nmax)) # chunk can contain nmax elements at most 
   elif nparts==None:
