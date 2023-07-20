@@ -162,7 +162,8 @@ class Plot2D(Plot):
     canvas.SetFrameFillStyle(0)
     canvas.SetFrameBorderMode(0)
     canvas.SetMargin(lmargin,rmargin,bmargin,tmargin) # LRBT
-    canvas.SetTickx(0); canvas.SetTicky(0)
+    #canvas.SetTickx(0); canvas.SetTicky(0)
+    canvas.SetTicks(1,1)
     if grid:
       canvas.SetGrid()
     canvas.cd()
