@@ -27,16 +27,16 @@ class MergedSample(Sample):
   
   def init(self, sample, **kwargs):
     """Set some relevant attributes (inherited from the Sample class) with a given sample."""
-    self.filename     = sample.filename
-    self.treename     = sample.treename
-    self.isdata       = sample.isdata
-    self.isembed      = sample.isembed
-    self.isexp        = sample.isexp
-    self.issignal     = sample.issignal
-    self.lumi         = sample.lumi
-    self.cutflow      = sample.cutflow
-    self.fillcolor    = kwargs.get('color',    self.fillcolor) or sample.fillcolor
-    self.linecolor    = kwargs.get('linecolor',self.linecolor) or sample.linecolor
+    self.filename  = sample.filename
+    self.treename  = sample.treename
+    self.isdata    = sample.isdata
+    self.isembed   = sample.isembed
+    self.isexp     = sample.isexp
+    self.issignal  = sample.issignal
+    self.lumi      = sample.lumi
+    self.cutflow   = sample.cutflow
+    self.fillcolor = kwargs.get('color',    self.fillcolor) or sample.fillcolor
+    self.linecolor = kwargs.get('linecolor',self.linecolor) or sample.linecolor
   
   def __len__(self):
     """Return number of samples."""
@@ -48,7 +48,7 @@ class MergedSample(Sample):
       yield sample
   
   def __add__(self,sample):
-    """Start iteration over samples."""
+    """Add Sample object to list of samples."""
     self.add(sample)
   
   def add(self, sample, **kwargs):
