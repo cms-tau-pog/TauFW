@@ -22,17 +22,29 @@ def normalize(*hists,**kwargs):
   """Normalize histogram(s)."""
   hists  = unwraplistargs(hists)
   scales = kwargs.get('scale',None) or 1.0
+  tosum  = kwargs.get('tosum',False) # normalize to sum of integrals (e.g. for normalizing stacks)
+  intsum = 0
   if not islist(scales):
     scales = [scales]*len(hists)
+  if tosum: # normalize to sum of integrals
+    tothist = None
+    for hist in hists:
+      if tothist==None:
+        tothist = hist.Clone(hist.GetName()+'_tot')
+      else:
+        tothist.Add(hist)
+    if tothist:
+      intsum = tothist.Integral() # sum of integrals
+      deletehist(tothist)
   for hist, scale in zip(hists,scales):
     if hist.GetBinErrorOption()==TH1.kPoisson:
       hist.SetBinErrorOption(TH1.kNormal)
       hist.Sumw2()
-    integral = hist.Integral()
+    integral = intsum if tosum else hist.Integral() # denominator
     if integral:
       hist.Scale(scale/integral)
     else:
-      LOG.warn("norm: Could not normalize; integral = 0!")
+      LOG.warn("normalize: Could not normalize; integral = 0!")
   
 
 def getframe(pad,hist,xmin=None,xmax=None,**kwargs):
