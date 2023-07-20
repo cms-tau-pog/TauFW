@@ -100,7 +100,8 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
       for fname in fnames:
         setname = namerexp.findall(fname)[0]
         #print(setname)
-        datasample.add(Data(setname,'Observed',fname,**datakwargs))
+        title_ = 'Obs. (%s)'%(setname.split('_')[-1]) if '_Run20' in setname else title
+        datasample.add(Data(setname,title_,fname,**datakwargs))
     else:
       LOG.throw(IOError,"Did not find data file %r"%(fpattern))
   
