@@ -191,7 +191,7 @@ class Plot(object):
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
     lcolors      = kwargs.get('colors',       None            )
-    docols       = kwargs.get('docols',       True            ) # set line colors (automatically)
+    setcols      = kwargs.get('setcols',      True            ) # set line colors (automatically)
     lcolors      = kwargs.get('lcolors',      lcolors         ) or self.lcolors # line colors
     fcolors      = kwargs.get('fcolors',      None            ) or self.fcolors # fill colors
     lstyles      = kwargs.get('style',        None            ) # line styles
@@ -238,7 +238,7 @@ class Plot(object):
     if norm:
       if ytitle==None:
         ytitle = "A.U."
-      scale =  1.0 if isinstance(norm,bool) else norm # can be list
+      scale = 1.0 if isinstance(norm,bool) else norm # can be list
       normalize(hists,scale=scale)
     
     # DIVIDE BY BINSIZE
@@ -287,7 +287,7 @@ class Plot(object):
     ###    lhists.append(hist)
     ###  else: # keep for marker style below
     ###    mhists.append(hist)
-    self.setlinestyle(hists,colors=lcolors,styles=lstyles,mstyle=mstyles,width=lwidth,pair=pair,triple=triple,docols=docols)
+    self.setlinestyle(hists,colors=lcolors,styles=lstyles,mstyle=mstyles,width=lwidth,pair=pair,triple=triple,setcols=setcols)
     if mstyles:
       self.setmarkerstyle(*hists,mstyle=mstyles)
     
@@ -531,7 +531,7 @@ class Plot(object):
     if ratiorange:
       ymin, ymax  = 1.-ratiorange, 1.+ratiorange
     if intbins and nbins<15 and int(xmin)==xmin and int(xmax)==xmax and binwidth==1:
-      LOG.verb("Plot.setaxes: Setting integer binning for (%r,%s,%d,%d)!"%(xtitle,nbins,xmin,xmax),verbosity,1)
+      LOG.verb("Plot.setaxes: Setting integer binning for (%r,%s,%d,%d)!"%(xtitle,nbins,xmin,xmax),verbosity,2)
       binlabels   = [str(i) for i in range(int(xmin),int(xmax)+1)]
       xlabelsize   *= 1.6
       xlabeloffset *= 0.88*scale
@@ -1114,7 +1114,7 @@ class Plot(object):
     triple       = kwargs.get('triple',       False  )
     colors       = kwargs.get('color',        None   )
     colors       = kwargs.get('colors',       colors ) or self.lcolors
-    docols       = kwargs.get('docols',       True   )
+    setcols      = kwargs.get('setcols',      True   )
     style        = kwargs.get('style',        True   )
     styles       = style if islist(style) else None
     styles       = kwargs.get('styles',       styles ) or self.lstyles # alias
@@ -1126,7 +1126,7 @@ class Plot(object):
     for i, hist in enumerate(hists):
       hist.SetFillStyle(0)
       if triple:
-        if docols:
+        if setcols:
           hist.SetLineColor(colors[(i//3)%len(colors)])
         hist.SetLineStyle(styles[i%3])
         hist.SetMarkerSize(0.6)
@@ -1135,14 +1135,14 @@ class Plot(object):
         color = colors[(i//2)%len(colors)]
         if color>300 and i%2==1:
           color += 1 # make darker
-        if docols:
+        if setcols:
           hist.SetLineColor(colors[(i//2)%len(colors)])
         hist.SetLineStyle(styles[i%2])
         hist.SetMarkerColor(color)
         if i%2==1: hist.SetMarkerSize(0.6)
         else:      hist.SetMarkerSize(0.0)
       else:
-        if docols:
+        if setcols:
           hist.SetLineColor(colors[i%len(colors)])
           hist.SetMarkerSize(0.6)
           hist.SetMarkerColor(hist.GetLineColor()+1)
