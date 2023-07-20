@@ -42,10 +42,10 @@ class Ratio(object):
     denom         = kwargs.get('den',         None        ) # index of common denominator histogram (count from 1)
     denom         = kwargs.get('denom',       None        ) # alias
     errorX        = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
-    fraction      = kwargs.get('fraction',    None        ) # stack to make fraction for
+    fraction      = kwargs.get('fraction',    None        ) # make stacked fraction from stack (normalize each bin to 1)
     hists         = unwraplistargs(hists) # ensure list of histograms
     LOG.verb("Ratio.init: hists=%s, denom=%r, num=%r, drawden=%r, errband=%r"%(
-      rootrepr(hists),denom,num,self.drawden,errband),verbosity,2)
+      rootrepr(hists),denom,num,self.drawden,errband),verbosity,1)
     
     # SET NUMERATOR & DENOMINATOR INDEX
     if num!=None: # single numerator, use other histograms as denominator
@@ -73,7 +73,7 @@ class Ratio(object):
     for i, hist in enumerate(hists[:]):
       if isinstance(hist,THStack): # convert TStack to TH1D
         if isinstance(fraction,bool) and fraction: # only once
-          fraction = normalizebins(hist) # create normalized stack
+          fraction = normalizebins(hist) # create stack with normalized bins
         hists[i] = hist.GetStack().Last() # should have correct bin content and error
       elif isinstance(hist,TGraph):
         LOG.error("Ratio.init: TGraph not implemented")
