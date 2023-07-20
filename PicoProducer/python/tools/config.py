@@ -57,7 +57,7 @@ def getdefaultconfig(verb=0):
     haddcmd       = ""                               # alternative command for hadd'ing, e.g. 'python3 /.../.../haddnano.py'
     _cfgdefaults  = OrderedDict([                    # ordered dictionary with defaults
       ('channels',channels), ('eras',eras),
-      ('basedir',basedir),
+      #('basedir',basedir), # import instead
       ('jobdir',jobdir),     ('outdir',outdir), ('nanodir',nanodir), ('picodir',picodir),
       ('tmpskimdir',tmpskimdir),
       ('batch',batchsystem), ('queue',queue),

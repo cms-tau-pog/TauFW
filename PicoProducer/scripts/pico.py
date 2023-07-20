@@ -5,6 +5,7 @@ import os, sys, glob, json
 try:
   from TauFW.common.tools.file import ensurefile, ensureinit
   from TauFW.common.tools.string import repkey, rreplace
+  from TauFW.PicoProducer import basedir
   from TauFW.PicoProducer.analysis.utils import ensuremodule
   from TauFW.PicoProducer.storage.utils import getsamples
   from TauFW.PicoProducer.pico.common import *
@@ -219,7 +220,7 @@ if __name__ == "__main__":
     SLOG.setverbosity(args.verbosity-1)
   
   # SUBCOMMAND MAINs
-  os.chdir(CONFIG.basedir)
+  os.chdir(basedir) #CONFIG.basedir
   if args.subcommand=='install':
     main_install(args)
   if args.subcommand=='list':
