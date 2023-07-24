@@ -153,7 +153,7 @@ Examples of efficiency maps per jet flavor, and as a function of jet pT versus j
 </p>
 
 
-## Pileup reweighting
+## Trigger object matching
 For matching trigger objects, please use the [`TrigObjMatcher.py`](TrigObjMatcher.py) tool.
 This tool uses the JSON files in [`../../data/trigger`](../../data/trigger),
 to get a list of all available trigger filter bits in nanoAOD,
