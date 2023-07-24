@@ -63,6 +63,7 @@ class ModuleMuTau(ModuleTauPair):
     print(">>> %-12s = %s"%('muonCutEta', self.muonCutEta))
     print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
     print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
+    #print(">>> %-12s = %s"%('trigger',    self.trigger))
     pass
     
   

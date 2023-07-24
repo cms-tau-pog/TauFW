@@ -47,6 +47,7 @@ for a full list of available variables.
 To know how they are defined from miniAOD, you can dig in the CMSSW source code in
 [`cmssw/PhysicsTools/NanoAOD`](https://github.com/cms-sw/cmssw/tree/master/PhysicsTools/NanoAOD).
 
+### Event loop modules
 To access information of nanoAOD using `python`, you can subclass [`Module`](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/eventloop.py)
 from the [`nanoAOD-tools`](https://github.com/cms-nanoAOD/nanoAOD-tools).
 A simple example of a subclass to analyze nanoAOD is given in [`ModuleMuTauSimple.py`](ModuleMuTauSimple.py).
@@ -87,6 +88,8 @@ Triggers are saved as booleans, e.g.
     if not event.HLT_IsoMu24:
       return False
 ```
+
+### Char type / bits
 To reduce the nanoAOD file size, some identification working points (WPs) are saved in nanoAOD as `UChar_t`, which is 1 byte (8 bits),
 instead of 4 bytes (32 bits) like `Int_t`. For example, to require the Medium WP of the `DeepTau2017v2p1VSjet` tau identification,
 you see in the [documentation](https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Tau)
@@ -122,6 +125,9 @@ The help function `hasbit` in [`utils.py`](utils.py) can be used:
 isPrompt    = hasbit(GenPart_statusFlags[i],0)
 hardProcess = hasbit(GenPart_statusFlags[i],7)
 ```
+
+### Trigger object matching
+For matching trigger objects, please see the [`../corrections/TrigObjMatcher.py`](../corrections#Trigger-object-matching) tool.
 
 
 ## Custom tree format
@@ -287,7 +293,7 @@ They follow this hierarchy:
 Several other modules are stored here:
 * [`GenDumper.py`](GenDumper.py): To dump some basic generator-level information (PDG ID, pt, status, status flags, ...) of a given sample.
 * [`GenFilterMuTau.py`](GenFilterMuTau.py): To study the generator mutau-filter, used for stitching.
-* ['GenMatcher.py`](GenMatcher.py): To study the gen-match algorithm for hadronic taus (`Tau_genPartFlav`).
+* [`GenMatcher.py`](GenMatcher.py): To study the gen-match algorithm for hadronic taus (`Tau_genPartFlav`).
 * [`PileUp.py`](PileUp.py): To compile histograms of pileup / number of primary vertices distributions in MC,
 see [these instructions](https://github.com/cms-tau-pog/TauFW/tree/master/PicoProducer/python/corrections#pileup-reweighting).
 * [`StitchEffs.py`](StitchEffs.py): To create 1D & 2D histograms of LHE-level Njets (number of partons) & HT to compute stitching weights

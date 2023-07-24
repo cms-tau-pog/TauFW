@@ -18,7 +18,16 @@ class ScaleFactor:
   def gethist(self,filename,histname,verb=0):
     """Help function to retrieve histogram from ROOT file and check axis assignment."""
     LOG.verb("ScaleFactor.gethist(%s): Opening %s:%r..."%(self.name,filename,histname),verb,1)
-    file = ensureTFile(filename)
+    try:
+      file = ensureTFile(filename)
+    except OSError as error:
+      if 'HTT' in filename and "does not exist" in filename:
+        LOG.throw("OSError: %s You may have to do\n"%(error)+
+          "  cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/\n"+
+          "  rm -rf HTT\n"+
+          "  git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT")
+      else:
+        raise error
     hist = file.Get(histname)
     LOG.insist(hist,"ScaleFactor(%s): Histogram %r does not exist in %s"%(self.name,histname,filename))
     hist.SetDirectory(0)
