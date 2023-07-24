@@ -11,7 +11,11 @@ The output is a custom analysis ntuple, we refer to as the _pico_ format.
 
 ### Table of Contents  
 * [Run](#Run)<br>
+  * [Hierarchy](#Hierarchy)<br>
 * [Accessing nanoAOD](#Accessing-nanoAOD)<br>
+  * [Event loop modules](#Event-loop-modules)<br>
+  * [Char type / bits](#Char-type--bits)<br>
+  * [Trigger object matching](#Trigger-object-matching)<br>
 * [Custom tree format](#Custom-tree-format)<br>
 * [Cutflow](#Cutflow)<br>
 * [Tau pair analysis](#Tau-pair-analysis)<br>
