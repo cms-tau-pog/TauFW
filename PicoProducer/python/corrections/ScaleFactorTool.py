@@ -18,16 +18,7 @@ class ScaleFactor:
   def gethist(self,filename,histname,verb=0):
     """Help function to retrieve histogram from ROOT file and check axis assignment."""
     LOG.verb("ScaleFactor.gethist(%s): Opening %s:%r..."%(self.name,filename,histname),verb,1)
-    try:
-      file = ensureTFile(filename)
-    except OSError as error:
-      if 'HTT' in filename and "does not exist" in filename:
-        LOG.throw("OSError: %s You may have to do\n"%(error)+
-          "  cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/\n"+
-          "  rm -rf HTT\n"+
-          "  git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT")
-      else:
-        raise error
+    file = ensureTFile(filename)
     hist = file.Get(histname)
     LOG.insist(hist,"ScaleFactor(%s): Histogram %r does not exist in %s"%(self.name,histname,filename))
     hist.SetDirectory(0)
@@ -79,7 +70,17 @@ class ScaleFactorHTT(ScaleFactor):
     self.name      = name
     self.filename  = filename
     LOG.verb("ScaleFactor(%s): Opening %s:%r..."%(self.name,filename,graphname),verb,1)
-    self.file      = ensureTFile(filename)
+    try:
+      file = ensureTFile(filename)
+    except (OSError,IOError) as error:
+      strerr = str(error).replace('\033[0m','')
+      if '/HTT/' in filename and "does not exist" in strerr:
+        LOG.throw(IOError,"%s You may have to do\n"%(strerr)+
+          "  cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/\n"+
+          "  rm -rf HTT\n"+
+          "  git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT")
+      else:
+        raise error
     self.hist_eta  = self.file.Get('etaBinsH')
     self.hist_eta.SetDirectory(0)
     self.effs_data = { }
