@@ -67,8 +67,8 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
   ]
   
   # VARIABLES
-  ptbins  = range(10,50,2) + range(50,70,4) + range(70,100,10) + [100,120,140]
-  Zptbins = range(0,60,3) + range(60,100,10) + range(100,140,20) + [140,170,200]
+  ptbins  = list(range(10,50,2)) + list(range(50,70,4)) + list(range(70,100,10)) + [100,120,140]
+  Zptbins = list(range(0,60,3)) + list(range(60,100,10)) + list(range(100,140,20)) + [140,170,200]
   variables = [
     Var('mutaufilter', 4, 0, 4, "Generator mutauh filter (pt > 18 GeV, |eta|<2.5)", labels=['Fail','Pass','','']),
     Var('m_vis',   50, 0, 150, fname="mvis"),
@@ -104,12 +104,12 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
   ]
   
   # PLOT
-  for sname, samplelist in samplesets.items():
+  for sname, samplelist in list(samplesets.items()):
     sampleset = SampleSet(samplelist)
     sampleset.printtable()
     header = "" #samplelist[0].title
     for selection in selections:
-      print ">>> %s: %r"%(selection,selection.selection)
+      print(">>> %s: %r"%(selection,selection.selection))
       hdict = { }
       text  = "%s: %s"%(channel.replace("tau","tau_{#lower[-0.2]{h}}"),selection.title)
       fname = "%s/compare_stitch_$VAR_%s_%s%s$TAG"%(outdir,sname,selection.filename,tag)
@@ -118,7 +118,7 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
         hists = sample.gethist(vars,selection,parallel=parallel)
         for variable, hist in zip(variables,hists):
           hdict.setdefault(variable,[ ]).append(hist)
-      for variable, hists in hdict.iteritems():
+      for variable, hists in hdict.items():
         for norm in norms:
           ntag  = '_norm' if norm else "_lumi"
           lsize = _Plot._lsize*(1.55 if variable.name.startswith('q_') else 1)
@@ -130,7 +130,7 @@ def compare_mutaufilter(channel,era,tag="",**kwargs):
           plot.saveas(fname,ext=['png'],tag=ntag) #,'pdf'
           plot.close()
         deletehist(hists)
-    print ">>> "
+    print(">>> ")
   
 
 def main(args):
@@ -175,5 +175,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

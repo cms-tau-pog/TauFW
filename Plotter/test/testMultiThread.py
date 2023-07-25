@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: Izaak Neutelings (Februari, 2019)
+# Author: Izaak Neutelings (Februari 2019)
 from TauFW.Plotter.plot.utils import LOG
 from TauFW.Plotter.plot.MultiThread import MultiProcessor, Thread
 from ROOT import gROOT, gSystem, gDirectory, TFile, TH1D
@@ -20,10 +20,10 @@ def foo(i,bar,**kwargs):
   return result
   
 
-def draw(histname):
+def draw(histname,filename):
   """Simple test function to be multithreaded."""
   #print ">>> Drawing %s..."%histname
-  filename = "/scratch/ineuteli/analysis/LQ_2018/SingleMuon/SingleMuon_Run2018_mutau.root"
+  #filename = "/scratch/ineuteli/analysis/LQ_2018/SingleMuon/SingleMuon_Run2018_mutau.root"
   file = TFile.Open(filename)
   tree = file.Get('tree')
   hist = TH1D(histname,histname,100,0,200)
@@ -57,7 +57,7 @@ def testProcess(N=5):
   for i in range(1,N+1):
     name = "thread %d"%i
     result = foo(i,"Hello world!")
-    print(">>>   foo returns:", result)
+    print(">>>   thread %s returns: %r"%(i,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
   
   print("\n>>> Parallel:")
@@ -70,6 +70,7 @@ def testProcess(N=5):
     threads.append(thread)
   for thread in threads:
     result = thread.join()
+    print(">>>   %s returns: %r"%(thread.name,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
   print('')
   
@@ -82,43 +83,44 @@ def testMultiProcessor(N=5):
   start = time.time()
   for i in range(1,N+1):
     result = foo(i,"Hello world!")
-    print(">>>   foo returns:",result)
+    print(">>>   thread %s returns: %r"%(i,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
   
   print("\n>>> Parallel:")
   start = time.time()
   processor = MultiProcessor()
   for i in range(1,N+1):
-    name = "thread %d"%i
-    processor.start(target=foo,args=(i,"Hello world!"))
+    name = "process %d"%i
+    processor.start(target=foo,args=(i,"Hello world!"),name=name)
   for process in processor:
     result = process.join() # wait for processes to end
-    print(">>>   foo returns:", result)
+    print(">>>   %s returns: %r"%(process.name,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
   print('')
   
 
-def testMultiProcessorWithDraw(N=5):
+def testMultiProcessorWithDraw(filename,N=5):
   """Test multiprocessing behavior with TTree:Draw."""
   LOG.header("testMultiProcessorWithDraw")
   
   print(">>> Sequential:")
   start = time.time()
   for i in range(1,N+1):
-   name = "hist_%d"%i
-   result = draw(name)
-   print(">>>   draw returns:", result)
+   name = "thread_%d"%i
+   result = draw(name,filename)
+   print(">>>   %s returns: %r"%(name,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
   
   print("\n>>> Parallel:")
   start = time.time()
   processor = MultiProcessor()
   for i in range(1,N+1):
-    name = "hist_%d"%i
-    processor.start(target=draw,args=(name,))
+    name = "process_%d"%i
+    processor.start(target=draw,args=(name,filename),name=name)
   for process in processor:
     result = process.join() # wait for processes to end
-    print(">>>   draw returns:", result)
+    print(">>>   %s returns: %r"%(process.name,result))
+    #result.Delete() # segmentation fault?
   print(">>> Took %.1f seconds"%(time.time()-start))
   print('')
   
@@ -130,8 +132,9 @@ def testThread(N=5):
   print(">>> Sequential:")
   start = time.time()
   for i in range(1,N+1):
+    name   = "thread %d"%i
     result = foo(i,"Hello world!")
-    print(">>>   foo returns:", result)
+    print(">>>   %s returns: %s"%(name,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
   
   print("\n>>> Parallel:")
@@ -144,12 +147,12 @@ def testThread(N=5):
     threads.append(thread)
   for thread in threads:
     result = thread.join()
-    print(">>>   %s done, foo returns: %s"%(thread.name,result))
+    print(">>>   %s done, returns: %s"%(thread.name,result))
   print(">>> Took %.1f seconds"%(time.time()-start))
   print('')
   
 
-def testThreadWithDraw(N=5):
+def testThreadWithDraw(filename,N=5):
   """Test threading behavior with TTree:Draw."""
   LOG.header("testThreadWithDraw")
   
@@ -157,7 +160,7 @@ def testThreadWithDraw(N=5):
   start = time.time()
   for i in range(1,N+1):
     name = "hist_%d"%i
-    result = draw(name)
+    result = draw(name,filename)
     gDirectory.Delete(name)
     print(">>>   %s done, draw returns: %s"%(name,result))
   print("Took %.1f seconds"%(time.time()-start))
@@ -167,7 +170,7 @@ def testThreadWithDraw(N=5):
   threads = [ ]
   for i in range(1,N+1):
     name   = "hist_%d"%i
-    thread = Thread(target=draw,args=(name,),name=name)
+    thread = Thread(target=draw,args=(name,filename),name=name)
     thread.start()
     threads.append(thread)
   for thread in threads:
@@ -177,11 +180,10 @@ def testThreadWithDraw(N=5):
   print('')
   
 
-
-def testThreadWithSharedTFile(N=5):
+def testThreadWithSharedTFile(filename,N=5):
   """Test threading behavior with drawing from the same TFile."""
   LOG.header("testThreadWithSharedTFile")
-  filename = "/scratch/ineuteli/analysis/LQ_2018/SingleMuon/SingleMuon_Run2018_mutau.root"
+  #filename = "/scratch/ineuteli/analysis/LQ_2018/SingleMuon/SingleMuon_Run2018_mutau.root"
   file = TFile.Open(filename)
   
   print(">>> Sequential:")
@@ -208,18 +210,26 @@ def testThreadWithSharedTFile(N=5):
   print('')
   
 
-def main():
+def main(args):
   """Main function."""
   N = 5
+  #filename = "/scratch/ineuteli/analysis/LQ_2018/SingleMuon/SingleMuon_Run2018_mutau.root"
+  filename = "/eos/user/i/ineuteli/analysis/g-2/UL2018/Data/SingleMuon_Run2018B_mumu.root"
+  filename = args.filename or filename
   #testProcess(N)
   #testThread(N)
-  #testThreadWithDraw(N)
-  #testThreadWithSharedTFile(N) # gives issues in ROOT
+  #testThreadWithDraw(filename,N=N)
+  #testThreadWithSharedTFile(filename,N) # gives issues in ROOT
   testMultiProcessor(N)
-  testMultiProcessorWithDraw(N)
+  testMultiProcessorWithDraw(filename,N=N)
   
 
 if __name__ == '__main__':
-  main()
+  from argparse import ArgumentParser
+  description = """Test MuliThread class."""
+  parser = ArgumentParser(prog="testMultiThread",description=description,epilog="Good luck!")
+  parser.add_argument('filename', nargs='?', help="filename to run over in parallel" )
+  args = parser.parse_args()
+  main(args)
   print(">>> Done!")
   

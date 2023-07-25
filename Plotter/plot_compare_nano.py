@@ -21,7 +21,7 @@ class Sample:
     for i, fname in enumerate(fnames): # expand glob patterns
       if any(c in fname for c in ['*','[',']']):
         if verb>=2:
-          print ">>> Sample.__init__: expanding %r..."%(fname)
+          print(">>> Sample.__init__: expanding %r..."%(fname))
         fnames.insert(i,glob.glob(fname))
     if nfilemax>0 and len(fnames)>nfilemax:
       fnames    = fnames[:nfilemax]
@@ -32,9 +32,9 @@ class Sample:
     self.cut    = cut # extra cut
     self.isdata = data
     if verb>=1:
-      print ">>> Sample %r (%r):"%(self.name,self.title)
+      print(">>> Sample %r (%r):"%(self.name,self.title))
       for fname in fnames:
-        print ">>>   %s"%(fname)
+        print(">>>   %s"%(fname))
     if tree:
       self.gettree(tname,verb=verb)
   
@@ -42,10 +42,10 @@ class Sample:
     if self.tree: return
     chain = TChain(tname)
     if verb>=1:
-      print ">>> gettree(%r)"%(tname)
+      print(">>> gettree(%r)"%(tname))
     for fname in self.fnames:
       if verb>=1:
-        print ">>>   adding %s..."%(fname)
+        print(">>>   adding %s..."%(fname))
       chain.Add(fname)
     self.tree = chain
     return chain
@@ -58,7 +58,7 @@ class Sample:
     if self.cut:
       selection += " && "+self.cut
     if verb>=1:
-      print ">>> %s.Draw(%r,%r)"%(tree.GetName(),varexp,selection)
+      print(">>> %s.Draw(%r,%r)"%(tree.GetName(),varexp,selection))
     out = self.tree.Draw(varexp,selection,'HIST')
     return hist
   
@@ -75,7 +75,7 @@ class Sample:
       hists.append(hist)
       varexps.append(varexp)
       if verb>=2:
-        print ">>>   %r, %r"%(varexp,selection)
+        print(">>>   %r, %r"%(varexp,selection))
     out = self.tree.MultiDraw(varexps,selection,'HIST',hists=hists,verbosity=verb)
     return hists
   
@@ -154,28 +154,28 @@ def compare_nano(samplesets,tag="",**kwargs):
     string  = object.selection if isinstance(object,Sel) else object.name
     matches = branchexp.findall(string)
     if verbosity>=2:
-      print ">>> branch matches in %r: '%s'"%(string,"', '".join(set(matches)))
+      print(">>> branch matches in %r: '%s'"%(string,"', '".join(set(matches))))
     for match in matches:
       branch = match+'*' # to be on safe side, include all branchs of this type
       branches.add(branch)
   if verbosity>=2:
-    print ">>> activating branches: '%s'"%("', '".join(branches))
-  for setname, samples in samplesets.items():
+    print(">>> activating branches: '%s'"%("', '".join(branches)))
+  for setname, samples in list(samplesets.items()):
     for sample in samples:
       sample.tree.SetBranchStatus('*',0) # deactivate everything
       for branch in branches:
         sample.tree.SetBranchStatus(branch,1) # activate only these
   
   # PLOT
-  for setname, samples in samplesets.items():
-    print ">>> %s"%(setname)
+  for setname, samples in list(samplesets.items()):
+    print(">>> %s"%(setname))
     header = setname
     if not entries:
       entries = [s.title for s in samples]
     for selection in selections:
       #vars = [v for v in variables if 'Tau' not in v or not selection.contains('Tau')]
       vars = [v for v in variables if v.plotfor(selection)]
-      print ">>> %s: %r"%(selection,selection.selection)
+      print(">>> %s: %r"%(selection,selection.selection))
       if 'genpart' in selection.selection.lower() and any(s.isdata for s in samples): continue
       hdict = { }
       text  = selection.title
@@ -190,7 +190,7 @@ def compare_nano(samplesets,tag="",**kwargs):
           processor.start(sample.gethists,hargs,hkws,name=sample.title)
         for process in processor:
           if verbosity>=1:
-            print ">>> joining process %r..."%(process.name)
+            print(">>> joining process %r..."%(process.name))
           hists = process.join()
           for var, hist in zip(vars,hists):
             hdict.setdefault(var,[ ]).append(hist)
@@ -201,7 +201,7 @@ def compare_nano(samplesets,tag="",**kwargs):
           hists = sample.gethists(*hargs,**hkws)
           for var, hist in zip(vars,hists):
             hdict.setdefault(var,[ ]).append(hist)
-      for var, hists in hdict.iteritems():
+      for var, hists in hdict.items():
         pos = var.position or "y=0.88"
         for norm in norms:
           ntag = '_norm' if norm else ""
@@ -212,7 +212,7 @@ def compare_nano(samplesets,tag="",**kwargs):
           plot.saveas(fname,ext=exts,tag=ntag)
           plot.close(keep=True)
         deletehist(hists)
-    print ">>> "
+    print(">>> ")
   
 
 def main(args):
@@ -828,7 +828,7 @@ def main(args):
   ]
   
   # FILTER
-  for sample in samplesets.keys():
+  for sample in list(samplesets.keys()):
     if filters and not any(f in sample for f in filters):
       samplesets.pop(sample)
     if vetoes and any(f in sample for f in vetoes):
@@ -837,9 +837,9 @@ def main(args):
   # COLORS
   colors = _lcolors[:]
   if filters==['W2JetsToLNu']: # for easy comparison to DYJetsPlots
-    print colors
+    print(colors)
     colors.remove(colors[1])
-    print colors
+    print(colors)
   
   # COMPARE
   compare_nano(samplesets,tag=tag,outdir="plots",parallel=parallel,verb=verbosity,colors=colors)
@@ -865,5 +865,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity-1
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

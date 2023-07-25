@@ -38,7 +38,8 @@ class Variable(object):
     self.title        = kwargs.get('title',       self.title    ) # for plot axes
     self.filename     = kwargs.get('fname',       filename      ) # file-friendly name for files & histograms
     self.filename     = kwargs.get('filename',    self.filename ) # alias
-    self.filename     = self.filename.replace('$NAME',self.name).replace('$VAR',filename) #.replace('$FILE',self.filename)
+    self.filename     = self.filename.replace('$NAME',self.name).replace('$VAR',filename).replace(
+                                              '[','-').replace(']','').replace('.','p') #.replace('$FILE',self.filename)
     self.tag          = kwargs.get('tag',         ""            )
     self.units        = kwargs.get('units',       True          ) # for plot axes
     self.latex        = kwargs.get('latex',       True          ) # for plot axes
@@ -327,6 +328,7 @@ class Variable(object):
     poisson = kwargs.get('poisson', False       )
     sumw2   = kwargs.get('sumw2',   not poisson )
     xtitle  = kwargs.get('xtitle',  self.title  )
+    ytitle  = kwargs.get('ytitle',  None        )
     #TH1Class = TH1D # TH1I if self.hasintbins() else TH1D
     name, title = self.getnametitle(name,title,tag)
     if self.hasvariablebins():
@@ -338,15 +340,19 @@ class Variable(object):
     elif sumw2:
       hist.Sumw2()
     hist.GetXaxis().SetTitle(xtitle)
+    if ytitle:
+      hist.GetYaxis().SetTitle(ytitle)
     #hist.SetDirectory(0)
     return hist
   
   def gethist2D(self,yvariable,name=None,title=None,**kwargs):
     """Create a 2D histogram."""
-    tag     = kwargs.get('tag',     ""          )
-    poisson = kwargs.get('poisson', False       )
-    sumw2   = kwargs.get('sumw2',   not poisson )
-    xtitle  = kwargs.get('xtitle',  self.title  )
+    tag     = kwargs.get('tag',     ""              )
+    poisson = kwargs.get('poisson', False           )
+    sumw2   = kwargs.get('sumw2',   not poisson     )
+    xtitle  = kwargs.get('xtitle',  self.title      )
+    ytitle  = kwargs.get('ytitle',  yvariable.title )
+    ztitle  = kwargs.get('ztitle',  None            )
     name, title = self.getnametitle(name,title,tag)
     if self.hasvariablebins() and yvariable.hasvariablebins():
       hist = TH2D(name,title,self.nbins,array('d',list(self.bins)),yvariable.nbins,array('d',list(yvariable.bins)))
@@ -359,6 +365,9 @@ class Variable(object):
     elif sumw2:
       hist.Sumw2()
     hist.GetXaxis().SetTitle(xtitle)
+    hist.GetYaxis().SetTitle(ytitle)
+    if ztitle:
+      hist.GetZaxis().SetTitle(ztitle)
     return hist
   
   def drawcmd(self,name=None,tag="",bins=False,**kwargs):

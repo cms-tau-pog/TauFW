@@ -90,6 +90,18 @@ class MultiProcessor:
       # endin.send((target(*args,**kwargs),kwret))
       args[0].send((args[1](*args[3:],**kwargs), kwargs[args[2]]))
     
+    def close(self):
+      for pset in self.procs[:]:
+        process, endin, endout = pset
+        if hasattr(process,'close'):
+          if self.verbose or True:
+            print(">>> Close process",process)
+          #endin.close()
+          #endout.close()
+          process.close()
+          del process, endin, endout
+          self.procs.remove(pset)
+  
 
 class SimpleProcess:
     """Class contain a simple process for serial use."""

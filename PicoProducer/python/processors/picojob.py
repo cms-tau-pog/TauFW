@@ -11,19 +11,20 @@ from TauFW.PicoProducer.processors import moddir, ensuredir
 from TauFW.PicoProducer.corrections.era_config import getjson
 from argparse import ArgumentParser
 parser = ArgumentParser()
-parser.add_argument('-i', '--infiles',  dest='infiles',   type=str, default=[ ], nargs='+')
-parser.add_argument('-o', '--outdir',   dest='outdir',    type=str, default='.')
-parser.add_argument('-C', '--copydir',  dest='copydir',   type=str, default=None)
+parser.add_argument('-i', '--infiles',  dest='infiles',   default=[ ], nargs='+')
+parser.add_argument('-o', '--outdir',   dest='outdir',    default='.')
+parser.add_argument('-C', '--copydir',  dest='copydir',   default=None)
 parser.add_argument('-s', '--firstevt', dest='firstevt',  type=int, default=0)
 parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=None)
-parser.add_argument('-t', '--tag',      dest='tag',       type=str, default="")
+parser.add_argument('-t', '--tag',      dest='tag',       default="")
 parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
-parser.add_argument('-y','-e','--era',  dest='era',       type=str, default='2018')
-parser.add_argument('-M', '--module',   dest='module',    type=str, default=None)
-parser.add_argument('-c', '--channel',  dest='channel',   type=str, default=None)
-parser.add_argument('-E', '--opts',     dest='extraopts', type=str, default=[ ], nargs='+')
-parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true', default=False)
-parser.add_argument('-v', '--verbose',  dest='verbosity', type=int, nargs='?', const=1, default=0, action='store' )
+parser.add_argument('-y','-e','--era',  dest='era',       default='2018')
+parser.add_argument('-M', '--module',   dest='module',    default=None)
+parser.add_argument('-c', '--channel',  dest='channel',   default=None)
+parser.add_argument('-E', '--opts',     dest='extraopts', default=[ ], nargs='+')
+parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true')
+parser.add_argument('-A', '--compress', dest='compress',  help="e.g. 'LZMA:9'")
+parser.add_argument('-v', '--verbose',  dest='verbosity', type=int, nargs='?', const=1, default=0)
 args = parser.parse_args()
 
 
@@ -54,6 +55,7 @@ if tag:
 outfname  = os.path.join(outdir,"pico%s.root"%(tag)) #channel,
 url       = "root://cms-xrd-global.cern.ch/"
 prefetch  = args.prefetch          # copy input file(s) to ouput directory first
+compress  = args.compress          # compression algorithm & level, e.g. 'LZMA:9'
 verbosity = args.verbosity         # verbosity level
 presel    = None                   # simple pre-selection string, e.g. "Muon_pt[0] > 50"
 branchsel = os.path.join(moddir,"keep_and_drop_skim.txt") # file with branch selection
@@ -78,7 +80,7 @@ if dtype=='data':
   json = getjson(era,dtype)
 
 # EXTRA OPTIONS
-kwargs = { 'era': era, 'year': year, 'dtype': dtype, 'verb': verbosity }
+kwargs = { 'era': era, 'year': year, 'dtype': dtype, 'compress': compress, 'verb': verbosity }
 for option in args.extraopts:
   #for option in options.strip().split(' '):
   assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)

@@ -3,13 +3,15 @@
 import os, re
 from math import sqrt, floor
 from array import array
-from TauFW.common.tools.file import ensuredir, ensureTFile
+import ctypes # for passing by reference
+from TauFW.common.tools.file import ensuredir
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs
 from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, TH2, TH1D, TH2D, THStack, TGraph, TGraphErrors, TGraphAsymmErrors, Double,\
+from ROOT import gDirectory, gROOT, gStyle, gPad, TH1, TH2, TH1D, TH2D, THStack, TGraph, TGraphErrors, TGraphAsymmErrors,\
                  kSolid, kDashed, kDotted, kBlack, kWhite
 #moddir = os.path.dirname(__file__)
 gROOT.SetBatch(True)
@@ -18,17 +20,31 @@ LOG = Logger('Plot')
 
 def normalize(*hists,**kwargs):
   """Normalize histogram(s)."""
-  hists = unwraplistargs(hists)
-  scale = kwargs.get('scale',None) or 1.0
-  for hist in hists:
+  hists  = unwraplistargs(hists)
+  scales = kwargs.get('scale',None) or 1.0
+  tosum  = kwargs.get('tosum',False) # normalize to sum of integrals (e.g. for normalizing stacks)
+  intsum = 0
+  if not islist(scales):
+    scales = [scales]*len(hists)
+  if tosum: # normalize to sum of integrals
+    tothist = None
+    for hist in hists:
+      if tothist==None:
+        tothist = hist.Clone(hist.GetName()+'_tot')
+      else:
+        tothist.Add(hist)
+    if tothist:
+      intsum = tothist.Integral() # sum of integrals
+      deletehist(tothist)
+  for hist, scale in zip(hists,scales):
     if hist.GetBinErrorOption()==TH1.kPoisson:
       hist.SetBinErrorOption(TH1.kNormal)
       hist.Sumw2()
-    integral = hist.Integral()
+    integral = intsum if tosum else hist.Integral() # denominator
     if integral:
       hist.Scale(scale/integral)
     else:
-      LOG.warn("norm: Could not normalize; integral = 0!")
+      LOG.warn("normalize: Could not normalize; integral = 0!")
   
 
 def getframe(pad,hist,xmin=None,xmax=None,**kwargs):
@@ -166,30 +182,44 @@ def getTGraphYRange(graphs,ymin=+10e10,ymax=-10e10,margin=0.0):
   return getTGraphRange(graphs,min=ymin,max=ymax,margin=margin,axis='y')
   
 
-def getTGraphRange(graphs,min=+10e10,max=-10e10,margin=0.0,axis='y'):
-  """Get full y-range of a given TGraph object."""
-  vmin, vmax = min, max
+def getTGraphRange(graphs,axis='y',margin=0.0,err=False,**kwargs):
+  """Get full range of a given TGraph object."""
+  vmin, vmax = kwargs.get('min',+1e11), kwargs.get('max',-1e11)
+  xmin, xmax = kwargs.get('xmin',vmin), kwargs.get('xmax',vmax)
+  ymin, ymax = kwargs.get('ymin',vmin), kwargs.get('ymax',vmax)
   graphs = ensurelist(graphs)
-  if axis=='y':
-    getUp  = lambda g,i: y+graph.GetErrorYhigh(i)
-    getLow = lambda g,i: y-graph.GetErrorYlow(i)
-  else:
-    getUp  = lambda g,i: x+graph.GetErrorXhigh(i)
-    getLow = lambda g,i: x-graph.GetErrorXlow(i)
+  assert 'x' in axis or 'y' in axis
   for graph in graphs:
+    inclerr = kwargs.get('inclerr',True) and 'Errors' in graph.Class_Name() # include error
     npoints = graph.GetN()
-    x, y = Double(), Double()
+    x, y = ctypes.c_double(), ctypes.c_double() # for retrieving float value by reference
     for i in range(0,npoints):
-      graph.GetPoint(i,x,y)
-      vup  = getUp(graph,i)
-      vlow = getLow(graph,i)
-      if vup >vmax: vmax = vup
-      if vlow<vmin: vmin = vlow
+      graph.GetPoint(i,x,y)  # in later ROOT versions: graph.GetPointX(i), graph.GetPointY(i)
+      if 'x' in axis:
+        xup, xlow = x.value, x.value
+        if inclerr:
+          xup  += max(0,graph.GetErrorXhigh(i))
+          xlow -= max(0,graph.GetErrorXlow(i))
+        if xup >xmax: xmax = xup
+        if xlow<xmin: xmin = xlow
+      if 'y' in axis:
+        yup, ylow = y.value, y.value
+        if inclerr:
+          yup = max(0,graph.GetErrorYhigh(i))
+          ylow = max(0,graph.GetErrorYlow(i))
+        if yup >ymax: ymax = yup
+        if ylow<ymin: ymin = ylow
   if margin>0:
-    range = vmax-vmin
-    vmax  += range*margin
-    vmin  -= range*margin
-  return (vmax,vmax)
+    xrange = (xmax-xmin)
+    yrange = (ymax-ymin)
+    xmax  += xrange*margin
+    xmin  -= xrange*margin
+    ymax  += yrange*margin
+    ymin  -= yrange*margin
+  retval = tuple() # empty tuple 
+  if 'x' in axis: retval += (xmin,xmax)
+  if 'y' in axis: retval += (ymin,ymax)
+  return retval
   
 
 def copystyle(hist1,hist2):
@@ -241,10 +271,10 @@ def getbinedges(hist,**kwargs):
       bins.append((low,up))
   else:
     for i in range(0,hist.GetN()):
-      x, y = Double(), Double()
+      x, y = ctypes.c_double(), ctypes.c_double()
       hist.GetPoint(i,x,y)
-      low  = round(x-hist.GetErrorXlow(i),9)
-      up   = round(x+hist.GetErrorXhigh(i),9)
+      low  = round(x.value-hist.GetErrorXlow(i),9)
+      up   = round(x.value+hist.GetErrorXhigh(i),9)
       bins.append((low,up))
     bins.sort()
   return bins
@@ -319,7 +349,10 @@ def gethistratio(histnum,histden,**kwargs):
       rhist.SetBinContent(ibin,ratio)
       rhist.SetBinError(ibin,erat)
   else: # works only for TH1
-    LOG.warn("gethistratio: %r and %r do not have the same bins..."%(histnum,histden))
+    LOG.warn("gethistratio: %r and %r do not have the same bins: %s bins in [%s,%s] vs. %s bins in [%s,%s] ..."%(
+      histnum.GetName(),histden.GetName(),
+      histnum.GetXaxis().GetNbins(),histnum.GetXaxis().GetXmin(),histnum.GetXaxis().GetXmax(),
+      histden.GetXaxis().GetNbins(),histden.GetXaxis().GetXmin(),histden.GetXaxis().GetXmax()))
     TAB = LOG.table("%5d %9.3f %9.3f %5d %9.3f %9.3f %5d %8.3f +- %7.3f",verb=verbosity,level=3)
     TAB.printheader("iden","xval","yden","inum","xval","ynum","ratio","error")
     for iden in range(0,ncells+1):
@@ -499,14 +532,15 @@ def dividebybinsize(hist,**kwargs):
   return a TGraphAsymmErrors instead."""
   verbosity = LOG.getverbosity(kwargs)
   LOG.verbose('dividebybinsize: "%s"'%(hist.GetName()),verbosity,2)
-  zero     = kwargs.get('zero',     True ) # include bins that are zero in TGraph
-  zeroerrs = kwargs.get('zeroerrs', True ) # include errors for zero bins
+  zero     = kwargs.get('zero',     True  ) # include bins that are zero in TGraph
+  zeroerrs = kwargs.get('zeroerrs', True  ) # include errors for zero bins
   errorX   = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
-  poisson  = kwargs.get('poisson',  True ) # treat poisson errors differently
+  poisson  = kwargs.get('poisson',  True  ) # treat poisson errors differently: convert TH1 -> TGraph
+  dograph  = kwargs.get('graph',    False ) # force conversion of TH1 -> TGraph
   nbins    = hist.GetXaxis().GetNbins()
   TAB = LOG.table("%5s %8.6g %8.6g %10.3f %9.4f %8.4f %8.4f %10.4f",verb=verbosity,level=3)
   TAB.printheader("ibin","xval","width","yval","yerr","yupp","ylow","yerr/width")
-  if poisson and hist.GetBinErrorOption()==TH1.kPoisson: # make asymmetric Poisson errors (like for data)
+  if dograph or (poisson and hist.GetBinErrorOption()==TH1.kPoisson): # make asymmetric Poisson errors (like for data)
     graph  = TGraphAsymmErrors()
     graph.SetName(hist.GetName()+"_graph")
     graph.SetTitle(hist.GetTitle())
@@ -521,7 +555,7 @@ def dividebybinsize(hist,**kwargs):
       yupp  = hist.GetBinErrorUp(ibin)
       ylow  = hist.GetBinErrorLow(ibin)
       TAB.printrow(ibin,xval,width,yval,yerr,yupp,ylow,yval/width)
-      hist.SetBinContent(ibin,yval/width)
+      hist.SetBinContent(ibin,yval/width) # change histogram anyway !
       hist.SetBinError(ibin,yerr/width)
       if yval!=0 or zero:
         graph.SetPoint(ip,xval,yval/width)

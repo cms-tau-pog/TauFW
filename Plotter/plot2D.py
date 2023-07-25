@@ -52,7 +52,7 @@ def plot2D(samples,channel,parallel=True,tag="",extratext="",outdir="plots",era=
       for (xvar, yvar), hist in zip(vars2D,hists):
         text_ = text
         rho = hist.GetCorrelationFactor()
-        print ">>> rho = %.2f for %s vs. %s"%(rho,yvar.name,xvar.name,)
+        print(">>> rho = %.2f for %s vs. %s"%(rho,yvar.name,xvar.name,))
         if xvar.opts.get('rho',True) and yvar.opts.get('rho',True):
           text_ += "\n#rho = %.2f"%(rho)
         plot = Plot2D(xvar,yvar,hist)
@@ -118,5 +118,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

@@ -215,7 +215,7 @@ class ModuleTauPair(Module):
     
     # EVENT
     self.out.evt[0]             = event.event # ULong64_t -> uint64
-    self.out.data[0]            = self.isdata
+    ###self.out.data[0]            = self.isdata # use setAlias instead
     self.out.run[0]             = event.run
     self.out.lumi[0]            = event.luminosityBlock
     self.out.npv[0]             = event.PV_npvs
@@ -233,8 +233,8 @@ class ModuleTauPair(Module):
         self.out.NUP[0]         = event.LHE_Njets
       except RuntimeError:
         self.out.NUP[0]         = -1
-    elif self.isembed:
-      self.out.isdata[0]        = False
+    ###elif self.isembed:
+    ###  self.out.isdata[0]        = False
     
   
   def fillJetBranches(self,event,tau1,tau2):

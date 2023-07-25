@@ -6,6 +6,7 @@ Several tools to get corrections, efficiencies, scale factors (SFs), event weigh
 * [Tau scale factors](#Tau-scale-factors)<br>
 * [B tagging tools](#b-tagging-tools)<br>
 * [Z pT reweighting](#Z-pT-reweighting)<br>
+* [Trigger object matching](#Trigger-object-matching)<br>
 * [Test SFs](#test-sfs)
 
 Data for corrections is saved in in [`../../data/`](../../data)
@@ -152,9 +153,7 @@ Examples of efficiency maps per jet flavor, and as a function of jet pT versus j
 </p>
 
 
-
 ## Z pT reweighting
-
 The observed Z pT spectrum is harder than in the LO MadGraph simulation, such as `DYJetsToLL_*_TuneCP5_13TeV-madgraphMLM-pythia8` samples.
 Therefore LO Drell-Yan events have to be reweighted as a function of Z pT (and maybe other variables such as mass, jet multiplicity, and/or MET).
 The TauFW provides a measurement tool in [`Fitter/Zpt/`](../../../Fitter/Zpt/).
@@ -162,8 +161,18 @@ The weights are stored in [`data/zpt/`](../../data/zpt/), and [`RecoilCorrection
 provides a tool to read them.
 Alternatively, you can use a [simple `C++` macro](../../data/zpt/zptweight.C) to run it on the fly in `TTree::Draw`.
 
-## Test SFs
 
+## Trigger object matching
+For matching trigger objects, please use the [`TrigObjMatcher.py`](TrigObjMatcher.py) tool.
+This tool uses the JSON files in [`../../data/trigger`](../../data/trigger),
+to get a list of all available trigger filter bits in nanoAOD,
+as well as the commonly used combination of trigger paths per year (at least by ditau analysis).
+Please use with caution, as some part may be incomplete and still need validation.
+
+The JSON files were created with tools in [this repo](https://github.com/IzaakWN/TriggerChecks).
+
+
+## Test SFs
 `testSFs.py` provides a simple and direct way of testing the correction tool classes, without running the whole framework.
 
 

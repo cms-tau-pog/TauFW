@@ -19,8 +19,8 @@ class Stack(Plot):
     with 
     - variable: string or Variable object
     - datahist: single TH1 or TGraph object
-    - exphists: list of TH1s for expected processes
-    - sighists: list of TH1s for signals
+    - exphists: list of TH1 objects for expected processes
+    - sighists: list of TH1 objects for signals
     """
     self.verbosity = LOG.getverbosity(kwargs)
     #variable       = None
@@ -47,6 +47,14 @@ class Stack(Plot):
     kwargs['clone'] = False
     self.ratio      = kwargs.setdefault('ratio', bool(self.datahist) )
     super(Stack,self).__init__(variable,self.hists,**kwargs)
+    if isinstance(variable,Variable):
+      self.dividebins = kwargs.get('dividebins', variable.dividebins  ) # divide each histogram bins by it bin size
+    else:
+      self.dividebins = kwargs.get('dividebins', self.hists[0].GetXaxis().IsVariableBinSize() ) # divide each histogram bins by it bin size
+    if self.verbosity>=3:
+      print(">>> Stack.__init__: datahist=%s"%(rootrepr(self.datahist)))
+      print(">>> Stack.__init__: exphists=%s"%(rootrepr(self.exphists)))
+      print(">>> Stack.__init__: sighists=%s"%(rootrepr(self.sighists)))
     
   
   def draw(self,*args,**kwargs):
@@ -55,7 +63,6 @@ class Stack(Plot):
     # https://root.cern.ch/doc/master/classTHistPainter.html#HP01e
     verbosity    = LOG.getverbosity(self,kwargs)
     xtitle       = (args[0] if args else self.xtitle) or ""
-    ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
     square       = kwargs.get('square',       False           ) # square canvas
     cwidth       = kwargs.get('width',        None            ) # canvas width
     cheight      = kwargs.get('height',       None            ) # canvas height
@@ -81,6 +88,12 @@ class Stack(Plot):
     rmin         = kwargs.get('rmin',         self.rmin       ) or (0.0 if fraction else 0.45) # ratio ymin
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
+    ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
+    denom        = int(ratio) if isinstance(ratio,int) and (ratio!=0) else 1 # assume first histogram is denominator (i.e. stack)
+    denom        = kwargs.get('den',          denom           ) # index of common denominator histogram in ratio plot (count from 1)
+    denom        = kwargs.get('denom',        denom           ) # alias
+    num          = kwargs.get('num',          None            ) # index of common numerator histogram in ratio plot (count from 1)
+    rhists       = kwargs.get('rhists',       self.hists      ) # custom histogram argument for ratio plot
     binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
     labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
     ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
@@ -108,9 +121,10 @@ class Stack(Plot):
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       False           ) # no horizontal error bars for CMS style
-    dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide each histogram bins by it bin size
+    dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide content / y values by bin size
     drawdata     = kwargs.get('drawdata',     True            ) and bool(self.datahist)
     drawsignal   = kwargs.get('drawsignal',   True            ) and bool(self.sighists)
+    reverse      = kwargs.get('reversestack', False           ) # stack bottom to top reversed w.r.t. legend
     lcolors      = ensurelist(lcolors)
     fcolors      = ensurelist(fcolors)
     lstyles      = ensurelist(lstyles)
@@ -131,6 +145,14 @@ class Stack(Plot):
     if verbosity>=2:
       print(">>> Stack.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle))
       print(">>> Stack.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
+    
+    # NORMALIZE
+    if norm: # normalize data hist and stack
+      if ytitle==None:
+        ytitle = "A.U."
+      scale = 1.0 if isinstance(norm,bool) else norm # can be list
+      normalize([self.datahist]+self.sighists,scale=scale)
+      normalize(self.exphists,scale=scale,tosum=True) # normalize to sum of hist integrals
     
     # DIVIDE BY BINSIZE
     if dividebins:
@@ -174,14 +196,18 @@ class Stack(Plot):
       hist.SetMarkerStyle(1)
     if drawsignal:
       self.setlinestyle(self.sighists,colors=lcolors,styles=lstyles,mstyle=mstyle,width=lwidth,pair=pair,triple=triple)
-    if drawdata:
-      self.setmarkerstyle(self.datahist)
+    #if drawdata:
+    #  self.setmarkerstyle(self.datahist)
     
     # CREATE STACK
     stack = THStack(makehistname('stack',self.name),"") # stack (expected)
     self.stack = stack
-    for hist in reversed(self.exphists): # stacked bottom to top
-      stack.Add(hist)
+    if reverse: # stack bottom to bottom top; reversed w.r.t. legend
+      for hist in self.exphists:
+        stack.Add(hist)
+    else: # stack top to bottom to match order in legend
+      for hist in reversed(self.exphists):
+        stack.Add(hist)
     
     # DRAW FRAME
     self.canvas.cd(1)
@@ -199,9 +225,11 @@ class Stack(Plot):
     # DRAW
     stack.Draw(option+' SAME')
     if drawsignal: # signal
+      soption += " SAME"
       for hist in self.sighists:
-        hist.Draw(soption+" SAME")
-        hist.SetOption(soption+" SAME") # for legend and ratio
+        LOG.verb("Stack.draw: draw signal %s with soption=%r"%(rootrepr(hist),soption),verbosity,3)
+        hist.Draw(soption)
+        hist.SetOption(soption) # for legend and ratio
     if drawdata: # data
       self.datahist.SetFillStyle(0)
       if isinstance(self.datahist,TH1):
@@ -228,18 +256,18 @@ class Stack(Plot):
         self.errbands.append(errband)
     
     # AXES
-    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,
+    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,
                  xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
-                 binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,grid=grid,latex=latex)
+                 dividebins=dividebins,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
     
     # RATIO
     if ratio:
       self.canvas.cd(2)
-      histden    = stack
-      histnums   = [self.datahist]+self.sighists
-      self.ratio = Ratio(histden,histnums,errband=self.errband,drawzero=True,errorX=errorX,option=roption,fraction=fraction)
+      rhists = [stack]+self.sighists+[self.datahist] # default: use stack as denominator (denom=1)
+      self.ratio = Ratio(*rhists,denom=denom,num=num,errband=self.errband,
+                         drawzero=True,errorX=errorX,fraction=fraction)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
-      self.setaxes(self.ratio,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,center=True,nydiv=506,
+      self.setaxes(self.ratio,option=roption,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,center=True,nydiv=506,
                    binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
                    rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,grid=grid,latex=latex)
       for line in self.lines:

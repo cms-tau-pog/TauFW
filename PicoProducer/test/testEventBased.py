@@ -6,7 +6,7 @@
 #   test/testEventBased.py '*_filesplit.root' '*_evtsplit.root' -T Events
 import os, glob, platform
 from time import sleep
-from TauFW.common.tools.file import ensureTFile
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.math import partition_by_max, ceil
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D

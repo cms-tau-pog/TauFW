@@ -20,7 +20,8 @@ import os, sys, re, shutil, json
 
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from filterRunsJSON import getJSON, getRuns, cleanPeriods, getPeriodRunNumbers, filterJSONByRunNumberRange
-from TauFW.common.tools.file import ensuredir, ensureTFile, gethist
+from TauFW.common.tools.file import ensuredir
+from TauFW.common.tools.root import ensureTFile, gethist
 from TauFW.common.tools.utils import repkey, getyear, islist
 from TauFW.PicoProducer import datadir
 from TauFW.Plotter.plot.Plot import Plot, CMSStyle, deletehist

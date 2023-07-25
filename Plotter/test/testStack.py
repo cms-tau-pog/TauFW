@@ -36,7 +36,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,fraction=Fal
   
   # PLOT
   LOG.header(fname)
-  plot = Stack(xtitle,datahist,exphists)
+  plot = Stack(xtitle,datahist,exphists,clone=True)
   plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,grid=grid,fraction=fraction)
   plot.drawlegend(position=position)
   plot.drawtext(text)
@@ -109,13 +109,13 @@ def main():
   nevts    = 5000
   mvisbins = [0,30,40,50,55,60,65,70,75,80,85,90,95,100,110,120,140,200,300]
   plotset  = [ # make "pseudo"-MC with random generators, and "pseudo" data
-    (('m_vis',"m_{vis} [GeV]",40,0,200), [
+    (('mvis',"m_{vis} [GeV]",40,0,200), [
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus,   ( 72, 9)),
       ('WJ', "W + jets",                1.0, gRandom.Landau, ( 60,28)),
       ('QCD', "QCD multiplet",          0.8, gRandom.Gaus,   ( 90,44)),
       ('TT', "t#bar{t}",                0.8, gRandom.Gaus,   (110,70)),
      ]),
-    (('m_vis_var',"m_{vis} [GeV]",mvisbins), [ # variable binning
+    (('mvis_var',"m_{vis} [GeV]",mvisbins), [ # variable binning
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.0, gRandom.Gaus,   ( 72, 9)),
       ('WJ', "W + jets",                1.0, gRandom.Landau, ( 60,28)),
       ('QCD', "QCD multiplet",          0.8, gRandom.Gaus,   ( 90,44)),
@@ -154,11 +154,11 @@ def main():
     xname, xtitle = variable[:2]
     binning = variable[2:]
     #plotstack(xtitle,procs,ratio=False,logy=False)
+    datahist, exphists = createhists(procs,binning,nevts)
     for ratio in [True,False]:
       for logy in [True,False]:
         fractions = [True,False] if ratio and not logy else [False]
         for fraction in fractions:
-          datahist, exphists = createhists(procs,binning,nevts)
           plotstack(xname,xtitle,datahist,exphists,ratio=ratio,logy=logy,fraction=fraction)
   
 
@@ -167,7 +167,7 @@ if __name__ == "__main__":
   description = """Script to test the Plot class for comparing histograms"""
   parser = ArgumentParser(prog="testStack",description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
-                                         help="set verbosity" )
+                                         help="set verbosity level" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main()

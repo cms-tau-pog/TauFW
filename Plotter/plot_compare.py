@@ -188,7 +188,7 @@ def compare_cuts(sampleset,channel,tag="",outdir="plots"):
         for variable, hist in zip(variables,hists):
           hdict.setdefault(variable,[ ]).append(hist)
       #entries = [str(y) for y in eras] # for legend
-      for variable, hists in hdict.iteritems():
+      for variable, hists in hdict.items():
         for norm in [False,True]:
           #print norm, hists
           ntag = '_norm' if norm else "_lumi"
@@ -249,11 +249,11 @@ def compare_eras(eras,samplesets,channel,tag="",**kwargs):
   # PLOT
   for sname in snames:
     #LOG.header(sname)
-    print ">>> %s"%(sname)
+    print(">>> %s"%(sname))
     samples = [samplesets[e].get(sname,unique=True) for e in eras]
     header = samples[0].title
     for selection in selections:
-      print ">>> %s: %r"%(selection,selection.selection)
+      print(">>> %s: %r"%(selection,selection.selection))
       hdict = { }
       text  = "%s: %s"%(channel.replace("tau","tau_{h}"),selection.title)
       fname = "%s/compare_eras_$VAR_%s_%s%s$TAG"%(outdir,sname,selection.filename,tag)
@@ -262,7 +262,7 @@ def compare_eras(eras,samplesets,channel,tag="",**kwargs):
         hists = sample.gethist(vars,selection,parallel=parallel)
         for variable, hist in zip(variables,hists):
           hdict.setdefault(variable,[ ]).append(hist)
-      for variable, hists in hdict.iteritems():
+      for variable, hists in hdict.items():
         for norm in norms:
           ntag = '_norm' if norm else "" #_lumi"
           plot = Plot(variable,hists,norm=norm)
@@ -272,7 +272,7 @@ def compare_eras(eras,samplesets,channel,tag="",**kwargs):
           plot.saveas(fname,ext=['png'],tag=ntag) #,'pdf'
           plot.close(keep=True)
         deletehist(hists)
-    print ">>> "
+    print(">>> ")
   
 
 def compare_samples(sname,samples,channel,tag="",**kwargs):
@@ -310,7 +310,7 @@ def compare_samples(sname,samples,channel,tag="",**kwargs):
   # PLOT
   header = samples[0].title
   for selection in selections:
-    print ">>> %s: %r"%(selection,selection.selection)
+    print(">>> %s: %r"%(selection,selection.selection))
     hdict = { }
     text  = "%s: %s"%(channel.replace("tau","tau_{h}"),selection.title)
     fname = "%s/compare_samples_$VAR_%s_%s%s$TAG"%(outdir,sname,selection.filename,tag)
@@ -319,7 +319,7 @@ def compare_samples(sname,samples,channel,tag="",**kwargs):
       hists = sample.gethist(vars,selection,parallel=parallel)
       for variable, hist in zip(variables,hists):
         hdict.setdefault(variable,[ ]).append(hist)
-    for variable, hists in hdict.iteritems():
+    for variable, hists in hdict.items():
       for norm in norms:
         ntag = '_norm' if norm else "" #_lumi"
         plot = Plot(variable,hists,norm=norm)
@@ -329,7 +329,7 @@ def compare_samples(sname,samples,channel,tag="",**kwargs):
         plot.saveas(fname,ext=['png'],tag=ntag) #,'pdf'
         plot.close(keep=True)
       deletehist(hists)
-  print ">>> "
+  print(">>> ")
   
 
 def main(args):
@@ -369,7 +369,7 @@ def main(args):
         'DY': (getmcsample('DY',"DYJetsToLL_M-50","DYJetsToLL, Summer19",1.,channel,era,tag="_Summer19",verb=1),
                getmcsample('DY',"DYJetsToLL_M-50","DYJetsToLL, Summer20",1.,channel,era,tag="_Summer20",verb=1),),
       }
-      for sname, sampleset in samplesets.items():
+      for sname, sampleset in list(samplesets.items()):
         compare_samples(sname,sampleset,channel,tag=tag,outdir=outdir)
   
 
@@ -385,5 +385,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

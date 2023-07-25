@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (Februari 2021)
 import os, sys, re
-from TauFW.common.tools.file import ensuredir, ensureTFile, ensureTDirectory
+from TauFW.common.tools.file import ensuredir
+from TauFW.common.tools.root import ensureTFile, ensureTDirectory
 from TauFW.common.tools.utils import repkey
 from TauFW.Plotter.plot.utils import LOG
 from argparse import ArgumentParser

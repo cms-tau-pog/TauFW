@@ -1,6 +1,6 @@
 # Author: Izaak Neutelings (November 2018)
 import os, re
-from TauFW.common.tools.file import ensureTFile
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.log import Logger
 LOG = Logger('ScaleFactorTool')
 
@@ -70,7 +70,17 @@ class ScaleFactorHTT(ScaleFactor):
     self.name      = name
     self.filename  = filename
     LOG.verb("ScaleFactor(%s): Opening %s:%r..."%(self.name,filename,graphname),verb,1)
-    self.file      = ensureTFile(filename)
+    try:
+      file = ensureTFile(filename)
+    except (OSError,IOError) as error:
+      strerr = str(error).replace('\033[0m','')
+      if '/HTT/' in filename and "does not exist" in strerr:
+        LOG.throw(IOError,"%s You may have to do\n"%(strerr)+
+          "  cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/\n"+
+          "  rm -rf HTT\n"+
+          "  git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT")
+      else:
+        raise error
     self.hist_eta  = self.file.Get('etaBinsH')
     self.hist_eta.SetDirectory(0)
     self.effs_data = { }

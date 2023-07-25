@@ -2,7 +2,8 @@
 # Author: Izaak Neutelings (June 2020)
 import os, re, glob
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs, repkey, getyear
-from TauFW.common.tools.file import ensuredir, ensureTFile, ensuremodule
+from TauFW.common.tools.file import ensuredir, ensuremodule
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.log import Logger, color
 from TauFW.Plotter.plot.Variable import Variable, Var, ensurevar
 from TauFW.Plotter.plot.Selection import Selection, Sel
@@ -99,7 +100,8 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
       for fname in fnames:
         setname = namerexp.findall(fname)[0]
         #print(setname)
-        datasample.add(Data(setname,'Observed',fname,**datakwargs))
+        title_ = 'Obs. (%s)'%(setname.split('_')[-1]) if '_Run20' in setname else title
+        datasample.add(Data(setname,title_,fname,**datakwargs))
     else:
       LOG.throw(IOError,"Did not find data file %r"%(fpattern))
   
@@ -566,10 +568,17 @@ def getxsec_nlo(*searchterms,**kwargs):
   return xsec_nlo
   
 
-def setaliases(tree,aliases):
+def setaliases(tree,verb=0,**aliases):
+  """Add alias to TTree. E.g.
+       setaliases(tree,deta='abs(eta1-eta2)',stmet='pt_1+pt_2+jpt_1+met',isdata='0')
+       aliases = { 'deta':'abs(eta1-eta2)', 'stmet':'pt_1+pt_2+jpt_1+met', 'isdata':'0' }
+       setaliases(tree,**aliases)
+  """
   if not tree or not aliases:
     return None
   for alias, formula in aliases.items():
+    formula = str(formula)
+    LOG.verb("setaliases: Adding alias to tree %r: %r -> %r"%(tree.GetName(),alias,formula),verb,level=5)
     tree.SetAlias(alias,formula)
   return tree
   

@@ -72,12 +72,18 @@ cd $CMSSW_BASE/src/
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
 scram b -j4
 ```
-If you want to use tau ID SF, please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauIDSFs):
+If you want to use tau ID SFs, please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauIDSFs):
 ```
-cd $CMSSW_BASE/src
+cd $CMSSW_BASE/src/
 git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
 cmsenv
 scram b -j4
+```
+If you want to use the lepton SFs from the HTT group, please do
+```
+cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/
+rm -rf HTT
+git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
 ```
 
 ### Combine

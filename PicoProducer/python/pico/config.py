@@ -271,7 +271,7 @@ def main_set(args):
       CONFIG.write(backup=False)
     else:
       LOG.warning("Did not recognize value '%s'. Did you mean 'default'?"%(value))
-  elif variable in ['nfilesperjob','maxevtsperjob','ncores']:
+  elif variable in ['nfilesperjob','maxevtsperjob','maxopenfiles','ncores'] or type(CONFIG[variable])==int:
     CONFIG[variable] = int(value)
     CONFIG.write(backup=True)
   else:

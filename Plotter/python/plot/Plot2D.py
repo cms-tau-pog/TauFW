@@ -11,9 +11,9 @@ class Plot2D(Plot):
   def __init__(self, *args, **kwargs):
     """
     Initialize with list of histograms:
-      Plot(hist)
+      Plot2D(hist)
     or with a variable (string or Variable object) as well:
-      Plot(xvar,yvar,hists)
+      Plot2D(xvar,yvar,hists)
     """
     hists, vars = [ ], [ ]
     self.verbosity = LOG.getverbosity(kwargs)
@@ -59,6 +59,9 @@ class Plot2D(Plot):
       self.logy       = kwargs.get('logy',       xvariable.logx      )
       self.ybinlabels = kwargs.get('ybinlabels', yvariable.binlabels )
       self.ztitle     = kwargs.get('ztitle',     ""                  )
+      self.xunits     = kwargs.get('xunits',     xvariable.units     ) # units to be added to x title
+      self.yunits     = kwargs.get('yunits',     yvariable.units     ) # units to be added to y title
+      self.zunits     = kwargs.get('zunits',     False               ) # units to be added to z title
       self.logz       = kwargs.get('logz',       xvariable.logy      )
       self.position   = kwargs.get('position',   xvariable.position  )
       self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable.filename,xvariable.filename))
@@ -76,6 +79,9 @@ class Plot2D(Plot):
       self.logy       = kwargs.get('logy',       False                     )
       self.ybinlabels = kwargs.get('ybinlabels', None                      )
       self.ztitle     = kwargs.get('ztitle',     ""                        )
+      self.xunits     = kwargs.get('xunits',     False                     ) # units to be added to x title
+      self.yunits     = kwargs.get('yunits',     False                     ) # units to be added to y title
+      self.zunits     = kwargs.get('zunits',     False                     ) # units to be added to z title
       self.logz       = kwargs.get('logz',       False                     )
       self.position   = kwargs.get('position',   ""                        )
       self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable,xvariable))
@@ -93,6 +99,9 @@ class Plot2D(Plot):
     xtitle       = kwargs.get('xtitle',       self.xtitle                 )
     ytitle       = kwargs.get('ytitle',       self.ytitle                 )
     ztitle       = kwargs.get('ztitle',       self.ztitle                 )
+    xunits       = kwargs.get('xunits',       self.xunits                 ) # units to be added to x title
+    yunits       = kwargs.get('yunits',       self.yunits                 ) # units to be added to y title
+    zunits       = kwargs.get('zunits',       self.zunits                 ) # units to be added to z title
     zcenter      = kwargs.get('zcenter',      "Events" not in ztitle      )
     xmin         = kwargs.get('xmin',         self.xmin                   )
     xmax         = kwargs.get('xmax',         self.xmax                   )
@@ -153,7 +162,8 @@ class Plot2D(Plot):
     canvas.SetFrameFillStyle(0)
     canvas.SetFrameBorderMode(0)
     canvas.SetMargin(lmargin,rmargin,bmargin,tmargin) # LRBT
-    canvas.SetTickx(0); canvas.SetTicky(0)
+    #canvas.SetTickx(0); canvas.SetTicky(0)
+    canvas.SetTicks(1,1)
     if grid:
       canvas.SetGrid()
     canvas.cd()
@@ -198,9 +208,9 @@ class Plot2D(Plot):
     frame.GetYaxis().SetTitleOffset(yoffset)
     frame.GetZaxis().SetTitleOffset(zoffset)
     frame.GetZaxis().CenterTitle(zcenter)
-    frame.GetXaxis().SetTitle(makelatex(xtitle))
-    frame.GetYaxis().SetTitle(makelatex(ytitle))
-    frame.GetZaxis().SetTitle(makelatex(ztitle))
+    frame.GetXaxis().SetTitle(makelatex(xtitle,units=xunits))
+    frame.GetYaxis().SetTitle(makelatex(ytitle,units=zunits))
+    frame.GetZaxis().SetTitle(makelatex(ztitle,units=yunits))
     frame.GetXaxis().SetRangeUser(xmin,xmax)
     frame.GetYaxis().SetRangeUser(ymin,ymax)
     frame.SetMinimum(zmin)

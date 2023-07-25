@@ -357,7 +357,7 @@ def checkchunks(sample,**kwargs):
   checkexpevts = kwargs.get('checkexpevts', False ) # compare actual to expected number of processed events
   pendjobs     = kwargs.get('jobs',         None  )
   checkdas     = kwargs.get('das',          True  ) # check number of events from DAS
-  showlogs     = kwargs.get('showlogs',     False ) # print log files of failed jobs
+  showlogs     = kwargs.get('showlogs',     False ) # print log files of failed jobs for debugging
   ncores       = kwargs.get('ncores',       4     ) # validate files in parallel
   verbosity    = kwargs.get('verb',         0     )
   oldjobcfg    = sample.jobcfg # job config from last job
@@ -741,7 +741,7 @@ def checkchunks(sample,**kwargs):
             chunks = jobcfg.get('chunks',[ ])
             chunkset[jobid] = chunks
         if chunks and chunk in chunks:
-          taskid  = chunks.index(chunk)+1
+          taskid  = chunks.index(chunk)+(0 if 'HTCondor' in CONFIG.batch else 1)
           logexp  = "%d.%d.log"%(jobid,taskid)
           #logexp  = re.compile(".*\.\d{3,}\.%d(?:\.log)?$"%(taskid)) #$JOBNAME.$JOBID.$TASKID.log
           matches = [f for f in lognames if f.endswith(logexp)]
@@ -942,10 +942,10 @@ def main_status(args):
           storedir = repkey(storedirformat,ERA=era,CHANNEL=channel_,TAG=tag,SAMPLE=sample.name,
                                            DAS=sample.paths[0].strip('/'),GROUP=sample.group)
           storage  = getstorage(storedir,ensure=True,haddcmd=haddcmd,verb=verbosity)
-          outfile  = '%s_%s%s.root'%(sample.name,channel_,tag)
-          infiles  = os.path.join(outdir,'*%s_[0-9]*.root'%(postfix))
-          cfgfiles = os.path.join(cfgdir,'job*%s_try[0-9]*.*'%(postfix))
-          logfiles = os.path.join(logdir,'*%s*.*.log'%(postfix))
+          outfile  = "%s_%s%s.root"%(sample.name,channel_,tag)
+          infiles  = os.path.join(outdir,"*%s_[0-9]*.root"%(postfix))
+          cfgfiles = os.path.join(cfgdir,"job*%s_try[0-9]*.*"%(postfix))
+          logfiles = os.path.join(logdir,"*%s*.*.log"%(postfix))
           if verbosity>=1:
             print(">>> %sing job output for '%s'"%(subcmd.capitalize(),sample.name))
             print(">>> %-12s = %r"%('cfgname',cfgname))
@@ -971,11 +971,13 @@ def main_status(args):
           # TODO: check if hadd was succesful with isvalid
           if cleanup:
             allcfgs = os.path.join(cfgdir,"job*_try[0-9]*.*")
-            rmcmd   = None
-            if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check for other jobs
+            rmcmds  = [ ]
+            if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check for other jobs in same directory
               if verbosity>=2:
                 print(">>> %-12s = %s"%('cfgfiles',cfgfiles))
-              rmcmd = "rm -r %s"%(jobdir) # remove whole job directory
+              rmcmds.append("rm -r %s"%(jobdir)) # remove whole job directory
+              if outdir!=jobdir and len(infiles)==len(glob.glob(os.path.join(outdir,"*.root"))):
+                rmcmds.append("rm -r %s"%(outdir)) # remove whole output directory
             else: # only remove files related to this job (era/channel/sample)
               rmfiles   = [ ]
               rmfileset = [infiles,cfgfiles,logfiles]
@@ -986,11 +988,11 @@ def main_status(args):
                 print(">>> %-12s = %s"%('cfgfiles',cfgfiles))
                 print(">>> %-12s = %s"%('rmfileset',rmfileset))
               if rmfiles:
-                rmcmd = "rm %s"%(' '.join(rmfiles))
-            if rmcmd:
+                rmcmds.append("rm %s"%(' '.join(rmfiles)))
+            for rmcmd in rmcmds:
               if verbosity>=1:
                 rmcmd = lreplace(rmcmd,'rm',"rm -v",1)
-              rmout = execute(rmcmd,dry=dryrun,verb=cmdverb)
+              execute(rmcmd,dry=dryrun,verb=cmdverb)
         
         # ONLY CHECK STATUS
         else:

@@ -2,37 +2,17 @@
 # Author: Izaak Neutelings (January 2019)
 #   ./getBTagEfficiencies.py -c mutau - y 2016 -w loose -t DeepJet
 
-import os, sys
+import os
 from collections import OrderedDict
-from argparse import ArgumentParser
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gROOT, gStyle, gPad, gDirectory, TFile, TTree, TH2F, TCanvas, TLegend, TLatex, kBlue, kRed, kOrange
 gStyle.SetOptStat(False)
 gROOT.SetBatch(True)
 
-argv = sys.argv
-description = '''Extract histograms from the analysis framework output run on MC samples to create b tag efficiencies.'''
-parser = ArgumentParser(prog="pileup",description=description,epilog="Succes!")
-parser.add_argument('-i', '--inputdir', dest='indir', help="eras to run" )
-parser.add_argument('-y', '--era',      dest='eras', nargs='+', default=[],
-                                        help="eras to run" )
-parser.add_argument('-c', '--channel',  dest='channels', choices=['eletau','mutau','tautau','elemu','mumu','eleele'], type=str, nargs='+', default=['mutau'],
-                                        help="channels to run" )
-parser.add_argument('-t', '--tagger',   dest='taggers', choices=['DeepCSV','DeepJet'], type=str, nargs='+', default=['DeepJet'],
-                                        help="tagger to run" )
-parser.add_argument('-w', '--wp',       dest='wps', choices=['loose','medium','tight'], type=str, nargs='+', default=['medium'],
-                                        help="working point to run" )
-parser.add_argument('-d', '--chdir',    help="name of target directory in output file" )
-parser.add_argument('-t', '--tag',      default="", help="extra tag for histograms" )
-parser.add_argument('-C', '--campaign', default="", help="MC campaign name for output file" )
-parser.add_argument('-p', '--plot',     action='store_true',  help="plot efficiencies" )
-parser.add_argument('-v', '--verbose',  action='store_true',  help="print verbose" )
-args = parser.parse_args()
-
 
 def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",effdir=None,plot=False):
   """Get pileup profile in MC by adding Pileup_nTrueInt histograms from a given list of samples."""
-  print '>>> getBTagEfficiencies("%s","%s","%s")'%(outfname,wp,era)
+  print('>>> getBTagEfficiencies("%s","%s","%s")'%(outfname,wp,era))
   
   # PREPARE numerator and denominator histograms per flavor
   nhists  = { }
@@ -49,16 +29,16 @@ def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",effdir=Non
   
   # ADD numerator and denominator histograms
   for fname in samples:
-    print ">>>   %s"%(fname)
-    file = TFile(fname,'READ')
+    print(">>>   %s"%(fname))
+    file = TFile.Open(fname,'READ')
     if not file or file.IsZombie():
-      print ">>>   Warning! getBTagEfficiencies: Could not open %s. Ignoring..."%(fname)
+      print(">>>   Warning! getBTagEfficiencies: Could not open %s. Ignoring..."%(fname))
       continue
     for hname in hists:
       histpath = "%s/%s"%(histdir,hname)
       hist = file.Get(histpath)
       if not hist:
-        print ">>>   Warning! getBTagEfficiencies: Could not open histogram '%s' in %s. Ignoring..."%(histpath,fname)        
+        print(">>>   Warning! getBTagEfficiencies: Could not open histogram '%s' in %s. Ignoring..."%(histpath,fname)        )
         dir = file.Get(histdir)
         if dir: dir.ls()
         continue
@@ -73,18 +53,18 @@ def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",effdir=Non
   
   # CHECK
   if len(nhists)>0:
-    print ">>>   added %d MC hists:"%(sum(nhists[n] for n in nhists))
+    print(">>>   Added %d MC hists:"%(sum(nhists[n] for n in nhists)))
     for hname, nhist in sorted(nhists.items()):
       info = "%4.3e jets"%(hists[hname].GetEntries())
       if '_all' not in hname:
         info += " (%4.1f%%)"%(100.0*hists[hname].GetEntries()/hists[hname+"_all"].GetEntries())
-      print ">>>     %-26s%4d histograms, %s"%(hname+':',nhist,info)
+      print(">>>     %-26s%4d histograms, %s"%(hname+':',nhist,info))
   else:
-    print ">>>   no histograms added !"
+    print(">>>   No histograms added !")
     return
   
   # DIVIDE and SAVE histograms
-  print ">>>   writing to %s..."%(outfname)
+  print(">>>   Writing to %s..."%(outfname))
   file = TFile(outfname,'UPDATE') #RECREATE
   ensureTDirectory(file,channel)
   for hname, hist in hists.items():
@@ -92,22 +72,22 @@ def getBTagEfficiencies(tagger,wp,outfname,samples,era,channel,tag="",effdir=Non
       continue
     hname_all = hname+'_all'
     hname_eff = 'eff_'+hname
-    print ">>>     writing %s..."%(hname)
-    print ">>>     writing %s..."%(hname_all)
-    print ">>>     writing %s..."%(hname_eff)
+    print(">>>     Writing %s..."%(hname))
+    print(">>>     Writing %s..."%(hname_all))
+    print(">>>     Writing %s..."%(hname_eff))
     hist_all = hists[hname_all]
     hist_eff = hist.Clone(hname_eff)
     hist_eff.SetTitle(makeTitle(tagger,wp,hname_eff,channel,era))
     hist_eff.Divide(hist_all)
-    hist.Write(hname,TH2F.kOverwrite)
-    hist_all.Write(hname_all,TH2F.kOverwrite)
-    hist_eff.Write(hname_eff,TH2F.kOverwrite)
+    hist.Write(hname,hist.kOverwrite)
+    hist_all.Write(hname_all,hist.kOverwrite)
+    hist_eff.Write(hname_eff,hist.kOverwrite)
     if plot:
       plot1D(hname_eff+"_vs_pt",hist,hist_all,era,channel,title=hist_eff.GetTitle(),log=True,write=True)
       plot2D(hname_eff,hist_eff,era,channel,log=True)
       plot2D(hname_eff,hist_eff,era,channel,log=False)
   file.Close()
-  print ">>> "
+  print(">>> ")
   
 
 def plot2D(hname,hist,era,channel,log=False):
@@ -280,7 +260,7 @@ def createEff1D(histnum2D,histden2D):
     hists.append(histnum)
     gDirectory.Delete(histden.GetName())
     #for i in range(0,histnum.GetXaxis().GetNbins()+1):
-    #  print i, histnum.GetBinContent(i)
+    #  print(i, histnum.GetBinContent(i))
   return hists
   
 
@@ -301,7 +281,7 @@ def ensureTDirectory(file,dirname):
   dir = file.GetDirectory(dirname)
   if not dir:
     dir = file.mkdir(dirname)
-    print ">>>   created directory %s in %s" % (dirname,file.GetName())
+    print(">>>   created directory %s in %s" % (dirname,file.GetName()))
   dir.cd()
   return dir
   
@@ -310,13 +290,13 @@ def ensureDirectory(dirname):
   """Make directory if it does not exist."""
   if not os.path.exists(dirname):
     os.makedirs(dirname)
-    print '>>> made directory "%s"'%(dirname)
+    print('>>> made directory "%s"'%(dirname))
     if not os.path.exists(dirname):
-      print '>>> failed to make directory "%s"'%(dirname)
+      print('>>> failed to make directory "%s"'%(dirname))
   return dirname
   
 
-def main():
+def main(args):
   
   indir    = args.indir
   eras     = args.era
@@ -401,7 +381,7 @@ def main():
         ( "VV/ZZ"                    ),
       ]
     else:
-      print "Warning! Did not recognize era %r"%(era)
+      print("Warning! Did not recognize era %r"%(era))
       continue
     
     # MC CAMPAIGN NAMES of each era 
@@ -432,7 +412,25 @@ def main():
   
 
 if __name__ == '__main__':
+  from argparse import ArgumentParser
+  description = '''Extract histograms from the analysis framework output run on MC samples to create b tag efficiencies.'''
+  parser = ArgumentParser(prog="pileup",description=description,epilog="Succes!")
+  parser.add_argument('-i', '--inputdir', dest='indir', help="eras to run" )
+  parser.add_argument('-y', '--era',      dest='eras', nargs='+', default=[],
+                                          help="eras to run" )
+  parser.add_argument('-c', '--channel',  dest='channels', choices=['eletau','mutau','tautau','elemu','mumu','eleele'], type=str, nargs='+', default=['mutau'],
+                                          help="channels to run" )
+  parser.add_argument('-T', '--tagger',   dest='taggers', choices=['DeepCSV','DeepJet'], type=str, nargs='+', default=['DeepJet'],
+                                          help="tagger to run" )
+  parser.add_argument('-w', '--wp',       dest='wps', choices=['loose','medium','tight'], type=str, nargs='+', default=['medium'],
+                                          help="working point to run" )
+  parser.add_argument('-d', '--chdir',    help="name of target directory in output file" )
+  parser.add_argument('-t', '--tag',      default="", help="extra tag for histograms" )
+  parser.add_argument('-C', '--campaign', default="", help="MC campaign name for output file" )
+  parser.add_argument('-p', '--plot',     action='store_true',  help="plot efficiencies" )
+  parser.add_argument('-v', '--verbose',  action='store_true',  help="print verbose" )
+  args = parser.parse_args()
   print('')
-  main()
-  print ">>> done\n"
+  main(args)
+  print(">>> Done\n")
   

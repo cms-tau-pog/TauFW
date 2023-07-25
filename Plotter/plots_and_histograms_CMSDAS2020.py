@@ -128,7 +128,7 @@ def plot(sampleset,channel,parallel=True,tag="",outdir="plots",histdir="",era=""
                                                                                                    # to the opposite-sign region
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel,selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
-    for stack, variable in stacks.iteritems():
+    for stack, variable in stacks.items():
       outhists.cd(selection.filename)
       for h in stack.hists:
         h.Write(h.GetName().replace("QCD_","QCD") + tag,R.TH1.kOverwrite)
@@ -176,7 +176,7 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   
 
 

@@ -8,6 +8,7 @@ from ROOT import TH1D, gRandom
 
 
 def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None):
+  """Plot comparison of histograms."""
   
   # SETTING
   outdir   = ensuredir("plots/")
@@ -33,7 +34,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None):
   LOG.header(fname)
   plot = Plot(xtitle,hists,norm=norm)
   plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,width=cwidth,lstyle=lstyle,grid=grid,staterr=staterr)
-  plot.drawlegend(position,header=header,width=lwidth,)
+  plot.drawlegend(position,header=header,width=lwidth)
   plot.drawtext(text)
   plot.saveas(fname+".png")
   plot.saveas(fname+".pdf")
@@ -45,6 +46,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None):
   
 
 def createhists(nhist=3):
+  """Create some histograms of gaussian distributions."""
   nbins    = 50
   xmin     = 0
   xmax     = 100
@@ -85,7 +87,7 @@ if __name__ == "__main__":
   description = '''Script to test the Plot class for comparing histograms.'''
   parser = ArgumentParser(prog="testPlot",description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
-                                         help="set verbosity" )
+                                         help="set verbosity level" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main()

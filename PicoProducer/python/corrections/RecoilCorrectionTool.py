@@ -8,7 +8,7 @@ import os
 from math import sqrt, exp
 from ctypes import c_float
 from TauFW.PicoProducer import datadir
-from TauFW.common.tools.file import ensureTFile
+from TauFW.common.tools.root import ensureTFile
 from TauFW.PicoProducer.analysis.utils import hasbit
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 import ROOT

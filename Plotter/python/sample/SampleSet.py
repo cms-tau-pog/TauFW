@@ -303,7 +303,7 @@ class SampleSet(object):
     variables, selection, issingle = self.changecontext(*args,**kwargs)
     result = self.gethists(variables,selection,**kwargs)
     stacks = { }
-    self.nplots += len(result.vars)
+    self.nplots += len(result.vars) # increase counter for refreshing memory
     for args in result:
       stack = Stack(*args,**kwargs)
       if issingle:
@@ -319,7 +319,7 @@ class SampleSet(object):
     variables, selection, issingle = self.changecontext(*args,**kwargs)
     result = self.gethists(variables,selection,**kwargs)
     stacks = { }
-    self.nplots += len(result.vars)
+    self.nplots += len(result.vars)# increase counter for refreshing memory
     for var in result.vars:
       stack = THStack(name,name)
       for hist in reversed(result.exp[var]):

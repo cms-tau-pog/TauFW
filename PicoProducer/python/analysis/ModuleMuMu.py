@@ -21,15 +21,15 @@ class ModuleMuMu(ModuleTauPair):
     # TRIGGERS
     if self.year==2016:
       #self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
-      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
+      #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
       self.muon1CutPt = lambda e: 25
       self.muonCutEta = lambda e: 2.4 #if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
-      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
+      #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
       self.muon1CutPt = lambda e: 25 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
     else:
-      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
+      #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
       self.muon1CutPt = lambda e: 25
       self.muonCutEta = lambda e: 2.4
     self.muon2CutPt   = 15
@@ -63,6 +63,7 @@ class ModuleMuMu(ModuleTauPair):
     print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
     print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
     print(">>> %-12s = %s"%('zwindow',    self.zwindow))
+    print(">>> %-12s = %s"%('trigger',    self.trigger))
     pass
     
   

@@ -6,7 +6,8 @@ import importlib
 from fnmatch import fnmatch
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.log import Logger
-from TauFW.common.tools.file import ensurefile, ensureTFile
+from TauFW.common.tools.file import ensurefile
+from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.string import repkey, isglob, quotestrs
 from ROOT import TFile
 LOG  = Logger('Storage')

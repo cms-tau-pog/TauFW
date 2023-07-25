@@ -2,6 +2,9 @@
 # Author: Izaak Neutelings (July 2020)
 from TauFW.Plotter.sample.Sample import *
 from TauFW.Plotter.plot.MultiThread import MultiProcessor
+import ROOT
+ROOT.ROOT.EnableThreadSafety() # for multithreading
+ROOT.ROOT.EnableImplicitMT() # for multithreading
 
 
 class MergedSample(Sample):
@@ -24,16 +27,16 @@ class MergedSample(Sample):
   
   def init(self, sample, **kwargs):
     """Set some relevant attributes (inherited from the Sample class) with a given sample."""
-    self.filename     = sample.filename
-    self.treename     = sample.treename
-    self.isdata       = sample.isdata
-    self.isembed      = sample.isembed
-    self.isexp        = sample.isexp
-    self.issignal     = sample.issignal
-    self.lumi         = sample.lumi
-    self.cutflow      = sample.cutflow
-    self.fillcolor    = kwargs.get('color',    self.fillcolor) or sample.fillcolor
-    self.linecolor    = kwargs.get('linecolor',self.linecolor) or sample.linecolor
+    self.filename  = sample.filename
+    self.treename  = sample.treename
+    self.isdata    = sample.isdata
+    self.isembed   = sample.isembed
+    self.isexp     = sample.isexp
+    self.issignal  = sample.issignal
+    self.lumi      = sample.lumi
+    self.cutflow   = sample.cutflow
+    self.fillcolor = kwargs.get('color',    self.fillcolor) or sample.fillcolor
+    self.linecolor = kwargs.get('linecolor',self.linecolor) or sample.linecolor
   
   def __len__(self):
     """Return number of samples."""
@@ -45,7 +48,7 @@ class MergedSample(Sample):
       yield sample
   
   def __add__(self,sample):
-    """Start iteration over samples."""
+    """Add Sample object to list of samples."""
     self.add(sample)
   
   def add(self, sample, **kwargs):
@@ -184,21 +187,24 @@ class MergedSample(Sample):
     dots       = kwargs.get('dots',     False      ) # allow dots in histogram name
     parallel   = kwargs.get('parallel', False      ) # split subsamples into parallel jobs
     scales     = kwargs.get('scales',   None       ) # list of scale factors, one for each subsample
-    kwargs['cuts']   = joincuts(kwargs.get('cuts'), self.cuts            )
-    kwargs['weight'] = joinweights(kwargs.get('weight', ""), self.weight ) # pass weight down
-    kwargs['scale']  = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
+    kwargs['cuts']     = joincuts(kwargs.get('cuts'), self.cuts            )
+    kwargs['weight']   = joinweights(kwargs.get('weight', ""), self.weight ) # pass weight down
+    kwargs['scale']    = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
+    kwargs['parallel'] = False # set to false to stop splitting further
+    LOG.verb("MergedSample.gethist: name=%r, title=%r, cuts=%r, weight=%r, scale=%r, parallel=%s, len(samples)=%s"%(
+      name,title,kwargs['cuts'],kwargs['weight'],kwargs['scale'],parallel,len(self.samples)),verbosity,4)
     
     # HISTOGRAMS
     allhists = [ ]
     hargs    = (variables, selection)
     hkwargs  = kwargs.copy()
     if parallel and len(self.samples)>1: # get subsample hist in parallel
-      hkwargs['parallel'] = False
       processor = MultiProcessor()
       for sample in self.samples:
         processor.start(sample.gethist,hargs,hkwargs,name=sample.title)        
       for process in processor:
         allhists.append(process.join())
+      #processor.close()
     else: # get subsample hist in series
       for sample in self.samples:
         if 'name' in kwargs: # prevent memory leaks
@@ -229,7 +235,8 @@ class MergedSample(Sample):
           sumhist.Add(subhist)
       if verbosity>=4:
         printhist(sumhist,pre=">>>   ")
-      deletehist(subhists)
+      if not parallel:
+        deletehist(subhists) # avoid segmentation fault 
     
     # PRINT
     if verbosity>=2:
@@ -244,18 +251,20 @@ class MergedSample(Sample):
     if issingle:
       return sumhists[0]
     return sumhists
+    
   
   def gethist2D(self, *args, **kwargs):
     """Create and fill 2D histgram for multiple samples. Overrides Sample.gethist2D."""
     variables, selection, issingle = unwrap_gethist2D_args(*args)
-    verbosity        = LOG.getverbosity(kwargs)
-    name             = kwargs.get('name',               self.name+"_merged" )
-    name            += kwargs.get('tag',                ""                  )
-    title            = kwargs.get('title',              self.title          )
-    parallel         = kwargs.get('parallel',           False                )
-    kwargs['cuts']   = joincuts(kwargs.get('cuts'),     self.cuts           )
-    kwargs['weight'] = joinweights(kwargs.get('weight', ""), self.weight    ) # pass scale down
-    kwargs['scale']  = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
+    verbosity = LOG.getverbosity(kwargs)
+    name      = kwargs.get('name',               self.name+"_merged" )
+    name     += kwargs.get('tag',                ""                  )
+    title     = kwargs.get('title',              self.title          )
+    parallel  = kwargs.get('parallel',           False                )
+    kwargs['cuts']     = joincuts(kwargs.get('cuts'),     self.cuts           )
+    kwargs['weight']   = joinweights(kwargs.get('weight', ""), self.weight    ) # pass scale down
+    kwargs['scale']    = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
+    kwargs['parallel'] = False # set to false to stop splitting further
     if verbosity>=2:
       print(">>>\n>>> MergedSample.gethist2D: %s: %s"%(color(name,color="grey"), self.fnameshort))
       #print ">>>    norm=%.4f, scale=%.4f, total %.4f"%(self.norm,kwargs['scale'],self.scale)
@@ -265,12 +274,12 @@ class MergedSample(Sample):
     hargs    = (variables, selection)
     hkwargs  = kwargs.copy()
     if parallel and len(self.samples)>1:
-      hkwargs['parallel'] = False
       processor = MultiProcessor()
       for sample in self.samples:
         processor.start(sample.gethist2D,hargs,hkwargs,name=sample.title)
       for process in processor:
         allhists.append(process.join())
+      processor.close()
     else:
       for sample in self.samples:
         if 'name' in kwargs: # prevent memory leaks
@@ -298,7 +307,8 @@ class MergedSample(Sample):
           sumhist.Add(subhist)
       if verbosity>=4:
         printhist(sumhist,pre=">>>   ")
-      deletehist(subhists)
+      if not parallel: # prevent segmentation fault in newer PyROOT versions
+        deletehist(subhists) # clean memory
     
     if issingle:
       return sumhists[0]
