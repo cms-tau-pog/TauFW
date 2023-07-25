@@ -235,7 +235,8 @@ class MergedSample(Sample):
           sumhist.Add(subhist)
       if verbosity>=4:
         printhist(sumhist,pre=">>>   ")
-      deletehist(subhists)
+      if not parallel:
+        deletehist(subhists) # avoid segmentation fault 
     
     # PRINT
     if verbosity>=2:
