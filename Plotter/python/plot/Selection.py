@@ -57,6 +57,7 @@ class Selection(object):
     self.context       = getcontext(kwargs,self.selection) # context-dependent channel selections
     self.only          = kwargs.get('only',     [ ]           )
     self.veto          = kwargs.get('veto',     [ ]           )
+    self.flag          = kwargs.get('flag',     ""            ) # flag, e.g. 'up', 'down', ...
     self.only          = ensurelist(self.only)
     self.veto          = ensurelist(self.veto)
   
