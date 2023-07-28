@@ -89,8 +89,13 @@ def parsecompression(compression='LZMA:9'):
   return level, algo
   
 
-def ensureTDirectory(file,dirname,cd=True,verb=0):
+def ensureTDirectory(file,dirname,cd=True,split=True,verb=0):
   """Make TDirectory in a file (or other TDirectory) if it does not yet exist."""
+  if split and '/' in dirname:
+    dirs = dirname.strip('/').split('/')
+    topdir = '/'.join(dirs[:-1])
+    dirname = dirs[-1]
+    file = ensureTDirectory(file,topdir,cd=False,verb=verb) # create top dirs recursively
   directory = file.GetDirectory(dirname)
   if not directory:
     directory = file.mkdir(dirname)
