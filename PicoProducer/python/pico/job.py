@@ -793,7 +793,7 @@ def main_submit(args):
       print(">>>   Nothing to %ssubmit!"%('re' if resubmit else ''))
       continue
     script = batch.script
-    if batch.system=='HTCondor':
+    if 'HTCondor' in batch.system:
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
       jkwargs.update({ 'app': appcmds })
