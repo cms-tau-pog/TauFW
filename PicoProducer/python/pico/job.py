@@ -802,8 +802,8 @@ def main_submit(args):
       jkwargs.update({ 'log': logfile, 'array': nchunks })
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
-    else:
-      LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
+    #else:
+    #  LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
     
     # SUBMIT
     if args.prompt: # ask user confirmation before submitting
