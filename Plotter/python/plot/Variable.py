@@ -368,6 +368,7 @@ class Variable(object):
     hist.GetYaxis().SetTitle(ytitle)
     if ztitle:
       hist.GetZaxis().SetTitle(ztitle)
+    hist.SetOption('COLZ')
     return hist
   
   def drawcmd(self,name=None,tag="",bins=False,**kwargs):
