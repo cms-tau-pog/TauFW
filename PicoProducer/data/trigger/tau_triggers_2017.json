@@ -53,6 +53,12 @@
         "HLT_IsoMu24", 
         "HLT_IsoMu27"
       ], 
+      "SingleMuon_Mu24": [
+        "HLT_IsoMu24"
+      ], 
+      "SingleMuon_Mu27": [
+        "HLT_IsoMu27"
+      ], 
       "etau": [
         "HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1"
       ], 
@@ -71,6 +77,12 @@
       ], 
       "SingleMuon": [
         "HLT_IsoMu24", 
+        "HLT_IsoMu27"
+      ], 
+      "SingleMuon_Mu24": [
+        "HLT_IsoMu24"
+      ], 
+      "SingleMuon_Mu27": [
         "HLT_IsoMu27"
       ], 
       "etau": [
