@@ -76,6 +76,7 @@ class Stack(Plot):
     multibands   = kwargs.get('multibands',   False           ) # create stat. error band for each histogram in stack
     errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     norm         = kwargs.get('norm',         self.norm       ) # normalize all histograms
+    sigscales    = kwargs.get('sigscale',     None            ) # scale signal histograms (after normalization)
     fraction     = kwargs.get('fraction',     False           ) # draw fraction stack in ratio plot
     xtitle       = kwargs.get('xtitle',       xtitle          ) # x axis title
     ytitle       = kwargs.get('ytitle',       self.ytitle     ) # y axis title (if None, automatically set by Plot.setaxis)
@@ -151,8 +152,18 @@ class Stack(Plot):
       if ytitle==None:
         ytitle = "A.U."
       scale = 1.0 if isinstance(norm,bool) else norm # can be list
-      normalize([self.datahist]+self.sighists,scale=scale)
+      normalize(self.datahist,scale=scale)
       normalize(self.exphists,scale=scale,tosum=True) # normalize to sum of hist integrals
+      if self.sighists:
+        normalize(self.sighists,scale=scale)
+    
+    # SCALE SIGNAL HISTS
+    if sigscales and sigscales!=None:
+      sigscales = ensurelist(sigscales)
+      while len(sigscales)<len(self.sighists):
+        sigscales.append(sigscales[-1])
+      for sighist, sigscale in zip(self.sighists,sigscales):
+        sighist.Scale(sigscale)
     
     # DIVIDE BY BINSIZE
     if dividebins:
