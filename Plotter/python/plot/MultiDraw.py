@@ -5,23 +5,34 @@
 # Source: https://github.com/pwaller/minty/blob/master/minty/junk/MultiDraw.py
 from __future__ import print_function # for python3 compatibility
 import os, re, traceback
-from ROOT import gROOT, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
+from ROOT import gROOT, gSystem, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
                  TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
-moddir = os.path.dirname(os.path.realpath(__file__))
-macro  = os.path.join(moddir,"MultiDraw.cxx")
+moddir   = os.path.dirname(os.path.realpath(__file__))
+macro    = os.path.join(moddir,"MultiDraw.cxx")
+macrolib = os.path.join(moddir,"MultiDraw_cxx.so")
 
 def error(string): # raise RuntimeError in red color
   return RuntimeError("\033[31m"+string+"\033[0m")
 
 # LOAD MultiDraw macro
-try:
+def compileMultiDraw():
+  print(">>> Compiling %s"%(macro))
   gROOT.ProcessLine(".L %s+O"%macro)
+try:
+  if os.path.exists(macrolib):
+    try:
+      gSystem.Load(macrolib) # faster than compiling
+    except:
+      compileMultiDraw()
+  else:
+      compileMultiDraw()
   from ROOT import MultiDraw as _MultiDraw
   from ROOT import MultiDraw2D as _MultiDraw2D
 except:
   print(traceback.format_exc())
   raise error('MultiDraw.py: Failed to import the MultiDraw macro "%s"'%macro)
-  
+
+
 def makeTObjArray(theList):
   """Turn a python iterable into a ROOT TObjArray"""
   # Make PyROOT give up ownership of the things that are being placed in the
