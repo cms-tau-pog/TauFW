@@ -58,7 +58,7 @@ class Plot2D(Plot):
       self.ymax       = kwargs.get('ymax',       yvariable.xmax      )
       self.logy       = kwargs.get('logy',       xvariable.logx      )
       self.ybinlabels = kwargs.get('ybinlabels', yvariable.binlabels )
-      self.ztitle     = kwargs.get('ztitle',     ""                  )
+      self.ztitle     = kwargs.get('ztitle',     hist.GetZaxis().GetTitle() )
       self.xunits     = kwargs.get('xunits',     xvariable.units     ) # units to be added to x title
       self.yunits     = kwargs.get('yunits',     yvariable.units     ) # units to be added to y title
       self.zunits     = kwargs.get('zunits',     False               ) # units to be added to z title
@@ -78,7 +78,7 @@ class Plot2D(Plot):
       self.ymax       = kwargs.get('ymax',       hist.GetYaxis().GetXmax() )
       self.logy       = kwargs.get('logy',       False                     )
       self.ybinlabels = kwargs.get('ybinlabels', None                      )
-      self.ztitle     = kwargs.get('ztitle',     ""                        )
+      self.ztitle     = kwargs.get('ztitle',     hist.GetZaxis().GetTitle() )
       self.xunits     = kwargs.get('xunits',     False                     ) # units to be added to x title
       self.yunits     = kwargs.get('yunits',     False                     ) # units to be added to y title
       self.zunits     = kwargs.get('zunits',     False                     ) # units to be added to z title
@@ -117,7 +117,7 @@ class Plot2D(Plot):
     tcolor       = kwargs.get('tcolor',       kBlack                      )
     format       = kwargs.get('format',       ".2f"                       )
     legend       = kwargs.get('legend',       False                       )
-    grid         = kwargs.get('grid',         True                        )
+    grid         = kwargs.get('grid',         False                       )
     lcolor       = kwargs.get('lcolor',       kBlack                      )
     cwidth       = kwargs.get('width',        850                         )
     cheight      = kwargs.get('height',       750                         )
@@ -209,8 +209,8 @@ class Plot2D(Plot):
     frame.GetZaxis().SetTitleOffset(zoffset)
     frame.GetZaxis().CenterTitle(zcenter)
     frame.GetXaxis().SetTitle(makelatex(xtitle,units=xunits))
-    frame.GetYaxis().SetTitle(makelatex(ytitle,units=zunits))
-    frame.GetZaxis().SetTitle(makelatex(ztitle,units=yunits))
+    frame.GetYaxis().SetTitle(makelatex(ytitle,units=yunits))
+    frame.GetZaxis().SetTitle(makelatex(ztitle,units=zunits))
     frame.GetXaxis().SetRangeUser(xmin,xmax)
     frame.GetYaxis().SetRangeUser(ymin,ymax)
     frame.SetMinimum(zmin)
