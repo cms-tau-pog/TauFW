@@ -81,6 +81,7 @@ class Sample(object):
     self.linecolor    = kwargs.get('lcolor',       kBlack       ) # line color
     self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search termsMergedSample
     self.aliases      = kwargs.get('alias',        { }          ) # aliases to be added to tree
+    self.branchsels   = kwargs.get('branchsel',    [ ]          ) # branch selections, e.g. ['drop *track*', 'keep track_pt']
     if not isinstance(self.aliases,dict):
       self.aliases[self.aliases[0]] = self.aliases[1] # assume tuple, e.g. alias=('sf',"0.95")
     if not isinstance(self,MergedSample):
@@ -196,15 +197,17 @@ class Sample(object):
       self._file = ensureTFile(self.filename)
     return self._file
   
-  def get_newfile_and_tree(self):
+  def get_newfile_and_tree(self,**kwargs):
     """Create and return a new TFile and TTree without saving to self for thread safety."""
+    verbosity = LOG.getverbosity(kwargs)
     file = ensureTFile(self.filename,'READ')
     tree = file.Get(self.treename)
     if not tree or not isinstance(tree,TTree):
       LOG.throw(IOError,'Sample.get_newfile_and_tree: Could not find tree %r for %r in %s!'%(self.treename,self.name,self.filename))
-    setaliases(tree,verb=0,**self.aliases)
+    setaliases(tree,verb=verbosity-1,**self.aliases)
+    selectbranches(tree,self.branchsels,verb=verbosity)
     return file, tree
-    
+  
   def gethist_from_file(self,hname,tag="",close=True,**kwargs):
     """Get histogram from file. Add histograms together if merged sample."""
     verbosity = LOG.getverbosity(kwargs)
