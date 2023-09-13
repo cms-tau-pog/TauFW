@@ -180,11 +180,11 @@ class ModuleTauPair(Module):
     self.out.cutflow.fill('none')
     if self.isdata:
       self.out.cutflow.fill('weight',1.)
-      if event.PV_npvs>0:
+      if event.PV_npvs>0: # for pre-UL 2017 bug in 0 PU
         self.out.cutflow.fill('weight_no0PU',1.)
       else:
         return False
-    else:
+    else: # ismc
       self.out.cutflow.fill('weight',event.genWeight)
       self.out.pileup.Fill(event.Pileup_nTrueInt)
       #if self.dosys and event.nLHEScaleWeight>0:
@@ -198,7 +198,7 @@ class ModuleTauPair(Module):
       #  if idx>=event.nLHEScaleWeight: break
       #  self.out.h_muweight.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx])
       #  self.out.h_muweight_genw.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx]*event.genWeight)
-      if event.Pileup_nTrueInt>0:
+      if event.Pileup_nTrueInt>0: # for pre-UL 2017 bug in 0 PU
         self.out.cutflow.fill('weight_no0PU',event.genWeight)
       else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
         return False
