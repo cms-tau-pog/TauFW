@@ -138,7 +138,9 @@ class Variable(object):
     if verbosity>=2:
       print(">>> Variable.clone: Old strargs=%r, binargs=%r, kwargs=%r"%(strargs,binargs,kwargs))
     if not strargs:
-      strargs = (kwargs.pop('name',self.name),) # default name
+      strargs = (kwargs.pop('name',self.name),kwargs.pop('title',self.title)) # default name
+    if len(strargs)==1:
+      strargs += (kwargs.pop('title',self.title),) # default title
     if not binargs: # get binning
       binargs = self.getbins()
       cut = kwargs.get('cut',None)
@@ -157,8 +159,8 @@ class Variable(object):
     if 'tag' in kwargs:
       kwargs['filename'] = kwargs.get('filename',self.filename)+kwargs['tag']
     if kwargs.get('combine',True) and 'weight' in kwargs and self.weight:
-      kwargs['weight'] = combineWeights(kwargs['weight'],self.weight)
-    for key in kwargs.keys()+['name','title','nbins','min','max','bins']: # prevent overwrite: set via newargs
+      kwargs['weight'] = joinweights(kwargs['weight'],self.weight)
+    for key in list(kwargs.keys())+['name','title','nbins','min','max','bins']: # prevent overwrite: set via newargs
       newdict.pop(key,None)
     if 'cbins' in kwargs:
       newdict.pop('ctxbins')
@@ -188,19 +190,23 @@ class Variable(object):
   def setbins(self,*args):
     """Set binning: (N,min,max), or bins if it is set"""
     LOG.verb('Variable.setbins: setting binning to %s'%(args,),level=2)
-    numbers         = [a for a in args if isnumber(a)]
-    bins            = [a for a in args if islist(a)  ]
+    numbers = [a for a in args if isnumber(a)]
+    bins    = [a for a in args if islist(a)] #and all(isinstance(x,(int,float)) for x in a)
     if len(numbers)==3:
-      self.nbins    = numbers[0]
-      self.min      = numbers[1]
-      self.max      = numbers[2]
-      self.bins     = None
+      self.nbins = numbers[0]
+      self.min   = numbers[1]
+      self.max   = numbers[2]
+      self.bins  = None
     elif len(bins)>0:
-      edges         = list(bins[0])
-      self.nbins    = len(edges)-1
-      self.min      = edges[0]
-      self.max      = edges[-1]
-      self.bins     = edges
+      edges      = list(bins[0])
+      if any(x<edges[i] for i, x in enumerate(edges[1:])): # check sorting
+        LOG.warn("Variable.setbins: Bin edges for %r are not sorted: edges=%r"%(self.name,edges))
+      if len(edges)!=len(set(edges)): # check for duplicates
+        LOG.warn("Variable.setbins: Bin edges for %r has duplicate values: edges=%r"%(self.name,edges))
+      self.nbins = len(edges)-1
+      self.min   = edges[0]
+      self.max   = edges[-1]
+      self.bins  = edges
     else:
       LOG.throw(IOError,'Variable: bad arguments "%s" for binning!'%(args,))
   
