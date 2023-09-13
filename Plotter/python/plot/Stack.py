@@ -18,9 +18,9 @@ class Stack(Plot):
       plot = Stack(variable,datahist,exphists,sighists)
     with 
     - variable: string or Variable object
-    - datahist: single TH1 or TGraph object
-    - exphists: list of TH1 objects for expected processes
-    - sighists: list of TH1 objects for signals
+    - datahist: single TH1 or TGraph object of observed data
+    - exphists: list of TH1 objects for expected processes (to be stacked)
+    - sighists: list of TH1 objects for signals (to be overlayed as line)
     """
     self.verbosity = LOG.getverbosity(kwargs)
     #variable       = None
@@ -47,10 +47,7 @@ class Stack(Plot):
     kwargs['clone'] = False
     self.ratio      = kwargs.setdefault('ratio', bool(self.datahist) )
     super(Stack,self).__init__(variable,self.hists,**kwargs)
-    if isinstance(variable,Variable):
-      self.dividebins = kwargs.get('dividebins', variable.dividebins  ) # divide each histogram bins by it bin size
-    else:
-      self.dividebins = kwargs.get('dividebins', self.hists[0].GetXaxis().IsVariableBinSize() ) # divide each histogram bins by it bin size
+    self.dividebins = kwargs.get('dividebins', self.hasvarbins ) # divide each histogram bins by it bin size
     if self.verbosity>=3:
       print(">>> Stack.__init__: datahist=%s"%(rootrepr(self.datahist)))
       print(">>> Stack.__init__: exphists=%s"%(rootrepr(self.exphists)))
@@ -82,6 +79,19 @@ class Stack(Plot):
     ytitle       = kwargs.get('ytitle',       self.ytitle     ) # y axis title (if None, automatically set by Plot.setaxis)
     rtitle       = kwargs.get('rtitle',       "Obs. / Exp."   ) # y axis title of ratio panel
     latex        = kwargs.get('latex',        self.latex      ) # automatically format strings as LaTeX with makelatex
+    xtitleoffset = kwargs.get('xtitleoffset', 1.0             )*bmargin
+    ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
+    rtitleoffset = kwargs.get('rtitleoffset', 1.0             )
+    tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
+    xtitlesize   = kwargs.get('xtitlesize',   tsize           ) # x title size
+    ytitlesize   = kwargs.get('ytitlesize',   tsize           ) # y title size
+    rtitlesize   = kwargs.get('rtitlesize',   tsize           ) # ratio title size
+    labelsize    = kwargs.get('labelsize',    _lsize          ) # label size
+    xlabelsize   = kwargs.get('xlabelsize',   labelsize       ) # x label size
+    ylabelsize   = kwargs.get('ylabelsize',   labelsize       ) # y label size
+    binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
+    labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
+    ycenter      = kwargs.get('ycenter',      False           ) # center y title
     xmin         = kwargs.get('xmin',         self.xmin       )
     xmax         = kwargs.get('xmax',         self.xmax       )
     ymin         = kwargs.get('ymin',         self.ymin       )
@@ -90,23 +100,20 @@ class Stack(Plot):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
+    lowerpanels  = kwargs.get('lowerpanels',  int(self.ratio) ) # number of lower panels
     denom        = int(ratio) if isinstance(ratio,int) and (ratio!=0) else 1 # assume first histogram is denominator (i.e. stack)
     denom        = kwargs.get('den',          denom           ) # index of common denominator histogram in ratio plot (count from 1)
     denom        = kwargs.get('denom',        denom           ) # alias
     num          = kwargs.get('num',          None            ) # index of common numerator histogram in ratio plot (count from 1)
     rhists       = kwargs.get('rhists',       self.hists      ) # custom histogram argument for ratio plot
-    binlabels    = kwargs.get('binlabels',    self.binlabels  ) # list of alphanumeric bin labels
-    labeloption  = kwargs.get('labeloption',  None            ) # 'h'=horizontal, 'v'=vertical
-    ytitleoffset = kwargs.get('ytitleoffset', 1.0             )
-    xtitleoffset = kwargs.get('xtitleoffset', 1.0             )*bmargin
-    xlabelsize   = kwargs.get('xlabelsize',   _lsize          ) # x label size
-    ylabelsize   = kwargs.get('ylabelsize',   _lsize          ) # y label size
+    nxdiv        = kwargs.get('nxdiv',        None            ) # tick divisions of x axis
+    nydiv        = kwargs.get('nydiv',        None            ) # tick divisions of y axis
+    nrdiv        = kwargs.get('nrdiv',        506             ) # tick divisions of y axis of ratio panel
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
     ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
     logyrange    = kwargs.get('logyrange',    self.logyrange  ) # log(y) range from hist maximum to ymin
     grid         = kwargs.get('grid',         False           )
-    tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
     pair         = kwargs.get('pair',         False           )
     triple       = kwargs.get('triple',       False           )
     lcolors      = kwargs.get('lcolors',      None            ) or self.lcolors
@@ -121,7 +128,7 @@ class Stack(Plot):
     doption      = kwargs.get('doption',      'E1'            ) # draw option for data histograms
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
-    errorX       = kwargs.get('errorX',       False           ) # no horizontal error bars for CMS style
+    errorX       = kwargs.get('errorX',       self.hasvarbins ) # no horizontal error bars, unless variable bin size (CMS style)
     dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide content / y values by bin size
     drawdata     = kwargs.get('drawdata',     True            ) and bool(self.datahist)
     drawsignal   = kwargs.get('drawsignal',   True            ) and bool(self.sighists)
@@ -170,8 +177,9 @@ class Stack(Plot):
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
-          newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,errorX=errorX,verb=verbosity)
-          if oldhist!=newhist:
+          dograph = (oldhist==self.datahist) # only create graph for observed data histogram
+          newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,errorX=errorX,graph=dograph,verb=verbosity)
+          if dograph and oldhist!=newhist:
             LOG.verb("Stack.draw: replace %s -> %s"%(oldhist,newhist),verbosity,2)
             hlist[i] = newhist
             #if oldhist in self.hists:
@@ -191,14 +199,12 @@ class Stack(Plot):
       #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
     # DRAW OPTIONS
-    gStyle.SetEndErrorSize(enderrorsize)
-    if errorX:
-      gStyle.SetErrorX(0.5)
-    else:
-      gStyle.SetErrorX(0) # 'XE0' should also work
+    gStyle.SetEndErrorSize(enderrorsize) # extra line at end of error bars
+    gStyle.SetErrorX(0.5*float(errorX)) # horizontal error bars
+    LOG.verb("Plot.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
     
     # CANVAS
-    self.canvas = self.setcanvas(square=square,lower=ratio,width=cwidth,height=cheight,
+    self.canvas = self.setcanvas(square=square,lower=lowerpanels,width=cwidth,height=cheight,
                                  lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
     
     # STYLE
@@ -262,25 +268,29 @@ class Stack(Plot):
     if multibands:
       for i, hist in enumerate(self.exphists):
         fstyle = 3004 if i%2==0 else 3005
-        errband = geterrorband(hist,yhist=stack.GetStack().At(i),name=makehistname("errband",hist.GetName()),title=errtitle,style=fstyle)
+        errband = geterrorband(hist,yhist=stack.GetStack().At(i),name=makehistname("errband",hist),title=errtitle,style=fstyle)
         errband.Draw('E2 SAME')
         self.errbands.append(errband)
     
     # AXES
-    self.setaxes(self.frame,*hists,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,
-                 xtitle=xtitle,ytitle=ytitle,ytitleoffset=ytitleoffset,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
-                 dividebins=dividebins,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange,latex=latex)
+    drawx = not bool(ratio)
+    self.setaxes(self.frame,*hists,drawx=drawx,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,nxdiv=nxdiv,nydiv=nydiv,
+                 xtitle=xtitle,ytitle=ytitle,xtitlesize=xtitlesize,ytitlesize=ytitlesize,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,
+                 xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
+                 dividebins=dividebins,latex=latex,center=ycenter,ymargin=ymargin,logyrange=logyrange)
     
     # RATIO
     if ratio:
+      drawx = (lowerpanels<=1)
       self.canvas.cd(2)
       rhists = [stack]+self.sighists+[self.datahist] # default: use stack as denominator (denom=1)
       self.ratio = Ratio(*rhists,denom=denom,num=num,errband=self.errband,
-                         drawzero=True,errorX=errorX,fraction=fraction)
+                         drawzero=True,errorX=errorX,fraction=fraction,verb=verbosity+2)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
-      self.setaxes(self.ratio,option=roption,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,center=True,nydiv=506,
-                   binlabels=binlabels,labeloption=labeloption,xlabelsize=xlabelsize,xtitleoffset=xtitleoffset,
-                   rrange=ratiorange,xtitle=xtitle,ytitle=rtitle,grid=grid,latex=latex)
+      self.setaxes(self.ratio,drawx=drawx,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,nxdiv=nxdiv,nydiv=nrdiv,
+                   xtitle=xtitle,ytitle=rtitle,xtitlesize=xtitlesize,ytitlesize=rtitlesize,xtitleoffset=xtitleoffset,ytitleoffset=rtitleoffset,
+                   xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
+                   center=True,rrange=ratiorange,grid=grid,latex=latex)
       for line in self.lines:
         if line.pad==2:
           line.Draw("LSAME")
