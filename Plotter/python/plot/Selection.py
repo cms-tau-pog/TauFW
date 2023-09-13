@@ -123,12 +123,9 @@ class Selection(object):
         rargs = [rargs] # ensure list of tuples with two strings
       for rarg in rargs: # loop over tuples of two strings: (oldpattern,newpattern)
         assert len(rarg)==2, "Replace argument must be tuple of length 2! Got: %r"%(rarg,)
-        oldexp, newexp = rarg # use substitution with regular expressions
-        if kwargs.get('regex',False):
-          newsel = re.sub(oldexp,newexp,self.selection)
-        else:
-          newsel = self.selection.replace(oldexp,newexp)
-      LOG.verb("Variable.clone: Replaced %r -> %r"%(self.selection,newsel),verbosity,level=2)
+        kwargs.setdefault('update',False) # do not overwrite attribute of current object
+        newsel = self.replace(*rarg,**kwargs) # use substitution with regular expressions
+      LOG.verb("Selection.clone: Replaced %r -> %r"%(self.selection,newsel),verbosity,level=2)
       strargs = strargs[:2]+(newsel,)+strargs[2:] # insert default title
     for key in list(kwargs.keys())+['name','title','selection','replace']: # prevent overwrite: set via newargs
       newdict.pop(key,None)
@@ -147,12 +144,17 @@ class Selection(object):
   
   def replace(self, old, new, **kwargs):
     """Replace given substring in selection string."""
-    oldsel = selection.selection
+    verbosity = LOG.getverbosity(self,kwargs)
     if kwargs.get('regex',False): # use substitution with regular expressions
-      self.selection = re.sub(old,new,self.selection)
+      newsel = re.sub(old,new,self.selection)
     else:
-      self.selection = self.selection.replace(old,new)
-    return self.selection
+      newsel = self.selection.replace(old,new)
+    if kwargs.get('update',True):
+      LOG.verb("Selection.replace: Update selection string %r -> %r"%(self.selection,newsel),verbosity,level=2)
+      self.selection = newsel
+    else:
+      LOG.verb("Selection.replace: Created selection string %r -> %r"%(self.selection,newsel),verbosity,level=2)
+    return newsel
   
   def changecontext(self,*args):
     """Change the contextual selections for a set of arguments, if it is available"""
@@ -175,11 +177,11 @@ class Selection(object):
       variable = variable.name
     for searchterm in self.veto:
       if re.search(searchterm,variable):
-        LOG.verb("Variable.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
+        LOG.verb("Selection.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
         return False
     for searchterm in self.only:
       if re.search(searchterm,variable):
-        LOG.verb("Variable.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
+        LOG.verb("Selection.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
         return True
     return len(self.only)==0
   
