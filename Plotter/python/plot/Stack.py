@@ -23,15 +23,8 @@ class Stack(Plot):
     - sighists: list of TH1 objects for signals (to be overlayed as line)
     """
     self.verbosity = LOG.getverbosity(kwargs)
-    #variable       = None
-    #hists          = None
-    #if len(args)==1 and islist(args[0]):
-    #  hists        = None
-    #elif len(args)==2:
-    #  variable     = args[0]
-    #  hists        = args[1]
-    #else:
-    #  LOG.throw(IOError,"Plot: Wrong input %s"%(args))
+    
+    # PARSE ARGUMENTS: variable & (list of) histogram(s)
     self.datahist   = datahist
     self.exphists   = ensurelist(exphists)
     self.sighists   = ensurelist(sighists)
@@ -44,9 +37,11 @@ class Stack(Plot):
       self.hists    = [self.datahist]+self.exphists+self.sighists
     else:
       self.hists    = self.exphists+self.sighists
+      
+    # OTHER SETTINGS
     kwargs['clone'] = False
     self.ratio      = kwargs.setdefault('ratio', bool(self.datahist) )
-    super(Stack,self).__init__(variable,self.hists,**kwargs)
+    super(Stack,self).__init__(variable,self.hists,**kwargs) # reuse Plot.__init__ for common settings 
     self.dividebins = kwargs.get('dividebins', self.hasvarbins ) # divide each histogram bins by it bin size
     if self.verbosity>=3:
       print(">>> Stack.__init__: datahist=%s"%(rootrepr(self.datahist)))

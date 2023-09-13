@@ -52,9 +52,11 @@ class Plot(object):
       Plot(variable,hists)
       Plot(variable,hist1,hist2,...)
     """
+    self.verbosity = LOG.getverbosity(kwargs)
+    
+    # PARSE ARGUMENTS: variable & (list of) histogram(s)
     variable   = None
     hists      = None
-    self.verbosity = LOG.getverbosity(kwargs)
     vargs      = [ ] # string / Variable arguments
     hargs      = [ ] # other arguments
     for arg in args: # sort arguments by type
@@ -80,7 +82,9 @@ class Plot(object):
       hists    = [h.Clone(h.GetName()+"_clone_Plot%d"%i) for i, h in enumerate(hists)]
     self.hists = hists
     self.frame = kwargs.get('frame', None ) # only store if specified by user
-    frame      = self.frame or self.hists[0]
+    
+    # OTHER SETTINGS
+    frame      = self.frame or self.hists[0] # use local frame to set defaults
     binlabels  = frame.GetXaxis().GetLabels()
     binlabels  = [str(s) for s in binlabels] if binlabels else None
     if isinstance(variable,Variable):
