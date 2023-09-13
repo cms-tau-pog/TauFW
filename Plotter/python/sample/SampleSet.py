@@ -53,12 +53,18 @@ class SampleSet(object):
   def __add__(self,oset):
     """Add SampleSet objects together into a new one.
     Merge samples for better efficiency when using parallel drawing."""
-    lumi = self.datasample.lumi + oset.datasample.lumi
     
     # OBSERVED DATA
-    datasamples  = self.datasample.samples + oset.datasample.samples
-    newdatasample = MergedSample(self.datasample.name,self.datasample.title,datasamples,
-                                 isdata=True,isexp=False,lumi=lumi)
+    if self.datasample: # merge
+      lumi = self.datasample.lumi + oset.datasample.lumi
+      datasamples   = self.datasample.samples + oset.datasample.samples
+      newdatasample = MergedSample(self.datasample.name,self.datasample.title,datasamples,
+                                   isdata=True,isexp=False,lumi=lumi)
+    else: # initiate for the first time
+      lumi = oset.datasample.lumi
+      datasamples   = oset.datasample.samples
+      newdatasample = MergedSample(oset.datasample.name,oset.datasample.title,datasamples,
+                                   isdata=True,isexp=False,lumi=lumi) # create new sample
     
     # EXPECTED (MC)
     newexpsamples = [ ]
@@ -83,7 +89,7 @@ class SampleSet(object):
           newsample.splitsamples.append(newssample)
       newexpsamples.append(newsample)
     if osamples:
-      LOG.warn("SampleSet.__add__: Not all samples were matched:"%(osamples))
+      LOG.warn("SampleSet.__add__: Not all samples were matched. Treating as separate process: %r"%(osamples))
       newexpsamples.extend(osamples)
     newset = SampleSet(newdatasample,newexpsamples,name=self.name,
                        label=self.label,loadingbar=self.loadingbar)

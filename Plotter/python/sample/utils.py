@@ -283,11 +283,14 @@ def unwrap_gethist2D_args(*args,**kwargs):
 def findsample(samples,*searchterms,**kwargs):
   """Help function to get all samples corresponding to some name and optional label."""
   verbosity   = LOG.getverbosity(kwargs)
-  filename    = kwargs.get('fname',    ""    )
-  unique      = kwargs.get('unique',   False )
-  warn        = kwargs.get('warn',     True  )
-  split       = kwargs.get('split',    False )
+  filename    = kwargs.get('fname',     ""    )
+  unique      = kwargs.get('unique',    False ) # require exactly one match (return Sample object)
+  warn        = kwargs.get('warn',      True  ) # warn if nothing found (set to True to suppress)
+  recursive   = kwargs.get('recursive', False ) # look in subsamples (if MergedSamples)
+  split       = kwargs.get('split',     False ) # look in split samples
   searchterms = unwraplistargs(searchterms)
+  LOG.verb("findsample: Looking for sample with search terms %s in list %s..."%(
+           searchterms,samples),verbosity,3)
   matches     = [ ]
   if split:
     newsamples = [ ]
@@ -299,15 +302,20 @@ def findsample(samples,*searchterms,**kwargs):
         newsamples.append(sample)
     samples = newsamples
   for sample in samples:
+    if recursive and isinstance(sample,MergedSample):
+      kwargs_ = kwargs
+      kwargs_['warn'] = False
+      matches.extend(findsample(sample.samples,*searchterms,**kwargs_))
     if sample.match(*searchterms,**kwargs) and filename in sample.filename:
       matches.append(sample)
   if not matches:
     if warn:
-      LOG.warn("findsample: Could not find a sample with search terms %s..."%(quotestrs(list(searchterms)+[filename])))
+      LOG.warn("findsample: Could not find a sample with search terms %s..."%(
+               quotestrs(list(searchterms)+[filename])))
   elif unique:
     if len(matches)>1:
       LOG.warn("findsample: Found more than one match to %s. Using first match only: %s"%(
-                  quotestrs(searchterms),quotestrs(matches)))
+               quotestrs(searchterms),quotestrs(matches)))
     return matches[0]
   return matches
   

@@ -49,13 +49,14 @@ class MergedSample(Sample):
   
   def __add__(self,sample):
     """Add Sample object to list of samples."""
-    self.add(sample)
+    return self.add(sample)
   
   def add(self, sample, **kwargs):
     """Add Sample object to list of samples."""
-    if not self.samples:
+    if not self.samples: # initiated for the first time based on newly added sample
       self.init(sample)
     self.samples.append(sample)
+    return self
   
   def row(self,pre="",indent=0,justname=25,justtitle=25,merged=True,split=True,colpass=False):
     """Returns string that can be used as a row in a samples summary table."""
