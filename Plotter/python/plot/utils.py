@@ -69,21 +69,6 @@ def getframe(pad,hist,xmin=None,xmax=None,**kwargs):
   return frame
   
 
-def close(*hists,**kwargs):
-  """Close histograms."""
-  verbosity = LOG.getverbosity(kwargs)
-  hists     = unwraplistargs(hists)
-  for hist in hists:
-    if isinstance(hist,THStack):
-      if verbosity>1:
-        print('>>> close: Deleting histograms from stack "%s"...'%(hist.GetName()))
-      for subhist in hist.GetStack():
-        deletehist(subhist,**kwargs)
-      deletehist(hist,**kwargs)
-    else:
-      deletehist(hist,**kwargs)
-  
-
 def gethist(hists,*searchterms,**kwargs):
   """Help function to get all samples corresponding to some name and optional label."""
   from TauFW.Plotter.plot.string import match
@@ -102,6 +87,21 @@ def gethist(hists,*searchterms,**kwargs):
                   quotestrs(searchterms),quotestrs(h.GetName() for h in matches)))
     return matches[0]
   return matches
+  
+
+def close(*hists,**kwargs):
+  """Close histograms."""
+  verbosity = LOG.getverbosity(kwargs)
+  hists     = unwraplistargs(hists)
+  for hist in hists:
+    if isinstance(hist,THStack):
+      if verbosity>1:
+        print('>>> close: Deleting histograms from stack "%s"...'%(hist.GetName()))
+      for subhist in hist.GetStack():
+        deletehist(subhist,**kwargs)
+      deletehist(hist,**kwargs)
+    else:
+      deletehist(hist,**kwargs)
   
 
 def deletehist(*hists,**kwargs):

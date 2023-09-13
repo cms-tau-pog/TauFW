@@ -565,6 +565,23 @@ def setaliases(tree,verb=0,**aliases):
   return tree
   
 
+def selectbranches(tree,selections,verb=0):
+  """Keep and drop branches."""
+  # Inspiration:
+  # https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/branchselection.py
+  for cmd in selections:
+    #if isinstance(cmd,str):
+    cmd, branch = cmd.split()
+    if cmd=='drop':
+      LOG.verb("selectbranches: drop %r"%(branch),verb+3,level=2)
+      tree.SetBranchStatus(branch,0)
+    elif cmd=='keep':
+      LOG.verb("selectbranches: keep %r"%(branch),verb+3,level=2)
+      tree.SetBranchStatus(branch,1)
+  #print("selectbranches: DONE")
+  return tree
+  
+
 def loadmacro(macro,verb=0):
   line = ".L %s+O"%(macro)
   LOG.verb("loadmacro: Loading macro %r..."%(macro),level=1)
