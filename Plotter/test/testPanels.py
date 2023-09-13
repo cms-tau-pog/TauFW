@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (June 2020)
-# Description: Study behavior of text size in multipad canvasses
+# Description: Study behavior of text size in multipad canvases in ROOT
 from TauFW.common.tools.file import ensuredir
 from ROOT import gROOT, gPad, TCanvas, TH1D
 gROOT.SetBatch(True)

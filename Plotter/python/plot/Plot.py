@@ -47,8 +47,10 @@ class Plot(object):
     """
     Initialize with list of histograms:
       Plot(hists)
+      Plot(hist1,hist2,...)
     or with a variable (string or Variable object) as well:
       Plot(variable,hists)
+      Plot(variable,hist1,hist2,...)
     """
     variable   = None
     hists      = None
@@ -188,7 +190,7 @@ class Plot(object):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
-    lowerpanels  = kwargs.get('lowerpanels',  int(self.ratio) ) # number of lower panels
+    lowerpanels  = kwargs.get('lowerpanels',  int(ratio)      ) # number of lower panels
     denom        = ratio if isinstance(ratio,int) and (ratio!=0) else -1 # assume last histogram is denominator
     denom        = kwargs.get('den',          denom           ) # index of common denominator histogram in ratio plot (count from 1)
     denom        = kwargs.get('denom',        denom           ) # alias
@@ -247,9 +249,8 @@ class Plot(object):
       for hist in hists:
         if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if verbosity>=1:
-      print(">>> Plot.draw: hists=%s, norm=%r, dividebins=%r"%(rootrepr(hists),norm,dividebins))
-      print(">>> Plot.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle))
-    if verbosity>=2:
+      print(">>> Plot.draw: hists=%s, ratio=%r, norm=%r, dividebins=%r"%(rootrepr(hists),ratio,norm,dividebins))
+      print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
       print(">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
     
     # NORMALIZE
@@ -360,7 +361,7 @@ class Plot(object):
       self.ratio = Ratio(*rhists,errband=self.errband,denom=denom,num=num,drawzero=True,drawden=drawden,option=roption)
       self.ratio.draw(roption,xmin=xmin,xmax=xmax)
       self.setaxes(self.ratio,drawx=drawx,grid=rgrid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,nxdiv=nxdiv,nydiv=nrdiv,
-                   xtitle=xtitle,ytitle=rtitle,xtitlesize=xtitlesize,ytitlesize=rtitlesize,
+                   xtitle=xtitle,ytitle=rtitle,xtitlesize=xtitlesize,ytitlesize=rtitlesize,center=True,
                    xtitleoffset=xtitleoffset,ytitleoffset=rtitleoffset,xlabelsize=xlabelsize,ylabelsize=ylabelsize,
                    binlabels=binlabels,labeloption=labeloption,rrange=ratiorange,latex=latex)
       for line in self.lines:
@@ -431,7 +432,7 @@ class Plot(object):
     """Make canvas and pads for ratio plots."""
     verbosity = LOG.getverbosity(self,kwargs)
     square   = kwargs.get('square',  False  ) # square (main panel)
-    lower    = kwargs.get('lower',   False  ) # include lower panel (boolean, integer, list of floats)
+    lower    = kwargs.get('lower',   False  ) # include lower panel (boolean, integer, list/tuple of floats)
     splits   = 1./3. if lower in [1,True] else [0.20,0.28] if lower==2 else lower
     splits   = kwargs.get('split',   splits ) or splits # height of lower panel as fraction of canvas height
     if lower: # lower panel

@@ -100,7 +100,7 @@ class Stack(Plot):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
-    lowerpanels  = kwargs.get('lowerpanels',  int(self.ratio) ) # number of lower panels
+    lowerpanels  = kwargs.get('lowerpanels',  int(ratio)      ) # number of lower panels
     denom        = int(ratio) if isinstance(ratio,int) and (ratio!=0) else 1 # assume first histogram is denominator (i.e. stack)
     denom        = kwargs.get('den',          denom           ) # index of common denominator histogram in ratio plot (count from 1)
     denom        = kwargs.get('denom',        denom           ) # alias
