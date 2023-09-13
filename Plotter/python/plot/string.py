@@ -30,6 +30,7 @@ var_dict = { # predefined variable titles
 }
 var_dict_sorted = sorted(var_dict,key=lambda x: len(x),reverse=True) # sort keys by length once
 
+
 funcexpr = re.compile(r"(\w+)\(([^,]+),([^,]+)\)")
 def makelatex(string,**kwargs):
   """Convert patterns in a string to LaTeX format."""
@@ -193,7 +194,6 @@ def makelatex(string,**kwargs):
   return string
   
 
-
 def maketitle(title,**kwargs):
   """Make header with LaTeX."""
   kwargs.update({'units':False, 'split':False})
@@ -201,20 +201,18 @@ def maketitle(title,**kwargs):
   return title
   
 
-
 def makehistname(*strings,**kwargs):
   """Use given strings to make an unique and valid histogram name that is filename safe."""
   kwargs.setdefault('dots',False)
-  #hname = '_'.join(getfilename(s).strip('_') for s in strings) #.replace(' ','_')
+  #hname = '_'.join(getobjname(s).strip('_') for s in strings) #.replace(' ','_')
   hname = makefilename(*strings,**kwargs)
   hname = hname.replace('[','').replace(']','').replace('*','x')
   return hname
   
 
-
 def makefilename(*strings,**kwargs):
   """Make string filename safe by replacing inconvenient characters."""
-  fname = '_'.join(getfilename(s).strip('_') for s in strings)
+  fname = '_'.join(getobjname(s).strip('_') for s in strings)
   fname = re.sub(r"(\d+)\.(\d+)",r"\1p\2",fname)
   if 'abs(' in fname:
     fname = re.sub(r"abs\(([^\)]*)\)",r"abs\1",fname).replace('eta_2','eta')
@@ -238,10 +236,14 @@ def makefilename(*strings,**kwargs):
   return fname
 
   
-def getfilename(string,**kwargs):
+def getobjname(string,**kwargs):
   """Make sure returned object is a string."""
   if hasattr(string,"filename"):
     return string.filename
+  elif hasattr(string,"name"):
+    return string.name
+  elif hasattr(string,"GetName"):
+    return string.GetName()
   return string
   
 
@@ -252,7 +254,8 @@ def getselstr(string,**kwargs):
   return string
   
 
-symregx = re.compile(r"#[a-zA-Z]+")
+symregx = re.compile(r"#[a-zA-Z]+") # regular expression for TLatex symbols
+cmdregx = re.compile(r"#[a-zA-Z]+\[[-\d\.]+\]") # regular expression for TLatex commands
 def estimatelen(*strings):
   """Estimate maximum length of list of strings."""
   strings = unwraplistargs(*strings)
@@ -265,7 +268,8 @@ def estimatelen(*strings):
     if '\n' in string:
       strlen = estimatelen(string.split('\n'))
     else:
-      string = symregx.sub("x",string)
+      string = cmdregx.sub('',string)
+      string = symregx.sub('x',string)
       for old, new in replace:
         string = string.replace(old,new)
       strlen = len(string)
