@@ -118,7 +118,7 @@ def preparejobs(args):
         jobname    = "%s%s_%s%s"%(sample.name,postfix,era,"_try%d"%subtry if subtry>1 else "")
         extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample.extraopts:
-          extraopts_.extend(sample.extraopts)
+          extraopts_ = sample.extraopts + extraopts_ # allow overwrite from command line
         nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob # priority: USER > SAMPLE > CONFIG
         maxevts_   = maxevts if maxevts!=None else sample.maxevts if sample.maxevts!=None else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
