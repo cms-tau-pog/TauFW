@@ -280,7 +280,7 @@ class Stack(Plot):
       self.canvas.cd(2)
       rhists = [stack]+self.sighists+[self.datahist] # default: use stack as denominator (denom=1)
       self.ratio = Ratio(*rhists,denom=denom,num=num,errband=self.errband,
-                         drawzero=True,errorX=errorX,fraction=fraction,verb=verbosity+2)
+                         drawzero=True,errorX=errorX,fraction=fraction,verb=verbosity)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
       self.setaxes(self.ratio,drawx=drawx,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,nxdiv=nxdiv,nydiv=nrdiv,
                    xtitle=xtitle,ytitle=rtitle,xtitlesize=xtitlesize,ytitlesize=rtitlesize,xtitleoffset=xtitleoffset,ytitleoffset=rtitleoffset,
