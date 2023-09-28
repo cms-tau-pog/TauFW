@@ -59,8 +59,6 @@ class Plot2D(Plot):
       self.logy       = kwargs.get('logy',       xvariable.logx      )
       self.ybinlabels = kwargs.get('ybinlabels', yvariable.binlabels )
       self.ztitle     = kwargs.get('ztitle',     hist.GetZaxis().GetTitle() )
-      self.xunits     = kwargs.get('xunits',     xvariable.units     ) # units to be added to x title
-      self.yunits     = kwargs.get('yunits',     yvariable.units     ) # units to be added to y title
       self.zunits     = kwargs.get('zunits',     False               ) # units to be added to z title
       self.logz       = kwargs.get('logz',       xvariable.logy      )
       self.position   = kwargs.get('position',   xvariable.position  )
@@ -79,15 +77,15 @@ class Plot2D(Plot):
       self.logy       = kwargs.get('logy',       False                     )
       self.ybinlabels = kwargs.get('ybinlabels', None                      )
       self.ztitle     = kwargs.get('ztitle',     hist.GetZaxis().GetTitle() )
-      self.xunits     = kwargs.get('xunits',     False                     ) # units to be added to x title
-      self.yunits     = kwargs.get('yunits',     False                     ) # units to be added to y title
-      self.zunits     = kwargs.get('zunits',     False                     ) # units to be added to z title
       self.logz       = kwargs.get('logz',       False                     )
       self.position   = kwargs.get('position',   ""                        )
       self.name       = kwargs.get('name', "%s_vs_%s"%(yvariable,xvariable))
-    self.zmin = kwargs.get('zmin', hist.GetMinimum() )
-    self.zmax = kwargs.get('zmax', hist.GetMaximum() )
-    self.hist = hist
+    self.xunits       = kwargs.get('xunits',     False                     ) # units to be added to x title
+    self.yunits       = kwargs.get('yunits',     False                     ) # units to be added to y title
+    self.zunits       = kwargs.get('zunits',     False                     ) # units to be added to z title
+    self.zmin         = kwargs.get('zmin', hist.GetMinimum() )
+    self.zmax         = kwargs.get('zmax', hist.GetMaximum() )
+    self.hist         = hist
     
   def draw(self,*args,**kwargs):
     """Central method of Plot class: make plot with canvas, axis, error, ratio..."""
