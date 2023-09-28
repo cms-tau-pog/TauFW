@@ -2,6 +2,7 @@
 import re
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
+from TauFW.Plotter.plot.string import joinweights
 from TauFW.Plotter.plot.Context import getcontext
 from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist, unwraplistargs
 
@@ -18,6 +19,7 @@ class Selection(object):
     Selection(str selection)
     Selection(str name, str selection)
     Selection(str name, str title, str selection)
+    Selection(str name, str title, str selection, str weight)
   """
   
   def __init__(self, *args, **kwargs):
@@ -49,14 +51,16 @@ class Selection(object):
       self.weight      = args[3]
     self.title         = kwargs.get('title', maketitle(self.title) )
     self.filename      = makefilename(self.name)
-    self.filename      = kwargs.get('fname',    self.filename ) # alias
-    self.filename      = kwargs.get('filename', self.filename ) # name for files, histograms
-    self.weight        = kwargs.get('weight',   self.weight   )
+    self.selection     = kwargs.get('selection',self.selection )
+    self.filename      = kwargs.get('fname',    self.filename  ) # alias
+    self.filename      = kwargs.get('filename', self.filename  ) # name for files, histograms
+    self.weight        = kwargs.get('weight',   self.weight    )
     #if self.selection=="":
     #   LOG.warn('Selection::Selection - No selection string given for %r!'%(self.name))
     self.context       = getcontext(kwargs,self.selection) # context-dependent channel selections
     self.only          = kwargs.get('only',     [ ]           )
     self.veto          = kwargs.get('veto',     [ ]           )
+    self.flag          = kwargs.get('flag',     ""            ) # flag, e.g. 'up', 'down', ...
     self.only          = ensurelist(self.only)
     self.veto          = ensurelist(self.veto)
   
@@ -94,17 +98,63 @@ class Selection(object):
       result = Selection("%s (%s)"%(self.name,weight.title),joincuts(self.selection,weight=weight))
     return result
   
+  def clone(self,*args,**kwargs):
+    """Shallow copy."""
+    verbosity = LOG.getverbosity(self,kwargs)
+    strargs = tuple([a for a in args if isinstance(a,str)]) # string arguments: name, title, selection
+    if verbosity>=2:
+      print(">>> Selection.clone: Old strargs=%r, kwargs=%r"%(strargs,kwargs))
+    if not strargs:
+      strargs = (kwargs.pop('name',self.name),) # default name
+    if len(strargs)==1:
+      strargs = (strargs[0],kwargs.pop('title',self.title),)+strargs[1:] # insert default title
+    newdict = self.__dict__.copy()
+    if 'fname' in kwargs:
+      kwargs['filename'] = kwargs['fname']
+    if 'filename' in kwargs:
+      kwargs['filename'] = kwargs['filename'].replace('$FILE',self.filename)
+    if 'tag' in kwargs:
+      kwargs['filename'] = kwargs.get('filename',self.filename)+kwargs['tag']
+    if kwargs.get('combine',True) and 'weight' in kwargs and self.weight:
+      kwargs['weight'] = joinweights(kwargs['weight'],self.weight)
+    if 'replace' in kwargs: # replace part of selection
+      rargs = kwargs['replace']
+      if len(rargs)==2 and isinstance(rargs[0],str) and isinstance(rargs[1],str):
+        rargs = [rargs] # ensure list of tuples with two strings
+      for rarg in rargs: # loop over tuples of two strings: (oldpattern,newpattern)
+        assert len(rarg)==2, "Replace argument must be tuple of length 2! Got: %r"%(rarg,)
+        kwargs.setdefault('update',False) # do not overwrite attribute of current object
+        newsel = self.replace(*rarg,**kwargs) # use substitution with regular expressions
+      LOG.verb("Selection.clone: Replaced %r -> %r"%(self.selection,newsel),verbosity,level=2)
+      strargs = strargs[:2]+(newsel,)+strargs[2:] # insert default title
+    for key in list(kwargs.keys())+['name','title','selection','replace']: # prevent overwrite: set via newargs
+      newdict.pop(key,None)
+    newargs = strargs
+    if verbosity>=2:
+      print(">>> Selection.clone: New args=%r, kwargs=%r"%(newargs,kwargs))
+    newsel = Selection(*newargs,**kwargs)
+    newsel.__dict__.update(newdict)
+    if verbosity>=2:
+      print(">>> Selection.clone: Cloned %r -> %r"%(self,newsel))
+    return newsel
+  
   def contains(self, string, **kwargs):
     """Return if selection string contains given substring."""
     return string in self.selections
   
   def replace(self, old, new, **kwargs):
     """Replace given substring in selection string."""
-    if kwargs.get('regex',False):
-      self.selection = self.selection.replace(old,new)
+    verbosity = LOG.getverbosity(self,kwargs)
+    if kwargs.get('regex',False): # use substitution with regular expressions
+      newsel = re.sub(old,new,self.selection)
     else:
-      self.selection = re.sub(old,new,self.selection)
-    return self.selection
+      newsel = self.selection.replace(old,new)
+    if kwargs.get('update',True):
+      LOG.verb("Selection.replace: Update selection string %r -> %r"%(self.selection,newsel),verbosity,level=2)
+      self.selection = newsel
+    else:
+      LOG.verb("Selection.replace: Created selection string %r -> %r"%(self.selection,newsel),verbosity,level=2)
+    return newsel
   
   def changecontext(self,*args):
     """Change the contextual selections for a set of arguments, if it is available"""
@@ -127,11 +177,11 @@ class Selection(object):
       variable = variable.name
     for searchterm in self.veto:
       if re.search(searchterm,variable):
-        LOG.verb("Variable.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
+        LOG.verb("Selection.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
         return False
     for searchterm in self.only:
       if re.search(searchterm,variable):
-        LOG.verb("Variable.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
+        LOG.verb("Selection.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
         return True
     return len(self.only)==0
   

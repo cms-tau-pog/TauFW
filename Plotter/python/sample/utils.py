@@ -283,11 +283,14 @@ def unwrap_gethist2D_args(*args,**kwargs):
 def findsample(samples,*searchterms,**kwargs):
   """Help function to get all samples corresponding to some name and optional label."""
   verbosity   = LOG.getverbosity(kwargs)
-  filename    = kwargs.get('fname',    ""    )
-  unique      = kwargs.get('unique',   False )
-  warn        = kwargs.get('warn',     True  )
-  split       = kwargs.get('split',    False )
+  filename    = kwargs.get('fname',     ""    )
+  unique      = kwargs.get('unique',    False ) # require exactly one match (return Sample object)
+  warn        = kwargs.get('warn',      True  ) # warn if nothing found (set to True to suppress)
+  recursive   = kwargs.get('recursive', False ) # look in subsamples (if MergedSamples)
+  split       = kwargs.get('split',     False ) # look in split samples
   searchterms = unwraplistargs(searchterms)
+  LOG.verb("findsample: Looking for sample with search terms %s in list %s..."%(
+           searchterms,samples),verbosity,3)
   matches     = [ ]
   if split:
     newsamples = [ ]
@@ -299,15 +302,20 @@ def findsample(samples,*searchterms,**kwargs):
         newsamples.append(sample)
     samples = newsamples
   for sample in samples:
+    if recursive and isinstance(sample,MergedSample):
+      kwargs_ = kwargs
+      kwargs_['warn'] = False
+      matches.extend(findsample(sample.samples,*searchterms,**kwargs_))
     if sample.match(*searchterms,**kwargs) and filename in sample.filename:
       matches.append(sample)
   if not matches:
     if warn:
-      LOG.warn("findsample: Could not find a sample with search terms %s..."%(quotestrs(list(searchterms)+[filename])))
+      LOG.warn("findsample: Could not find a sample with search terms %s..."%(
+               quotestrs(list(searchterms)+[filename])))
   elif unique:
     if len(matches)>1:
       LOG.warn("findsample: Found more than one match to %s. Using first match only: %s"%(
-                  quotestrs(searchterms),quotestrs(matches)))
+               quotestrs(searchterms),quotestrs(matches)))
     return matches[0]
   return matches
   
@@ -580,6 +588,23 @@ def setaliases(tree,verb=0,**aliases):
     formula = str(formula)
     LOG.verb("setaliases: Adding alias to tree %r: %r -> %r"%(tree.GetName(),alias,formula),verb,level=5)
     tree.SetAlias(alias,formula)
+  return tree
+  
+
+def selectbranches(tree,selections,verb=0):
+  """Keep and drop branches."""
+  # Inspiration:
+  # https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/branchselection.py
+  for cmd in selections:
+    #if isinstance(cmd,str):
+    cmd, branch = cmd.split()
+    if cmd=='drop':
+      LOG.verb("selectbranches: drop %r"%(branch),verb+3,level=2)
+      tree.SetBranchStatus(branch,0)
+    elif cmd=='keep':
+      LOG.verb("selectbranches: keep %r"%(branch),verb+3,level=2)
+      tree.SetBranchStatus(branch,1)
+  #print("selectbranches: DONE")
   return tree
   
 

@@ -81,6 +81,7 @@ class Sample(object):
     self.linecolor    = kwargs.get('lcolor',       kBlack       ) # line color
     self.tags         = kwargs.get('tags',         [ ]          ) # extra tags to be used for matching of search termsMergedSample
     self.aliases      = kwargs.get('alias',        { }          ) # aliases to be added to tree
+    self.branchsels   = kwargs.get('branchsel',    [ ]          ) # branch selections, e.g. ['drop *track*', 'keep track_pt']
     if not isinstance(self.aliases,dict):
       self.aliases[self.aliases[0]] = self.aliases[1] # assume tuple, e.g. alias=('sf',"0.95")
     if not isinstance(self,MergedSample):
@@ -196,15 +197,17 @@ class Sample(object):
       self._file = ensureTFile(self.filename)
     return self._file
   
-  def get_newfile_and_tree(self):
+  def get_newfile_and_tree(self,**kwargs):
     """Create and return a new TFile and TTree without saving to self for thread safety."""
+    verbosity = LOG.getverbosity(kwargs)
     file = ensureTFile(self.filename,'READ')
     tree = file.Get(self.treename)
     if not tree or not isinstance(tree,TTree):
       LOG.throw(IOError,'Sample.get_newfile_and_tree: Could not find tree %r for %r in %s!'%(self.treename,self.name,self.filename))
-    setaliases(tree,verb=0,**self.aliases)
+    setaliases(tree,verb=verbosity-1,**self.aliases)
+    selectbranches(tree,self.branchsels,verb=verbosity)
     return file, tree
-    
+  
   def gethist_from_file(self,hname,tag="",close=True,**kwargs):
     """Get histogram from file. Add histograms together if merged sample."""
     verbosity = LOG.getverbosity(kwargs)
@@ -351,7 +354,7 @@ class Sample(object):
   def setfilename(self,filename):
     """Set filename."""
     self.filename = filename
-    self.fnameshort  = '/'.join(self.filename.split('/')[-2:])
+    self.fnameshort  = '/'.join(self.filename.split('/')[-3:])
     return self.filename
   
   def reload(self,**kwargs):
@@ -765,7 +768,7 @@ class Sample(object):
       except KeyboardInterrupt:
         LOG.throw(KeyboardInterrupt,"Interrupted Sample.gethist for %r (%d histogram%s)"%(self.name,len(varexps),'' if len(varexps)==1 else 's'))
     else:
-      LOG.verb('Sample.gethist: No varexps: isdata=%r, varcut=%s, variables=%s'%(self.isdata,varcut,variables),verbosity,3)
+      LOG.verb("Sample.gethist: No varexps: isdata=%r, varcut=%s, variables=%s"%(self.isdata,varcut,variables),verbosity,3)
     
     # FINISH
     nentries = 0
@@ -790,7 +793,7 @@ class Sample(object):
       print(">>>   %r"%(cuts))
       if verbosity>=4:
         for var, varexp, hist in zip(variables,varexps,hists):
-          print('>>>   entries=%d (%.1f integral) for variable %r, varexp=%r'%(hist.GetEntries(),hist.Integral(),var.name,varexp))
+          print(">>>   entries=%d (%.1f integral) for variable %r, varexp=%r"%(hist.GetEntries(),hist.Integral(),var.name,varexp))
           #print('>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp))
           if verbosity>=5:
             printhist(hist,pre=">>>   ")

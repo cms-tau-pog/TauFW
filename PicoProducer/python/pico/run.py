@@ -110,7 +110,7 @@ def main_run(args):
         if sample:
           filetag  = "_%s_%s_%s%s"%(channel,era,sample.name,tag)
           if sample.extraopts:
-            extraopts_.extend(sample.extraopts)
+            extraopts_ = sample.extraopts + extraopts_ # allow overwrite from command line
         else:
           filetag  = "_%s_%s%s"%(channel,era,tag)
         if verbosity>=1:

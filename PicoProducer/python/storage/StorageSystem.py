@@ -28,7 +28,7 @@ class StorageSystem(object):
     self.chmdprm = '777'
     self.chmdcmd = 'chmod'
     self.chmdurl = ''
-    self.haddcmd = kwargs.get('haddcmd',None) or 'hadd -f'
+    self.haddcmd = kwargs.get('haddcmd',None) or 'hadd -ff' # same compression level as first in put
     self.tmpdir  = '/tmp/$USER/' # $TMPDIR # mounted temporary directory
     self.fileurl = ""
     self.verbosity = verb

@@ -48,17 +48,18 @@ relExtraDY     = 1.2
 drawLogo       = False
 outOfFrame     = False
 lumi_dict      = {
-  '7':      5.1,    '2016': 36.3, 'UL2016_preVFP':  19.5, # actually 19.5, update after reprocessing with new JSON
-  '8':      19.7,   '2017': 41.5, 'UL2016_postVFP': 16.8, # actually 16.8, update after reprocessing with new JSON
-  '2012':   19.7,   '2018': 59.7, 'UL2016': 36.3, # actually 19.5+16.8=36.3
-  'Run2':   138,                  'UL2017': 41.5, # actually 41.5
-  'Phase2': 3000,                 'UL2018': 59.8, # actually 59.8
+  '7':      5.1,  '2016': 36.3, 'UL2016_preVFP':  19.5, # actually 19.5, update after reprocessing with new JSON
+  '8':      19.7, '2017': 41.5, 'UL2016_postVFP': 16.8, # actually 16.8, update after reprocessing with new JSON
+  '2012':   19.7, '2018': 59.7, 'UL2016': 36.3, # actually 19.5+16.8=36.3
+  'Run2':   138,                'UL2017': 41.5, # actually 41.5
+  'Phase2': 3000,               'UL2018': 59.8, # actually 59.8
 }
 cme_dict       = {
-  '7':      7,   '2016': 13,
-  '8':      8,   '2017': 13,
-  '2012':   8,   '2018': 13,
-  'Run2':   13,
+  '7':      7,    '2016': 13,
+  '8':      8,    '2017': 13,
+  '2012':   8,    '2018': 13,
+  'Run2':   13,   '2022': 13,
+  'Run3':   13.7, '2023': 13,
   'Phase2': 14,
 }
 era_dict       = {
@@ -259,7 +260,8 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     print(">>> setCMSLumiStyle: outOfFrame=%r, iPosX=%s, alignX_=%s, align=%s"%(outOfFrame,iPosX,alignX_,align))
     print(">>> setCMSLumiStyle: extraTextSize=%s, extraOverCmsTextSize=%s, cmsTextSize=%s"%(extraTextSize,extraOverCmsTextSize,cmsTextSize))
     print(">>> setCMSLumiStyle: posX=%s, posY=%s, relPosX_=%s"%(posX,posY,relPosX_))
-    
+  
+  pad.SetTicks(1,1) # ticks on all four sides
   pad.Update()
   
 

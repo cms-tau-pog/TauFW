@@ -7,6 +7,7 @@
 import os, re
 from TauFW.common.tools.root import rootrepr
 from TauFW.Plotter.plot.utils import *
+from TauFW.Plotter.plot.string import makehistname
 import ROOT
 from ROOT import TH1, TProfile, TLine
 
@@ -44,11 +45,37 @@ class Ratio(object):
     errorX        = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
     fraction      = kwargs.get('fraction',    None        ) # make stacked fraction from stack (normalize each bin to 1)
     hists         = unwraplistargs(hists) # ensure list of histograms
-    LOG.verb("Ratio.init: hists=%s, denom=%r, num=%r, drawden=%r, errband=%r"%(
-      rootrepr(hists),denom,num,self.drawden,errband),verbosity,1)
+    LOG.verb("Ratio.init: hists=%s, denom=%s, num=%s, drawden=%r, errband=%r"%(
+      rootrepr(hists),rootrepr(denom),rootrepr(num),self.drawden,errband),verbosity,1)
+    
+    # CONVERT SPECIAL OBJECTS
+    for i, hist in enumerate(hists[:]):
+      if isinstance(hist,THStack): # convert TStack to TH1D
+        if isinstance(fraction,bool) and fraction: # only once
+          fraction = normalizebins(hist) # create stack with normalized bins
+        hists[i] = hist.GetStack().Last() # should have correct bin content and error
+      ###elif isinstance(hist,TGraph):
+      ###  LOG.error("Ratio.init: TGraph not implemented")
+      elif isinstance(hist,TProfile):
+        histtemp = hist.ProjectionX(hist.GetName()+"_projx",'E')
+        copystyle(histtemp,hist)
+        hists[i] = histtemp
+        self.garbage.append(histtemp) # delete at end
     
     # SET NUMERATOR & DENOMINATOR INDEX
-    if num!=None: # single numerator, use other histograms as denominator
+    denom_is_hist = isinstance(denom,(TH1,THStack,list,tuple))
+    num_is_hist = isinstance(num,(TH1,THStack,list,tuple))
+    if denom_is_hist and num_is_hist:
+      hists = [num,denom]
+      denom = len(hists)-1
+      num = None
+    elif denom_is_hist:
+      hists = [hists,denom]
+      denom = len(hists)-1
+    elif num_is_hist:
+      hists = [num,hists]
+      num = None
+    elif num!=None: # single numerator, use other histograms as denominator
       LOG.insist(isinstance(num,int),"Numerator index must be integer! Got num=%r..."%(num))
       if num<0: # convert to positive number
         num = max(0,len(hists)+num)
@@ -69,21 +96,7 @@ class Ratio(object):
           LOG.warn("Ratio.init: Warning index denom = %d >= %d = len(hists)! Setting to last index..."%(denom,len(hists)))
           denom = len(hists)-1
     
-    # CONVERT SPECIAL OBJECTS
-    for i, hist in enumerate(hists[:]):
-      if isinstance(hist,THStack): # convert TStack to TH1D
-        if isinstance(fraction,bool) and fraction: # only once
-          fraction = normalizebins(hist) # create stack with normalized bins
-        hists[i] = hist.GetStack().Last() # should have correct bin content and error
-      elif isinstance(hist,TGraph):
-        LOG.error("Ratio.init: TGraph not implemented")
-      elif isinstance(hist,TProfile):
-        histtemp = hist.ProjectionX(hist.GetName()+"_projx",'E')
-        copystyle(histtemp,hist)
-        hists[i] = histtemp
-        self.garbage.append(histtemp) # delete at end
-    
-    # PARSE NUMERATOR / DENOMINATOR HISTOGRAMS
+    # ASSIGN HISTOGRAMS as NUMERATOR or DENOMINATOR
     histnums = [ ]
     histdens = [ ]
     if len(hists)<=0:
@@ -91,7 +104,7 @@ class Ratio(object):
     elif len(hists)==1:
       histnums = [hists[0]]
       histdens = [hists[0]]
-    elif len(hists)==2 and any(islist(h) for h in hists):
+    elif len(hists)==2 and any(islist(h) for h in hists): # at least one out of two arguments is a list
       histnums = hists[0]
       histdens = hists[1]
       if islist(histnums) and islist(histdens): # Ratio([hnum1,...],[hden1,...])
@@ -124,7 +137,7 @@ class Ratio(object):
       if isinstance(histnum,(TH1,THStack)):
         ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       elif isinstance(histnum,TGraph):
-        LOG.warn("Ratio.init: TGraph ratio not validated! Please check verbose output...")
+        #LOG.warn("Ratio.init: TGraph ratio not validated! Please check verbose output...")
         ratio = getgraphratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       #if isinstance(hist,TH1) and 'h' in option.lower():
       #  ratio = hist.Clone("ratio_%s-%s_%d"%(histden.GetName(),hist.GetName(),i))
@@ -139,6 +152,8 @@ class Ratio(object):
       self.ratios.append(ratio)
     
     # MAKE ERROR BAND RATIO
+    if isinstance(errband,bool) and errband: # get error band for denominator histogram
+      errband = geterrorband(histdens[0],name=makehistname("errband",histdens[0]))
     if isinstance(errband,TGraphAsymmErrors):
       self.errband = getgraphratio(errband,histdens[0],errorX=True)
       copystyle(self.errband,errband)

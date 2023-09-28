@@ -5,11 +5,10 @@
 from TauFW.common.tools.log import color
 from TauFW.Plotter.plot.utils import LOG
 from TauFW.Plotter.plot.Selection import Selection
-LOG.verbosity = 1
 
 
-
-def main():
+def main(args):
+  verbosity = args.verbosity
   
   #### Test several initializations of Variable object.
   #### Note that key-word arguments starting with 'c' are used for context-dependent attributes
@@ -34,19 +33,38 @@ def main():
   
   for selection in selections:
     LOG.header(selection.name)
+    
+    # CHECK SETTINGS
     print(">>> name='%s', filename='%s', title='%s', cut='%s'"%(color(selection.name),color(selection.filename),color(selection.title),color(selection.selection)))
     print(">>> weight=%r, drawcmd=%r"%(selection.weight,selection.drawcmd()))
+    
+    # ADD SELECTION
     sum1 = selection + "dzeta>-40"
     print('>>> sum1 = selection + "dzeta>-40"')
     print(">>>   name=%r, filename=%r, title=%r"%(sum1.name,sum1.filename,sum1.title))
-    print(">>>   cut=%r"%(sum1.selection))
+    print(">>>   selection=%r"%(sum1.selection))
+    
+    # ADD SELECTION 2
     sum2 = selection + Selection("dzeta","dzeta>-40")
     print('>>> sum2 = selection + Selection("dzeta","dzeta>-40")')
     print(">>>   name=%r, filename=%r, title=%r"%(sum2.name,sum2.filename,sum2.title))
-    print(">>>   cut=%r"%(sum2.selection))
+    print(">>>   selection=%r"%(sum2.selection))
+    
+    # CLONE SELECTION with replace
+    clone = selection.clone("ptgt100","pt > 100",replace=(">50",">100"),verb=verbosity)
+    print('>>> clone = selection.clone("ptgt100","pt > 100",replace=(">50",">100"))')
+    print(">>>   name=%r, filename=%r, title=%r"%(clone.name,clone.filename,clone.title))
+    print(">>>   selection=%r"%(clone.selection))
   
 
 if __name__ == "__main__":
-  main()
+  from argparse import ArgumentParser
+  description = """Test Selection initiation and features"""
+  parser = ArgumentParser(prog="testSelections",description=description,epilog="Good luck!")
+  parser.add_argument('-v', '--verbose', dest='verbosity', type=int, default=1, action='store',
+                                         help="set verbosity, default=%(default)d" )
+  args = parser.parse_args()
+  LOG.verbosity = args.verbosity
+  main(args)
   print('')
   

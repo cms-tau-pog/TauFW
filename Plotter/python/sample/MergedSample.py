@@ -33,10 +33,10 @@ class MergedSample(Sample):
     self.isembed   = sample.isembed
     self.isexp     = sample.isexp
     self.issignal  = sample.issignal
-    self.lumi      = sample.lumi
     self.cutflow   = sample.cutflow
     self.fillcolor = kwargs.get('color',    self.fillcolor) or sample.fillcolor
     self.linecolor = kwargs.get('linecolor',self.linecolor) or sample.linecolor
+    self.lumi      = kwargs.get('lumi',     sample.lumi)
   
   def __len__(self):
     """Return number of samples."""
@@ -49,13 +49,32 @@ class MergedSample(Sample):
   
   def __add__(self,sample):
     """Add Sample object to list of samples."""
-    self.add(sample)
+    return self.add(sample)
   
   def add(self, sample, **kwargs):
     """Add Sample object to list of samples."""
-    if not self.samples:
+    if not self.samples: # initiated for the first time based on newly added sample
       self.init(sample)
     self.samples.append(sample)
+    if kwargs.get('uniquize',True):
+      self.uniquize(**kwargs)
+    return self
+  
+  def uniquize(self, **kwargs):
+    """Make Sample names unique to prevent memory leaks while filling histograms."""
+    oldnames = [s.name for s in self.samples]
+    for i, sample in enumerate(self.samples):
+      if oldnames.count(sample.name)<=1:
+        continue
+      idx = 1 # number
+      names = [s.name for s in self.samples]
+      names[i] = sample.name+str(idx) # new sample name with number
+      while names.count(names[i])>=2: # check if new name is unique
+        idx += 1
+        names[i] = sample.name+str(idx) # try again
+      #print(">>> MergedSample.uniquize: %r -> %r"%(sample.name,names[i]))
+      sample.name = names[i] # overwrite old name
+    return self
   
   def row(self,pre="",indent=0,justname=25,justtitle=25,merged=True,split=True,colpass=False):
     """Returns string that can be used as a row in a samples summary table."""
@@ -208,7 +227,7 @@ class MergedSample(Sample):
     else: # get subsample hist in series
       for sample in self.samples:
         if 'name' in kwargs: # prevent memory leaks
-          hkwargs['name']  = makehistname(kwargs.get('name',""),sample.name,dots=dots)
+          hkwargs['name'] = makehistname(kwargs.get('name',""),sample.name,dots=dots)
         allhists.append(sample.gethist(*hargs,**hkwargs))
     
     # SUM

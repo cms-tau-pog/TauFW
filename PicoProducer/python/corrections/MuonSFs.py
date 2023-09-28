@@ -12,7 +12,7 @@ pathHTT = os.path.join(datadir,"lepton/HTT/Muon/")
 
 class MuonSFs:
   
-  def __init__(self, era='2017', verb=0):
+  def __init__(self, era='2017', flags=[ ], verb=0):
     """Load histograms from files."""
     
     #eras = ['2016','2017','2018','UL2017']
@@ -36,9 +36,11 @@ class MuonSFs:
         self.sftool_idiso = sftool_id*sftool_iso
       elif '2017' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2017/Muon_IsoMu24orIsoMu27.root",'ZMass','mu_trig',verb=verb) # placeholder
-        ###self.sftool_trig  = ScaleFactor(pathPOG+"Run2017UL/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root",
-        ###                                   'NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt','mu_trig',verb=verb)
+        if 'HLT_IsoMu27' in flags: # use only HLT_IsoMu27
+          self.sftool_trig = ScaleFactor(pathPOG+"Run2017UL/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root",
+                                             'NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt','mu_trig',verb=verb)
+        else: # use HLT_IsoMu24 || HLT_IsoMu27
+          self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2017/Muon_IsoMu24orIsoMu27.root",'ZMass','mu_trig',verb=verb) # placeholder
         sftool_id         = ScaleFactor(pathPOG+"Run2017UL/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
         sftool_iso        = ScaleFactor(pathPOG+"Run2017UL/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root","NUM_TightRelIso_DEN_MediumID_abseta_pt",'mu_iso',ptvseta=True,verb=verb)
         self.sftool_idiso = sftool_id*sftool_iso

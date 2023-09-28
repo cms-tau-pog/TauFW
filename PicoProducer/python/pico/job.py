@@ -118,7 +118,7 @@ def preparejobs(args):
         jobname    = "%s%s_%s%s"%(sample.name,postfix,era,"_try%d"%subtry if subtry>1 else "")
         extraopts_ = extrachopts[:] # extra options for module (for this channel & sample)
         if sample.extraopts:
-          extraopts_.extend(sample.extraopts)
+          extraopts_ = sample.extraopts + extraopts_ # allow overwrite from command line
         nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob # priority: USER > SAMPLE > CONFIG
         maxevts_   = maxevts if maxevts!=None else sample.maxevts if sample.maxevts!=None else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
@@ -793,7 +793,7 @@ def main_submit(args):
       print(">>>   Nothing to %ssubmit!"%('re' if resubmit else ''))
       continue
     script = batch.script
-    if batch.system=='HTCondor':
+    if 'HTCondor' in batch.system:
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
       jkwargs.update({ 'app': appcmds })
@@ -802,8 +802,8 @@ def main_submit(args):
       jkwargs.update({ 'log': logfile, 'array': nchunks })
     #elif batch.system=='SGE':
     #elif batch.system=='CRAB':
-    else:
-      LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
+    #else:
+    #  LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
     
     # SUBMIT
     if args.prompt: # ask user confirmation before submitting
