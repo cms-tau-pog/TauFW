@@ -260,7 +260,8 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     print(">>> setCMSLumiStyle: outOfFrame=%r, iPosX=%s, alignX_=%s, align=%s"%(outOfFrame,iPosX,alignX_,align))
     print(">>> setCMSLumiStyle: extraTextSize=%s, extraOverCmsTextSize=%s, cmsTextSize=%s"%(extraTextSize,extraOverCmsTextSize,cmsTextSize))
     print(">>> setCMSLumiStyle: posX=%s, posY=%s, relPosX_=%s"%(posX,posY,relPosX_))
-    
+  
+  pad.SetTicks(1,1) # ticks on all four sides
   pad.Update()
   
 

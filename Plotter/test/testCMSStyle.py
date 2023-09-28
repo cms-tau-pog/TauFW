@@ -1,16 +1,40 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (July 2020)
-# Description: Test SampleStyle.py
-#   test/testStyle.py -v2
-from TauFW.Plotter.sample.utils import LOG, STYLE, CMSStyle, ensuredir, ensurelist
+# Description: Test testCMSStyle.py
+#   test/testCMSStyle.py -v2
+import os, sys
+#from TauFW.Plotter.sample.utils import LOG, STYLE, CMSStyle, ensuredir, ensurelist # decouple script from TauFW
 #import TauFW.Plotter.sample.SampleStyle as STYLE
-from ROOT import TCanvas, TLegend, gStyle, TH1F, kBlack
-gStyle.SetErrorX(0)
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+from ROOT import gROOT, gStyle, TCanvas, TLegend, TH1F, kBlack
+gROOT.SetBatch(True)      # don't open GUI windows
+gStyle.SetOptStat(False)  # don't make stat. box
+gStyle.SetOptTitle(False) # don't make title on top of histogram
+gStyle.SetErrorX(0)       # size of horizontal error bars
+if not os.path.exists("CMSStyle.py"):
+  sys.path.append(os.path.join(os.environ['CMSSW_BASE'],"src/TauFW/Plotter/python/plot"))
+import CMSStyle
+CMSStyle.setTDRStyle() # set once
 
 
-def testCMSera():
+def ensurelist(arg,verb=0):
+  """Ensure argument is actually a list."""
+  return arg if isinstance(arg,(list,tuple)) else [arg]
+  
+
+def ensuredir(dname,verb=0):
+  """Make directory if it does not exist."""
+  if dname and not os.path.exists(dname):
+    if verb>=1:
+      print(">>> Making directory %s..."%(dname))
+    os.makedirs(dname)
+  return dname
+  
+
+def testCMSera(verb=0):
   """Test setCMSera"""
-  LOG.header("testCMSera")
+  #LOG.header("testCMSera")
+  print(">>> testCMSera")
   erasets = [
    '7', '8', '2012', (7,8),
    2016, 2017, 2018, (2016,2017,2018), 'Run2',
@@ -19,17 +43,19 @@ def testCMSera():
   for eras in erasets:
     eras   = ensurelist(eras)
     args   = ','.join(repr(y) for y in eras)
-    result = CMSStyle.setCMSEra(*eras)
+    result = CMSStyle.setCMSEra(*eras,verb=verb)
     print(">>> CMSStyle.setCMSera(%s) = %r"%(args,result))
   
 
-def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0.06,out=True,**kwargs):
+def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0.06,out=True,verb=0,**kwargs):
   """Test setCMSLumiStyle for logo placement."""
+  print(">>> testCMSlogo: iPosX=%r, width=%r, height=%r, lmargin=%r, rmargin=%r, tmargin=%r, out=%r"%(
+    iPosX,width,height,lmargin,rmargin,tmargin,out))
   
   # SETTING
   bmargin = 0.10
   outdir  = ensuredir("plots/")
-  fname   = 'testStyle_CMSlogo_pos%s_%sx%s_L%s-R%s-T%s'%(iPosX,width,height,lmargin,rmargin,tmargin)
+  fname   = 'testCMSStyle_CMSlogo_pos%s_%sx%s_L%s-R%s-T%s'%(iPosX,width,height,lmargin,rmargin,tmargin)
   if out:
     fname += "_out"
   fname   = outdir+fname.replace('.','p')+'.png'
@@ -66,7 +92,7 @@ def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0
   # CMS STYLE
   CMSStyle.outOfFrame = out
   result = CMSStyle.setCMSEra(2018)
-  CMSStyle.setCMSLumiStyle(canvas,iPosX,verb=4)
+  CMSStyle.setCMSLumiStyle(canvas,iPosX,verb=verb+2)
   
   # FINISH
   canvas.SaveAs(fname)
@@ -76,8 +102,11 @@ def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0
 
 def checklegend(samples,tag=""):
   """Check legend entries: colors, titles, ..."""
+  from TauFW.Plotter.sample.utils import LOG, STYLE
+  #import TauFW.Plotter.sample.SampleStyle as STYLE
   # https://root.cern.ch/doc/master/classTLegend.html
   LOG.header("checklegend"+tag.replace(' ',''))
+  #print(">>> checklegend: samples=%r"%(samples,))
   output = ensuredir('plots')
   fname  = "%s/testStyle_legend%s"%(output,tag)
   #height = 0.05*(len(samples))
@@ -112,40 +141,47 @@ def checklegend(samples,tag=""):
     hists.append(hist)
   legend.Draw()
   canvas.SaveAs(fname+".png")
-  canvas.SaveAs(fname+".pdf")
+  #canvas.SaveAs(fname+".pdf")
   canvas.Close()
   
 
-def main():
-  
-  testCMSera()
+def main(args):
+  verbosity = args.verbosity
+  testCMSera(verb=verbosity)
   
   for ipos, out in [(0,True),(11,False)]:
     for width in [600,900]:
       for height in [600,900]:
         for lmargin in [0.07,0.14]: #,0.20]:
           for rmargin in [0.04,0.08]: #,0.16]:
-            testCMSlogo(ipos,width,height,lmargin,rmargin,out=out)
-  #for ipos in [0,1,2,3,10,11,12,22,33]:
-  #  testCMSlogo(ipos,800,600,0.14,0.04)
+            for tmargin in [0.03,0.06]: #,0.16]:
+              testCMSlogo(ipos,width,height,lmargin,rmargin,tmargin,out=out,verb=verbosity)
+  ###for ipos in [0,1,2,3,10,11,12,22,33]:
+  ###  testCMSlogo(ipos,800,600,0.14,0.04)
   
-  checklegend([
-    'Data',
-    'DY', #ZTT', 'ZL', 'ZJ',
-    'W', 'QCD', 'JTF',
-    'Top',
-    'TT', 'ST',
-    'VV',
-  ])
-  checklegend([
-    'ZTT', 'ZL', 'ZJ',
-    'TTT', 'TTL', 'TTJ',
-    'STT', 'STL', 'STJ',
-  ],tag="_split")
-  checklegend(['ZTT_DM0','ZTT_DM1','ZTT_DM10','ZTT_DM11','ZTT_other'],tag="_DMs")
+  ###checklegend([
+  ###  'Data',
+  ###  'DY', #ZTT', 'ZL', 'ZJ',
+  ###  'W', 'QCD', 'JTF',
+  ###  'Top',
+  ###  'TT', 'ST',
+  ###  'VV',
+  ###])
+  ###checklegend([
+  ###  'ZTT', 'ZL', 'ZJ',
+  ###  'TTT', 'TTL', 'TTJ',
+  ###  'STT', 'STL', 'STJ',
+  ###],tag="_split")
+  ###checklegend(['ZTT_DM0','ZTT_DM1','ZTT_DM10','ZTT_DM11','ZTT_other'],tag="_DMs")
   
 
 if __name__ == "__main__":
-  main()
-  print(">>>\n>>> Done.")
+  from argparse import ArgumentParser
+  description = """Test CMSStyle module."""
+  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
+  parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
+                                         help="set verbosity" )
+  args = parser.parse_args()
+  main(args)
+  print(">>> Done.")
   
