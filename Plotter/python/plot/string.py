@@ -187,7 +187,7 @@ def makelatex(string,**kwargs):
         string += " [GeV]"
       if cm:
         LOG.warn("makelatex: Flagged units are both GeV and cm!")
-    elif cm: #or 'd_' in string
+    elif cm and 'cm' not in string: #or 'd_' in string
       string += " [cm]"
   if (verbosity>=2 and string!=oldstr) or verbosity>=3:
     print(">>> makelatex: %r -> %r"%(oldstr,string))

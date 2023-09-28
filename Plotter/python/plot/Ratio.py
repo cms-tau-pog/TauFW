@@ -45,7 +45,7 @@ class Ratio(object):
     errorX        = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
     fraction      = kwargs.get('fraction',    None        ) # make stacked fraction from stack (normalize each bin to 1)
     hists         = unwraplistargs(hists) # ensure list of histograms
-    LOG.verb("Ratio.init: hists=%s, denom=%r, num=%r, drawden=%r, errband=%r"%(
+    LOG.verb("Ratio.init: hists=%s, denom=%s, num=%s, drawden=%r, errband=%r"%(
       rootrepr(hists),rootrepr(denom),rootrepr(num),self.drawden,errband),verbosity,1)
     
     # CONVERT SPECIAL OBJECTS
