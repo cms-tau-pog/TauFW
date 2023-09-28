@@ -354,7 +354,7 @@ class Sample(object):
   def setfilename(self,filename):
     """Set filename."""
     self.filename = filename
-    self.fnameshort  = '/'.join(self.filename.split('/')[-2:])
+    self.fnameshort  = '/'.join(self.filename.split('/')[-3:])
     return self.filename
   
   def reload(self,**kwargs):
@@ -768,7 +768,7 @@ class Sample(object):
       except KeyboardInterrupt:
         LOG.throw(KeyboardInterrupt,"Interrupted Sample.gethist for %r (%d histogram%s)"%(self.name,len(varexps),'' if len(varexps)==1 else 's'))
     else:
-      LOG.verb('Sample.gethist: No varexps: isdata=%r, varcut=%s, variables=%s'%(self.isdata,varcut,variables),verbosity,3)
+      LOG.verb("Sample.gethist: No varexps: isdata=%r, varcut=%s, variables=%s"%(self.isdata,varcut,variables),verbosity,3)
     
     # FINISH
     nentries = 0
@@ -793,7 +793,7 @@ class Sample(object):
       print(">>>   %r"%(cuts))
       if verbosity>=4:
         for var, varexp, hist in zip(variables,varexps,hists):
-          print('>>>   entries=%d (%.1f integral) for variable %r, varexp=%r'%(hist.GetEntries(),hist.Integral(),var.name,varexp))
+          print(">>>   entries=%d (%.1f integral) for variable %r, varexp=%r"%(hist.GetEntries(),hist.Integral(),var.name,varexp))
           #print('>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp))
           if verbosity>=5:
             printhist(hist,pre=">>>   ")

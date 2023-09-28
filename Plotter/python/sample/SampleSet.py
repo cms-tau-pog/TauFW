@@ -59,12 +59,12 @@ class SampleSet(object):
       lumi = self.datasample.lumi + oset.datasample.lumi
       datasamples   = self.datasample.samples + oset.datasample.samples
       newdatasample = MergedSample(self.datasample.name,self.datasample.title,datasamples,
-                                   isdata=True,isexp=False,lumi=lumi)
+                                   data=True,exp=False,lumi=lumi)
     else: # initiate for the first time
       lumi = oset.datasample.lumi
       datasamples   = oset.datasample.samples
       newdatasample = MergedSample(oset.datasample.name,oset.datasample.title,datasamples,
-                                   isdata=True,isexp=False,lumi=lumi) # create new sample
+                                   data=True,exp=False,lumi=lumi) # create new sample
     
     # EXPECTED (MC)
     newexpsamples = [ ]
@@ -82,13 +82,13 @@ class SampleSet(object):
       else:
         LOG.warn("SampleSet.__add__: Could not match sample %r to %s"%(sample,osamples))
       newsample = MergedSample(sample.name,sample.title,subsamples,
-                               isdata=False,isexp=sample.isexp,isembed=sample.isembed,lumi=lumi)
+                               data=False,exp=sample.isexp,embed=sample.isembed,lumi=lumi)
       if splitsamples: # split again
         for ssample in splitsamples:
           newssample = newsample.clone(ssample.name,ssample.title,cuts=ssample.cuts,color=ssample.fillcolor)
           newsample.splitsamples.append(newssample)
       newexpsamples.append(newsample)
-    if osamples:
+    if self.expsamples and osamples:
       LOG.warn("SampleSet.__add__: Not all samples were matched. Treating as separate process: %r"%(osamples))
       newexpsamples.extend(osamples)
     newset = SampleSet(newdatasample,newexpsamples,name=self.name,
