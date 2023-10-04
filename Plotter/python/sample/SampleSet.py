@@ -50,9 +50,10 @@ class SampleSet(object):
     """Returns string representation of Sample object."""
     return ', '.join(repr(s.name) for s in [self.datasample]+self.mcsamples if s)
   
-  def __add__(self,oset):
+  def __add__(self,oset,**kwargs):
     """Add SampleSet objects together into a new one.
     Merge samples for better efficiency when using parallel drawing."""
+    verbosity = LOG.getverbosity(kwargs,self)+3
     
     # OBSERVED DATA
     if self.datasample: # merge
@@ -69,28 +70,32 @@ class SampleSet(object):
     # EXPECTED (MC)
     newexpsamples = [ ]
     osamples = oset.expsamples[:] # only merge samples once
-    for sample in self.expsamples: # assume 1-to-1 matching of samples
-      subsamples = sample.samples[:]
-      splitsamples = sample.splitsamples
-      for osample in osamples:
-        if sample.name==osample.name:
-          subsamples.extend(osample.samples)
-          osamples.remove(osample) # only match once
-          if not splitsamples and osample.splitsamples:
-            splitsamples = osample.splitsamples
-          break
-      else:
-        LOG.warn("SampleSet.__add__: Could not match sample %r to %s"%(sample,osamples))
-      newsample = MergedSample(sample.name,sample.title,subsamples,
-                               data=False,exp=sample.isexp,embed=sample.isembed,lumi=lumi)
-      if splitsamples: # split again
-        for ssample in splitsamples:
-          newssample = newsample.clone(ssample.name,ssample.title,cuts=ssample.cuts,color=ssample.fillcolor)
-          newsample.splitsamples.append(newssample)
-      newexpsamples.append(newsample)
-    if self.expsamples and osamples:
-      LOG.warn("SampleSet.__add__: Not all samples were matched. Treating as separate process: %r"%(osamples))
-      newexpsamples.extend(osamples)
+    if self.expsamples: # merge with list from other sample set
+      for sample in self.expsamples: # assume 1-to-1 matching of samples
+        subsamples = sample.samples[:]
+        splitsamples = sample.splitsamples
+        for osample in osamples:
+          if sample.name==osample.name:
+            subsamples.extend(osample.samples)
+            osamples.remove(osample) # only match once
+            if not splitsamples and osample.splitsamples:
+              splitsamples = osample.splitsamples
+            break
+        else:
+          LOG.warn("SampleSet.__add__: Could not match sample %r to %s"%(sample,osamples))
+        newsample = MergedSample(sample.name,sample.title,subsamples,
+                                 data=False,exp=sample.isexp,embed=sample.isembed,lumi=lumi)
+        if splitsamples: # split again
+          for ssample in splitsamples:
+            newssample = newsample.clone(ssample.name,ssample.title,cuts=ssample.cuts,color=ssample.fillcolor)
+            newsample.splitsamples.append(newssample)
+        newexpsamples.append(newsample)
+      if self.expsamples and osamples:
+        LOG.warn("SampleSet.__add__: Not all samples were matched. Treating as separate process: %r"%(osamples))
+        newexpsamples.extend(osamples)
+    else: # this object has an empty list: nothing to match
+      newexpsamples = osamples[:] # just copy other samples
+    LOG.verb("SampleSet.__add__: newexpsamples=%r"%(newexpsamples),verbosity,level=2)
     newset = SampleSet(newdatasample,newexpsamples,name=self.name,
                        label=self.label,loadingbar=self.loadingbar)
     return newset

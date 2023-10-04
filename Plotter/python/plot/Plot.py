@@ -199,7 +199,7 @@ class Plot(object):
     num          = kwargs.get('num',          None            ) # index of common numerator histogram in ratio plot (count from 1)
     rhists       = kwargs.get('rhists',       self.hists      ) # custom histogram argument for ratio plot
     iband        = denom if isinstance(denom,int) else -1
-    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for
+    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for (count from 1)
     staterr      = kwargs.get('staterr',      False           ) # create stat. error band
     sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
     errtitle     = kwargs.get('errtitle',     None            ) # title for error band
@@ -257,7 +257,9 @@ class Plot(object):
       for hist in hists:
         if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if isinstance(iband,int): # shift by 1
-      iband = max(0,min(len(self.hists),iband-1))
+      if iband<0:
+        iband = max(1,len(self.hists)+iband+1)
+      iband = max(0,min(len(self.hists)-1,iband-1))
     if verbosity>=1:
       print(">>> Plot.draw: hists=%s, ratio=%r, norm=%r, dividebins=%r"%(rootrepr(hists),ratio,norm,dividebins))
       print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
@@ -305,6 +307,7 @@ class Plot(object):
     #  options[i] = options[i].replace('E0','')
     gStyle.SetEndErrorSize(enderrorsize) # extra perpendicular line at end of error bars ('E1')
     gStyle.SetErrorX(0.5*float(errorX)) # horizontal error bars
+    LOG.verb("Plot.draw: options=%r, errbars=%r, ratio=%r, denom=%r, iband=%r"%(options,errbars,ratio,denom,iband),verbosity,2)
     LOG.verb("Plot.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
     
     # CANVAS

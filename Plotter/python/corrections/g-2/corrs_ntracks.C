@@ -4,6 +4,7 @@
  * @description: https://ineuteli.web.cern.ch/ineuteli/g-2/plots/ntracks_pu/
  *
  */
+//#define corrs_ntracks_C
 #include <iostream>
 #include <algorithm>
 #include <map>
@@ -27,7 +28,7 @@ Int_t getEraIndex(TString era){
   return iera;
 }
 
-void loadPUTrackWeights(TString era, Int_t verb=0){ //TString fname, 
+void loadPUTrackWeights(TString era, int verb=0){ //TString fname, 
   // https://github.com/cecilecaillol/MyNanoAnalyzer/blob/59f08466bedce37c2b77d6d950924e3ab9e7bcb8/NtupleAnalyzerCecile/FinalSelection_etau.cc#L1246-L1257
   ///TString indir = "$CMSSW_DIR/src/TauFW/Plotter/python/corrections/";
   ///TString fname = indir + "correction_acoplanarity_fine_"+year+".root"
@@ -49,7 +50,7 @@ void loadPUTrackWeights(TString era, Int_t verb=0){ //TString fname,
   }
 }
 
-void loadHSTrackWeights(TString era, Int_t verb=0){ //TString fname, 
+void loadHSTrackWeights(TString era, int verb=0){ //TString fname, 
   // https://github.com/cecilecaillol/MyNanoAnalyzer/blob/59f08466bedce37c2b77d6d950924e3ab9e7bcb8/NtupleAnalyzerCecile/FinalSelection_etau.cc#L1246-L1257
   ///TString indir = "$CMSSW_DIR/src/TauFW/Plotter/python/corrections/";
   ///TString fname = indir + "correction_acoplanarity_fine_"+year+".root"
@@ -72,11 +73,11 @@ void loadHSTrackWeights(TString era, Int_t verb=0){ //TString fname,
   }
 }
 
-Float_t getPUTrackWeight(Int_t ntracks_pu,Float_t z,Int_t iera=_iera){
+Float_t getPUTrackWeight(Int_t ntracks_pu, Float_t z, Int_t iera=_iera){
   return corrs_putracks[iera]->GetBinContent(corrs_putracks[iera]->GetXaxis()->FindBin(ntracks_pu),corrs_putracks[iera]->GetYaxis()->FindBin(z));
 }
 
-Float_t getHSTrackWeight(Int_t ntracks_hs,Float_t aco,Int_t iera=_iera){
+Float_t getHSTrackWeight(Int_t ntracks_hs, Float_t aco, Int_t iera=_iera){
   return corrs_hstracks[iera]->GetBinContent(corrs_hstracks[iera]->GetXaxis()->FindBin(ntracks_hs),corrs_hstracks[iera]->GetYaxis()->FindBin(aco));
 }
 
