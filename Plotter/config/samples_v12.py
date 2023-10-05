@@ -28,45 +28,46 @@ def getsampleset(channel,era,**kwargs):
   if '2022_preEE' in era or '2022_postEE' in era: # so far same samples and cross sections are used for preEE and postEE, if event numbers are set elsewhere then we don't need to add seperate numbers for both eras
     # for now nevts is set to 1 so it isn't taken into account in the scaling of the samples as this will be done elsewhere
     
-    kfactor_dy=1.12296 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
-    kfactor_wj=1.12555 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
+    kfactor_dy=6282.6/5455.0 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
+    kfactor_wj=63425.1/55300 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
     kfactor_ttbar=923.6/762.1 # NLO->NNLO k-factor computed for 13.6 TeV
     kfactor_ww=1.524 # LO->NNLO+NLO_EW computed for 13.6 TeV
     kfactor_zz=1.524 # LO->NNLO+NLO_EW computed for 13.6 TeV
     kfactor_wz=1.414 # LO->NNLO+NLO_EW computed for 13.6 TeV 
 
+    # need check check sample names below match ouput of NanoProd:
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      ( 'DY', "DYTo2L_MLL-4to50",   "Drell-Yan 4-50",    100900.0, {"nevts" : 1.0}), # LO, need to check where k-factor is applied
-      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5558.0, {'extraweight': dyweight, "nevts":1.0} ), # LO, apply k-factor in stitching
-      ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5558.0, {'extraweight': dyweight, "nevts":1.0} ), # LO, apply k-factor in stitching, in principle this sample should be the same as the inclusive one above so should be able to combine stats - to be checked
-      ( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      -, {'extraweight': dyweight, "nevts": 1.0} ), # LO, apply k-factor in stitching
-      ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      -, {'extraweight': dyweight, "nevts": 1.0} ), # LO, apply k-factor in stitching
-      ( 'DY', "DYto2L-4Jets_MLL-50_3J",      "Drell-Yan 3J 50",      -, {'extraweight': dyweight, "nevts": 1.0} ), # LO, apply k-factor in stitching
-      ( 'DY', "DYto2L-4Jets_MLL-50_4J",      "Drell-Yan 4J 50",      -, {'extraweight': dyweight, "nevts": 1.0} ), # LO, apply k-factor in stitching
-      ( 'WJ', "WJetsToLNu-4Jets",            "W + jets",           55300., {"nevts" : 1.0} ), # LO, apply k-factor in stitching
-      ( 'WJ', "WJetsToLNu-4Jets_1J",           "W + 1J",              9128., {"nevts" : 1.0}  ), # LO, apply k-factor in stitching
-      ( 'WJ', "WJetsToLNu-4Jets_2J",           "W + 2J",              2922., {"nevts" : 1.0}  ), # LO, apply k-factor in stitching
-      ( 'WJ', "WJetsToLNu-4Jets_3J",           "W + 3J",               861.3, {"nevts" : 1.0}  ), # LO, apply k-factor in stitching
-      ( 'WJ', "WJetsToLNu-4Jets_4J",           "W + 4J",               -, {"nevts" : 1.0}  ), # LO, apply k-factor in stitching
+      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor, in principle it should be possible to conbine this sample with the inclusive one below 
+      ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor
+      ( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      978.3*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
+      ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
+      ( 'DY', "DYto2L-4Jets_MLL-50_3J",      "Drell-Yan 3J 50",      93.7*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
+      ( 'DY', "DYto2L-4Jets_MLL-50_4J",      "Drell-Yan 4J 50",      45.4*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
+      ( 'WJ', "WJetsToLNu-4Jets",            "W + jets",           55300.*kfactor_wj, {"nevts" : 1.0} ), # LO times kfactor
+      ( 'WJ', "WJetsToLNu-4Jets_1J",           "W + 1J",              9128.*kfactor_wj, {"nevts" : 1.0}  ), # LO times kfactor
+      ( 'WJ', "WJetsToLNu-4Jets_2J",           "W + 2J",              2922.*kfactor_wj, {"nevts" : 1.0}  ), # LO times kfactor
+      ( 'WJ', "WJetsToLNu-4Jets_3J",           "W + 3J",               861.3*kfactor_wj, {"nevts" : 1.0}  ), # LO times kfactor
+      ( 'WJ', "WJetsToLNu-4Jets_4J",           "W + 4J",               415.4*kfactor_wj, {"nevts" : 1.0}  ), # LO times kfactor
    
       ( 'VV', "WW",             "WW",                    80.23*kfactor_ww,{"nevts" :  1.0} ), # LO times kfactor
       ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz,{"nevts" :  1.0} ), # LO times kfactor
       ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz,{"nevts" :  1.0} ), # LO times kfactor
 
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight, "nevts" : 1.0} ), # NLO times BR from Run-2 samples times kfactor
-      ( 'TT', "TTto4Q",                "ttbar hadronic",       346.4*kfactor_ttbar, {'extraweight': ttweight, "nevts" : 1.0} ), # NLO times BR from Run-2 samples times kfactor
-      ( 'TT', "TTtoLNu2Q",             "ttbar semileptonic",   334.8*kfactor_ttbar, {'extraweight': ttweight, "nevts" : 1.0} ), # NLO times BR from Run-2 samples times kfactor
-      # got to here
-      ( 'ST', "TBbarQ_t-channel",      "ST t-channel t",       136.02, {"nevts" : 1.0} ),
-      ( 'ST', "TbarBQ_t-channel",  "ST t-channel at",       80.95, {"nevts" : 1.0} ),
-      ( 'ST', "TWminustoLNu2Q",             "ST tW semileptonic",                 35.85, {"nevts" : 1.0} ),
-      ( 'ST', "TWminusto2L2Nu",             "ST tW 2l2#nu",                 35.85, {"nevts" : 1.0} ),
-      ( 'ST', "TbarWplustoLNu2Q",         "ST atW semileptonic",                35.85, {"nevts" : 1.0} ),
-      ( 'ST', "TbarWplusto2L2Nu",         "ST atW 2l2#nu",                35.85, {"nevts" : 1.0} ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight, "nevts" : 1.0} ), # NLO times BR times kfactor
+      ( 'TT', "TTto4Q",                "ttbar hadronic",       346.4*kfactor_ttbar, {'extraweight': ttweight, "nevts" : 1.0} ), # NLO times BR times kfactor
+      ( 'TT', "TTtoLNu2Q",             "ttbar semileptonic",   334.8*kfactor_ttbar, {'extraweight': ttweight, "nevts" : 1.0} ), # NLO times BR times kfactor
+      ( 'ST', "TBbarQ_t-channel",      "ST t-channel t",       123.8, {"nevts" : 1.0} ), # NLO
+      ( 'ST', "TbarBQ_t-channel",  "ST t-channel at",       75.47, {"nevts" : 1.0} ), # NLO
+      ( 'ST', "TWminustoLNu2Q",             "ST tW semileptonic",                 15.8, {"nevts" : 1.0} ), # NLO (36.0) times LNu2Q BR
+      ( 'ST', "TWminusto2L2Nu",             "ST tW 2l2#nu",                 3.8, {"nevts" : 1.0} ), # NLO (36.0) times 2L2Nu BR
+      ( 'ST', "TbarWplustoLNu2Q",         "ST atW semileptonic",          15.9, {"nevts" : 1.0} ), # NLO (36.1) times LNu2Q BR
+      ( 'ST', "TbarWplusto2L2Nu",         "ST atW 2l2#nu",                3.8, {"nevts" : 1.0} ), # NLO (36.1) times 2L2Nu BR
     ]
     if 'mutau' in channel:
-      expsamples.append(('DY',"DYto2TautoMuTauh_M-50","Drell-Yan 50 -> tautau -> mu+tauh",5558.0,{'extraweight': dyweight})) # LO (does not include filter eff), apply k-factor in stitching, apply correct normalization in stitching
+      expsamples.append(('DY',"DYto2TautoMuTauh_M-50","Drell-Yan 50 -> tautau -> mu+tauh",5455.0*kfactor_dy,{'extraweight': dyweight})) # LO (using same cross section as inclusive samples), apply correct normalization in stitching
+      # the cross section for this exact samples is 1885.0 which is ~ 1/3 the total DY->LL cross section (expected since it only selects taus and not electrons and muons)
+      # the filter efficiency for this sample (due to tau BRs + kinematic cuts on tau decay products) is 2.865e-02 
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
   
