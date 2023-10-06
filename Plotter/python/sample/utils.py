@@ -14,7 +14,7 @@ gROOT.SetBatch(True)
 LOG  = Logger('Sample')
 era  = None # data period: 2016, 2017, 2018, ...
 lumi = -1   # integrated luminosity [fb-1]
-cme  = 13   # center-of-mass energy [TeV]
+cme  = 13.6   # center-of-mass energy [TeV]
 xsecs_nlo = { # NLO cross sections to compute k-factor for stitching
   'DYJetsToLL_M-50':     3*2025.74, # NNLO, FEWZ
   'DYJetsToLL_M-10to50':  18610.0, # NLO, aMC@NLO
@@ -147,7 +147,7 @@ def setera(era_,lumi_=None,**kwargs):
       lumi = CMSStyle.lumi_dict.get(year,None)
   else:
     kwargs['lumi'] = lumi
-  cme = kwargs.get('cme',13)
+  cme = kwargs.get('cme',13.6)
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   if not lumi or lumi<0:
@@ -383,6 +383,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   name_incl = kwargs.get('incl',      searchterms[0] ) # name of inclusive sample
   xsec_incl = kwargs.get('xsec',      None           ) # (N)NLO cross section to compute k-factor
   kfactor   = kwargs.get('kfactor',   None           ) # k-factor
+  cme = kwargs.get('cme',13.6) # COM energy
 
   verbosity = 2
   ###### NanoAOD efficiencies -- currently hard-coded
@@ -434,7 +435,10 @@ def stitch(samplelist,*searchterms,**kwargs):
   xsec_incl_LO    = sample_incl.xsec
   if kfactor:
     xsec_incl_NLO = kfactor*xsec_incl_LO
-  else:
+  elif cme==13:
+    # the below procedure computes the k-factors from the xross-sections specified in xsecs_nlo above
+    # this proceudre is used only for Run-2 (13 TeV)
+    # for Run-3 (13.6 TeV) we do the kfactor scaling in the cross sections file so this is not needed
     xsec_incl_NLO = xsec_incl or getxsec_nlo(name,*searchterms) or xsec_incl_LO
     kfactor       = xsec_incl_NLO / xsec_incl_LO
   LOG.verb("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
