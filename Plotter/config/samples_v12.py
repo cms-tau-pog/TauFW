@@ -38,7 +38,7 @@ def getsampleset(channel,era,**kwargs):
     if '2022_preEE' in era:
       expsamples = [ # table of MC samples to be converted to Sample objects
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-        ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor, in principle it should be possible to conbine this sample with the inclusive one below 
+        #( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below 
         ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor
         #( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      978.3*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor # currently not available
         ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
@@ -71,7 +71,7 @@ def getsampleset(channel,era,**kwargs):
     if '2022_postEE' in era:
       expsamples = [ # table of MC samples to be converted to Sample objects
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-        ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor, in principle it should be possible to conbine this sample with the inclusive one below 
+        #( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below 
         ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor
         ( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      978.3*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor currently not available
         ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
@@ -148,9 +148,8 @@ def getsampleset(channel,era,**kwargs):
   
   # STITCH
   # Note: titles are set via STYLE.sample_titles
-  sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'     ) # W + jets
-  sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50" ) # Drell-Yan, M > 50 GeV
-  #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M10to50" )
+  sampleset.stitch("W*LNu*",    incl='WJ',  name='WJ'     ) # W + jets
+  sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYJ', name="DY_M50" ) # Drell-Yan, M > 50 GeV
   
   # JOIN
   sampleset.join('DY', name='DY' ) # Drell-Yan, M < 50 GeV + M > 50 GeV
