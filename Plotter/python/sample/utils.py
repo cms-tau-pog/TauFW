@@ -382,7 +382,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   name      = kwargs.get('name',      searchterms[0] )
   name_incl = kwargs.get('incl',      searchterms[0] ) # name of inclusive sample
   xsec_incl = kwargs.get('xsec',      None           ) # (N)NLO cross section to compute k-factor
-  kfactor   = kwargs.get('kfactor',   1.          ) # k-factor
+  kfactor   = kwargs.get('kfactor',   None          ) # k-factor
   cme = kwargs.get('cme',13.6) # COM energy
 
   verbosity = 2
@@ -432,16 +432,21 @@ def stitch(samplelist,*searchterms,**kwargs):
     title = sample_incl.title
 
   # Compute k-factor for NLO cross section normalisation
-  xsec_incl_LO    = sample_incl.xsec
+  xsec_incl    = sample_incl.xsec
   if kfactor:
-    xsec_incl_NLO = kfactor*xsec_incl_LO
+    xsec_incl_corrected = kfactor*xsec_incl
   elif cme==13:
     # the below procedure computes the k-factors from the xross-sections specified in xsecs_nlo above
     # this proceudre is used only for Run-2 (13 TeV)
     # for Run-3 (13.6 TeV) we do the kfactor scaling in the cross sections file so this is not needed
-    xsec_incl_NLO = xsec_incl or getxsec_nlo(name,*searchterms) or xsec_incl_LO
-    kfactor       = xsec_incl_NLO / xsec_incl_LO
-  LOG.verb("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_NLO,xsec_incl_LO),verbosity,level=2)
+    xsec_incl_corrected = xsec_incl or getxsec_nlo(name,*searchterms) or xsec_incl
+    kfactor       = xsec_incl_corrected / xsec_incl
+  else:
+    # if no kfactor is specified and we are not doing Run-2 (cme=13) method then we set kfactor to 1
+    # in the Run-3 method the kfactor is applied to the inputted cross-sections, so by setting this to 1 we ensure it does not get applied twice 
+    xsec_incl_corrected = xsec_incl
+    kfactor=1. 
+  LOG.verb("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_corrected,xsec_incl),verbosity,level=2)
 
   if len(stitchlist)<2:
     LOG.warn("stitch: Could not stitch %r: fewer than two %s samples (%d) match '%s'-- still applying k-factor to inclusive sample"%(
