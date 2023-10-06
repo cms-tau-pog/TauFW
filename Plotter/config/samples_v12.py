@@ -64,10 +64,10 @@ def getsampleset(channel,era,**kwargs):
         ( 'ST', "TbarWplustoLNu2Q",         "ST atW semileptonic",          15.9, {"nevts" : 1.0} ), # NLO (36.1) times LNu2Q BR
         ( 'ST', "TbarWplusto2L2Nu",         "ST atW 2l2#nu",                3.8, {"nevts" : 1.0} ), # NLO (36.1) times 2L2Nu BR
       ]
-      if 'mutau' in channel:
-        expsamples.append(('DY',"DYto2TautoMuTauh_M-50","Drell-Yan 50 -> tautau -> mu+tauh",5455.0*kfactor_dy,{'extraweight': dyweight})) # LO (using same cross section as inclusive samples), apply correct normalization in stitching
-        # the cross section for this exact samples is 1885.0 which is ~ 1/3 the total DY->LL cross section (expected since it only selects taus and not electrons and muons)
-        # the filter efficiency for this sample (due to tau BRs + kinematic cuts on tau decay products) is 2.865e-02 
+     # if 'mutau' in channel:
+     #   expsamples.append(('DY',"DYto2TautoMuTauh_M-50","Drell-Yan 50 -> tautau -> mu+tauh",5455.0*kfactor_dy,{'extraweight': dyweight})) # LO (using same cross section as inclusive samples), apply correct normalization in stitching
+     #   # the cross section for this exact samples is 1885.0 which is ~ 1/3 the total DY->LL cross section (expected since it only selects taus and not electrons and muons)
+     #   # the filter efficiency for this sample (due to tau BRs + kinematic cuts on tau decay products) is 2.865e-02 
     if '2022_postEE' in era:
       expsamples = [ # table of MC samples to be converted to Sample objects
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
@@ -97,10 +97,10 @@ def getsampleset(channel,era,**kwargs):
         ( 'ST', "TbarWplustoLNu2Q",         "ST atW semileptonic",          15.9, {"nevts" : 1.0} ), # NLO (36.1) times LNu2Q BR
         ( 'ST', "TbarWplusto2L2Nu",         "ST atW 2l2#nu",                3.8, {"nevts" : 1.0} ), # NLO (36.1) times 2L2Nu BR
       ]
-      if 'mutau' in channel:
-        expsamples.append(('DY',"DYto2TautoMuTauh_M-50","Drell-Yan 50 -> tautau -> mu+tauh",5455.0*kfactor_dy,{'extraweight': dyweight})) # LO (using same cross section as inclusive samples), apply correct normalization in stitching
-        # the cross section for this exact samples is 1885.0 which is ~ 1/3 the total DY->LL cross section (expected since it only selects taus and not electrons and muons)
-        # the filter efficiency for this sample (due to tau BRs + kinematic cuts on tau decay products) is 2.865e-02 
+     # if 'mutau' in channel:
+     #   expsamples.append(('DY',"DYto2TautoMuTauh_M-50","Drell-Yan 50 -> tautau -> mu+tauh",5455.0*kfactor_dy,{'extraweight': dyweight})) # LO (using same cross section as inclusive samples), apply correct normalization in stitching
+     #   # the cross section for this exact samples is 1885.0 which is ~ 1/3 the total DY->LL cross section (expected since it only selects taus and not electrons and muons)
+     #   # the filter efficiency for this sample (due to tau BRs + kinematic cuts on tau decay products) is 2.865e-02 
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
   
