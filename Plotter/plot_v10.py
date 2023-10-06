@@ -106,13 +106,14 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   outdir = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
   exts   = ['png','pdf'] if pdf else ['png'] # extensions
   for selection in selections:
-    print ">>> Selection %r: %r"%(selection.title,selection.selection)
+    print(">>> Selection %r: %r"%(selection.title,selection.selection))
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
-    for stack, variable in stacks.iteritems():
+    #for stack, variable in stacks.iteritems():
+    for stack, variable in stacks.items(): # python 3
       #position = "" #variable.position or 'topright'
       stack.draw(fraction=fraction)
       stack.drawlegend() #position)
@@ -264,7 +265,7 @@ def main(args):
   for config in configs:
     if not config.endswith(".yml"): # config = channel name
       config = "config/setup_%s.yml"%(config) # assume this file name pattern
-    print ">>> Using configuration file: %s"%config
+    print(">>> Using configuration file: %s"%config)
     with open(config, 'r') as file:
       setup = yaml.safe_load(file)
     tag = setup.get('tag',"")+args.tag
@@ -282,7 +283,7 @@ def main(args):
 
 if __name__ == "__main__":
   from argparse import ArgumentParser, RawTextHelpFormatter
-  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018']
+  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE']
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
@@ -310,5 +311,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   
