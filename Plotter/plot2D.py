@@ -92,7 +92,7 @@ if __name__ == "__main__":
   import sys
   from argparse import ArgumentParser
   channels = ['mutau','etau','mumu']
-  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018']
+  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE']
   argv = sys.argv
   description = """Simple plotting script for 2D histograms from pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
