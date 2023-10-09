@@ -1,8 +1,13 @@
 {
     "DYJetsToLL_M-50": 96296977.0,
+    "DYto2TautoMuTauh_M-50": 10086342.0,
+    "GluGluHToTauTau_M125_v2": 290974.0,
+    "GluGluHToTauTau_M125_v3": 287988.0,
     "TTTo2L2Nu": 85077258.0,
     "TTto4Q": 181311721.0,
     "TTtoLNu2Q": 268508765.0,
+    "VBFHToTauTau_M125_Poisson60KeepRAW": 297616.0,
+    "VBFHToTauTau_M125_v2_Poisson70KeepRAW": 295628.0,
     "WW": 53558480.0,
     "WWW_4F": 1366248.0,
     "WWZ_4F": 5344074.0,
