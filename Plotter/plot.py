@@ -5,6 +5,10 @@
 #   ./plot.py -y 2018 -c mutau
 #   ./plot.py -y 2018 -c config/setup_mutau.yml
 #   ./plot.py -y 2018 -c mutau -S baseline -V m_vis
+#>>>>IMPORTANT!!
+#>>>>Run with --serial option if using py3:
+#   ./plot.py -y 2018 -c mutau --serial
+
 from config.samples import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
