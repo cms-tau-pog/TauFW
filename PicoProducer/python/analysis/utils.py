@@ -4,7 +4,7 @@ import os, sys
 from math import sqrt, sin, cos, pi, log10, floor
 from itertools import combinations
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TH1D, TLorentzVector
+from ROOT import TH1D, TLorentzVector, RDataFrame
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
 from TauFW.common.tools.file import ensurefile
@@ -405,3 +405,11 @@ class DiTauPair(LeptonPair):
     elif self.iso2 != opair.iso2: return self.iso2 > opair.iso2 # greater = larger tau isolation
     return True
   
+def getTotalWeight(file): #This function was proposed by Konstantin Androsov to solve the problem with normalization of WJets. It should work also for skimmed data
+    total_w = 0.
+    for tree_name in [ 'Events', 'EventsNotSelected' ]:
+        df = RDataFrame(tree_name, file)
+        df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
+        w = df.Sum('genWeightD')
+        total_w += w.GetValue()
+    return total_w
