@@ -35,6 +35,8 @@ def getsampleset(channel,era,**kwargs):
     kfactor_zz=1.524 # LO->NNLO+NLO_EW computed for 13.6 TeV
     kfactor_wz=1.414 # LO->NNLO+NLO_EW computed for 13.6 TeV 
 
+    cme=13.6
+
     if '2022_preEE' in era:
       expsamples = [ # table of MC samples to be converted to Sample objects
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
@@ -148,8 +150,8 @@ def getsampleset(channel,era,**kwargs):
   
   # STITCH
   # Note: titles are set via STYLE.sample_titles
-  sampleset.stitch("W*LNu*",    incl='WJ',  name='WJ'     ) # W + jets
-  sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYJ', name="DY_M50" ) # Drell-Yan, M > 50 GeV
+  sampleset.stitch("W*LNu*",    incl='WJ',  name='WJ', cme=cme     ) # W + jets
+  sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYJ', name="DY_M50", cme=cme ) # Drell-Yan, M > 50 GeV
   
   # JOIN
   sampleset.join('DY', name='DY' ) # Drell-Yan, M < 50 GeV + M > 50 GeV
