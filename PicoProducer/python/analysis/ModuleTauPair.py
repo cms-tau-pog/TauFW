@@ -81,8 +81,8 @@ class ModuleTauPair(Module):
       #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
       #  self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
       #  self.met_vars     = { u: getMET(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
-      if self.isUL and self.tes==None:
-        self.tes = 1.0 # placeholder
+      #if self.isUL and self.tes==None:
+      #  self.tes = 1.0 # placeholder
     
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
@@ -428,13 +428,19 @@ class ModuleTauPair(Module):
     
     # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
     if self.ismc and 't' in self.channel:
-      if hasattr(tau1,'es') and tau1.es!=1:
-        dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
-        correctmet(met,dp)
-      if hasattr(tau2,'es') and tau2.es!=1:
-        dp = tau2.tlv*(1.-1./tau2.es)
-        #print ">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(tau2.es,tau2.pt,dp.Pt(),tau2.genPartFlav)
-        correctmet(met,tau2.tlv*(1.-1./tau2.es))
+      try: 
+         if hasattr(tau1,'es') and tau1.es!=1:
+            dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
+            correctmet(met,dp)
+      except:
+         print("No 'es' attribute for tau1")
+      try:
+         if hasattr(tau2,'es') and tau2.es!=1:
+            dp = tau2.tlv*(1.-1./tau2.es)
+            #print ">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(tau2.es,tau2.pt,dp.Pt(),tau2.genPartFlav)
+            correctmet(met,tau2.tlv*(1.-1./tau2.es))
+      except:
+         print("No 'es' attribute for tau2")
     tau1 = tau1.tlv # continue with TLorentzVector
     tau2 = tau2.tlv # continue with TLorentzVector
     

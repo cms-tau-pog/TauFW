@@ -71,7 +71,7 @@ class ScaleFactorHTT(ScaleFactor):
     self.filename  = filename
     LOG.verb("ScaleFactor(%s): Opening %s:%r..."%(self.name,filename,graphname),verb,1)
     try:
-      file = ensureTFile(filename)
+      self.file = ensureTFile(filename)
     except (OSError,IOError) as error:
       strerr = str(error).replace('\033[0m','')
       if '/HTT/' in filename and "does not exist" in strerr:
