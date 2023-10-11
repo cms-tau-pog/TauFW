@@ -10,7 +10,7 @@ from TauFW.PicoProducer.corrections.MuonSFs import *
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
-class ModuleMuTau_nanoV10_DeepTau2p5(ModuleTauPair):
+class ModuleMuTau(ModuleTauPair):
   
   def __init__(self, fname, **kwargs):
     kwargs['channel'] = 'mutau'
