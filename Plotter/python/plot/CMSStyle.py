@@ -48,11 +48,11 @@ relExtraDY     = 1.2
 drawLogo       = False
 outOfFrame     = False
 lumi_dict      = {
-  '7':      5.1,  '2016': 36.3, 'UL2016_preVFP':  19.5, # actually 19.5, update after reprocessing with new JSON
-  '8':      19.7, '2017': 41.5, 'UL2016_postVFP': 16.8, # actually 16.8, update after reprocessing with new JSON
+  '7':      5.1,  '2016': 36.3, 'UL2016_preVFP':  19.5,
+  '8':      19.7, '2017': 41.5, 'UL2016_postVFP': 16.8,
   '2012':   19.7, '2018': 59.7, 'UL2016': 36.3, # actually 19.5+16.8=36.3
-  'Run2':   138,                'UL2017': 41.5, # actually 41.5
-  'Phase2': 3000,               'UL2018': 59.8, # actually 59.8
+  'Run2':   138,                'UL2017': 41.5,
+  'Phase2': 3000,               'UL2018': 59.8,
   '2022': 35.0842,
   '2022_preEE': 8.077,
   '2022_postEE': 27.0072,
@@ -128,7 +128,7 @@ def setCMSEra(*eras,**kwargs):
       if lumi:
         if string:
           string += ", "
-        string += "%#.3g"%(lumi)).rstrip('.') + " fb^{#minus1}"
+        string += ("%#.3g"%lumi).rstrip('.') + " fb^{#minus1}" # three significant digits
       if cme:
         string += " (%s TeV)"%(cme)
       strings.append(string.strip())
