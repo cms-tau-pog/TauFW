@@ -387,6 +387,7 @@ def stitch(samplelist,*searchterms,**kwargs):
 
   verbosity = 2
   ###### NanoAOD efficiencies -- currently hard-coded
+  # !!!!!! Will be removed if cutflows can be modified properly
 
   nanoEff_DYll = kwargs.get('eff_nanoAOD_DYll', 1.) # Average efficiency
   nanoEff_DYll_nj = dict()
