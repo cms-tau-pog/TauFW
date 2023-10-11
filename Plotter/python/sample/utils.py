@@ -14,7 +14,7 @@ gROOT.SetBatch(True)
 LOG  = Logger('Sample')
 era  = None # data period: 2016, 2017, 2018, ...
 lumi = -1   # integrated luminosity [fb-1]
-cme  = 13.6   # center-of-mass energy [TeV]
+cme  = 13   # center-of-mass energy [TeV]
 xsecs_nlo = { # NLO cross sections to compute k-factor for stitching
   'DYJetsToLL_M-50':     3*2025.74, # NNLO, FEWZ
   'DYJetsToLL_M-10to50':  18610.0, # NLO, aMC@NLO
@@ -147,7 +147,7 @@ def setera(era_,lumi_=None,**kwargs):
       lumi = CMSStyle.lumi_dict.get(year,None)
   else:
     kwargs['lumi'] = lumi
-  cme = kwargs.get('cme',13.6)
+  cme = kwargs.get('cme',13.)
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   if not lumi or lumi<0:
