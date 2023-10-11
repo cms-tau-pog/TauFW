@@ -53,9 +53,9 @@ lumi_dict      = {
   '2012':   19.7, '2018': 59.7, 'UL2016': 36.3, # actually 19.5+16.8=36.3
   'Run2':   138,                'UL2017': 41.5, # actually 41.5
   'Phase2': 3000,               'UL2018': 59.8, # actually 59.8
-  '2022': 35.1, # 35.0842
-  '2022_preEE': 8.08, # 8.077
-  '2022_postEE': 27.0 # 27.0072
+  '2022': 35.0842,
+  '2022_preEE': 8.077,
+  '2022_postEE': 27.0072,
 }
 cme_dict       = {
   '7':      7,    '2016': 13,
@@ -128,7 +128,7 @@ def setCMSEra(*eras,**kwargs):
       if lumi:
         if string:
           string += ", "
-        string += "%s fb^{#minus1}"%(lumi)
+        string += "%#.3g fb^{#minus1}"%(lumi)
       if cme:
         string += " (%s TeV)"%(cme)
       strings.append(string.strip())
