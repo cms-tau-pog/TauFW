@@ -383,7 +383,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   name_incl = kwargs.get('incl',      searchterms[0] ) # name of inclusive sample
   xsec_incl = kwargs.get('xsec',      None           ) # (N)NLO cross section to compute k-factor
   kfactor   = kwargs.get('kfactor',   None          ) # k-factor
-  cme = kwargs.get('cme',13.6) # COM energy
+  cme = kwargs.get('cme',13) # COM energy
 
   verbosity = 2
   ###### NanoAOD efficiencies -- currently hard-coded
