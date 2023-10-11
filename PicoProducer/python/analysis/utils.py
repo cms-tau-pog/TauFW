@@ -413,11 +413,16 @@ class DiTauPair(LeptonPair):
     elif self.iso2 != opair.iso2: return self.iso2 > opair.iso2 # greater = larger tau isolation
     return True
   
-def getTotalWeight(file): #This function was proposed by Konstantin Androsov to solve the problem with normalization of WJets. It should work also for skimmed data
+def getTotalWeight(file, selection=""):
+  # This function was proposed by Konstantin Androsov to solve the problem with normalization of WJets. It should work also for skimmed data
+  # Allow to define (truth level) cuts to compute sum weight for given phase space -- needed for stitching
     total_w = 0.
     for tree_name in [ 'Events', 'EventsNotSelected' ]:
         df = RDataFrame(tree_name, file)
         df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
+        if len(selection>0):
+          df = df.Filter(selection)
         w = df.Sum('genWeightD')
         total_w += w.GetValue()
     return total_w
+

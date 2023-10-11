@@ -24,6 +24,8 @@ def get_nanoaod_sumw(args):
             - channel (str): Channel identifier.
             - tag (str): Tag identifier.
             - sumw_file (str): Path to the output JSON file for storing sumw values.
+            - selection: Additional selection applied to compute sum of weights only for a given phase space (e.g. jet multiplicity) 
+                         --> allows to modify other cutflow bins than inclusive sumw
 
     Returns:
         None
@@ -50,7 +52,7 @@ def get_nanoaod_sumw(args):
             sumw_dict[sample] = 0
             for filename in filenames:
                 sumw = 0
-                sumw = getTotalWeight(filename) 
+                sumw = getTotalWeight(filename,selection) 
                 sumw_dict[sample] += sumw
                 print ("%s:\t%f"%(filename,sumw))
     json_sumw_dict = json.dumps(sumw_dict, indent=4)
@@ -154,6 +156,8 @@ def main():
     parser = ArgumentParser(prog='modify_cutflow_hist.py',description=description,epilog="Good luck!")
     parser = ArgumentParser(add_help=True)
     parser.add_argument('-o','--sumw_file',     dest='sumw_file', default="nanoaod_sumw.json",
+                                                help="path to the json file containing sumw dict")
+    parser.add_argument('-s','--selection',     dest='selection', default="",
                                                 help="path to the json file containing sumw dict")
     parser.add_argument('--pico_dir',           dest='pico_dir', default='', nargs='?',
                                                 help='path to directory containing pico samples')
