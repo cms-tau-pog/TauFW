@@ -428,7 +428,8 @@ class ModuleTauPair(Module):
     
     # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
     if self.ismc and 't' in self.channel:
-      if hasattr(tau1,'es') and tau1.es!=1:
+      if tau1.__dict__.get('es',1)!=1:
+        #if hasattr(tau1,'es') and tau1.es!=1:
         dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
         correctmet(met,dp)
       if hasattr(tau2,'es') and tau2.es!=1:
