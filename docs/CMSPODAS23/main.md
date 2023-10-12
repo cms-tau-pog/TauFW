@@ -1,7 +1,6 @@
 # Tau exercise for the CMS PO&DAS 2023
 
-<img src="../docs/PODAS23logo.png" alt="PO&DAS 2023" max-width="800"/>
-
+<img src="../PODAS23logo.png" alt="PO&DAS 2023" max-width="800"/>
 Welcome to the next iteration of the TauPOG exercises for the Data Analysis Schools in CMS!
 
 You will be spending with us the next 4 hours but in case you are interested in the topics covered and would like to know more, you can have a look at the Tau [short](https://github.com/CMSDAS/tau-short-exercise) and [long](../CMSDAS2020/main.md) exercises from the CMSDAS 2020. You can also check out the publication describing the Run 2 performance of the Tau identification for further information:
