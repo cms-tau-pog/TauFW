@@ -51,6 +51,9 @@ class PileupWeightTool:
       elif '2018' in era:
         datafilename = os.path.join(datadir,"Data_PileUp_%s_%s.root"%(era,minbias))
         mcfilename   = os.path.join(datadir,"MC_PileUp_%s_Autumn18.root"%(era))
+      elif '2022' in era and 'postEE' in era:
+        datafilename = os.path.join(datadir,"Data_PileUp_UL2018_%s.root"%(minbias))
+        mcfilename   = os.path.join(datadir,"MC_PileUp_UL2018_Summer19.root")
     assert datafilename and mcfilename, "PileupWeightTool: Did not recognize era %r!"%(era)
     
     if flat or (sample and hasFlatPU(sample)):
