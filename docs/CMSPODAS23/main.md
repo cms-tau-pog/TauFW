@@ -79,8 +79,14 @@ Try to understand what the variables are named in the code, draw them and see if
 
 To have successful physics analyses, one need to accurately describe the collected data in the detector to the best of our theoretical understanding. As a common way to see how well our description is we plot Data/MC agreement plots.
 
-You can have a look and use the plotting macro for the DAS [plot_CMSPODAS23](../Plotter/plot_CMSPODAS23.py)
+You can have a look and use the plotting macro for the DAS [plot_CMSPODAS23](../../Plotter/plot_CMSPODAS23.py)
 
+The plotter already includes several variables, but the ranges are rather odd considering the distrtibutions at hand. Try to fix the range to obtain something meaningful and play with the selection to see how the DeepTau scores and other distributions vary:
++ Change the DeepTau ID values
++ Remove or add the lepton veto
++ Remove the cut on the transverse mass
+
+Selection cuts can be changed within the yml file stored in [setup_mutau_PODAS](../../Plotter/config/setup_mutau_PODAS.yml)
 
 
 ## Step 3: Combine
