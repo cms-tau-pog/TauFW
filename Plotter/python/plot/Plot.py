@@ -192,7 +192,8 @@ class Plot(object):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
-    lowerpanels  = kwargs.get('lowerpanels',  int(ratio)      ) # number of lower panels
+    lowerpanels  = int(ratio) if isinstance(ratio,bool) else 1 if isinstance(ratio,int) else False
+    lowerpanels  = kwargs.get('lowerpanels',  lowerpanels     ) # number of lower panels (default 1 if ratio is True or int)
     denom        = ratio if not isinstance(ratio,bool) and isinstance(ratio,int) and (ratio!=0) else -1 # assume last histogram is denominator
     denom        = kwargs.get('den',          denom           ) # index of common denominator histogram in ratio plot (count from 1)
     denom        = kwargs.get('denom',        denom           ) # alias
@@ -240,6 +241,8 @@ class Plot(object):
     lcolors      = ensurelist(lcolors or [ ])
     fcolors      = ensurelist(fcolors or [ ])
     lstyles      = ensurelist(lstyles or [ ])
+    hists        = self.hists
+    frame        = self.frame or hists[0]
     self.norm    = norm
     self.ratio   = ratio
     self.lcolors = lcolors
@@ -247,8 +250,6 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    hists        = self.hists
-    frame = self.frame or hists[0]
     if logx and xmin==0.0: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
     if logx and xmin==0: # reset xmin in binning
       xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
