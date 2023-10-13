@@ -24,7 +24,7 @@ def get_nanoaod_sumw(args):
             - channel (str): Channel identifier.
             - tag (str): Tag identifier.
             - sumw_file (str): Path to the output JSON file for storing sumw values.
-            - selection: Additional selection applied to compute sum of weights only for a given phase space (e.g. jet multiplicity) 
+            - selections: List of selections applied to compute sumw for list of cutflow bins (e.g. inclusive, jet multiplicities, etc.) 
                          --> allows to modify other cutflow bins than inclusive sumw
 
     Returns:
@@ -41,7 +41,7 @@ def get_nanoaod_sumw(args):
     """
     vetoes       = args.vetoes
     dtype        = ['mc']
-    sumw_dict = {}
+    sumw_dict = dict()
     path2sampleP_dir = "/eos/cms/store/group/phys_tau/irandreo/Run3_22_postEE/"
     samples = glob.glob1(path2sampleP_dir, '*')
     print(samples)
@@ -49,11 +49,10 @@ def get_nanoaod_sumw(args):
         print(sample)
         filenames = glob.glob(f'{path2sampleP_dir}{sample}/*.root')
         if not any([True for veto in args.vetoes if veto in sample]):
-            sumw_dict[sample] = 0
+            sumw_dict[sample] = [0 for x in range(len(args.selections))]
             for filename in filenames:
-                sumw = 0
-                sumw = getTotalWeight(filename,selection) 
-                sumw_dict[sample] += sumw
+                sumw = getTotalWeight(filename,args.selections) 
+                sumw_dict[sample].add(sumw)
                 print ("%s:\t%f"%(filename,sumw))
     json_sumw_dict = json.dumps(sumw_dict, indent=4)
     with open(args.sumw_file, "w") as outfile:
@@ -98,7 +97,8 @@ def modify_cutflow_hist(args):
         print(f'Unable to find file with weights:{args.sumw_file}')
         exit()
     print('Opening file: %s'%(sumw_file))
-    bin_id = int(args.bin)
+    bin_ids = args.bins
+
     with open(sumw_file, "r") as tf:
         norm_dict = json.load(tf)
         if len(args.pico_dir) > 1: sample_dir = args.pico_dir
@@ -113,11 +113,12 @@ def modify_cutflow_hist(args):
             cutflow_hist = root_file.Get('cutflow')
             sample_name = check_sample_name(sample_name_full, norm_dict.keys())
             if sample_name:
-                if args.modify_cutflow: cutflow_hist.SetBinContent(bin_id, float(norm_dict[sample_name]))
-                cf_n   = int(cutflow_hist.GetBinContent(bin_id))
-                nano_n = int(norm_dict[sample_name])
-                diff = cf_n - nano_n
-                print("%40s:\t%15d%15d%15d"%(sample_name, cf_n, nano_n, diff))
+                for i, bin_id in enumerate(bin_ids):
+                    if args.modify_cutflow: cutflow_hist.SetBinContent(bin_id, float(norm_dict[sample_name][i]))
+                    cf_n   = int(cutflow_hist.GetBinContent(bin_id))
+                    nano_n = int(norm_dict[sample_name][i])
+                    diff = cf_n - nano_n
+                    print("%40s, bin %i:\t%15d%15d%15d"%(sample_name, bin_id, cf_n, nano_n, diff))
                 if args.modify_cutflow: cutflow_hist.Write()  
             else:
                 print('ERROR: Did not found normalization factor for %s sample in dict: ' %(sample_name_full)+ str(norm_dict.keys()))   
@@ -142,7 +143,7 @@ def main():
     parser = ArgumentParser(add_help=True)
     parser.add_argument('-o','--sumw_file',     dest='sumw_file', default="nanoaod_sumw.json",
                                                 help="path to the json file containing sumw dict")
-    parser.add_argument('-s','--selection',     dest='selection', default="",
+    parser.add_argument('-s','--selections',     dest='selections', default=[""],
                                                 help="path to the json file containing sumw dict")
     parser.add_argument('--pico_dir',           dest='pico_dir', default='', nargs='?',
                                                 help='path to directory containing pico samples')
@@ -152,7 +153,7 @@ def main():
                                                 help="year or era to specify the sample list")
     parser.add_argument('-c','--channel',       dest='channel', default='', nargs='?',
                                                 help="skimming or anallysis channel to run")
-    parser.add_argument('--bin',                dest='bin', default=16, nargs='?',
+    parser.add_argument('--bins',                dest='bins', default=[16],
                                                 help='')
     parser.add_argument('-t','--tag',           dest='tag', default="",
                                                 help="Additional tag for pico files")
@@ -163,6 +164,10 @@ def main():
     cmd_args = sys.argv[1:]
     args = parser.parse_args(cmd_args)
     if hasattr(args,'tag') and len(args.tag)>=1 and args.tag[0]!='_': args.tag = '_'+args.tag
+
+    if not len(args.bins) == len(args.selections):
+        print("Number of bins does not correspond to number of selections for which to change the normalisation -- please check!")
+        exit()
     
     if args.get_nanoaod_w:
         print('Acquring weights from nanoaod...')
