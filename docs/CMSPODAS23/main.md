@@ -56,14 +56,14 @@ scramv1 b clean; scramv1 b
 
 ```
 
-## Step 1
+## Step 1 : the basics when dealing with a new framework
 
 For this exercise first check that you can access the tuples stored in:
 /nfs/dust/cms/user/cardinia/TauPOG/PODAS/skims/2018_v10
 
 You can try as a simple check to open one of the files in the subdirectories and inspect it. After the ROOT tutorial you should already be able to open a root file and inspect its content.
 
-For now navigate the tree stored and try to plot the visible mass of the muon+tau pair, try to apply some basic selections to the plot:
+For now navigate the tree stored in one of the MC samples (DY= Drell-Yan, WJ= W+jets, TT= tt-bar, ST= single top, VV= diboson) and try to plot the visible mass of the muon+tau pair, try to apply some basic selections to the plot:
 + DeepTau vsJet
 + DeepTau vsE
 + DeepTau vsMu
@@ -72,7 +72,18 @@ For now navigate the tree stored and try to plot the visible mass of the muon+ta
 Change the selection to observe the effect of the different DeepTau working points on the distribution.
 
 
-## Combine
+Objective: test your ability to "guess" what the content of a flat tree is. Often you'll have to dig through badly documented code (let's not kid ourselves, it's common), opening a file, inspecting it and making educated guesses is part of working in a large collaboration.
+Try to understand what the variables are named in the code, draw them and see if the distribution is what you would expect based on the physical process you are inspecting
+
+## Step 2 : Data-MC comparison
+
+To have successful physics analyses, one need to accurately describe the collected data in the detector to the best of our theoretical understanding. As a common way to see how well our description is we plot Data/MC agreement plots.
+
+You can have a look and use the plotting macro for the DAS [plot_CMSPODAS23](../Plotter/plot_CMSPODAS23.py)
+
+
+
+## Step 3: Combine
 
 ## Creating inputs
 Inputs are root file used for the creation of the datacards is `Fitter/TauES/createinputsTES.py`.
