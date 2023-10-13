@@ -54,6 +54,10 @@ cd CombineHarvester
 git checkout v2.0.0
 scramv1 b clean; scramv1 b
 
+cd TauFW
+pico.py list
+pico.py set picodir '/nfs/dust/cms/user/cardinia/TauPOG/PODAS/skims/2018_v10/$GROUP'                
+
 
 ```
 
