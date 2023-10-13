@@ -53,7 +53,7 @@ class SampleSet(object):
   def __add__(self,oset,**kwargs):
     """Add SampleSet objects together into a new one.
     Merge samples for better efficiency when using parallel drawing."""
-    verbosity = LOG.getverbosity(kwargs,self)+3
+    verbosity = LOG.getverbosity(kwargs,self)
     
     # OBSERVED DATA
     if self.datasample: # merge
