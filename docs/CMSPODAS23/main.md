@@ -85,7 +85,8 @@ You can have a look and use the plotting macro for the DAS [plot_CMSPODAS23](../
 
 ## Step 3: Combine
 
-## Creating inputs
+### Creating inputs
+
 Inputs are root file used for the creation of the datacards is `Fitter/TauES/createinputsTES.py`.
 These root files are saved in `Fitter/input` folder and named `ztt*.input*tag*.root`. They contain one TDirectory for each `"regions"` defined in the config file (.yml). For each region, there is a list of TH1D corresponding to each `"process"` defined in the config file (ex: ZTT). For each shape systematics, there is also two additionnal TH1D corresponding to the Up and Down variation of the process (ex: ZTT_shapedy_Up). For the TES there is a list of additional TH1D corresponding to the variations (defined by `"TESvariations"` in the config file) of the process by TES correction. 
 
@@ -103,7 +104,7 @@ As an example, the config file in `Fitter/TauES_ID/config/Default_FitSetupTES_mu
   ```
 
 
-## Config file 
+### Config file 
 This section provides an overview and explanation of the configuration file for the default tes and tid SF fit in the mutau channel. The config file contains various settings and parameters used in the analysis. For further details and explanations of each parameter, please refer to the specific sections within the config file itself.
 
 The main information such as the channel, baseline cuts, and tag are provided at the beginning of the config file. Additional sub-options, like weight replacement for systematic uncertainties, are optional.
@@ -124,9 +125,9 @@ The main information such as the channel, baseline cuts, and tag are provided at
 - `"systematics"` : Each systematic uncertainty has an effect type (shape or lnN), associated processes, and a scaling factor if applicable.
 - `"scaleFactors"`: Provides additional scale factors per year for specific processes. These scale factors can correct for cross-sections, reconstruction scale factors, and other factors.
 
-## Running the fit :
+### Running the fit :
 
-### Description of the main script `makePODAS23.py`: 
+#### Description of the main script `makePODAS23.py`: 
 
 The script `makePODAS23.py` code provides functionality for generating datacards and performing fits in the mutau channels.
 
@@ -134,7 +135,7 @@ The fit is done using [Combine tool](https://cms-analysis.github.io/HiggsAnalysi
 
 You can change the Parameter of Interest (POI) in the code to either scan the TES of the ID SF. 
 
-### Preparing the datacards
+#### Preparing the datacards
 
 Datacards are directly generated in `makePODAS23.py`:
 
@@ -148,7 +149,7 @@ It defines the following information :
 - If "norm_wj" is not specified in config file, a rateParameter "sf_W" is defined for the W+Jet normalisation. 
 - The `autoMCstat` function is used to have bin-by-bin uncertainties for the sum of all backgrounds.
 
-### Plotting results
+#### Plotting results
 
 The results of the fit are saved in a root file (ex: `higgsCombine*root` in output folder) that can be used to produced several plots. Especially, NLL pararabola and summary plots can be produced via `plotScan(setup, era=era, config=config)` that called `plotParabola_POI_region.py`.
 
