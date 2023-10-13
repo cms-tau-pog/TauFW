@@ -389,8 +389,8 @@ def stitch(samplelist,*searchterms,**kwargs):
   print("kfactor step 1  = ",kfactor)
   verbosity = 2
   ###### NanoAOD efficiencies -- currently hard-coded
-  # !!!!!! Will be removed if cutflows can be modified properly
 
+  # Possibility to add skimming efficiencies of nanoAODs; only needed if cutflow histograms in nTuples are not corrected accordingly
   nanoEff_DYll = kwargs.get('eff_nanoAOD_DYll', 1.) # Average efficiency
   nanoEff_DYll_nj = dict()
   nanoEff_DYll_nj[0] = kwargs.get('eff_nanoAOD_DYll_0orp4j', 1.)
