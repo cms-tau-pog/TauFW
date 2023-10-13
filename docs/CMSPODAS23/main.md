@@ -23,6 +23,7 @@ The first part of the exercise requires you to set up a CMSSW release, you can s
 
 
 ```bash
+source /cvmfs/cms.cern.ch/cmsset_default.sh
 mkdir TauPOG_PODAS
 cd TauPOG_PODAS
 export CMSSW=CMSSW_11_3_4
