@@ -203,19 +203,20 @@ class ModuleTauPair(Module):
       else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
         return False
       # Specific selections to compute mutau filter efficiencies for stitching of different DY samples
-      isMuTau = filtermutau(event)
-      self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
-      if event.LHE_Njets==0 or event.LHE_Njets>4:
-        self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
-      elif event.LHE_Njets==1:
-        self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
-      elif event.LHE_Njets==2:
-        self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
-      elif event.LHE_Njets==3:
-        self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
-      elif event.LHE_Njets==4:
-        self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
-
+      if 'weight_mutaufilter' in self.out.cutflow.cuts: # only for mutau module
+        isMuTau = filtermutau(event)
+        self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
+        if event.LHE_Njets==0 or event.LHE_Njets>4:
+          self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
+        elif event.LHE_Njets==1:
+          self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
+        elif event.LHE_Njets==2:
+          self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
+        elif event.LHE_Njets==3:
+          self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
+        elif event.LHE_Njets==4:
+          self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
+      
       self.out.pileup.Fill(event.Pileup_nTrueInt)
     
     return True
