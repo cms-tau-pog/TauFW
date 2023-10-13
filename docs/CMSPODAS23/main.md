@@ -78,11 +78,14 @@ Change the selection to observe the effect of the different DeepTau working poin
 Inputs are root file used for the creation of the datacards is `Fitter/TauES/createinputsTES.py`.
 These root files are saved in `Fitter/input` folder and named `ztt*.input*tag*.root`. They contain one TDirectory for each `"regions"` defined in the config file (.yml). For each region, there is a list of TH1D corresponding to each `"process"` defined in the config file (ex: ZTT). For each shape systematics, there is also two additionnal TH1D corresponding to the Up and Down variation of the process (ex: ZTT_shapedy_Up). For the TES there is a list of additional TH1D corresponding to the variations (defined by `"TESvariations"` in the config file) of the process by TES correction. 
 
-You can create your own inputs by adding some cuts on several varaibles in the config files. 
-As an example, the config files in `Fitter/TauES_ID/config/` provided the inputs in `Fitter/inputs`. You can use them directly to run combine.
+You can create your own inputs by adding some cuts on several varaibles in the config files.
+
+As an example, the config file in `Fitter/TauES_ID/config/Default_FitSetupTES_mutau_DM.yml` provided the inputs in `Fitter/inputs/ztt_mt_tes_m_vis.inputs-UL2018_v10-13TeV_mutau_mt65_DM_Dt2p5_DAS23_VSJetMedium.root`. You can use them directly to run combine.
+
+:warning: Don't modify this file, create another one based on this example and change the tag to not overwrite the exisiting file.
 
 
-Exemple of command :
+:computer: Example of command :
 
  ```sh
   python TauES/createinputsTES.py -y UL2018_v10 -c TauES_ID/config/Default_FitSetupTES_mutau_DM.yml
@@ -138,7 +141,7 @@ It defines the following information :
 
 The results of the fit are saved in a root file (ex: `higgsCombine*root` in output folder) that can be used to produced several plots. Especially, NLL pararabola and summary plots can be produced via `plotScan(setup, era=era, config=config)` that called `plotParabola_POI_region.py`.
 
-Exemple of command to run the TES scans by DM : 
+:computer: Example of command to run the TES scans by DM : 
 ```sh
 python TauES_ID/makefit_PODAS23.py -y UL2018_v10 -c TauES_ID/config/Default_FitSetupTES_mutau_DM.yml
  ```
