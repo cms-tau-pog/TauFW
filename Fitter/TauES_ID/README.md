@@ -7,7 +7,7 @@ See [the README.md in the parent directory](../../../#taufw).
 ## Creating NTuples 
 The first step is to produce the NTuples via PicoProducer tool. See [the README.md in the parent directory](../../../PicoProducer).
 ## Creating inputs
-Inputs are root file used for the creation of the datacards. The script to create them is `harvestDatacards_TES_idSF_MCStat.py` for mutau or `harvestDatacards_zmm.py` for mumu CR. These root files are saved in `Fitter/input` folder and named `ztt*.input*tag*.root`. They contain one TDirectory for each `"regions"` defined in the config file (.yml). For each region, there is a list of TH1D corresponding to each `"process"` defined in the config file (ex: ZTT). For each shape systematics, there is also two additionnal TH1D corresponding to the Up and Down variation of the process (ex: ZTT_shapedy_Up). For the TES there is a list of additional TH1D corresponding to the variations (defined by `"TESvariations"` in the config file) of the process by TES correction. 
+Inputs are root file used for the creation of the datacards. The script to create the inputs is [createinputsTESPlots.py](Fitter/TauES/createinputsTESPlots.py). These root files are saved in `Fitter/input` folder and named `ztt*.input*tag*.root`. They contain one TDirectory for each `"regions"` defined in the config file (.yml). For each region, there is a list of TH1D corresponding to each `"process"` defined in the config file (ex: ZTT). For each shape systematics, there is also two additionnal TH1D corresponding to the Up and Down variation of the process (ex: ZTT_shapedy_Up). For the TES there is a list of additional TH1D corresponding to the variations (defined by `"TESvariations"` in the config file) of the process by TES correction. 
 
 Exemple of command :
 
@@ -41,17 +41,17 @@ The main information such as the channel, baseline cuts, and tag are provided at
 
 ## Running the fit :
 
-### Description of the main script `makecombinedfitTES_SF.py`: 
+### Description of the main script [makecombinedfitTES_SF.py](makecombinedfitTES_SF.py): 
 
-The script `makecombinedfitTES_SF.py` code provides functionality for generating datacards and performing fits in the mutau and mumu channels. It supports various fit options and allows for scanning and profiling of different parameters.
+The script [makecombinedfitTES_SF.py](makecombinedfitTES_SF.py) code provides functionality for generating datacards and performing fits in the mutau and mumu channels. It supports various fit options and allows for scanning and profiling of different parameters.
 
 The fit is done using [Combine tool](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/). See the documentation to change the parameter of the fit. 
 
 ### Preparing the datacards
 
-Datacards are generated in `makecombinedfitTES_SF.py`:
-1. `generate_datacards_mutau(era, config, extratag)`: function that generates datacards for the mutau channel. This function call `harvestDatacards_TES_idSF_MCStat.py`.
-2. `generate_datacards_mumu(era, config_mumu, extratag)`: function that generates datacards for the mumu channel (Control Region). This function call `harvestDatacards_zmm.py`.
+Datacards are generated directly in [makecombinedfitTES_SF.py](makecombinedfitTES_SF.py):
+1. `generate_datacards_mutau(era, config, extratag)`: function that generates datacards for the mutau channel. This function call [harvestDatacards_TES_idSF_MCStat.py](harvestDatacards_TES_idSF_MCStat.py).
+2. `generate_datacards_mumu(era, config_mumu, extratag)`: function that generates datacards for the mumu channel (Control Region). This function call [harvestDatacards_zmm.py](harvestDatacards_zmm.py).
 
 The input to Combine tool is a datacards file (ztt root and txt files). The datacards are generated for each `"region"` defined in the config file.
 It defines the following information :
@@ -79,9 +79,9 @@ The option 4,5,6 use combined datacards and are useful to fit on several regions
 
 The results of the fit are saved in a root file (ex: `higgsCombine*root` in output folder) that can be used to produced several plots.
 
-- NLL pararabola and summary plots can be produced via `plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)` that called `plotParabola_POI_region.py`.
+- NLL pararabola and summary plots can be produced via `plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)` that called [Fitter/TauES_ID/plotParabola_POI_region.py](Fitter/TauES_ID/plotParabola_POI_region.py).
 - Postfit plots showing the correlation between parameters can be produced via `plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)` that called `plotPostFitScan_POI.py`. The parameter to be plot need to be change in `plotPostFitScan_POI.py` code.
-- Summary plot of the results of the POI (tes or tid_SF) in function of pt (DM inclusive or not with `--dm-bins` option) via `plotpt_poi.py`. This script uses the txt output file of `plotParabola_POI_region.py`to produce the plots. The values of the mean of the pt bin and its std dev need to be change in the fit. These values can be obtained using `./Plotter/get_ptmean.py` (need pt plots of the distribution).
+- Summary plot of the results of the POI (tes or tid_SF) in function of pt (DM inclusive or not with `--dm-bins` option) via [plotpt_poi.py](plotpt_poi.py). This script uses the txt output file of [plotParabola_POI_region.py](plotParabola_POI_region.py) to produce the plots. The values of the mean of the pt bin and its std dev need to be change in the fit. These values can be obtained using [Plotter/get_ptmean.py](./../Plotter/get_ptmean.py) (need pt plots of the distribution).
 
 
 ## Example of recipe
