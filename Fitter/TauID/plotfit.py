@@ -1,6 +1,6 @@
 import os, numpy, math, copy, math, collections
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gStyle, TCanvas, TLegend, gROOT, TGraphAsymmErrors, Double, TH2F, kBlack, TBox, kGreen, kOrange, TFile, TF1, gMinuit, TColor
+from ROOT import gStyle, TCanvas, TLegend, gROOT, TGraphAsymmErrors, TH2F, kBlack, TBox, kGreen, kOrange, TFile, TF1, gMinuit, TColor
 import optparse
 gROOT.SetBatch(True)
 #gROOT.SetBatch(False)

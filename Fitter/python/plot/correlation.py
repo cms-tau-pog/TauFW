@@ -3,7 +3,7 @@
 # https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/blob/102x/test/diffNuisances.py
 import re
 from array import array
-from ROOT import gROOT, gPad, gStyle, Double, TFile, TCanvas, TLegend, TLatex, TH1F, TLine, TColor,\
+from ROOT import gROOT, gPad, gStyle, TFile, TCanvas, TLegend, TLatex, TH1F, TLine, TColor,\
                  kBlack, kGray, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, kBlackBody
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
 from math import log10, ceil, floor

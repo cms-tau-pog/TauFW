@@ -6,7 +6,7 @@ import numpy, copy
 from array import array
 from argparse import ArgumentParser
 from plotParabola_TES import measureTES, ensureDirectory, ensureTFile
-from ROOT import gROOT, gPad, gStyle, Double, TFile, TCanvas, TLegend, TLatex, TF1, TH2F, TGraph, TLine, TColor,\
+from ROOT import gROOT, gPad, gStyle, TFile, TCanvas, TLegend, TLatex, TF1, TH2F, TGraph, TLine, TColor,\
                  kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, kBlackBody, kTemperatureMap
 from TauFW.Plotter.sample.utils import CMSStyle
 from math import sqrt, log, ceil, floor
