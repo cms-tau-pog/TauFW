@@ -208,7 +208,17 @@ class SampleSet(object):
     """Replace weight."""
     for sample in self.samples:
       sample.replaceweight(oldweight, newweight)
-  
+    
+  def addalias(self, alias, formula, **kwargs):
+    """Add alias for TTree."""
+    for sample in self.samples:
+      sample.addalias(alias,formula,**kwargs)
+    
+  def addaliases(self, *args, **kwargs):
+    """Add (dictionary of) aliases for TTree."""
+    for sample in self.samples:
+      sample.addaliases(*args, **kwargs)
+    
   def open(self,**kwargs):
     """Help function to open all files in samples list."""
     for sample in self.samples:
