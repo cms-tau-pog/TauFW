@@ -81,8 +81,8 @@ class ModuleTauPair(Module):
       #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
       #  self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
       #  self.met_vars     = { u: getMET(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
-      if self.isUL and self.tes==None:
-        self.tes = 1.0 # placeholder
+      #if self.isUL and self.tes==None:
+      #  self.tes = 1.0 # placeholder
     
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
@@ -428,7 +428,7 @@ class ModuleTauPair(Module):
     
     # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
     if self.ismc and 't' in self.channel:
-      if hasattr(tau1,'es') and tau1.es!=1:
+      if tau1.__dict__.get('es',1)!=1:
         dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
         correctmet(met,dp)
       if hasattr(tau2,'es') and tau2.es!=1:

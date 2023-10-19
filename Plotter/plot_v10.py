@@ -2,9 +2,12 @@
 # Author: Izaak Neutelings (August 2020)
 # Description: Simple plotting script for pico analysis tuples
 # Instructions:
-#   ./plot.py -y 2018 -c mutau
-#   ./plot.py -y 2018 -c config/setup_mutau.yml
-#   ./plot.py -y 2018 -c mutau -S baseline -V m_vis
+#   ./plot_v10.py -y 2018 -c mutau
+#   ./plot_v10.py -y 2018 -c config/setup_mutau.yml
+#   ./plot_v10.py -y 2018 -c mutau -S baseline -V m_vis
+#>>>>IMPORTANT!!
+#>>>>Run with --serial option if using py3:
+#   ./plot_v10.py -y 2018 -c mutau --serial
 from config.samples_v10 import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
