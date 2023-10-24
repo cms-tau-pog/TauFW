@@ -37,26 +37,30 @@ def get_nanoaod_sumw(args):
        $  python3 modify_cutflow_hist.py --get_w --veto 'SingleMuon' 'DY*' --sumw_file $CMSSW_BASE/nanoaod_sumw.json
 
     """
-    vetoes       = args.vetoes
-    dtype        = ['mc']
     sumw_dict = {}
-    path2sampleP_dir = "/eos/cms/store/group/phys_tau/irandreo/Run3_22_postEE/"
-    samples = glob.glob1(path2sampleP_dir, '*')
-    print(samples)
+    samples = getsamples(args.era,
+                         channel=args.channel,
+                         tag=args.tag,
+                         dtype=['mc'],
+                         filter='',
+                         veto=args.veto,
+                         dasfilter='',
+                         dasveto='',
+                         moddict={},
+                         verb=3)
+    
     for sample in samples:
-        print(sample)
-        filenames = glob.glob(f'{path2sampleP_dir}{sample}/*.root')
-        if not any([True for veto in args.vetoes if veto in sample]):
-            sumw_dict[sample] = 0
-            for filename in filenames:
-                sumw = 0
-                sumw = getTotalWeight(filename) 
-                sumw_dict[sample] += sumw
-                print ("%s:\t%f"%(filename,sumw))
-    json_sumw_dict = json.dumps(sumw_dict, indent=4)
+        filenames = sample.getfiles(das=False,refresh=False,url=True,limit=-1,verb=0) #Get full filenames for correspondent sample  
+        sumw_dict[sample.name] = 0 #Init empty dict field for a sample
+        for filename in filenames:
+            sumw = 0
+            sumw = getTotalWeight(filename) #Scan through the Events tree to get a sum of generator weights
+            sumw_dict[sample.name] += sumw
+            print ("%s:\t%f"%(filename,sumw))
+    json_sumw_dict = json.dumps(sumw_dict, indent=4) #Produce json dictionary
     with open(args.sumw_file, "w") as outfile:
         print("Writing sumw dict to %s"%(args.sumw_file))
-        outfile.write(json_sumw_dict)
+        outfile.write(json_sumw_dict) #Dump json dict to file
 
 
 def check_sample_name(sample_name_full, keys):
@@ -98,15 +102,13 @@ def modify_cutflow_hist(args):
     print('Opening file: %s'%(sumw_file))
     bin_id = int(args.bin)
     with open(sumw_file, "r") as tf:
-        norm_dict = json.load(tf)
-        if len(args.pico_dir) > 1: sample_dir = args.pico_dir
-        else: sample_dir = "$CMSSW_BASE/src/TauFW/PicoProducer/"
-        samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + args.tag + '.root')
+        norm_dict = json.load(tf)        
+        samples = glob.glob(f'{args.pico_dir}/{args.era}/*/*{args.channel}{args.tag}.root')
         print('Samples: ' + str(map(os.path.basename, samples)))
         print("\n%40s:\t%15s%15s%15s"%('sample_name', 'cutflow_norm', 'nanoaod_norm', 'difference'))
         for sample in samples:
             sample_name_full = os.path.splitext(os.path.basename(sample))[0]
-            if any([True for veto in args.vetoes if veto in sample_name_full]) : continue
+            if any([True for veto in args.veto if veto in sample_name_full]) : continue
             root_file = TFile(sample, 'UPDATE' if args.modify_cutflow else 'READ' )
             cutflow_hist = root_file.Get('cutflow')
             sample_name = check_sample_name(sample_name_full, norm_dict.keys())
@@ -136,19 +138,20 @@ def main():
         $ python3 modify_cutflow_hist.py --get_w -m
     """
     description = "Script that upades cutflow genweights with values obtained directly from NanoAOD and stored at pkl file"
+    CMSSW_BASE = os.environ['CMSSW_BASE']
     parser = ArgumentParser(prog='modify_cutflow_hist.py',description=description,epilog="Good luck!")
     parser = ArgumentParser(add_help=True)
     parser.add_argument('-o','--sumw_file',     dest='sumw_file', default="nanoaod_sumw.json",
                                                 help="path to the json file containing sumw dict")
-    parser.add_argument('--pico_dir',           dest='pico_dir', default='', nargs='?',
+    parser.add_argument('--pico_dir',           dest='pico_dir', default=f'{CMSSW_BASE}/src/TauFW/PicoProducer/analysis', nargs='?',
                                                 help='path to directory containing pico samples')
-    parser.add_argument('--veto',               dest='vetoes', default=[], nargs='+',
+    parser.add_argument('--veto',               dest='veto', default=[], nargs='+',
                                                 help='String to filter files by name')
     parser.add_argument('-e','--era',           dest='era', default='2022_postEE', nargs='?',
                                                 help="year or era to specify the sample list")
     parser.add_argument('-c','--channel',       dest='channel', default='', nargs='?',
                                                 help="skimming or anallysis channel to run")
-    parser.add_argument('--bin',                dest='bin', default=16, nargs='?',
+    parser.add_argument('--bin',                dest='bin', default=17, nargs='?',
                                                 help='')
     parser.add_argument('-t','--tag',           dest='tag', default="",
                                                 help="Additional tag for pico files")
