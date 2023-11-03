@@ -40,7 +40,7 @@ def get_nanoaod_sumw(args):
     vetoes       = args.vetoes
     dtype        = ['mc']
     sumw_dict = {}
-    path2sampleP_dir = "/eos/cms/store/group/phys_tau/irandreo/Run3_22_postEE/"
+    path2sampleP_dir = "/eos/user/o/oponcet/TauPOG/Run3_v1/2022_postEE/"
     samples = glob.glob1(path2sampleP_dir, '*')
     print(samples)
     for sample in samples:
@@ -59,12 +59,26 @@ def get_nanoaod_sumw(args):
         outfile.write(json_sumw_dict)
 
 
-def check_sample_name(sample_name_full, keys):
-    for sample_name in keys:
-        if sample_name in sample_name_full:
-            return sample_name
-    return None
+# def check_sample_name(sample_name_full, keys):
+#     print("sample_name_full = ", sample_name_full)
+#     print("keys = ", keys)
+#     for sample_name in keys:
+#         print("sample_name in key = ", sample_name)
+#         if sample_name in sample_name_full:
+#             print("sample_name to retrun = ", sample_name)
+#             return sample_name
+#     return None
             
+def check_sample_name(sample_name_full, keys):
+    sample_name = sample_name_full.replace("_mutau", "").replace("_mumu", "").replace("_etau", "")
+    # print("sample_name_full = ", sample_name_full)
+    # print("sample_name cut = ", sample_name)
+    # print("keys = ", keys)
+    if sample_name in keys:
+        #print("sample_name to retrun = ", sample_name)
+        return sample_name
+    return None
+       
 
 def modify_cutflow_hist(args):
     """
@@ -101,7 +115,10 @@ def modify_cutflow_hist(args):
         norm_dict = json.load(tf)
         if len(args.pico_dir) > 1: sample_dir = args.pico_dir
         else: sample_dir = "$CMSSW_BASE/src/TauFW/PicoProducer/"
-        samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + args.tag + '.root')
+        print("sample_dir ", sample_dir)
+        #samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + args.tag + '.root')
+        samples = glob.glob(sample_dir + args.era + '/*/*' + args.channel + args.tag + '.root')
+        print("samples ", samples)
         print('Samples: ' + str(map(os.path.basename, samples)))
         print("\n%40s:\t%15s%15s%15s"%('sample_name', 'cutflow_norm', 'nanoaod_norm', 'difference'))
         for sample in samples:
