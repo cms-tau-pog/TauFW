@@ -12,7 +12,7 @@
 #   Float_t   'F'     'f'/'float32'        32-bit float
 #   Double_t  'D'     'd'/'float64'/float  64-bit float
 import numpy as np
-from ROOT import TTree, TFile, TH1D, TH2D, gDirectory
+from ROOT import TTree, TFile, TH1D, TH2D, gDirectory, kRed
 from TauFW.common.tools.root import ensureTFile
 from TauFW.PicoProducer.analysis.Cutflow import Cutflow
 
@@ -50,7 +50,7 @@ class TreeProducer(object):
     self.tree      = TTree('tree','tree')
     self.hists     = { } #OrderedDict() # extra histograms to be drawn
   
-  def addHist(self,name,*args):
+  def addHist(self,name,*args,**kwargs):
     """Add a histogram. Call as
          self.addHist(name,title,nxbins,xmin,xmax) # constant binning
          self.addHist(name,title,[xmin,...,xmax])  # variable binning via list of edges
@@ -58,8 +58,11 @@ class TreeProducer(object):
          self.addHist(name,title,[xmin,...,xmax],nybins,ymin,ymax)  # TH2D: variable x binning
          self.addHist(name,title,nxbins,xmin,xmax,[ymin,...,ymax])  # TH2D: variable y binning
     """
-    dname = ""
-    hname = name
+    dname  = ""
+    hname  = name
+    xlabs  = kwargs.get('xlabs',  None ) # list of alphanumeric x axis labels
+    ylabs  = kwargs.get('ylabs',  None ) # list of alphanumeric y axis labels
+    option = kwargs.get('option', None ) # draw option, e.g. 'COLZ TEXT44'
     if '/' in name: # make subdirectory in file
       dname = '/'.join(name.split('/')[:-1])
       hname = name.split('/')[-1]
@@ -91,7 +94,9 @@ class TreeProducer(object):
     if self.verbosity>=1:
       print(">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins))
     self.hists[name] = hist
-    if isinstance(hist,TH2D):
+    if option!=None:
+      hist.SetOption(option) # for display in TBrowser
+    elif isinstance(hist,TH2D):
       hist.SetOption('COLZ') # for display in TBrowser
     if dname: # make subdirectory
       subdir = self.outfile.GetDirectory(dname)
@@ -100,6 +105,18 @@ class TreeProducer(object):
           print(">>> TreeProducer.addHist: Creating subdirectory %s..."%(dname)) 
         subdir = self.outfile.mkdir(dname) #,'',True)
       hist.SetDirectory(subdir)
+    if xlabs: # add alphanumeric x axis labels
+      for i, xlab in enumerate(xlabs,1):
+        if isinstance(xlab,str):
+          hist.GetXaxis().SetBinLabel(i,xlab)
+        elif isinstance(xlab,tuple): # assume (ibin,label)
+          hist.GetXaxis().SetBinLabel(*xlab)
+    if ylabs: # add alphanumeric y axis labels
+      for i, ylab in enumerate(ylabs,1):
+        if isinstance(ylab,str):
+          hist.GetYaxis().SetBinLabel(i,ylab)
+        elif isinstance(ylab,tuple): # assume (ibin,label)
+          hist.GetYaxis().SetBinLabel(*ylab)
     return hist
   
   def addBranch(self, name, dtype='f', default=None, title=None, arrname=None, **kwargs):

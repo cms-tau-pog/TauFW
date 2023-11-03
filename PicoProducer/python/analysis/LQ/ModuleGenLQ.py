@@ -52,15 +52,24 @@ class ModuleGenLQ(Module):
     self.out.cutflow.addcut('notop',"No top quarks in the event")
     
     # ADD HISTOGRAMS
+    tdlabs = ['None','Electron','Muon','Hadronic'] # axis labels for tau decay
     self.out.addHist('mass_lq',"LQ mass",2500,0,2500)
-    self.out.addHist('dR_tj',"DeltaR between tau and closest jet",60,-1,5)
-    self.out.addHist('dR_jt',"DeltaR between jet and closest tau",60,-1,5)
-    self.out.addHist('dR_vt',"DeltaR between visible tau and closest tau",60,-1,5)
+    self.out.addHist('dR_tj',"DeltaR between tau and closest jet",60,-1,5) # to study optimal dR cut
+    self.out.addHist('dR_jt',"DeltaR between jet and closest tau",60,-1,5) # to study optimal dR cut
+    self.out.addHist('dR_vt',"DeltaR between visible tau (hadronic decay) and closest tau",100,0,5)
+    self.out.addHist('dR_lt',"DeltaR between tau and its daughter lepton",60,0,3)
+    self.out.addHist('tau_decay',"Decays of leading tau leptons",4,0,4,xlabs=tdlabs)
+    self.out.addHist('tau_decay2D',"Decays of leading tau leptons;Leading tau;Subleading tau",
+                     4,0,4,4,0,4,xlabs=tdlabs,ylabs=tdlabs,option='COLZ TEXT44')
     
     # ADD BRANCHES
     self.out.addBranch('genweight',      'f', title="Generator weight")
     self.out.addBranch('nlqs',           'i', title="Number of LQs")
+    self.out.addBranch('nelecs',         'i', title="Number of electrons")
+    self.out.addBranch('nmuons',         'i', title="Number of muons")
+    self.out.addBranch('nleptaus',       'i', title="Number of leptons from tau decay")
     self.out.addBranch('ntaus',          'i', title="Number of tau leptons")
+    self.out.addBranch('ntaus20',        'i', title="Number of tau leptons (pT > 20 GeV, |eta|<2.5)")
     self.out.addBranch('nvistaus',       'i', title="Number of visible tau decay products (pT > 10 GeV)") # default cut
     self.out.addBranch('nvistaus20',     'i', title="Number of visible tau decay products (pT > 20 GeV, |eta|<2.5)")
     self.out.addBranch('ntnus',          'i', title="Number of tau neutrinos")
@@ -78,7 +87,9 @@ class ModuleGenLQ(Module):
     self.out.addBranch('dR_taus',        'f', title="DeltaR between tau leptons")
     self.out.addBranch('dR_vistaus',     'f', title="DeltaR between visible tau leptons")
     self.out.addBranch('dR_bots',        'f', title="DeltaR between bottom quarks")
-    self.out.addBranch('mass_lq',        'f', title="LQ mass")
+    self.out.addBranch('m_lq',           'f', title="LQ mass")
+    self.out.addBranch('m_tt',           'f', title="Invariant mass between two leading taus")
+    self.out.addBranch('mvis_tt',        'f', title="Visible mass between two leading taus")
     self.out.addBranch('pt_lq1',         'f', title="pT of the leading LQ")
     self.out.addBranch('pt_lq2',         'f', title="pT of the subleading LQ") # for pair production only
     self.out.addBranch('dau1_lq1',       'i', title="PDG ID of daughter 1 of leading LQ")
@@ -87,6 +98,8 @@ class ModuleGenLQ(Module):
     self.out.addBranch('dau2_lq2',       'i', title="PDG ID of daughter 2 of subleading LQ") # for pair production only
     self.out.addBranch('pt_tau1',        'f', title="pT of leading tau")
     self.out.addBranch('pt_tau2',        'f', title="pT of subleading tau")
+    self.out.addBranch('ptvis_tau1',     'f', title="Visible pT of leading tau")
+    self.out.addBranch('ptvis_tau2',     'f', title="Visible pT of subleading tau")
     self.out.addBranch('eta_tau1',       'f', title="eta of leading tau")
     self.out.addBranch('eta_tau2',       'f', title="eta of subleading tau")
     self.out.addBranch('moth_tau1',      'i', title="Mother of leading tau")
@@ -97,6 +110,8 @@ class ModuleGenLQ(Module):
     self.out.addBranch('eta_vistau2',    'f', title="eta of subleading vis. tau")
     self.out.addBranch('moth_vistau1',   'i', title="Mother of leading vis. tau")
     self.out.addBranch('moth_vistau2',   'i', title="Mother of subleading vis. tau")
+    self.out.addBranch('dm_vistau1',     'i', title="Decay mode of leading tau")
+    self.out.addBranch('dm_vistau2',     'i', title="Decay mode of subleading vis. tau")
     self.out.addBranch('pt_bot1',        'f', title="pT of leading b quark (pT > 10 GeV, |eta|<4.7)")
     self.out.addBranch('pt_bot2',        'f', title="pT of subleading b quark (pT > 10 GeV, |eta|<4.7)")
     self.out.addBranch('eta_bot1',       'f', title="eta of leading b quark (pT > 10 GeV, |eta|<4.7)")
@@ -115,6 +130,7 @@ class ModuleGenLQ(Module):
     self.out.addBranch('eta_bjet2',      'f', title="eta of subleading gen b jet")
     
     # ADD ALIASES (to save disk space)
+    self.out.setAlias('nleps',   "nelecs+nmuons")
     self.out.setAlias('njets20', "nfjets20+ncjets20")
     self.out.setAlias('njets50', "nfjets50+ncjets50")
     
@@ -128,6 +144,9 @@ class ModuleGenLQ(Module):
     self.out.cutflow.fill('nocut')
     
     # PREPARE lists of selected gen-level particles
+    elecs   = [ ] # electrons
+    muons   = [ ] # muons
+    leptaus = [ ] # leptons from tau decay
     taus    = [ ] # tau leptons
     jets    = [ ] # jets
     bjets   = [ ] # b jets
@@ -141,18 +160,18 @@ class ModuleGenLQ(Module):
     lqids   = [46,9000002,9000006] # PDG IDs of LQs in various MadGraph or Pythia generators
     
     # LOOP over gen-level particles
-    #print '-'*80
+    #print('-'*80) # print to separate events during debugging
     genparts = Collection(event,'GenPart') # generator-level particles
     genjets  = Collection(event,'GenJet') # generator-level jets
     for part in genparts:
-      pid = abs(part.pdgId)
+      pid = abs(part.pdgId) # remove charge sign
       #dumpgenpart(part,genparts=genparts) # print for debugging
       
       # LQ decay products
       for lq in lqs: # check if part is LQ decay product
         if lq._index==part.genPartIdxMother: # LQ is mother
           lq.decays.append(part.pdgId) # save PDG only
-        
+      
       # LAST COPY
       if not part.statusflag('isLastCopy'):
         continue # only analyze last copies
@@ -166,16 +185,48 @@ class ModuleGenLQ(Module):
       
       # BOTTOM quark
       elif pid==5 and part.status!=21 and abs(part.eta)<10: # remove initial state b quark (from hard process)
-        part.mother = getmother(part,genparts) # get mother PDG ID
+        part.mother = getmother(part,genparts).pdgId # get mother PDG ID
         bots.append(part)
       
       # TOP quark
       elif pid==6:
         tops.append(part)
       
+      # ELECTRON
+      elif pid==11:
+        elecs.append(part)
+        if part.statusflag('isTauDecayProduct'):
+          #dumpgenpart(part,genparts,flags=['isTauDecayProduct','isPromptTauDecayProduct','isDirectTauDecayProduct']) # print for debugging
+          moth = getmother(part,genparts) # get mother tau
+          if abs(moth.pdgId)==15: # primary tau decay product (e.g. not from hadron decays)
+            part.mother = moth.mother # PDG ID of tau's mother
+            moth.dau    = part # assign visible daughter to tau
+            moth.decay  = 1 # 1 (bin 2) = electron
+            self.out.fill('dR_lt',moth.DeltaR(part)) # DeltaR between tau and its daughter lepton
+            leptaus.append(part)
+          ###else:
+          ###  print(f"Found electron with {moth.pdgId} mother from tau decay")
+      
+      # MUON
+      elif pid==13:
+        muons.append(part)
+        if part.statusflag('isTauDecayProduct'):
+          #dumpgenpart(part,genparts,flags=['isTauDecayProduct','isPromptTauDecayProduct','isDirectTauDecayProduct']) # print for debugging
+          moth = getmother(part,genparts) # get mother tau
+          if abs(moth.pdgId)==15: # primary tau decay product (e.g. not from hadron decays)
+            part.mother = moth.mother # PDG ID of tau's mother
+            moth.dau    = part # assign visible daughter to tau
+            moth.decay  = 2 # 2 (bin 3) = muon
+            self.out.fill('dR_lt',moth.DeltaR(part)) # DeltaR between tau and its daughter lepton
+            leptaus.append(part)
+          ###else:
+          ###  print(f"Found muon with {moth.pdgId} mother from tau decay")
+      
       # TAU lepton
       elif pid==15:
-        part.mother = getmother(part,genparts) # get mother PDG ID
+        part.mother = getmother(part,genparts).pdgId # get mother PDG ID
+        part.dau    = None # visible pT, default: -2 = no visible decay product found
+        part.decay  = 0 # daughter PDG ID, default: 0 (bin 1) = no daughter found
         taus.append(part)
         self.out.fill('dR_tj',getdRmin(part,genjets)) # DeltaR between tau and closest jet
       
@@ -183,22 +234,38 @@ class ModuleGenLQ(Module):
       elif pid==16:
         tnus.append(part)
     
-    # VISIBLE TAUS (gen-level)
+    ## LEPTONIC TAU DECAYS
+    #for lep in leptaus:
+    #  tau = getmother(lep,genparts) # get mother tau
+    #  assert abs(tau.pdgId)==15, f"Mother of lepton from tau decay is not a tau lepton... Got {tau.pdgId}"
+    #  lep.mother = tau.mother # PDG ID of tau's mother
+    #  tau.dau    = lep # assign visible daughter to tau
+    #  tau.decay  = 1 if abs(lep.pdgId)==11 else 2 # 1 (bin 2) = electron, 2 (bin 3) = muon
+    #  self.out.fill('dR_lt',tau.DeltaR(lep)) # DeltaR between tau and its daughter lepton
+    
+    # HADRONIC TAU DECAYS (gen-level)
     # Because neutrinos carry away energy & momentum,
     # We need the four-momentum of the visible decay
     # products of the selected tau particles
+    # Note: pt > 10 GeV cut is applied
+    # Note: genPartIdxMother is inaccurate...
     for vistau in Collection(event,'GenVisTau'):
-      moth = None
-      dRmin = 10
+      tmoth = None # mother tau
+      dRmin = 10.
+      vistau.mother = 0 # default: 0 = no match found
+      #for lep in leptaus: # leptons from tau decays
       for tau in taus: # gen-level taus
         dR = tau.DeltaR(vistau)
         if dR<dRmin: # match with "full" tau lepton
           dRmin = dR
-          moth  = tau
-      if dRmin<0.4: # found mother
-        vistau.mother = moth.mother # PDG ID
-      else: # did not find mother
-        vistau.mother = 0  # default: 0 = no match found
+          tmoth = tau
+      if dRmin<0.4: # found mother tau
+        #print(tau,vistau,dRmin)
+        if tmoth.dau!=None: # daughther already set
+          print(f"WARNING! Multiple matched between tau and visible decay product! Daughter {tmoth.dau} will be overwritten by {vistau}!")
+        tmoth.dau     = vistau # assign visible daughter to tau
+        tmoth.decay   = 3 # 3 (bin 4) = hadronic decay
+        vistau.mother = tmoth.mother # PDG ID of tau's mother
       self.out.fill('dR_vt',dRmin) # DeltaR between visible tau and closest "full" tau lepton
       vistaus.append(vistau)
     
@@ -229,7 +296,11 @@ class ModuleGenLQ(Module):
     self.out.nbots[0]        = len(bots)
     self.out.nbots20[0]      = sum([b.pt>20 and abs(b.eta)<2.5 for b in bots])
     self.out.ntops[0]        = len(tops)
+    self.out.nelecs[0]       = len(elecs)
+    self.out.nmuons[0]       = len(muons)
+    self.out.nleptaus[0]     = len(leptaus)
     self.out.ntaus[0]        = len(taus)
+    self.out.ntaus20[0]      = sum([t.pt>20 and abs(t.eta)<2.5 for t in taus])
     self.out.ntnus[0]        = len(tnus)
     self.out.nvistaus[0]     = len(vistaus)
     self.out.nvistaus20[0]   = sum([t.pt>20 and abs(t.eta)<2.5 for t in vistaus])
@@ -253,7 +324,7 @@ class ModuleGenLQ(Module):
       self.out.dau1_lq2[0] = lqs[1].decays[0] if len(lqs[1].decays)>=1 else -1
       self.out.dau2_lq1[0] = lqs[0].decays[1] if len(lqs[0].decays)>=2 else -1
       self.out.dau2_lq2[0] = lqs[1].decays[1] if len(lqs[1].decays)>=2 else -1
-      self.out.mass_lq[0]  = lqs[0].p4().M() # get mass from TLorentzVector
+      self.out.m_lq[0]     = lqs[0].p4().M() # get mass from TLorentzVector
     elif len(lqs)>=1: # single LQ production
       lqs[0].decays.sort(key=lambda p: abs(p)) # sort by PDG ID
       self.out.pt_lq1[0]   = lqs[0].pt
@@ -262,7 +333,7 @@ class ModuleGenLQ(Module):
       self.out.dau1_lq2[0] = -1
       self.out.dau2_lq1[0] = lqs[0].decays[1] if len(lqs[0].decays)>=2 else -1
       self.out.dau2_lq2[0] = -1
-      self.out.mass_lq[0]  = lqs[0].p4().M() # get mass from TLorentzVector
+      self.out.m_lq[0]     = lqs[0].p4().M() # get mass from TLorentzVector
     else: # nonres. production (LQ in the t-channel)
       self.out.pt_lq1[0]   = -1
       self.out.pt_lq2[0]   = -1
@@ -270,34 +341,51 @@ class ModuleGenLQ(Module):
       self.out.dau1_lq2[0] = -1
       self.out.dau2_lq1[0] = -1
       self.out.dau2_lq2[0] = -1
-      self.out.mass_lq[0]  = -1
+      self.out.m_lq[0]     = -1
     
     # FILL TAU BRANCHES
+    for tau in taus:
+      if tau.pt>20: # to remove bias caused by pT > 10 GeV on GenVisTau
+        self.out.fill('tau_decay',tau.decay) # hname, binx
     if len(taus)>=2:
       taus.sort(key=lambda t: t.pt,reverse=True) # sort taus by pT
-      self.out.dR_taus[0]   = taus[0].DeltaR(taus[1])
-      self.out.pt_tau1[0]   = taus[0].pt
-      self.out.pt_tau2[0]   = taus[1].pt
-      self.out.eta_tau1[0]  = taus[0].eta
-      self.out.eta_tau2[0]  = taus[1].eta
-      self.out.moth_tau1[0] = taus[0].mother
-      self.out.moth_tau2[0] = taus[1].mother
+      if taus[0].pt>20 and taus[1].pt>20: # to remove bias caused by pT > 10 GeV on GenVisTau
+        self.out.fill('tau_decay2D',taus[0].decay,taus[1].decay) # hname, binx, biny
+      self.out.dR_taus[0]    = taus[0].DeltaR(taus[1])
+      self.out.m_tt[0]       = (taus[0].p4()+taus[1].p4()).M()
+      self.out.mvis_tt[0]    = (taus[0].dau.p4()+taus[1].dau.p4()).M() if (taus[0].dau!=None and taus[1].dau!=None) else -2
+      self.out.pt_tau1[0]    = taus[0].pt
+      self.out.pt_tau2[0]    = taus[1].pt
+      self.out.ptvis_tau1[0] = taus[0].dau.pt if taus[0].dau!=None else -2 # visible daughter
+      self.out.ptvis_tau2[0] = taus[1].dau.pt if taus[1].dau!=None else -2 # visible daughter
+      self.out.eta_tau1[0]   = taus[0].eta
+      self.out.eta_tau2[0]   = taus[1].eta
+      self.out.moth_tau1[0]  = taus[0].mother
+      self.out.moth_tau2[0]  = taus[1].mother
     elif len(taus)>=1:
-      self.out.dR_taus[0]   = -1
-      self.out.pt_tau1[0]   = taus[0].pt
-      self.out.pt_tau2[0]   = -1
-      self.out.eta_tau1[0]  = taus[0].eta
-      self.out.eta_tau2[0]  = -9
-      self.out.moth_tau1[0] = taus[0].mother
-      self.out.moth_tau2[0] = -1
+      self.out.dR_taus[0]    = -1
+      self.out.m_tt[0]       = -1
+      self.out.mvis_tt[0]    = -1
+      self.out.pt_tau1[0]    = taus[0].pt
+      self.out.pt_tau2[0]    = -1
+      self.out.ptvis_tau1[0] = taus[0].dau.pt if taus[0].dau!=None else -2 # visible daughter
+      self.out.ptvis_tau2[0] = -1
+      self.out.eta_tau1[0]   = taus[0].eta
+      self.out.eta_tau2[0]   = -9
+      self.out.moth_tau1[0]  = taus[0].mother
+      self.out.moth_tau2[0]  = -1
     else: # no taus found
-      self.out.dR_taus[0]   = -1
-      self.out.pt_tau1[0]   = -1
-      self.out.pt_tau2[0]   = -1
-      self.out.eta_tau1[0]  = -9
-      self.out.eta_tau2[0]  = -9
-      self.out.moth_tau1[0] = -1
-      self.out.moth_tau2[0] = -1
+      self.out.dR_taus[0]    = -1
+      self.out.m_tt[0]       = -1
+      self.out.mvis_tt[0]    = -1
+      self.out.pt_tau1[0]    = -1
+      self.out.pt_tau2[0]    = -1
+      self.out.ptvis_tau1[0] = -1
+      self.out.ptvis_tau2[0] = -1
+      self.out.eta_tau1[0]   = -9
+      self.out.eta_tau2[0]   = -9
+      self.out.moth_tau1[0]  = -1
+      self.out.moth_tau2[0]  = -1
     
     # FILL VISIBLE TAU BRANCHES
     if len(vistaus)>=2:
@@ -309,6 +397,8 @@ class ModuleGenLQ(Module):
       self.out.eta_vistau2[0]    = vistaus[1].eta
       self.out.moth_vistau1[0]   = vistaus[0].mother
       self.out.moth_vistau2[0]   = vistaus[1].mother
+      self.out.dm_vistau1[0]     = vistaus[0].status
+      self.out.dm_vistau2[0]     = vistaus[1].status
     elif len(vistaus)>=1:
       self.out.dR_vistaus[0]     = -1
       self.out.pt_vistau1[0]     = vistaus[0].pt
@@ -317,6 +407,8 @@ class ModuleGenLQ(Module):
       self.out.eta_vistau2[0]    = -9
       self.out.moth_vistau1[0]   = vistaus[0].mother
       self.out.moth_vistau2[0]   = 0
+      self.out.dm_vistau1[0]     = vistaus[0].status
+      self.out.dm_vistau2[0]     = 0
     else: # no visible taus found
       self.out.dR_vistaus[0]     = -1
       self.out.pt_vistau1[0]     = -1
@@ -325,6 +417,8 @@ class ModuleGenLQ(Module):
       self.out.eta_vistau2[0]    = -9
       self.out.moth_vistau1[0]   = 0
       self.out.moth_vistau2[0]   = 0
+      self.out.dm_vistau1[0]     = 0
+      self.out.dm_vistau2[0]     = 0
     self.out.fill() # fill branches
     
     # FILL BOTTOM QUARK BRANCHES

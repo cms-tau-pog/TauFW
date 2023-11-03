@@ -109,7 +109,7 @@ def getmother(part,genparts):
   moth = part
   while moth.genPartIdxMother>=0 and part.pdgId==moth.pdgId:
     moth = genparts[moth.genPartIdxMother]
-  return moth.pdgId
+  return moth
   
 
 def getprodchain(part,genparts=None,event=None):
