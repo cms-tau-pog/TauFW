@@ -3,7 +3,7 @@
 import os, sys
 from math import sqrt, sin, cos, pi, log10, floor
 from itertools import combinations
-import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import TH1D, TLorentzVector
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
@@ -112,6 +112,20 @@ def getmother(part,genparts):
   return moth
   
 
+def getlastcopy(part,genparts):
+  """Get last copy, e.g. after all initial/final state radiation."""
+  moth  = part
+  imoth = part._index # index of mother in GenPart collection
+  for idau in range(imoth+1,len(genparts)): # assume indices are chronologically ordered
+    if moth.statusflag('isLastCopy'):
+      break # assume no more copies
+    dau = genparts[idau]
+    if dau.pdgId==moth.pdgId and dau.genPartIdxMother==imoth:
+      moth = dau # assume daughter is copy of mother
+      imoth = part._index
+  return moth
+  
+
 def getprodchain(part,genparts=None,event=None):
   """Print productions chain."""
   chain = "%3s"%(part.pdgId)
@@ -124,16 +138,18 @@ def getprodchain(part,genparts=None,event=None):
     elif event:
       chain = "%3s -> "%(event.GenPart_pdgId[imoth])+chain
       imoth = event.GenPart_genPartIdxMother[imoth]
+    else:
+      raise IOError("getprodchain: genparts or event must be defined")
   return chain
   
 
 def getdecaychain(part,genparts,indent=0):
   """Print decay chain."""
   chain   = "%3s"%(part.pdgId)
-  imoth   = part._index
+  imoth   = part._index # index of mother in GenPart collection
   ndaus   = 0
   indent_ = len(chain)+indent
-  for idau in range(imoth+1,len(genparts)): 
+  for idau in range(imoth+1,len(genparts)): # assume indices are chronologically ordered
     dau = genparts[idau]
     if dau.genPartIdxMother==imoth:
       if ndaus>=1:
