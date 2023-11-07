@@ -60,6 +60,7 @@ class TreeProducer(object):
     """
     dname  = ""
     hname  = name
+    key    = kwargs.get('key',    name )
     xlabs  = kwargs.get('xlabs',  None ) # list of alphanumeric x axis labels
     ylabs  = kwargs.get('ylabs',  None ) # list of alphanumeric y axis labels
     option = kwargs.get('option', None ) # draw option, e.g. 'COLZ TEXT44'
@@ -93,7 +94,6 @@ class TreeProducer(object):
       raise IOError("TreeProducer.addHist: Could not parse histogram arguments: %r, args=%r"%(name,args))
     if self.verbosity>=1:
       print(">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins))
-    self.hists[name] = hist
     if option!=None:
       hist.SetOption(option) # for display in TBrowser
     elif isinstance(hist,TH2D):
@@ -117,6 +117,7 @@ class TreeProducer(object):
           hist.GetYaxis().SetBinLabel(i,ylab)
         elif isinstance(ylab,tuple): # assume (ibin,label)
           hist.GetYaxis().SetBinLabel(*ylab)
+    self.hists[key] = hist # store for filling and writing
     return hist
   
   def addBranch(self, name, dtype='f', default=None, title=None, arrname=None, **kwargs):
