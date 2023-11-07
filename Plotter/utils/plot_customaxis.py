@@ -60,9 +60,10 @@ def plot_customaxis_log(verb=0):
     f.Draw('L SAME')
   
   # LEFT Y AXIS
+  nydiv = 506 # 100*nminor + nmajor
   fy = TF1('fy',"log(x)",ymin,ymax) # scale logarithmically, while keeping ticks at linear equidistance
   #yaxis = TGaxis(gPad.GetUxmin(),gPad.GetUymax(),gPad.GetUxmax(),gPad.GetUymax(),'fy',1004,'-')
-  yaxis = TGaxis(xmin,ymin,xmin,ymax,'fy',1004,'-')
+  yaxis = TGaxis(xmin,ymin,xmin,ymax,'fy',nydiv,'-')
   yaxis.SetLineWidth(1)
   yaxis.SetLineColor(kRed)
   yaxis.SetTextFont(42)
@@ -77,7 +78,7 @@ def plot_customaxis_log(verb=0):
   
   # RIGHT Y AXIS
   #yaxis2 = TGaxis(gPad.GetUxmin(),gPad.GetUymax(),gPad.GetUxmax(),gPad.GetUymax(),'fy',1004,'+')
-  yaxis2 = TGaxis(xmax,ymin,xmax,ymax,'fy',1004,'+')
+  yaxis2 = TGaxis(xmax,ymin,xmax,ymax,'fy',nydiv,'+')
   yaxis2.SetLineColor(kBlue)
   yaxis2.SetTitleSize(0)
   yaxis2.SetLabelSize(0)
