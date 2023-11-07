@@ -19,13 +19,14 @@
 #   https://pdg.lbl.gov/2023/reviews/rpp2022-rev-monte-carlo-numbering.pdf (PDG ID)
 #   https://pythia.org/latest-manual/ParticleProperties.html (Pythia particle status)
 from __future__ import print_function # for python3 compatibility
+from math import sqrt, cos
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import TLorentzVector
 from TauFW.PicoProducer.analysis.TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
-from TauFW.PicoProducer.analysis.utils import getmother, getlastcopy, dumpgenpart, getprodchain, getdecaychain
+from TauFW.PicoProducer.analysis.utils import getmother, getlastcopy, dumpgenpart, getprodchain, getdecaychain, deltaPhi
 #import PhysicsTools.NanoAODTools.postprocessing.framework.datamodel as datamodel
 #datamodel.statusflags['isHardPrompt'] = datamodel.statusflags['isPrompt'] + datamodel.statusflags['fromHardProcess'] # define shortcut
 #datamodel.statusflags['isTauFSR'] = datamodel.statusflags['isTauDecayProduct'] + datamodel.statusflags['isDirectHadronDecayProduct'] # define shortcut
@@ -46,7 +47,7 @@ def getdmbin(dm):
   if dm<3: return dm # one-prong, 0-2 pi^0
   elif dm==10: return 3 # three-prong, no pi^0
   elif dm==11: return 4 # three-prong, 2 pi^0
-  return 5
+  return 5 # other (everything else)
   
 
 class GenVisTau:
@@ -60,17 +61,28 @@ class GenVisTau:
       self.dm = 3+getdmbin(genpart.status) # decay mode (hadronic >= 3)
     else: # assume GenPart object is electron or muon
       self.dm = 1 if abs(genpart.pdgId)==11 else 2 # decay mode: 1 (bin 2) = electron; 2 (bin 3) = muon
-    
-  def pt(self):
-    return self.p4.Pt()
-    
-  def eta(self):
-    return self.p4.Eta()
-    
+  
   def settau(self,tau,mother=None):
     self.tau = tau # mother tau
     self.mother = mother if mother!=None else tau.mother if tau!=None else 0 # PDG ID of tau's mother, default: 0 (bin 1) = no daughter found
     return mother
+  
+  @property
+  def pt(self):
+    return self.p4.Pt()
+  
+  @property
+  def eta(self):
+    return self.p4.Eta()
+  
+  @property
+  def phi(self):
+    return self.p4.Phi()
+  
+  def mt(self,opt,ophi):
+    """Transverse mass."""
+    # https://en.wikipedia.org/wiki/Transverse_mass#Transverse_mass_in_two-particle_systems
+    return sqrt( 2*self.p4.Pt()*opt*(1-cos(self.p4.Phi()-ophi)) )
   
 
 # DUMPER MODULE
@@ -87,7 +99,7 @@ class ModuleGenLQ(Module):
     
     # ADD HISTOGRAMS
     dmlabs     = ['None','Electron','Muon','Hadronic'] # axis labels for tau decay modes
-    dmlabs_had = ['None','e^{#pm}','#mu^{#pm}', # leptonic decays (1=electron, 2=muon)
+    dmlabs_all = ['None','e^{#pm}','#mu^{#pm}', # leptonic decays (1=electron, 2=muon)
                   'h^{#pm}','h^{#pm}#pi^{0}','h^{#pm}#pi^{0}#pi^{0}', # one-prong
                   'h^{#pm}h^{#mp}h^{#pm}','h^{#pm}h^{#mp}h^{#pm}#pi^{0}','Other'] # axis labels for hadronic tau decay modes
     self.out.addHist('mass_lq',"LQ mass",2500,0,2500)
@@ -100,8 +112,12 @@ class ModuleGenLQ(Module):
     self.out.addHist('dptvis_fsr',"(p_{T,vis}^{after} #minus p_{T,vis}^{before})/p_{T,vis}^{before} between tau and its FSR photon (#DeltaR<0.3)",100,-0.5,0.7) # to study FSR
     self.out.addHist('dptvis_lep',"(p_{T}^{vis} #minus p_{T}^{#tau})/p_{T}^{#tau} (leptonic decay, p_{T} > 20 GeV)",100,-1.2,0.8) # to study tau decay
     self.out.addHist('dptvis_had',"(p_{T}^{vis} #minus p_{T}^{#tau})/p_{T}^{#tau} (hadronic decay, p_{T} > 20 GeV)",100,-1.2,0.8) # to study tau decay
+    self.out.addHist('pt_tau_vs_vis_had',"Leptonic decay;p_{T}^{#tau};p_{T}^{vis}",80,0,800,80,0,800) # to study tau decay
+    self.out.addHist('pt_tau_vs_vis_lep',"Leptonic decay;p_{T}^{#tau};p_{T}^{vis}",80,0,800,80,0,800) # to study tau decay
+    self.out.addHist('dptmiss_nu',"(p_{T,#nu}^{miss} #minus p_{T,gen}^{miss})/p_{T,gen}^{miss}",100,-0.6,0.6) # to study gen-level MET
+    self.out.addHist('dphimiss_nu',"#phi_{#nu}^{miss} #minus #phi_{gen}^{miss}",100,-4,4) # to study gen-level MET
     self.out.addHist('tau_dm',"#tau lepton decay modes",4,0,4,xlabs=dmlabs) # to study tau lepton decay (compare to PDG)
-    self.out.addHist('tau_dm_had',"Hadronic decay modes of #tau lepton (p_{T} > 20 GeV)",9,0,9,xlabs=dmlabs_had) # to study tau lepton decay (compare to PDG)
+    self.out.addHist('tau_dm_all',"Hadronic decay modes of #tau lepton (p_{T} > 20 GeV)",9,0,9,xlabs=dmlabs_all) # to study tau lepton decay (compare to PDG)
     self.out.addHist('tau_dm2D',"#tau decay modes;Leading #tau;Subleading #tau",
                      4,0,4,4,0,4,xlabs=dmlabs,ylabs=dmlabs,option='COLZ TEXT44')
     
@@ -116,9 +132,10 @@ class ModuleGenLQ(Module):
     self.out.addBranch('nleptaus20',     'i', title="Number of leptonic tau decays (pTvis > 20 GeV, |eta|<2.5)")
     self.out.addBranch('nhadtaus',       'i', title="Number of hadronic tau decays (pTvis > 10 GeV)")
     self.out.addBranch('nhadtaus20',     'i', title="Number of hadronic tau decays (pTvis > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('nvistaus',       'i', title="Number of visible tau decay products (pT > 10 GeV)") # default cut
+    self.out.addBranch('nvistaus',       'i', title="Number of visible tau decay products (pT > 10 GeV for had.)") # default cut
     self.out.addBranch('nvistaus20',     'i', title="Number of visible tau decay products (pT > 20 GeV, |eta|<2.5)")
     self.out.addBranch('nvistaus50',     'i', title="Number of visible tau decay products (pT > 50 GeV, |eta|<2.5)")
+    self.out.addBranch('nnus',           'i', title="Number of neutrinos")
     self.out.addBranch('ntnus',          'i', title="Number of tau neutrinos")
     self.out.addBranch('nbots',          'i', title="Number of bottom quarks")
     self.out.addBranch('nbots20',        'i', title="Number of bottom quarks (pT > 20 GeV, |eta|<2.5)")
@@ -142,6 +159,10 @@ class ModuleGenLQ(Module):
     self.out.addBranch('mvis_tt',        'f', title="Visible mass between two leading taus")
     self.out.addBranch('pt_tt',          'f', title="pT of two leading taus")
     self.out.addBranch('ptvis_tt',       'f', title="Visible pT of two leading taus")
+    self.out.addBranch('dphi_vistau',    'f', title="DeltaPhi between leading vis. tau")
+    self.out.addBranch('ht',             'f', title="Sum of hadronic transverse energy (no taus)")
+    self.out.addBranch('met',            'f', title="MET") # gen-level missing transverse energy
+    self.out.addBranch('metphi',         'f', title="MET phi") # gen-level missing transverse energy
     
     # ADD BRANCHES for LQs
     self.out.addBranch('pt_lq1',         'f', title="pT of the leading LQ")
@@ -160,16 +181,22 @@ class ModuleGenLQ(Module):
     self.out.addBranch('eta_tau2',       'f', title="eta of subleading tau")
     self.out.addBranch('moth_tau1',      'i', title="Mother of leading tau")
     self.out.addBranch('moth_tau2',      'i', title="Mother of subleading tau")
+    self.out.addBranch('dm_tau1',        'i', title="Decay mode of leading tau")
+    self.out.addBranch('dm_tau2',        'i', title="Decay mode of subleading tau")
     
     # ADD BRANCHES for VISIBLE TAU DECAYS
     self.out.addBranch('pt_vistau1',     'f', title="pT of leading tau")
     self.out.addBranch('pt_vistau2',     'f', title="pT of subleading vis. tau")
     self.out.addBranch('eta_vistau1',    'f', title="eta of leading tau")
     self.out.addBranch('eta_vistau2',    'f', title="eta of subleading vis. tau")
+    self.out.addBranch('phi_vistau1',    'f', title="phi of leading tau")
+    self.out.addBranch('phi_vistau2',    'f', title="phi of subleading vis. tau")
     self.out.addBranch('moth_vistau1',   'i', title="Mother of leading vis. tau")
     self.out.addBranch('moth_vistau2',   'i', title="Mother of subleading vis. tau")
-    self.out.addBranch('dm_vistau1',     'i', title="Decay mode of leading tau")
+    self.out.addBranch('dm_vistau1',     'i', title="Decay mode of leading vis. tau")
     self.out.addBranch('dm_vistau2',     'i', title="Decay mode of subleading vis. tau")
+    self.out.addBranch('mt_vistau1',     'f', title="Transverse mass between MET & leading vis. tau")
+    self.out.addBranch('mt_vistau2',     'f', title="Transverse mass between MET & subleading vis. tau")
     
     # ADD BRANCHES for BOTTOM QUARKS
     self.out.addBranch('pt_bot1',        'f', title="pT of leading b quark (pT > 10 GeV, |eta|<4.7)")
@@ -192,12 +219,40 @@ class ModuleGenLQ(Module):
     self.out.addBranch('eta_bjet2',      'f', title="eta of subleading gen b jet")
     
     # ADD ALIASES (to save disk space)
-    self.out.setAlias('nleps',   "nelecs+nmuons") # all leptonic decays
-    self.out.setAlias('njets20', "nfjets20+ncjets20") # all jets with pT > 20 GeV, |eta|<4.7
-    self.out.setAlias('njets50', "nfjets50+ncjets50") # all jets with pT > 50 GeV, |eta|<4.7
+    self.out.setAlias('st',          "pt_tau1+pt_tau2+pt_jet1") # scalar sum pT
+    self.out.setAlias('stvis',       "pt_vistau1+pt_vistau2+pt_jet1") # scalar sum pT (visible)
+    self.out.setAlias('nleps',       "nelecs+nmuons") # all leptonic decays
+    self.out.setAlias('njets20',     "nfjets20+ncjets20") # all jets with pT > 20 GeV, |eta|<4.7
+    self.out.setAlias('njets50',     "nfjets50+ncjets50") # all jets with pT > 50 GeV, |eta|<4.7
+    self.out.setAlias('nljets20',    "nfjets20+ncjets20-nbjets20") # number of light jets with pT > 20 GeV, |eta|<4.7
+    self.out.setAlias('nljets50',    "nfjets50+ncjets50-nbjets50") # number of light jets with pT > 50 GeV, |eta|<4.7
+    self.out.setAlias('ll',          "1<=dm_vistau1 && dm_vistau1<=2 && 1<=dm_vistau2 && dm_vistau2<=2 ") # fully leptonic
+    self.out.setAlias('etau',        "(dm_vistau1==1 && dm_vistau2>=3) || (dm_vistau2==1 && dm_vistau1>=3)")
+    self.out.setAlias('mutau',       "(dm_vistau1==2 && dm_vistau2>=3) || (dm_vistau2==2 && dm_vistau1>=3)")
+    self.out.setAlias('ltau',        "((dm_vistau1==1||dm_vistau1==2) && dm_vistau2>=3) || ((dm_vistau2==1||dm_vistau2==2) && dm_vistau1>=3)")
+    self.out.setAlias('tautau',      "dm_vistau1>=3 && dm_vistau2>=3") # fully hadronic
+    #self.out.setAlias('dphi_vistau', "ROOT::VecOps::DeltaPhi(phi_vistau1,phi_vistau2)")
     
   def endJob(self):
     """Wrap up after running on all events and files"""
+    hist = self.out.hists['tau_dm_all']
+    nall = hist.GetEntries()
+    if nall>0:
+      ntau = nall-hist.GetBinContent(1)
+      print(f">>> Tau decays: {ntau} with pT > 20 GeV (assigned {100.0*ntau/nall:5.1f}%)")
+      if ntau>0:
+        eff  = lambda n, N: (100.*n/N, 100.*sqrt((n/N)*(1.-n/N)/N)) # efficiency & uncertainty
+        perc = lambda *l: "(%4.1f +-%4.1f)%%"%eff(sum(hist.GetBinContent(i) for i in l),ntau) # percentage
+        print(f">>>   Leptonic:  {perc(2,3)}")
+        print(f">>>     Electron:  {perc(2)}")
+        print(f">>>     Muon:      {perc(3)}")
+        print(f">>>   Hadronic:  {perc(4,5,6,7,8,9)}")
+        print(f">>>     1h:        {perc(4)}") # one-prong (one charged hadron)
+        print(f">>>     1h+1pi0:   {perc(5)}")
+        print(f">>>     1h+2pi0:   {perc(6)}")
+        print(f">>>     3h:        {perc(7)}") # three-prong (three charged hadrons)
+        print(f">>>     3h+1pi0:   {perc(8)}")
+        print(f">>>     Other:     {perc(9)}")
     self.out.endJob()
     
   def analyze(self, event):
@@ -211,6 +266,7 @@ class ModuleGenLQ(Module):
     hadtaus = [ ] # hadronic tau decays
     taus    = [ ] # tau leptons
     tnus    = [ ] # tau neutrinos
+    nus     = [ ] # all neutrinos
     photons = [ ] # FSR photons from tau leptons
     bots    = [ ] # bottom quarks
     tops    = [ ] # top quarks
@@ -221,6 +277,9 @@ class ModuleGenLQ(Module):
     vistaus = [ ] # visible tau decay products (visible four-momentum)
     lqs     = [ ] # LQs
     lqids   = [46,9000002,9000006] # PDG IDs of LQs in various MadGraph or Pythia generators
+    p4_nu   = TLorentzVector() # four-momentum of all neutrinos (to compare to gen-level MET)
+    #p4_met  = TLorentzVector() # four-momentum of gen-level MET
+    #p4_met.SetPtEtaPhiE(event.GenMET_pt,0,event.GenMET_phi,event.GenMET_pt)
     
     # LOOP over gen-level particles
     #print('-'*80) # print to separate events during debugging
@@ -288,9 +347,16 @@ class ModuleGenLQ(Module):
         taus.append(part)
         self.out.fill('dR_tj',getdRmin(part,genjets)) # DeltaR between tau and closest jet
       
+      # ELECTRON or MUON neutrinos
+      elif pid==12 or pid==14:
+        p4_nu += part.p4()
+        nus.append(part)
+      
       # TAU neutrinos
       elif pid==16:
+        p4_nu += part.p4()
         tnus.append(part)
+        nus.append(part)
       
       # PHOTONS (FSR from tau)
       elif pid==22:
@@ -313,9 +379,9 @@ class ModuleGenLQ(Module):
           self.out.fill('dR_tp',dR) # DeltaR between final tau and FSR photon
           self.out.fill('dR_vp',dRvis) # DeltaR between visible tau and FSR photon
           if dRvis<0.3: # only add photon if it falls within dR=0.3 cone like in tau reco
-            ptvisold = vistau.pt() # pT before adding FSR
-            vistau.p4 += photon.p4() # add to lepton momentum
-            self.out.fill('dptvis_fsr',(vistau.pt()-ptvisold)/ptvisold) # to study FSR
+            ptvisold = vistau.pt # pT before adding FSR
+            vistau.p4 += photon.p4() # add to visible tau momentum (charged lepton)
+            self.out.fill('dptvis_fsr',(vistau.pt-ptvisold)/ptvisold) # to study FSR
     
     # VISIBLE DECAY PRODUCTS from HADRONIC TAU DECAYS (gen-level)
     # Because neutrinos carry away energy & momentum,
@@ -333,9 +399,10 @@ class ModuleGenLQ(Module):
           dRmin = dR
           tmoth = tau
       if dRmin<0.4: # found mother tau
-        if tmoth.vistau!=None: # daughter already set
-          print(f"WARNING! Multiple matches between tau and visible decay product! {vistau} will be ignored in favor of {tmoth.vistau} ({tmoth.vistau.dm})!")
-        else: # daughter unset
+        if tmoth.vistau!=None: # visible decay product already set => ignore
+          print(f"WARNING! Multiple matches between tau and visible decay product!"
+                "{vistau} ({vistau.dm}) will be ignored in favor of {tmoth.vistau} ({tmoth.vistau.dm})!")
+        else: # set visible decay product for first time
           tmoth.vistau = vistau # assign visible daughter to tau
           vistau.settau(tmoth) # set tau and mother
       hadtaus.append(vistau)
@@ -343,7 +410,8 @@ class ModuleGenLQ(Module):
       self.out.fill('dR_vt',dRmin) # DeltaR between visible tau and closest "full" tau lepton
     
     # AK4 JETS (gen-level)
-    # All hadronic jets at gen-level
+    # All hadronic jets at gen-level, excluding hadronic tau decays
+    ht = 0
     for jet in genjets:
       dRmin_tau = getdRmin(jet,taus)
       self.out.fill('dR_jt',getdRmin(jet,taus)) # DeltaR between jet and closest tau
@@ -353,11 +421,13 @@ class ModuleGenLQ(Module):
       if abs(jet.partonFlavour)==5: # b quark
         bjets.append(jet)
       if jet.pt>20:
+        ht += sqrt( jet.mass*jet.mass + jet.pt*jet.pt )
         if abs(jet.eta)<2.5: # central jets (barrel)
           cjets.append(jet)
         elif abs(jet.eta)<4.7: # forward jets (endcaps, 2.5<|eta|<4.7)
           fjets.append(jet)
     
+    # LQ DECAYS to TOP
     #if len(ntops)>=1:
     #  return False # do not store event if it contains a top quark
     if len(tops)==0:
@@ -374,13 +444,14 @@ class ModuleGenLQ(Module):
     self.out.nleptaus[0]     = len(leptaus) # leptonic decay modes
     self.out.nleptaus20[0]   = sum(t.pt>20 and abs(t.eta)<2.5 for t in leptaus) # hadronic decay modes
     self.out.nhadtaus[0]     = len(hadtaus) # hadronic decay modes
-    self.out.nhadtaus20[0]   = sum(t.pt()>20 and abs(t.eta())<2.5 for t in hadtaus) # hadronic decay modes
+    self.out.nhadtaus20[0]   = sum(t.pt>20 and abs(t.eta)<2.5 for t in hadtaus) # hadronic decay modes
     self.out.ntaus[0]        = len(taus)
     self.out.ntaus20[0]      = sum(t.pt>20 and abs(t.eta)<2.5 for t in taus)
     self.out.ntnus[0]        = len(tnus)
+    self.out.nnus[0]         = len(nus)
     self.out.nvistaus[0]     = len(vistaus)
-    self.out.nvistaus20[0]   = sum(t.pt()>20 and abs(t.eta())<2.5 for t in vistaus)
-    self.out.nvistaus50[0]   = sum(t.pt()>50 and abs(t.eta())<2.5 for t in vistaus)
+    self.out.nvistaus20[0]   = sum(t.pt>20 and abs(t.eta)<2.5 for t in vistaus)
+    self.out.nvistaus50[0]   = sum(t.pt>50 and abs(t.eta)<2.5 for t in vistaus)
     self.out.njets[0]        = len(jets)
     self.out.nbjets[0]       = len(bjets)
     self.out.nbjets20[0]     = sum(j.pt>20 and abs(j.eta)<2.5 for j in bjets)
@@ -389,6 +460,9 @@ class ModuleGenLQ(Module):
     self.out.ncjets50[0]     = sum(j.pt>50 for j in cjets)
     self.out.nfjets20[0]     = len(fjets)
     self.out.nfjets50[0]     = sum(j.pt>50 for j in fjets)
+    self.out.ht[0]           = ht # sum transverse energy
+    self.out.met[0]          = event.GenMET_pt
+    self.out.metphi[0]       = event.GenMET_phi
     
     # FILL LQ BRANCHES
     if len(lqs)>=2: # LQ pair production
@@ -420,16 +494,24 @@ class ModuleGenLQ(Module):
       self.out.dau2_lq2[0] = -1
       self.out.m_lq[0]     = -1
     
-    # FILL TAU BRANCHES
+    # FILL TAU HISTOGRAMS to study tau decay
+    self.out.fill('dptmiss_nu',(p4_nu.Pt()-event.GenMET_pt)/event.GenMET_pt)
+    self.out.fill('dphimiss_nu',p4_nu.Phi()-event.GenMET_phi)
     for tau in taus:
+      dm = tau.vistau.dm if tau.vistau else 0
+      if dm==3: # hadronic tau decay
+        self.out.fill('pt_tau_vs_vis_had',tau.pt,tau.vistau.pt)
+      elif dm in [1,2]: # leptonic tau decay
+        self.out.fill('pt_tau_vs_vis_lep',tau.pt,tau.vistau.pt)
       if tau.pt>20: # to remove bias caused by pT > 10 GeV cut on GenVisTau
-        dm = tau.vistau.dm if tau.vistau else 0
-        self.out.fill('tau_dm',min(dm,3)) # hname, binx
-        self.out.fill('tau_dm_had',dm) # hname, binx
+        self.out.fill('tau_dm',min(dm,3))
+        self.out.fill('tau_dm_all',dm)
         if dm==3: # hadronic tau decay
-          self.out.fill('dptvis_had',(tau.vistau.pt()-tau.pt)/tau.pt) # to study tau decay
+          self.out.fill('dptvis_had',(tau.vistau.pt-tau.pt)/tau.pt)
         elif dm in [1,2]: # leptonic tau decay
-          self.out.fill('dptvis_lep',(tau.vistau.pt()-tau.pt)/tau.pt) # to study tau decay
+          self.out.fill('dptvis_lep',(tau.vistau.pt-tau.pt)/tau.pt)
+    
+    # FILL TAU BRANCHES
     if len(taus)>=2:
       taus.sort(key=lambda t: t.pt,reverse=True) # sort taus by pT
       if taus[0].pt>20 and taus[1].pt>20: # to remove bias caused by pT > 10 GeV on GenVisTau
@@ -441,7 +523,7 @@ class ModuleGenLQ(Module):
       self.out.m_tt[0]       = ditau_p4.M()
       self.out.pt_tt[0]      = ditau_p4.Pt()
       if (taus[0].vistau!=None and taus[1].vistau!=None):
-        ditau_p4vis          = taus[0].vistau.p4 + taus[1].vistau.p4
+        ditau_p4vis          = taus[0].vistau.p4 + taus[1].vistau.p4 # visible ditau system
         self.out.dRvis_tt[0] = taus[0].vistau.p4.DeltaR(taus[1].vistau.p4)
         self.out.mvis_tt[0]  = ditau_p4vis.M()
         self.out.ptvis_tt[0] = ditau_p4vis.Pt()
@@ -451,12 +533,14 @@ class ModuleGenLQ(Module):
         self.out.ptvis_tt[0] = -2
       self.out.pt_tau1[0]    = taus[0].pt
       self.out.pt_tau2[0]    = taus[1].pt
-      self.out.ptvis_tau1[0] = taus[0].vistau.pt() if taus[0].vistau!=None else -2 # total visible momentum
-      self.out.ptvis_tau2[0] = taus[1].vistau.pt() if taus[1].vistau!=None else -2 # total visible momentum
+      self.out.ptvis_tau1[0] = taus[0].vistau.pt if taus[0].vistau!=None else -2 # total visible momentum
+      self.out.ptvis_tau2[0] = taus[1].vistau.pt if taus[1].vistau!=None else -2 # total visible momentum
       self.out.eta_tau1[0]   = taus[0].eta
       self.out.eta_tau2[0]   = taus[1].eta
       self.out.moth_tau1[0]  = taus[0].mother
       self.out.moth_tau2[0]  = taus[1].mother
+      self.out.dm_tau1[0]    = taus[0].vistau.dm if taus[0].vistau!=None else 0
+      self.out.dm_tau2[0]    = taus[1].vistau.dm if taus[1].vistau!=None else 0
     elif len(taus)>=1:
       self.out.dR_tt[0]      = -1
       self.out.dRvis_tt[0]   = -1
@@ -466,12 +550,14 @@ class ModuleGenLQ(Module):
       self.out.ptvis_tt[0]   = -1
       self.out.pt_tau1[0]    = taus[0].pt
       self.out.pt_tau2[0]    = -1
-      self.out.ptvis_tau1[0] = taus[0].vistau.pt() if taus[0].vistau!=None else -2 # total visible momentum
+      self.out.ptvis_tau1[0] = taus[0].vistau.pt if taus[0].vistau!=None else -2 # total visible momentum
       self.out.ptvis_tau2[0] = -1
       self.out.eta_tau1[0]   = taus[0].eta
       self.out.eta_tau2[0]   = -9
       self.out.moth_tau1[0]  = taus[0].mother
       self.out.moth_tau2[0]  = -1
+      self.out.dm_tau1[0]    = taus[0].vistau.dm if taus[0].vistau!=None else 0
+      self.out.dm_tau2[0]    = -1
     else: # no taus found
       self.out.dR_tt[0]      = -1
       self.out.dRvis_tt[0]   = -1
@@ -487,39 +573,59 @@ class ModuleGenLQ(Module):
       self.out.eta_tau2[0]   = -9
       self.out.moth_tau1[0]  = -1
       self.out.moth_tau2[0]  = -1
+      self.out.dm_vistau1[0] = -1
+      self.out.dm_vistau2[0] = -1
     
     # FILL VISIBLE TAU BRANCHES
     if len(vistaus)>=2:
-      vistaus.sort(key=lambda t: t.p4.Pt(),reverse=True) # sort taus by pT
+      vistaus.sort(key=lambda t: t.pt,reverse=True) # sort vis. taus by pT
+      if vistaus[0].dm<3 or vistaus[1].dm<3: # fully or semileptonic
+        vistaus = vistaus[:2] # only keep leading vis. taus
+        vistaus.sort(key=lambda t: (t.dm,-t.pt)) # sort leading vis. tau first by dm, then pT
       self.out.dR_ttvis[0]       = vistaus[0].p4.DeltaR(vistaus[1].p4)
-      self.out.pt_vistau1[0]     = vistaus[0].pt()
-      self.out.pt_vistau2[0]     = vistaus[1].pt()
-      self.out.eta_vistau1[0]    = vistaus[0].eta()
-      self.out.eta_vistau2[0]    = vistaus[1].eta()
+      self.out.pt_vistau1[0]     = vistaus[0].pt
+      self.out.pt_vistau2[0]     = vistaus[1].pt
+      self.out.eta_vistau1[0]    = vistaus[0].eta
+      self.out.eta_vistau2[0]    = vistaus[1].eta
+      self.out.phi_vistau1[0]    = vistaus[0].phi
+      self.out.phi_vistau2[0]    = vistaus[1].phi
       self.out.moth_vistau1[0]   = vistaus[0].mother
       self.out.moth_vistau2[0]   = vistaus[1].mother
       self.out.dm_vistau1[0]     = vistaus[0].dm
       self.out.dm_vistau2[0]     = vistaus[1].dm
+      self.out.mt_vistau1[0]     = vistaus[0].mt(event.GenMET_pt,event.GenMET_phi)
+      self.out.mt_vistau2[0]     = vistaus[1].mt(event.GenMET_pt,event.GenMET_phi)
+      self.out.dphi_vistau[0]    = vistaus[0].p4.DeltaPhi(vistaus[1].p4)
     elif len(vistaus)>=1:
       self.out.dR_ttvis[0]       = -1
-      self.out.pt_vistau1[0]     = vistaus[0].pt()
+      self.out.pt_vistau1[0]     = vistaus[0].pt
       self.out.pt_vistau2[0]     = -1
-      self.out.eta_vistau1[0]    = vistaus[0].eta()
+      self.out.eta_vistau1[0]    = vistaus[0].eta
       self.out.eta_vistau2[0]    = -9
+      self.out.phi_vistau1[0]    = vistaus[0].phi
+      self.out.phi_vistau2[0]    = -9
       self.out.moth_vistau1[0]   = vistaus[0].mother
       self.out.moth_vistau2[0]   = 0
       self.out.dm_vistau1[0]     = vistaus[0].dm
-      self.out.dm_vistau2[0]     = 0
+      self.out.dm_vistau2[0]     = -1
+      self.out.mt_vistau1[0]     = vistaus[0].mt(event.GenMET_pt,event.GenMET_phi)
+      self.out.mt_vistau2[0]     = -1
+      self.out.dphi_vistau[0]    = -9
     else: # no visible taus found
       self.out.dR_ttvis[0]       = -1
       self.out.pt_vistau1[0]     = -1
       self.out.pt_vistau2[0]     = -1
       self.out.eta_vistau1[0]    = -9
       self.out.eta_vistau2[0]    = -9
+      self.out.phi_vistau1[0]    = -9
+      self.out.phi_vistau2[0]    = -9
       self.out.moth_vistau1[0]   = 0
       self.out.moth_vistau2[0]   = 0
-      self.out.dm_vistau1[0]     = 0
-      self.out.dm_vistau2[0]     = 0
+      self.out.dm_vistau1[0]     = -1
+      self.out.dm_vistau2[0]     = -1
+      self.out.mt_vistau1[0]     = -1
+      self.out.mt_vistau2[0]     = -1
+      self.out.dphi_vistau[0]    = -9
     self.out.fill() # fill branches
     
     # FILL BOTTOM QUARK BRANCHES
