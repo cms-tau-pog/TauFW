@@ -31,7 +31,7 @@ def getsampleset(channel,era,**kwargs):
   if '2022_preEE' in era or '2022_postEE' in era: # so far same samples and cross sections are used for preEE and postEE, if event numbers are set elsewhere then we don't need to add seperate numbers for both eras
     # for now nevts is set to 1 so it isn't taken into account in the scaling of the samples as this will be done elsewhere
     
-    kfactor_dy=6282.6/5455.0 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
+    kfactor_dy=6282.6/5455.0 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV [https://twiki.cern.ch/twiki/bin/viewauth/CMS/MATRIXCrossSectionsat13p6TeV]
     kfactor_wj=63425.1/55300 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
     kfactor_ttbar=923.6/762.1 # NLO->NNLO k-factor computed for 13.6 TeV
     kfactor_ww=1.524 # LO->NNLO+NLO_EW computed for 13.6 TeV
