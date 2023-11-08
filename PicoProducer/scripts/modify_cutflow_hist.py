@@ -40,7 +40,7 @@ def get_nanoaod_sumw(args):
     vetoes       = args.vetoes
     dtype        = ['mc']
     sumw_dict = {}
-    path2sampleP_dir = "/eos/user/o/oponcet/TauPOG/Run3_v1/2022_postEE/"
+    path2sampleP_dir = "/eos/cms/store/group/phys_tau/irandreo/Run3_22_postEE/"
     samples = glob.glob1(path2sampleP_dir, '*')
     print(samples)
     for sample in samples:
