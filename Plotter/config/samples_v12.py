@@ -45,7 +45,7 @@ def getsampleset(channel,era,**kwargs):
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
         #( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below 
         ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor
-        ( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      978.3*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor # currently not available
+        #( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      978.3*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor # currently not available
         ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
         ( 'DY', "DYto2L-4Jets_MLL-50_3J",      "Drell-Yan 3J 50",      93.7*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
         ( 'DY', "DYto2L-4Jets_MLL-50_4J",      "Drell-Yan 4J 50",      45.4*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor
