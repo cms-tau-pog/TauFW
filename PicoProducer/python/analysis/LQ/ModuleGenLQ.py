@@ -8,7 +8,8 @@
 #   python3 python/analysis/LQ/ModuleGenLQ.py --lq t -t _nonres -n 10000
 # Instructions to run with pico.py:
 #   pico.py channel lq python/analysis/LQ/ModuleGenLQ.py
-#   pico.py run -c lq -y UL2018 -s LQ -n 10000
+#   pico.py era 2018 samples/LQ/samples_2018.py
+#   pico.py run -c lq -y 2018 -s SLQ-t_M2000 -m 10000 -n10
 # Sources:
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc106Xul18_doc.html#GenPart
 #   https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/genparticles_cff.py
@@ -19,6 +20,7 @@
 #   https://pdg.lbl.gov/2023/reviews/rpp2022-rev-monte-carlo-numbering.pdf (PDG ID)
 #   https://pythia.org/latest-manual/ParticleProperties.html (Pythia particle status)
 from __future__ import print_function # for python3 compatibility
+import os
 from math import sqrt, cos
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import TLorentzVector
@@ -26,10 +28,12 @@ from TauFW.PicoProducer.analysis.TreeProducer import TreeProducer
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from TauFW.PicoProducer.processors import moddir
 from TauFW.PicoProducer.analysis.utils import getmother, getlastcopy, dumpgenpart, getprodchain, getdecaychain, deltaPhi
 #import PhysicsTools.NanoAODTools.postprocessing.framework.datamodel as datamodel
 #datamodel.statusflags['isHardPrompt'] = datamodel.statusflags['isPrompt'] + datamodel.statusflags['fromHardProcess'] # define shortcut
 #datamodel.statusflags['isTauFSR'] = datamodel.statusflags['isTauDecayProduct'] + datamodel.statusflags['isDirectHadronDecayProduct'] # define shortcut
+branchsel = os.path.join(moddir,"keep_and_drop_gen.txt")
 
 
 def getdRmin(part,oparts):
@@ -88,10 +92,11 @@ class GenVisTau:
 # DUMPER MODULE
 class ModuleGenLQ(Module):
   
-  def __init__(self,fname):
+  def __init__(self,fname,**kwargs):
     
     # CREATE OUTPUT FILE with single tree
-    self.out = TreeProducer(fname,self)
+    self.out = TreeProducer(fname,self,**kwargs)
+    self.branchsel = branchsel # disable unneeded branches for faster processing
     
     # ADD CUTS TO CUTFLOW
     self.out.cutflow.addcut('nocut',"No cut")
@@ -219,19 +224,23 @@ class ModuleGenLQ(Module):
     self.out.addBranch('eta_bjet2',      'f', title="eta of subleading gen b jet")
     
     # ADD ALIASES (to save disk space)
-    self.out.setAlias('st',          "pt_tau1+pt_tau2+pt_jet1") # scalar sum pT
+    self.out.setAlias('st',          "pt_tau1+pt_tau2+pt_jet1") # scalar sum pT with full tau
+    self.out.setAlias('stmet',       "pt_tau1+pt_tau2+pt_jet1+met") # scalar sum pT with full tau
     self.out.setAlias('stvis',       "pt_vistau1+pt_vistau2+pt_jet1") # scalar sum pT (visible)
+    self.out.setAlias('stmetvis',    "pt_vistau1+pt_vistau2+pt_jet1+met") # scalar sum pT (visible)
     self.out.setAlias('nleps',       "nelecs+nmuons") # all leptonic decays
     self.out.setAlias('njets20',     "nfjets20+ncjets20") # all jets with pT > 20 GeV, |eta|<4.7
     self.out.setAlias('njets50',     "nfjets50+ncjets50") # all jets with pT > 50 GeV, |eta|<4.7
     self.out.setAlias('nljets20',    "nfjets20+ncjets20-nbjets20") # number of light jets with pT > 20 GeV, |eta|<4.7
     self.out.setAlias('nljets50',    "nfjets50+ncjets50-nbjets50") # number of light jets with pT > 50 GeV, |eta|<4.7
-    self.out.setAlias('ll',          "1<=dm_vistau1 && dm_vistau1<=2 && 1<=dm_vistau2 && dm_vistau2<=2 ") # fully leptonic
-    self.out.setAlias('etau',        "(dm_vistau1==1 && dm_vistau2>=3) || (dm_vistau2==1 && dm_vistau1>=3)")
-    self.out.setAlias('mutau',       "(dm_vistau1==2 && dm_vistau2>=3) || (dm_vistau2==2 && dm_vistau1>=3)")
-    self.out.setAlias('ltau',        "((dm_vistau1==1||dm_vistau1==2) && dm_vistau2>=3) || ((dm_vistau2==1||dm_vistau2==2) && dm_vistau1>=3)")
-    self.out.setAlias('tautau',      "dm_vistau1>=3 && dm_vistau2>=3") # fully hadronic
-    #self.out.setAlias('dphi_vistau', "ROOT::VecOps::DeltaPhi(phi_vistau1,phi_vistau2)")
+    self.out.setAlias('ll',          "1<=dm_vistau1 && dm_vistau1<=2 && 1<=dm_vistau2 && dm_vistau2<=2 ") # fully leptonic tau decay
+    self.out.setAlias('etau',        "(dm_vistau1==1 && dm_vistau2>=3) || (dm_vistau2==1 && dm_vistau1>=3)") # electronic tau decay
+    self.out.setAlias('mutau',       "(dm_vistau1==2 && dm_vistau2>=3) || (dm_vistau2==2 && dm_vistau1>=3)") # muonic tau decay
+    self.out.setAlias('ltau',        "((dm_vistau1==1||dm_vistau1==2) && dm_vistau2>=3) || ((dm_vistau2==1||dm_vistau2==2) && dm_vistau1>=3)") # semileptonic tau decay
+    self.out.setAlias('tautau',      "dm_vistau1>=3 && dm_vistau2>=3") # fully hadronic tau decay
+    self.out.setAlias('chi',         "exp(abs(eta_tau1-eta_tau2))")
+    self.out.setAlias('chivis',      "exp(abs(eta_vistau1-eta_vistau2))")
+    #self.out.setAlias('dphi_vistau', "ROOT::VecOps::DeltaPhi(phi_vistau1,phi_vistau2)") # fold with ROOT::VecOps::DeltaPhi
     
   def endJob(self):
     """Wrap up after running on all events and files"""
@@ -239,20 +248,20 @@ class ModuleGenLQ(Module):
     nall = hist.GetEntries()
     if nall>0:
       ntau = nall-hist.GetBinContent(1)
-      print(f">>> Tau decays: {ntau} with pT > 20 GeV (assigned {100.0*ntau/nall:5.1f}%)")
+      print(f">>> Tau decays: {ntau} with pT > 20 GeV (assigned {100.0*ntau/nall:.1f}%)")
       if ntau>0:
         eff  = lambda n, N: (100.*n/N, 100.*sqrt((n/N)*(1.-n/N)/N)) # efficiency & uncertainty
-        perc = lambda *l: "(%4.1f +-%4.1f)%%"%eff(sum(hist.GetBinContent(i) for i in l),ntau) # percentage
-        print(f">>>   Leptonic:  {perc(2,3)}")
-        print(f">>>     Electron:  {perc(2)}")
-        print(f">>>     Muon:      {perc(3)}")
-        print(f">>>   Hadronic:  {perc(4,5,6,7,8,9)}")
-        print(f">>>     1h:        {perc(4)}") # one-prong (one charged hadron)
-        print(f">>>     1h+1pi0:   {perc(5)}")
-        print(f">>>     1h+2pi0:   {perc(6)}")
-        print(f">>>     3h:        {perc(7)}") # three-prong (three charged hadrons)
-        print(f">>>     3h+1pi0:   {perc(8)}")
-        print(f">>>     Other:     {perc(9)}")
+        perc = lambda *l: "(%5.1f +-%4.1f )%%"%eff(sum(hist.GetBinContent(i) for i in l),ntau) # percentage
+        print(f">>>   Leptonic:   {perc(2,3)}")
+        print(f">>>     Electron: {perc(2)}")
+        print(f">>>     Muon:     {perc(3)}")
+        print(f">>>   Hadronic:   {perc(4,5,6,7,8,9)}")
+        print(f">>>     1h:       {perc(4)}") # one-prong (one charged hadron)
+        print(f">>>     1h+1pi0:  {perc(5)}")
+        print(f">>>     1h+2pi0:  {perc(6)}")
+        print(f">>>     3h:       {perc(7)}") # three-prong (three charged hadrons)
+        print(f">>>     3h+1pi0:  {perc(8)}")
+        print(f">>>     Other:    {perc(9)}")
     self.out.endJob()
     
   def analyze(self, event):
@@ -415,7 +424,7 @@ class ModuleGenLQ(Module):
     for jet in genjets:
       dRmin_tau = getdRmin(jet,taus)
       self.out.fill('dR_jt',getdRmin(jet,taus)) # DeltaR between jet and closest tau
-      if abs(jet.partonFlavour) in [0,15] and dRmin_tau<0.3:
+      if abs(jet.partonFlavour)==15 or (abs(jet.partonFlavour)==0 and dRmin_tau<0.3):
         continue # remove overlap with taus
       jets.append(jet) # inclusive (except taus)
       if abs(jet.partonFlavour)==5: # b quark
@@ -720,9 +729,10 @@ if __name__ == '__main__':
   args = parser.parse_args()
   
   # SETTINGS
-  maxevts = args.maxevts if args.maxevts>0 else None
-  outfname = "genAnalyzer_LQ%s.root"%(args.tag)
-  modules = [ModuleGenLQ(outfname)]
+  maxevts   = args.maxevts if args.maxevts>0 else None
+  outfname  = "genAnalyzer_LQ%s.root"%(args.tag)
+  modules   = [ModuleGenLQ(outfname)]
+  branchsel = "keep_and_drop_gen.txt" # only keep gen-related branches to speed up processing
   
   # INPUT FILES
   url = "root://cms-xrd-global.cern.ch/"
@@ -793,6 +803,7 @@ if __name__ == '__main__':
     ]
   
   # PROCESS NANOAOD
-  processor = PostProcessor(args.outdir,infiles,noOut=True,modules=modules,maxEntries=maxevts)
+  processor = PostProcessor(args.outdir,infiles,modules=modules,maxEntries=maxevts,
+                            branchsel=branchsel,noOut=True)
   processor.run()
   

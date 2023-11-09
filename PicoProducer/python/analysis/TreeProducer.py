@@ -60,7 +60,7 @@ class TreeProducer(object):
     """
     dname  = ""
     hname  = name
-    key    = kwargs.get('key',    name )
+    key    = kwargs.get('key',    name ) # key name for histogram dictionary
     xlabs  = kwargs.get('xlabs',  None ) # list of alphanumeric x axis labels
     ylabs  = kwargs.get('ylabs',  None ) # list of alphanumeric y axis labels
     option = kwargs.get('option', None ) # draw option, e.g. 'COLZ TEXT44'
@@ -117,13 +117,16 @@ class TreeProducer(object):
           hist.GetYaxis().SetBinLabel(i,ylab)
         elif isinstance(ylab,tuple): # assume (ibin,label)
           hist.GetYaxis().SetBinLabel(*ylab)
+    if key in self.hists:
+      print(">>> WARNING! TreeProducer.addHist: key %r (name %r) already in list of histograms,"%(key,name)+\
+            " which may cause confusion when filling by key! Please chose a unique histogram or key name...")
     self.hists[key] = hist # store for filling and writing
     return hist
   
   def addBranch(self, name, dtype='f', default=None, title=None, arrname=None, **kwargs):
     """Add branch with a given name, and create an array of the same name as address."""
     if hasattr(self,name):
-      raise IOError("Branch of name '%s' already exists!"%(name))
+      raise IOError("Class attribute or branch with name %r already exists! Please rename this branch..."%(name))
     if not arrname:
       arrname = name
     arrlen = kwargs.get('len',None) # make vector branch
