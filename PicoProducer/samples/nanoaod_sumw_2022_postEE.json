@@ -24,7 +24,6 @@
     "TbarBQ_t-channel": 4818516.0,
     "TBbarQ_t-channel":9575922.0,
     "TbarWplusto2L2Nu":8548970.0,
-<<<<<<< HEAD
     "TbarWplustoLNu2Q": 16972108.0, 
     "TWminustoLNu2Q":17031456.0,
     "TWminusto2L2Nu": 8326308.0,
@@ -33,11 +32,4 @@
     "WJetstoLNu-4Jets_1J":42901252.0,
     "WJetstoLNu-4Jets_2J":36390261.0,
     "WJetstoLNu-4Jets_3J":28032467.0
-=======
-    "TWminustoLNu2Q":17031456.0,
-    "WtoLNu-4Jets_4J": 4861057.0,
-    "WJetstoLNu-4Jets_1J":42901252.0,
-    "WJetstoLNu-4Jets_3J":28032467.0
-
->>>>>>> c0ff098673ef5272e8c086edadc9a8aa5608dbbb
 }
