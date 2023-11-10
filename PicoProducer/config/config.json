@@ -1,16 +1,29 @@
 {
   "channels": {
-    "skim": "skimjob.py", 
+    "skim": "skimjob.py",
     "skim-jec": "skimjob.py --jec-sys",
-    "gen": "GenDumper", 
-    "mutau": "ModuleMuTauSimple"
-  }, 
+    "gen": "GenDumper",
+    "mutau": "Run3_DEV.ModuleMuTau jec=False",
+    "mumu": "ModuleMuMu jec=False"
+  },
   "eras": {
-    "2016": "examples/samples_2016.py", 
-    "2017": "examples/samples_2017.py", 
-    "2018": "examples/samples_2018.py"
-  }, 
-  "nfilesperjob": 1, 
-  "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
+    "2016": "examples/samples_2016.py",
+    "2017": "examples/samples_2017.py",
+    "2018": "examples/samples_2018.py",
+    "2022_postEE": "PODAS23/samples_2022_postEE.py"
+  },
+  "nfilesperjob": 1,
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "basedir": "/nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer",
+  "outdir": "/nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/output/$ERA/$CHANNEL/$SAMPLE",
+  "nanodir": "samples/nano/$ERA/$DAS",
+  "picodir": "/nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/analysis/$ERA/$GROUP",
+  "tmpskimdir": "",
+  "batch": "SLURM",
+  "queue": "",
+  "maxevtsperjob": 500000,
+  "maxopenfiles": 500,
+  "ncores": 8,
+  "haddcmd": ""
 }

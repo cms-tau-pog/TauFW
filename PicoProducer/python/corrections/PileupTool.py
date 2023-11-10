@@ -52,10 +52,11 @@ class PileupWeightTool:
         datafilename = os.path.join(datadir,"Data_PileUp_%s_%s.root"%(era,minbias))
         mcfilename   = os.path.join(datadir,"MC_PileUp_%s_Autumn18.root"%(era))
       elif '2022' in era and 'preEE' in era:
-        datafilename = os.path.join(datadir,"Data_PileUp_2022_preEE.root"%(minbias))
+        datafilename = os.path.join(datadir,"Data_PileUp_2022_preEE.root")
         mcfilename   = os.path.join(datadir,"MC_PileUp_2022.root")
       elif '2022' in era and 'postEE' in era:
-        datafilename = os.path.join(datadir,"Data_PileUp_2022_postEE.root"%(minbias))
+        print("Pileup entered 2022postEE")
+        datafilename = os.path.join(datadir,"Data_PileUp_2022_postEE.root")
         mcfilename   = os.path.join(datadir,"MC_PileUp_2022.root")
     assert datafilename and mcfilename, "PileupWeightTool: Did not recognize era %r!"%(era)
     

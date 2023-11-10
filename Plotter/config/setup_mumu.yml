@@ -10,10 +10,18 @@
 
 channel: mumu
 
-baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter"
+baselineCuts: "q_1*q_2<0 && !lepton_vetoes && metfilter && iso_1<0.15 && iso_2<0.15"
 
 regions:
     ZMM: 
         definition: "m_ll>60 && m_ll<120"
         title: "60 < m_mumu < 120 GeV"
         fname: "zttregion"
+    barrel: 
+        definition: "abs(eta_1) < 1.2 && abs(eta_2) < 1.2"
+        title: "barrel"
+        fname: "barrel"
+    endcap:
+        definition: "abs(eta_1) > 1.2 && abs(eta_2) > 1.2"
+        title: "endcap"
+        fname: "endcap"

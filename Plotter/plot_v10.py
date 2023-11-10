@@ -5,7 +5,7 @@
 #   ./plot.py -y 2018 -c mutau
 #   ./plot.py -y 2018 -c config/setup_mutau.yml
 #   ./plot.py -y 2018 -c mutau -S baseline -V m_vis
-from config.samples_v10 import *
+from config.samples_v12 import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Plotter.plot.Plot import Plot, deletehist
@@ -99,6 +99,8 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
       Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
       Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
+      Var('iso_1', 50, 0.,1., ymin = 1e2,logy=True),
+      Var('iso_2', 50, 0.,1., ymin = 1e2,logy=True),
     ]
   variables  = filtervars(variables,varfilter)  # filter variable list with -V/--var flag
   

@@ -102,6 +102,8 @@ def modify_cutflow_hist(args):
         if len(args.pico_dir) > 1: sample_dir = args.pico_dir
         else: sample_dir = "$CMSSW_BASE/src/TauFW/PicoProducer/"
         samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + args.tag + '.root')
+        print("====> test: ", sample_dir)
+        print("====> test: ", samples)
         print('Samples: ' + str(map(os.path.basename, samples)))
         print("\n%40s:\t%15s%15s%15s"%('sample_name', 'cutflow_norm', 'nanoaod_norm', 'difference'))
         for sample in samples:
