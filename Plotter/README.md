@@ -495,6 +495,17 @@ It will load a `SampleSet` from `config/samples.py` as a function of a channel a
 By default the script will look for pico samples in `$PICODIR`, specified in the `PicoProducer` config.
 You can edit the scripts  and this config file to your specifications and liking.
 
+You can specify what set of selections to apply and what variable to draw by running, for example:
+```
+./plot.py -y 2018 -c mutau -S baseline -V m_vis 
+```
+where `baseline` is the name of a set of selections defined in the `config/setup_mutau.py`.
+WARNING: If you are using py3, run with the `--serial` option:
+```
+./plot.py -y 2018 -c mutau --serial
+```
+Similarly, `plot_v10.py` produces the same useful plots as `plot.py` but loads the `SampleSet` from `config/samples_v10.py` designed ofr nanoV10 samples.
+ 
 ### 2D histograms
 An example of a 2D plotting script is given by [`plot2D.py`](plot2D.py).
 It creates 2D histograms for a specified samples. The samples are defined in `config/samples.py`.

@@ -8,6 +8,7 @@ See [the README.md in the parent directory](../../../../#taufw).
 
 ## Usage 
 The workflow is divided into three different steps: create inputs, create datacards and perform the fit.
+DISCLAIMER: The Fitter code has been tested only for py2 and with `CMSSW_10_6_13`.
 
 ### Create inputs for combine.
 To do so, please have a look at the `createinputs.py` script. 
@@ -27,7 +28,22 @@ Before launching the command, you can set up (by hardcoding) which era, eta rang
 No options are implemented for this script. 
 Datacards will be stored into the `input/<era>/ETauFR/` folder as `.txt` files.
 
-### Perform the fit (using combing)
+### Perform the fit (using combine)
+Run `text2workspace.py` using the `zttmodels.py`:
+```
+text2workspace.py -P TauFW.Fitter.ETauFR.zttmodels:ztt_eff --PO "eff={pre-fit FR}" ./input/{era}/ETauFR/{wp}_eta{eta}.txt -o  ./input/{era}/ETauFR/WorkSpace{wp}_eta{eta}.root
+```
+Then you can run the fitting+plotting or the impacts or everything together, as in the following:
+```
+./doFitPlots.sh {wp} {eta} {era}
+```
+```
+./doImpacts.sh {wp} {eta} {era}
+``` 
+```
+./runAll.sh {wp} {era}
+```
+--OLD--
 The script `Fitting_DEV.sh` provides several commands to perform the fit and create post-fit histograms for plotting.
 Please, have a look at the script to understand where inputs and outputs of each command are stored.
 Again, you should set up (by hardcoding) era, eta range and DeepTau WP for which the fit will be performed.
