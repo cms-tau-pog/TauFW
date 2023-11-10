@@ -22,7 +22,7 @@ def getsampleset(channel,era,**kwargs):
   vetoes   = kwargs.get('vetoes',   None         ) # veto these MC samples
   #tag      = kwargs.get('tag',      ""           ) # extra tag for sample file names
   table    = kwargs.get('table',    True         ) # print sample set table
-  setera(era) # set era for plot style and lumi-xsec normalization
+  setera(era,cme=13.6) # set era for plot style and lumi-xsec normalization
   if 'TT' in split and 'Top' in join: # don't join TT & ST
     join.remove('Top')
     join += ['TT','ST']
