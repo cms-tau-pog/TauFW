@@ -266,13 +266,6 @@ class Plot(object):
       print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
       print(">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
     
-    # NORMALIZE
-    if norm:
-      if ytitle==None:
-        ytitle = "A.U."
-      scale = 1.0 if isinstance(norm,bool) else norm # can be list
-      normalize(hists,scale=scale)
-    
     # DIVIDE BY BINSIZE
     if dividebins:
       for i, oldhist in enumerate(hists[:]):
@@ -288,6 +281,13 @@ class Plot(object):
       #    dividebybinsize(histdown,zero=True,zeroerrs=False,verb=verbosity-2)
       #    if hist not in hists:
       #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
+    
+    # NORMALIZE
+    if norm:
+      if ytitle==None:
+        ytitle = "A.U."
+      scale = 1.0 if isinstance(norm,bool) else norm # can be list
+      normalize(hists,scale=scale)
     
     # DRAW OPTIONS
     if errbars:
