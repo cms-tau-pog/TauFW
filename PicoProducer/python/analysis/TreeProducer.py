@@ -17,12 +17,12 @@ from TauFW.common.tools.root import ensureTFile
 from TauFW.PicoProducer.analysis.Cutflow import Cutflow
 
 root_dtype = { # python/numpy -> root data type
-  '?': 'O',  'bool':    'O',  bool:   'O', # Bool_t  
-  'b': 'b',  'int8':    'b',  'byte': 'b', # UChar_t 
-  'i': 'I',  'int32':   'I',               # Int_t   
+  '?': 'O',  'bool':    'O',  bool:   'O', # Bool_t
+  'b': 'b',  'int8':    'b',  'byte': 'b', # UChar_t
+  'i': 'I',  'int32':   'I',               # Int_t
   'l': 'L',  'int64':   'L',  int:    'L', # Long64_t
   'L': 'l',  'uint64':  'l',               # ULong64_t
-  'f': 'F',  'float32': 'F',               # Float_t 
+  'f': 'F',  'float32': 'F',               # Float_t
   'd': 'D',  'float64': 'D',  float:  'D', # Double_t
 }
 np_dtype = { # ROOT -> numpy data type
@@ -58,8 +58,8 @@ class TreeProducer(object):
          self.addHist(name,title,[xmin,...,xmax],nybins,ymin,ymax)  # TH2D: variable x binning
          self.addHist(name,title,nxbins,xmin,xmax,[ymin,...,ymax])  # TH2D: variable y binning
     """
-    dname  = ""
     hname  = name
+    dname  = kwargs.get('dir',    ""   ) # name of subdirectory
     key    = kwargs.get('key',    name ) # key name for histogram dictionary
     xlabs  = kwargs.get('xlabs',  None ) # list of alphanumeric x axis labels
     ylabs  = kwargs.get('ylabs',  None ) # list of alphanumeric y axis labels
@@ -73,19 +73,19 @@ class TreeProducer(object):
     else:
       title = hname
       bins  = args
-    if len(bins)==1 and isinstance(bins[0],list): # TH1D: variable binning: list of binedges
+    if len(bins)==1 and isinstance(bins[0],list): # TH1D: variable binning: list of bin edges
       edges = np.array(bins[0],'f')
       hist = TH1D(hname,title,len(edges)-1,edges)
     elif len(bins)==3: # TH1D: constant binning: nbins, xmin, xmax
       hist = TH1D(hname,title,*bins)
-    elif len(bins)==2 and isinstance(bins[0],list) and isinstance(bins[1],list): # TH2D: list of x and y binedges
+    elif len(bins)==2 and isinstance(bins[0],list) and isinstance(bins[1],list): # TH2D: list of x and y bin edges
       xedges = np.array(bins[0],'d')
       yedges = np.array(bins[1],'d')
       hist = TH2D(hname,title,len(xedges)-1,xedges,len(yedges)-1,yedges)
-    elif len(bins)==4 and isinstance(bins[0],list): # TH2D: list of x binedges
+    elif len(bins)==4 and isinstance(bins[0],list): # TH2D: list of x bin edges
       binning = (len(bins[0])-1,np.array(bins[0],'d'))+bins[1:]
       hist = TH2D(hname,title,*binning)
-    elif len(bins)==4 and isinstance(bins[3],list): # TH2D: list of y binedges
+    elif len(bins)==4 and isinstance(bins[3],list): # TH2D: list of y bin edges
       binning = bins[:3]+(len(bins[3])-1,np.array(bins[3],'d'))
       hist = TH2D(hname,title,*binning)
     elif len(bins)==6: # TH2D: constant binning: nxbins, xmin, xmax, nybins, ymin, ymax
@@ -95,9 +95,9 @@ class TreeProducer(object):
     if self.verbosity>=1:
       print(">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins))
     if option!=None:
-      hist.SetOption(option) # for display in TBrowser
+      hist.SetOption(option) # for default display in TBrowser
     elif isinstance(hist,TH2D):
-      hist.SetOption('COLZ') # for display in TBrowser
+      hist.SetOption('COLZ') # for default display in TBrowser
     if dname: # make subdirectory
       subdir = self.outfile.GetDirectory(dname)
       if not subdir: # create directory for the first time
@@ -180,7 +180,7 @@ class TreeProducer(object):
   
   def fill(self,hname=None,*args):
     """Fill tree."""
-    if hname: # fill histograms
+    if hname: # fill histograms for this key
       return self.hists[hname].Fill(*args)
     else: # fill trees
       return self.tree.Fill()

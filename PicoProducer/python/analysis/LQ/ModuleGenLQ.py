@@ -55,7 +55,7 @@ def getdmbin(dm):
   
 
 class GenVisTau:
-  """Class to contain both leptonic and hadronic decay modes.
+  """Class to contain visible decay products from both leptonic and hadronic tau decay.
   Note nanoAOD's GenVisTau collection only includes hadronic decays."""
   def __init__(self,genpart,tau=None,mother=None):
     self.settau(tau,mother) # set tau and tau's mother
@@ -67,6 +67,7 @@ class GenVisTau:
       self.dm = 1 if abs(genpart.pdgId)==11 else 2 # decay mode: 1 (bin 2) = electron; 2 (bin 3) = muon
   
   def settau(self,tau,mother=None):
+    """Set mother tau and tau's mother."""
     self.tau = tau # mother tau
     self.mother = mother if mother!=None else tau.mother if tau!=None else 0 # PDG ID of tau's mother, default: 0 (bin 1) = no daughter found
     return mother
@@ -84,13 +85,15 @@ class GenVisTau:
     return self.p4.Phi()
   
   def mt(self,opt,ophi):
-    """Transverse mass."""
+    """Transverse mass with some other object."""
     # https://en.wikipedia.org/wiki/Transverse_mass#Transverse_mass_in_two-particle_systems
     return sqrt( 2*self.p4.Pt()*opt*(1-cos(self.p4.Phi()-ophi)) )
   
 
-# DUMPER MODULE
+# MAIN PHYSICAL ANALYSIS MODULE
 class ModuleGenLQ(Module):
+  """Find interesting particles for gen studies of LQ -> btau:
+  tau leptons and its visible decays, bottom quarks, gen. jets, ..."""
   
   def __init__(self,fname,**kwargs):
     
