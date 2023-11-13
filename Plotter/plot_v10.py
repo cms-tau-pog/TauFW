@@ -2,18 +2,13 @@
 # Author: Izaak Neutelings (August 2020)
 # Description: Simple plotting script for pico analysis tuples
 # Instructions:
-<<<<<<< HEAD
-#   ./plot.py -y 2018 -c mutau
-#   ./plot.py -y 2018 -c config/setup_mutau.yml
-#   ./plot.py -y 2018 -c mutau -S baseline -V m_vis
-=======
 #   ./plot_v10.py -y 2018 -c mutau
 #   ./plot_v10.py -y 2018 -c config/setup_mutau.yml
 #   ./plot_v10.py -y 2018 -c mutau -S baseline -V m_vis
 #>>>>IMPORTANT!!
 #>>>>Run with --serial option if using py3:
 #   ./plot_v10.py -y 2018 -c mutau --serial
->>>>>>> c0ff098673ef5272e8c086edadc9a8aa5608dbbb
+
 from config.samples_v12 import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
@@ -107,13 +102,9 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       # Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
       # Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
       Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
-<<<<<<< HEAD
       Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
       Var('iso_1', 50, 0.,1., ymin = 1e2,logy=True),
       Var('iso_2', 50, 0.,1., ymin = 1e2,logy=True),
-=======
-      # Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
->>>>>>> c0ff098673ef5272e8c086edadc9a8aa5608dbbb
     ]
   variables  = filtervars(variables,varfilter)  # filter variable list with -V/--var flag
   

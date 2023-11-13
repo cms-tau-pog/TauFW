@@ -147,11 +147,7 @@ def setera(era_,lumi_=None,**kwargs):
       lumi = CMSStyle.lumi_dict.get(year,None)
   else:
     kwargs['lumi'] = lumi
-<<<<<<< HEAD
-  cme = kwargs.get('cme',13.6)
-=======
   cme = kwargs.get('cme',13)
->>>>>>> c0ff098673ef5272e8c086edadc9a8aa5608dbbb
   CMSStyle.setCMSEra(era,**kwargs)
   LOG.verb("setera: era = %r, lumi = %r/fb, cme = %r TeV"%(era,lumi,cme),kwargs,2)
   if not lumi or lumi<0:
