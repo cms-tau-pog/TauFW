@@ -16,7 +16,8 @@ class ModuleMuTau(ModuleTauPair):
     kwargs['channel'] = 'mutau'
     super(ModuleMuTau,self).__init__(fname,**kwargs)
     self.out = TreeProducerMuTau(fname,self)
-    
+    print("=====> ERA: ", self.era)
+    print("=====> YEAR: ", self.year) 
     # TRIGGERS
     if self.year==2016:
       self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1

@@ -205,17 +205,19 @@ class ModuleTauPair(Module):
       # Specific selections to compute mutau filter efficiencies for stitching of different DY samples
       isMuTau = filtermutau(event)
       self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
-      if event.LHE_Njets==0 or event.LHE_Njets>4:
-        self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
-      elif event.LHE_Njets==1:
-        self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
-      elif event.LHE_Njets==2:
-        self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
-      elif event.LHE_Njets==3:
-        self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
-      elif event.LHE_Njets==4:
-        self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
-
+      try:
+        if event.LHE_Njets==0 or event.LHE_Njets>4:
+          self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
+        elif event.LHE_Njets==1:
+          self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
+        elif event.LHE_Njets==2:
+          self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
+        elif event.LHE_Njets==3:
+          self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
+        elif event.LHE_Njets==4:
+          self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
+      except RuntimeError:
+        no_LHE_Njets_var = True
       self.out.pileup.Fill(event.Pileup_nTrueInt)
     
     return True
@@ -477,4 +479,3 @@ class ModuleTauPair(Module):
     self.out.deta_ll[0]   = abs(self.out.eta_1[0] - self.out.eta_2[0])
     self.out.chi[0]       = exp(abs(tau1.Rapidity() - tau2.Rapidity()))
     
-

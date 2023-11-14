@@ -1,7 +1,9 @@
+
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = "/eos/cms/store/group/phys_tau/irandreo/Run3_22_postEE/$DAS"
 storage_new = "/eos/cms/store/group/phys_tau/irandreo/Run3_22_postEE_new/$DAS"
+storage_eraE = "/eos/cms/store/group/phys_tau/irandreo/Run3_22/$DAS"#Muon_Run2022E/"
 url      = "root://cms-xrd-global.cern.ch/"
 filelist = None 
 samples  = [
@@ -103,8 +105,8 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=False"),
   
   # SINGLE MUON
-  #D('Data','Muon_Run2022E',"/Muon_Run2022E",
-  # store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
+  D('Data','Muon_Run2022E',"/Muon_Run2022E",
+   store=storage_eraE,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   D('Data','Muon_Run2022F',"/Muon_Run2022F",
    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   D('Data','Muon_Run2022G',"/Muon_Run2022G",

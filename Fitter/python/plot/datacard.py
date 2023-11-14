@@ -52,7 +52,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   tag           = kwargs.get('tag',           ""     ) # file tag
   filters       = kwargs.get('filter',        None   ) # only create histograms for these processes
   vetoes        = kwargs.get('veto',          None   ) # veto these processes
-  parallel      = kwargs.get('parallel',      True   ) # MultiDraw histograms in parallel
+  parallel      = kwargs.get('parallel',      False   ) # MultiDraw histograms in parallel
   recreate      = kwargs.get('recreate',      False  ) # recreate ROOT file
   replaceweight = kwargs.get('replaceweight', None   ) # replace weight (e.g. for syst. variations)
   replacenames  = kwargs.get('replacename',   [ ]    ) # replace name (regular expressions)
@@ -141,7 +141,8 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       deletehist(hist) # clean memory
   
   # CLOSE
-  for obs, file in files.iteritems():
+  for obs, file in files.items():
+  #for obs, file in files.iteritems():
     file.Close()
   
 
@@ -170,7 +171,8 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
   if isinstance(varprocs['Nom'],Systematic): # convert Systematic objects back to simple string
     systs    = varprocs # OrderedDict of Systematic objects
     varprocs = OrderedDict()
-    for syskey, syst in systs.iteritems():
+    for syskey, syst in systs.items():
+    #for syskey, syst in systs.iteritems():
       if syskey.lower()=='nom':
         varprocs['Nom'] = syst.procs
       else:
@@ -181,7 +183,8 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
     ftag    = tag+obs.tag
     fname_  = repkey(fname,OBS=obsname,TAG=ftag)
     file    = ensureTFile(fname_,'UPDATE')
-    for set, procs in varprocs.iteritems(): # loop over processes with variation
+    #for set, procs in varprocs.iteritems(): # loop over processes with variation
+    for set, procs in varprocs.items(): # loop over processes with variation
       if set=='Nom':
         systag = "" # no systematics tag for nominal
         procs_ = procs[:]

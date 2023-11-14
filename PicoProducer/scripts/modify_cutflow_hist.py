@@ -70,15 +70,13 @@ def get_nanoaod_sumw(args):
 #     return None
             
 def check_sample_name(sample_name_full, keys):
-    sample_name = sample_name_full.replace("_mutau", "").replace("_mumu", "").replace("_etau", "")
+    sample_name = sample_name_full.split("_mutau")[0].split("_mumu")[0]
     # print("sample_name_full = ", sample_name_full)
     # print("sample_name cut = ", sample_name)
-    # print("keys = ", keys)
     if sample_name in keys:
-        #print("sample_name to retrun = ", sample_name)
         return sample_name
     return None
-       
+  
 
 def modify_cutflow_hist(args):
     """
