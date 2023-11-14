@@ -159,7 +159,7 @@ def getsampleset(channel,era,**kwargs):
   # Note: titles are set via STYLE.sample_titles
   #sampleset.stitch("W*LNu*",    incl='WJ',  name='WJ', cme=cme     ) # W + jets
   #sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYJ', name="DY_M50", cme=cme ) # Drell-Yan, M > 50 GeV
-  sampleset.stitch("W*LNu*",    incl='WtoLNu-4Jets',  name='WJ', cme=cme) # W + jets
+  sampleset.stitch("W*LNu*Jets*",    incl='WtoLNu-4Jets',  name='WJ', cme=cme) # W + jets
   sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYto2L-4Jets_MLL-50', name="DY_M50", cme=cme) 
 
   # JOIN
