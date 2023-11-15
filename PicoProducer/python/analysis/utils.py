@@ -116,20 +116,23 @@ def getlastcopy(part,genparts):
   """Get last copy, e.g. after all initial/final state radiation."""
   moth  = part
   imoth = part._index # index of mother in GenPart collection
-  for idau in range(imoth+1,len(genparts)): # assume indices are chronologically ordered
+  for idau in range(part._index+1,len(genparts)): # assume indices are chronologically ordered
     if moth.statusflag('isLastCopy'):
+      ###print(f">>> getlastcopy: moth={moth} with i={moth._index}, pid={moth.pdgId} is last copy: break")
       break # assume no more copies
     dau = genparts[idau]
-    if dau.pdgId==moth.pdgId and dau.genPartIdxMother==imoth:
+    ###print(f">>> getlastcopy: moth={moth} with i={moth._index}, pid={moth.pdgId}, dau={dau} with i={idau}, pid={dau.pdgId}, imoth={dau.genPartIdxMother}")
+    if dau.pdgId==moth.pdgId and (dau.genPartIdxMother==moth._index): #or dau.genPartIdxMother==part._index):
       moth = dau # assume daughter is copy of mother
-      imoth = part._index
+  ###else: # no break in for-loop
+  ###  print(f">>> getlastcopy: no break")
   return moth
   
 
 def getprodchain(part,genparts=None,event=None):
-  """Print productions chain."""
+  """Return string of productions chain."""
   chain = "%3s"%(part.pdgId)
-  imoth = part.genPartIdxMother
+  imoth = part.genPartIdxMother # index of mother in GenPart collection
   while imoth>=0:
     if genparts:
       moth = genparts[imoth]
