@@ -76,8 +76,10 @@ def hasbit(value,bit):
 def hasstatusflag(particle,*flags):
   """Check if status flag of a GenPart is set."""
   # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+  # Alternatively, use Object.statusflag("flag"):
+  # https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py
   return all((particle.statusFlags & (1 << statusflags_dict[f]))>0 for f in flags)
-Object.statusflag = hasstatusflag # promote to method of Object class for GenPart
+#Object.statusflag = hasstatusflag # promote to method of Object class for GenPart
 # See PR: https://github.com/cms-nanoAOD/nanoAOD-tools/pull/301
 
 

@@ -400,7 +400,7 @@ class ModuleGenLQ(Module):
     # we need the four-momentum of the visible decay
     # products of the selected tau particles
     # Note: pt > 10 GeV cut is applied to the GenVisTau collection
-    # Note: genPartIdxMother is inaccurate...
+    # Note: GenVisTau.genPartIdxMother is inaccurate...
     for vistau_ in Collection(event,'GenVisTau'): # hadronic decays only
       tmoth = None # mother tau
       dRmin = 10. # DeltaR with closest "full" tau lepton
@@ -638,7 +638,6 @@ class ModuleGenLQ(Module):
       self.out.mt_vistau1[0]     = -1
       self.out.mt_vistau2[0]     = -1
       self.out.dphi_vistau[0]    = -9
-    self.out.fill() # fill branches
     
     # FILL BOTTOM QUARK BRANCHES
     if len(bots)>=2:
@@ -714,6 +713,7 @@ class ModuleGenLQ(Module):
       mass = lq.p4().M() # get mass from TLorentzVector
       self.out.fill('mass_lq',mass)
     
+    self.out.fill() # fill branches
     return True
   
 
@@ -735,7 +735,7 @@ if __name__ == '__main__':
   maxevts   = args.maxevts if args.maxevts>0 else None
   outfname  = "genAnalyzer_LQ%s.root"%(args.tag)
   modules   = [ModuleGenLQ(outfname)]
-  branchsel = "keep_and_drop_gen.txt" # only keep gen-related branches to speed up processing
+  #branchsel = "keep_and_drop_gen.txt" # only keep gen-related branches to speed up processing
   
   # INPUT FILES
   url = "root://cms-xrd-global.cern.ch/"

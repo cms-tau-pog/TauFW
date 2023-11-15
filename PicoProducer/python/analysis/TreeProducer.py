@@ -63,6 +63,7 @@ class TreeProducer(object):
     key    = kwargs.get('key',    name ) # key name for histogram dictionary
     xlabs  = kwargs.get('xlabs',  None ) # list of alphanumeric x axis labels
     ylabs  = kwargs.get('ylabs',  None ) # list of alphanumeric y axis labels
+    lsize  = kwargs.get('lsize',  None ) # label size
     option = kwargs.get('option', None ) # draw option, e.g. 'COLZ TEXT44'
     if '/' in name: # make subdirectory in file
       dname = '/'.join(name.split('/')[:-1])
@@ -117,6 +118,9 @@ class TreeProducer(object):
           hist.GetYaxis().SetBinLabel(i,ylab)
         elif isinstance(ylab,tuple): # assume (ibin,label)
           hist.GetYaxis().SetBinLabel(*ylab)
+    if lsize!=None:
+      hist.GetXaxis().SetLabelSize(lsize)
+      hist.GetYaxis().SetLabelSize(lsize)
     if key in self.hists:
       print(">>> WARNING! TreeProducer.addHist: key %r (name %r) already in list of histograms,"%(key,name)+\
             " which may cause confusion when filling by key! Please chose a unique histogram or key name...")

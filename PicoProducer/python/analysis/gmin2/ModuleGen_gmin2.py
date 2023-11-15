@@ -3,7 +3,8 @@
 # Description:
 #   Simple example of gen-level study of dilepton events.
 # Instructions to run standalone:
-#   python3 python/analysis/gmin2/ModuleGen_gmin2.py -n 10000
+#   python3 python/analysis/gmin2/ModuleGen_gmin2.py -s m -t _mumu -n 100000
+#   python3 python/analysis/gmin2/ModuleGen_gmin2.py -s t -t _tautau -n 100000
 # Instructions to run with pico.py:
 #   pico.py channel gen python/analysis/gmin2/ModuleGen_gmin2.py
 #   pico.py era UL2018 samples/gmin2/samples_UL2018.py
@@ -62,14 +63,25 @@ def mapabspid(pid):
 def mappid(pid):
   """Map absolute value of lepton PDG ID to bin number."""
   if   pid==0:   return 0
-  elif pid==-11: return 1
-  elif pid==11:  return 2
-  elif pid==-13: return 3
-  elif pid==13:  return 4
-  elif pid==-15: return 5
-  elif pid==15:  return 6
+  elif pid==11:  return 1
+  elif pid==-11: return 2
+  elif pid==13:  return 3
+  elif pid==-13: return 4
+  elif pid==15:  return 5
+  elif pid==-15: return 6
   print(f">>> mappid: WARNING! Unrecognized PID={pid}")
   return -1
+  
+def mappid2(pid1,pid2):
+  """Map absolute value of lepton PDG ID to bin number."""
+  if pid1==-pid2:
+    if       pid1==0:   return 0
+    elif abs(pid1)==11: return 2
+    elif abs(pid1)==13: return 3
+    elif abs(pid1)==15: return 4
+  elif pid1==0 or pid2==0:
+    return 1
+  return 5
   
 
 # MAIN PHYSICAL ANALYSIS MODULE
@@ -83,17 +95,31 @@ class ModuleGen_gmin2(Module):
     self.branchsel = branchsel # disable unneeded branches for faster processing
     
     # ADD CUTS TO CUTFLOW
-    self.out.cutflow.addcut('nocut',"No cut")
+    self.out.cutflow.addcut('nocut', "No cut")
+    self.out.cutflow.addcut('lep',   "1 lepton")
+    self.out.cutflow.addcut('pair',  "2 leptons")
+    self.out.cutflow.addcut('charge',"Opposite charge")
     
     # ADD HISTOGRAMS
     abspidlabs = ["None","e","#mu","#tau"] # axis labels for leptons PDG
-    pidlabs    = ["None","e^{#minus}","#mu^{#minus}","#tau^{#minus}","e^{+}","#mu^{+}","#tau^{+}"] # axis labels for leptons PDG
-    self.out.addHist('nfsr',     "Number of FSR photons of two leading lepton",10,0,10) # to study FSR
-    self.out.addHist('ncopies',  "Number of copies of two leading lepton",10,0,10) # to study FSR
-    self.out.addHist('abspid_lep2D',"PDG ID of two leading leptons",4,0,4,4,0,4,
-      xlabs=abspidlabs,ylabs=abspidlabs,option='COLZ TEXT44')
-    self.out.addHist('pid_lep2D',"PDG ID of two leading leptons",7,0,7,7,0,7,
-      xlabs=pidlabs,ylabs=pidlabs,option='COLZ TEXT44')
+    pidlabs    = ["None","e^{+}","e^{#minus}","#mu^{+}","#mu^{#minus}","#tau^{+}","#tau^{#minus}"] # axis labels for leptons PDG
+    pidlabs2   = ["No lep","1 lep","e^{+}e^{#minus}","#mu^{+}#mu^{#minus}","#tau^{+}#tau^{#minus}","Other"] # axis labels for leptons PDG
+    self.out.addHist('nfsr',      "Number of FSR photons of two leading lepton",10,0,10) # to study FSR
+    #self.out.addHist('nfsr_pos',  "Number of FSR photons of positively charged lepton",10,0,10) # to study FSR
+    #self.out.addHist('nfsr_neg',  "Number of FSR photons of negatively charged lepton",10,0,10) # to study FSR
+    #self.out.addHist('nfsr_os',   "Number of FSR photons of OS leptons;Number of FSR photons of positively charged lepton;Number of FSR photons of negatively charged lepton",
+    #  10,0,10,10,0,10) # to study FSR
+    self.out.addHist('nfsr2D',    "Number of FSR photons of two leading lepton;Number of FSR photons from leading lepton;Number of FSR photons from subleading lepton",
+                     10,0,10,10,0,10) # to study FSR
+    self.out.addHist('ncopies',   "Number of copies of two leading lepton",10,0,10) # to study FSR
+    self.out.addHist('pid_lep1D', "Final state of two leading leptons",6,0,6,xlabs=pidlabs2,lsize=0.045)
+    self.out.addHist('abspid_lep2D',"Final state of two leading leptons;Leading lepton;Subleading lepton",4,0,4,4,0,4,
+                     xlabs=abspidlabs,ylabs=abspidlabs,lsize=0.045,option='COLZ TEXT44')
+    self.out.addHist('pid_lep2D',"Final state of two leading leptons;Leading lepton;Subleading lepton",7,0,7,7,0,7,
+                     xlabs=pidlabs,ylabs=pidlabs,lsize=0.045,option='COLZ TEXT44')
+    ###self.out.addHist('pt_pos',"pT of positively charged lepton",100,0,300)
+    ###self.out.addHist('pt_neg',"pT of negatively charged lepton",100,0,300)
+    ###self.out.addHist('pt_os',"pT of OS-charge leptons;pT of positively charged lepton;pT of negatively charged lepton",100,0,300,100,0,300)
     
     # ADD BRANCHES for EVENT
     self.out.addBranch('genweight',      'f', title="Generator weight")
@@ -101,6 +127,8 @@ class ModuleGen_gmin2(Module):
     self.out.addBranch('nmuons',         'i', title="Number of muons")
     self.out.addBranch('ntaus',          'i', title="Number of tau leptons")
     self.out.addBranch('nfsr',           'i', title="Number of FSR photons (from two leading leptons)")
+    self.out.addBranch('nfsr1',          'i', title="Number of FSR photons with pT > 1 GeV (from two leading leptons)")
+    self.out.addBranch('nfsr10',         'i', title="Number of FSR photons with pT > 10 GeV (from two leading leptons)")
     
     # ADD BRANCHES for LEPTONS
     self.out.addBranch('pt_lep1',        'f', title="pT of leading lepton")
@@ -136,6 +164,17 @@ class ModuleGen_gmin2(Module):
     
   def endJob(self):
     """Wrap up after running on all events and files"""
+    hist = self.out.hists['pid_lep1D']
+    nall = hist.GetEntries()
+    if nall>0:
+      print(">>> Two leading leptons:")
+      for i in range(1,hist.GetXaxis().GetNbins()+1):
+        nevt = int(hist.GetBinContent(i))
+        name = hist.GetXaxis().GetBinLabel(i).replace('#','').replace('^{+}','+').replace('^{minus}','-')
+        eff  = nevt/nall # efficiency
+        err  = sqrt(eff*(1.-eff)/nall) # uncertainty in efficiency
+        seff = f"{0:4d}" if nevt==0 else f"({100*eff:6.2f} +-{100*err:5.2f} )"
+        print(f">>>   {name:<8s} {nevt:7d} / {nall} = {seff}%")
     self.out.endJob()
     
   def analyze(self, event):
@@ -194,6 +233,21 @@ class ModuleGen_gmin2(Module):
       lastlep = getlastcopy(photon.mother,genparts) # get last copy of tau (after all FSR)
       lastlep.photons.append(photon)
     
+    #### SANITY CHECKS for charge balance
+    ###leptons = elecs+muons+taus
+    ###for lepton in leptons:
+    ###  if lepton.pdgId>0: # positive charge
+    ###    self.out.fill('pt_pos',lepton.pt)
+    ###    self.out.fill('nfsr_pos',len(lepton.photons))
+    ###  else: # negatively charged
+    ###    self.out.fill('pt_neg',lepton.pt)
+    ###    self.out.fill('nfsr_neg',len(lepton.photons))
+    ###  poslep = [l for l in leptons if l.pdgId>0]
+    ###  neglep = [l for l in leptons if l.pdgId<0]
+    ###  if len(poslep)>=1 and len(neglep)>=1:
+    ###    self.out.fill('pt_os',poslep[0].pt,neglep[0].pt)
+    ###    self.out.fill('nfsr_os',len(poslep[0].photons),len(neglep[0].photons))
+    
     # SORT LEPTONS BY PT
     leptons = elecs+muons+taus
     leptons.sort(key=lambda l: l.pt,reverse=True) # sort leptons by pT
@@ -205,9 +259,12 @@ class ModuleGen_gmin2(Module):
     self.out.nmuons[0]    = len(muons)
     self.out.ntaus[0]     = len(taus)
     self.out.nfsr[0]      = sum(len(l.photons) for l in leptons[:2])
+    self.out.nfsr1[0]     = sum(sum(p.pt>1 for p in l.photons) for l in leptons[:2])
+    self.out.nfsr10[0]    = sum(sum(p.pt>10 for p in l.photons) for l in leptons[:2])
     
     # FILL TAU BRANCHES
     if len(leptons)>=2:
+      self.out.fill('nfsr2D',len(leptons[0].photons),len(leptons[1].photons)) # number of FSR photons
       p4_lep1 = leptons[0].p4()
       p4_lep2 = leptons[1].p4()
       self.out.dR_ll[0]         = p4_lep1.DeltaR(p4_lep2)
@@ -279,15 +336,31 @@ class ModuleGen_gmin2(Module):
       self.out.nphotons_lep1[0] = -1
       self.out.nphotons_lep2[0] = -1
     
+    # FILL CUTFLOW
+    if len(leptons)>=1:
+      self.out.cutflow.fill('lep')
+      if len(leptons)>=2:
+        self.out.cutflow.fill('pair')
+        if leptons[0].pdgId*leptons[1].pdgId<0:
+          self.out.cutflow.fill('charge')
+        ###else: # debugging
+        ###  print(f">>> WARNING! Two Leading leptons are same-sign!")
+        ###  dumpgenpart(leptons[0],genparts,flags=['isFirstCopy','isLastCopy','isTauDecayProduct']) # print for debugging
+        ###  dumpgenpart(leptons[1],genparts,flags=['isFirstCopy','isLastCopy','isTauDecayProduct']) # print for debugging
+        ###  print(">>>  "+getprodchain(leptons[0],genparts))
+        ###  print(">>>  "+getprodchain(leptons[1],genparts))
+    
     # FILL HISTOGRAMS
     for lepton in leptons:
       self.out.fill('nfsr',len(lepton.photons))  # number of FSR photons
       self.out.fill('ncopies',len(lepton.copies)) # number of copies
+    self.out.fill('pid_lep1D',mappid2(self.out.pid_lep1[0],self.out.pid_lep2[0]))
     self.out.fill('abspid_lep2D',
       mapabspid(abs(self.out.pid_lep1[0])),mapabspid(abs(self.out.pid_lep2[0])))
     self.out.fill('pid_lep2D',
       mappid(self.out.pid_lep1[0]),mappid(self.out.pid_lep2[0]))
     
+    self.out.fill() # fill branches
     return True
   
 
@@ -318,21 +391,21 @@ if __name__ == '__main__':
   elif args.sample=='m': # GGToMuMu
     infiles = [
       indir+"/GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122720/0000/NanoAODv9_1.root",
-      #indir+"/GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122720/0000/NanoAODv9_2.root",
-      #indir+"/GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122720/0000/NanoAODv9_3.root",
+      indir+"/GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122720/0000/NanoAODv9_2.root",
+      indir+"/GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122720/0000/NanoAODv9_3.root",
     ]
   elif args.sample=='t': # GGToTauTau
     infiles = [
       indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_1.root",
-      #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_10.root",
-      #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_2.root",
-      #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_3.root",
-      #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_4.root",
+      indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_2.root",
+      indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_3.root",
+      indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_4.root",
       #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_5.root",
       #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_6.root",
       #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_7.root",
       #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_8.root",
       #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_9.root",
+      #indir+"/GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000/NanoAODv9_10.root",
     ]
   
   # PROCESS NANOAOD
