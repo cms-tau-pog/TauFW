@@ -176,7 +176,8 @@ def getsampleset(channel,era,**kwargs):
   # Note: titles are set via STYLE.sample_titles
   sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'     ) # W + jets
   if "v2p5" in era:
-    sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50",
+    sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50")
+    # The following skimming efficiencies should be removed when running on nTuples with corrected cutflow content!!!!
                      eff_nanoAOD_DYll=0.47435726,
                      eff_nanoAOD_DYll_0orp4j=0.439206,
                      eff_nanoAOD_DYll_1j=0.54153996,
