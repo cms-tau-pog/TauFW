@@ -6,7 +6,7 @@ import numpy, copy
 from array import array
 from argparse import ArgumentParser
 from plotParabola_POI_region import measurepoi, ensureDirectory, ensureTFile
-from ROOT import gROOT, gPad, gStyle, Double, TFile, TCanvas, TLegend, TLatex, TF1, TH2F, TGraph, TLine, TColor,\
+from ROOT import gROOT, gPad, gStyle, TFile, TCanvas, TLegend, TLatex, TF1, TH2F, TGraph, TLine, TColor,\
                  kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, kBlackBody, kTemperatureMap
 from TauFW.Plotter.sample.utils import CMSStyle
 from math import sqrt, log, ceil, floor
@@ -253,7 +253,10 @@ def plotPostFitValues(channel,var,region,year,*parameters,**kwargs):
     graphsleg   = columnize(graphs,3)     if N>6 else columnize(graphs,2)     if N>3 else graphs # reordered for two columns
     paramsleg   = columnize(parameters,3) if N>6 else columnize(parameters,2) if N>3 else parameters # reordered for two columns
     
-    xtitle  = 'tau energy scale'
+    if poi == 'tes':
+      xtitle  = 'tau energy scale'
+    if poi == 'tid_SF':
+      xtitle  = 'tau identification scale factor'
     ytitle  = "%s post-fit value"%(parameters[0] if N==1 else "MultiDimFit")
     xmin, xmax = min(tvals), max(tvals)
     ymin, ymax = min(pvals), max(pvals)
@@ -540,12 +543,12 @@ def main(args):
                  "trackedParam_tid_SF_DM0","trackedParam_tid_SF_DM10", "xsec_dy", "norm_wj",
                   "shape_jTauFake", "rate_jTauFake", "xsec_tt", "trackedParam_tes_DM0","trackedParam_tes_DM1","trackedParam_tes_DM10","trackedParam_tes_DM11" ]
     compare   = {
-      # "norm":
-      #   [ "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0", "rate_jTauFake_DM1","rate_jTauFake_DM10","rate_jTauFake_DM11"
-      #   ],
       "norm":
-        [ "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0_pt1","rate_jTauFake_DM0_pt2","rate_jTauFake_DM0_pt3", "rate_jTauFake_DM1_pt1","rate_jTauFake_DM1_pt2","rate_jTauFake_DM1_pt3", "rate_jTauFake_DM10_pt1","rate_jTauFake_DM10_pt2","rate_jTauFake_DM10_pt3", "rate_jTauFake_DM11_pt1","rate_jTauFake_DM11_pt2","rate_jTauFake_DM11_pt3"
+        [ "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0", "rate_jTauFake_DM1","rate_jTauFake_DM10","rate_jTauFake_DM11"
         ],
+      # "norm":
+      #   [ "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0_pt1","rate_jTauFake_DM0_pt2","rate_jTauFake_DM0_pt3", "rate_jTauFake_DM1_pt1","rate_jTauFake_DM1_pt2","rate_jTauFake_DM1_pt3", "rate_jTauFake_DM10_pt1","rate_jTauFake_DM10_pt2","rate_jTauFake_DM10_pt3", "rate_jTauFake_DM11_pt1","rate_jTauFake_DM11_pt2","rate_jTauFake_DM11_pt3"
+      #   ],
       "shapes":
         [  "shape_mTauFakeSF", 
           "shape_dy"
@@ -553,26 +556,26 @@ def main(args):
         # "rateParam":
         # [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1", "trackedParam_sf_W_DM0_pt2", "trackedParam_sf_W_DM1_pt1", "trackedParam_sf_W_DM1_pt2", "trackedParam_sf_W_DM10_pt1", "trackedParam_sf_W_DM10_pt2", "trackedParam_sf_W_DM11_pt1", "trackedParam_sf_W_DM11_pt2"
         # ],
-        # "rateParam":
-        # [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0", "trackedParam_sf_W_DM1", "trackedParam_sf_W_DM10", "trackedParam_sf_W_DM11"
-        # ],
-         "rateParam":
-        [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1","trackedParam_sf_W_DM0_pt2","trackedParam_sf_W_DM0_pt3", "trackedParam_sf_W_DM1_pt1","trackedParam_sf_W_DM1_pt2","trackedParam_sf_W_DM1_pt3", "trackedParam_sf_W_DM10_pt1", "trackedParam_sf_W_DM10_pt2","trackedParam_sf_W_DM10_pt3","trackedParam_sf_W_DM11_pt1", "trackedParam_sf_W_DM11_pt2","trackedParam_sf_W_DM11_pt3"
+        "rateParam":
+        [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0", "trackedParam_sf_W_DM1", "trackedParam_sf_W_DM10", "trackedParam_sf_W_DM11"
         ],
+        #  "rateParam":
+        # [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1","trackedParam_sf_W_DM0_pt2","trackedParam_sf_W_DM0_pt3", "trackedParam_sf_W_DM1_pt1","trackedParam_sf_W_DM1_pt2","trackedParam_sf_W_DM1_pt3", "trackedParam_sf_W_DM10_pt1", "trackedParam_sf_W_DM10_pt2","trackedParam_sf_W_DM10_pt3","trackedParam_sf_W_DM11_pt1", "trackedParam_sf_W_DM11_pt2","trackedParam_sf_W_DM11_pt3"
+        # ],
       # "tid":
       #   ["trackedParam_tid_SF_pt1","trackedParam_tid_SF_pt2","trackedParam_tid_SF_pt3","trackedParam_tid_SF_pt4","trackedParam_tid_SF_pt5","trackedParam_tid_SF_pt6","trackedParam_tid_SF_pt7"],
-      # "tid":
-      #   ["trackedParam_tid_SF_DM0","trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11"],
+      "tid":
+        ["trackedParam_tid_SF_DM0","trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11"],
       # "tid":
       #   ["trackedParam_tid_SF_DM0_pt1","trackedParam_tid_SF_DM0_pt2", "trackedParam_tid_SF_DM1_pt1","trackedParam_tid_SF_DM1_pt2","trackedParam_tid_SF_DM10_pt1","trackedParam_tid_SF_DM10_pt2","trackedParam_tid_SF_DM11_pt1","trackedParam_tid_SF_DM11_pt2"],
     #  "tid":
     #     ["trackedParam_tid_SF_DM0", "trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11"],
      
-      # "tes":
-      #   [ "tes_DM0","tes_DM1","tes_DM10","tes_DM11"]
+      "tes":
+        [ "tes_DM0","tes_DM1","tes_DM10","tes_DM11"]
 
-       "tes":
-        [ "tes_DM0_pt1","tes_DM0_pt2","tes_DM0_pt3","tes_DM1_pt1","tes_DM1_pt2","tes_DM1_pt3","tes_DM10_pt1","tes_DM10_pt2","tes_DM10_pt3","tes_DM11_pt1","tes_DM11_pt2","tes_DM11_pt3"]
+      #  "tes":
+      #   [ "tes_DM0_pt1","tes_DM0_pt2","tes_DM0_pt3","tes_DM1_pt1","tes_DM1_pt2","tes_DM1_pt3","tes_DM10_pt1","tes_DM10_pt2","tes_DM10_pt3","tes_DM11_pt1","tes_DM11_pt2","tes_DM11_pt3"]
     }
     
     fulllist  = [
@@ -619,7 +622,7 @@ if __name__ == '__main__':
     argv = sys.argv
     description = '''This script makes datacards with CombineHarvester.'''
     parser = ArgumentParser(prog="LowMassDiTau_Harvester",description=description,epilog="Succes!")
-    parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018', 'UL2018_v10'], type=str, default='2017', action='store', help="select year")
+    parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018', 'UL2018_v10','2022_postEE'], type=str, default='2017', action='store', help="select year")
     parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup" )
     parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar="TAG", help="extra tag for output files")
     parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store', metavar="RANGE", help="range of TES shifts")
