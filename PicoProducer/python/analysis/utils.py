@@ -4,7 +4,7 @@ import os, sys
 from math import sqrt, sin, cos, pi, log10, floor
 from itertools import combinations
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
-from ROOT import TH1D, TLorentzVector
+from ROOT import TH1D, TLorentzVector, RDataFrame
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
 from TauFW.common.tools.file import ensurefile
