@@ -51,8 +51,8 @@ def getsampleset(channel,era,**kwargs):
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 )
     ]
-    #if 'mutau' in channel:
-    #  expsamples.append(('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh_M-50",5343.0,{'extraweight': dyweight})) # apply correct normalization in stitching
+    if 'mutau' in channel:
+      expsamples.append(('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh_M-50",5343.0,{'extraweight': dyweight})) # apply correct normalization in stitching
   elif era=='2016': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
