@@ -144,7 +144,8 @@ def QCD_OSSS(self, variables, selection, **kwargs):
     LOG.verbose("SampleSet.QCD_OSSS: SS yields: data=%.1f, exp=%.1f, qcd=%.1f, scale=%.3f"%(ndata,nexp,nqcd,scale),verbosity,level=2)
     
     # CLEAN
-    deletehist([datahist,exphist]+exphists)
+    if not parallel: # avoid segmentation faults for parallel
+      deletehist([datahist,exphist]+exphists) # clean histogram from memory
   
   return qcdhists
   
