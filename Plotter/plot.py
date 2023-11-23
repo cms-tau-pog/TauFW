@@ -99,7 +99,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       stack.drawlegend() #position)
       stack.drawtext(text)
       stack.saveas(fname,ext=exts,tag=tag)
-      stack.close()
+      stack.close(keep=True)
   
 
 def main(args):

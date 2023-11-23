@@ -89,7 +89,7 @@ def main(args):
           GMF = "genmatch_2<5"
           if splitbydm:
             idweights = getdmsf(era) # DM-dependent SF, pT > 20 GeV
-            print idweights
+            print(idweights)
             sampleset.split('DY',[('ZTT_DM0', GMR+" && dm_2==0"), ('ZTT_DM1', GMR+" && dm_2==1"),
                                   ('ZTT_DM10',GMR+" && dm_2==10"),('ZTT_DM11',GMR+" && dm_2==11"),
                                   ('ZL',GML),('ZJ',GMJ)])
@@ -228,9 +228,8 @@ def main(args):
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Create input histograms for datacards"""
-  parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017'], default=['UL2017'], action='store',
                                           help="set era" )
   parser.add_argument('-c', '--channel',  dest='channels', nargs='*', choices=['mutau','mumu'], default=['mutau'], action='store',
@@ -245,5 +244,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   
