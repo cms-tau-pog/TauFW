@@ -6,6 +6,7 @@
 # Sources:
 #   https://github.com/cms-nanoAOD/nanoAOD-tools#nanoaod-tools
 #   https://github.com/cms-nanoAOD/nanoAOD-tools/tree/master/python/postprocessing/examples
+#   https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/examples/exampleGenDump.py
 #   https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/genparticles_cff.py
 #   https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/LHETablesProducer.cc
 from __future__ import print_function # for python3 compatibility

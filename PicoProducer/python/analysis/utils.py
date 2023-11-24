@@ -3,7 +3,7 @@
 import os, sys
 from math import sqrt, sin, cos, pi, log10, floor
 from itertools import combinations
-import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import TH1D, TLorentzVector, RDataFrame
 from TauFW.PicoProducer import basedir
 from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
@@ -76,8 +76,10 @@ def hasbit(value,bit):
 def hasstatusflag(particle,*flags):
   """Check if status flag of a GenPart is set."""
   # https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#GenPart
+  # Alternatively, use Object.statusflag("flag"):
+  # https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/python/postprocessing/framework/datamodel.py
   return all((particle.statusFlags & (1 << statusflags_dict[f]))>0 for f in flags)
-Object.statusflag = hasstatusflag # promote to method of Object class for GenPart
+#Object.statusflag = hasstatusflag # promote to method of Object class for GenPart
 # See PR: https://github.com/cms-nanoAOD/nanoAOD-tools/pull/301
 
 
@@ -109,13 +111,30 @@ def getmother(part,genparts):
   moth = part
   while moth.genPartIdxMother>=0 and part.pdgId==moth.pdgId:
     moth = genparts[moth.genPartIdxMother]
-  return moth.pdgId
+  return moth
+  
+
+def getlastcopy(part,genparts):
+  """Get last copy, e.g. after all initial/final state radiation."""
+  moth  = part
+  imoth = part._index # index of mother in GenPart collection
+  for idau in range(part._index+1,len(genparts)): # assume indices are chronologically ordered
+    if moth.statusflag('isLastCopy'):
+      ###print(f">>> getlastcopy: moth={moth} with i={moth._index}, pid={moth.pdgId} is last copy: break")
+      break # assume no more copies
+    dau = genparts[idau]
+    ###print(f">>> getlastcopy: moth={moth} with i={moth._index}, pid={moth.pdgId}, dau={dau} with i={idau}, pid={dau.pdgId}, imoth={dau.genPartIdxMother}")
+    if dau.pdgId==moth.pdgId and (dau.genPartIdxMother==moth._index): #or dau.genPartIdxMother==part._index):
+      moth = dau # assume daughter is copy of mother
+  ###else: # no break in for-loop
+  ###  print(f">>> getlastcopy: no break")
+  return moth
   
 
 def getprodchain(part,genparts=None,event=None):
-  """Print productions chain."""
+  """Return string of productions chain."""
   chain = "%3s"%(part.pdgId)
-  imoth = part.genPartIdxMother
+  imoth = part.genPartIdxMother # index of mother in GenPart collection
   while imoth>=0:
     if genparts:
       moth = genparts[imoth]
@@ -124,16 +143,18 @@ def getprodchain(part,genparts=None,event=None):
     elif event:
       chain = "%3s -> "%(event.GenPart_pdgId[imoth])+chain
       imoth = event.GenPart_genPartIdxMother[imoth]
+    else:
+      raise IOError("getprodchain: genparts or event must be defined")
   return chain
   
 
 def getdecaychain(part,genparts,indent=0):
   """Print decay chain."""
   chain   = "%3s"%(part.pdgId)
-  imoth   = part._index
+  imoth   = part._index # index of mother in GenPart collection
   ndaus   = 0
   indent_ = len(chain)+indent
-  for idau in range(imoth+1,len(genparts)): 
+  for idau in range(imoth+1,len(genparts)): # assume indices are chronologically ordered
     dau = genparts[idau]
     if dau.genPartIdxMother==imoth:
       if ndaus>=1:

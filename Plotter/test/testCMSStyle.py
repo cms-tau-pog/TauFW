@@ -81,8 +81,6 @@ def testCMSlogo(iPosX=0,width=800,height=750,lmargin=0.14,rmargin=0.04,tmargin=0
   hist = TH1F('hist','hist',10,0,100)
   hist.GetXaxis().SetTitle("X title")
   hist.GetYaxis().SetTitle("Y title")
-  print(">>> hist.GetXaxis().GetTitleOffset()=%.4f"%(hist.GetXaxis().GetTitleOffset()))
-  print(">>> hist.GetYaxis().GetTitleOffset()=%.4f"%(hist.GetYaxis().GetTitleOffset()))
   hist.GetXaxis().SetTitleSize(0.045)
   hist.GetYaxis().SetTitleSize(0.045)
   hist.GetXaxis().SetLabelSize(0.040)

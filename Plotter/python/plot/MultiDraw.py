@@ -6,10 +6,16 @@
 from __future__ import print_function # for python3 compatibility
 import os, re, traceback
 from ROOT import gROOT, gSystem, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
-                 TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
+                 TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager #, TNamed
 moddir   = os.path.dirname(os.path.realpath(__file__))
 macro    = os.path.join(moddir,"MultiDraw.cxx")
 macrolib = os.path.join(moddir,"MultiDraw_cxx.so")
+#TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o)))
+varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$") # named, create new histogram
+varregex2  = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$") # unnamed; existing histogram
+varregex2D = re.compile(r"^([^?]+)(?<!:)\s*:\s*(?!:)(.+)$") # look for single :, excluding double (e.g. TMath::Sqrt)
+binregex   = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
+binregex2D = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
 
 def error(string): # raise RuntimeError in red color
   return RuntimeError("\033[31m"+string+"\033[0m")
@@ -19,20 +25,19 @@ def compileMultiDraw():
   print(">>> Compiling %s"%(macro))
   gROOT.ProcessLine(".L %s+O"%macro)
 try:
-  if os.path.exists(macrolib):
+  if os.path.exists(macrolib): # already compiled as library
     try:
-      gSystem.Load(macrolib) # faster than compiling
-    except:
+      gSystem.Load(macrolib) # faster than compiling each time
+    except: # loading library failed => compile
       compileMultiDraw()
-  else:
+  else: # no library found => compile
       compileMultiDraw()
   from ROOT import MultiDraw as _MultiDraw
   from ROOT import MultiDraw2D as _MultiDraw2D
 except:
   print(traceback.format_exc())
   raise error('MultiDraw.py: Failed to import the MultiDraw macro "%s"'%macro)
-
-
+  
 def makeTObjArray(theList):
   """Turn a python iterable into a ROOT TObjArray"""
   # Make PyROOT give up ownership of the things that are being placed in the
@@ -44,11 +49,6 @@ def makeTObjArray(theList):
     result.Add(item)
   return result
   
-varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$") # named, create new histogram
-varregex2  = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$") # unnamed; existing histogram
-varregex2D = re.compile(r"^([^?]+)(?<!:)\s*:\s*(?!:)(.+)$") # look for single :, excluding double (e.g. TMath::Sqrt)
-binregex   = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
-binregex2D = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
 def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     """Draws multiple histograms in one loop over a tree (self).
     Instead of:
@@ -200,22 +200,24 @@ def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     
     # CHECK that formulae are told when tree changes
     manager = TTreeFormulaManager()
+    varlen  = False # at least one formula has a variable length
     for formula in xformulae + yformulae + weights + [commonFormula]:
       if isinstance(formula,TTreeFormula):
-        formula.GetNdata() # https://sft.its.cern.ch/jira/browse/ROOT-7465
+        formula.GetNdata() # to correctly load array branches: https://sft.its.cern.ch/jira/browse/ROOT-7465
         manager.Add(formula)
-    
+        varlen = varlen or any(formula.GetLeaf(i).GetLeafCount()!=None for i in range(formula.GetNcodes()))
     manager.Sync()
+    ndata = manager.GetNdata(True)
     self.SetNotify(manager)
     
     # DRAW
     if verbosity>=2:
-      print(">>> MultiDraw: xformulae=%s, yformulae=%s"%([x.GetTitle() for x in xformulae],[y.GetTitle() for y in yformulae]))
+      print(">>> MultiDraw: xformulae=%s, yformulae=%s, ndata=%s, varlen=%r"%([x.GetTitle() for x in xformulae],[y.GetTitle() for y in yformulae],ndata,varlen))
       print(">>> MultiDraw: weights=%s, results=%s"%([w.GetTitle() for w in weights],results))
-    if len(yformulae)==0:
-      _MultiDraw(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae))
-    elif len(xformulae)==len(yformulae):
-      _MultiDraw2D(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(yformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae))
+    if len(yformulae)==0: # 1D histograms
+      _MultiDraw(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae),verbosity)
+    elif len(xformulae)==len(yformulae): # 2D histograms
+      _MultiDraw2D(self,commonFormula,makeTObjArray(xformulae),makeTObjArray(yformulae),makeTObjArray(weights),makeTObjArray(results),len(xformulae),verbosity)
     else:
       raise error("MultiDraw: Given a mix of arguments for 1D (%d) and 2D (%d) histograms!"%(len(xformulae),len(yformulae)))
     

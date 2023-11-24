@@ -222,9 +222,9 @@ class GenFilterMuTau(Module):
       return False
     
     # MOTHER PDG ID
-    moth_pid = abs(getmother(taus_hard[0],particles)) if len(taus_hard)>=1 else 0
+    moth_pid = abs(getmother(taus_hard[0],particles).pdgId) if len(taus_hard)>=1 else 0
     if len(taus_hard)>=2:
-      moth_pid2 = abs(getmother(taus_hard[1],particles))
+      moth_pid2 = abs(getmother(taus_hard[1],particles).pdgId)
       if moth_pid!=moth_pid2:
         print(">>> Mother of ditau does not match! %s vs %s"%(moth_pid,moth_pid2))
     self.out.h_mothpid.Fill(moth_pid)

@@ -141,7 +141,7 @@ class Plot(object):
     self.lcolors      = kwargs.get('lcolors',    None                 ) or self.lcolors # line colors alias
     self.fcolors      = kwargs.get('fcolors',    None                 ) or _fcolors[:]  # fill colors
     self.lstyles      = kwargs.get('lstyles',    None                 ) or _lstyles[:]  # line styles
-    self.mstyles      = kwargs.get('mstyles',    None                 ) or _mstyles[:]  # marker styles
+    self.mstyles      = kwargs.get('mstyles',    None                 ) #or _mstyles[:]  # marker styles
     self.canvas       = None
     self.legends      = [ ]
     self.errbands     = [ ]
@@ -192,14 +192,15 @@ class Plot(object):
     rmax         = kwargs.get('rmax',         self.rmax       ) or 1.55 # ratio ymax
     ratiorange   = kwargs.get('rrange',       self.ratiorange ) # ratio range around 1.0
     ratio        = kwargs.get('ratio',        self.ratio      ) # make ratio plot
-    lowerpanels  = kwargs.get('lowerpanels',  int(ratio)      ) # number of lower panels
+    lowerpanels  = int(ratio) if isinstance(ratio,bool) else 1 if isinstance(ratio,int) else False
+    lowerpanels  = kwargs.get('lowerpanels',  lowerpanels     ) # number of lower panels (default 1 if ratio is True or int)
     denom        = ratio if not isinstance(ratio,bool) and isinstance(ratio,int) and (ratio!=0) else -1 # assume last histogram is denominator
     denom        = kwargs.get('den',          denom           ) # index of common denominator histogram in ratio plot (count from 1)
     denom        = kwargs.get('denom',        denom           ) # alias
     num          = kwargs.get('num',          None            ) # index of common numerator histogram in ratio plot (count from 1)
     rhists       = kwargs.get('rhists',       self.hists      ) # custom histogram argument for ratio plot
     iband        = denom if isinstance(denom,int) else -1
-    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for
+    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for (count from 1)
     staterr      = kwargs.get('staterr',      False           ) # create stat. error band
     sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
     errtitle     = kwargs.get('errtitle',     None            ) # title for error band
@@ -240,6 +241,8 @@ class Plot(object):
     lcolors      = ensurelist(lcolors or [ ])
     fcolors      = ensurelist(fcolors or [ ])
     lstyles      = ensurelist(lstyles or [ ])
+    hists        = self.hists
+    frame        = self.frame or hists[0]
     self.norm    = norm
     self.ratio   = ratio
     self.lcolors = lcolors
@@ -247,8 +250,6 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    hists        = self.hists
-    frame = self.frame or hists[0]
     if logx and xmin==0.0: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
     if logx and xmin==0: # reset xmin in binning
       xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
@@ -257,18 +258,13 @@ class Plot(object):
       for hist in hists:
         if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if isinstance(iband,int): # shift by 1
-      iband = max(0,min(len(self.hists),iband-1))
+      if iband<0:
+        iband = max(1,len(self.hists)+iband+1)
+      iband = max(0,min(len(self.hists)-1,iband-1))
     if verbosity>=1:
       print(">>> Plot.draw: hists=%s, ratio=%r, norm=%r, dividebins=%r"%(rootrepr(hists),ratio,norm,dividebins))
       print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
       print(">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
-    
-    # NORMALIZE
-    if norm:
-      if ytitle==None:
-        ytitle = "A.U."
-      scale = 1.0 if isinstance(norm,bool) else norm # can be list
-      normalize(hists,scale=scale)
     
     # DIVIDE BY BINSIZE
     if dividebins:
@@ -286,12 +282,19 @@ class Plot(object):
       #    if hist not in hists:
       #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
+    # NORMALIZE
+    if norm:
+      if ytitle==None:
+        ytitle = "A.U."
+      scale = 1.0 if isinstance(norm,bool) else norm # can be list
+      normalize(hists,scale=scale)
+    
     # DRAW OPTIONS
     if errbars:
       option = option+' E1' #E01
       if not roption:
         roption = 'E1 HIST'
-    if 'e1' in option.lower() and enderrorsize>0:
+    if not mstyles and 'e1' in option.lower() and enderrorsize>0:
       mstyles = ['hist'] # ensure extra perpendicular line at end of error bars ('E1')
     if len(options)==0:
       options = [ option ]*len(hists)
@@ -305,6 +308,7 @@ class Plot(object):
     #  options[i] = options[i].replace('E0','')
     gStyle.SetEndErrorSize(enderrorsize) # extra perpendicular line at end of error bars ('E1')
     gStyle.SetErrorX(0.5*float(errorX)) # horizontal error bars
+    LOG.verb("Plot.draw: options=%r, errbars=%r, ratio=%r, denom=%r, iband=%r"%(options,errbars,ratio,denom,iband),verbosity,2)
     LOG.verb("Plot.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
     
     # CANVAS
@@ -1261,7 +1265,7 @@ class Plot(object):
       hist.SetMarkerColor(mcolor)
       if msize!=None:
         hist.SetMarkerSize(msize)
-      LOG.verb("Plot.setmarkerstyle: hist=%s, mstyle=%r, msize=%r, color=%r"%(hist,mstyle,msize,mcolor),verbosity,2)
+      LOG.verb("Plot.setmarkerstyle: hist=%r, mstyle=%r, msize=%r, color=%r"%(hist,mstyle,msize,mcolor),verbosity,2)
     
   
   def setfillstyle(self, *hists, **kwargs):

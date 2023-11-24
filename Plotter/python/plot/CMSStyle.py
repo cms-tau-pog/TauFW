@@ -210,7 +210,7 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText_)
   
   if iPosX==0:
-    relPosX_ = relPosX_*(42*t*scale)*(cmsTextSize/0.84)
+    relPosX_ = relPosX_*(42*t*scale)*(cmsTextSize/0.84) # scale
     posX = l + relPosX_ #*(1-l-r)
     posY = 1 - t + lumiTextOffset*t
   else:

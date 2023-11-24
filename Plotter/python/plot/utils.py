@@ -134,11 +134,11 @@ def printhist(hist,min_=0,max_=None,**kwargs):
   nbins  = hist.GetNbinsX()
   minbin = kwargs.get('min',min_)
   maxbin = kwargs.get('max',max_) or nbins+1
-  TAB = LOG.table("%6s %9.6g %9.2f %8.2f",**kwargs)
-  TAB.printheader("ibin","xval","content","error",post=' '+repr(hist.GetName()))
+  TAB = LOG.table("%6s %9.6g %9.6g %11.2f %9.2f",**kwargs)
+  TAB.printheader("ibin","xmin","xmax","content","error",post=' '+repr(hist.GetName()))
   for ibin in range(minbin,maxbin+1):
-    xval = hist.GetXaxis().GetBinCenter(ibin)
-    TAB.printrow(ibin,xval,hist.GetBinContent(ibin),hist.GetBinError(ibin))
+    xmin, xmax = hist.GetXaxis().GetBinLowEdge(ibin), hist.GetXaxis().GetBinUpEdge(ibin)
+    TAB.printrow(ibin,xmin,xmax,hist.GetBinContent(ibin),hist.GetBinError(ibin))
   
 
 def grouphists(hists,searchterms,name=None,title=None,color=None,**kwargs):
@@ -328,7 +328,7 @@ def gethistratio(histnum,histden,**kwargs):
     histnum = histnum.GetStack().Last()
   rhist = histnum.Clone(hname)
   ncells = rhist.GetNcells() # GetNcells = GetNbinsX for TH1
-  LOG.verb("gethistratio: Making ratio of num=%s w.r.t. den=%s in ncells=%s"%(histnum,histden,ncells),verbosity,2)
+  LOG.verb("gethistratio: Making ratio of num=%r w.r.t. den=%r in ncells=%s"%(histnum,histden,ncells),verbosity,2)
   if havesamebins(histden,histnum,errorX=errorX): # sanity check binning is the same; works for TH1 and TH2
     #rhist.Divide(histden)
     TAB = LOG.table("%5d %9.3f %9.3f %9.3f %9.3f +- %7.3f",verb=verbosity,level=3)
