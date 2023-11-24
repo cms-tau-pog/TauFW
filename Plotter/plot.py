@@ -5,6 +5,10 @@
 #   ./plot.py -y 2018 -c mutau
 #   ./plot.py -y 2018 -c config/setup_mutau.yml
 #   ./plot.py -y 2018 -c mutau -S baseline -V m_vis
+#>>>>IMPORTANT!!
+#>>>>Run with --serial option if using py3:
+#   ./plot.py -y 2018 -c mutau --serial
+
 from config.samples import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
@@ -95,7 +99,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       stack.drawlegend() #position)
       stack.drawtext(text)
       stack.saveas(fname,ext=exts,tag=tag)
-      stack.close()
+      stack.close(keep=True)
   
 
 def main(args):
@@ -133,7 +137,7 @@ def main(args):
 
 if __name__ == "__main__":
   from argparse import ArgumentParser, RawTextHelpFormatter
-  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018']
+  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE']
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],

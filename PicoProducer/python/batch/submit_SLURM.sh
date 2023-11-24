@@ -42,7 +42,18 @@ peval "cd $WORKDIR" || exit 1
 
 # MAIN FUNCTIONALITY
 #eval $(scramv1 runtime -sh);
-peval "$TASKCMD"
+
+if [[ "$HOME" == *"ucl"* ]]
+then
+   export SINGULARITYENV_PATH=$PATH
+   export SINGULARITYENV_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+   singularity exec /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el7:x86_64 /bin/sh <<- EOF_PAYLOAD
+   echo ">>> $TASKCMD"
+   eval "$TASKCMD"
+   EOF_PAYLOAD
+else
+   peval "$TASKCMD"
+fi
 
 # FINISH
 peval "cd -"

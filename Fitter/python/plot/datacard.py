@@ -138,10 +138,11 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       if files[obs].cd(bin): # $FILE:$BIN/$PROCESS_$SYSTEMATC
         hist.Write(name,TH1.kOverwrite)
       TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(),name)
-      deletehist(hist) # clean memory
+      if not parallel: # avoid segmentation faults for parallel
+        deletehist(hist) # clean histogram from memory
   
   # CLOSE
-  for obs, file in files.iteritems():
+  for obs, file in files.items():
     file.Close()
   
 
@@ -170,7 +171,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
   if isinstance(varprocs['Nom'],Systematic): # convert Systematic objects back to simple string
     systs    = varprocs # OrderedDict of Systematic objects
     varprocs = OrderedDict()
-    for syskey, syst in systs.iteritems():
+    for syskey, syst in systs.items():
       if syskey.lower()=='nom':
         varprocs['Nom'] = syst.procs
       else:
@@ -181,7 +182,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
     ftag    = tag+obs.tag
     fname_  = repkey(fname,OBS=obsname,TAG=ftag)
     file    = ensureTFile(fname_,'UPDATE')
-    for set, procs in varprocs.iteritems(): # loop over processes with variation
+    for set, procs in varprocs.items(): # loop over processes with variation
       if set=='Nom':
         systag = "" # no systematics tag for nominal
         procs_ = procs[:]
@@ -250,7 +251,7 @@ def stackinputs(file,variable,processes,**kwargs):
       exphists.append(hist)
   for group in groups:
     grouphists(exphists,*group,replace=True,regex=True,verb=0)
-  stack = Stack(variable,datahist,exphists)
+  stack = Stack(variable,datahist,exphists,clone=True)
   stack.draw()
   stack.drawlegend(ncols=2,twidth=0.9)
   if text:
