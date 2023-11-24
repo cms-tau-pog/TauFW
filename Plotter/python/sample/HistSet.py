@@ -95,7 +95,6 @@ class HistSet(object):
         hists.extend([h for h in hists_ if h])
     return hists
     
-  
   def printall(self,full=False):
     """Print for debugging purposes."""
     nvars = len(self.vars) if islist(self.vars) else 1

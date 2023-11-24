@@ -328,7 +328,7 @@ def gethistratio(histnum,histden,**kwargs):
     histnum = histnum.GetStack().Last()
   rhist = histnum.Clone(hname)
   ncells = rhist.GetNcells() # GetNcells = GetNbinsX for TH1
-  LOG.verb("gethistratio: Making ratio of num=%s w.r.t. den=%s in ncells=%s"%(histnum,histden,ncells),verbosity,2)
+  LOG.verb("gethistratio: Making ratio of num=%r w.r.t. den=%r in ncells=%s"%(histnum,histden,ncells),verbosity,2)
   if havesamebins(histden,histnum,errorX=errorX): # sanity check binning is the same; works for TH1 and TH2
     #rhist.Divide(histden)
     TAB = LOG.table("%5d %9.3f %9.3f %9.3f %9.3f +- %7.3f",verb=verbosity,level=3)

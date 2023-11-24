@@ -6,10 +6,16 @@
 from __future__ import print_function # for python3 compatibility
 import os, re, traceback
 from ROOT import gROOT, gSystem, gDirectory, TObject, TTree, TObjArray, TTreeFormula,\
-                 TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager
+                 TH1D, TH2D, TH2, SetOwnership, TTreeFormulaManager #, TNamed
 moddir   = os.path.dirname(os.path.realpath(__file__))
 macro    = os.path.join(moddir,"MultiDraw.cxx")
 macrolib = os.path.join(moddir,"MultiDraw_cxx.so")
+#TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o)))
+varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$") # named, create new histogram
+varregex2  = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$") # unnamed; existing histogram
+varregex2D = re.compile(r"^([^?]+)(?<!:)\s*:\s*(?!:)(.+)$") # look for single :, excluding double (e.g. TMath::Sqrt)
+binregex   = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
+binregex2D = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
 
 def error(string): # raise RuntimeError in red color
   return RuntimeError("\033[31m"+string+"\033[0m")
@@ -31,8 +37,7 @@ try:
 except:
   print(traceback.format_exc())
   raise error('MultiDraw.py: Failed to import the MultiDraw macro "%s"'%macro)
-
-
+  
 def makeTObjArray(theList):
   """Turn a python iterable into a ROOT TObjArray"""
   # Make PyROOT give up ownership of the things that are being placed in the
@@ -44,11 +49,6 @@ def makeTObjArray(theList):
     result.Add(item)
   return result
   
-varregex   = re.compile(r"(.*?)\s*>>\s*(.*?)\s*\(\s*(.*?)\s*\)$") # named, create new histogram
-varregex2  = re.compile(r"(.*?)\s*>>\s*(.*?)\s*$") # unnamed; existing histogram
-varregex2D = re.compile(r"^([^?]+)(?<!:)\s*:\s*(?!:)(.+)$") # look for single :, excluding double (e.g. TMath::Sqrt)
-binregex   = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
-binregex2D = re.compile(r"(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*(\d+)\s*,\s*([+-]?\d*\.?\d*)\s*,\s*([+-]?\d*\.?\d*)")
 def MultiDraw(self, varexps, selection='1', drawoption="", **kwargs):
     """Draws multiple histograms in one loop over a tree (self).
     Instead of:

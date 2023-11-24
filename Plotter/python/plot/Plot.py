@@ -141,7 +141,7 @@ class Plot(object):
     self.lcolors      = kwargs.get('lcolors',    None                 ) or self.lcolors # line colors alias
     self.fcolors      = kwargs.get('fcolors',    None                 ) or _fcolors[:]  # fill colors
     self.lstyles      = kwargs.get('lstyles',    None                 ) or _lstyles[:]  # line styles
-    self.mstyles      = kwargs.get('mstyles',    None                 ) or _mstyles[:]  # marker styles
+    self.mstyles      = kwargs.get('mstyles',    None                 ) #or _mstyles[:]  # marker styles
     self.canvas       = None
     self.legends      = [ ]
     self.errbands     = [ ]
@@ -294,7 +294,7 @@ class Plot(object):
       option = option+' E1' #E01
       if not roption:
         roption = 'E1 HIST'
-    if 'e1' in option.lower() and enderrorsize>0:
+    if not mstyles and 'e1' in option.lower() and enderrorsize>0:
       mstyles = ['hist'] # ensure extra perpendicular line at end of error bars ('E1')
     if len(options)==0:
       options = [ option ]*len(hists)
@@ -1265,7 +1265,7 @@ class Plot(object):
       hist.SetMarkerColor(mcolor)
       if msize!=None:
         hist.SetMarkerSize(msize)
-      LOG.verb("Plot.setmarkerstyle: hist=%s, mstyle=%r, msize=%r, color=%r"%(hist,mstyle,msize,mcolor),verbosity,2)
+      LOG.verb("Plot.setmarkerstyle: hist=%r, mstyle=%r, msize=%r, color=%r"%(hist,mstyle,msize,mcolor),verbosity,2)
     
   
   def setfillstyle(self, *hists, **kwargs):
