@@ -5,7 +5,7 @@
 import sys
 from collections import OrderedDict
 sys.path.append("../../Plotter/") # for config.samples
-from config.samples_v10 import *
+from config.samples_v12 import *
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Fitter.plot.datacard import createinputs, plotinputs, preparesysts
 
@@ -21,6 +21,7 @@ def main(args):
   fileexp   = "$OUTDIR/$ANALYSIS_$OBS_$CHANNEL-$ERA$TAG.inputs.root"
   outdir    = ensuredir("input")
   plotdir   = "input/plots/$ERA"
+  fesVar    = args.fesVar
   
   for era in eras:
     for channel in channels:
@@ -36,7 +37,7 @@ def main(args):
       # GET SAMPLESET
       join      = ['VV','TT','ST']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-      sampleset = getsampleset(channel,era,fname=sname,join=join,split=[],table=False,tag=tag)
+      sampleset = getsampleset(channel,era,fname=sname,join=join,split=[],table=False,tag=tag, parallel=parallel)
       
       if channel=='mumu':
         
@@ -77,21 +78,28 @@ def main(args):
           #Add other samples when EES rerun for all
           ('EES',"_shape_ees",   ['ZL','ZTT','ZJ','W','VV','ST','TTT','TTL','TTJ']), #Electron energy scale
           #('RES',"_shape_res",   ['ZL','ZTT','ZJ','W','VV','ST','TTT','TTL','TTJ']),
-          #('JTFUp',   ['ZJ', 'TTJ', 'QCD', 'W']),
-          #('JTFDown', ['ZJ', 'TTJ', 'QCD', 'W']),
+          ('JTF',"_shape_jtf",   ['ZJ', 'TTJ', 'QCD', 'W']),
+          #('JTF',"_shape_jtf",   ['ZJ', 'TTJ', 'QCD', 'W']),
           ERA=era,CHANNEL=channel)
         samplesets = { # sets of samples per variation
           'Nom':     sampleset, # nominal
-          'TESUp':   sampleset.shift(systs['TES'].procs,"_TES1p05",systs['TES'].up," +5% TES", split=True,filter=False,share=True),
-          'TESDown': sampleset.shift(systs['TES'].procs,"_TES0p95",systs['TES'].dn," -5% TES", split=True,filter=False,share=True),
-          'FESUp':   sampleset.shift(systs['FES'].procs,"_FES1p10",systs['FES'].up," +10% FES", split=True,filter=False,share=True),
-          'FESDown': sampleset.shift(systs['FES'].procs,"_FES0p90",systs['FES'].dn," -10% FES", split=True,filter=False,share=True),
-          'EESUp':   sampleset.shift(systs['EES'].procs,"_EES1p01",systs['EES'].up," +1% EES", split=True,filter=False,share=True),
-          'EESDown': sampleset.shift(systs['EES'].procs,"_EES0p99",systs['EES'].dn," -1% EES", split=True,filter=False,share=True),
-          #'RESUp':   sampleset.shift(systs['RES'].procs,"",systs['RES'].up," +3% mvisRES", split=True,filter=False,share=True),
-          #'RESDown': sampleset.shift(systs['RES'].procs,"",systs['RES'].dn," -3% mvisRES", split=True,filter=False,share=True),
+          'TESUp':   sampleset.shift(systs['TES'].procs,"_TES1p05",systs['TES'].up," +5% TES", split=True,filter=False,share=True, parallel=parallel),
+          'TESDown': sampleset.shift(systs['TES'].procs,"_TES0p95",systs['TES'].dn," -5% TES", split=True,filter=False,share=True, parallel=parallel),
+          #'FESUp':   sampleset.shift(systs['FES'].procs,"_FES1p15",systs['FES'].up," +25% FES", split=True,filter=False,share=True, parallel=parallel),
+          #'FESDown': sampleset.shift(systs['FES'].procs,"_FES0p85",systs['FES'].dn," -25% FES", split=True,filter=False,share=True, parallel=parallel),
+          'EESUp':   sampleset.shift(systs['EES'].procs,"_EES1p01",systs['EES'].up," +1% EES", split=True,filter=False,share=True, parallel=parallel),
+          'EESDown': sampleset.shift(systs['EES'].procs,"_EES0p99",systs['EES'].dn," -1% EES", split=True,filter=False,share=True, parallel=parallel),
+          'JTFUp':   sampleset.shift(systs['JTF'].procs,"_JTF1p05",systs['JTF'].up," +5% JTF", split=True,filter=False,share=True, parallel=parallel),
+          'JTFDown': sampleset.shift(systs['JTF'].procs,"_JTF0p95",systs['JTF'].dn," -5% JTF", split=True,filter=False,share=True, parallel=parallel),
+          #'RESUp':   sampleset.shift(systs['RES'].procs,"",systs['RES'].up," +3% mvisRES", split=True,filter=False,share=True, parallel=parallel),
+          #'RESDown': sampleset.shift(systs['RES'].procs,"",systs['RES'].dn," -3% mvisRES", split=True,filter=False,share=True, parallel=parallel),
         }
-        keys = samplesets.keys() if verbosity>=1 else ['Nom','TESUp','TESDown','FESUp','FESDown','EESUp','EESDown']#,'RESUp','RESDown']
+
+        if not fesVar: 
+          samplesets['FESUp'] = sampleset.shift(systs['FES'].procs,"_FES1p25",systs['FES'].up," +25% FES", split=True,filter=False,share=True, parallel=parallel)
+          samplesets['FESDown'] = sampleset.shift(systs['FES'].procs,"_FES0p75",systs['FES'].dn," -25% FES", split=True,filter=False,share=True, parallel=parallel)
+        
+        keys = samplesets.keys() if verbosity>=1 else ['Nom','TESUp','TESDown','FESUp','FESDown','EESUp','EESDown', 'JTFUp','JTFDown']
         for shift in keys:
           if not shift in samplesets: continue
           samplesets[shift].printtable(merged=True,split=True)
@@ -235,30 +243,56 @@ def main(args):
       # https://twiki.cern.ch/twiki/bin/viewauth/CMS/SMTauTau2016
       chshort = channel.replace('tau','t').replace('mu','m') # abbreviation of channel
       fname   = repkey(fileexp,OUTDIR=outdir,ANALYSIS=analysis,CHANNEL=chshort,ERA=era,TAG=tag)
-      createinputs(fname,samplesets['Nom'],observables_pass,bins_pass,recreate=True)
-      createinputs(fname,samplesets['Nom'],observables_fail,bins_fail,recreate=False)
+      createinputs(fname,samplesets['Nom'],observables_pass,bins_pass,recreate=True,parallel=parallel)
+      createinputs(fname,samplesets['Nom'],observables_fail,bins_fail,recreate=False,parallel=parallel)
       if channel in ['etau']:
-        createinputs(fname,samplesets['TESUp'],  observables_pass,bins_pass,systs['TES'].up,filter=systs['TES'].procs)
-        createinputs(fname,samplesets['TESDown'],observables_pass,bins_pass,systs['TES'].dn,filter=systs['TES'].procs)
-        createinputs(fname,samplesets['FESUp'],  observables_pass,bins_pass,systs['FES'].up,filter=systs['FES'].procs)
-        createinputs(fname,samplesets['FESDown'],observables_pass,bins_pass,systs['FES'].dn,filter=systs['FES'].procs)
-        createinputs(fname,samplesets['EESUp'],  observables_pass,bins_pass,systs['EES'].up,filter=systs['EES'].procs)
-        createinputs(fname,samplesets['EESDown'],observables_pass,bins_pass,systs['EES'].dn,filter=systs['EES'].procs)
+        createinputs(fname,samplesets['TESUp'],  observables_pass,bins_pass,systs['TES'].up,filter=systs['TES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['TESDown'],observables_pass,bins_pass,systs['TES'].dn,filter=systs['TES'].procs, parallel=parallel)
+        
+        if not fesVar:
+          createinputs(fname,samplesets['FESUp'],  observables_pass,bins_pass,systs['FES'].up,filter=systs['FES'].procs, parallel=parallel)
+          createinputs(fname,samplesets['FESDown'],observables_pass,bins_pass,systs['FES'].dn,filter=systs['FES'].procs, parallel=parallel)
+        
+        createinputs(fname,samplesets['EESUp'],  observables_pass,bins_pass,systs['EES'].up,filter=systs['EES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['EESDown'],observables_pass,bins_pass,systs['EES'].dn,filter=systs['EES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['JTFUp'],  observables_pass,bins_pass,systs['JTF'].up,filter=systs['JTF'].procs, parallel=parallel)
+        createinputs(fname,samplesets['JTFDown'],observables_pass,bins_pass,systs['JTF'].dn,filter=systs['JTF'].procs, parallel=parallel) 
         #createinputs(fname,samplesets['Nom'],observables_pass,bins_pass,"_shape_resUp",shift="_resoUp")
         #createinputs(fname,samplesets['Nom'],observables_pass,bins_pass,"_shape_resDown",shift="_resoDown")
-        #createinputs(fname,samplesets['RESUp'],observables_pass_resUp,bins_pass,systs['RES'].up,filter=systs['RES'].procs)
-        #createinputs(fname,samplesets['RESDown'],observables_pass_resDown,bins_pass,systs['RES'].dn,filter=systs['RES'].procs)
-        createinputs(fname,samplesets['TESUp'],  observables_fail,bins_fail,systs['TES'].up,filter=systs['TES'].procs)
-        createinputs(fname,samplesets['TESDown'],observables_fail,bins_fail,systs['TES'].dn,filter=systs['TES'].procs)
-        createinputs(fname,samplesets['FESUp'],  observables_fail,bins_fail,systs['FES'].up,filter=systs['FES'].procs)
-        createinputs(fname,samplesets['FESDown'],observables_fail,bins_fail,systs['FES'].dn,filter=systs['FES'].procs)
-        createinputs(fname,samplesets['EESUp'],  observables_fail,bins_fail,systs['EES'].up,filter=systs['EES'].procs)
-        createinputs(fname,samplesets['EESDown'],observables_fail,bins_fail,systs['EES'].dn,filter=systs['EES'].procs)
+        #createinputs(fname,samplesets['RESUp'],observables_pass_resUp,bins_pass,systs['RES'].up,filter=systs['RES'].procs, parallel=parallel)
+        #createinputs(fname,samplesets['RESDown'],observables_pass_resDown,bins_pass,systs['RES'].dn,filter=systs['RES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['TESUp'],  observables_fail,bins_fail,systs['TES'].up,filter=systs['TES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['TESDown'],observables_fail,bins_fail,systs['TES'].dn,filter=systs['TES'].procs, parallel=parallel)
+        
+        if not fesVar: 
+          createinputs(fname,samplesets['FESUp'],  observables_fail,bins_fail,systs['FES'].up,filter=systs['FES'].procs, parallel=parallel)
+          createinputs(fname,samplesets['FESDown'],observables_fail,bins_fail,systs['FES'].dn,filter=systs['FES'].procs, parallel=parallel)
+        
+        createinputs(fname,samplesets['EESUp'],  observables_fail,bins_fail,systs['EES'].up,filter=systs['EES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['EESDown'],observables_fail,bins_fail,systs['EES'].dn,filter=systs['EES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['JTFUp'],  observables_fail,bins_fail,systs['JTF'].up,filter=systs['JTF'].procs, parallel=parallel)
+        createinputs(fname,samplesets['JTFDown'],observables_fail,bins_fail,systs['JTF'].dn,filter=systs['JTF'].procs, parallel=parallel)
         #createinputs(fname,samplesets['Nom'],observables_fail,bins_fail,"_shape_resUp",shift="_resoUp")
         #createinputs(fname,samplesets['Nom'],observables_fail,bins_fail,"_shape_resDown",shift="_resoDown")
-        #createinputs(fname,samplesets['RESUp'],observables_fail_resUp,bins_fail,systs['RES'].up,filter=systs['RES'].procs)
-        #createinputs(fname,samplesets['RESDown'],observables_fail_resDown,bins_fail,systs['RES'].dn,filter=systs['RES'].procs)
+        #createinputs(fname,samplesets['RESUp'],observables_fail_resUp,bins_fail,systs['RES'].up,filter=systs['RES'].procs, parallel=parallel)
+        #createinputs(fname,samplesets['RESDown'],observables_fail_resDown,bins_fail,systs['RES'].dn,filter=systs['RES'].procs, parallel=parallel)
       
+      if fesVar:
+         ##FESvariation!!!
+         variation = [0.75,0.80,0.85,0.90,0.95,1.05,1.10,1.15,1.20,1.25] 
+         for var in variation:
+           print("Variation: FES = %f"%var)
+           newsampleset = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p"),""," %.1d"%((1.-var)*100.)+"% FES", split=True,filter=False,share=True, parallel=parallel)
+           createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+           createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+           newsampleset.close()
+         #Nominal ==> fes = 1p00
+         print("Nominal: FES = 100%")
+         newsampleset = sampleset
+         createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+         createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+         newsampleset.close()
+
       ############
       #   PLOT   #
       ############
@@ -270,9 +304,9 @@ def main(args):
         text     = "%s: $BIN"%(channel.replace("mu","#mu").replace("tau","#tau_{h}"))
         groups   = [ ] #(['^TT','ST'],'Top'),]
         plotinputs(fname,systs,observables_pass,bins_pass,text=text,
-                   pname=pname,tag=tag,group=groups)
+                   pname=pname,tag=tag,group=groups,parallel=parallel)
         plotinputs(fname,systs,observables_fail,bins_fail,text=text,
-                   pname=pname,tag=tag,group=groups)
+                   pname=pname,tag=tag,group=groups,parallel=parallel)
       
 
 if __name__ == "__main__":
@@ -280,7 +314,7 @@ if __name__ == "__main__":
   argv = sys.argv
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017', 'UL2018'], default=['UL2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017', 'UL2018', '2022_postEE'], default=['UL2017'], action='store',
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau','mumu','etau'], default=['etau'], action='store',
                                          help="set channel" )
@@ -289,6 +323,7 @@ if __name__ == "__main__":
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   parser.add_argument('-t', '--tag', dest='tag', default='', action='store', help="set channel" )
+  parser.add_argument('-fV', '--fesVar', dest='fesVar', default=False, action='store', help="FES template variation" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
