@@ -14,7 +14,7 @@ from argparse import ArgumentParser
 argv = sys.argv
 description = '''This script creates datacards with CombineHarvester.'''
 parser = ArgumentParser(prog="harvestercards",description=description,epilog="Succes!")
-parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP'], default=['UL2017'], action='store',
+parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP', '2022_postEE'], default=['UL2017'], action='store',
                                         help="set era" )
 parser.add_argument('-c', '--channel',  dest='channels', choices=['mt','et'], type=str, nargs='+', default=['mt'], action='store',
                                         help="channels to submit")
@@ -28,13 +28,13 @@ parser.add_argument('-n', '--noshapes', dest='noshapes', default=False, action='
                                         help="do not include shape uncertainties")
 parser.add_argument('-v', '--verbose',  dest='verbose',  default=False, action='store_true',
                                         help="set verbose")
-parser.add_argument('-wp', '--workpoint',  dest='workpoint',  default=False, action='store_true',
-                                        help="set verbose")
+parser.add_argument('-wp', '--workpoint',  dest='workpoint', choices=['VVLoose','Medium','Tight'], type=str, default=['Tight'], help="set wp")
+
 args = parser.parse_args()
 
 
 def main(args):
-    print ""
+    print("")
     analysis = 'zee_fr'
     obsset   = args.observables
     channels = args.channels
@@ -51,12 +51,12 @@ def main(args):
     #STYLE.sample_colors['ZTT'] = STYLE.kOrange-4
         
     procs = [
-      'ZTT', 'ZL', 'ZJ', 'TTT', 'TTJ', 'W', 'ST', 'VV', 'QCD', 'data_obs' #'STT', 'STJ'
+      'ZTT', 'ZL', 'ZJ', 'W', 'VV', 'ST','TTT', 'TTL', 'TTJ', 'QCD', 'data_obs' #'STT', 'STJ'
     ]
     groups  = [
-      (['^TT*'],'Top','ttbar'), #,STYLE.sample_colors['TT']),
+      #(['^TT*'],'Top','ttbar'), #,STYLE.sample_colors['TT']),
       #(['^TT*','ST*'],'Top','ttbar and single top'),
-      (['W*','ZJ','VV','ST*'],'EWK','Electroweak'), #,STYLE.sample_colors['EWK']),
+      #(['W*','ZJ','VV','ST*'],'EWK','Electroweak'), #,STYLE.sample_colors['EWK']),
 
     ]
     title_dict = {
@@ -66,7 +66,7 @@ def main(args):
     }
     tsize   = 0.054
     PLOT._lsize = 0.040 # label size
-    ratio   = False
+    ratio   = True
     square  = not ratio and False
     exts    = [ 'png', 'pdf', 'root', 'C' ]
     
@@ -77,36 +77,39 @@ def main(args):
         for obs in obsset:
             ZL = "Z -> ee"
             procs_ = [
-                'ZL', 'ZTT', 'ZJ', 'TTT', 'TTJ', 'TTL', 'W',  'VV', 'ST', 'QCD', 'data_obs'
+                'ZTT', 'ZL', 'ZJ', 'W', 'VV', 'ST','TTT', 'TTL', 'TTJ', 'QCD', 'data_obs'
             ]   
             analysis = 'ETauFR'
-            etas= ['1p46','2p300']
+            etas= ['eta0to1p46','eta1p56to2p5']
             #procs_ = procs[:]
             pos    = 'x=0.56,y=0.88'
             ncol   = 1
             regs =['pass','fail']
             for eta in etas:
-                if eta =='1p46':
+                if eta =='eta0to1p46':
                     title = "0 < #eta < 1.46"
-                elif eta== '2p300':
-                    title = "1.56 < #eta < 2.30"
+                elif eta== 'eta1p56to2p5':
+                    title = "1.56 < #eta < 2.50"
                 for reg in regs:
                     if reg == "pass":
                         title += " , Pass"
-                    else: 
+                    else:
+                        title = title.replace(" , Pass", " ") 
+                        print(title)
                         title += " , Fail"
-                    fname    = "$DIR/$ANALYSIS$BINLt$ETA_PostFitShape.root"
+                    fname    = "$DIR/$ANALYSIS$BIN_$ETA_PostFitShape.root"
                     pname    = "$DIR/$ANALYSIS_$OBS_$CHANNEL-$BIN-$ERA-$ETA-$REG-$TAG_$FIT.png"
-                    indir  = "output/%s"%era
+                    indir  = "output/%s/%s"%(era,analysis)
                     outdir = ensuredir("plots/%s"%era)
                     xtitle = title_dict.get(obs)
                     fname_ = repkey(fname,DIR=indir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,ETA=eta,BIN=bin,ERA=era,TAG=tag)
                     pname_ = repkey(pname,DIR=outdir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,ETA=eta,BIN=bin,ERA=era,REG=reg,TAG=tag)
-                    drawpostfit(fname_,bin,procs_,pname=pname_,tag=tag,group=groups,title=title,xtitle=xtitle,
+                    bin_merged=bin+"_"+reg
+                    drawpostfit(fname_,bin_merged,procs_,pname=pname_,tag=tag,group=groups,title=title,xtitle=xtitle,
                                 tsize=tsize,pos=pos,ncol=ncol,ratio=ratio,square=square,reg=reg,exts=exts)
     
 
 if __name__ == '__main__':
     main(args)
-    print ">>>\n>>> done\n"
+    print(">>>\n>>> done\n")
     

@@ -26,9 +26,9 @@ samples  = [
   M('DY','DYto2L-4Jets_MLL-50_4J',
     "/DYto2L-4Jets_MLL-50_4J",
     store=storage_new,url=url,files=filelist,opts="useT1=False,zpt=True"),
-  M('DY','DYto2TautoMuTauh_M-50',
-    "/DYto2TautoMuTauh_M-50",
-    store=storage,url=url,files=filelist,opts="useT1=False,zpt=True"),
+  #M('DY','DYto2TautoMuTauh_M-50',
+  #  "/DYto2TautoMuTauh_M-50",
+  #  store=storage,url=url,files=filelist,opts="useT1=False,zpt=True"),
 
   #W+Jets
   M('WJ','WtoLNu-4Jets',
@@ -90,18 +90,18 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=False"),
   
   #THREE-BOSON
-  M('VVV','WWW_4F',
-    "/WWW_4F",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
-  M('VVV','WWZ_4F',
-    "/WWZ_4F",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
-  M('VVV','WZZ',
-    "/WZZ",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
-   M('VVV','ZZZ',
-    "/ZZZ",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
+  #M('VVV','WWW_4F',
+  #  "/WWW_4F",
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
+  #M('VVV','WWZ_4F',
+  #  "/WWZ_4F",
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
+  #M('VVV','WZZ',
+  #  "/WZZ",
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
+  # M('VVV','ZZZ',
+  #  "/ZZZ",
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
   
   # SINGLE MUON
   D('Data','Muon_Run2022E',"/Muon_Run2022E",
@@ -110,5 +110,12 @@ samples  = [
    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   D('Data','Muon_Run2022G',"/Muon_Run2022G",
    store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
+  # SINGLE ELECTRON
+  D('Data','EGamma_Run2022E',"/EGamma_Run2022E",
+   store=storage_eraE,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
+  D('Data','EGamma_Run2022F',"/EGamma_Run2022F",
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
+  D('Data','EGamma_Run2022G',"/EGamma_Run2022G",
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
 
 ]

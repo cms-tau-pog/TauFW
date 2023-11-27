@@ -71,7 +71,7 @@ def get_nanoaod_sumw(args):
 #     return None
             
 def check_sample_name(sample_name_full, keys):
-    sample_name = sample_name_full.replace("_mutau", "").replace("_mumu", "").replace("_etau", "")
+    sample_name = sample_name_full.replace("_mutau", "").replace("_mumu", "").replace("_etau", "").replace("_ee", "")
     # print("sample_name_full = ", sample_name_full)
     # print("sample_name cut = ", sample_name)
     # print("keys = ", keys)
@@ -127,7 +127,10 @@ def modify_cutflow_hist(args):
             if any([True for veto in args.vetoes if veto in sample_name_full]) : continue
             root_file = TFile(sample, 'UPDATE' if args.modify_cutflow else 'READ' )
             cutflow_hist = root_file.Get('cutflow')
-            sample_name = check_sample_name(sample_name_full, norm_dict.keys())
+            #print("====>>>")
+            #print(sample_name_full.replace(args.tag, ""))
+            #print(norm_dict.keys())
+            sample_name = check_sample_name(sample_name_full.replace(args.tag, ""), norm_dict.keys())
             if sample_name:
                 if args.modify_cutflow: cutflow_hist.SetBinContent(bin_id, float(norm_dict[sample_name]))
                 cf_n   = int(cutflow_hist.GetBinContent(bin_id))
