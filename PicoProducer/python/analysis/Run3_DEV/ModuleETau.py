@@ -268,10 +268,10 @@ class ModuleETau(ModuleTauPair):
       self.out.trigweight[0]              = self.eleSFs.getTriggerSF(electron.pt,abs(electron.eta))
       self.out.idisoweight_1[0]           = self.eleSFs.getIdIsoSF(electron.pt,abs(electron.eta))
 
-      print("eta: ", electron.eta)
-      print("pt: ",  electron.pt)
-      print("idiso sf: ", self.out.idisoweight_1[0])
-      print("trig sf: ", self.out.trigweight[0])
+      #print("eta: ", electron.eta)
+      #print("pt: ",  electron.pt)
+      #print("idiso sf: ", self.out.idisoweight_1[0])
+      #print("trig sf: ", self.out.trigweight[0])
       #print("sf wo abs: ", self.eleSFs.getIdIsoSF(electron.pt,electron.eta))
       #print("sf wo abs: ", self.eleSFs.getIdIsoSF(electron.pt,abs(electron.eta)))
 

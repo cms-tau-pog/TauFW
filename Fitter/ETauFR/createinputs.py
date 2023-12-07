@@ -87,8 +87,8 @@ def main(args):
           'TESDown': sampleset.shift(systs['TES'].procs,"_TES0p95",systs['TES'].dn," -5% TES", split=True,filter=False,share=True, parallel=parallel),
           #'FESUp':   sampleset.shift(systs['FES'].procs,"_FES1p15",systs['FES'].up," +25% FES", split=True,filter=False,share=True, parallel=parallel),
           #'FESDown': sampleset.shift(systs['FES'].procs,"_FES0p85",systs['FES'].dn," -25% FES", split=True,filter=False,share=True, parallel=parallel),
-          'EESUp':   sampleset.shift(systs['EES'].procs,"_EES1p01",systs['EES'].up," +1% EES", split=True,filter=False,share=True, parallel=parallel),
-          'EESDown': sampleset.shift(systs['EES'].procs,"_EES0p99",systs['EES'].dn," -1% EES", split=True,filter=False,share=True, parallel=parallel),
+          'EESUp':   sampleset.shift(systs['EES'].procs,"_EES1p05",systs['EES'].up," +5% EES", split=True,filter=False,share=True, parallel=parallel),
+          'EESDown': sampleset.shift(systs['EES'].procs,"_EES0p95",systs['EES'].dn," -5% EES", split=True,filter=False,share=True, parallel=parallel),
           'JTFUp':   sampleset.shift(systs['JTF'].procs,"_JTF1p05",systs['JTF'].up," +5% JTF", split=True,filter=False,share=True, parallel=parallel),
           'JTFDown': sampleset.shift(systs['JTF'].procs,"_JTF0p95",systs['JTF'].dn," -5% JTF", split=True,filter=False,share=True, parallel=parallel),
           #'RESUp':   sampleset.shift(systs['RES'].procs,"",systs['RES'].up," +3% mvisRES", split=True,filter=False,share=True, parallel=parallel),
@@ -121,7 +121,7 @@ def main(args):
       else:
         
         mvis_pass = Var('m_vis', 11, 60, 120)
-        mvis_fail = Var('m_vis', 1, 60, 120)
+        mvis_fail = Var('m_vis', 1,  60, 120)
         #mvis_pass_resUp = Var('m_vis_resoUp', 11, 60, 120)
         #mvis_fail_resUp = Var('m_vis_resoUp', 1, 60, 120)
         #mvis_pass_resDown = Var('m_vis_resoDown', 11, 60, 120)
@@ -286,13 +286,30 @@ def main(args):
            createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
            createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
            newsampleset.close()
+           
+           ##overlap_EES_sys
+           newsampleset_EESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_EES1p05", ""," %.1d"%((1.-var)*100.)+"% FES & +5% EES", split=True,filter=False,share=True,  parallel=parallel)
+           createinputs(fname,newsampleset_EESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           createinputs(fname,newsampleset_EESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           newsampleset_EESsys.close()
+           
+
+           newsampleset_EESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_EES0p95", ""," %.1d"%((1.-var)*100.)+"% FES & +5% EES", split=True,filter=False,share=True,  parallel=parallel)
+           createinputs(fname,newsampleset_EESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           createinputs(fname,newsampleset_EESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           newsampleset_EESsys.close()
+
+          
          #Nominal ==> fes = 1p00
          print("Nominal: FES = 100%")
          newsampleset = sampleset
          createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
          createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
          newsampleset.close()
-
+         createinputs(fname,samplesets['EESUp'], observables_pass, bins_pass, "_FES1.00_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+         createinputs(fname,samplesets['EESDown'], observables_pass, bins_pass, "_FES1.00_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True) 
+         createinputs(fname,samplesets['EESUp'], observables_fail, bins_fail, "_FES1.00_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+         createinputs(fname,samplesets['EESDown'], observables_fail, bins_fail, "_FES1.00_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
       ############
       #   PLOT   #
       ############

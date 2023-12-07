@@ -61,12 +61,21 @@ class ElectronSFs:
         self.sftool_idiso = ScaleFactorHTT(pathHTT+"Run2018/Electron_Run2018_IdIso.root",'ZMass','ele_idiso') # MVA noIso Fall17 WP90, rho-corrected iso(dR<0.3)<0.1
       elif '2022' in era:
         #print("Entering 2022")
-        self.sftool_reco = False
-        self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root",'ScaleFactor_trg','ele_trig',ptvseta=False)
-        self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_id",'ele_id',ptvseta=False)
-        self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
-        assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
-        self.sftool_idiso = self.sftool_id*self.sftool_iso
+        if "post" in era:
+           self.sftool_reco = False
+           self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root",'ScaleFactor_trg','ele_trig',ptvseta=False)
+           self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_id",'ele_id',ptvseta=False)
+           self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
+           assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
+           self.sftool_idiso = self.sftool_id*self.sftool_iso
+        elif "pre" in era:
+           #print("Entering 2022preEE")
+           self.sftool_reco = False
+           self.sftool_trig  = ScaleFactor(pathPOG+"Run2022preEE/electron_SFs_2022_preEE.root",'ScaleFactor_trg','ele_trig',ptvseta=False)
+           self.sftool_id         = ScaleFactor(pathPOG+"Run2022preEE/electron_SFs_2022_preEE.root","ScaleFactor_id",'ele_id',ptvseta=False)
+           self.sftool_iso        = ScaleFactor(pathPOG+"Run2022preEE/electron_SFs_2022_preEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
+           assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
+           self.sftool_idiso = self.sftool_id*self.sftool_iso
  
     assert self.sftool_trig!=None and self.sftool_idiso!=None, "ElectronSFs.__init__: Did not find electron SF tool for %r"%(era)
    

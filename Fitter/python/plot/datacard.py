@@ -141,7 +141,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       deletehist(hist) # clean memory
   
   # CLOSE
-  for obs, file in files.iteritems():
+  for obs, file in files.items():
     file.Close()
   
 
@@ -170,7 +170,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
   if isinstance(varprocs['Nom'],Systematic): # convert Systematic objects back to simple string
     systs    = varprocs # OrderedDict of Systematic objects
     varprocs = OrderedDict()
-    for syskey, syst in systs.iteritems():
+    for syskey, syst in systs.items():
       if syskey.lower()=='nom':
         varprocs['Nom'] = syst.procs
       else:
@@ -181,7 +181,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
     ftag    = tag+obs.tag
     fname_  = repkey(fname,OBS=obsname,TAG=ftag)
     file    = ensureTFile(fname_,'UPDATE')
-    for set, procs in varprocs.iteritems(): # loop over processes with variation
+    for set, procs in varprocs.items(): # loop over processes with variation
       if set=='Nom':
         systag = "" # no systematics tag for nominal
         procs_ = procs[:]

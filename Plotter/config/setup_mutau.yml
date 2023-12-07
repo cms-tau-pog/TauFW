@@ -22,19 +22,19 @@ baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && !lepton_vetoes_
 
 regions:
     signalRegion: 
-        definition: "mt_1<50"
+        definition: "mt_1<65"
         title: "signal region"
     DM0: 
-        definition: "mt_1<50 && dm_2==0"
+        definition: "mt_1<65 && dm_2==0"
         title: "h^{#pm}"
     DM1: 
-        definition: "mt_1<50 && dm_2==1"
+        definition: "mt_1<65 && dm_2==1"
         title: "h^{#pm}#pi^{0}"
     DM10: 
-        definition: "mt_1<50 && dm_2==10"
+        definition: "mt_1<65 && dm_2==10"
         title: "h^{#pm}h^{#mp}h^{#pm}"
     DM11: 
-        definition: "mt_1<50 && dm_2==11"
+        definition: "mt_1<65 && dm_2==11"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
     #zttregion:
     #    definition: "mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"

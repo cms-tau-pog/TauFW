@@ -117,8 +117,9 @@ def modify_cutflow_hist(args):
         if len(args.pico_dir) > 1: sample_dir = args.pico_dir
         else: sample_dir = "$CMSSW_BASE/src/TauFW/PicoProducer/"
         print("sample_dir ", sample_dir)
-        samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + args.tag + '.root')
-        #samples = glob.glob(sample_dir + args.era + '/*/*' + args.channel + args.tag + '.root')
+        samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + '*' + args.tag + '.root')
+        #samples = glob.glob('/nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/analysis/2022_preEE/*/*etau.root')
+        print("era ", args.era)
         print("samples ", samples)
         print('Samples: ' + str(map(os.path.basename, samples)))
         print("\n%40s:\t%15s%15s%15s"%('sample_name', 'cutflow_norm', 'nanoaod_norm', 'difference'))
@@ -130,7 +131,7 @@ def modify_cutflow_hist(args):
             #print("====>>>")
             #print(sample_name_full.replace(args.tag, ""))
             #print(norm_dict.keys())
-            sample_name = check_sample_name(sample_name_full.replace(args.tag, ""), norm_dict.keys())
+            sample_name = check_sample_name(sample_name_full.replace(args.tag, "").split("_"+args.channel)[0], norm_dict.keys())
             if sample_name:
                 if args.modify_cutflow: cutflow_hist.SetBinContent(bin_id, float(norm_dict[sample_name]))
                 cf_n   = int(cutflow_hist.GetBinContent(bin_id))

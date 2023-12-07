@@ -79,10 +79,12 @@ for ieta in eta :
         systematicName = '$BIN/$PROCESS_$SYSTEMATIC'
         if fesVar:  
           processName_FES = '$BIN/$PROCESS_FES$MASS'
+          systematicName_FES = "$BIN/$PROCESS_FES$MASS_$SYSTEMATIC"
         else:
           processName_FES = processName
+          systematicName_FES = systematicName
         cb.cp().backgrounds().ExtractShapes(filepath, processName, systematicName)
-        cb.cp().signals().ExtractShapes(filepath, processName_FES, systematicName)
+        cb.cp().signals().ExtractShapes(filepath, processName_FES, systematicName_FES)
         ch.SetStandardBinNames(cb, '$BIN') # Define the name of the category names
         #cb.SetAutoMCStats(cb, 0.0) # Introducing statistical uncertainties on the total background for each histogram bin (Barlow-Beeston lite approach)
         
@@ -119,25 +121,31 @@ for ieta in eta :
 
           ## MORPHING
           print(">>> morphing...")
-          debugdir  = ensureDirectory("debug")
-          debugfile = TFile("%s/morph_debug_%s_%s.root"%(debugdir,era,"etau"), 'RECREATE')
-          verboseMorph = True
-          for bin in bins:
-              BuildRooMorphing(workspace, cb, bin, "ZL",fes, 'norm', True, verboseMorph, False, debugfile)
-          debugfile.Close()
+          #debugdir  = ensureDirectory("debug")
+          #debugfile = TFile("%s/morph_debug_%s_%s.root"%(debugdir,era,"etau"), 'RECREATE')
+          #verboseMorph = True
+          #for bin in bins:
+          #    BuildRooMorphing(workspace, cb, bin, "ZL",fes, 'norm', True, verboseMorph, False, debugfile)
+          #debugfile.Close()
           #workspace.Print()
-
+          BuildCMSHistFuncFactory(workspace, cb, fes, "ZL")
+          #workspace.writeToFile("workspace_py.root")
           ## EXTRACT PDFs
           #print(">>> add workspace and extract pdf...")
           cb.AddWorkspace(workspace, False)
-          cb.cp().signals().ExtractPdfs(cb, "ETauFR", "$BIN_$PROCESS_morph", "")
+          cb.ExtractPdfs(cb, "ETauFR", "$BIN_$PROCESS_morph", "")  # Extract all processes (signal and bkg are named the same way)
+          cb.ExtractData("ETauFR", "$BIN_data_obs")  # Extract the RooDataHist
+
+          #cb.cp().signals().ExtractPdfs(cb, "ETauFR", "$BIN_$PROCESS_morph", "")
           cb.SetAutoMCStats(cb, 0, 1, 1)
  
+        print("before cardwriter")
         datacardPath = 'input/%s/ETauFR/%s_eta%s.txt'%(era,iwp,ieta)
         shapePath = 'input/%s/ETauFR/common/%s_eta%s.root'%(era,iwp,ieta)
         writer = ch.CardWriter(datacardPath,shapePath)
         writer.SetWildcardMasses([])
         writer.WriteCards('cmb', cb) # writing all datacards into one folder for combination
+        
         cb.PrintAll()
         print("\033[1;32;40m >>> print observation \n")
         print("\033[0;37;40m \n") 
@@ -153,9 +161,12 @@ for ieta in eta :
         cb.PrintParams()
         print "\n"
         print("Done writing")
+        
 
         with open('input/%s/ETauFR/%s_eta%s.txt'%(era,iwp,ieta),'a') as f:
              #f.write("* autoMCStats 0  1  1\n")
+             #f.write("normalizationW rateParam * W 1.000 [0.0,10.0]\n")
+             #f.write("normalizationDY rateParam * ZL ZTT ZJ 1.000 [0.0,10.0]\n")
              f.write("normalizationZEE rateParam * ZL 1.000 [0.0,10.0]\n")
              f.write("vsjetsf rateParam * ZTT 1.000 [0.0,10.0]\n")
              f.write(" ")
