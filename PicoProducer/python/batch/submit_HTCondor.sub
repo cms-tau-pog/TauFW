@@ -12,6 +12,7 @@ should_transfer_files = no
 use_x509userproxy     = true
 getenv                = true
 environment           = JOBID=$(ClusterId);TASKID=$(ProcId)
+requirements          = (OpSysAndVer =?= "CentOS7")
 +JobFlavour           = workday
 +MaxRuntime           = 20000
 #+AccountingGroup      = "group_u_BE.ABP.SLAP"
