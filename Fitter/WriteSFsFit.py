@@ -17,7 +17,6 @@ def calculate_SFpostfit(config, output_file):
         "tid_SF": {"values": {}, "processes": ['ZTT']},
         "xsec_dy": {"values": {}, "processes": ['ZTT', 'ZL', 'ZJ']},
         "sf_W": {"values": {}, "processes": ['W']},
-        "muonFakerate": {"values": {}, "processes": ['ZL', 'TTL']},
     }
     # Extract parameter name and value from txt data
     
@@ -78,7 +77,13 @@ def calculate_SFpostfit(config, output_file):
         outfile.write("scaleFactors:\n")
         for param, regions in param_SF_postfit_dict.items():
             outfile.write("  %s:\n" % param)
-            processes = setup["systematics"].get(param, {}).get("processes", [])
+            if param in additional_params:
+                print("dddd")
+                processes =  additional_params[param]["processes"]
+            else:     
+                processes = setup["systematics"].get(param, {}).get("processes", [])
+
+            print("for parameter %s process : %s " %(param, processes))
             outfile.write("    processes: %s\n" % (processes))            
             outfile.write("    values:\n")
             outfile.write("      {\n")
