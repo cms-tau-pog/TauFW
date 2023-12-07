@@ -29,7 +29,7 @@ baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2018v2
 
 regions:
     baseline:
-        definition: "dm_2==0"
+        definition: "q_1*q_2<0"
         title: "baseline"
     DM0: 
         definition: "dm_2==0"

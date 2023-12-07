@@ -420,7 +420,7 @@ def stitch(samplelist,*searchterms,**kwargs):
 
   sample_incl = None
   sample_mutau = None #"DYJetsToMuTauh_M-50"
-  if era=='2022_postEE': 
+  if era=='2022_postEE' or era=='2022_preEE': 
     samples_jetIncl = [s for s in stitchlist if s.name == name_incl]
   else:
     samples_jetIncl = [s for s in stitchlist if s.match(name_incl)]
@@ -493,7 +493,7 @@ def stitch(samplelist,*searchterms,**kwargs):
     else:
       print(sample.name)
       
-      if era=='2022_postEE': 
+      if era=='2022_postEE' or era=='2022_preEE': 
         match = re.search(r'_(\d{1,2}J)', sample.name)
         if match:
           njets = int(match.group(1)[:-1])

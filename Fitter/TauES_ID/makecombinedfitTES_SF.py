@@ -220,17 +220,17 @@ def main(args):
             setup_mumu = yaml.safe_load(file_mumu)
     else: 
         setup_mumu = 0
-
-    # Generating the datacards for mutau channel
-    generate_datacards_mutau(era=era, config=config,extratag=extratag)
-
-    # Generating the datacards for mumu channel
-    if str(config_mumu) != 'None':
-        generate_datacards_mumu(era=era, config_mumu=config_mumu,extratag=extratag)
-
-    # Run the fit using combine with the different options 
-    run_combined_fit(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)
-
+# 
+    Generating the datacards for mutau channel
+    # generate_datacards_mutau(era=era, config=config,extratag=extratag)
+# 
+    Generating the datacards for mumu channel
+    # if str(config_mumu) != 'None':
+        # generate_datacards_mumu(era=era, config_mumu=config_mumu,extratag=extratag)
+# 
+    Run the fit using combine with the different options 
+    # run_combined_fit(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)
+# 
     # Plots 
     plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)
 

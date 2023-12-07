@@ -9,7 +9,7 @@ channel: mumu
 #tag: "_mumu_zptDY_etacut"
 #tag: "_mumu_trigger"
 #tag: "_mumu_v10"
-tag: "_mumu_Dt2p5"
+tag: "_mumu_Dt2p5_202-test"
 
 
 #baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter && eta_1<2.1 && eta_2<2.4"
@@ -52,3 +52,24 @@ systematics:
         effect: "lnN"
         processes: ["ZTT","ZL","ZJ","TT", "W", "ST", "VV"]
         scaleFactor: 1.02
+
+# Additional scale factors per year for specific processes (correction of xsec, reco SFs, etc.)
+scaleFactors:
+  eff_m:
+    processes: ['ZTT', 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'ST', 'VV']
+    values:
+      {
+      '': 1.00013301952,
+      }
+  lumi:
+    processes: ['ZTT', 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'ST', 'VV']
+    values:
+      {
+      '': 1.00030709917,
+      }
+  xsec_dy:
+    processes: ['ZTT','ZL','ZJ']
+    values:
+      {
+      '': 0.973431169987,
+      }

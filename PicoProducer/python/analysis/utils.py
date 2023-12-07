@@ -243,7 +243,13 @@ def deltaPhi(phi1, phi2):
 
 def getmet(era,var="",useT1=False,verb=0):
   """Return year-dependent MET recipe."""
-  branch  = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
+  if '2017' in era and 'UL' not in era :
+    branch  = 'METFixEE2017'
+  elif '2022' in era:
+    branch = 'PuppiMET'
+  else :
+    branhc = 'MET'
+  #branch  = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
   if useT1 and 'unclustEn' not in var:
     branch += "_T1"
     if var=='nom':
@@ -295,6 +301,14 @@ def getmetfilters(era,isdata,verb=0):
     filters.extend(['Flag_eeBadScFilter']) # eeBadScFilter "not suggested" for MC
   if ('2017' in era or '2018' in era) and ('UL' not in era):
     filters.extend(['Flag_ecalBadCalibFilterV2']) # under review for change in Ultra Legacy
+  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_2_recommendations
+  if '2022' in era : 
+    filters.extend(['Flag_BadPFMuonDzFilter'])
+    filters.extend(['Flag_hfNoisyHitsFilter'])
+    filters.extend(['Flag_eeBadScFilter'])
+    filters.extend(['Flag_ecalBadCalibFilter'])
+
+
   funcstr = "lambda e: e."+' and e.'.join(filters)
   if verb>=1:
     LOG.verb(">>> getmetfilters: %r"%(funcstr))
@@ -317,7 +331,7 @@ def idIso(tau):
   return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
 
 
-def getlepvetoes(event, electrons, muons, taus, channel, era='2018'):
+def getlepvetoes(event, electrons, muons, taus, channel):
   """Check if event has extra electrons or muons. (HTT definitions.)"""
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorkingLegacyRun2#Common_lepton_vetoes
   
@@ -342,23 +356,15 @@ def getlepvetoes(event, electrons, muons, taus, channel, era='2018'):
   # EXTRA ELECTRON VETO
   looseElectrons = [ ]
   for electron in Collection(event,'Electron'):
-    
-    if '2022' in era:
-      electronIso90=electron.mvaIso_Fall17V2_WP90
-      electronIso=electron.mvaIso_Fall17V2_WPL
-    else:
-      electronIso90=electron.mvaFall17V2Iso_WP90
-      electronIso=electron.mvaFall17V2Iso_WPL
-
     if electron.pt<10: continue
     if abs(electron.eta)>2.5: continue
     if abs(electron.dz)>0.2: continue
     if abs(electron.dxy)>0.045: continue
     if electron.pfRelIso03_all>0.3: continue
     if any(electron.DeltaR(tau)<0.4 for tau in taus): continue
-    if all(e._index!=electron._index for e in electrons) and electron.convVeto==1 and electron.lostHits<=1 and electronIso90:
+    if all(e._index!=electron._index for e in electrons) and electron.convVeto==1 and electron.lostHits<=1 and electron.mvaFall17V2Iso_WP90:
       extraelec_veto = True
-    if electron.pt>15 and electron.cutBased>0 and electronIso:
+    if electron.pt>15 and electron.cutBased>0 and electron.mvaFall17V2Iso_WPL:
       looseElectrons.append(electron)
  
   # DILEPTON VETO
@@ -413,19 +419,18 @@ class DiTauPair(LeptonPair):
     elif self.iso2 != opair.iso2: return self.iso2 > opair.iso2 # greater = larger tau isolation
     return True
   
-def getTotalWeight(file, selections=[""]):
-  # This function was proposed by Konstantin Androsov to solve the problem with normalization of WJets. It should work also for skimmed data
-  # Allow to define (truth level) cuts to compute sum weight for given phase space -- needed for stitching ; giving list of different selection scenarios to compute
-    total_w = []
+def getTotalWeight(file): #This function was proposed by Konstantin Androsov to solve the problem with normalization of WJets. It should work also for skimmed data
+    total_w = 0.
     for tree_name in [ 'Events', 'EventsNotSelected' ]:
         df = RDataFrame(tree_name, file)
         df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
-        for iSel, sel in enumerate(selections):
-          if len(sel)>0:
-            dfTemp = df.Filter(sel)
-            w = dfTemp.Sum('genWeightD')
-          else:
-            w = df.Sum('genWeightD')
-        total_w[iSel] += w.GetValue()
+        w = df.Sum('genWeightD')
+        total_w += w.GetValue()
     return total_w
+  
+def getNevt(file): #This function extracts the number of events form Data files
+  df = RDataFrame('Events', file)
+  count_result = df.Count()
+  return count_result.GetValue()
+  
 

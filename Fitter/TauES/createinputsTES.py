@@ -105,7 +105,7 @@ def main(args):
     fname   = "%s/%s_%s_tes_$OBS.inputs-%s-%s.root"%(outdir,analysis,chshort,era,tag)
 
     print("Nominal inputs")
-    createinputs(fname, sampleset, observables, bins, filter=setup["processes"], dots=True)
+    createinputs(fname, sampleset, observables, bins, filter=setup["processes"], dots=True, parallel=parallel)
 
     if "TESvariations" in setup:
       for var in setup["TESvariations"]["values"]:
@@ -162,7 +162,7 @@ def main(args):
                        ('Nom',      ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"])])
 
         plotinputs(fname,varprocs,observables,bins,text=text,
-                   pname=pname,tag=tag,group=groups, parallel=False)
+                   pname=pname,tag=tag,group=groups, parallel=parallel)
       
 
 if __name__ == "__main__":

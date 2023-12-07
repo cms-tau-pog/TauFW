@@ -77,10 +77,10 @@ class ModuleTauPair(Module):
       #  self.prefireTool  = PreFireTool(self.year)
       if self.dojec:
         self.ptnom = lambda j: j.pt_nom # use 'pt_nom' as nominal jet pt
-      #if self.dojecsys:
-      #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
-      #  self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
-      #  self.met_vars     = { u: getMET(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
+      if self.dojecsys:
+       self.jecUncLabels = [ u+v for u in ['JER','JES'] for v in ['Down','Up']]
+       self.metUncLabels = [ u+v for u in ['JER','JES','Unclustered'] for v in ['Down','Up']]
+       self.met_vars     = { u: getmet(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
     

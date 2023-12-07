@@ -36,7 +36,7 @@ class ModuleMuTau(ModuleTauPair):
       self.muonCutPt  = lambda e: 25
       self.muonCutEta = lambda e: 2.4
     self.tauCutPt     = 20
-    self.tauCutEta    = 2.3
+    self.tauCutEta    = 2.5 # 2.3 DeepTau2p1 and 2.5 for DeepTau2p5
     
     # CORRECTIONS
     if self.ismc:
@@ -233,6 +233,7 @@ class ModuleMuTau(ModuleTauPair):
     
     # JETS
     jets, met, njets_vars, met_vars = self.fillJetBranches(event,muon,tau)
+
     if self.ismc:
       self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau,self.ismc)
     else:
