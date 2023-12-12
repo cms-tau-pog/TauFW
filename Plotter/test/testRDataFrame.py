@@ -3,12 +3,15 @@
 # Description: Test RDataFrame to run some samples in parallel
 # References:
 #   https://root.cern/doc/master/classROOT_1_1RDataFrame.html#parallel-execution
+#   https://root-forum.cern.ch/t/using-a-python-dictionary-in-rdataframe-define-using-a-column-as-the-key/47787
 import os, re
 import time
 from array import array
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
-from ROOT import gROOT, gStyle, TNamed, RDataFrame, RDF, TCanvas, TLegend,\
+from ROOT import gROOT, gStyle, TNamed, RDataFrame, RDF, TFile, TCanvas, TLegend,\
                  kRed, kGreen, kBlue, kMagenta
+print(">>> Done importing...")
+
 #RDataFrame = ROOT.RDF.Experimental.Distributed.Spark.RDataFrame
 gROOT.SetBatch(True) # don't open GUI windows
 gStyle.SetOptTitle(False) # don't make title on top of histogram
@@ -18,6 +21,43 @@ rexp_stit = re.compile(r"([^/]+).root") # get filename without extension
 TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o)))
 #RDF.RInterface.__repr__ = lambda o: "xxx<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o)))
 lcolors = [kBlue+1, kRed+1, kGreen+1, kMagenta+1]
+
+# PROGRESS BAR
+ROOT.gInterpreter.Declare("""
+  // Based on https://root-forum.cern.ch/t/onpartialresult-and-progress-bar-with-pyroot/39739/4
+  // Note: Escape the '\' when defined in python string
+  namespace ROOT::RDF {
+    const UInt_t barWidth = 40; int everyN = 0;
+    ULong64_t processed = 0, totalEvents = 0;
+    std::string progressBar;
+    std::mutex barMutex;
+    auto registerEvents = [](ULong64_t nIncrement) { totalEvents += nIncrement; };
+    RResultPtr<ULong64_t> AddProgressBar(RNode df, int everyN=10000, int totalN=100000) {
+      registerEvents(totalN);
+      auto c = df.Count();
+      c.OnPartialResultSlot(everyN,[everyN](unsigned int slot, ULong64_t &cnt){
+        std::lock_guard<std::mutex> l(barMutex);
+        processed += everyN; // everyN captured by value for this lambda
+        progressBar = ">>> [";
+        for(UInt_t i = 0; i < static_cast<UInt_t>(static_cast<Float_t>(processed)/totalEvents*barWidth); ++i){
+          progressBar.push_back('=');
+        }
+        std::cout << "\\r" << std::left << std::setw(barWidth+4) << progressBar << "] " << processed << "/" << totalEvents << " " << std::flush;
+      });
+      return c;
+    };
+    void stopProgressBar(ULong64_t ntot=totalEvents) {
+      std::cout << "\\r" << std::left << std::setw(barWidth+4) << progressBar << "] Processed " << ntot << " events" << std::flush << std::endl;
+      processed = 0; totalEvents = 0; // reset
+    };
+  }
+""")
+print(">>> Done declaring.")
+
+
+def dmmap(dm='dm_2'):
+  return f"{dm}==0 ? 0 : ({dm}==1 || {dm}==2) ? 1 : {dm}==10 ? 2 : {dm}==11 ? 3 : 4"
+  
 
 def took(start_wall,start_cpu,pre=""):
   time_wall = time.time() - start_wall # wall clock time
@@ -45,12 +85,16 @@ def plot(fname,hists,verb=0):
 def sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=0):
   print(f">>> sampleset_RDF")
   results  = [ ]
+  counts   = [ ]
   res_dict = { } # { selection : { variable: [ hist1, ... ] } }
   
   # BOOK histograms
   start = time.time(), time.perf_counter() # wall-clock & CPU time
   for stitle, fname, weight in fnames:
     rdframe = RDataFrame(tname,fname)
+    #nevts = int(rdframe.Count().GetValue()) # this might add a couple of seconds
+    file = TFile.Open(fname,'READ'); nevts = file.Get(tname).GetEntries(); file.Close() # fast !
+    RDF.AddProgressBar(RDF.AsRNode(rdframe),max(100,int(nevts/2000)),int(nevts))
     wname = weight
     if verb>=1:
       print(f">>> sampleset_RDF: Created RDF {rdframe!r} for {fname}...")
@@ -63,6 +107,8 @@ def sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=0):
     # SELECTIONS: add filters
     for sname, sel in sels:
       print(f">>> sampleset_RDF:   Selections {sel!r}...")
+      #cname = "_rdf_sample_cut" # define new column for better performance ?
+      #rdf_sel = rdframe.Define(cname,sel).Filter(cname)
       rdf_sel = rdframe.Filter(sel)
       if verb>=1:
         print(f">>> sampleset_RDF:     Created RDF {rdf_sel!r} with filter {sel!r}...")
@@ -79,6 +125,7 @@ def sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=0):
         if verb>=2:
           print(f">>> sampleset_RDF:     Booking {vname!r} with model {model!r} and RDF {rdf_var!r}...")
         result = rdf_var.Histo1D(model,vexp,wname)
+        #counts.append(ROOT.AddProgressBar(ROOT.RDF.AsRNode(rdf_var)))
         if verb>=2:
           print(f">>> sampleset_RDF:     Booked {vname!r}: {result!r}")
         results.append(result)
@@ -90,11 +137,14 @@ def sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=0):
   if rungraphs:
     print(f">>> sampleset_RDF: Start RunGraphs of {len(results)} results...")
     RDF.RunGraphs(results)
+    RDF.stopProgressBar()
   else:
     print(f">>> sampleset_RDF: Start Draw for {len(results)} results...")
     for result in results:
-      print(f">>> sampleset_RDF:   Start {result} ...")
-      result.Draw('hist')
+      #print(f">>> sampleset_RDF:   Start {result} ...")
+      #result.Draw('HIST')
+      result.GetValue() # trigger event loop
+    RDF.stopProgressBar()
   print(f">>> sampleset_RDF: Processing took {took(*start)}")
   
   # PLOT histograms
@@ -123,11 +173,13 @@ def main(args):
   ]
   ptbins = array('d',[0,10,15,20,21,23,25,30,40,60,100,150,200,300,500])
   vars = [
-    ('pt_1',      'pt_1',50,0,250),
-    ('pt_1_rebin','pt_1',len(ptbins)-1,ptbins),
-    ('deta',      'abs(eta_1-eta_2)',50,0,5),
+    ('pt_1',      'pt_1',            50,0,250),
+    ('pt_1_rebin','pt_1',            len(ptbins)-1,ptbins),
+    ('deta',      'abs(eta_1-eta_2)',50,0, 5),
+    ('dm_2',      'dm_2',            14,0,14),
+    ('dm_2_map',  dmmap(),           6,0, 6),
   ]
-  #sampleset_RDF(fnames,tname,vars,sels,rungraphs=False,verb=verbosity)
+  sampleset_RDF(fnames,tname,vars,sels,rungraphs=False,verb=verbosity)
   sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=verbosity)
   
 
