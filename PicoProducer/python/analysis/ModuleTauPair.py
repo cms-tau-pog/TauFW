@@ -13,7 +13,7 @@ from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
 from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, filtermutau
 __metaclass__ = type # to use super() with subclasses from CommonProducer
-tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco' }
+tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022ReReco' }
 
 
 
@@ -30,8 +30,8 @@ class ModuleTauPair(Module):
     self.isdata     = self.dtype=='data' or self.dtype=='embed'
     self.isembed    = self.dtype=='embed'
     self.channel    = kwargs.get('channel',  'none'         ) # channel name
-    self.year       = kwargs.get('year',     2017           ) # integer, e.g. 2017, 2018
-    self.era        = kwargs.get('era',      '2017'         ) # string, e.g. '2017', 'UL2017'
+    self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
+    self.era        = kwargs.get('era',      '2022postEE'   ) # string, e.g. '2017', 'UL2017'
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
@@ -55,7 +55,7 @@ class ModuleTauPair(Module):
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
-    assert self.year in [2016,2017,2018], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
+    assert self.year in [2016,2017,2018,2022], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -429,6 +429,7 @@ class ModuleTauPair(Module):
     # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
     if self.ismc and 't' in self.channel:
       if tau1.__dict__.get('es',1)!=1:
+        #if hasattr(tau1,'es') and tau1.es!=1:
         dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
         correctmet(met,dp)
       if hasattr(tau2,'es') and tau2.es!=1:
