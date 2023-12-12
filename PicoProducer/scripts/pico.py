@@ -88,8 +88,8 @@ if __name__ == "__main__":
                                                 help="preselection to be shipped to skimjob.py during run command")
   parser_job.add_argument('-p','--prefetch',    dest='prefetch', action='store_true',
                                                 help="copy remote file during job to increase processing speed and ensure stability")
-  parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=None,
-                                                help="extra options for the batch system")
+  parser_job.add_argument('-B','--batch-opts',  dest='batchopts', default=CONFIG.batchopts,
+                                                help="extra options for the batch system, default=%(default)r")
   parser_job.add_argument('-M','--time',        dest='time', default=None,
                                                 help="maximum run time of job")
   parser_job.add_argument('-q','--queue',       dest='queue', default=str(CONFIG.queue),

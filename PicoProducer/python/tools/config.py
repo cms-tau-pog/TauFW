@@ -49,7 +49,8 @@ def getdefaultconfig(verb=0):
     nanodir       = sedir+"samples/nano/$ERA/$DAS"   # for storage of (skimmed) nanoAOD
     filelistdir   = "samples/files/$ERA/$SAMPLE.txt" # location to save list of files
     batchsystem   = guess_batch()                    # batch system (HTCondor, SLURM, ...)
-    queue         = ""                               # batch queue / job flavor
+    batchqueue    = ""                               # batch queue / job flavor
+    batchopts     = ""                               # extra batch options
     nfilesperjob  = 1                                # group files per job
     maxevtsperjob = -1                               # maximum number of events per job (split large files)
     maxopenfiles  = 500                              # maximum number of open files during hadd
@@ -60,7 +61,7 @@ def getdefaultconfig(verb=0):
       #('basedir',basedir), # import instead
       ('jobdir',jobdir),     ('outdir',outdir), ('nanodir',nanodir), ('picodir',picodir),
       ('tmpskimdir',tmpskimdir),
-      ('batch',batchsystem), ('queue',queue),
+      ('batch',batchsystem), ('queue',batchqueue), ('batchopts',batchopts),
       ('nfilesperjob',nfilesperjob), ('maxevtsperjob',maxevtsperjob),
       ('filelistdir',filelistdir),
       ('maxopenfiles',maxopenfiles), ('haddcmd', haddcmd ), # for pico.py hadd
