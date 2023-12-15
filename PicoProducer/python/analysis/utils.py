@@ -421,3 +421,8 @@ def getTotalWeight(file): #This function was proposed by Konstantin Androsov to 
         w = df.Sum('genWeightD')
         total_w += w.GetValue()
     return total_w
+  
+def getNevt(file): #This function extracts the number of events form Data files
+  df = RDataFrame('Events', file)
+  count_result = df.Count()
+  return count_result.GetValue()
