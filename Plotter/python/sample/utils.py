@@ -155,52 +155,68 @@ def setera(era_,lumi_=None,**kwargs):
   return lumi
   
 
-def unwrap_gethist_args(*args,**kwargs):
+def unpack_sellist_args(*args):
+  """Unpack selections at end from arguments."""
+  vargs     = [ ]   # unparsed arguments (assumed to be Variable objects)
+  sellist   = None  # list of selections (string or Selection object)
+  singlesel = True  # only one Selection passed
+  if len(args)>=1:
+    if isinstance(args[-1],Selection): # convert to list
+      sellist   = [args[-1]] # [Selection]
+      vargs     = args[:-1]
+    elif islist(args[-1]) and any(isinstance(s,Selection) for s in args[-1]):
+      sellist   = args[-1] # already a list of selections
+      vargs     = args[:-1]
+      singlesel = False
+    elif isinstance(args[-1],str): # convert to selection string
+      sellist   = [Selection(args[-1])]
+      vargs     = args[:-1]
+    else:
+      sellist   = [Selection()] # no selection given
+      vargs     = args
+  return vargs, sellist, singlesel
+  
+
+def unpack_gethist_args(*args,**kwargs):
   """
-  Help function to unwrap argument list that contain variable(s) and selection:
+  Help function to unpack argument list that contain variable(s) and selection(s):
     gethist(str xvar, int nxbins, float xmin, float xmax, str cuts="")
     gethist(str xvar, list xbins, str cuts="")
     gethist(Variable xvar, str cuts="")
     gethist(list varlist, str cuts="")
-  where varlist is a list of Variables objects, or a list of tuples defining a variable:
+  where cuts is either a (list of) selection string(s) or Selection object(s),
+  and varlist is a list of Variables objects, or a list of tuples defining a variable:
     - [(str xvar, int nxbins, float xmin, float xmax), ... ]
     - [(str xvar, list xbins), ... ]
-  Returns a list of Variable objects, a Selection object, and a boolean to flag a single
-  instead of a list of variables was given:
-    - (list vars, str cut, bool single)
-  For testing, see test/testUnwrapping.py.
+  Returns (list varlist, list sellist, bool singlevar, bool singlesel)
+    - a list of Variable objects,
+    - a list of Selection objects,
+    - a boolean to flag a single variable was passed
+    - a boolean to flag a single selection was passed
+  For testing, see test/testUnpacking.py.
   """
-  vars   = None     # list of Variable objects
-  sel    = None     # selection (string or Selection object)
-  single = False    # only one Variable passed
-  if len(args)>=1:
-    if isinstance(args[-1],Selection):
-      sel   = args[-1]
-      vargs = args[:-1]
-    elif isinstance(args[-1],str):
-      sel   = Selection(args[-1])
-      vargs = args[:-1]
-    else:
-      sel   = Selection() # no selection given
-      vargs = args
-  if len(vargs)==1:
-    vars  = vargs[0]
-    if isinstance(vars,Variable):
-      vars   = [vars]
-      single = True
+  verbosity = LOG.getverbosity(kwargs)+5
+  varlist   = None  # list of Variable objects
+  singlevar = False # only one Variable passed
+  vargs, sellist, singlesel = unpack_sellist_args(*args)
+  if len(vargs)==1: # parse variable arguments
+    varlist = vargs[0]
+    if isinstance(varlist,Variable):
+      varlist   = [varlist]
+      singlevar = True
     elif islist(vargs[0]):
-      vars = [ensurevar(v) for v in vargs[0]]
-  elif len(vargs) in [2,4]:
-    vars   = [Variable(*vargs)]
-    single = True
-  if vars==None or sel==None:
-    LOG.throw(IOError,'unwrap_gethist_args: Could not unwrap arguments %s, len(args)=%d, vars=%s, sel=%s.'%(
-                                                                       args,len(args),vars,sel.selection))
-  LOG.verb("unwrap_gethist_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),level=4)
-  return vars, sel, single
+      varlist = [ensurevar(v) for v in vargs[0]]
+  elif len(vargs) in [2,4]: # fixed-binning or variable binning
+    varlist   = [Variable(*vargs)]
+    singlevar = True
+  if varlist==None or sellist==None:
+    LOG.throw(IOError,'unpack_gethist_args: Could not unwrap arguments %s, len(args)=%d, varlist=%s, sellist=%r.'%(
+                                                                       args,len(args),varlist,sellist))
+  LOG.verb("unpack_gethist_args: varlist=%s, sel=%r, singlevar=%r, singlesel=%r"%(varlist,sellist,singlevar,singlesel),verbosity,4)
+  return varlist, sellist, singlevar, singlesel
   
 
-def unwrap_gethist2D_args(*args,**kwargs):
+def unpack_gethist2D_args(*args,**kwargs):
   """
   Help function to unwrap argument list that contain variable pair(s) and selection:
     gethist2D(str xvar, int nxbins, float xmin, float xmax, str yvar, int nybins, float ymin, float ymax, str cuts="")
@@ -212,72 +228,65 @@ def unwrap_gethist2D_args(*args,**kwargs):
     gethist2D(list xvarlist, list yvarlist, str cuts="")
     gethist2D(list varlist, str cuts="")
     gethist2D(tuple varpair, str cuts="")
+  where cuts is either a (list of) selection string(s) or Selection object(s),
   where the tuples xvar and yvar can be of the form
     – (str xvar, int nxbins, float xmin, float xmax)
     – (str xvar, list xbins)
-  and the [xy]varlist is a list of Variables object pairs,
+  and the xvarlist and yvarlist are lists of Variables object pairs,
     - [(Variable xvar,Variable yvar), ... ]
   or a list of tuples defining a variable:
     - [(str xvar, int nxbins, float xmin, float xmax, str yvar, int nybins, float ymin, float ymax), ...]
     - [(str xvar, list xbins), ...]
   and varpair is tuple of a single pair of Variable objects:
     - (Variable xvar,Variable yvar)
-  Returns a list of Variable pairs, a Selection object, and a boolean to flag a single
-  instead of a list of variables was given:
-    (list varpairs, str cut, bool single)
-  For testing, see test/testUnwrapping.py.
+  Returns (list varlist, list sellist, bool singlevar, bool singlesel)
+    - a list of Variable object pairs,
+    - a list of Selection objects,
+    - a boolean to flag a single variable was passed
+    - a boolean to flag a single selection was passed
+  For testing, see test/testUnpacking.py.
   """
   verbosity = LOG.getverbosity(kwargs)
-  vars   = None     # list of Variable objects
-  sel    = None     # selection (string or Selection object)
-  single = False    # only one Variable passed
-  if len(args)>=1:
-    if isinstance(args[-1],Selection):
-      sel   = args[-1]
-      vargs = args[:-1]
-    elif isinstance(args[-1],str):
-      sel   = Selection(args[-1])
-      vargs = args[:-1]
-    else:
-      sel   = Selection() # no selection given
-      vargs = args
+  varlist   = None  # list of pairs of Variable objects
+  singlevar = False # only one pair of Variable objects passed
+  vargs, sellist, singlesel = unpack_sellist_args(*args)
   if len(vargs)==1:
-    vars = vargs[0]
-    single = len(vars)==2 and islist(vars) and all(isinstance(v,Variable) for v in vars)
-    if single:
-      vars = [vars]
+    varlist = vargs[0]
+    singlevar = len(varlist)==2 and islist(varlist) and all(isinstance(v,Variable) for v in varlist)
+    if singlevar:
+      varlist = [varlist]
   elif len(vargs)==2:
     xvars, yvars = vargs
-    if isinstance(xvars,Variable) and isinstance(yvars,Variable):
-      vars = [(xvars,yvars)]
-      single = True
-    elif all(isinstance(v,Variable) for v in xvars+yvars): # assume list
-      vars = zip(xvars,yvars)
+    if isinstance(xvars,Variable) and isinstance(yvars,Variable): # one pair of Variable objects
+      varlist = [(xvars,yvars)]
+      singlevar = True
+    elif all(isinstance(v,Variable) for v in xvars+yvars): # assume two lists of Variable objects
+      varlist = zip(xvars,yvars)
     elif len(xvars) in [2,4] and len(yvars) in [2,4] and isinstance(xvars[0],str) and isinstance(yvars[0],str):
-      vars = [Variable(*xvars),Variable(*yvars)]
-      single = True
+      varlist = [Variable(*xvars),Variable(*yvars)]
+      singlevar = True
     elif islist(xvars) and islist(yvars) and all(islist(x) for x in xvars) and all(islist(y) for y in yvars):
-      vars = [(Variable(*x),Variable(*y)) for x, y in zip(xvars,yvars)]
-  elif len(vargs)==4:
-    vars   = [(Variable(*vargs[0:2]),Variable(*vargs[2:4]))]
-    single = True
-  elif len(vargs)==6:
-    if isinstance(vargs[2],str):
-      vars   = [(Variable(*vargs[0:2]),Variable(*vargs[2:6]))]
-      single = True
-    elif isinstance(vargs[4],str):
-      vars   = [(Variable(*vargs[0:4]),Variable(*vargs[4:6]))]
-      single = True
+      varlist = [(Variable(*x),Variable(*y)) for x, y in zip(xvars,yvars)]
+  elif len(vargs)==4: # two variable binnings: (str xvar, list xbins), (str yvar, list ybins)
+    varlist   = [(Variable(*vargs[0:2]),Variable(*vargs[2:4]))]
+    singlevar = True
+  elif len(vargs)==6: # one fixed-binning, one variable binning
+    if isinstance(vargs[2],str): # (str xvar, int nxbins, float xmin), float xmax, (str yvar, list ybins)
+      varlist   = [(Variable(*vargs[0:2]),Variable(*vargs[2:6]))]
+      singlevar = True
+    elif isinstance(vargs[4],str): # (str xvar, list xbins), (str yvar, int nybins, float ymin, float ymax)
+      varlist   = [(Variable(*vargs[0:4]),Variable(*vargs[4:6]))]
+      singlevar = True
   elif len(vargs)==8:
-    vars   = [(Variable(*vargs[0:4]),Variable(*vargs[4:8]))]
-    single = True
-  if vars==None or sel==None:
-    LOG.throw(IOError,'unwrap_gethist2D_args: Could not unwrap arguments %s, len(args)=%d, vars=%s, sel=%s.'%(args,len(args),vars,sel))
-  elif isinstance(sel,str):
-    sel = Selection(str)
-  LOG.verb("unwrap_gethist2D_args: args=%r"%(args,),verbosity,3)
-  LOG.verb("unwrap_gethist2D_args: vars=%s, sel=%r, single=%r"%(vars,sel.selection,single),verbosity,4)
-  return vars, sel, single
+    varlist   = [(Variable(*vargs[0:4]),Variable(*vargs[4:8]))]
+    singlevar = True
+  if varlist==None or sellist==None:
+    LOG.throw(IOError,'unpack_gethist2D_args: Could not unwrap arguments %s, len(args)=%d, varlist=%s, sellist=%s.'%(args,len(args),varlist,sellist))
+  elif isinstance(sellist,str):
+    sellist = Selection(str)
+  LOG.verb("unpack_gethist2D_args: args=%r"%(args,),verbosity,3)
+  LOG.verb("unpack_gethist2D_args: varlist=%s, sellist=%r, singlevar=%r, singlesel=%r"%(varlist,sellist,singlevar,singlesel),verbosity,4)
+  return varlist, sellist, singlevar, singlesel
   
 
 def findsample(samples,*searchterms,**kwargs):
@@ -291,7 +300,7 @@ def findsample(samples,*searchterms,**kwargs):
   searchterms = unwraplistargs(searchterms)
   LOG.verb("findsample: Looking for sample with search terms %s in list %s..."%(
            searchterms,samples),verbosity,3)
-  matches     = [ ]
+  matches = [ ]
   if split:
     newsamples = [ ]
     for sample in samples:
@@ -340,10 +349,11 @@ def findsample_with_flag(samples,flag,*searchterms,**kwargs):
 def join(samplelist,*searchterms,**kwargs):
   """Join samples from a sample list into one merged sample, that match a set of search terms.
   E.g. samplelist = join(samplelist,'DY','M-50',name='DY_highmass')."""
-  verbosity = LOG.getverbosity(kwargs)
-  name      = kwargs.get('name',  searchterms[0] ) # name of new merged sample
-  title     = kwargs.get('title', None           ) # title of new merged sample
-  color     = kwargs.get('color', None           ) # color of new merged sample
+  verbosity   = LOG.getverbosity(kwargs)
+  searchterms = unwraplistargs(searchterms)
+  name        = kwargs.get('name',  searchterms[0] ) # name of new merged sample
+  title       = kwargs.get('title', None           ) # title of new merged sample
+  color       = kwargs.get('color', None           ) # color of new merged sample
   LOG.verb("join: merging '%s' into %r"%("', '".join(searchterms),name),verbosity,level=1)
   
   # GET samples containing names and searchterm

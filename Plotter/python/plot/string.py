@@ -326,16 +326,26 @@ def match(terms, labels, **kwargs):
     return True # all search terms were matched
   
 
-def joinweights(*weights,**kwargs):
+def joinweights(*wargs,**kwargs):
   """Join weight strings multiplicatively."""
   verbosity = LOG.getverbosity(kwargs)
-  weights   = [w for w in weights if w and isinstance(w,str)]
-  if weights:
-    weights = "*".join(weights)
-    weights = weights.replace('*/','/')
-  else:
-    weights = ""
-  return weights
+  weights   = [ ] # filtered list of weights (ignore empty strings)
+  for weight in wargs:
+    if weight and isinstance(weight,str): # strings
+      weights.append(weight)
+    elif isinstance(weight,(int,float)): # numbers
+      if weight!=1: # ignore 1 as it should not contribute
+        weights.append(str(weight)) # convert to string
+      if weight==0 and len(wargs)>=1:
+        LOG.warn("joinweights: One weight is 0, other weights: %r"%(weight,wargs))
+    elif weight: # unrecognized object ?
+      LOG.warn("joinweights: Ignoring %r (type %r) because it is not a string or number?"%(weight,type(weight)))
+  if weights: # one or more nonzero weights
+    totweight = "*".join(weights) # combine weights into one string with multiplication '*'
+    totweight = totweight.replace('*/','/')
+  else: # empty weight
+    totweight = "" # total weight
+  return totweight
   
 
 def joincuts(*cuts,**kwargs):
@@ -363,6 +373,28 @@ def joincuts(*cuts,**kwargs):
     cuts = ""
   #print cuts
   return cuts
+  
+
+def replacepattern(oldstr,patterns):
+  """Replace pattern in string of (multiplicative weights).
+  E.g: replacepattern("wgt1*wgt2*10",('wgt1','newwgt1')) = "newwgt1*wgt2*10"
+  """
+  if not patterns:
+    return oldstr
+  if len(patterns) in [2,3] and not isinstance(patterns,list): #islist(patterns[0]):
+    patterns = [patterns] # ensure list of patterns
+  for patargs in patterns:
+    if len(patargs)>=3:
+      oldpat, newpat, regexp = patargs[:3]
+    else:
+      oldpat, newpat, regexp = patargs[0], patargs[1], False # default
+    if regexp: # substitution with regular expression
+      newstr = re.sub(oldpat,newpat,oldstr)
+    else: # simple substitution
+      newstr = oldstr.replace(oldpat,newpat)
+    newstr = newstr.replace("**","*").strip('*') # for multiplicative weights
+    #LOG.verb('replacepattern: Replacing weight: %r -> %r'%(oldstr,newstr,verbosity,3))
+  return newstr
   
 
 doubleboolrexp = re.compile(r"(?:&&|\|\|) *(?:&&|\|\|)")
