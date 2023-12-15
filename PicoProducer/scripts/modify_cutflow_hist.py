@@ -33,7 +33,7 @@ def get_nanoaod_info(args):
     args = Namespace(
         use_taufw_samples=True,
         era="2016",
-        channel="muon",
+        channel="mutau",
         tag="v2",
         dtype="mc",
         veto=False,
@@ -79,7 +79,7 @@ def get_nanoaod_info(args):
             n_evt[sample.name] = 0 #Init empty dict field for a sample
             n_files[sample.name] = len(filenames)
             print(f"Total number of files for {sample.name} is {n_files[sample.name]}")
-            for filename in filenames[:3]:
+            for filename in filenames:
                 if sample.dtype == 'mc':
                     sumw = 0
                     sumw = getTotalWeight(filename) #Scan through the Events tree to get a sum of generator weights
@@ -107,7 +107,13 @@ def get_nanoaod_info(args):
 def check_sample_name(full_filename, args):
     filename = os.path.splitext(os.path.basename(full_filename))[0]
     sample_name = filename.split('_' + args.channel)[0]
-    return sample_name if (sample_name in args.samples) and (sample_name not in args.veto) else 0
+    
+    faled_check = (args.samples and sample_name not in args.samples) or \
+        ( args.veto and (sample_name in args.veto) ) or \
+            (all(['data' not in the_dtype for the_dtype in args.dtype]) and 'Run' in sample_name) or \
+                (all(['mc' not in the_dtype for the_dtype in args.dtype]) and 'Run' not in sample_name)
+    
+    return sample_name if not faled_check else None 
    
     
 
@@ -135,8 +141,8 @@ def modify_cutflow_hist(args):
         sumw_file="input/sumw_info.json",
         bin=3,
         pico_dir="/path/to/pico/files",
-        era="2016",
-        channel="muon",
+        era="2022_postEE",
+        channel="mutau",
         tag="v2",
         modify_cutflow=True
     )
@@ -153,24 +159,28 @@ def modify_cutflow_hist(args):
     with open(sumw_file, "r") as tf:
         json_content = json.load(tf)
         n_evt = json_content['n_evt']      
-        filenames = glob.glob(f'{args.pico_dir}/{args.era}/*/*{args.channel}{args.tag}.root')
+        filenames = glob.glob(f'{args.pico_dir}/*/*{args.channel}{args.tag}.root')
         print(f'Samples: {filenames}')
         print("\n%40s:\t%15s%15s%15s"%('sample_name', 'cutflow_norm', 'nanoaod_norm', 'difference'))
         for fname in filenames:
             sample = check_sample_name(fname, args)
+            
             if sample:
                 root_file = TFile(fname, 'UPDATE' if args.modify_cutflow else 'READ' )
                 cutflow_hist = root_file.Get('cutflow')
                 cf_n   = int(cutflow_hist.GetBinContent(bin_id))
-                nano_n = int(n_evt[sample])
-                diff = cf_n - nano_n
-                print("%40s:\t%15d%15d%15d"%(sample, cf_n, nano_n, diff))
-                if args.modify_cutflow:
-                    cutflow_hist.SetBinContent(bin_id, float(n_evt[sample]))
-                    cutflow_hist.Write()
-            else:
-                print('Warning: Did not found normalization factor for %s sample in dict: ' %(fname)+ str(n_evt.keys()))   
+                if sample in n_evt.keys():
+                    nano_n = int(n_evt[sample])
+                    diff = cf_n - nano_n
+                    print("%40s:\t%15d%15d%15d"%(sample, cf_n, nano_n, diff))
+                    if args.modify_cutflow:
+                        cutflow_hist.SetBinContent(bin_id, float(n_evt[sample]))
+                        cutflow_hist.Write()
+                else:
+                    print('Warning: Did not found normalization factor for %s sample in dict: ' %(fname)+ str(n_evt.keys()))   
                 root_file.Close()
+                
+                
 
 def main():
     """
