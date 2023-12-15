@@ -134,6 +134,9 @@ class Ratio(object):
       LOG.warn("Ratio.init: len(histnums) = %s != %s = len(histdens)"%(len(histnums),len(histdens)))
     for i, (histnum,histden) in enumerate(zip(histnums,histdens)):
       tag = str(i)
+      if histnum==None or histden==None:
+        LOG.warn("Ratio.init: Cannot make ratio for histnum=%r / histden=%r (i=%s)! Ignoring..."%(histnum,histden,i))
+        continue
       if isinstance(histnum,(TH1,THStack)):
         ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       elif isinstance(histnum,TGraph):

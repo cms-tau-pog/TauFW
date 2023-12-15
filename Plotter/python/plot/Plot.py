@@ -53,7 +53,7 @@ class Plot(object):
       Plot(variable,hists)
       Plot(variable,hist1,hist2,...)
     """
-    self.verbosity = LOG.getverbosity(kwargs)
+    self.verbosity = LOG.getverbosity(self,kwargs)
     
     # PARSE ARGUMENTS: variable & (list of) histogram(s)
     variable   = None

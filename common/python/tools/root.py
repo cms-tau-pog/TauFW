@@ -3,9 +3,10 @@ from __future__ import print_function # for python3 compatibility
 from past.builtins import basestring # for python2 compatibility
 import os
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TFile
+from ROOT import TFile, TNamed
 from TauFW.common.tools.log import LOG
 from TauFW.common.tools.utils import unwraplistargs, islist
+TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o))) # print name/title
 
 
 def rootname(*args):

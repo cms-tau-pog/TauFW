@@ -22,7 +22,7 @@ class Variable(object):
   Initialize as
     var = Variable('x',100,0,200)
     var = Variable('x','x title',100,0,200)
-    var = Variable('x',[0,10,50,100,200])
+    var = Variable('x',[0,10,50,100,200])   # pass bin edges for variable binning
     ...
   """
   
@@ -31,7 +31,7 @@ class Variable(object):
     for arg in args:
       if isinstance(arg,str): strings.append(arg)
       else: bins.append(arg)
-    self.name         = name # variable name in tree, to be used in draw command
+    self.name         = name # variable name: branch in tree or mathematical expression of branch(es), to be used in draw command
     self._name        = name # backup for addoverflow
     self.title        = strings[0] if strings else self.name
     filename          = strings[1] if len(strings)>=2 else makefilename(self.name.replace('/','_')) # file-safe name
@@ -297,6 +297,9 @@ class Variable(object):
     verbosity = LOG.getverbosity(self,kwargs)
     strings   = list(strings)
     LOG.verbose('Variable.plotfor: strings=%s, veto=%s, only=%s'%(strings,self.veto,self.only),verbosity,level=2)
+    if not self.data and kwargs.get('data',False):
+      LOG.verbose('Variable.plotfor: Do not draw "%r" for data'%(self.name),verbosity,level=2)
+      return False # do not draw for data
     for i, string in enumerate(strings):
       if string.__class__.__name__=='Selection':
         string     = string.selection
@@ -328,19 +331,25 @@ class Variable(object):
     name = name.replace('(','').replace(')','').replace('[','').replace(']','').replace(',','-').replace('.','p')
     return name, title
   
+  def gethistmodel(self,name=None,title=None,**kwargs):
+    """Create arguments for initiation TH1D (useful for RDataFrame)."""
+    # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
+    tag = kwargs.get('tag', "" )
+    name, title = self.getnametitle(name,title,tag)
+    if self.hasvariablebins():
+      model = (name,title,self.nbins,array('d',list(self.bins)))
+    else:
+      model = (name,title,self.nbins,self.min,self.max)
+    return model
+  
   def gethist(self,name=None,title=None,**kwargs):
     """Create a 1D histogram."""
-    tag     = kwargs.get('tag',     ""          )
     poisson = kwargs.get('poisson', False       )
     sumw2   = kwargs.get('sumw2',   not poisson )
     xtitle  = kwargs.get('xtitle',  self.title  )
     ytitle  = kwargs.get('ytitle',  None        )
     #TH1Class = TH1D # TH1I if self.hasintbins() else TH1D
-    name, title = self.getnametitle(name,title,tag)
-    if self.hasvariablebins():
-      hist = TH1D(name,title,self.nbins,array('d',list(self.bins)))
-    else:
-      hist = TH1D(name,title,self.nbins,self.min,self.max)
+    hist = TH1D(*self.gethistmodel(name,title,**kwargs))
     if poisson:
       hist.SetBinErrorOption(TH1D.kPoisson)
     elif sumw2:

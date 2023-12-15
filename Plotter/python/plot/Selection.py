@@ -2,7 +2,7 @@
 import re
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
-from TauFW.Plotter.plot.string import joinweights
+from TauFW.Plotter.plot.string import joinweights, invertcharge
 from TauFW.Plotter.plot.Context import getcontext
 from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist, unwraplistargs
 
@@ -32,42 +32,38 @@ class Selection(object):
         self.name      = args[0].name
         self.title     = args[0].title
         self.selection = args[0].selection
-      else:
+      else: # str selection
         self.name      = args[0]
         self.title     = args[0]
         self.selection = args[0]
-    elif len(args)==2:
+    elif len(args)==2: # str name, str selection
       self.name        = args[0]
       self.title       = args[0]
       self.selection   = getselstr(args[1])
-    elif len(args)==3:
+    elif len(args)==3: # str name, str title, str selection
       self.name        = args[0]
       self.title       = args[1]
       self.selection   = getselstr(args[2])
-    elif len(args)>=4:
+    elif len(args)>=4: # str name, str title, str selection, str weight
       self.name        = args[0]
       self.title       = args[1]
       self.selection   = getselstr(args[2])
       self.weight      = args[3]
     self.title         = kwargs.get('title', maketitle(self.title) )
-    self.filename      = makefilename(self.name)
-    self.selection     = kwargs.get('selection',self.selection )
+    self.filename      = makefilename(self.name) # ensure filename-safe name
+    self.selection     = kwargs.get('selection',self.selection ) # selection string, e.g. "q_1*q_2<0 && pt_1>20 && pt_2>20"
+    self.contextstr    = kwargs.get('context',  self.selection ) # context string for Variable.context
     self.filename      = kwargs.get('fname',    self.filename  ) # alias
     self.filename      = kwargs.get('filename', self.filename  ) # name for files, histograms
     self.weight        = kwargs.get('weight',   self.weight    )
     #if self.selection=="":
     #   LOG.warn('Selection::Selection - No selection string given for %r!'%(self.name))
     self.context       = getcontext(kwargs,self.selection) # context-dependent channel selections
-    self.only          = kwargs.get('only',     [ ]           )
-    self.veto          = kwargs.get('veto',     [ ]           )
-    self.flag          = kwargs.get('flag',     ""            ) # flag, e.g. 'up', 'down', ...
+    self.only          = kwargs.get('only',     [ ]            ) # only plot variables that match these search/filter words
+    self.veto          = kwargs.get('veto',     [ ]            ) # do not plot variables that match these search/filter words
+    self.flag          = kwargs.get('flag',     ""             ) # flag, e.g. 'up', 'down', ...
     self.only          = ensurelist(self.only)
     self.veto          = ensurelist(self.veto)
-  
-  @property
-  def cut(self): return self.selection
-  @cut.setter
-  def cut(self,val): self.selection = val
   
   def __str__(self):
     """Returns string representation of Selection object."""
@@ -79,14 +75,14 @@ class Selection(object):
   
   def __iter__(self):
     """Start iteration over selection information."""
-    for i in [self.name,self.selection]:
-      yield i
+    yield self.name
+    yield self.selection
   
   def __add__(self, selection2):
     """Add selections by combining their selection string (can be string or Selection object)."""
     if isinstance(selection2,str):
       selection2 = Selection(selection2,selection2) # make selection object
-    return self.combine(selection2)
+    return self.join(selection2)
   
   def __mul__(self, weight):
     """Multiply selection with some weight (that can be string or Selection object)."""
@@ -171,21 +167,21 @@ class Selection(object):
     return self.selection
   
   def plotfor(self,variable,**kwargs):
-    """Check is variable is vetoed for this variable."""
+    """Check is variable is filtered or vetoed for this variable."""
     verbosity = LOG.getverbosity(kwargs)
     if not isinstance(variable,str):
       variable = variable.name
-    for searchterm in self.veto:
+    for searchterm in self.veto: # veto variable if matches search term
       if re.search(searchterm,variable):
         LOG.verb("Selection.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
-        return False
-    for searchterm in self.only:
+        return False # do not plot
+    for searchterm in self.only: # filter variable if matches search term
       if re.search(searchterm,variable):
         LOG.verb("Selection.plotFor: Regex match of variable %r to %r"%(variable,searchterm),verbosity,level=2)
-        return True
-    return len(self.only)==0
+        return True # plot
+    return len(self.only)==0 # plot, unless filters are defined
   
-  def combine(self, *selections):
+  def join(self, *selections):
     # TODO: check if selection2 is a string, if possible
     selections = [self]+list(selections)
     name       = ", ".join([s.name     for s in selections if s.name    ])
@@ -214,6 +210,15 @@ class Selection(object):
   def latex(self):
     return makelatex(self.name)
   
+  def invertcharge(self,**kwargs):
+    """Invert charge requirement:
+      q_1*q_2<0 (OS) -> q_1*q_2>0 (SS)
+    """
+    oldstr = self.selection # old selection string
+    newsel = deepcopy(self) # create new object
+    newsel.selection = invertcharge(oldstr,**kwargs) # overwrite selection string
+    return newsel
+    
   def shift(self,vshift,vars,**kwargs):
     """Shift all given variable in selections string,
     and create new Selection object, e.g.
