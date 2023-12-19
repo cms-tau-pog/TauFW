@@ -35,46 +35,47 @@ class Variable(object):
     self._name        = name # backup for addoverflow
     self.title        = strings[0] if strings else self.name
     filename          = strings[1] if len(strings)>=2 else makefilename(self.name.replace('/','_')) # file-safe name
-    self.title        = kwargs.get('title',       self.title    ) # for plot axes
-    self.filename     = kwargs.get('fname',       filename      ) # file-friendly name for files & histograms
-    self.filename     = kwargs.get('filename',    self.filename ) # alias
+    self.title        = kwargs.get('title',       self.title     ) # for plot axes
+    self.filename     = kwargs.get('fname',       filename       ) # file-friendly name for files & histograms
+    self.filename     = kwargs.get('filename',    self.filename  ) # alias
     self.filename     = self.filename.replace('$NAME',self.name).replace('$VAR',filename).replace(
                                               '[','-').replace(']','').replace('.','p') #.replace('$FILE',self.filename)
-    self.tag          = kwargs.get('tag',         ""            )
-    self.units        = kwargs.get('units',       True          ) # for plot axes
-    self.latex        = kwargs.get('latex',       True          ) # for plot axes
+    self.tag          = kwargs.get('tag',         ""             )
+    self.units        = kwargs.get('units',       True           ) # for plot axes
+    self.latex        = kwargs.get('latex',       True           ) # for plot axes
     self.nbins        = None
     self.min          = None
     self.max          = None
     self.bins         = None # bin edges
-    self.cut          = kwargs.get('cut',         ""            ) # extra cut when filling histograms
-    self.weight       = kwargs.get('weight',      ""            ) # extra weight when filling histograms (MC only)
-    self.dataweight   = kwargs.get('dataweight',  ""            ) # extra weight when filling histograms for data
+    self.cut          = kwargs.get('cut',         ""             ) # extra cut when filling histograms
+    self.weight       = kwargs.get('weight',      ""             ) # extra weight when filling histograms (MC only)
+    self.dataweight   = kwargs.get('dataweight',  ""             ) # extra weight when filling histograms for data
     self.setbins(*bins)
     self.dividebins   = kwargs.get('dividebins',  self.hasvariablebins() ) # divide each histogram bins by it bin size (done in Plot.draw)
-    self.data         = kwargs.get('data',        True          ) # also draw this variable for observed data
-    self.flag         = kwargs.get('flag',        ""            ) # flag, e.g. 'up', 'down', ...
-    self.binlabels    = kwargs.get('labels',      [ ]           ) # bin labels for x axis
-    self.ymin         = kwargs.get('ymin',        None          )
-    self.ymax         = kwargs.get('ymax',        None          )
-    self.rmin         = kwargs.get('rmin',        None          )
-    self.rmax         = kwargs.get('rmax',        None          )
-    self.ratiorange   = kwargs.get('rrange',      None          )
-    self.logx         = kwargs.get('logx',        False         )
-    self.logy         = kwargs.get('logy',        False         )
-    self.ymargin      = kwargs.get('ymarg'  ,     None          ) # margin between hist maximum and plot's top
-    self.ymargin      = kwargs.get('ymargin',     self.ymargin  ) # margin between hist maximum and plot's top
-    self.logyrange    = kwargs.get('logyrange',   None          ) # log(y) range from hist maximum to ymin
-    self.position     = kwargs.get('pos',         ""            ) # legend position
-    self.position     = kwargs.get('position',    self.position ) # legend position
-    self.ncols        = kwargs.get('ncol',        None          ) # number of legend columns
-    self.ncols        = kwargs.get('ncols',       self.ncols    ) # number of legend columns
-    #self.plot         = kwargs.get('plots',       True          )
-    self.opts         = kwargs.get('opts',        { }           ) # general dictionary of extra user options
-    self.only         = kwargs.get('only',        [ ]           ) # only plot for these patterns
-    self.veto         = kwargs.get('veto',        [ ]           ) # do not plot for these patterns
-    self.blindcuts    = kwargs.get('blind',       ""            ) # string for blind cuts to blind data
-    self._addoverflow = kwargs.get('addof',       False         ) # add overflow to last bin
+    self.data         = kwargs.get('data',        True           ) # also draw this variable for observed data
+    self.flag         = kwargs.get('flag',        ""             ) # flag, e.g. 'up', 'down', ...
+    self.binlabels    = kwargs.get('labs',        [ ]            ) # alias
+    self.binlabels    = kwargs.get('labels',      self.binlabels ) # bin labels for x axis
+    self.ymin         = kwargs.get('ymin',        None           )
+    self.ymax         = kwargs.get('ymax',        None           )
+    self.rmin         = kwargs.get('rmin',        None           )
+    self.rmax         = kwargs.get('rmax',        None           )
+    self.ratiorange   = kwargs.get('rrange',      None           )
+    self.logx         = kwargs.get('logx',        False          )
+    self.logy         = kwargs.get('logy',        False          )
+    self.ymargin      = kwargs.get('ymarg'  ,     None           ) # margin between hist maximum and plot's top
+    self.ymargin      = kwargs.get('ymargin',     self.ymargin   ) # margin between hist maximum and plot's top
+    self.logyrange    = kwargs.get('logyrange',   None           ) # log(y) range from hist maximum to ymin
+    self.position     = kwargs.get('pos',         ""             ) # legend position
+    self.position     = kwargs.get('position',    self.position  ) # legend position
+    self.ncols        = kwargs.get('ncol',        None           ) # number of legend columns
+    self.ncols        = kwargs.get('ncols',       self.ncols     ) # number of legend columns
+    #self.plot         = kwargs.get('plots',       True           )
+    self.opts         = kwargs.get('opts',        { }            ) # general dictionary of extra user options
+    self.only         = kwargs.get('only',        [ ]            ) # only plot for these patterns
+    self.veto         = kwargs.get('veto',        [ ]            ) # do not plot for these patterns
+    self.blindcuts    = kwargs.get('blind',       ""             ) # string for blind cuts to blind data
+    self._addoverflow = kwargs.get('addof',       False          ) # add overflow to last bin
     self._addoverflow = kwargs.get('addoverflow', self._addoverflow ) # add overflow to last bin
     if self.latex:
       self.title = makelatex(self.title,units=self.units)
@@ -331,20 +332,20 @@ class Variable(object):
     name = name.replace('(','').replace(')','').replace('[','').replace(']','').replace(',','-').replace('.','p')
     return name, title
   
-  def gethistmodel(self,**kwargs):
+  def gethistmodel(self,name=None,title=None,**kwargs):
     """Create arguments for initiation TH1D (useful for RDataFrame.Histo1D)."""
     # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
-    name, title = self.getnametitle(**kwargs)
+    name, title = self.getnametitle(name,title,**kwargs)
     if self.hasvariablebins(): # variable bin width
       model = (name,title,self.nbins,array('d',list(self.bins)))
     else: # constant/fixed bin width
       model = (name,title,self.nbins,self.min,self.max)
     return model
   
-  def gethistmodel2D(self,yvariable,**kwargs):
+  def gethistmodel2D(self,yvariable,name=None,title=None,**kwargs):
     """Create arguments for initiation TH2D (useful for RDataFrame.Histo2D)."""
     # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
-    model = self.gethistmodel(self,**kwargs)
+    model = self.gethistmodel(name,title,**kwargs)
     if yvariable.hasvariablebins(): # variable bin width
       model += (yvariable.nbins,array('d',list(yvariable.bins)))
     else: # constant/fixed bin width

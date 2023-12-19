@@ -110,7 +110,6 @@ class Plot2D(Plot):
     logx         = kwargs.get('logx',         self.logx                   )
     logy         = kwargs.get('logy',         self.logy                   )
     logz         = kwargs.get('logz',         self.logz                   )
-    lentries     = kwargs.get('lentry',       [ ]                         )
     tsize        = kwargs.get('tsize',        0.050                       )
     tcolor       = kwargs.get('tcolor',       kBlack                      )
     format       = kwargs.get('format',       ".2f"                       )
@@ -165,7 +164,6 @@ class Plot2D(Plot):
     if grid:
       canvas.SetGrid()
     canvas.cd()
-    self.canvas = canvas
     if logx:
       canvas.Update(); canvas.SetLogx()
       if xmin<=0 and xmax>0:
@@ -178,6 +176,7 @@ class Plot2D(Plot):
       canvas.Update(); canvas.SetLogz()
       if zmin<=0 and zmax>0:
         zmin = zmax/1e4
+    self.canvas = canvas
     
     # AXES
     #hist.SetTitle("") # assume gStyle.SetOptTitle(False) in TDR style
@@ -246,6 +245,7 @@ class Plot2D(Plot):
     # CMS STYLE
     if CMSStyle.lumiText:
       CMSStyle.setCMSLumiStyle(gPad,0)
+    return self.canvas
   
   def drawprofile(self,axes='x',opt="",entries=[ ],**kwargs):
     """Draw profile on canvas."""
@@ -299,14 +299,24 @@ class Plot2D(Plot):
     self.grahps = graphs[:]
     return graphs
     
-  def drawlegend(**kwargs):
-    tsize  = 0.041
-    width  = 0.26
-    height = tsize*1.10*len([o for o in graphs+lentries+pentries+[title,text] if o])
-    if 'left' in position.lower():   x1 = 0.17; x2 = x1+width
-    else:                            x1 = 0.78; x2 = x1-width 
-    if 'bottom' in position.lower(): y1 = 0.20; y2 = y1+height
-    else:                            y1 = 0.90; y2 = y1-height
+  def drawlegend(self,**kwargs):
+    entries = kwargs.get('entries', [ ]   )
+    title   = kwargs.get('header',  None  )
+    title   = kwargs.get('title',   title ) # legend header/title
+    texts   = kwargs.get('text',    [ ]   ) # extra text below legend
+    texts   = ensurelist(texts,nonzero=True)
+    entries = ensurelist(entries,nonzero=False)
+    tsize   = 0.041
+    width   = 0.26
+    height  = tsize*1.10*len([o for o in self.graphs+self.profiles+entries+texts+[title] if o])
+    if 'left' in position.lower():
+      x1 = 0.17; x2 = x1+width
+    else:
+      x1 = 0.78; x2 = x1-width 
+    if 'bottom' in position.lower():
+      y1 = 0.20; y2 = y1+height
+    else:
+      y1 = 0.90; y2 = y1-height
     legend = TLegend(x1,y1,x2,y2)
     legend.SetTextSize(tsize)
     legend.SetTextColor(lcolor)
@@ -325,6 +335,8 @@ class Plot2D(Plot):
       self.legend.AddEntry(graph,graph.GetTitle(),'lp')
     for profile in self.profiles:
       legend.AddEntry(profile,profile.GetTitle(),'lep')
+    for line in texts:
+      legend.AddEntry(0,line,'')
     self.canvas.cd()
     legend.Draw('SAME')
     self.legend = legend

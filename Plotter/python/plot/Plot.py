@@ -385,6 +385,7 @@ class Plot(object):
         if line.pad==2:
           line.Draw("LSAME")
       self.canvas.cd(1)
+    return self.canvas
     
   
   def saveas(self,*fnames,**kwargs):
@@ -1036,7 +1037,7 @@ class Plot(object):
       return None
     
     # CHECK
-    LOG.insist(self.canvas,"Canvas does not exist!")
+    LOG.insist(self.canvas,"Canvas does not exist! Did you call Plot.draw?")
     self.canvas.cd(panel)
     scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     tsize *= scale # text size

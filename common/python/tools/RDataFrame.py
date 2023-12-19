@@ -91,7 +91,7 @@ RDF.SetNumberOfThreads = SetNumberOfThreads
 
 def printRDFReport(report,reorder=False):
   """Print cutflow from RCutFlowReport."""
-  print(">>> \033[4m%10s %10s %10s %10s    %s\033[0m"%("Pass","All","Eff [%]","Cum [%]","Selection"+' '*50))
+  print(">>> \033[4m%10s %10s %10s %10s    %s\033[0m"%("Pass","All","Eff. [%]","Cum. [%]","Selection"+' '*50))
   evt_dict = { }
   if reorder: # (naively) reorder cuts (by default cuts are ordered according to the order of RDataFrame.Filter calls)
     for cut in report:

@@ -91,13 +91,14 @@ class ResultDict(): #object
     for sel in self._dict:
       print("%s%r:"%(pre,sel.filename))
       for j, var in enumerate(self._dict[sel]):
+        vkey = "(%r,%r)"%(var[0].filename,var[1].filename) if isinstance(var,tuple) else repr(var.filename)
         if compact==0: # new line per sample
-          print("%s  %r:"%(pre,var.filename))
+          print("%s  %s:"%(pre,vkey))
           for sample, result in self._dict[sel][var].items():
             name = color(sample.name,'grey',b=True)
-            print("%s    '%s': %r"%(pre,name,result))
+            print("%s    '%s': %s"%(pre,name,result))
         else: # group samples into a list in one line
-          print("%s  %r: { %s }"%(pre,var.filename,
+          print("%s  %s: { %s }"%(pre,vkey,
             ', '.join("'%s': %r"%(color(s.name,'grey',b=True),r)
                       for s, r in self._dict[sel][var].items())))
     return self
@@ -279,7 +280,8 @@ class ResultDict(): #object
     for sel in self._dict:
       for var in self._dict[sel]:
         LOG.verb("ResultDict.merge: Merge %r: %r"%(sample,self._dict[sel][var].values()),verb,3)
-        hname   = name.replace('$VAR',var.filename) if isinstance(name,str) else name
+        vname   = "%s_vs_%s"%(var[1].filename,var[0].filename) if isinstance(var,tuple) else var.filename
+        hname   = name.replace('$VAR',vname) if isinstance(name,str) else name
         results = MergedResult(self._dict[sel][var].values(),name=hname,title=title,verb=verb)
         self._dict[sel][var] = { sample: results } # replace nested dictionary with on sample
         if nterms<=0: # set first time

@@ -11,6 +11,7 @@ from TauFW.Plotter.sample.SampleSet import SampleSet
 from TauFW.Plotter.sample.utils import join
 from TauFW.Plotter.plot.utils import LOG
 from TauFW.Plotter.plot.Plot import Plot, Var
+from TauFW.Plotter.plot.Plot2D import Plot2D
 from TauFW.Plotter.plot.Stack import Stack
 from TauFW.Plotter.plot.Selection import Sel
 from pseudoSamples import getsamples
@@ -122,7 +123,7 @@ def test_getrdframe(samples,variables,selections,outdir="plots/test",split=False
   # so the gain will be small: check tree->Print("clusters")
   dot = f"{outdir}/graph_$NAME.dot"
   res_dict.run(graphs=rungraphs,rdf_dict=rdf_dict,dot=dot,verb=verb+1)
-  
+  rs
   # PLOT
   for selection, variable, samples, hists in res_dict.iterhists():
     plot = Plot(variable,hists)
@@ -130,6 +131,33 @@ def test_getrdframe(samples,variables,selections,outdir="plots/test",split=False
     plot.drawlegend()
     plot.drawtext("Test Sample.getrdframe",selection.title)
     plot.saveas(f"{outdir}/testRDF_plot_{variable.filename}_{selection.filename}{tag}.png")
+    plot.close()
+  
+
+def test_getrdframe2D(sample,variables,selections,outdir="plots/test",split=False,tag="",rungraphs=True,verb=0):
+  """Test Sample.getrdframe for 2D."""
+  LOG.header("test_getrdframe2D")
+  
+  # PREPARE RDataFrames
+  start    = time.time(), time.process_time() # wall-clock & CPU time
+  rdf_dict = { }
+  res_dict = sample.getrdframe(variables,selections,rdf_dict=rdf_dict,split=split,verb=verb+1)
+  print(f">>> test_getrdframe: Booking of {len(res_dict)} results took {took(*start)}")
+  if verb>=2:
+    print(f">>> test_getrdframe: Got res_dict:")
+    res_dict.display()
+  dot = f"{outdir}/graph2d_$NAME.dot"
+  res_dict.run(graphs=rungraphs,rdf_dict=rdf_dict,dot=dot,verb=verb+1)
+  
+  # PLOT
+  for selection, variable, samples, hists in res_dict.iterhists():
+    #print(variable,hists)
+    #hist = hists.gethists(single=True)
+    xvar, yvar = variable
+    plot = Plot2D(xvar,yvar,hists[0])
+    plot.draw()
+    plot.drawtext("Test Sample.getrdframe 2D",selection.title)
+    plot.saveas(f"{outdir}/testRDF_plot2d_{yvar.filename}_vs_{xvar.filename}_{selection.filename}_{sample.name}{tag}.png")
     plot.close()
   
 
@@ -191,6 +219,14 @@ def main(args):
 #     Var('njets',            10,  0,  10),
 #     Var('njets',            10,  0,  10, fname='njets_wgt', weight="2"), # test weighting
   ]
+  variables2D = [
+    (Var('m_vis',20,0,140,fname='mvis'),
+     Var('pt_1',40,0,120)),
+    (Var('q_1',"q_{#mu}", 3,-1,2,fname='q1'),
+     Var('q_2',"q_{#tau}",3,-1,2,fname='q2')),
+    (Var('q_1>0?0:1',"q_{#mu}", 2,0,2,fname='q1_lab',labs=['#minus1','+1']),
+     Var('q_2>0?0:1',"q_{#tau}",2,0,2,fname='q2',labs=['#minus1','+1'])),
+  ]
   
   # TO RUN PARALLEL
   if ncores>=2:
@@ -200,11 +236,15 @@ def main(args):
   # TEST Sample.getrdframe
   #test_gethist(expsamples[0],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity)
   #test_gethist(expsamples[0],variables,selections,outdir,split=True,tag="_split",verb=verbosity)
-  test_gethist(expsamples[1],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity)
+  #test_gethist(expsamples[1],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity)
   
   # TEST Sample.getrdframe
   #test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
   #test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=True,tag="_split",verb=verbosity)
+  
+  # TEST Sample.getrdframe2d
+  test_getrdframe2D(expsamples[0],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
+  test_getrdframe2D(expsamples[1],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
   
   # TEST SampleSet.gethists
   #test_SampleSet_MultiDraw(sampleset_exp,variables,selections,outdir,parallel=parallel,split=True,tag="_split",verb=verbosity)

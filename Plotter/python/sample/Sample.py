@@ -765,7 +765,7 @@ class Sample(object):
             LOG.verb("Sample.getrdframe:   Ignoring %r (plot_var=%r, plot_sel=%r, isdata=%r)..."%(
                      xvar.name,plot_var,plot_sel,self.isdata),verbosity,4)
             continue # do not plot this variable
-          variables_.append(xvar) # plot this variable
+          variables_.append(variable) # plot this variable
           
           # 2. COMPILE mathematical expressions & DEFINE unique column name that can be reused
           for var in [xvar,yvar]:
@@ -837,14 +837,17 @@ class Sample(object):
         for variable in variables_:
           if isinstance(variable,tuple): # unpack variable pair
             xvar, yvar = variable # for 2D histograms
+            yvar.changecontext(selection,verb=verbosity)
+            yname = expr_dict.get(yvar.name,yvar.name) # get unique column name for this variable
           else: # assume single Variable object
-            xvar = variable # for 1D histograms
-            yvar = None
+            xvar  = variable # for 1D histograms
+            yvar  = None
+            yname = None
           xvar.changecontext(selection,verb=verbosity)
+          xname = expr_dict.get(xvar.name,xvar.name) # get unique column name for this variable
           
-          # PREPARE cuts & weights
+          # PREPARE cuts & weights (only for xvar to keep it simple, ignor yvar's weights & cuts)
           rdf_var = rdf_sam # RDataFrame specific to this variable
-          vname   = expr_dict.get(xvar.name,xvar.name) # get unique column name for this variable
           wname2  = wname # column name
           if self.isdata: # add data-specific weights, and blinding cuts
             wexpr2  = joinweights(wname,weight=xvar.dataweight)
@@ -863,27 +866,28 @@ class Sample(object):
             hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
             if verbosity>=1:
               wgtstr = repr(wname2) if wname==wname2 else "%r (%r)"%(wname2,wexpr2)
-              LOG.verb("Sample.getrdframe:     Booking hist %r for var %r with wgt=%s, cuts=%r..."%(
+              LOG.verb("Sample.getrdframe:     Booking hist %r for xvar %r with wgt=%s, cuts=%r..."%(
                        hname,xvar.name,wgtstr,cut_var),verbosity,1)
             if wname2: # apply no weight
-              result = rdf_var.Histo1D(hmodel,vname,wname2)
+              result = rdf_var.Histo1D(hmodel,xname,wname2)
             else: # no weight
-              result = rdf_var.Histo1D(hmodel,vname)
+              result = rdf_var.Histo1D(hmodel,xname)
           
           # BOOK 2D histograms
           else:
-            hname  = makehistname(xvar,yvar,name_) # histogram name
-            hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
+            hname  = makehistname(yvar,'vs',xvar,name_) # histogram name
+            hmodel = xvar.gethistmodel2D(yvar,hname,title_) # arguments for initiation of an TH2D object (RDF.TH2DModel)
             if verbosity>=1:
               wgtstr = repr(wname2) if wname==wname2 else "%r (%r)"%(wname2,wexpr2)
-              LOG.verb("Sample.getrdframe:     Booking hist %r for var %r with wgt=%s, cuts=%r..."%(
-                       hname,xvar.name,wgtstr,cut_var),verbosity,1)
+              LOG.verb("Sample.getrdframe:     Booking 2D hist %r for (xvar,yvar)=(%r,%r) with wgt=%s, cuts=%r..."%(
+                       hname,xvar.name,yvar.name,wgtstr,cut_var),verbosity,1)
             if wname2: # apply no weight
-              result = rdf_var.Histo2D(hmodel,vname,wname2)
+              result = rdf_var.Histo2D(hmodel,xname,yname,wname2)
             else: # no weight
-              result = rdf_var.Histo2D(hmodel,vname)
+              result = rdf_var.Histo2D(hmodel,xname,yname)
           
-          res_dict.add(selection,xvar,sample,result) # add RDF.RResultPtr<TH1D> to dict
+          #print(f">>> Sample.getrdframe:     Adding to results: sel={selection!r}, var={variable!r}, sam={sample!r}, res={result!r}")
+          res_dict.add(selection,variable,sample,result) # add RDF.RResultPtr<TH1D> to dict
     
     return res_dict
     
