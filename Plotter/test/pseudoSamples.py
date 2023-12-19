@@ -71,7 +71,8 @@ def getsamples(sampleset=None,nevts=10000,**kwargs):
   setera(2018,lumi)
   for name, title, scale in sampleset:
     if vetoes and name in vetoes:
-      print(name)
+      if verbosity>=1:
+        print(">>> getsamples: Vetoing sample with name=%r..."%(name))
       continue
     fname = fnames[name]
     color = None #STYLE.getcolor(name,verb=2)

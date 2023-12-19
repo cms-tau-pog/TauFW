@@ -650,10 +650,11 @@ class Sample(object):
       rdframe = RDataFrame(treename,filename)
         for selection in selections:
           rdf_sel = rdframe.Filter(selection)
+          rdf_sel = rdf_sel.Define("sam_wgt","genweight*idweight*0.23") # common event weight
           for variable in variables:
             rdf_var = rdf_sel.Filter(variable.cut)
-            result  = rdf_var.Histo1D(hmodel,var.name,weight)
-            res_dict[selection][variable][self] = result
+            result  = rdf_var.Histo1D(hmodel,variable.name,weight)
+            res_dict[selection][variable][self] = result # RDF.RResultPtr<TH1D>
     
     If the histograms should be split into subcomponents of the sample,
     
@@ -662,10 +663,11 @@ class Sample(object):
           rdf_sel = rdframe.Filter(selection)
           for sample in subsamples:
             rdf_sam = rdf_sel.Filter(sample.cut) # add sample-specific cut
+            rdf_sel = rdf_sel.Define("sam_wgt","genweight*idweight*0.23") # common event weight
             for variable in variables:
               rdf_var = rdf_sam.Filter(variable.cut)
-              result  = rdf_var.Histo1D(hmodel,var.name,weight)
-              res_dict[selection][variable][sample] = result
+              result  = rdf_var.Histo1D(hmodel,variable.name,weight)
+              res_dict[selection][variable][sample] = result # RDF.RResultPtr<TH1D>
     
     The filtered RDF rdf_sel can be reused by a parent MergedSample via rdf_dict.
     In this way the event loop only has to be run once on the same file.
@@ -681,7 +683,8 @@ class Sample(object):
     scale         = kwargs.get('scale',     1.0       ) * self.scale * norm # total scale
     split         = kwargs.get('split',    False      ) and len(self.splitsamples)>=1 # split sample into components (e.g. with cuts on genmatch)
     rdf_dict      = kwargs.get('rdf_dict', None       ) # reuse RDF for the same filename / selection (used for optimizing split MergedSamples)
-    task          = kwargs.get('task'      ""         ) # task name for progress bar
+    task          = kwargs.get('task',     ""         ) # task name for progress bar
+    ntreads       = kwargs.get('nthread',  None       ) # number of threads
     replaceweight = kwargs.get('replaceweight', None  ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
     extracuts     = joincuts(kwargs.get('cuts',""),kwargs.get('extracuts',""))
     samples       = self.splitsamples if split else [self]
@@ -691,6 +694,10 @@ class Sample(object):
                color(name,'grey',b=True),color(title,'grey',b=True),self.filename,split),verbosity,1)
       LOG.verb("Sample.getrdframe:   Total scale=%.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(
                scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights),verbosity,1)
+    
+    # SET NTHREADS (NOTE: set before creating RDataFrame!)
+    if ntreads!=None:
+      RDF.SetNumberOfThreads(ntreads) # see TauFW/common/python/tools/RDataFrame.py
     
     # SELECTIONS
     rdframe = None # main RDataFrame, initialize during iteration if needed
@@ -813,7 +820,7 @@ class Sample(object):
         
         # VARIABLES: book histograms
         for variable in variables_:
-          variable.changecontext(selection,verb=verbosity+20)
+          variable.changecontext(selection,verb=verbosity)
           
           # PREPARE cuts & weights
           rdf_var = rdf_sam # RDataFrame specific to this variable
@@ -845,6 +852,30 @@ class Sample(object):
     
     return res_dict
     
+  
+  def gethist_rdf(self, *args, **kwargs):
+    """Create and fill histograms for all samples for given lists of variables and selections
+    with RDataFrame and dictionary of histograms."""
+    verbosity = LOG.getverbosity(kwargs,self)
+    LOG.verb("Sample.gethist_rdf: args=%r"%(args,),verbosity,1)
+    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
+    
+    # GET & RUN RDATAFRAMES
+    rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
+    res_dict = self.getrdframe(variables,selections,**kwargs)
+    if verbosity>=3: # print RDFs RResultPtr<TH1>
+      print(f">>> Sample.gethist_rdf: Got res_dict:")
+      res_dict.display() # print full dictionary
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity+1)
+    
+    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
+    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
+    if verbosity>=3: # print yields
+      hists_dict.display(nvars=(1 if split else -1))
+    return hists_dict.results(singlevar=issinglevar,singlesel=issinglesel)
+    
+  
   def gethist(self, *args, **kwargs):
     """Create and fill a histogram from a tree."""
     variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)

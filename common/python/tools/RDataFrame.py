@@ -76,11 +76,15 @@ def SetNumberOfThreads(nthreads=None,verb=0):
     return ROOT.GetThreadPoolSize()
   else:
     if isinstance(nthreads,bool):
-      nthreads = 4 if nthreads else 1 # if nthreads==True: set to default 4 cores
+      nthreads = 8 if nthreads else 1 # if nthreads==True: set to default 8 cores
     if verb>=1:
-      print(">>> SetNumberOfThreads: Setting number of threads from %s to %s..."%(ROOT.GetThreadPoolSize(),nthreads),verb,1)
-    ROOT.DisableImplicitMT() # turn off to overwrite previous setting
+      print(">>> SetNumberOfThreads: Setting number of threads from %s to %s..."%(ROOT.GetThreadPoolSize(),nthreads))
+    if ROOT.GetThreadPoolSize()<=0:
+      ROOT.DisableImplicitMT() # turn off to overwrite previous setting
     ROOT.EnableImplicitMT(nthreads)
+  if ROOT.GetThreadPoolSize()!=nthreads:
+    print(">>> SetNumberOfThreads: Warning! Number of threads is set to ROOT.GetThreadPoolSize()=%s instead of the requested nthreads=%s..."%(
+      ROOT.GetThreadPoolSize(),nthreads))
   return nthreads
 RDF.SetNumberOfThreads = SetNumberOfThreads
 

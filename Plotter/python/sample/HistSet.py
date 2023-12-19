@@ -7,13 +7,22 @@ from TauFW.Plotter.plot.Stack import Stack, THStack
 class HistSet(object):
   """Container class for histgrams lists to separate those of observed data from MC."""
   
-  def __init__(self, data=None, exp=[ ], sig=[ ], var=None, sel=None):
+  def __init__(self, data=None, exp=None, sig=None, var=None, sel=None):
     #print(">>> HistSet.__init__: var=%r, sel=%r"%(var,sel))
-    self.data = None # data histograms
-    self.exp  = [ ]  # background histograms (Drell-Yan, ttbar, W+jets, ...), to be stacked
-    self.sig  = [ ]  # signal histograms (for new physics searches)
+    self.data = data # data histogram
+    self.exp  = exp or [ ] # list of background histograms (Drell-Yan, ttbar, W+jets, ...), to be stacked
+    self.sig  = sig or [ ] # list of signal histograms (for new physics searches)
     self.var  = var  # variable object
     self.sel  = sel  # selection object for changing variable context
+    if isinstance(data,dict): # data = { sample: hist } dictionary
+      self.data = None
+      for sample, hist in data.items():
+        if sample.isdata: # observed data
+          self.data = hist
+        elif sample.issignal: # signal
+          self.sig.append(hist)
+        else: # exp (background)
+          self.exp.append(hist)
   
   def __iter__(self):
     """Return iterator over all histograms dictionary."""
@@ -28,6 +37,26 @@ class HistSet(object):
     """Return list of all histgrams."""
     return list(iter(self))
   
+  def display(self):
+    """Print tables of histogram yields (for debugging)."""
+    TAB = LOG.table("%13.2f %13d %13.3f   %r")
+    TAB.printheader("Integral","Entries","Ave. weight","Hist name    ")
+    totent = 0
+    totint = 0
+    def row(hist):
+      hint, hent = hist.Integral(0,hist.GetXaxis().GetNbins()+1), hist.GetEntries()
+      return (hint, hent, hint/hent if hent!=0 else -1, hist.GetName())
+    if self.data:
+      TAB.printrow(*row(self.data))
+    for hist in self.exp:
+      totent += hist.GetEntries()
+      totint += hist.Integral()
+      TAB.printrow(*row(hist))
+    TAB.printrow(totint,totent,totint/totent if totent!=0 else -1,"total exp.")
+    for hist in self.sig:
+      TAB.printrow(*row(hist))
+    return totent, totint
+    
   def getstack(self, var=None, context=None, **kwargs):
     """Create and return a Stack object."""
     verb = kwargs.get('verb', 0)
@@ -55,8 +84,8 @@ class HistDict(object):
   HistDict is basically a set of nested dictionaries plus some helper functions:
     hist_dict = {
       selection1: {
-        variable1: HistSet
-        variable2: HistSet
+        variable1: HistSet,
+        variable2: HistSet,
       }
     }
   """
@@ -84,26 +113,24 @@ class HistDict(object):
     """Print tables of histogram yields (for debugging)."""
     for sel in self._dict:
       for i, var in enumerate(self._dict[sel]):
-        if i>=nvars: break
-        print(">>> Histogram yields for selection %r:"%(sel.selection))
-        TAB = LOG.table("%13.2f %13d %13.3f   %r")
-        TAB.printheader("Integral","Entries","Ave. weight","Hist name    ")
-        totent = 0
-        totint = 0
+        if nvars>=1 and i>=nvars: break
         histset = self._dict[sel][var]
-        def row(hist):
+        #print(f"histset={histset!r}")
+        if isinstance(histset,dict): # { sample: hist }
+          histset = HistSet(histset) # convert dictionary to HistSet
+        if isinstance(histset,HistSet):
+          print(">>> Histogram yields for selection %r, variable %r:"%(sel.selection,var.filename))
+          histset.display()
+        else: # assume TH1 histogram
+          hist = histset
+          if i==0: # only print first time
+            print(">>> Histogram yields for selection %r, variable %r:"%(sel.selection,var.filename))
+            TAB = LOG.table("%13.2f %13d %13.3f   %r")
+            TAB.printheader("Integral","Entries","Ave. weight","Hist name    ")
+            printhead = False # do not print second time
           hint, hent = hist.Integral(0,hist.GetXaxis().GetNbins()+1), hist.GetEntries()
-          return (hint, hent, hint/hent, hist.GetName())
-        if histset.data:
-          TAB.printrow(*row(histset.data))
-        for hist in histset.exp:
-          totent += hist.GetEntries()
-          totint += hist.Integral()
-          TAB.printrow(*row(hist))
-        TAB.printrow(totint,totent,totint/totent,"total exp.")
-        for hist in histset.sig:
-          TAB.printrow(*row(hist))
-  
+          TAB.printrow(hint, hent, hint/hent if hent!=0 else -1, hist.GetName())
+    
   def insert(self,hist_dict,idx=-1,verb=0):
     """Insert histograms per selection/variable."""
     for selection in hist_dict:
@@ -117,8 +144,8 @@ class HistDict(object):
         self._dict[selection][variable].exp.insert(idx_,hist)
   
   def results(self,singlevar=False,singlesel=False):
-    """Return simple nested dictionaries.
-    Convert for just a single variable, and/or single selection."""
+    """Return simple nested dictionaries. { selection: { variable: HistSet } }
+    Convert for just a single variable (issinglevar==True), and/or single selection (issinglesel==True)."""
     results = self._dict
     if singlevar: # convert result to { selection: HistSet }
       for sel in results.keys():
@@ -140,6 +167,6 @@ class HistDict(object):
         selkey  = list(results.keys())[0] # get first (and only?) key
         results = results[selkey] # get single nested dictionary or HistSet
     return results
-  
+
 
 from TauFW.Plotter.sample.utils import LOG

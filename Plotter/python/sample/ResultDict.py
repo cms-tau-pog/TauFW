@@ -47,7 +47,7 @@ class MergedResult():
     for result in self._list: # iterate over RDF.RResultPtr<T> (or other MergedResult) objects
       obj = result.GetValue() # NOTE: This triggers event loop if not run before !
       if sumobj==None: # initiate sumobj
-        LOG.verb("MergedResult.GetValue: sumobj = %s (new name=%r, title=%r)"%(rootrepr(obj),self.name,self.title),verb,2)
+        LOG.verb("MergedResult.GetValue: sumobj = %s, new (name,title)=(%r,%r)"%(rootrepr(obj),self.name,self.title),verb,2)
         sumobj = obj
         if isinstance(self.name,str) and hasattr(sumobj,'SetName'):
           sumobj.SetName(self.name)
@@ -154,7 +154,7 @@ class ResultDict(): #object
     Yields two keys (selection, variable), two lists (Samples, and the values of RDF.RResultPtr<T>).
     Note: This triggers the RDataFrame event loop it has not run before and if value==True."""
     for sel in self._dict:
-      for var in self._dict[sel].keys():
+      for var in list(self._dict[sel].keys()):
         if context and hasattr(var,'changecontext'):
           var.changecontext(sel,verb=verb)
         samples = [ ] # list of Sample objects
@@ -178,25 +178,53 @@ class ResultDict(): #object
     """Alias of itervalues for human readability."""
     return self.itervalues(*args,**kwargs)
   
-  def gethistset(self,style=True,clean=False):
+  def gethists(self,single=False,style=True,clean=False):
     """Organize histograms into HistSet."""
+    hist_dict = HistDict() # { selection : { variable: { sample: TH1 } } }
+    for sel in self._dict:
+      hist_dict[sel] = { }
+      for var in list(self._dict[sel].keys()):
+        keys = list(self._dict[sel][var].keys()) # sample key list
+        if len(keys)==0: # no samples / histogram for these selection/variable keys
+          LOG.warn("ResultDict.gethists: Found no sample key for sel=%r, var=%r in self._dict=%r... Ignoring..."%(
+            sel,var,self._dict))
+        elif single: # return single histogram { selection : { variable: TH1 } }
+          if len(keys)>=2: # expected exactly one key, but got two or more...
+            LOG.warn("ResultDict.gethists: single=%r, but found more than one sample key for sel=%r, var=%r (%r) in self._dict=%r... Only getting the first"%(
+              single,keys,sel,var,self._dict))
+          sample = keys[0] # only keep first sample key
+          hist_dict[sel][var] = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
+          print(hist_dict[sel][var])
+        else: # return multiple sample-histograms with { selection : { variable: { sample: TH1 } } }
+          hist_dict[sel][var] = { }
+          for sample in keys:
+            hist = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
+            if style: # set fill/line/marker color
+              sample.stylehist(hist)
+            hist_dict[sel][var][sample] = hist
+        if clean: # remove nested dictionary to clean memory
+          self._dict[sel].pop(var,None)
+    return hist_dict
+  
+  def gethistsets(self,style=True,clean=False):
+    """Organize histograms into HistSet objects."""
     histset_dict = HistDict() # { selection : { variable: HistSet } }
     for sel in self._dict:
       histset_dict[sel] = { }
-      for var in self._dict[sel].keys():
+      for var in list(self._dict[sel].keys()):
         histset = HistSet(var=var,sel=sel)
         for sample, result in self._dict[sel][var].items():
           # NOTE: This triggers event loop if not run before !
           # NOTE: If MergedResult, its histograms are (recursively) summed
-          value = result.GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
+          hist = result.GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
           if style: # set fill/line/marker color
-            sample.stylehist(value)
+            sample.stylehist(hist)
           if sample.isdata: # observed data
-            histset.data = value
+            histset.data = hist
           elif sample.issignal: # signal
-            histset.sig.append(value)
+            histset.sig.append(hist)
           else: # exp (background)
-            histset.exp.append(value)
+            histset.exp.append(hist)
         histset_dict[sel][var] = histset
         if clean: # remove nested dictionary to clean memory
           self._dict[sel].pop(var,None)
@@ -261,7 +289,9 @@ class ResultDict(): #object
             nterms,len(results),sel,var))
     return self
   
-  def setnthreads(self,*args,**kwargs):
+  @staticmethod
+  def setnthreads(*args,**kwargs):
+    """Set number of threads via RDF namespace (see TauFW/common/python/tools/RDataFrame.py)."""
     return RDF.SetNumberOfThreads(*args,**kwargs)
   
   def run(self,graphs=True,rdf_dict=None,dot=False,verb=0):

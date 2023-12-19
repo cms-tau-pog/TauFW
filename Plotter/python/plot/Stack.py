@@ -22,7 +22,7 @@ class Stack(Plot):
     - exphists: list of TH1 objects for expected processes (to be stacked)
     - sighists: list of TH1 objects for signals (to be overlayed as line)
     """
-    self.verbosity = LOG.getverbosity(kwargs)+4
+    self.verbosity = LOG.getverbosity(kwargs)
     
     # PARSE ARGUMENTS: variable & (list of) histogram(s)
     self.datahist = datahist

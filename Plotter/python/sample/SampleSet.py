@@ -323,7 +323,7 @@ class SampleSet(object):
   
   def gethists_rdf(self, *args, **kwargs):
     """Create and fill histograms for all samples for given lists of variables and selections
-    with RDataFrame and return lists of histograms."""
+    with RDataFrame and return nested dictionary of histogram set (HistSet)."""
     verbosity     = LOG.getverbosity(kwargs,self)
     LOG.verb("SampleSet.gethists_rdf: args=%r"%(args,),verbosity,1)
     variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
@@ -393,7 +393,7 @@ class SampleSet(object):
     # CONVERT TO HISTSET
     # NOTE: in case of many subsamples of MergedSamples,
     # this parts should remove some histograms from the memory
-    histset_dict = res_dict.gethistset() # { selection : { variable: HistSet } } }
+    histset_dict = res_dict.gethistsets(style=True,clean=True) # { selection : { variable: HistSet } } }
     
     # EXTRA METHODS (e.g. QCD estimation from OS/SS)
     if method:
@@ -405,6 +405,7 @@ class SampleSet(object):
     if verbosity>=3:
       histset_dict.display()
     
+    # RETURN nested dictionarys of HistSets:  { selection: { variable: HistSet } }
     return histset_dict.results(singlevar=issinglevar,singlesel=issinglesel)
   
   def gethists(self, *args, **kwargs):
