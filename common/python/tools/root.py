@@ -5,7 +5,7 @@ import os
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import TFile, TNamed
 from TauFW.common.tools.log import LOG
-from TauFW.common.tools.utils import unwraplistargs, islist
+from TauFW.common.tools.utils import unpacklistargs, islist
 TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o))) # print name/title
 
 
@@ -15,7 +15,7 @@ def rootname(*args):
     obj   = args[0]
     names = obj.GetName() if hasattr(obj,'GetName') else str(obj) # return string
   else:
-    args = unwraplistargs(args)
+    args = unpacklistargs(args)
     names = [getname(o) for o in args ] # return list of strings
   return names
   
@@ -32,7 +32,7 @@ def rootrepr(*args,**kwargs):
     else:
       names = repr(obj)
   else:
-    args = unwraplistargs(args)
+    args = unpacklistargs(args)
     names = [rootrepr(o) for o in args ] # return list of strings
     if kwargs.get('join',True):
       names = '['+', '.join(names)+']' # return string of list

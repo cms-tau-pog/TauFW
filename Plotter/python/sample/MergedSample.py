@@ -401,7 +401,7 @@ class MergedSample(Sample):
 
 def unpack_MergedSamples_args(*args,**kwargs):
   """
-  Help function to unwrap arguments for MergedSamples initialization:
+  Help function to unpack arguments for MergedSamples initialization:
     MergedSample(str name)
     MergedSample(str name, str title)
     MergedSample(str name, list samples)
@@ -414,7 +414,7 @@ def unpack_MergedSamples_args(*args,**kwargs):
   name    = "noname"
   title   = ""
   samples = [ ]
-  #args    = unwraplistargs(args)
+  #args    = unpacklistargs(args)
   for arg in args:
     if isinstance(arg,str):
       strings.append(arg)

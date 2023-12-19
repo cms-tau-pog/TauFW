@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (June 2020)
 import os, re, glob
-from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs, repkey, getyear
+from TauFW.common.tools.utils import isnumber, islist, ensurelist, unpacklistargs, quotestrs, repkey, getyear
 from TauFW.common.tools.file import ensuredir, ensuremodule
 from TauFW.common.tools.root import ensureTFile
 from TauFW.common.tools.log import Logger, color
@@ -210,7 +210,7 @@ def unpack_gethist_args(*args,**kwargs):
     varlist   = [Variable(*vargs)]
     singlevar = True
   if varlist==None or sellist==None:
-    LOG.throw(IOError,'unpack_gethist_args: Could not unwrap arguments %s, len(args)=%d, varlist=%s, sellist=%r.'%(
+    LOG.throw(IOError,'unpack_gethist_args: Could not unpack arguments %s, len(args)=%d, varlist=%s, sellist=%r.'%(
                                                                        args,len(args),varlist,sellist))
   LOG.verb("unpack_gethist_args: varlist=%s, sel=%r, singlevar=%r, singlesel=%r"%(varlist,sellist,singlevar,singlesel),verbosity,4)
   return varlist, sellist, singlevar, singlesel
@@ -218,7 +218,7 @@ def unpack_gethist_args(*args,**kwargs):
 
 def unpack_gethist2D_args(*args,**kwargs):
   """
-  Help function to unwrap argument list that contain variable pair(s) and selection:
+  Help function to unpack argument list that contain variable pair(s) and selection:
     gethist2D(str xvar, int nxbins, float xmin, float xmax, str yvar, int nybins, float ymin, float ymax, str cuts="")
     gethist2D(str xvar, list xbins, str yvar, list ybins, str cuts="")
     gethist2D(str xvar, int nxbins, float xmin, float xmax, str yvar, list ybins, str cuts="")
@@ -281,7 +281,7 @@ def unpack_gethist2D_args(*args,**kwargs):
     varlist   = [(Variable(*vargs[0:4]),Variable(*vargs[4:8]))]
     singlevar = True
   if varlist==None or sellist==None:
-    LOG.throw(IOError,'unpack_gethist2D_args: Could not unwrap arguments %s, len(args)=%d, varlist=%s, sellist=%s.'%(args,len(args),varlist,sellist))
+    LOG.throw(IOError,'unpack_gethist2D_args: Could not unpack arguments %s, len(args)=%d, varlist=%s, sellist=%s.'%(args,len(args),varlist,sellist))
   elif isinstance(sellist,str):
     sellist = Selection(str)
   LOG.verb("unpack_gethist2D_args: args=%r"%(args,),verbosity,3)
@@ -297,7 +297,7 @@ def findsample(samples,*searchterms,**kwargs):
   warn        = kwargs.get('warn',      True  ) # warn if nothing found (set to True to suppress)
   recursive   = kwargs.get('recursive', False ) # look in subsamples (if MergedSamples)
   split       = kwargs.get('split',     False ) # look in split samples
-  searchterms = unwraplistargs(searchterms)
+  searchterms = unpacklistargs(searchterms)
   LOG.verb("findsample: Looking for sample with search terms %s in list %s..."%(
            searchterms,samples),verbosity,3)
   matches = [ ]
@@ -350,7 +350,7 @@ def join(samplelist,*searchterms,**kwargs):
   """Join samples from a sample list into one merged sample, that match a set of search terms.
   E.g. samplelist = join(samplelist,'DY','M-50',name='DY_highmass')."""
   verbosity   = LOG.getverbosity(kwargs)
-  searchterms = unwraplistargs(searchterms)
+  searchterms = unpacklistargs(searchterms)
   name        = kwargs.get('name',  searchterms[0] ) # name of new merged sample
   title       = kwargs.get('title', None           ) # title of new merged sample
   color       = kwargs.get('color', None           ) # color of new merged sample

@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
 from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.Context import getcontext
-from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist, unwraplistargs
+from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist, unpacklistargs
 
 
 class Variable(object):
@@ -317,7 +317,7 @@ class Variable(object):
           return True
     return False
   
-  def unwrap(self):
+  def unpack(self):
     return (self.name,self.nbins,self.min,self.max)
   
   def getnametitle(self,name=None,title=None,tag=None):
@@ -331,15 +331,24 @@ class Variable(object):
     name = name.replace('(','').replace(')','').replace('[','').replace(']','').replace(',','-').replace('.','p')
     return name, title
   
-  def gethistmodel(self,name=None,title=None,**kwargs):
-    """Create arguments for initiation TH1D (useful for RDataFrame)."""
+  def gethistmodel(self,**kwargs):
+    """Create arguments for initiation TH1D (useful for RDataFrame.Histo1D)."""
     # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
-    tag = kwargs.get('tag', "" )
-    name, title = self.getnametitle(name,title,tag)
-    if self.hasvariablebins():
+    name, title = self.getnametitle(**kwargs)
+    if self.hasvariablebins(): # variable bin width
       model = (name,title,self.nbins,array('d',list(self.bins)))
-    else:
+    else: # constant/fixed bin width
       model = (name,title,self.nbins,self.min,self.max)
+    return model
+  
+  def gethistmodel2D(self,yvariable,**kwargs):
+    """Create arguments for initiation TH2D (useful for RDataFrame.Histo2D)."""
+    # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
+    model = self.gethistmodel(self,**kwargs)
+    if yvariable.hasvariablebins(): # variable bin width
+      model += (yvariable.nbins,array('d',list(yvariable.bins)))
+    else: # constant/fixed bin width
+      model += (yvariable.nbins,yvariable.min,yvariable.max)
     return model
   
   def gethist(self,name=None,title=None,**kwargs):
@@ -348,8 +357,7 @@ class Variable(object):
     sumw2   = kwargs.get('sumw2',   not poisson )
     xtitle  = kwargs.get('xtitle',  self.title  )
     ytitle  = kwargs.get('ytitle',  None        )
-    #TH1Class = TH1D # TH1I if self.hasintbins() else TH1D
-    hist = TH1D(*self.gethistmodel(name,title,**kwargs))
+    hist    = TH1D(*self.gethistmodel(name,title,**kwargs))
     if poisson:
       hist.SetBinErrorOption(TH1D.kPoisson)
     elif sumw2:
@@ -361,20 +369,14 @@ class Variable(object):
     return hist
   
   def gethist2D(self,yvariable,name=None,title=None,**kwargs):
-    """Create a 2D histogram."""
-    tag     = kwargs.get('tag',     ""              )
+    """Create a 2D histogram where xvar=self."""
     poisson = kwargs.get('poisson', False           )
     sumw2   = kwargs.get('sumw2',   not poisson     )
     xtitle  = kwargs.get('xtitle',  self.title      )
     ytitle  = kwargs.get('ytitle',  yvariable.title )
     ztitle  = kwargs.get('ztitle',  None            )
-    name, title = self.getnametitle(name,title,tag)
-    if self.hasvariablebins() and yvariable.hasvariablebins():
-      hist = TH2D(name,title,self.nbins,array('d',list(self.bins)),yvariable.nbins,array('d',list(yvariable.bins)))
-    elif self.hasvariablebins():
-      hist = TH2D(name,title,self.nbins,array('d',list(self.bins)),yvariable.nbins,yvariable.min,yvariable.max)
-    else:
-      hist = TH2D(name,title,self.nbins,self.min,self.max,yvariable.nbins,yvariable.min,yvariable.max)
+    doption = kwargs.get('option',  'COLZ'          )
+    hist    = TH2D(*self.gethistmodel2D(yvariable,name,title,**kwargs))
     if poisson:
       hist.SetBinErrorOption(TH2D.kPoisson)
     elif sumw2:
@@ -383,7 +385,7 @@ class Variable(object):
     hist.GetYaxis().SetTitle(ytitle)
     if ztitle:
       hist.GetZaxis().SetTitle(ztitle)
-    hist.SetOption('COLZ')
+    hist.SetOption(doption) # default drawing option
     return hist
   
   def drawcmd(self,name=None,tag="",bins=False,**kwargs):
@@ -517,18 +519,18 @@ def wrapvariable(*args,**kwargs):
     return Variable(args) # (xvar,nxbins,xmin,xmax)
   elif len(args)==1 and isinstance(args[0],Variable):
     return args[0]
-  LOG.warn('wrapvariable: Could not unwrap arguments "%s" to a Variable object. Returning None.'%args)
+  LOG.warn('wrapvariable: Could not unpack arguments "%s" to a Variable object. Returning None.'%args)
   return None
   
 
-def unwrap_variable_bins(*args,**kwargs):
-  """Help function to unwrap variable arguments to return variable name, number of bins,
+def unpack_variable_bins(*args,**kwargs):
+  """Help function to unpack variable arguments to return variable name, number of bins,
   minumum and maximum x axis value."""
   if len(args)==4:
     return args # (xvar,nxbins,xmin,xmax)
   elif len(args)==1 and isintance(args[0],Variable):
-    return args[0].unwrap()
-  LOG.throw(IOError,'unwrap_variable_bins: Could not unwrap arguments "%s" to a Variable object.'%args)
+    return args[0].unpack()
+  LOG.throw(IOError,'unpack_variable_bins: Could not unpack arguments "%s" to a Variable object.'%args)
   
 
 def ensurevar(*args,**kwargs):
@@ -537,7 +539,7 @@ def ensurevar(*args,**kwargs):
       - xvar, xbins (str, list)
       - var (str)
   """
-  args = unwraplistargs(args)
+  args = unpacklistargs(args)
   if len(args)==4:
     return Variable(*args) # (xvar,nxbins,xmin,xmax)
   elif len(args)==2 and islist(args[1]):
@@ -545,5 +547,5 @@ def ensurevar(*args,**kwargs):
   elif len(args)==1 and isinstance(args[0],Variable):
     return args[0]
   else:
-    LOG.throw(IOError,'unwrap_variable_args: Could not unwrap arguments %s, len(args)=%d. Returning None.'%(args,len(args)))
+    LOG.throw(IOError,'unpack_variable_args: Could not unpack arguments %s, len(args)=%d. Returning None.'%(args,len(args)))
   

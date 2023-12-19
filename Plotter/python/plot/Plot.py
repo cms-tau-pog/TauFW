@@ -1022,7 +1022,7 @@ class Plot(object):
     ndc        = kwargs.get('ndc',      True      ) # normalized coordinates
     align_user = kwargs.get('align',    None      ) # text line
     panel      = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
-    texts      = unwraplistargs(texts)
+    texts      = unpacklistargs(texts)
     i = 0
     while i<len(texts):
       line = texts[i]
@@ -1271,7 +1271,7 @@ class Plot(object):
   def setfillstyle(self, *hists, **kwargs):
     """Set the fill style for a list of histograms."""
     verbosity = LOG.getverbosity(self,kwargs)
-    hists   = unwraplistargs(hists)
+    hists   = unpacklistargs(hists)
     reset   = kwargs.get('reset',  False ) # if reset==False: only set color if not kBlack or kWhite
     line    = kwargs.get('line',   True  )
     fcolors = kwargs.get('colors', None  ) or self.fcolors

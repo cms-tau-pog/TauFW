@@ -594,7 +594,7 @@ class Sample(object):
     """
     verbosity    = LOG.getverbosity(kwargs)
     color_dict   = kwargs.get('colors', { }) # dictionary with colors
-    splitlist    = unwraplistargs(splitlist)
+    splitlist    = unpacklistargs(splitlist)
     splitsamples = [ ]
     for i, info in enumerate(splitlist): #split_dict.items()
       name  = "%s_split%d"%(self.name,i)
@@ -648,31 +648,39 @@ class Sample(object):
     The basic structure is:
     
       rdframe = RDataFrame(treename,filename)
-        for selection in selections:
-          rdf_sel = rdframe.Filter(selection)
-          rdf_sel = rdf_sel.Define("sam_wgt","genweight*idweight*0.23") # common event weight
-          for variable in variables:
-            rdf_var = rdf_sel.Filter(variable.cut)
-            result  = rdf_var.Histo1D(hmodel,variable.name,weight)
-            res_dict[selection][variable][self] = result # RDF.RResultPtr<TH1D>
+      for selection in selections:
+        rdf_sel = rdframe.Filter(selection)
+        rdf_sel = rdf_sel.Define("sam_wgt","genweight*idweight*0.23") # common event weight
+        for variable in variables:
+          rdf_var = rdf_sel.Filter(variable.cut)
+          result  = rdf_var.Histo1D(hmodel,variable.name,weight)
+          res_dict[selection][variable][self] = result # RDF.RResultPtr<TH1D>
     
     If the histograms should be split into subcomponents of the sample,
     
       rdframe = RDataFrame(treename,filename)
-        for selection in selections:
-          rdf_sel = rdframe.Filter(selection)
-          for sample in subsamples:
-            rdf_sam = rdf_sel.Filter(sample.cut) # add sample-specific cut
-            rdf_sel = rdf_sel.Define("sam_wgt","genweight*idweight*0.23") # common event weight
-            for variable in variables:
-              rdf_var = rdf_sam.Filter(variable.cut)
-              result  = rdf_var.Histo1D(hmodel,variable.name,weight)
-              res_dict[selection][variable][sample] = result # RDF.RResultPtr<TH1D>
+      for selection in selections:
+        rdf_sel = rdframe.Filter(selection)
+        for sample in subsamples:
+          rdf_sam = rdf_sel.Filter(sample.cut) # add sample-specific cut
+          rdf_sel = rdf_sel.Define("sam_wgt","genweight*idweight*0.23") # common event weight
+          for variable in variables:
+            rdf_var = rdf_sam.Filter(variable.cut)
+            result  = rdf_var.Histo1D(hmodel,variable.name,weight)
+            res_dict[selection][variable][sample] = result # RDF.RResultPtr<TH1D>
     
     The filtered RDF rdf_sel can be reused by a parent MergedSample via rdf_dict.
     In this way the event loop only has to be run once on the same file.
     
-    TODO: Allow for 2D histograms in this function
+    Two-dimensional histograms are allowed if a tuple of two variables are passed:
+    
+      ...
+        for xvar, yvar in variables: # list of 2-tuples which are pairs of Variable objects
+          rdf_var = rdf_sel.Filter(xvar.cut)
+          result  = rdf_var.Histo2D(hmodel2d,xvar.name,yvar.name,weight)
+          res_dict[selection][variable][self] = result # RDF.RResultPtr<TH2D>
+      ...
+    
     """
     verbosity     = LOG.getverbosity(kwargs)
     name          = kwargs.get('name',     self.name  ) # hist name
@@ -744,25 +752,32 @@ class Sample(object):
         
         # VARIABLES: (1) Filter variables, and (2) define common variables
         for variable in variables:
+          if isinstance(variable,tuple): # unpack variable pair
+            xvar, yvar = variable # for 2D histograms
+          else: # assume single Variable object
+            xvar = variable # for 1D histgrams
+            yvar = None
           
           # 1. FILTER variables for this selection
-          plot_var = variable.plotfor(selection,data=self.isdata,verb=verbosity-4)
-          plot_sel = selection.plotfor(variable,verb=verbosity-4)
+          plot_var = xvar.plotfor(selection,data=self.isdata,verb=verbosity-4)
+          plot_sel = selection.plotfor(xvar,verb=verbosity-4)
           if not plot_var or not plot_sel:
             LOG.verb("Sample.getrdframe:   Ignoring %r (plot_var=%r, plot_sel=%r, isdata=%r)..."%(
-                     variable.name,plot_var,plot_sel,self.isdata),verbosity,4)
+                     xvar.name,plot_var,plot_sel,self.isdata),verbosity,4)
             continue # do not plot this variable
-          variables_.append(variable) # plot this variable
+          variables_.append(xvar) # plot this variable
           
           # 2. COMPILE mathematical expressions & DEFINE unique column name that can be reused
-          vname = "" # column name
-          vexpr = variable.name # mathematical expression of variable
-          if vexpr in expr_dict: # reuse unique column name for this variable (if exists)
-            vexpr = expr_dict.get(variable.name,variable.name)
-          elif vexpr: # if mathematical expression: compile & define column in RDF with unique column name
-            rdf_sel, vname = AddRDFColumn(rdf_sel,vexpr,"_rdf_var",verb=verbosity-3)
-            if vname!=vexpr and vexpr not in expr_dict:
-              expr_dict[vexpr] = vname # save column name for reuse by other variables
+          for var in [xvar,yvar]:
+            if var==None: continue
+            vname = "" # column name
+            vexpr = var.name # mathematical expression of variable
+            if vexpr in expr_dict: # reuse unique column name for this variable (if exists)
+              vexpr = expr_dict.get(var.name,var.name)
+            elif vexpr: # if mathematical expression: compile & define column in RDF with unique column name
+              rdf_sel, vname = AddRDFColumn(rdf_sel,vexpr,"_rdf_var",verb=verbosity-3)
+              if vname!=vexpr and vexpr not in expr_dict:
+                expr_dict[vexpr] = vname # save column name for reuse by other variables
         
         if not variables_: # no variables made it past the filters
           continue
@@ -820,35 +835,55 @@ class Sample(object):
         
         # VARIABLES: book histograms
         for variable in variables_:
-          variable.changecontext(selection,verb=verbosity)
+          if isinstance(variable,tuple): # unpack variable pair
+            xvar, yvar = variable # for 2D histograms
+          else: # assume single Variable object
+            xvar = variable # for 1D histograms
+            yvar = None
+          xvar.changecontext(selection,verb=verbosity)
           
           # PREPARE cuts & weights
           rdf_var = rdf_sam # RDataFrame specific to this variable
-          vname   = expr_dict.get(variable.name,variable.name) # get unique column name for this variable
+          vname   = expr_dict.get(xvar.name,xvar.name) # get unique column name for this variable
           wname2  = wname # column name
           if self.isdata: # add data-specific weights, and blinding cuts
-            wexpr2  = joinweights(wname,weight=variable.dataweight)
-            cut_var = joincuts(variable.cut,variable.blindcuts)
+            wexpr2  = joinweights(wname,weight=xvar.dataweight)
+            cut_var = joincuts(xvar.cut,xvar.blindcuts)
           else: # add MC-specific weight
-            wexpr2  = joinweights(wname,weight=variable.weight)
-            cut_var = variable.cut
+            wexpr2  = joinweights(wname,weight=xvar.weight)
+            cut_var = xvar.cut
           if cut_var: # add filter to RDataFrame
             rdf_var = rdf_var.Filter(cut_var,"Var %r"%cut_var)
           if wexpr2 and wexpr2!=wname2: # if mathematical expression: compile & define column in RDF with unique column name
             rdf_var, wname2 = AddRDFColumn(rdf_var,wexpr2,"_rdf_var_wgt",verb=verbosity-3) # ensure unique column name
           
-          # BOOK histograms
-          hname  = makehistname(variable,name_) # histogram name
-          hmodel = variable.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
-          if verbosity>=1:
-            wgtstr = repr(wname2) if wname==wname2 else "%r (%r)"%(wname2,wexpr2)
-            LOG.verb("Sample.getrdframe:     Booking hist %r for var %r with wgt=%s, cuts=%r..."%(
-                     hname,variable.name,wgtstr,cut_var),verbosity,1)
-          if wname2: # apply no weight
-            result = rdf_var.Histo1D(hmodel,vname,wname2)
-          else: # no weight
-            result = rdf_var.Histo1D(hmodel,vname)
-          res_dict.add(selection,variable,sample,result) # add RDF.RResultPtr<TH1D> to dict
+          # BOOK 1D histograms
+          if yvar==None:
+            hname  = makehistname(xvar,name_) # histogram name
+            hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
+            if verbosity>=1:
+              wgtstr = repr(wname2) if wname==wname2 else "%r (%r)"%(wname2,wexpr2)
+              LOG.verb("Sample.getrdframe:     Booking hist %r for var %r with wgt=%s, cuts=%r..."%(
+                       hname,xvar.name,wgtstr,cut_var),verbosity,1)
+            if wname2: # apply no weight
+              result = rdf_var.Histo1D(hmodel,vname,wname2)
+            else: # no weight
+              result = rdf_var.Histo1D(hmodel,vname)
+          
+          # BOOK 2D histograms
+          else:
+            hname  = makehistname(xvar,yvar,name_) # histogram name
+            hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
+            if verbosity>=1:
+              wgtstr = repr(wname2) if wname==wname2 else "%r (%r)"%(wname2,wexpr2)
+              LOG.verb("Sample.getrdframe:     Booking hist %r for var %r with wgt=%s, cuts=%r..."%(
+                       hname,xvar.name,wgtstr,cut_var),verbosity,1)
+            if wname2: # apply no weight
+              result = rdf_var.Histo2D(hmodel,vname,wname2)
+            else: # no weight
+              result = rdf_var.Histo2D(hmodel,vname)
+          
+          res_dict.add(selection,xvar,sample,result) # add RDF.RResultPtr<TH1D> to dict
     
     return res_dict
     

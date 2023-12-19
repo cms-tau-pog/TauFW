@@ -27,7 +27,7 @@ class SampleSet(object):
     elif len(args)==3:
       datasample, expsamples, sigsamples = args[0], list(args[1]), list(args[2])
     elif len(args)==1 or len(args)>3:
-      expsamples = unwraplistargs(args)
+      expsamples = unpacklistargs(args)
     if datasample and not isinstance(datasample,Sample):
       LOG.throw(IOError,"SampleSet.__init__: Did not recognize data sample: %s"%(datasample))
     if expsamples and not (isinstance(expsamples,list) and all(isinstance(s,Sample) for s in expsamples)):
@@ -168,7 +168,7 @@ class SampleSet(object):
     if not newsamples:
       LOG.warn("SampleSet.replace: No samples given to replace %r!"%oldsample.title)
       return
-    newsamples = unwraplistargs(newsamples)
+    newsamples = unpacklistargs(newsamples)
     samples = self.samples #getattr(self,"samples"+kwargs.get('type','B'))
     if len(newsamples)==1 and islist(newsamples[0]):
       newsamples = newsamples[0]

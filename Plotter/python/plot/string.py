@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (2017)
 import re
-from TauFW.Plotter.plot.utils import LOG, unwraplistargs, ensurelist, islist
+from TauFW.Plotter.plot.utils import LOG, unpacklistargs, ensurelist, islist
 
 var_dict = { # predefined variable titles
     'njets':     "Number of jets",          'njets20':  "Number of jets (pt>20 GeV)",          'njets50':  "Number of jets (pt>50 GeV)",
@@ -258,7 +258,7 @@ symregx = re.compile(r"#[a-zA-Z]+") # regular expression for TLatex symbols
 cmdregx = re.compile(r"#[a-zA-Z]+\[[-\d\.]+\]") # regular expression for TLatex commands
 def estimatelen(*strings):
   """Estimate maximum length of list of strings."""
-  strings = unwraplistargs(*strings)
+  strings = unpacklistargs(*strings)
   maxlen  = 0
   replace = [
     ('{',''),('}',''),('_',''),('^',''),('#','')

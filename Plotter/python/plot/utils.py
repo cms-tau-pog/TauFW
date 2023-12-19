@@ -6,7 +6,7 @@ from array import array
 import ctypes # for passing by reference
 from TauFW.common.tools.file import ensuredir
 from TauFW.common.tools.root import ensureTFile
-from TauFW.common.tools.utils import isnumber, islist, ensurelist, unwraplistargs, quotestrs
+from TauFW.common.tools.utils import isnumber, islist, ensurelist, unpacklistargs, quotestrs
 from TauFW.common.tools.log import Logger
 from TauFW.Plotter.plot import moddir
 import TauFW.Plotter.plot.CMSStyle as CMSStyle
@@ -20,7 +20,7 @@ LOG = Logger('Plot')
 
 def normalize(*hists,**kwargs):
   """Normalize histogram(s)."""
-  hists  = unwraplistargs(hists)
+  hists  = unpacklistargs(hists)
   scales = kwargs.get('scale',None) or 1.0
   tosum  = kwargs.get('tosum',False) # normalize to sum of integrals (e.g. for normalizing stacks)
   intsum = 0
@@ -92,7 +92,7 @@ def gethist(hists,*searchterms,**kwargs):
 def close(*hists,**kwargs):
   """Close histograms."""
   verbosity = LOG.getverbosity(kwargs)
-  hists     = unwraplistargs(hists)
+  hists     = unpacklistargs(hists)
   for hist in hists:
     if isinstance(hist,THStack):
       if verbosity>1:
@@ -108,7 +108,7 @@ def deletehist(*hists,**kwargs):
   """Completely remove histograms from memory."""
   verbosity = LOG.getverbosity(kwargs)
   warn      = kwargs.get('warn', True)
-  hists     = unwraplistargs(hists)
+  hists     = unpacklistargs(hists)
   for hist in hists:
     hclass  = hist.__class__.__name__
     hname   = hist.GetName() if hasattr(hist,'GetName') else None
@@ -475,7 +475,7 @@ def geterrorband(*hists,**kwargs):
   """Make an error band histogram for a list of histograms, or stack.
   Returns an TGraphAsymmErrors object."""
   verbosity = LOG.getverbosity(kwargs)
-  hists     = unwraplistargs(hists)
+  hists     = unpacklistargs(hists)
   hists     = [(h.GetStack().Last() if isinstance(h,THStack) else h) for h in hists]
   sysvars   = kwargs.get('sysvars', [ ]    ) # list of tuples with up/cent/down variation histograms
   name      = kwargs.get('name',    None   ) or "error_"+hists[0].GetName()
@@ -616,7 +616,7 @@ def getconstanthist(oldhist,yval=1,**kwargs):
 def addoverflow(*hists,**kwargs):
   """Add overflow to last bin(s)."""
   verbosity = LOG.getverbosity(kwargs)
-  hists     = unwraplistargs(hists)
+  hists     = unpacklistargs(hists)
   merge     = kwargs.get('merge',False) # merge last and overflow bin(s), otherwise reset to 0
   LOG.verbose("addoverflow: %r (merge=%r)"%("', '".join(h.GetName() for h in hists),merge),verbosity,2)
   for hist in hists:
