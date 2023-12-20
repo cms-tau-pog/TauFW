@@ -45,12 +45,12 @@ def getsampleset(channel,era,**kwargs):
         # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
         #( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight, "nevts":1.0} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below 
         ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
-        ( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      978.3*kfactor_dy, {'extraweight': dyweight, "nevts": 1.0} ), # LO times kfactor # currently not available
+        ( 'DY', "DYto2L-4Jets_MLL-50_1J",      "Drell-Yan 1J 50",      978.3*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor # currently not available
         ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         ( 'DY', "DYto2L-4Jets_MLL-50_3J",      "Drell-Yan 3J 50",      93.7*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         ( 'DY', "DYto2L-4Jets_MLL-50_4J",      "Drell-Yan 4J 50",      45.4*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         ( 'WJ', "WJetsToLNu-4Jets",            "W + jets",           55300.*kfactor_wj ), # LO times kfactor
-        ( 'WJ', "WJetsToLNu-4Jets_1J",           "W + 1J",              9128.*kfactor_wj, {"nevts" : 1.0}  ), # LO times kfactor # currently not available
+        ( 'WJ', "WJetsToLNu-4Jets_1J",           "W + 1J",              9128.*kfactor_wj  ), # LO times kfactor # currently not available
         ( 'WJ', "WJetsToLNu-4Jets_2J",           "W + 2J",              2922.*kfactor_wj ), # LO times kfactor # currently not available
         ( 'WJ', "WJetsToLNu-4Jets_3J",           "W + 3J",               861.3*kfactor_wj  ), # LO times kfactor
         ( 'WJ', "WJetsToLNu-4Jets_4J",           "W + 4J",               415.4*kfactor_wj ), # LO times kfactor
@@ -113,8 +113,8 @@ def getsampleset(channel,era,**kwargs):
   if   'tautau' in channel: dataset = "Tau_Run%d?"%year
   elif 'mutau'  in channel:
     if era=='2022_preEE':
-      dataset = "Muon_Run%d?"%year 
-      print("dataset = ", dataset)
+      dataset = "*Muon_Run%d?"%year
+      print("dataset = ", dataset) 
       #dataset = "SingleMuon_Run%d?"%year # need this one as well for C
       # TODO: need to somehow handle that we need SingleMuonC, MuonC, and MuonD for preEE
     elif era=='2022_postEE': dataset = "Muon_Run%d?"%year
