@@ -870,9 +870,10 @@ class Sample(object):
             hname  = makehistname(xvar,name_) # histogram name
             hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
             if verbosity>=1:
-              wgtstr = repr(wname2)+("" if wname==wname2 else " (%r)"%(wexpr2))
-              LOG.verb("Sample.getrdframe:     Booking hist %r for xvar %r with wgt=%s, cuts=%r..."%(
-                       hname,xvar.name,wgtstr,cut_var),verbosity,1)
+              xvarstr = repr(xvar.name)+("" if xvar.name==xname else " (%r)"%(xname))
+              wgtstr  = repr(wname2)+("" if wname==wname2 else " (%r)"%(wexpr2))
+              LOG.verb("Sample.getrdframe:     Booking hist %r for xvar %s with wgt=%s, cuts=%r..."%(
+                       hname,xvarstr,wgtstr,cut_var),verbosity,1)
             if wname2: # apply no weight
               result = rdf_var.Histo1D(hmodel,xname,wname2)
             else: # no weight
@@ -883,7 +884,7 @@ class Sample(object):
             hname  = makehistname(yvar,'vs',xvar,name_) # histogram name
             hmodel = xvar.gethistmodel2D(yvar,hname,title_) # arguments for initiation of an TH2D object (RDF.TH2DModel)
             if verbosity>=1:
-              wgtstr = repr(wname2)+("" if wname==wname2 else " (%r)"%(wexpr2))
+              wgtstr  = repr(wname2)+("" if wname==wname2 else " (%r)"%(wexpr2))
               LOG.verb("Sample.getrdframe:     Booking 2D hist %r for (xvar,yvar)=(%r,%r) with wgt=%s, cuts=%r..."%(
                        hname,xvar.name,yvar.name,wgtstr,cut_var),verbosity,1)
             if wname2: # apply no weight

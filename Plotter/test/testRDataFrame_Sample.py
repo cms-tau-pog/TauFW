@@ -263,7 +263,7 @@ def main(args):
 #   test_SampleSet_RDF(sampleset_exp,variables,selections,outdir,split=True,tag="_split",verb=verbosity)
   
   # TEST SampleSet.getstack to test QCD
-  test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
+#   test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
   test_SampleSet_RDF(sampleset,variables,selections,outdir,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
   
 
