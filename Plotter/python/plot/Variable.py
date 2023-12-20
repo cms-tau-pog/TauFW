@@ -90,7 +90,7 @@ class Variable(object):
       LOG.warn("Variable.init: len(binlabels)=%d < %d=nbins"%(len(self.binlabels),self.nbins))
     if self._addoverflow:
       self.addoverflow()
-    if islist(self.blindcuts):
+    if islist(self.blindcuts): # assume tuple of pair of floats: (lower cut, upper cut)
       LOG.insist(len(self.blindcuts)==2,"Variable.init: blind cuts must be a string, or a pair of floats! Got: %s"%(self.blindcuts,))
       self.blindcuts = self.blind(*self.blindcuts)
     self.ctxtitle    = getcontext(kwargs, self.title,     key='ctitle',   regex=True ) # context-dependent title
@@ -332,33 +332,33 @@ class Variable(object):
     name = name.replace('(','').replace(')','').replace('[','').replace(']','').replace(',','-').replace('.','p')
     return name, title
   
-  def gethistmodel(self,name=None,title=None,**kwargs):
+  def gethistmodel(self,name=None,title=None,tag=None):
     """Create arguments for initiation TH1D (useful for RDataFrame.Histo1D)."""
     # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
-    name, title = self.getnametitle(name,title,**kwargs)
+    name, title = self.getnametitle(name,title,tag)
     if self.hasvariablebins(): # variable bin width
       model = (name,title,self.nbins,array('d',list(self.bins)))
     else: # constant/fixed bin width
       model = (name,title,self.nbins,self.min,self.max)
     return model
   
-  def gethistmodel2D(self,yvariable,name=None,title=None,**kwargs):
+  def gethistmodel2D(self,yvariable,name=None,title=None,tag=None):
     """Create arguments for initiation TH2D (useful for RDataFrame.Histo2D)."""
     # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
-    model = self.gethistmodel(name,title,**kwargs)
+    model = self.gethistmodel(name,title,tag)
     if yvariable.hasvariablebins(): # variable bin width
       model += (yvariable.nbins,array('d',list(yvariable.bins)))
     else: # constant/fixed bin width
       model += (yvariable.nbins,yvariable.min,yvariable.max)
     return model
   
-  def gethist(self,name=None,title=None,**kwargs):
+  def gethist(self,name=None,title=None,tag=None,**kwargs):
     """Create a 1D histogram."""
     poisson = kwargs.get('poisson', False       )
     sumw2   = kwargs.get('sumw2',   not poisson )
     xtitle  = kwargs.get('xtitle',  self.title  )
     ytitle  = kwargs.get('ytitle',  None        )
-    hist    = TH1D(*self.gethistmodel(name,title,**kwargs))
+    hist    = TH1D(*self.gethistmodel(name,title,tag))
     if poisson:
       hist.SetBinErrorOption(TH1D.kPoisson)
     elif sumw2:
@@ -369,18 +369,18 @@ class Variable(object):
     #hist.SetDirectory(0)
     return hist
   
-  def gethist2D(self,yvariable,name=None,title=None,**kwargs):
+  def gethist2D(self,yvariable,name=None,title=None,tag=None,**kwargs):
     """Create a 2D histogram where xvar=self."""
     poisson = kwargs.get('poisson', False           )
     sumw2   = kwargs.get('sumw2',   not poisson     )
     xtitle  = kwargs.get('xtitle',  self.title      )
     ytitle  = kwargs.get('ytitle',  yvariable.title )
     ztitle  = kwargs.get('ztitle',  None            )
-    doption = kwargs.get('option',  'COLZ'          )
-    hist    = TH2D(*self.gethistmodel2D(yvariable,name,title,**kwargs))
-    if poisson:
+    doption = kwargs.get('option',  'COLZ'          ) # draw option
+    hist    = TH2D(*self.gethistmodel2D(yvariable,name,title,tag))
+    if poisson: # for observed data (asymmetric uncertainty bars)
       hist.SetBinErrorOption(TH2D.kPoisson)
-    elif sumw2:
+    elif sumw2: # for weighted MC events
       hist.Sumw2()
     hist.GetXaxis().SetTitle(xtitle)
     hist.GetYaxis().SetTitle(ytitle)
@@ -464,38 +464,40 @@ class Variable(object):
     """Shift name and return string only (without creating new Variable object)."""
     return shift(self.name,vshift,**kwargs)
   
-  def blind(self,bmin=None,bmax=None,**kwargs):
+  def blind(self,bmin=None,bmax=None,blinddict=None,**kwargs):
     """Return selection string that blinds some window (bmin,bmax),
     making sure the cuts match the bin edges of some (nbins,xmin,xmax) binning."""
     verbosity = LOG.getverbosity(self,kwargs)
-    if bmin==None:
-      bmin = self.blindcuts[0]
+    if isinstance(blinddict,dict) and self._name in blinddict:
+      bmin, bmax = blinddict[self._name]
+    if bmin==None or bmax==None: # use own blinding cut strings
+      return self.blindcuts
     if bmax<bmin:
       bmax, bmin = bmin, bmax
-    LOG.insist(bmax>bmin,'Variable.blind: "%s" has window a = %s <= %s = b !'%(self._name,bmin,bmax))
+    LOG.insist(bmax>bmin,'Variable.blind: %r has window a = %s <= %s = b !'%(self._name,bmin,bmax))
     blindcut = ""
     xlow, xhigh = bmin, bmax
     nbins, xmin, xmax = self.nbins, self.min, self.max
-    if self.hasvariablebins():
+    if self.hasvariablebins(): # variable bin width
       bins = self.bins
       for xval in bins:
-        if xval>bmin: break
+        if xval>bmin: break # edge above lower cut
         xlow = xval
       for xval in reversed(bins):
-        if xval<bmax: break
+        if xval<bmax: break # edge below upper cut
         xhigh = xval
-    else:
-      binwidth   = float(xmax-xmin)/nbins
+    else: # fixed bin width
+      binwidth = float(xmax-xmin)/nbins
       if xmin<bmin<xmax:
         bin, rem = divmod(bmin-xmin,binwidth)
-        xlow     = bin*binwidth
+        xlow = bin*binwidth # first edge below or equal to lower cut
       if xmin<bmax<xmax:
         bin, rem = divmod(bmax-xmin,binwidth)
         if rem>0:
-          bin   += 1
-        xhigh    = bin*binwidth
+          bin += 1
+        xhigh = bin*binwidth # first edge above or equal to lower cut
     blindcut = "(%s<%s || %s<%s)"%(self.name,xlow,xhigh,self.name)
-    LOG.verb('Variable.blind: blindcut = "%s" for a (%s,%s) window and (%s,%s,%s) binning'%(blindcut,bmin,bmax,nbins,xmin,xmax),verbosity,2) 
+    LOG.verb('Variable.blind: blindcut = %r for a (%s,%s) window and (%s,%s,%s) binning'%(blindcut,bmin,bmax,nbins,xmin,xmax),verbosity,2) 
     return blindcut
   
   def addoverflow(self,**kwargs):
@@ -508,7 +510,7 @@ class Variable(object):
       width     = (self.max-self.min)/float(self.nbins)
       threshold = self.max - 0.90*width
     self.name   = "min(%s,%s)"%(self._name,threshold)
-    LOG.verb("Variable.addoverflow: '%s' -> '%s' for binning '%s'"%(self._name,self.name,self.getbins()),verbosity,2)
+    LOG.verb("Variable.addoverflow: %r -> %r for binning '%s'"%(self._name,self.name,self.getbins()),verbosity,2)
     return self.name
   
 Var = Variable # short alias
@@ -520,7 +522,7 @@ def wrapvariable(*args,**kwargs):
     return Variable(args) # (xvar,nxbins,xmin,xmax)
   elif len(args)==1 and isinstance(args[0],Variable):
     return args[0]
-  LOG.warn('wrapvariable: Could not unpack arguments "%s" to a Variable object. Returning None.'%args)
+  LOG.warn('wrapvariable: Could not unpack arguments %r to a Variable object. Returning None.'%args)
   return None
   
 

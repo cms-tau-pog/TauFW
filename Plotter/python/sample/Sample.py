@@ -683,23 +683,24 @@ class Sample(object):
     
     """
     verbosity     = LOG.getverbosity(kwargs)
-    name          = kwargs.get('name',     self.name  ) # hist name
-    name         += kwargs.get('tag',      ""         ) # tag for hist name
-    title         = kwargs.get('title',    self.title ) # hist title
-    norm          = kwargs.get('norm',     True       ) # normalize to cross section
+    name          = kwargs.get('name',     self.name   ) # hist name
+    name         += kwargs.get('tag',      ""          ) # tag for hist name
+    title         = kwargs.get('title',    self.title  ) # hist title
+    norm          = kwargs.get('norm',     True        ) # normalize to cross section
     norm          = self.norm if norm else 1.0
-    scale         = kwargs.get('scale',     1.0       ) * self.scale * norm # total scale
-    split         = kwargs.get('split',    False      ) and len(self.splitsamples)>=1 # split sample into components (e.g. with cuts on genmatch)
-    rdf_dict      = kwargs.get('rdf_dict', None       ) # reuse RDF for the same filename / selection (used for optimizing split MergedSamples)
-    task          = kwargs.get('task',     ""         ) # task name for progress bar
-    ntreads       = kwargs.get('nthread',  None       ) # number of threads
-    replaceweight = kwargs.get('replaceweight', None  ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
+    scale         = kwargs.get('scale',     1.0        ) * self.scale * norm # total scale
+    split         = kwargs.get('split',    False       ) and len(self.splitsamples)>=1 # split sample into components (e.g. with cuts on genmatch)
+    blind         = kwargs.get('blind',    self.isdata ) # blind data in some given range: self.blinddict={xvar:(xmin,xmax)}
+    rdf_dict      = kwargs.get('rdf_dict', None        ) # reuse RDF for the same filename / selection (used for optimizing split MergedSamples)
+    task          = kwargs.get('task',     ""          ) # task name for progress bar
+    ntreads       = kwargs.get('nthread',  None        ) # number of threads
+    replaceweight = kwargs.get('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
     extracuts     = joincuts(kwargs.get('cuts',""),kwargs.get('extracuts',""))
     samples       = self.splitsamples if split else [self]
     rdfkey_main   = (self.treename,self.filename)
     if verbosity>=1:
-      LOG.verb("Sample.getrdframe: Creating RDataFrame for %s ('%s'): %s, split=%r"%(
-               color(name,'grey',b=True),color(title,'grey',b=True),self.filename,split),verbosity,1)
+      LOG.verb("Sample.getrdframe: Creating RDataFrame for %s ('%s'): %s, split=%r, extracuts=%r"%(
+               color(name,'grey',b=True),color(title,'grey',b=True),self.filename,split,extracuts),verbosity,1)
       LOG.verb("Sample.getrdframe:   Total scale=%.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(
                scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights),verbosity,1)
     
@@ -728,7 +729,7 @@ class Sample(object):
       if rdf_dict!=None and rdfkey_sel in rdf_dict:
         # NOTE: It's assumed that the variables are correctly filtered and defined in expr_dict
         variables_, expr_dict, rdf_sel = rdf_dict[rdfkey_sel] # reuse RDataFrame for same file, selection and variable list
-        LOG.verb("Sample.getrdframe:   Reusing RDataFrame %r (cuts=%r)..."%(rdf_sel,cuts),verbosity,1)
+        LOG.verb("Sample.getrdframe:   Reusing RDataFrame %r (cuts=%r)..."%(rdf_sel,cuts),verbosity,2)
       
       ##### CREATE NEW RDataFrame ########################################################################
       else:
@@ -780,13 +781,14 @@ class Sample(object):
                 expr_dict[vexpr] = vname # save column name for reuse by other variables
         
         if not variables_: # no variables made it past the filters
+          LOG.verb("Sample.getrdframe:   No variables; ignoring...",verbosity,2)
           continue
         if len(expr_dict)>=1:
-          LOG.verb("Sample.getrdframe:   Defined columns %s"%(', '.join("%r=%r"%(v,k) for k, v in expr_dict.items())),verbosity,1)
+          LOG.verb("Sample.getrdframe:   Defined columns %s"%(', '.join("%r=%r"%(v,k) for k, v in expr_dict.items())),verbosity,2)
         
         # STORE RDataFrame for reuse
         if rdf_dict!=None and rdfkey_sel not in rdf_dict: # store for first time
-          LOG.verb("Sample.getrdframe:   Storing RDataFrame %r (cuts=%r) for reuse..."%(rdf_sel,cuts),verbosity,1)
+          LOG.verb("Sample.getrdframe:   Storing RDataFrame %r (cuts=%r) for reuse..."%(rdf_sel,cuts),verbosity,2)
           rdf_dict[rdfkey_sel] = (variables_,expr_dict,rdf_sel)
       
       ##### CREATED / REUSED RDataFrame ##################################################################
@@ -837,23 +839,26 @@ class Sample(object):
         for variable in variables_:
           if isinstance(variable,tuple): # unpack variable pair
             xvar, yvar = variable # for 2D histograms
-            yvar.changecontext(selection,verb=verbosity)
+            yvar.changecontext(selection,verb=verbosity-2)
             yname = expr_dict.get(yvar.name,yvar.name) # get unique column name for this variable
           else: # assume single Variable object
             xvar  = variable # for 1D histograms
             yvar  = None
             yname = None
-          xvar.changecontext(selection,verb=verbosity)
+          xvar.changecontext(selection,verb=verbosity-2)
           xname = expr_dict.get(xvar.name,xvar.name) # get unique column name for this variable
           
-          # PREPARE cuts & weights (only for xvar to keep it simple, ignor yvar's weights & cuts)
+          # PREPARE cuts & weights (only from xvar to keep it simple, ignore yvar's weights & cuts)
           rdf_var = rdf_sam # RDataFrame specific to this variable
-          wname2  = wname # column name
+          wname2  = wname # column name for total event weight
           if self.isdata: # add data-specific weights, and blinding cuts
-            wexpr2  = joinweights(wname,weight=xvar.dataweight)
-            cut_var = joincuts(xvar.cut,xvar.blindcuts)
+            wexpr2  = joinweights(wname,xvar.dataweight) # add variable-specific weight for data
+            cut_var = xvar.cut
+            if blind:
+              blindcuts = xvar.blind(blinddict=self.blinddict) # ensure the cuts match the bin edges
+              cut_var = joincuts(xvar.cut,xvar.blindcuts) # add blinding cuts (if applicable)
           else: # add MC-specific weight
-            wexpr2  = joinweights(wname,weight=xvar.weight)
+            wexpr2  = joinweights(wname,xvar.weight) # add variable-specific weight for MC
             cut_var = xvar.cut
           if cut_var: # add filter to RDataFrame
             rdf_var = rdf_var.Filter(cut_var,"Var %r"%cut_var)
@@ -865,7 +870,7 @@ class Sample(object):
             hname  = makehistname(xvar,name_) # histogram name
             hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
             if verbosity>=1:
-              wgtstr = repr(wname2) if wname==wname2 else "%r (%r)"%(wname2,wexpr2)
+              wgtstr = repr(wname2)+("" if wname==wname2 else " (%r)"%(wexpr2))
               LOG.verb("Sample.getrdframe:     Booking hist %r for xvar %r with wgt=%s, cuts=%r..."%(
                        hname,xvar.name,wgtstr,cut_var),verbosity,1)
             if wname2: # apply no weight
@@ -878,7 +883,7 @@ class Sample(object):
             hname  = makehistname(yvar,'vs',xvar,name_) # histogram name
             hmodel = xvar.gethistmodel2D(yvar,hname,title_) # arguments for initiation of an TH2D object (RDF.TH2DModel)
             if verbosity>=1:
-              wgtstr = repr(wname2) if wname==wname2 else "%r (%r)"%(wname2,wexpr2)
+              wgtstr = repr(wname2)+("" if wname==wname2 else " (%r)"%(wexpr2))
               LOG.verb("Sample.getrdframe:     Booking 2D hist %r for (xvar,yvar)=(%r,%r) with wgt=%s, cuts=%r..."%(
                        hname,xvar.name,yvar.name,wgtstr,cut_var),verbosity,1)
             if wname2: # apply no weight

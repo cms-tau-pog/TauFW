@@ -221,7 +221,7 @@ def makesamples(nevts=10000,**kwargs):
   pt_2     = np.zeros(1,dtype='f')
   q_1      = np.zeros(1,dtype='i')
   q_2      = np.zeros(1,dtype='i')
-  dm_2     = np.zeros(1,dtype='f')
+  dm_2     = np.zeros(1,dtype='i') # decay mode
   eta_1    = np.zeros(1,dtype='f')
   eta_2    = np.zeros(1,dtype='f')
   njets    = np.zeros(1,dtype='i')

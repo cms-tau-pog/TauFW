@@ -43,7 +43,7 @@ class MergedResult():
     """Call GetValue for each object and add together.
     Return sum."""
     sumobj = None
-    verb   = self.verb or verb
+    verb   = max(self.verb,verb)
     for result in self._list: # iterate over RDF.RResultPtr<T> (or other MergedResult) objects
       obj = result.GetValue() # NOTE: This triggers event loop if not run before !
       if sumobj==None: # initiate sumobj
@@ -195,7 +195,6 @@ class ResultDict(): #object
               single,keys,sel,var,self._dict))
           sample = keys[0] # only keep first sample key
           hist_dict[sel][var] = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
-          print(hist_dict[sel][var])
         else: # return multiple sample-histograms with { selection : { variable: { sample: TH1 } } }
           hist_dict[sel][var] = { }
           for sample in keys:
@@ -279,7 +278,7 @@ class ResultDict(): #object
     LOG.verb("ResultDict.merge: Merge results for %r"%(sample),verb,2)
     for sel in self._dict:
       for var in self._dict[sel]:
-        LOG.verb("ResultDict.merge: Merge %r: %r"%(sample,self._dict[sel][var].values()),verb,3)
+        LOG.verb("ResultDict.merge: Merge %r: %r"%(sample,list(self._dict[sel][var].values())),verb,3)
         vname   = "%s_vs_%s"%(var[1].filename,var[0].filename) if isinstance(var,tuple) else var.filename
         hname   = name.replace('$VAR',vname) if isinstance(name,str) else name
         results = MergedResult(self._dict[sel][var].values(),name=hname,title=title,verb=verb)
@@ -318,7 +317,9 @@ class ResultDict(): #object
     # RUN ALL RDATAFRAMES
     results = self.results() # get list of RDF.RResultPtr<T> objects
     start = time.time(), time.process_time() # wall-clock & CPU time
-    if graphs: # should be faster for large number of results in parallel
+    if not results:
+      LOG.warn("ResultDict.run: Did not get any results to run... self._dict=%r"%(self._dict))
+    elif graphs: # should be faster for large number of results in parallel
       LOG.verb("ResultDict.run: Start RunGraphs of %s results..."%(len(results)),verb,1)
       RDF.RunGraphs(results) # run results concurrently
     else: # trigger sequentially (might be slower)

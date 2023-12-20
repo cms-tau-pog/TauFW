@@ -17,6 +17,15 @@ from TauFW.Plotter.plot.Selection import Sel
 from pseudoSamples import getsamples
 
 
+# CUSTUM FUNCTIONs to mimic C++ macro
+ROOT.gInterpreter.Declare("""
+  Float_t dmmap(Int_t dm) {
+    return dm==0 ? 0 : (dm==1 || dm==2) ? 1 : dm==10 ? 2 : dm==11 ? 3 : 4;
+  };
+""")
+def dmmap(dm='dm_2'): # python version
+  return f"{dm}==0 ? 0 : ({dm}==1 || {dm}==2) ? 1 : {dm}==10 ? 2 : {dm}==11 ? 3 : 4"
+
 def test_SampleSet_MultiDraw(sampleset,variables,selections,outdir="plots/test",split=False,tag="",method=None,parallel=True,verb=0):
   """Test SampleSet.gethists with MultiDraw for comparison.
   NOTE: To be removed from SampleSet."""
@@ -123,7 +132,7 @@ def test_getrdframe(samples,variables,selections,outdir="plots/test",split=False
   # so the gain will be small: check tree->Print("clusters")
   dot = f"{outdir}/graph_$NAME.dot"
   res_dict.run(graphs=rungraphs,rdf_dict=rdf_dict,dot=dot,verb=verb+1)
-  rs
+  
   # PLOT
   for selection, variable, samples, hists in res_dict.iterhists():
     plot = Plot(variable,hists)
@@ -196,28 +205,31 @@ def main(args):
   sampleset_exp = SampleSet(None,expsamples) # only expected
   
   selections = [
-    Sel('pT > 30', 'pt_1>30 && pt_2>30', fname="ptgt30" ),
-    Sel('pT > 50', 'pt_1>50 && pt_2>50', fname="ptgt50" ),
+    ###Sel('pT > 30', 'pt_1>30 && pt_2>30', fname="ptgt30" ),
+    ###Sel('pT > 50', 'pt_1>50 && pt_2>50', fname="ptgt50" ),
     ###Sel('pT > 30, |eta|<2.4',
     ###    'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4', fname="ptgt30", only=['m_vis']),
-    ###Sel('pT > 30, |eta|<2.4, OS',
-    ###    'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2<0', fname="os-ptgt30"),
-    ####Sel('pT > 30, |eta|<2.4, OS',
-    ####    'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2<0', fname="os-ptgt30_wgt", weight="10", only=['m_vis']),
-    ###Sel('pT > 30, |eta|<2.4, SS',
-    ###    'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2>0', fname="ss-ptgt30"),
+    Sel('pT > 30, |eta|<2.4, OS',
+        'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2<0', fname="os-ptgt30"),
+    Sel('pT > 30, |eta|<2.4, OS (weighted)', # to test propagation of Selection.weight
+        'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2<0', fname="os-ptgt30_wgt", weight="10", only=['m_vis']),
+    Sel('pT > 30, |eta|<2.4, SS',
+        'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2>0', fname="ss-ptgt30"),
   ]
   variables = [
-    Var('m_vis',            20,  0, 140, fname='mvis', cbins={'q_1\*q_2>0': (20,0,200)}, ymarg=1.28),
-#     Var('m_vis', [40,50,60,65,70,75,80,85,90,95,100,110,130,160,200], fname='mvis_rebin', ymarg=1.28, cut="m_vis>40"),
-    Var('pt_1',             40,  0, 120),
-    Var('pt_2',             40,  0, 120),
+#     Var('m_vis',            20,  0, 140, fname='mvis', cbins={'q_1\*q_2>0': (20,0,200)}, ymarg=1.28),
+#     Var('m_vis', [40,50,60,65,70,75,80,85,90,95,100,110,130,160,200], fname='mvis_rebin', ymarg=1.28, cut="m_vis>40",blind=(120,130)),
+#     Var('pt_1',             40,  0, 120),
+#     Var('pt_2',             40,  0, 120),
 #     Var('pt_1+pt_2',        40,  50,300), #, cut="pt_1>30 && pt_2>30"
 #     Var('eta_1',            20, -4,   4, ymarg=1.4),
-#     #Var('eta_2',            20, -4,   4, ymarg=1.4),
+#     ###Var('eta_2',            20, -4,   4, ymarg=1.4),
 #     Var('min(eta_1,eta_2)', 30, -3,   3, fname='mineta'),
 #     Var('njets',            10,  0,  10),
-#     Var('njets',            10,  0,  10, fname='njets_wgt', weight="2"), # test weighting
+    Var('njets',            10,  0,  10, fname='njets_wgt', weight="2"), # test weighting
+    Var('dm_2',             12,  0,  12, only='q_1\*q_2<0'), # test conditional (bool?x:y) expression
+    Var(dmmap(),             6,  0,   6, fname='dm_2_map1', title="dm_2", only='q_1\*q_2<0'), # test conditional (bool?x:y) expression
+    Var('dmmap(dm_2)',       6,  0,   6, fname='dm_2_map2', title="dm_2", only='q_1\*q_2<0'), # test C++ macro
   ]
   variables2D = [
     (Var('m_vis',20,0,140,fname='mvis'),
@@ -234,25 +246,25 @@ def main(args):
     ROOT.EnableImplicitMT(ncores) # number of threads to run parallel
   
   # TEST Sample.getrdframe
-  #test_gethist(expsamples[0],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity)
-  #test_gethist(expsamples[0],variables,selections,outdir,split=True,tag="_split",verb=verbosity)
-  #test_gethist(expsamples[1],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity)
-  
-  # TEST Sample.getrdframe
-  #test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
-  #test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=True,tag="_split",verb=verbosity)
+#   test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
+#   test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=True,tag="_split",verb=verbosity)
   
   # TEST Sample.getrdframe2d
-  test_getrdframe2D(expsamples[0],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
-  test_getrdframe2D(expsamples[1],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
+#   test_getrdframe2D(expsamples[0],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
+#   test_getrdframe2D(expsamples[1],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
+  
+  # TEST Sample.getrdframe
+#   test_gethist(expsamples[0],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity)
+#   test_gethist(expsamples[0],variables,selections,outdir,split=True,tag="_split",verb=verbosity)
+#   test_gethist(expsamples[1],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity)
   
   # TEST SampleSet.gethists
-  #test_SampleSet_MultiDraw(sampleset_exp,variables,selections,outdir,parallel=parallel,split=True,tag="_split",verb=verbosity)
-  #test_SampleSet_RDF(sampleset_exp,variables,selections,outdir,split=True,tag="_split",verb=verbosity)
+#   test_SampleSet_MultiDraw(sampleset_exp,variables,selections,outdir,parallel=parallel,split=True,tag="_split",verb=verbosity)
+#   test_SampleSet_RDF(sampleset_exp,variables,selections,outdir,split=True,tag="_split",verb=verbosity)
   
-  # TEST SampleSet.getstack
-  #test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
-  #test_SampleSet_RDF(sampleset,variables,selections,outdir,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
+  # TEST SampleSet.getstack to test QCD
+  test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
+  test_SampleSet_RDF(sampleset,variables,selections,outdir,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
   
 
 if __name__ == "__main__":
