@@ -195,7 +195,7 @@ def unpack_gethist_args(*args,**kwargs):
     - a boolean to flag a single selection was passed
   For testing, see test/testUnpacking.py.
   """
-  verbosity = LOG.getverbosity(kwargs)+5
+  verbosity = LOG.getverbosity(kwargs)
   varlist   = None  # list of Variable objects
   singlevar = False # only one Variable passed
   vargs, sellist, singlesel = unpack_sellist_args(*args)

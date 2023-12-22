@@ -4,7 +4,7 @@ import os, re
 from TauFW.Plotter.sample.utils import *
 from TauFW.common.tools.math import round2digit, reldiff
 from TauFW.common.tools.RDataFrame import RDF, RDataFrame, AddRDFColumn
-from TauFW.Plotter.sample.ResultDict import ResultDict # for containing RDataFRame RResultPtr
+from TauFW.Plotter.sample.ResultDict import ResultDict, MeanResult # for containing RDataFRame RResultPtr
 from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist
 from TauFW.Plotter.sample.SampleStyle import *
@@ -381,7 +381,7 @@ class Sample(object):
     file.Close()
     return hist
     
-  def getsumw(self,**kwargs):
+  def getsumw(self,selections,**kwargs):
     """Get sum of weights."""
     verbosity = LOG.getverbosity(kwargs)
     if isinstance(self,MergedSample):
@@ -694,6 +694,8 @@ class Sample(object):
     rdf_dict      = kwargs.get('rdf_dict', None        ) # reuse RDF for the same filename / selection (used for optimizing split MergedSamples)
     task          = kwargs.get('task',     ""          ) # task name for progress bar
     ntreads       = kwargs.get('nthread',  None        ) # number of threads
+    domean        = kwargs.get('mean',     False       ) # get mean of given variables instead of histograms
+    dosumw        = kwargs.get('sumw',     False       ) # get sum of event weights (e.g. for cutflows)
     replaceweight = kwargs.get('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
     extracuts     = joincuts(kwargs.get('cuts',""),kwargs.get('extracuts',""))
     samples       = self.splitsamples if split else [self]
@@ -780,8 +782,8 @@ class Sample(object):
               if vname!=vexpr and vexpr not in expr_dict:
                 expr_dict[vexpr] = vname # save column name for reuse by other variables
         
-        if not variables_: # no variables made it past the filters
-          LOG.verb("Sample.getrdframe:   No variables; ignoring...",verbosity,2)
+        if not dosumw and not variables_: # no variables made it past the filters
+          LOG.verb("Sample.getrdframe:   No variables! Ignoring...",verbosity,2)
           continue
         if len(expr_dict)>=1:
           LOG.verb("Sample.getrdframe:   Defined columns %s"%(', '.join("%r=%r"%(v,k) for k, v in expr_dict.items())),verbosity,2)
@@ -835,6 +837,13 @@ class Sample(object):
           rdf_sam, wname = AddRDFColumn(rdf_sam,wexpr,"_rdf_sam_wgt",verb=verbosity-4)
         LOG.verb("Sample.getrdframe:   Common/sample/selection weight: %s=%r"%(wname,wexpr),verbosity,1)
         
+        # COMPUTE SUM OF WEIGHTS
+        res_sumw = None
+        if dosumw:
+          LOG.verb("Sample.getrdframe:     Booking sum of weights %s=%r"%(wname,wexpr),verbosity,1)
+          res_sumw = rdf_sam.Sum(wname) # RDF.RResultPtr<double>
+          res_dict.add(selection,'sumw',sample,res_sumw) # add to result dict
+        
         # VARIABLES: book histograms
         for variable in variables_:
           if isinstance(variable,tuple): # unpack variable pair
@@ -865,8 +874,20 @@ class Sample(object):
           if wexpr2 and wexpr2!=wname2: # if mathematical expression: compile & define column in RDF with unique column name
             rdf_var, wname2 = AddRDFColumn(rdf_var,wexpr2,"_rdf_var_wgt",verb=verbosity-3) # ensure unique column name
           
+          # BOOK MEANs
+          if domean:
+            if verbosity>=1:
+              xvarstr = repr(xvar.name)+("" if xvar.name==xname else " (%r)"%(xname))
+              LOG.verb("Sample.getrdframe:     Booking mean of xvar %s with cuts=%r, sumw=%r..."%(
+                       xvarstr,cut_var,res_sumw),verbosity,1)
+            if dosumw: # to be normalized to sum-of-weights by MergedResults
+              mean   = rdf_var.Mean(xname)
+              result = MeanResult(mean,res_sumw)
+            else:
+              result = rdf_var.Mean(xname)
+          
           # BOOK 1D histograms
-          if yvar==None:
+          elif yvar==None:
             hname  = makehistname(xvar,name_) # histogram name
             hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
             if verbosity>=1:
@@ -896,15 +917,47 @@ class Sample(object):
           res_dict.add(selection,variable,sample,result) # add RDF.RResultPtr<TH1D> to dict
     
     return res_dict
+  
+  def getsumw_rdf(self, *args, **kwargs):
+    """Compute sum-of-weights for a given lists of selections
+    with RDataFrame and return a dictionary of double values."""
+    verbosity = LOG.getverbosity(kwargs,self)
+    LOG.verb("Sample.getsumw_rdf: args=%r"%(args,),verbosity,1)
+    _, selections, issinglesel = unpack_sellist_args(*args)
+    split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
     
+    # GET & RUN RDATAFRAMES
+    kwargs['sumw'] = True
+    rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
+    res_dict = self.getrdframe([ ],selections,**kwargs)
+    if verbosity>=3: # print RDFs RDF.RResultPtr<double>
+      print(f">>> Sample.getsumw_rdf: Got res_dict:")
+      res_dict.display() # print full dictionary
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
+    
+    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
+    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
+    return hists_dict.results(singlevar=True,singlesel=issinglesel)
+  
+  def getmean_rdf(self, *args, **kwargs):
+    """Compute mean of variables and selections with RDataFrame and return a dictionary of histograms."""
+    kwargs['mean'] = True
+    if isinstance(self,MergedSample):
+      kwargs['popvar'] = 'sumw' if kwargs.get('sumw',True) else None # remove 'sumw' from returned dictionary
+      kwargs['sumw']   = True # force because the sum-of-weights is needed to sum means correctly
+    return self.gethist_rdf(*args,**kwargs) # use same function
   
   def gethist_rdf(self, *args, **kwargs):
-    """Create and fill histograms for all samples for given lists of variables and selections
-    with RDataFrame and dictionary of histograms."""
+    """Create and fill histograms for given lists of variables and selections
+    with RDataFrame and return a dictionary of histograms."""
     verbosity = LOG.getverbosity(kwargs,self)
     LOG.verb("Sample.gethist_rdf: args=%r"%(args,),verbosity,1)
-    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
-    split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
+    if kwargs.get('2d',False): # assume Variable arguments for 2D histograms
+      variables, selections, issinglevar, issinglesel = unpack_gethist2D_args(*args)
+    else: # assume Variable arguments only for 1D histograms
+      variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    split  = kwargs.get('split', False) # split sample into components (e.g. with cuts on genmatch)
+    popvar = kwargs.get('popvar',None ) # remove variable from returned dictionary (used by getmean_rdf)
     
     # GET & RUN RDATAFRAMES
     rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
@@ -912,14 +965,19 @@ class Sample(object):
     if verbosity>=3: # print RDFs RResultPtr<TH1>
       print(f">>> Sample.gethist_rdf: Got res_dict:")
       res_dict.display() # print full dictionary
-    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity+1)
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
     
     # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
     hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
     if verbosity>=3: # print yields
       hists_dict.display(nvars=(1 if split else -1))
-    return hists_dict.results(singlevar=issinglevar,singlesel=issinglesel)
-    
+    return hists_dict.results(singlevar=issinglevar,singlesel=issinglesel,popvar=popvar)
+  
+  def gethist2D_rdf(self, *args, **kwargs):
+    """Create and fill 2D histograms for given lists of variables and selections
+    with RDataFrame and return a dictionary of histograms."""
+    kwargs['2d'] = True
+    return self.gethist_rdf(*args,**kwargs) # use same function
   
   def gethist(self, *args, **kwargs):
     """Create and fill a histogram from a tree."""

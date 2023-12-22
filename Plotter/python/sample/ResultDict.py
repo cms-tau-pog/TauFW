@@ -8,6 +8,25 @@ from TauFW.common.tools.log import color
 from TauFW.common.tools.RDataFrame import ROOT, RDF, RDataFrame, printRDFReport
 
 
+class MeanResult():
+  """Store a mean and sum-of-weights as pair of RDF.RResultPtr<double> objects,
+  so they can be added to other means correctly later by MergedResults."""
+  
+  def __init__(self,mean,sumw=None):
+    self.mean  = mean # RDF.RResultPtr<double>
+    self._sumw = sumw # RDF.RResultPtr<double> or 0
+    self.sumw  = 0
+  
+  def __repr__(self):
+    return "<MeanResult(%r,%r)>"%(self.mean,self.sumw)
+  
+  def GetValue(self):
+    """Call GetValue."""
+    if self._sumw!=None:
+      self.sumw = self._sumw.GetValue() # convert to double
+    return self.mean.GetValue()
+  
+
 class MergedResult():
   """Container class for list of RDF.RResultPtr<T> (and other MergedResult) objects.
   If MergedResult.GetValue is called, it will add together the results.
@@ -17,7 +36,8 @@ class MergedResult():
     self._list = [ ] if results==None else list(results) # list of RDF.RResultPtr<T> objects
     self.name  = kwargs.get('name',  None ) # name  for merged histogram
     self.title = kwargs.get('title', None ) # title for merged histogram
-    self.verb  = kwargs.get('verb', 0     ) # verbosity level
+    self.verb  = kwargs.get('verb',  0    ) # verbosity level
+    self.sumw  = 0 # for weighted-sum of MeanResult values
   
   def __len__(self):
     return len(self._list)
@@ -26,11 +46,16 @@ class MergedResult():
     return "<MergedResult(%s)>"%(', '.join(repr(r) for r in self._list))
   
   def __iter__(self):
-    """Return iterator over results list."""
+    """Return iterator over results list.
+    For ResultDict.items -> ResultDict.results -> ResultDict.run -> RDF.RunGraphs."""
     for result in self._list:
       if isinstance(result,MergedResult):
         for subresult in result: # note: can be recursive
           yield subresult
+      elif isinstance(result,MeanResult):
+        yield result.mean
+        if result._sumw:
+          yield result._sumw
       else:
         yield result
   
@@ -42,13 +67,20 @@ class MergedResult():
   def GetValue(self,verb=0):
     """Call GetValue for each object and add together.
     Return sum."""
-    sumobj = None
-    verb   = max(self.verb,verb)
+    totsumw = 0 # weighted normalization for MeanResult
+    sumobj  = None
+    verb    = max(self.verb,verb)
     for result in self._list: # iterate over RDF.RResultPtr<T> (or other MergedResult) objects
-      obj = result.GetValue() # NOTE: This triggers event loop if not run before !
-      if sumobj==None: # initiate sumobj
-        LOG.verb("MergedResult.GetValue: sumobj = %s, new (name,title)=(%r,%r)"%(rootrepr(obj),self.name,self.title),verb,2)
-        sumobj = obj
+      obj  = result.GetValue() # NOTE: This triggers event loop if not run before !
+      sumw = result.sumw if hasattr(result,'sumw') else 0 # sum-of-weights for normalization
+      if sumobj==None: # initialize sumobj
+        if sumw==0:
+          LOG.verb("MergedResult.GetValue: sumobj = %s, new (name,title)=(%r,%r)"%(rootrepr(obj),self.name,self.title),verb,2)
+          sumobj = obj
+        else: # weighted number
+          LOG.verb("MergedResult.GetValue: sumobj = %s*%s, new (name,title)=(%r,%r)"%(sumw,obj,self.name,self.title),verb,2)
+          sumobj  = sumw*obj # weighted (total sum will be normalized)
+          totsumw = sumw # for later normalization
         if isinstance(self.name,str) and hasattr(sumobj,'SetName'):
           sumobj.SetName(self.name)
         if isinstance(self.title,str) and hasattr(sumobj,'SetTitle'):
@@ -56,9 +88,17 @@ class MergedResult():
       elif hasattr(obj,'Add'): # add other object, e.g. a TH1
         LOG.verb("MergedResult.GetValue: sumobj.Add(%s)"%(rootrepr(obj)),verb,2)
         sumobj.Add(obj)
-      else: # add a number (or any object with __add__ operator), e.g. an integer / floating number
-        LOG.verb("MergedResult.GetValue: sumobj += %r"%(rootrepr(obj)),verb,2)
+      elif sumw==0: # add a number (or any object with __add__ operator), e.g. an integer / floating number
+        LOG.verb("MergedResult.GetValue: sumobj += %s"%(rootrepr(obj)),verb,2)
         sumobj += obj
+      else: # add a weighted number
+        LOG.verb("MergedResult.GetValue: sumobj += %s*%s"%(sumw,obj),verb,2)
+        sumobj  += sumw*obj # weighted (total sum will be normalized)
+        totsumw += sumw # for later normalization
+    if totsumw!=0: # normalize final result to total sum-of-weights
+      LOG.verb("MergedResult.GetValue: sumobj *= 1./%s (normalizing to sum-of-weights)"%(totsumw),verb,2)
+      sumobj *= 1./totsumw # normalize
+      self.sumw = totsumw # save for next GetValue step in recursion
     return sumobj
   
 
@@ -91,7 +131,8 @@ class ResultDict(): #object
     for sel in self._dict:
       print("%s%r:"%(pre,sel.filename))
       for j, var in enumerate(self._dict[sel]):
-        vkey = "(%r,%r)"%(var[0].filename,var[1].filename) if isinstance(var,tuple) else repr(var.filename)
+        vkey = "(%r,%r)"%(var[0].filename,var[1].filename) if isinstance(var,tuple) else\
+               repr(var.filename) if hasattr(var,'filename') else repr(var)
         if compact==0: # new line per sample
           print("%s  %s:"%(pre,vkey))
           for sample, result in self._dict[sel][var].items():
@@ -139,7 +180,7 @@ class ResultDict(): #object
             # NOTE: This triggers event loop if not run before !
             # NOTE: If MergedResult, its values are (recursively) summed
             value = result.GetValue()
-            if style: # set fill/line/marker color
+            if style and hasattr(value,'SetFillColor'): # set fill/line/marker color
               sample.stylehist(value)
             yield sel, var, sample, value # 3 keys, 1 value
           elif isinstance(result,MergedResult):
@@ -166,7 +207,7 @@ class ResultDict(): #object
             # NOTE: This triggers event loop if not run before !
             # NOTE: If MergedResult, its values are summed
             value = result.GetValue()
-            if style: # set fill/line/marker color
+            if style and hasattr(value,'SetFillColor'): # set fill/line/marker color
               sample.stylehist(value)
             values.append(value)
           else: # return RDF.RResultPtr<T> values
@@ -199,7 +240,7 @@ class ResultDict(): #object
           hist_dict[sel][var] = { }
           for sample in keys:
             hist = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
-            if style: # set fill/line/marker color
+            if style and hasattr(hist,'SetFillColor'): # set fill/line/marker color
               sample.stylehist(hist)
             hist_dict[sel][var][sample] = hist
         if clean: # remove nested dictionary to clean memory
@@ -231,8 +272,8 @@ class ResultDict(): #object
     return histset_dict
   
   def results(self):
-    """Return simple list of results, used to trigger RDataFrame
-    event loop simultaneously in ResultDict.run()."""
+    """Return simple list of results, used in ResultDict.run to trigger RDataFrame
+    event loop simultaneously with RDF.RunGraphs."""
     results = [r[-1] for r in self.items()]
     return results
   
@@ -279,7 +320,8 @@ class ResultDict(): #object
     for sel in self._dict:
       for var in self._dict[sel]:
         LOG.verb("ResultDict.merge: Merge %r: %r"%(sample,list(self._dict[sel][var].values())),verb,3)
-        vname   = "%s_vs_%s"%(var[1].filename,var[0].filename) if isinstance(var,tuple) else var.filename
+        vname   = "%s_vs_%s"%(var[1].filename,var[0].filename) if isinstance(var,tuple) else\
+                  var.filename if hasattr(var,'filename') else str(var)
         hname   = name.replace('$VAR',vname) if isinstance(name,str) else name
         results = MergedResult(self._dict[sel][var].values(),name=hname,title=title,verb=verb)
         self._dict[sel][var] = { sample: results } # replace nested dictionary with on sample
@@ -326,7 +368,7 @@ class ResultDict(): #object
       LOG.verb("ResultDict.run: Start %s RDF results..."%(len(results)),verb,1)
       for result in results: # run results one-by-one
         result.GetValue() # trigger event loop
-    RDF.StopProgressBar(", took %s with %s threads"%(took(*start),ROOT.GetThreadPoolSize()))
+    RDF.StopProgressBar(" in %s with %s threads"%(took(*start),ROOT.GetThreadPoolSize()))
     
     # PRINT REPORTS
     for fname, report in reports:

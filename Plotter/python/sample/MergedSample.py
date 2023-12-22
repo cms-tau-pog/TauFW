@@ -235,30 +235,6 @@ class MergedSample(Sample):
     
     return res_dict
     
-  
-  def gethist_rdf(self, *args, **kwargs):
-    """Create and fill histograms for all samples for given lists of variables and selections
-    with RDataFrame and dictionary of histograms."""
-    verbosity = LOG.getverbosity(kwargs,self)
-    LOG.verb("MergedSample.gethist_rdf: args=%r"%(args,),verbosity,1)
-    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
-    split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
-    
-    # GET & RUN RDATAFRAMES
-    rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
-    res_dict = self.getrdframe(variables,selections,**kwargs)
-    if verbosity>=3: # print RDFs RResultPtr<TH1>
-      print(f">>> MergedSample.gethist_rdf: Got res_dict:")
-      res_dict.display() # print full dictionary
-    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity+1)
-    
-    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
-    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
-    if verbosity>=3: # print yields
-      hists_dict.display(nvars=(1 if split else -1))
-    return hists_dict.results(singlevar=issinglevar,singlesel=issinglesel)
-    
-  
   def gethist(self, *args, **kwargs):
     """Create and fill histgram for multiple samples. Overrides Sample.gethist."""
     variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)

@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (July 2020)
 # Description: Container class for histgrams lists to separate those of observed data from MC.
-from TauFW.Plotter.plot.Stack import Stack, THStack
+from TauFW.Plotter.plot.Stack import Stack, THStack, TH1
 
+def integratehist(hist):
+  if hist.InheritsFrom('TH2'):
+    return hist.Integral(0,hist.GetXaxis().GetNbins()+1,0,hist.GetYaxis().GetNbins()+1)
+  else:
+    return hist.Integral(0,hist.GetXaxis().GetNbins()+1)
 
 class HistSet(object):
   """Container class for histgrams lists to separate those of observed data from MC."""
@@ -44,14 +49,15 @@ class HistSet(object):
     totent = 0
     totint = 0
     def row(hist):
-      hint, hent = hist.Integral(0,hist.GetXaxis().GetNbins()+1), hist.GetEntries()
+      hint, hent = integratehist(hist), hist.GetEntries()
       return (hint, hent, hint/hent if hent!=0 else -1, hist.GetName())
     if self.data:
       TAB.printrow(*row(self.data))
     for hist in self.exp:
-      totent += hist.GetEntries()
-      totint += hist.Integral()
-      TAB.printrow(*row(hist))
+      hint, hent, wgt, name = row(hist)
+      TAB.printrow(hint,hent,wgt,name)
+      totent += hint
+      totint += hent
     TAB.printrow(totint,totent,totint/totent if totent!=0 else -1,"total exp.")
     for hist in self.sig:
       TAB.printrow(*row(hist))
@@ -116,21 +122,36 @@ class HistDict(object):
         if nvars>=1 and i>=nvars: break
         histset = self._dict[sel][var]
         #print(f"histset={histset!r}")
-        if isinstance(histset,dict): # { sample: hist }
-          histset = HistSet(histset) # convert dictionary to HistSet
+        vstr = "(%r,%r)"%(var[0].filename,var[1].filename) if isinstance(var,tuple) else\
+               repr(var.filename) if hasattr(var,'filename') else repr(var)
+        if isinstance(histset,dict) and any(isinstance(h,TH1) for h in histset.values()): # { sample: hist }
+          histset = HistSet(histset) # convert dictionary to HistSet for easy display
         if isinstance(histset,HistSet):
-          print(">>> Histogram yields for selection %r, variable %r:"%(sel.selection,var.filename))
+          print(">>> Histogram yields for selection %r, variable %s:"%(sel.selection,vstr))
           histset.display()
-        else: # assume TH1 histogram
+        elif isinstance(histset,TH1): # TH1 histogram
           hist = histset
           if i==0: # only print first time
-            print(">>> Histogram yields for selection %r, variable %r:"%(sel.selection,var.filename))
+            print(">>> Histogram yields for selection %r, variable %s:"%(sel.selection,vstr))
             TAB = LOG.table("%13.2f %13d %13.3f   %r")
             TAB.printheader("Integral","Entries","Ave. weight","Hist name    ")
-            printhead = False # do not print second time
-          hint, hent = hist.Integral(0,hist.GetXaxis().GetNbins()+1), hist.GetEntries()
+          hint, hent = integratehist(hist), hist.GetEntries()
           TAB.printrow(hint, hent, hint/hent if hent!=0 else -1, hist.GetName())
-    
+        elif isinstance(histset,dict): # assume { sample: number value }
+          for sample, value in histset.items():
+            if i==0: # only print first time
+              print(">>> Number value:")
+              TAB = LOG.table("%15.4f  %-15s %-15s %r")
+              TAB.printheader("Number","Sample","Variable","Selection"+' '*20)
+            TAB.printrow(value,sample.name,vstr,sel.selection)
+        else: # assume { sample: number value }
+          value = histset
+          if i==0: # only print first time
+            print(">>> Number value:")
+            TAB = LOG.table("%15.4f  %-15s %r")
+            TAB.printheader("Number","Variable","Selection"+' '*20)
+          TAB.printrow(value,vstr,sel.selection)
+  
   def insert(self,hist_dict,idx=-1,verb=0):
     """Insert histograms per selection/variable."""
     for selection in hist_dict:
@@ -143,10 +164,13 @@ class HistDict(object):
         LOG.verb("HistDict.insert: Inserting=%r at index %r (%r)"%(hist,idx_,idx),verb,2)
         self._dict[selection][variable].exp.insert(idx_,hist)
   
-  def results(self,singlevar=False,singlesel=False):
+  def results(self,singlevar=False,singlesel=False,popvar=None):
     """Return simple nested dictionaries. { selection: { variable: HistSet } }
     Convert for just a single variable (issinglevar==True), and/or single selection (issinglesel==True)."""
     results = self._dict
+    if popvar!=None: # remove variable from dictionary (used by Sample.getmean)
+      for sel in results:
+        results[sel].pop(popvar,None)
     if singlevar: # convert result to { selection: HistSet }
       for sel in results.keys():
         if len(results[sel])>=2:
@@ -156,7 +180,7 @@ class HistDict(object):
           results.pop(sel) # delete nested dictionary
         else:
           varkey = list(results[sel].keys())[0] # get first (and only?) key
-          results[sel] = results[varkey]
+          results[sel] = results[sel][varkey]
     if singlesel: # convert result to { variable: HistSet } or if singlevar==True: a single HistSet
       if len(results)>=2:
         LOG.warn("HistDict.results: singlevar=%r, singlesel=%r, but found more than one selection key in self._dict=%r"%(

@@ -84,7 +84,7 @@ def getsamples(sampleset=None,nevts=10000,**kwargs):
       #sample = Sample(name,title,fname,xsec,color=color,data=False,lumi=lumi,weight='weight')
       expsamples.append(sample)
   if 'DY' in merge: # merge DY*Jets
-    expsamples = join(expsamples,"DY*Jets",name="DY_merged")
+    expsamples = join(expsamples,"DY*Jets",name="DY_merged",title="DY merged")
   if 'JTF' in merge: #  merge JTF = QCD + WJ
     expsamples = join(expsamples,['QCD','WJ'],name='JTF',title="j -> tau_h fakes")
   if 'nonDY' in merge: #  merge everything except DY

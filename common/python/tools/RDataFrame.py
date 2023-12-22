@@ -10,7 +10,7 @@ from ROOT import gROOT, gInterpreter, RDataFrame, RDF
 # REPRESENTATION: shorten for debugging
 RDataFrame.__repr__ = lambda o: "<%s at %s>"%(o.__class__.__name__,hex(id(o)))
 RDF.RInterface['ROOT::Detail::RDF::RJittedFilter,void'].__repr__ = lambda o: "<RInterface<RJittedFilter,void> at %s>"%(hex(id(o)))
-for temp in ['TH1D','TH2D','ULong64_t']: # templates
+for temp in ['TH1D','TH2D','ULong64_t','double']: # templates
   RDF.RResultPtr[temp].__repr__ = lambda o: "<%s at %s>"%(o.__class__.__name__,hex(id(o)))
 
 # PROGRESS BAR
@@ -32,6 +32,7 @@ gInterpreter.Declare("""
       c.OnPartialResultSlot(everyN,[everyN,post](unsigned int slot, ULong64_t &cnt){
         std::lock_guard<std::mutex> lg(barMutex); // lock the mutex at construction, releases it at destruction
         processed += everyN; // everyN captured by value for this lambda
+        if(totalEvents==0) return;
         progressBar = ">>> [";
         for(UInt_t i=0; i<static_cast<UInt_t>(static_cast<Float_t>(processed)/totalEvents*barWidth); ++i){
           progressBar.push_back('=');
@@ -79,8 +80,12 @@ def SetNumberOfThreads(nthreads=None,verb=0):
       nthreads = 8 if nthreads else 1 # if nthreads==True: set to default 8 cores
     if verb>=1:
       print(">>> SetNumberOfThreads: Setting number of threads from %s to %s..."%(ROOT.GetThreadPoolSize(),nthreads))
-    if ROOT.GetThreadPoolSize()<=0:
+    if ROOT.IsImplicitMTEnabled(): #ROOT.GetThreadPoolSize()<=0:
+      if verb>=2:
+        print(">>> SetNumberOfThreads: Calling ROOT.DisableImplicitMT...")
       ROOT.DisableImplicitMT() # turn off to overwrite previous setting
+    if verb>=2:
+      print(">>> SetNumberOfThreads: Calling ROOT.EnableImplicitMT(%s)..."%(nthreads))
     ROOT.EnableImplicitMT(nthreads)
   if ROOT.GetThreadPoolSize()!=nthreads:
     print(">>> SetNumberOfThreads: Warning! Number of threads is set to ROOT.GetThreadPoolSize()=%s instead of the requested nthreads=%s..."%(

@@ -299,16 +299,18 @@ class Plot2D(Plot):
     self.grahps = graphs[:]
     return graphs
     
-  def drawlegend(self,**kwargs):
-    entries = kwargs.get('entries', [ ]   )
-    title   = kwargs.get('header',  None  )
-    title   = kwargs.get('title',   title ) # legend header/title
-    texts   = kwargs.get('text',    [ ]   ) # extra text below legend
-    texts   = ensurelist(texts,nonzero=True)
-    entries = ensurelist(entries,nonzero=False)
-    tsize   = 0.041
-    width   = 0.26
-    height  = tsize*1.10*len([o for o in self.graphs+self.profiles+entries+texts+[title] if o])
+  def drawlegend(self,position=None,**kwargs):
+    position = kwargs.get('pos',      position ) # legend position
+    position = kwargs.get('position', position ) or self.position
+    entries  = kwargs.get('entries',  [ ]      )
+    title    = kwargs.get('header',   None     )
+    title    = kwargs.get('title',    title    ) # legend header/title
+    texts    = kwargs.get('text',     [ ]      ) # extra text below legend
+    texts    = ensurelist(texts,nonzero=True)
+    entries  = ensurelist(entries,nonzero=False)
+    tsize    = 0.041
+    width    = 0.26
+    height   = tsize*1.10*len([o for o in self.graphs+self.profiles+entries+texts+[title] if o])
     if 'left' in position.lower():
       x1 = 0.17; x2 = x1+width
     else:
