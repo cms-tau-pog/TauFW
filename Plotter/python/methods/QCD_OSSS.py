@@ -26,7 +26,6 @@ def QCD_OSSS(self, variables, selections, **kwargs):
   scale         = kwargs.get('scale',           None           ) # OS/SS ratio (SS -> OS extrapolation scale)
   shift         = kwargs.get('shift',           0.0            ) #+ self.shiftQCD # for systematics
   parallel      = kwargs.get('parallel',        False          )
-  rdf           = kwargs.get('rdf',             False          )
   negthres      = kwargs.get('negthres',        0.25           ) # threshold for warning about negative QCD bins
   
   # INVERT OS -> SS CHARGE SELECTIONS
@@ -50,13 +49,8 @@ def QCD_OSSS(self, variables, selections, **kwargs):
       scale,shift,selection_OS.selection,selection_SS.selection),verbosity,level=2)
   
   # GET SS HISTOGRAMS
-  if rdf:
-    hists = self.gethists_rdf(variables,selections_SS,weight=weight,dataweight=dataweight,replaceweight=replaceweight,tag=tag,
-                              signal=False,split=False,blind=False,task="Estimating QCD: ",verbosity=verbosity-1)
-  else:
-    hists = self.gethists(variables,selections_SS,weight=weight,dataweight=dataweight,replaceweight=replaceweight,tag=tag,
-                          signal=False,split=False,blind=False,parallel=parallel,task="Estimating QCD",verbosity=verbosity-1)
-    hists = { selections_SS[0]: hists }
+  hists = self.gethists(variables,selections_SS,weight=weight,dataweight=dataweight,replaceweight=replaceweight,tag=tag,
+                        signal=False,split=False,blind=False,task="Estimating QCD: ",verbosity=verbosity-1)
   
   # CREATE QCD HISTS
   qcdhists = { } #HistDict()

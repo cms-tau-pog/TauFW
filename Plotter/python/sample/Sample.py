@@ -380,19 +380,6 @@ class Sample(object):
       LOG.warn("Sample.getcutflow: Could not find cutflow histogram %r in %s!"%(cutflow,self.filename))
     file.Close()
     return hist
-    
-  def getsumw(self,selections,**kwargs):
-    """Get sum of weights."""
-    verbosity = LOG.getverbosity(kwargs)
-    if isinstance(self,MergedSample):
-      sumw = 0.0
-      for sample in self.samples:
-        sumw += sample.getsumw()
-      self.sumweights = sumw
-    else:
-      sumw = self.sumweights
-    LOG.verb('Sample.getsumw: %r %.10g'%(self.name,sumw),level=2)
-    return sumw
   
   def setnevents(self,binnevts=None,binsumw=None,cutflow=None):
     """Automatically set number of events from the cutflow histogram."""
@@ -611,37 +598,6 @@ class Sample(object):
       splitsamples.append(sample)
     self.splitsamples = splitsamples # save list of split samples
     return splitsamples
-  
-  def getentries(self, selection, **kwargs):
-    """Get number of events for a given selection string."""
-    verbosity  = LOG.getverbosity(kwargs)
-    norm       = kwargs.get('norm', True ) # normalize to cross section
-    norm       = self.norm if norm else 1.
-    scale      = kwargs.get('scale', 1.0 ) * self.scale * norm # pass False or 0 for no scaling of MC events
-    if not isinstance(selection,Selection):
-      selection = Selection(selection)
-    if self.isdata:
-      weight = joinweights(self.weight,self.extraweight,kwargs.get('weight',""))
-    else:
-      weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
-    cuts     = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
-    cuts = joincuts(cuts,weight=weight)
-    
-    # GET NUMBER OF EVENTS
-    file, tree = self.get_file_and_tree() # create new file and tree for thread safety
-    nevents    = tree.GetEntries(cuts)
-    file.Close()
-    if scale:
-      nevents  *= scale
-    
-    # PRINT
-    if verbosity>=3:
-      print(">>>\n>>> Sample.getentries: %s, %s"%(color(self.name,color="grey"),self.fnameshort))
-      print(">>>   entries: %d"%(nevents))
-      print(">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm))
-      print(">>>   %r"%(cuts))
-    
-    return nevents
   
   def getrdframe(self,variables,selections,**kwargs):
     """Create RDataFrame for list of selections and variables.
@@ -918,52 +874,65 @@ class Sample(object):
     
     return res_dict
   
-  def getsumw_rdf(self, *args, **kwargs):
+  def getsumw(self, *args, **kwargs):
     """Compute sum-of-weights for a given lists of selections
     with RDataFrame and return a dictionary of double values."""
     verbosity = LOG.getverbosity(kwargs,self)
-    LOG.verb("Sample.getsumw_rdf: args=%r"%(args,),verbosity,1)
-    _, selections, issinglesel = unpack_sellist_args(*args)
-    split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
+    LOG.verb("Sample.getsumw: args=%r"%(args,),verbosity,1)
     
-    # GET & RUN RDATAFRAMES
-    kwargs['sumw'] = True
-    rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
-    res_dict = self.getrdframe([ ],selections,**kwargs)
-    if verbosity>=3: # print RDFs RDF.RResultPtr<double>
-      print(f">>> Sample.getsumw_rdf: Got res_dict:")
-      res_dict.display() # print full dictionary
-    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
+    # SUM-OF-WEIGHTS without selections
+    if not args:
+      if isinstance(self,MergedSample):
+        sumw = sum(s.getsumw() for s in self.samples)
+        self.sumweights = sumw
+      else:
+        sumw = self.sumweights
+      LOG.verb('Sample.getsumw: %r %.10g'%(self.name,sumw),level=2)
+      return sumw
     
-    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
-    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
-    return hists_dict.results(singlevar=True,singlesel=issinglesel)
+    # APPLY SELECTIONS
+    else:
+      _, selections, issinglesel = unpack_sellist_args(*args)
+      split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
+      
+      # GET & RUN RDATAFRAMES
+      kwargs['sumw'] = True
+      rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
+      res_dict = self.getrdframe([ ],selections,**kwargs)
+      if verbosity>=3: # print RDFs RDF.RResultPtr<double>
+        print(f">>> Sample.getsumw: Got res_dict:")
+        res_dict.display() # print full dictionary
+      res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
+      
+      # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
+      hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
+      return hists_dict.results(singlevar=True,singlesel=issinglesel)
   
-  def getmean_rdf(self, *args, **kwargs):
+  def getmean(self, *args, **kwargs):
     """Compute mean of variables and selections with RDataFrame and return a dictionary of histograms."""
     kwargs['mean'] = True
     if isinstance(self,MergedSample):
       kwargs['popvar'] = 'sumw' if kwargs.get('sumw',True) else None # remove 'sumw' from returned dictionary
       kwargs['sumw']   = True # force because the sum-of-weights is needed to sum means correctly
-    return self.gethist_rdf(*args,**kwargs) # use same function
+    return self.gethist(*args,**kwargs) # use same function
   
-  def gethist_rdf(self, *args, **kwargs):
+  def gethist(self, *args, **kwargs):
     """Create and fill histograms for given lists of variables and selections
     with RDataFrame and return a dictionary of histograms."""
     verbosity = LOG.getverbosity(kwargs,self)
-    LOG.verb("Sample.gethist_rdf: args=%r"%(args,),verbosity,1)
+    LOG.verb("Sample.gethist: args=%r"%(args,),verbosity,1)
     if kwargs.get('2d',False): # assume Variable arguments for 2D histograms
       variables, selections, issinglevar, issinglesel = unpack_gethist2D_args(*args)
     else: # assume Variable arguments only for 1D histograms
       variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
     split  = kwargs.get('split', False) # split sample into components (e.g. with cuts on genmatch)
-    popvar = kwargs.get('popvar',None ) # remove variable from returned dictionary (used by getmean_rdf)
+    popvar = kwargs.get('popvar',None ) # remove variable from returned dictionary (used by getmean)
     
     # GET & RUN RDATAFRAMES
     rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
     res_dict = self.getrdframe(variables,selections,**kwargs)
     if verbosity>=3: # print RDFs RResultPtr<TH1>
-      print(f">>> Sample.gethist_rdf: Got res_dict:")
+      print(f">>> Sample.gethist: Got res_dict:")
       res_dict.display() # print full dictionary
     res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
     
@@ -973,204 +942,11 @@ class Sample(object):
       hists_dict.display(nvars=(1 if split else -1))
     return hists_dict.results(singlevar=issinglevar,singlesel=issinglesel,popvar=popvar)
   
-  def gethist2D_rdf(self, *args, **kwargs):
+  def gethist2D(self, *args, **kwargs):
     """Create and fill 2D histograms for given lists of variables and selections
     with RDataFrame and return a dictionary of histograms."""
     kwargs['2d'] = True
-    return self.gethist_rdf(*args,**kwargs) # use same function
-  
-  def gethist(self, *args, **kwargs):
-    """Create and fill a histogram from a tree."""
-    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
-    selection     = selections[0] # always assume one selection is passed
-    verbosity     = LOG.getverbosity(kwargs)
-    norm          = kwargs.get('norm',     True           ) # normalize to cross section
-    norm          = self.norm if norm else 1.0
-    scale         = kwargs.get('scale',    1.0            ) * self.scale * norm
-    name          = kwargs.get('name',     self.name      ) # hist name
-    dots          = kwargs.get('dots',     False          ) # allow dots in histogram name
-    name         += kwargs.get('tag',      ""             ) # tag for hist name
-    title         = kwargs.get('title',    self.title     ) # hist title
-    blind         = kwargs.get('blind',    self.isdata    ) # blind data in some given range, e.g. blind={xvar:(xmin,xmax)}
-    fcolor        = kwargs.get('color',    self.fillcolor ) # fill color
-    lcolor        = kwargs.get('lcolor',   self.linecolor ) # line color
-    replaceweight = kwargs.get('replaceweight', None ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
-    undoshifts    = self.isdata and (any('Up' in v.name or 'Down' in v.name for v in variables)
-                                  or 'Up' in selection or 'Down' in selection)
-    undoshifts = kwargs.get('undoshifts', undoshifts   ) # remove up/down from variable names
-    drawopt = 'E0' if self.isdata else 'HIST'
-    drawopt = kwargs.get('option', drawopt ) + 'gOff'
-    LOG.verb("Sample.gethist: name=%r, title=%r, scale=%r"%(name,title,scale),verbosity,4)
-    
-    # SELECTION STRING & WEIGHTS
-    if self.isdata:
-      weight = joinweights(self.weight,self.extraweight,kwargs.get('weight',""))
-    else:
-      weight = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
-    cuts = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""))
-    if undoshifts: # remove up/down from variable names in selection string
-      cuts = undoshift(cuts)
-    if replaceweight: # replace patterns, e.g. replaceweight=('idweight_2','idweightUp_2')
-      weight = replacepattern(weight,replaceweight)
-    cuts = joincuts(cuts,weight=weight)
-    
-    # PREPARE HISTOGRAMS
-    hists   = [ ]
-    varexps = [ ]
-    for variable in variables:
-      
-      # VAREXP
-      hname  = makehistname(variable,name,dots=dots) # $VAR_$NAME
-      varcut = ""
-      if self.isdata and (blind or variable.blindcuts or variable.cut or variable.dataweight):
-        blindcuts = ""
-        if blind:
-          if isinstance(blind,tuple) and len(blind)==2:
-            blindcuts = variable.blind(*blind)
-          elif variable._name in self.blinddict:
-            blindcuts = variable.blind(*self.blinddict[variable._name])
-          elif variable.blindcuts:
-            blindcuts = variable.blindcuts
-        varcut = joincuts(blindcuts,variable.cut,weight=variable.dataweight)
-      elif not self.isdata and (variable.cut or variable.weight):
-        varcut = joincuts(variable.cut,weight=variable.weight)
-      if varcut:
-        varexp = (variable.drawcmd(hname,undoshift=undoshifts),varcut)
-      else:
-        varexp = variable.drawcmd(hname,undoshift=undoshifts)
-      varexps.append(varexp)
-      
-      # HISTOGRAM
-      hist = variable.gethist(hname,title,sumw2=(not self.isdata),poisson=self.isdata)
-      hist.SetDirectory(0)
-      hists.append(hist)
-    
-    # FILL HISTOGRAMS
-    LOG.insist(len(variables)==len(varexps)==len(hists),
-               "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
-    if varexps:
-      LOG.verb('Sample.gethist: varexps=%s'%(varexps),verbosity,5)
-      try:
-        file, tree = self.get_file_and_tree() # create new file and tree for thread safety
-        out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists,verb=verbosity-3)
-        file.Close()
-      except KeyboardInterrupt:
-        LOG.throw(KeyboardInterrupt,"Interrupted Sample.gethist for %r (%d histogram%s)"%(self.name,len(varexps),'' if len(varexps)==1 else 's'))
-    else:
-      LOG.verb("Sample.gethist: No varexps: isdata=%r, varcut=%s, variables=%s"%(self.isdata,varcut,variables),verbosity,3)
-    
-    # FINISH
-    nentries = 0
-    integral = 0
-    for variable, hist in zip(variables,hists):
-      if scale!=1.0:   hist.Scale(scale)
-      if scale==0.0:   LOG.warn("Scale of %s is 0!"%self.name)
-      hist.SetLineColor(lcolor)
-      hist.SetFillColor(kWhite if self.isdata or self.issignal else fcolor)
-      hist.SetMarkerColor(lcolor)
-      if hist.GetEntries()>nentries:
-        nentries = hist.GetEntries()
-        integral = hist.Integral()
-    
-    # PRINT
-    if verbosity>=3:
-      print(">>>\n>>> Sample.gethist: %s, %s"%(color(self.name,color="grey"),self.fnameshort))
-      print(">>>   entries: %d (%.2f integral)"%(nentries,integral))
-      print(">>>   scale: %.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights))
-      if verbosity>=4:
-        print(">>>   self.weight=%r, self.extraweight=%r, kwargs.get('weight','')=%r, "%(self.weight,self.extraweight,kwargs.get('weight',"")))
-      print(">>>   %r"%(cuts))
-      if verbosity>=4:
-        for var, varexp, hist in zip(variables,varexps,hists):
-          print(">>>   entries=%d (%.1f integral) for variable %r, varexp=%r"%(hist.GetEntries(),hist.Integral(),var.name,varexp))
-          #print('>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp))
-          if verbosity>=5:
-            printhist(hist,pre=">>>   ")
-    
-    if issinglevar:
-      return hists[0]
-    return hists
-  
-  def gethist2D(self, *args, **kwargs):
-    """Create and fill a 2D histogram from a tree."""
-    variables, selections, issinglevar, issinglesel = unpack_gethist2D_args(*args)
-    selection = selections[0] # always assume one selection is passed
-    verbosity = LOG.getverbosity(kwargs)
-    scale     = kwargs.get('scale', 1.0        ) * self.scale * self.norm
-    name      = kwargs.get('name',  self.name  )
-    name     += kwargs.get('tag',   ""         )
-    title     = kwargs.get('title', self.title )
-    drawopt   = 'COLZ'
-    drawopt   = 'gOff'+kwargs.get('option', drawopt    )
-    
-    # CUTS
-    if self.isdata:
-      weight  = joinweights(self.weight,self.extraweight,kwargs.get('weight',""))
-    else:
-      weight  = joinweights(selection.weight,self.weight,self.extraweight,kwargs.get('weight',""))
-    cuts      = joincuts(selection.selection,self.cuts,kwargs.get('cuts',""),kwargs.get('extracuts',""),weight=weight)
-    
-    # PREPARE
-    hists     = [ ]
-    varexps   = [ ]
-    for xvar, yvar in variables:
-      
-      # VAREXP
-      hname = makehistname("%s_vs_%s"%(xvar.filename,yvar.filename),name)
-      if xvar.cut or yvar.cut or ((xvar.weight or yvar.weight) and not self.isdata):
-        if self.isdata:
-          varcut = joincuts(xvar.cut,yvar.cut)
-        else:
-          varweight = joinweights(xvar.weight,yvar.weight)
-          varcut = joincuts(xvar.cut,yvar.cut,weight=varweight)
-        varexp = (xvar.drawcmd2D(yvar,hname),varcut)
-      else:
-        varexp = xvar.drawcmd2D(yvar,hname)
-      varexps.append(varexp)
-      
-      # HISTOGRAM
-      hist = xvar.gethist2D(yvar,hname,title,sumw2=(not self.isdata),poisson=self.isdata)
-      hist.SetDirectory(0)
-      hists.append(hist)
-      hist.SetOption(drawopt)
-    
-    # DRAW
-    LOG.insist(len(variables)==len(varexps)==len(hists),
-               "Number of variables (%d), variable expressions (%d) and histograms (%d) must be equal!"%(len(variables),len(varexps),len(hists)))
-    if varexps:
-      try:
-        file, tree = self.get_file_and_tree() # create new file and tree for thread safety
-        out = tree.MultiDraw(varexps,cuts,drawopt,hists=hists)
-        file.Close()
-      except KeyboardInterrupt:
-        LOG.throw(KeyboardInterrupt,"Interrupted Sample.gethist for %r (%d histogram%s)"%(self.name,len(varexps),'' if len(varexps)==1 else 's'))
-    
-    # FINISH
-    nentries = 0
-    integral = 0
-    for variable, hist in zip(variables,hists):
-      if scale!=1.0:   hist.Scale(scale)
-      if scale==0.0:   LOG.warn("Scale of %s is 0!"%self.name)
-      if hist.GetEntries()>nentries:
-        nentries = hist.GetEntries()
-        integral = hist.Integral()
-    
-    # PRINT
-    if verbosity>=2:
-      print(">>>\n>>> Sample.gethist2D - %s: %s"%(color(name,color="grey"),self.fnameshort))
-      print(">>>   scale: %.6g (scale=%.6g, norm=%.6g)"%(scale,self.scale,self.norm))
-      print(">>>   entries: %d (%.2f integral)"%(nentries,integral))
-      print(">>>   %s"%cuts)
-      if verbosity>=4:
-        for var, varexp, hist in zip(variables,varexps,hists):
-          print('>>>   Variables (%r,%r): varexp=%r, entries=%d, integral=%d'%(var[0].name,var[1].name,varexp,hist.GetEntries(),hist.Integral()))
-          #print('>>>   Variable %r: cut=%r, weight=%r, varexp=%r'%(var.name,var.cut,var.weight,varexp))
-          if verbosity>=5:
-            printhist(hist,pre=">>>   ")
-    
-    if issinglevar:
-      return hists[0]
-    return hists
+    return self.gethist(*args,**kwargs) # use same function
   
   def match(self, *terms, **kwargs):
     """Check if search terms match the sample's name, title and/or tags."""

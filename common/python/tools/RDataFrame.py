@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (August 2020)
+import os
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import gROOT, gInterpreter, RDataFrame, RDF
 
@@ -72,21 +73,22 @@ def SetNumberOfThreads(nthreads=None,verb=0):
   """Set number of threads."""
   # NOTE:
   #   1) RDataFrame parallelizes over TTree clusters, check tree->Print("clusters")
-  #   2) After creating of RDataFrame, the number of thread cannot be changed anymore
+  #   2) After creating of RDataFrame, the number of threads cannot be changed anymore
   if nthreads==None: # do not do anything
     return ROOT.GetThreadPoolSize()
   else:
     if isinstance(nthreads,bool):
-      nthreads = 8 if nthreads else 1 # if nthreads==True: set to default 8 cores
+      nthreads = min(8,os.cpu_count()) if nthreads else 1 # if nthreads==True: set to default 8 cores
     if verb>=1:
       print(">>> SetNumberOfThreads: Setting number of threads from %s to %s..."%(ROOT.GetThreadPoolSize(),nthreads))
     if ROOT.IsImplicitMTEnabled(): #ROOT.GetThreadPoolSize()<=0:
       if verb>=2:
         print(">>> SetNumberOfThreads: Calling ROOT.DisableImplicitMT...")
       ROOT.DisableImplicitMT() # turn off to overwrite previous setting
-    if verb>=2:
-      print(">>> SetNumberOfThreads: Calling ROOT.EnableImplicitMT(%s)..."%(nthreads))
-    ROOT.EnableImplicitMT(nthreads)
+    if nthreads>=2: # only enable implicit multithreading if one or more threads are requested
+      if verb>=2:
+        print(">>> SetNumberOfThreads: Calling ROOT.EnableImplicitMT(%s)..."%(nthreads))
+      ROOT.EnableImplicitMT(nthreads)
   if ROOT.GetThreadPoolSize()!=nthreads:
     print(">>> SetNumberOfThreads: Warning! Number of threads is set to ROOT.GetThreadPoolSize()=%s instead of the requested nthreads=%s..."%(
       ROOT.GetThreadPoolSize(),nthreads))

@@ -14,11 +14,11 @@ class HistSet(object):
   
   def __init__(self, data=None, exp=None, sig=None, var=None, sel=None):
     #print(">>> HistSet.__init__: var=%r, sel=%r"%(var,sel))
-    self.data = data # data histogram
-    self.exp  = exp or [ ] # list of background histograms (Drell-Yan, ttbar, W+jets, ...), to be stacked
-    self.sig  = sig or [ ] # list of signal histograms (for new physics searches)
-    self.var  = var  # variable object
-    self.sel  = sel  # selection object for changing variable context
+    self.data = data # single data TH1D histogram
+    self.exp  = exp or [ ] # list of background TH1D histograms (Drell-Yan, ttbar, W+jets, ...), to be stacked
+    self.sig  = sig or [ ] # list of signal TH1D histograms (for new physics searches), to be overlaid
+    self.var  = var  # Variable object
+    self.sel  = sel  # Selection object for changing variable context
     if isinstance(data,dict): # data = { sample: hist } dictionary
       self.data = None
       for sample, hist in data.items():
@@ -66,23 +66,22 @@ class HistSet(object):
   def getstack(self, var=None, context=None, **kwargs):
     """Create and return a Stack object."""
     verb = kwargs.get('verb', 0)
-    if var==None:
+    if var==None: # for initiation of Plot object
       var = self.var
-    if self.sel!=None and context==None:
+    if self.sel!=None and context==None: # for setting context of Variable object
       context = self.sel
     LOG.verb("HistSet.getstack: context=%r, var=%r, self.var=%r, self.sel=%r"%(context,var,self.var,self.sel),verb,2)
     if context!=None and hasattr(var,'changecontext'):
       var.changecontext(context,verb=verb)
     stack = Stack(var,self.data,self.exp,self.sig,**kwargs)
-    return stack
+    return stack # return Stack object
   
-  def getTHStack(self, context=None, **kwargs):
+  def getTHStack(self, name='stack', **kwargs):
     """Create and return a THStack of backgrounds histograms."""
-    sname = kwargs.get('name',"stack")
-    stack = THStack(sname,sname)
+    stack = THStack(name,name)
     for hist in reversed(self.exp):
       stack.Add(hist)
-    return stack # THStack
+    return stack # return THStack object
   
 
 class HistDict(object):

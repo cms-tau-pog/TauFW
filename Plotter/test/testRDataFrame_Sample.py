@@ -27,69 +27,68 @@ def dmmap(dm='dm_2'): # python version
   return f"{dm}==0 ? 0 : ({dm}==1 || {dm}==2) ? 1 : {dm}==10 ? 2 : {dm}==11 ? 3 : 4"
 
 
-def test_SampleSet_MultiDraw(sampleset,variables,selections,outdir="plots/test",split=False,tag="",method=None,parallel=True,verb=0):
-  """Test SampleSet.gethists with MultiDraw for comparison.
-  NOTE: To be removed from SampleSet."""
-  LOG.header("test_SampleSet_MultiDraw")
-  
-  # GET HISTS
-  if sampleset.datasample:
-    start  = time.time(), time.process_time() # wall-clock & CPU time
-    stacks = { } # { selection : { variable: Stack } }
-    nhists = 0
-    for selection in selections:
-      start2 = time.time(), time.process_time() # wall-clock & CPU time
-      results = sampleset.getstack(variables,selection,method=method,split=split,parallel=parallel,verb=verb)
-      print(f">>> test_SampleSet_MultiDraw: Running of {len(results)} results with MultiDraw for one selection took {took(*start2)} with {ROOT.GetThreadPoolSize()} threads")
-      stacks[selection] = results # add nested dictionary
-      nhists += sum(len(s.exphists)+(1 if s.datahist else 0) for s in results)
-    print(f">>> test_SampleSet_MultiDraw: Running of {nhists} results with MultiDraw for all selections took {took(*start)} with {ROOT.GetThreadPoolSize()} threads")
-    
-    # PLOT
-    for selection in selections:
-      for stack in stacks[selection]:
-        #stack = stacks[selection][variable].getstack()
-        stack.draw(ratio=True)
-        stack.drawlegend()
-        stack.drawtext("Test SampleSet.getstack MultiDraw",selection.title)
-        stack.saveas(f"{outdir}/testRDF_stack_$VAR_{selection.filename}{tag}_MultiDraw.png")
-        stack.close(keep=parallel) # avoid segmentation fault for parallel
-    
-  else: # no stack
-    start  = time.time(), time.process_time() # wall-clock & CPU time
-    hists  = { } # { selection : { variable: HistSet.exp } }
-    nhists = 0
-    for selection in selections:
-      variables_ = [ ] 
-      for variable in variables:
-        if variable.plotfor(selection) and selection.plotfor(variable):
-          variable.changecontext(selection.selection)
-          variables_.append(variable)
-      start2 = time.time(), time.process_time() # wall-clock & CPU time
-      results = sampleset.gethists(variables_,selection,split=split,parallel=parallel,verb=verb)
-      print(f">>> test_SampleSet_MultiDraw: Running of {len(results)} results with MultiDraw for one selection took {took(*start2)} with {ROOT.GetThreadPoolSize()} threads")
-      hists[selection] = { v: results[v].exp for v in results} # add nested dictionary
-      nhists += sum(len(results[v].exp) for v in results)
-    print(f">>> test_SampleSet_MultiDraw: Running of {nhists} results with MultiDraw for all selections took {took(*start)} with {ROOT.GetThreadPoolSize()} threads")
-    
-    # PLOT
-    for selection in selections:
-      for variable in hists[selection]:
-        variable.changecontext(selection.selection)
-        plot = Plot(variable,hists[selection][variable]) # create Plot object
-        plot.draw(ratio=True)
-        plot.drawlegend()
-        plot.drawtext("Test SampleSet.gethists MultiDraw",selection.title)
-        plot.saveas(f"{outdir}/testRDF_plot_{variable.filename}_{selection.filename}{tag}_MultiDraw.png")
-        plot.close()
-  
+###def test_SampleSet_MultiDraw(sampleset,variables,selections,outdir="plots/test",split=False,tag="",method=None,parallel=True,verb=0):
+###  """Test SampleSet.gethists with MultiDraw for comparison. NOTE: SampleSet.gethists removed in this branch."""
+###  LOG.header("test_SampleSet_MultiDraw")
+###  
+###  # GET HISTS
+###  if sampleset.datasample:
+###    start  = time.time(), time.process_time() # wall-clock & CPU time
+###    stacks = { } # { selection : { variable: Stack } }
+###    nhists = 0
+###    for selection in selections:
+###      start2 = time.time(), time.process_time() # wall-clock & CPU time
+###      results = sampleset.getstack(variables,selection,method=method,split=split,parallel=parallel,verb=verb)
+###      print(f">>> test_SampleSet_MultiDraw: Running of {len(results)} results with MultiDraw for one selection took {took(*start2)} with {ROOT.GetThreadPoolSize()} threads")
+###      stacks[selection] = results # add nested dictionary
+###      nhists += sum(len(s.exphists)+(1 if s.datahist else 0) for s in results)
+###    print(f">>> test_SampleSet_MultiDraw: Running of {nhists} results with MultiDraw for all selections took {took(*start)} with {ROOT.GetThreadPoolSize()} threads")
+###    
+###    # PLOT
+###    for selection in selections:
+###      for stack in stacks[selection]:
+###        #stack = stacks[selection][variable].getstack()
+###        stack.draw(ratio=True)
+###        stack.drawlegend()
+###        stack.drawtext("Test SampleSet.getstack MultiDraw",selection.title)
+###        stack.saveas(f"{outdir}/testRDF_stack_$VAR_{selection.filename}{tag}_MultiDraw.png")
+###        stack.close(keep=parallel) # avoid segmentation fault for parallel
+###    
+###  else: # no stack
+###    start  = time.time(), time.process_time() # wall-clock & CPU time
+###    hists  = { } # { selection : { variable: HistSet.exp } }
+###    nhists = 0
+###    for selection in selections:
+###      variables_ = [ ] 
+###      for variable in variables:
+###        if variable.plotfor(selection) and selection.plotfor(variable):
+###          variable.changecontext(selection.selection)
+###          variables_.append(variable)
+###      start2 = time.time(), time.process_time() # wall-clock & CPU time
+###      results = sampleset.gethists(variables_,selection,split=split,parallel=parallel,verb=verb)
+###      print(f">>> test_SampleSet_MultiDraw: Running of {len(results)} results with MultiDraw for one selection took {took(*start2)} with {ROOT.GetThreadPoolSize()} threads")
+###      hists[selection] = { v: results[v].exp for v in results} # add nested dictionary
+###      nhists += sum(len(results[v].exp) for v in results)
+###    print(f">>> test_SampleSet_MultiDraw: Running of {nhists} results with MultiDraw for all selections took {took(*start)} with {ROOT.GetThreadPoolSize()} threads")
+###    
+###    # PLOT
+###    for selection in selections:
+###      for variable in hists[selection]:
+###        variable.changecontext(selection.selection)
+###        plot = Plot(variable,hists[selection][variable]) # create Plot object
+###        plot.draw(ratio=True)
+###        plot.drawlegend()
+###        plot.drawtext("Test SampleSet.gethists MultiDraw",selection.title)
+###        plot.saveas(f"{outdir}/testRDF_plot_{variable.filename}_{selection.filename}{tag}_MultiDraw.png")
+###        plot.close()
+
 
 def test_SampleSet_RDF(sampleset,variables,selections,outdir="plots/test",method=None,split=False,tag="",verb=0):
   """Test SampleSet.gethists with RDataFrame."""
   LOG.header("test_SampleSet_RDF")
   
   # GET HISTS
-  hists = sampleset.gethists_rdf(variables,selections,method=method,split=split,verb=verb)
+  hists = sampleset.gethists(variables,selections,method=method,split=split,verb=verb)
   
   # PLOT
   for selection in hists:
@@ -172,9 +171,9 @@ def test_getrdframe2D(sample,variables,selections,outdir="plots/test",split=Fals
     
 
 def test_getsumw(sample,selections,split=False,rungraphs=True,verb=0):
-  """Test Sample.getsumw_rdf."""
+  """Test Sample.getsumw."""
   LOG.header("test_getsumw")
-  res_dict = sample.getsumw_rdf(selections,split=split,verb=verb)
+  res_dict = sample.getsumw(selections,split=split,verb=verb)
   #print(res_dict)
   if split:
     TAB = LOG.table("%15.2f  %-10s   %r")
@@ -190,9 +189,9 @@ def test_getsumw(sample,selections,split=False,rungraphs=True,verb=0):
     
 
 def test_getmean(sample,variables,selections,split=False,sumw=False,rungraphs=True,verb=0):
-  """Test Sample.getmean_rdf."""
+  """Test Sample.getmean."""
   LOG.header("test_getmean")
-  res_dict = sample.getmean_rdf(variables,selections,split=split,sumw=sumw,verb=verb)
+  res_dict = sample.getmean(variables,selections,split=split,sumw=sumw,verb=verb)
   #print(res_dict)
   if split:
     TAB = LOG.table("%15.4f  %-10r %-10s   %r")
@@ -212,9 +211,9 @@ def test_getmean(sample,variables,selections,split=False,sumw=False,rungraphs=Tr
   
 
 def test_gethist(sample,variables,selections,outdir="plots/test",split=False,tag="",verb=0):
-  """Test Sample.gethist_rdf."""
+  """Test Sample.gethist."""
   LOG.header("test_gethist")
-  hist_dict = sample.gethist_rdf(variables,selections,split=split,verb=verb)
+  hist_dict = sample.gethist(variables,selections,split=split,verb=verb)
   for selection in hist_dict:
     for variable in hist_dict[selection]:
       if split: # convert dict { sample: hist } to list of histograms
@@ -230,9 +229,9 @@ def test_gethist(sample,variables,selections,outdir="plots/test",split=False,tag
   
 
 def test_gethist2D(sample,variables,selections,outdir="plots/test",split=False,tag="",verb=0):
-  """Test Sample.gethist2D_rdf."""
+  """Test Sample.gethist2D."""
   LOG.header("test_gethist2D")
-  hist_dict = sample.gethist2D_rdf(variables,selections,split=split,verb=verb)
+  hist_dict = sample.gethist2D(variables,selections,split=split,verb=verb)
   for selection in hist_dict:
     for varpair in hist_dict[selection]:
       xvar, yvar = varpair
@@ -329,19 +328,17 @@ def main(args):
 #   test_gethist(expsamples[0],variables,selections,outdir,split=True, tag="_split",verb=verbosity)   # merged, split
   
   # TEST Sample.gethist2D
-#   test_gethist2D(expsamples[0],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # single
-#   test_gethist2D(expsamples[0],variables2D,selections,outdir,split=True, tag="_split",  verb=verbosity) # merged
-#   test_gethist2D(expsamples[1],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # merged, split
+  test_gethist2D(expsamples[0],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # single
+  test_gethist2D(expsamples[0],variables2D,selections,outdir,split=True, tag="_split",  verb=verbosity) # merged
+  test_gethist2D(expsamples[1],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # merged, split
   
   # TEST SampleSet.gethists
-#   test_SampleSet_MultiDraw(sampleset_exp,variables,selections,outdir,parallel=parallel,split=True,tag="_split",verb=verbosity)
-#   test_SampleSet_RDF(sampleset_exp,variables,selections,outdir,split=True,tag="_split",verb=verbosity)
+  ###test_SampleSet_MultiDraw(sampleset_exp,variables,selections,outdir,parallel=parallel,split=True,tag="_split",verb=verbosity) # deprecated
+  test_SampleSet_RDF(sampleset_exp,variables,selections,outdir,split=True,tag="_split",verb=verbosity)
   
   # TEST SampleSet.getstack to test QCD
-#   test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
+  ###test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity) # deprecated
   test_SampleSet_RDF(sampleset,variables,selections,outdir,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
-  
-  
   
 
 if __name__ == "__main__":
