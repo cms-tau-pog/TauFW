@@ -46,7 +46,7 @@ ROOT.gInterpreter.Declare("""
       });
       return c;
     };
-    void stopProgressBar(ULong64_t ntot=totalEvents) {
+    void StopProgressBar(ULong64_t ntot=totalEvents) {
       std::cout << "\\r" << std::left << std::setw(barWidth+4) << progressBar << "] Processed " << ntot << " events" << std::flush << std::endl;
       processed = 0; totalEvents = 0; // reset
     };
@@ -61,7 +61,7 @@ def dmmap(dm='dm_2'):
 
 def took(start_wall,start_cpu,pre=""):
   time_wall = time.time() - start_wall # wall clock time
-  time_cpu  = time.perf_counter() - start_cpu # CPU time
+  time_cpu  = time.process_time() - start_cpu # CPU time
   return "%s %d min %.1f sec (CPU: %d min %.1f sec)"%((pre,)+divmod(time_wall,60)+divmod(time_cpu,60))
   
 
@@ -76,6 +76,7 @@ def plot(fname,hists,verb=0):
     hist.SetLineWidth(2)
     hist.SetLineColor(color)
     hist.Draw('HIST E1 SAME')
+  hists[0].SetMaximum(2*max(h.GetMaximum() for h in hists))
   #legend.Draw()
   canvas.BuildLegend()
   canvas.SaveAs(fname)
@@ -89,7 +90,7 @@ def sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=0):
   res_dict = { } # { selection : { variable: [ hist1, ... ] } }
   
   # BOOK histograms
-  start = time.time(), time.perf_counter() # wall-clock & CPU time
+  start = time.time(), time.process_time() # wall-clock & CPU time
   for stitle, fname, weight in fnames:
     rdframe = RDataFrame(tname,fname)
     #nevts = int(rdframe.Count().GetValue()) # this might add a couple of seconds
@@ -114,6 +115,8 @@ def sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=0):
         print(f">>> sampleset_RDF:     Created RDF {rdf_sel!r} with filter {sel!r}...")
       
       # VARIABLES: book histograms
+      res_dict.setdefault(sname,{ })
+      prevvars = [ ]
       for vname, vexp, *bins in vars:
         model   = (vname,stitle,*bins) # RDF.TH1DModel
         rdf_var = rdf_sel
@@ -125,26 +128,28 @@ def sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=0):
         if verb>=2:
           print(f">>> sampleset_RDF:     Booking {vname!r} with model {model!r} and RDF {rdf_var!r}...")
         result = rdf_var.Histo1D(model,vexp,wname)
-        #counts.append(ROOT.AddProgressBar(ROOT.RDF.AsRNode(rdf_var)))
         if verb>=2:
           print(f">>> sampleset_RDF:     Booked {vname!r}: {result!r}")
         results.append(result)
-        res_dict.setdefault(sname,{ }).setdefault(vname,[ ]).append(result) #.GetValue()
+        while vname in prevvars:
+          vname += '_new' # create unique name
+        prevvars.append(vname)
+        res_dict[sname].setdefault(vname,[ ]).append(result) #.GetValue()
   print(f">>> sampleset_RDF: Booking took {took(*start)}")
   
   # RUN events loops to fill histograms
-  start = time.time(), time.perf_counter() # wall-clock & CPU time
+  start = time.time(), time.process_time() # wall-clock & CPU time
   if rungraphs:
     print(f">>> sampleset_RDF: Start RunGraphs of {len(results)} results...")
     RDF.RunGraphs(results)
-    RDF.stopProgressBar()
+    RDF.StopProgressBar()
   else:
     print(f">>> sampleset_RDF: Start Draw for {len(results)} results...")
     for result in results:
       #print(f">>> sampleset_RDF:   Start {result} ...")
       #result.Draw('HIST')
       result.GetValue() # trigger event loop
-    RDF.stopProgressBar()
+    RDF.StopProgressBar()
   print(f">>> sampleset_RDF: Processing took {took(*start)}")
   
   # PLOT histograms
@@ -174,12 +179,13 @@ def main(args):
   ptbins = array('d',[0,10,15,20,21,23,25,30,40,60,100,150,200,300,500])
   vars = [
     ('pt_1',      'pt_1',            50,0,250),
-    ('pt_1_rebin','pt_1',            len(ptbins)-1,ptbins),
-    ('deta',      'abs(eta_1-eta_2)',50,0, 5),
-    ('dm_2',      'dm_2',            14,0,14),
-    ('dm_2_map',  dmmap(),           6,0, 6),
+    ('pt_1',      'pt_1',            50,0,500), # to test what happens if histograms have same name
+#     ('pt_1_rebin','pt_1',            len(ptbins)-1,ptbins),
+#     ('deta',      'abs(eta_1-eta_2)',50,0, 5),
+#     ('dm_2',      'dm_2',            14,0,14),
+#     ('dm_2_map',  dmmap(),           6,0, 6),
   ]
-  sampleset_RDF(fnames,tname,vars,sels,rungraphs=False,verb=verbosity)
+  #sampleset_RDF(fnames,tname,vars,sels,rungraphs=False,verb=verbosity)
   sampleset_RDF(fnames,tname,vars,sels,rungraphs=True,verb=verbosity)
   
 
@@ -189,7 +195,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-i', '--fnames',    nargs='+', help="input files" )
   parser.add_argument('-t', '--tag',       default="", help="extra tag for output" )
-  parser.add_argument('-n', '--ncores',    default=4, type=int, help="number of cores, default=%(default)s" )
+  parser.add_argument('-c', '--ncores',    default=4, type=int, help="number of cores, default=%(default)s" )
   parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                            help="set verbosity" )
   args = parser.parse_args()

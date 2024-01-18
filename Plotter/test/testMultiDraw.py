@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (June 2020)
 # Description: Efficiently draw multiple histograms with one loop over all events in a TTree
 #              This script adds the MultiDraw method to the TTree class when it is imported.
@@ -15,13 +15,15 @@ from TauFW.Plotter.plot.MultiDraw import MultiDraw
 from pseudoSamples import makesamples
 
 
-def singledraw(tree,variables,selections,predefine=False,outdir='plots'):
+def singledraw(infname,tname,variables,selections,predefine=False,outdir='plots'):
   """Fill histograms from tree sequentially."""
-  start = time()
-  fname = "%s/testMultiDraw.root"%(outdir)
-  file  = TFile(fname,'RECREATE')
-  hists = [ ]
-  print(">>> singledraw: Filling histograms with TTree::Draw for %s..."%(fname))
+  infile = TFile.Open(infname,'READ')
+  tree   = infile.Get(tname)
+  fname  = "%s/testMultiDraw.root"%(outdir)
+  file   = TFile(fname,'RECREATE')
+  hists  = [ ]
+  print(">>>\n>>> singledraw: Filling histograms with TTree::Draw for %s..."%(fname))
+  start  = time()
   for i, (selection, weight) in enumerate(selections):
     cut = "(%s)*%s"%(selection,weight)
     print(">>>   cut=%r"%(cut))
@@ -44,29 +46,34 @@ def singledraw(tree,variables,selections,predefine=False,outdir='plots'):
       if predefine or len(binning)<3:
         hist = TH1D(hname,hname,*binning)
         dcmd = "%s >> %s"%(varname,hname)
+        #print(">>> singledraw: tree.Draw(%r,%r,'gOff'), hist=%r with binning=%r"%(dcmd,cut,hist,binning))
         tree.Draw(dcmd,cut,'gOff')
         hists.append(hist)
       else:
         dcmd = "%s >> %s(%s,%s,%s)"%(varname,hname,nbins,xmin,xmax)
+        #print(">>> singledraw: tree.Draw(%r,%r,'gOff'), hist=%r with binning=%r"%(dcmd,cut,hist,binning))
         tree.Draw(dcmd,cut,'gOff')
         hist = gDirectory.Get(hname)
       hists.append(hist)
       print(">>>     %-18r %10.2f %12.2f %10d %12.1f   %r"%(varname,hist.GetMean(),hist.GetStdDev(),hist.GetEntries(),hist.Integral(),dcmd))
     for hist in hists:
       hist.Write(hist.GetName(),TH1D.kOverwrite)
-  file.Close()
   dtime = time()-start
   print(">>>   Took %.2fs"%(dtime))
+  file.Close()
+  infile.Close()
   return dtime
   
 
-def multidraw(tree,variables,selections,predefine=False,outdir='plots'):
+def multidraw(infname,tname,variables,selections,predefine=False,outdir='plots'):
   """Fill histograms from tree in parallel with MultiDraw."""
-  start = time()
-  fname = "%s/testMultiDraw.root"%(outdir)
-  file  = TFile(fname,'RECREATE')
-  hists = [ ]
-  print(">>> multidraw: Filling histograms with MultiDraw for %s..."%(fname))
+  infile = TFile.Open(infname,'READ')
+  tree   = infile.Get(tname)
+  fname  = "%s/testMultiDraw.root"%(outdir)
+  file   = TFile(fname,'RECREATE')
+  hists  = [ ]
+  print(">>>\n>>> multidraw: Filling histograms with MultiDraw for %s..."%(fname))
+  start  = time()
   for i, (selection, weight) in enumerate(selections):
     cut = "(%s)*%s"%(selection,weight)
     print(">>>   cut=%r"%(cut))
@@ -102,19 +109,22 @@ def multidraw(tree,variables,selections,predefine=False,outdir='plots'):
       assert hist.GetName() in dcmd, "Mismatch between histogram (%r) and draw command (%r)!"%(hist.GetName(),dcmd)
       print(">>>     %-18r %10.2f %12.2f %10d %12.1f   %r"%(varname,hist.GetMean(),hist.GetStdDev(),hist.GetEntries(),hist.Integral(),dcmd))
       hist.Write(hist.GetName(),TH1D.kOverwrite)
-  file.Close()
   dtime = time()-start
   print(">>>   Took %.2fs"%(dtime))
+  file.Close()
+  infile.Close()
   return dtime
   
 
-def multidraw2D(tree,variables,selections,predefine=False,outdir='plots'):
+def multidraw2D(infname,tname,variables,selections,predefine=False,outdir='plots'):
   """Fill 2D histograms from tree in parallel with MultiDraw."""
-  start = time()
-  fname = "%s/testMultiDraw.root"%(outdir)
-  file  = TFile(fname,'RECREATE')
-  hists = [ ]
-  print(">>> multidraw2D: Filling histograms with MultiDraw for %s..."%(fname))
+  infile = TFile.Open(infname,'READ')
+  tree   = infile.Get(tname)
+  start  = time()
+  fname  = "%s/testMultiDraw.root"%(outdir)
+  file   = TFile(fname,'RECREATE')
+  hists  = [ ]
+  print(">>>\n>>> multidraw2D: Filling histograms with MultiDraw for %s..."%(fname))
   for i, (selection, weight) in enumerate(selections):
     cut = "(%s)*%s"%(selection,weight)
     print(">>>   cut=%r"%(cut))
@@ -138,21 +148,26 @@ def multidraw2D(tree,variables,selections,predefine=False,outdir='plots'):
       assert hist.GetName() in dcmd, "Mismatch between histogram (%r) and draw command (%r)!"%(hist.GetName(),dcmd)
       print(">>>     %-14r %-14r %10.2f %12.2f %10d %12.1f   %r"%(xvar,yvar,hist.GetMean(1),hist.GetStdDev(1),hist.GetEntries(),hist.Integral(),dcmd))
       hist.Write(hist.GetName(),TH1D.kOverwrite)
-  file.Close()
   dtime = time()-start
   print(">>>   Took %.2fs"%(dtime))
+  file.Close()
+  infile.Close()
   return dtime
   
 
 def main():
-  nevts      = 1000000
+  nevts      = 100000
   predefine  = True #and False # initialize histogram before calling filling
   sample     = 'ZTT' #'Data'
-  outdir     = ensuredir('plots')
+  outdir     = ensuredir('plots/test')
   filedict   = makesamples(nevts,sample=sample,outdir=outdir)
+  print(filedict)
   file, tree = filedict[sample]
   nevts      = tree.GetEntries()
-  print(">>> Using pseudo data %s..."%(file.GetName()))
+  tname = tree.GetName()
+  fname = file.GetName()
+  file.Close()
+  print(">>> Using pseudo data %s..."%(fname))
   
   variables = [
     ('m_vis',            20,  0, 140),
@@ -179,14 +194,13 @@ def main():
     ('pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4', "weight"),
   ]
   
-  dtime1 = singledraw(tree,variables,selections,outdir=outdir,predefine=predefine)
-  dtime2 = multidraw(tree,variables,selections,outdir=outdir,predefine=predefine)
-  dtime3 = multidraw2D(tree,variables2D,selections,outdir=outdir,predefine=predefine)
-  file.Close()
+  dtime1 = singledraw(fname,tname,variables,selections,outdir=outdir,predefine=predefine)
+  dtime2 = multidraw(fname,tname,variables,selections,outdir=outdir,predefine=predefine)
+  dtime3 = multidraw2D(fname,tname,variables2D,selections,outdir=outdir,predefine=predefine)
   print(">>> Result: MultiDraw is %.2f times faster than TTree::Draw for %s events and %s variables!"%(dtime1/dtime2,nevts,len(variables)))
   
 
 if __name__ == '__main__':
   main()
-  print(">>> Done!")
+  print(">>>\n>>> Done!")
   

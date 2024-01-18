@@ -44,7 +44,7 @@ class Ratio(object):
     denom         = kwargs.get('denom',       None        ) # alias
     errorX        = kwargs.get('errorX', gStyle.GetErrorX() ) # horizontal error bars
     fraction      = kwargs.get('fraction',    None        ) # make stacked fraction from stack (normalize each bin to 1)
-    hists         = unwraplistargs(hists) # ensure list of histograms
+    hists         = unpacklistargs(hists) # ensure list of histograms
     LOG.verb("Ratio.init: hists=%s, denom=%s, num=%s, drawden=%r, errband=%r"%(
       rootrepr(hists),rootrepr(denom),rootrepr(num),self.drawden,errband),verbosity,1)
     
@@ -134,6 +134,9 @@ class Ratio(object):
       LOG.warn("Ratio.init: len(histnums) = %s != %s = len(histdens)"%(len(histnums),len(histdens)))
     for i, (histnum,histden) in enumerate(zip(histnums,histdens)):
       tag = str(i)
+      if histnum==None or histden==None:
+        LOG.warn("Ratio.init: Cannot make ratio for histnum=%r / histden=%r (i=%s)! Ignoring..."%(histnum,histden,i))
+        continue
       if isinstance(histnum,(TH1,THStack)):
         ratio = gethistratio(histnum,histden,tag=tag,drawzero=self.drawzero,errorX=errorX)
       elif isinstance(histnum,TGraph):

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (July 2020)
 # Description: Test the Sample class
 #   test/testSamples.py -v2
@@ -12,7 +12,7 @@ from TauFW.Plotter.sample.utils import LOG, STYLE, setera, CMSStyle, ensuredir,\
 from TauFW.Plotter.plot.Variable import Variable #as Var
 from TauFW.Plotter.plot.Stack import Stack
 from TauFW.Plotter.plot.Stack import LOG as PLOG
-from pseudoSamples import makesamples
+from pseudoSamples import getsamples
 
 selections = [
   ('pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4', 'weight'),
@@ -40,15 +40,13 @@ text     = "#mu#tau_{h} baseline"
 position = 'topright'
 
 
-def plotsamples(datasample,expsamples,tag=""):
+def plotsamples_stack(datasample,expsamples,outdir="plots/test",tag=""):
   """Test Sample.gethist method and plot data/MC comparison."""
-  LOG.header("plotsamples")
-  
-  # SETTING
-  outdir   = ensuredir("plots")
-  fname    = "%s/testSamples_$VAR%s.png"%(outdir,tag)
+  LOG.header("plotsamples_stack")
   
   # MAKE 1D HISTS
+  ensuredir(outdir)
+  fname = "%s/testSamples_$VAR%s.png"%(outdir,tag)
   for selection, weight in selections:
     histdict = { }
     for sample in [datasample]+expsamples:
@@ -95,7 +93,7 @@ def testMergedSamples(datasample,expsamples):
   expsample.printrow()
   expsample.printobjs()
   print(">>> ")
-  plotsamples(datasample,[expsample],tag='_merged')
+  plotsamples_stack(datasample,[expsample],tag='_merged')
   
 
 def main(args):
@@ -107,30 +105,11 @@ def main(args):
     ('TT',   "t#bar{t}",               0.15),
     ('Data', "Observed",                -1 ),
   ]
-  lumi       = 0.001 # [fb-1] to cancel xsec [pb]
-  nevts      = args.nevts
-  snames     = [n[0] for n in sampleset]
-  scales     = {n[0]: n[2] for n in sampleset} # relative contribtions to pseudo data
-  outdir     = ensuredir('plots')
-  indir      = outdir
-  filedict   = makesamples(nevts,sample=snames,scales=scales,outdir=outdir)
-  datasample = None
-  expsamples = [ ]
+  lumi = 10 # [fb-1] to cancel xsec [pb]
   #CMSStyle.setCMSEra(2018)
   setera(2018,lumi)
-  for name, title, xsec in sampleset:
-    file, tree = filedict[name]
-    fname = file.GetName()
-    color = None #STYLE.getcolor(name,verb=2)
-    data  = name.lower()=='data'
-    file.Close()
-    sample = Sample(name,title,fname,xsec,color=color,data=data)
-    #sample = Sample(name,title,fname,xsec,lumi=lumi,color=color,data=data)
-    if sample.isdata:
-      datasample = sample
-    else:
-      expsamples.append(sample)
-  plotsamples(datasample,expsamples)
+  datasample, expsamples = getsamples(sampleset,nevts=args.nevts,reuse=args.reuse,lumi=lumi,verb=args.verbosity+1)
+  plotsamples_stack(datasample,expsamples)
   plotsamples2D(datasample,expsamples)
   testMergedSamples(datasample,expsamples)
   
@@ -141,6 +120,8 @@ if __name__ == "__main__":
   parser = ArgumentParser(prog="testSamples",description=description,epilog="Good luck!")
   parser.add_argument('-n', '--nevts',   type=int, default=50000, action='store',
                                          help="number of events to generate per sample" )
+  parser.add_argument('-r', '--reuse',   action='store_true',
+                                         help="reuse previously generated pseudo samples" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()

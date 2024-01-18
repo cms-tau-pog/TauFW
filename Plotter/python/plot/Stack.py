@@ -25,28 +25,29 @@ class Stack(Plot):
     self.verbosity = LOG.getverbosity(kwargs)
     
     # PARSE ARGUMENTS: variable & (list of) histogram(s)
-    self.datahist   = datahist
-    self.exphists   = ensurelist(exphists)
-    self.sighists   = ensurelist(sighists)
+    self.datahist = datahist
+    self.exphists = ensurelist(exphists)
+    self.sighists = ensurelist(sighists)
     if kwargs.get('clone',False):
       if self.datahist:
         self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
       self.exphists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.exphists]
       self.sighists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.sighists]
     if self.datahist:
-      self.hists    = [self.datahist]+self.exphists+self.sighists
+      self.hists = [self.datahist]+self.exphists+self.sighists
     else:
-      self.hists    = self.exphists+self.sighists
-      
+      self.hists = self.exphists+self.sighists
+    
     # OTHER SETTINGS
     kwargs['clone'] = False
     self.ratio      = kwargs.setdefault('ratio', bool(self.datahist) )
-    super(Stack,self).__init__(variable,self.hists,**kwargs) # reuse Plot.__init__ for common settings 
+    args = (self.hists,) if variable==None else (variable,self.hists)
+    super(Stack,self).__init__(*args,**kwargs) # reuse Plot.__init__ for common settings 
     self.dividebins = kwargs.get('dividebins', self.hasvarbins ) # divide each histogram bins by it bin size
     if self.verbosity>=3:
-      print(">>> Stack.__init__: datahist=%s"%(rootrepr(self.datahist)))
-      print(">>> Stack.__init__: exphists=%s"%(rootrepr(self.exphists)))
-      print(">>> Stack.__init__: sighists=%s"%(rootrepr(self.sighists)))
+      print(">>> Stack.__init__: datahist=%s"%(self.datahist))
+      print(">>> Stack.__init__: exphists=%s"%(self.exphists))
+      print(">>> Stack.__init__: sighists=%s"%(self.sighists))
     
   
   def draw(self,*args,**kwargs):
@@ -106,7 +107,8 @@ class Stack(Plot):
     nrdiv        = kwargs.get('nrdiv',        506             ) # tick divisions of y axis of ratio panel
     logx         = kwargs.get('logx',         self.logx       )
     logy         = kwargs.get('logy',         self.logy       )
-    ymargin      = kwargs.get('ymargin',      self.ymargin    ) # margin between hist maximum and plot's top
+    ymargin      = kwargs.get('ymarg',        self.ymargin    ) # alias
+    ymargin      = kwargs.get('ymargin',      ymargin         ) # margin between hist maximum and plot's top
     logyrange    = kwargs.get('logyrange',    self.logyrange  ) # log(y) range from hist maximum to ymin
     grid         = kwargs.get('grid',         False           )
     pair         = kwargs.get('pair',         False           )
@@ -290,56 +292,4 @@ class Stack(Plot):
         if line.pad==2:
           line.Draw("LSAME")
       self.canvas.cd(1)
-    
-
-#def isListOfHists(args):
-#  """Help function to test if list of arguments is a list of histograms."""
-#  if not islist(args):
-#    return False
-#  for arg in args:
-#    if not (isinstance(arg,TH1) or isinstance(arg,TGraphAsymmErrors)):
-#      return False
-#  return True
   
-
-# def unwrapHistogramLists(*args):
-#   """Help function to unwrap arguments for initialization of Plot object in order:
-#      1) variable, 2) data, 3), backgrounds, 4) signals."""
-#   args = list(args)
-#   variable = None
-#   varname  = ""
-#   binning  = [ ]
-#   for arg in args[:]:
-#     if isinstance(arg,Variable) and not variable:
-#       variable = arg
-#       args.remove(arg)
-#       break
-#     if isinstance(arg,str):
-#       varname = arg
-#       args.remove(arg)
-#     if isNumber(arg):
-#       args.remove(arg)
-#       binning.append(arg)
-#   if not variable and len(binning)>2:
-#     variable(varname,*binning[:3])
-#   
-#   if isListOfHists(args):
-#       return variable, [ ], args, [ ]
-#   if len(args)==1:
-#     if isListOfHists(args[0]):
-#       return variable, [ ], args[0], [ ]
-#   if len(args)==2:
-#     args0 = args[0]
-#     if isListOfHists(args[0]) and len(args[0])==1:
-#       args0 = args0[0]
-#     if isinstance(args0,TH1) and isListOfHists(args[1]):
-#       return variable, [args0], args[1], [ ]
-#   if len(args)==3:
-#     if args[0]==None: args[0] = [ ]
-#     if isinstance(args[0],TH1) and isListOfHists(args[1]) and isListOfHists(args[2]):
-#       return variable, [args[0]], args[1], args[2]
-#     if isListOfHists(args[0]) and isListOfHists(args[1]) and isListOfHists(args[2]):
-#       return variable, args[0], args[1], args[2]
-#   print error('unwrapHistogramLists: Could not unwrap "%s"'%(args))
-#   exit(1)
-
