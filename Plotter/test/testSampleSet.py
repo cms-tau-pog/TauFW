@@ -1,7 +1,7 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (July 2020)
 # Description: Test the SampleSet class
-#   test/testSampleSet.py -v2
+#   python3 test/testSampleSet.py -v2
 from TauFW.Plotter.sample.utils import LOG, STYLE, setera, CMSStyle, ensuredir,\
                                        Sample, MergedSample, SampleSet
 #from TauFW.Plotter.sample.SampleSet import SampleSet
@@ -36,7 +36,7 @@ text     = "#mu#tau_{h} baseline"
 position = 'topright'
 
 
-def makeSampleSet(sampleset,filedict,join=False):
+def makeSampleSet(sampleset,filedict,join=False,scale_xsec=1.,verb=0):
   """Create a SampleSet."""
   #LOG.header("makeSampleSet")
   datasample = None
@@ -47,8 +47,8 @@ def makeSampleSet(sampleset,filedict,join=False):
     color = None #STYLE.getcolor(name,verb=2)
     data  = name.lower()=='data'
     file.Close()
-    sample = Sample(name,title,fname,xsec,color=color,data=data)
-    #sample = Sample(name,title,fname,xsec,lumi=lumi,color=color,data=data)
+    sample = Sample(name,title,fname,xsec*scale_xsec,color=color,data=data)
+    #sample = Sample(name,title,fname,xsec*scale_xsec,lumi=lumi,color=color,data=data)
     if sample.isdata:
       datasample = sample
     else:
@@ -60,7 +60,7 @@ def makeSampleSet(sampleset,filedict,join=False):
     expsamples = [expsamples[0],bkgsample]
     expsample  = MergedSample('Exp',"Expected",expsamples,color=color)
     expsamples = [expsample]
-  samples = SampleSet(datasample,expsamples)
+  samples = SampleSet(datasample,expsamples,verb=verb)
   samples.split('TT',[
     ('TTT',"ttbar real tau_{h}","genmatch_2==5"),
     ('TTJ',"ttbar fake tau_{h}","genmatch_2!=5"),
@@ -108,7 +108,7 @@ def testget(samples):
   print(">>> ")
   
 
-def plotSampleSet(samples,tag="",singlevar=False):
+def plotSampleSet(samples,tag="",singlevar=False,outdir='plots/test/'):
   """Test SampleSet class: join samples, print out, and plot."""
   LOG.header("testSampleSet")
   
@@ -116,17 +116,16 @@ def plotSampleSet(samples,tag="",singlevar=False):
   for selection, weight in selections:
     if singlevar:
       result = samples.gethists(variables[0],selection,split=False)
-      result.printall()
       #var, datahist, exphists = result
       #print var
       #print datahist
       #print exphists
     else:
       result = samples.gethists(variables,selection,split=False)
-    result.printall()
+    print(result)
   
   # PLOT
-  outdir = ensuredir("plots")
+  ensuredir(outdir)
   fname  = "%s/testSamplesSet_$VAR%s.png"%(outdir,tag)
   for selection, weight in selections:
     if singlevar:
@@ -153,19 +152,20 @@ def main(args):
     ('TT',   "t#bar{t}",               0.15),
     ('Data', "Observed",                -1 ),
   ]
-  lumi       = 0.001 # [fb-1] to cancel xsec [pb]
+  lumi       = 10.
+  scale_xsec = 10.
   nevts      = args.nevts
   snames     = [n[0] for n in sampleset]
   scales     = {n[0]: n[2] for n in sampleset} # relative contribtions to pseudo data
-  outdir     = ensuredir('plots')
+  outdir     = ensuredir('plots/test')
   indir      = outdir
-  filedict   = makesamples(nevts,sample=snames,scales=scales,outdir=outdir)
   #CMSStyle.setCMSEra(2018)
   setera(2018,lumi)
   
-  samples = makeSampleSet(sampleset,filedict)
+  filedict = makesamples(nevts,sample=snames,scales=scales,outdir=outdir,lumi=lumi,scale_xsec=scale_xsec,verb=args.verbosity)
+  samples = makeSampleSet(sampleset,filedict,scale_xsec=scale_xsec,verb=args.verbosity)
   testget(samples)
-  plotSampleSet(samples)
+  plotSampleSet(samples,outdir=outdir)
   
 
 if __name__ == "__main__":

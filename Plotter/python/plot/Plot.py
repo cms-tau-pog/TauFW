@@ -53,7 +53,7 @@ class Plot(object):
       Plot(variable,hists)
       Plot(variable,hist1,hist2,...)
     """
-    self.verbosity = LOG.getverbosity(kwargs)
+    self.verbosity = LOG.getverbosity(self,kwargs)
     
     # PARSE ARGUMENTS: variable & (list of) histogram(s)
     variable   = None
@@ -385,6 +385,7 @@ class Plot(object):
         if line.pad==2:
           line.Draw("LSAME")
       self.canvas.cd(1)
+    return self.canvas
     
   
   def saveas(self,*fnames,**kwargs):
@@ -1022,7 +1023,7 @@ class Plot(object):
     ndc        = kwargs.get('ndc',      True      ) # normalized coordinates
     align_user = kwargs.get('align',    None      ) # text line
     panel      = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
-    texts      = unwraplistargs(texts)
+    texts      = unpacklistargs(texts)
     i = 0
     while i<len(texts):
       line = texts[i]
@@ -1036,7 +1037,7 @@ class Plot(object):
       return None
     
     # CHECK
-    LOG.insist(self.canvas,"Canvas does not exist!")
+    LOG.insist(self.canvas,"Canvas does not exist! Did you call Plot.draw?")
     self.canvas.cd(panel)
     scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     tsize *= scale # text size
@@ -1271,7 +1272,7 @@ class Plot(object):
   def setfillstyle(self, *hists, **kwargs):
     """Set the fill style for a list of histograms."""
     verbosity = LOG.getverbosity(self,kwargs)
-    hists   = unwraplistargs(hists)
+    hists   = unpacklistargs(hists)
     reset   = kwargs.get('reset',  False ) # if reset==False: only set color if not kBlack or kWhite
     line    = kwargs.get('line',   True  )
     fcolors = kwargs.get('colors', None  ) or self.fcolors

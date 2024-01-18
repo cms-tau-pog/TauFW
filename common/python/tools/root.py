@@ -16,7 +16,7 @@ def rootname(*args):
     obj   = args[0]
     names = obj.GetName() if hasattr(obj,'GetName') else str(obj) # return string
   else:
-    args = unwraplistargs(args)
+    args = unpacklistargs(args)
     names = [getname(o) for o in args ] # return list of strings
   return names
   
@@ -38,7 +38,7 @@ def rootrepr(*args,**kwargs):
     else: # default representation
       names = repr(obj)
   else: # list of objects
-    args = unwraplistargs(args)
+    args = unpacklistargs(args)
     names = [rootrepr(o) for o in args ] # return list of strings
     if kwargs.get('join',True):
       names = '['+', '.join(names)+']' # return string of list

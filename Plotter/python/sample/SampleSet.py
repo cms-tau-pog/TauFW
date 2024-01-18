@@ -4,12 +4,13 @@ import os, re
 from math import sqrt
 from copy import copy, deepcopy
 from TauFW.Plotter.sample.utils import *
-from TauFW.Plotter.sample.HistSet import HistSet
+from TauFW.Plotter.sample.HistSet import HistSet, HistDict
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Stack import Stack
 from TauFW.Plotter.plot.MultiThread import MultiProcessor
 from TauFW.common.tools.LoadingBar import LoadingBar
+from TauFW.common.tools.string import took
 
 
 class SampleSet(object):
@@ -26,14 +27,14 @@ class SampleSet(object):
     elif len(args)==3:
       datasample, expsamples, sigsamples = args[0], list(args[1]), list(args[2])
     elif len(args)==1 or len(args)>3:
-      expsamples = unwraplistargs(args)
+      expsamples = unpacklistargs(args)
     if datasample and not isinstance(datasample,Sample):
       LOG.throw(IOError,"SampleSet.__init__: Did not recognize data sample: %s"%(datasample))
     if expsamples and not (isinstance(expsamples,list) and all(isinstance(s,Sample) for s in expsamples)):
       LOG.throw(IOError,"SampleSet.__init__: Did not recognize expected (MC) sample: %s"%(expsamples))
-    self.datasample     = datasample # data sample
-    self.expsamples     = expsamples # background sample (exp. SM process like Drell-Yan, ttbar, W+jets, ...)
-    self.sigsamples     = sigsamples # signal samples (for new physics searches)
+    self.datasample     = datasample    # data sample
+    self.expsamples     = expsamples[:] # list of background samples (exp. SM process like Drell-Yan, ttbar, W+jets, ...)
+    self.sigsamples     = sigsamples[:] # list of signal samples (for new physics searches)
     self.verbosity      = LOG.getverbosity(kwargs)
     self.name           = kwargs.get('name',       ""   )
     self.label          = kwargs.get('label',      ""   )
@@ -44,7 +45,6 @@ class SampleSet(object):
     #self.shiftqcd       = kwargs.get('shiftqcd',   0    )
     #self.weight         = kwargs.get('weight',     ""   ) # use Sample objects to store weight !
     self.closed         = False
-    self.nplots         = 0 # counter to clean and refresh memory once in a while
   
   def __str__(self):
     """Returns string representation of Sample object."""
@@ -168,7 +168,7 @@ class SampleSet(object):
     if not newsamples:
       LOG.warn("SampleSet.replace: No samples given to replace %r!"%oldsample.title)
       return
-    newsamples = unwraplistargs(newsamples)
+    newsamples = unpacklistargs(newsamples)
     samples = self.samples #getattr(self,"samples"+kwargs.get('type','B'))
     if len(newsamples)==1 and islist(newsamples[0]):
       newsamples = newsamples[0]
@@ -187,22 +187,6 @@ class SampleSet(object):
     """Set tree name for each sample to draw histograms with."""
     for sample in self.samples:
       sample.settreename(treename)
-  
-  #def setcolors(self):
-  #  """Set colors for each sample. Check if each color is used uniquely."""
-  #  verbosity = LOG.getverbosity(kwargs,self)
-  #  usedcols  = [ ]
-  #  # CHECK SPLIT
-  #  for sample in self.samples:
-  #    if sample.color is kBlack:
-  #      LOG.warn("SamplesSet.setcolors: %s"%sample.name)
-  #    if sample.color in usedcols:
-  #      # TODO: check other color
-  #      sample.setcolor()
-  #      LOG.warn("SamplesSet.setcolors: Color used twice!")
-  #    else:
-  #      usedcols.append(sample.color)
-  #
   
   def replaceweight(self, oldweight, newweight):
     """Replace weight."""
@@ -232,26 +216,6 @@ class SampleSet(object):
       if shared and sample in self.sharedsamples: continue
       sample.close(**kwargs)
     self.closed = True
-  
-  def reload(self,**kwargs):
-    """Help function to reload all files in samples list."""
-    for sample in self.samples:
-      sample.reload(**kwargs)
-    self.closed = False
-  
-  def refresh(self,**kwargs):
-    """Open/reopen files to refresh file memories after some amount of plots have been made."""
-    verbosity = LOG.getverbosity(kwargs,self)
-    now       = kwargs.get('now',  False ) # refresh right now
-    step      = kwargs.get('step', 20    ) # threshold of number of plots made before actual refreshing
-    kwargs['verbosity'] = verbosity
-    gROOT.cd()
-    if now or (self.nplots>step and self.nplots>0):
-      if verbosity>=1:
-        LOG.warn('SampleSet.refresh: refreshing memory (nplots=%d, gDirectory=%r)'%(self.nplots,gDirectory.GetName()))
-        gDirectory.ls()
-      self.reload(**kwargs)
-      self.nplots = 0
   
   def clone(self,name="",**kwargs):
     """Clone samples in sample set by creating new samples with new filename/titlename."""
@@ -304,68 +268,15 @@ class SampleSet(object):
     newset.closed = close
     return newset
   
-  def changecontext(self,*args,**kwargs):
-    """Help function to change context of variable object."""
-    variables, selection, issingle = unwrap_gethist_args(*args)
-    verbosity = LOG.getverbosity(kwargs,self)
-    invariables = variables[:]
-    for var in variables:
-      if not var.plotfor(selection,self.channel) or not selection.plotfor(var):
-         LOG.verb("plotstack: ignoring %s for %s..."%(var.printbins(),selection),verbosity,1) #.title
-         invariables.remove(var)
-         continue
-      var.changecontext(selection.selection,self.channel)
-    return invariables, selection, issingle
-  
-  def getstack(self, *args, **kwargs):
-    """Create and fill histograms for each given variable,
-    and create a Plot object to plot a stack."""
-    self.refresh()
-    variables, selection, issingle = self.changecontext(*args,**kwargs)
-    result = self.gethists(variables,selection,**kwargs)
-    stacks = { }
-    self.nplots += len(result.vars) # increase counter for refreshing memory
-    for args in result:
-      stack = Stack(*args,**kwargs)
-      if issingle:
-        return stack # Stack
-      else:
-        stacks[stack] = args[0]
-    return stacks # dictionary: Stack -> Variable
-  
-  def getTHStack(self, *args, **kwargs):
-    """Get stack of backgrounds histogram."""
-    name   = kwargs.get('name',"stack")
-    kwargs.update({'data':False, 'signal':False, 'exp':True})
-    variables, selection, issingle = self.changecontext(*args,**kwargs)
-    result = self.gethists(variables,selection,**kwargs)
-    stacks = { }
-    self.nplots += len(result.vars)# increase counter for refreshing memory
-    for var in result.vars:
-      stack = THStack(name,name)
-      for hist in reversed(result.exp[var]):
-        stack.Add(hist)
-      if issingle:
-        return stack # TH1Stack
-      else:
-        stacks[stack] = var
-    return stacks # dictionary: THStack -> Variable
-  
-  def getdatahist(self, *args, **kwargs):
-    """Create and fill histograms of background simulations and make a stack."""
-    name   = kwargs.get('name',"data")
-    kwargs.update({'data':True, 'mc':False, 'signal':False, 'exp':False})
-    var    = self.changecontext(*args,**kwargs)
-    result = self.gethists(*args,**kwargs)
-    return result.data
-  
   def gethists(self, *args, **kwargs):
-    """Create and fill histograms for all samples and return lists of histograms."""
+    """Create and fill histograms for all samples for given lists of variables and selections
+    with RDataFrame and return nested dictionary of histogram set (HistSet)."""
     verbosity     = LOG.getverbosity(kwargs,self)
-    if verbosity>=1:
-      print(">>> gethists")
-    variables, selection, issingle = unwrap_gethist_args(*args)
-    datavars      = [v for v in variables if v.data]      # filter out gen-level variables
+    LOG.verb("SampleSet.gethists: args=%r"%(args,),verbosity,1)
+    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    if not variables or not selections:
+      LOG.warn("SampleSet.gethists: No variables or selections to make histograms for... Got args=%r"%(args,))
+      return { }
     dodata        = kwargs.get('data',          True    ) # create data hists
     domc          = kwargs.get('mc',            True    ) # create expected (SM background) hists
     doexp         = kwargs.get('exp',           domc    ) # create expected (SM background) hists
@@ -373,230 +284,124 @@ class SampleSet(object):
     weight        = kwargs.get('weight',        ""      ) # extra weight (for MC only)
     dataweight    = kwargs.get('dataweight',    ""      ) # extra weight for data
     replaceweight = kwargs.get('replaceweight', None    ) # replace substring of weight
-    split         = kwargs.get('split',         True    ) # split samples into components
+    split         = kwargs.get('split',         True    ) # split samples into components (e.g. by genmatch)
     blind         = kwargs.get('blind',         True    ) # blind data in some given range: blind={xvar:(xmin,xmax)}
-    scaleup       = kwargs.get('scaleup',       0.0     ) # scale up histograms
-    reset         = kwargs.get('reset',         False   ) # reset scales
-    parallel      = kwargs.get('parallel',      False   ) # create and fill hists in parallel
-    tag           = kwargs.get('tag',           ""      )
+    sigscale      = kwargs.get('sigscale',      None    ) # scale up signal histograms to make visible in plot
+    nthreads      = kwargs.get('nthreads',      None    ) # number of threads (1=serial), default=4
+    tag           = kwargs.get('tag',           ""      ) # extra tag for all histograms
     method        = kwargs.get('method',        None    ) # data-driven method; 'QCD_OSSS', 'QCD_ABCD', 'JTF', 'FakeFactor', ...
     imethod       = kwargs.get('imethod',       -1      ) # position on list; -1 = last (bottom of stack)
     filters       = kwargs.get('filter',        None    ) or [ ] # filter these samples
     vetoes        = kwargs.get('veto',          None    ) or [ ] # filter out these samples
-    #makeJTF       = kwargs.get('JTF',           False   ) and data
-    #nojtf         = kwargs.get('nojtf',         makeJTF ) and data
-    #keepWJ        = kwargs.get('keepWJ',        False   )
-    #makeQCD       = kwargs.get('QCD',           False   ) and data and not makeJTF
-    #ratio_WJ_QCD  = kwargs.get('ratio_WJ_QCD_SS', False   )
-    #QCDshift      = kwargs.get('QCDshift',      0.0     )
-    #QCDrelax      = kwargs.get('QCDrelax',      False   )
-    #JTFshift      = kwargs.get('JTFshift',      [ ]     )
-    sysvars       = kwargs.get('sysvars',       { }     ) # list or dict to be filled up with systematic variations
-    addsys        = kwargs.get('addsys',        True    )
-    task          = kwargs.get('task',          "Creating histograms" ) # task title for loading bar
-    #saveto        = kwargs.get('saveto',        ""     ) # save to TFile
-    #file          = createFile(saveto,text=cuts) if saveto else None
+    task          = kwargs.get('task',          ""      ) # task name for progress bar
+    #reset         = kwargs.get('reset',         False   ) # reset scales
+    #sysvars       = kwargs.get('sysvars',       { }     ) # list or dict to be filled up with systematic variations
+    #addsys        = kwargs.get('addsys',        True    )
     filters       = ensurelist(filters)
     vetoes        = ensurelist(vetoes)
     if method and not hasattr(self,method):
-      ensuremodule(method,'Plotter.methods') # load SampleSet class method
+      ensuremodule(method,'Plotter.methods') # load SampleSet class method from TauFW.Plotter.methods
     
     # FILTER
-    samples = [ ]
+    samples = [ ] # (filtered) list of samples to create histograms fo
     for sample in self.samples:
-      if not dosignal and sample.issignal: continue
-      if not dodata   and sample.isdata:   continue
-      if split and sample.splitsamples:
-        subsamples = sample.splitsamples
+      if not dosignal and sample.issignal: continue # ignore signal samples
+      if not dodata   and sample.isdata:   continue # ignore (real) data samples
+      if split and sample.splitsamples: # create histograms for this sample split into components
+        subsamples = sample.splitsamples # components
       else:
         subsamples = [sample] # sample itself
-      for subsample in subsamples:
-        if filters and not subsample.match(*filters): continue
-        if vetoes  and subsample.match(*vetoes): continue
+      for subsample in subsamples: # filter
+        if filters and not subsample.match(*filters): continue # ignore if fails all filters
+        if vetoes  and subsample.match(*vetoes): continue # ignore if passes all vetoes
         samples.append(subsample)
-    #if nojtf:
-    #  samples = [s for s in samples if not ((not keepWJ and s.match('WJ',"W*J","W*j")) or "gen_match_2==6" in s.cuts or "genPartFlav_2==0" in s.cuts)]
     
-    # INPUT / OUTPUT
-    mcargs     = (variables,selection)
-    dataargs   = (datavars, selection)
-    expkwargs  = { 'tag':tag, 'weight': weight, 'replaceweight': replaceweight, 'verbosity': verbosity, } #'nojtf': nojtf 
-    sigkwargs  = { 'tag':tag, 'weight': weight, 'replaceweight': replaceweight, 'verbosity': verbosity, 'scaleup': scaleup }
-    datakwargs = { 'tag':tag, 'weight': dataweight, 'verbosity': verbosity, 'blind': blind, 'parallel': parallel }
-    result     = HistSet(variables,dodata,doexp,dosignal) # container for dictionaries of histogram (list): data, exp, signal
-    if not variables:
-      LOG.warn("Sample.gethists: No variables to make histograms for...")
-      return result
-    
-    # PRINT
-    bar = None
+    # GET RDATAFRAMES
+    rdf_dict = { } # optimization & debugging: reuse RDataFrames for the same filename / selection
+    res_dict = ResultDict() # dictionary of booked histograms (as RResultPtr<TH1D>)
+    res_dict.setnthreads(nthreads,verb=verbosity+1) # set before creating RDataFrame
+    for sample in samples:
+      rkwargs = { }
+      if dodata and sample.isdata:   # (OBSERVED) DATA
+        rkwargs.update({ 'weight': dataweight, 'blind': blind })
+      elif doexp and sample.isexp:     # EXPECTED (SM BACKGROUND)
+        rkwargs.update({ 'weight': weight, 'replaceweight': replaceweight }) #'nojtf': nojtf
+      elif dosignal and sample.issignal: # SIGNAL
+        rkwargs.update({ 'weight': weight, 'replaceweight': replaceweight, 'scale': sigscale })
+      res_dict += sample.getrdframe(variables,selections,split=False,task=task,tag=tag,
+                                    rdf_dict=rdf_dict,verb=verbosity+1,**rkwargs)
     if verbosity>=2:
-      if not ('QCD' in task or 'JFR' in task):
-        LOG.header("Creating histograms for %s"%selection) #.title
-      print(">>> variables: %s"%(quotestrs([v.filename for v in variables])))
-      #print(">>> split=%s, makeQCD=%s, makeJTF=%s, nojtf=%s, keepWJ=%s"%(split,makeQCD,makeJTF,nojtf,keepWJ))
-      print('>>>   with extra weights "%s" for MC and "%s" for data'%(weight,dataweight))
-    elif self.loadingbar and verbosity<=1:
-      bar = LoadingBar(len(samples),width=16,pre=">>> %s: "%(task),counter=True,remove=True) # %s: selection.title
+      print(f">>> SampleSet.gethists: Got res_dict:")
+      res_dict.display() # print full dictionary
     
-    # GET HISTOGRAMS (PARALLEL)
-    if parallel:
-      expproc  = MultiProcessor()
-      sigproc  = MultiProcessor()
-      dataproc = MultiProcessor()
-      for sample in samples:
-        if reset: sample.resetscale()
-        if sample.name in self.ignore: continue
-        if dosignal and sample.issignal: # SIGNAL
-          sigproc.start(sample.gethist,mcargs,sigkwargs,name=sample.title)
-        elif doexp and sample.isexp:     # EXPECTED (SM BACKGROUND)
-          expproc.start(sample.gethist,mcargs,expkwargs,name=sample.title)
-        elif dodata and sample.isdata:   # DATA
-          dataproc.start(sample.gethist,dataargs,datakwargs,name=sample.title)
-      for dtype, processor, varset in [('exp',expproc,variables),('sig',sigproc,variables),('data',dataproc,datavars)]:
-        for process in processor:
-          if bar: bar.message(process.name)
-          newhists = process.join()
-          for var, hist in zip(varset,newhists): # assume match variables -> histograms
-            if dtype=='data':
-              getattr(result,dtype)[var] = hist
-            else:
-              getattr(result,dtype)[var].append(hist)
-          if bar: bar.count("%s done"%process.name)
+    # RUN RDataFrame events loops to fill histograms
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity+1)
     
-    # GET HISTOGRAMS (SEQUENTIAL)
-    else:
-      for sample in samples:
-        if bar:   bar.message(sample.title)
-        if reset: sample.resetscale()
-        if sample.name in self.ignore:
-          if bar: bar.count("%s skipped"%sample.title)
-          continue
-        if dosignal and sample.issignal: # SIGNAL
-          hists = sample.gethist(*mcargs,**sigkwargs)
-          for var, hist in zip(variables,hists):
-            result.signal[var].append(hist)
-        elif doexp and sample.isexp:     # EXPECTED (SM BACKGROUND)
-          hists = sample.gethist(*mcargs,**expkwargs)
-          for var, hist in zip(variables,hists):
-            result.exp[var].append(hist)
-        elif dodata and sample.isdata:   # DATA
-          hists = sample.gethist(*mcargs,**datakwargs)
-          for var, hist in zip(datavars,hists):
-            result.data[var] = hist
-        if bar: bar.count("%s done"%sample.title)
+    # CONVERT TO HISTSET
+    # NOTE: in case of many subsamples of MergedSamples,
+    # this parts should remove some histograms from the memory
+    histset_dict = res_dict.gethistsets(style=True,clean=True) # { selection : { variable: HistSet } } }
     
-    # EXTRA METHODS
+    # EXTRA METHODS (e.g. QCD estimation from OS/SS)
     if method:
-      hists = getattr(self,method)(*dataargs,**kwargs)
-      for var, hist in zip(datavars,hists):
-        idx = imethod if imethod>=0 else len(result.exp[var])+1+imethod
-        result.exp[var].insert(idx,hist)
-    
-    ## SAVE histograms
-    #if file:
-    #  file.cd()
-    #  for hist in histsD + result.exp + result.exp:
-    #    hist.GetXaxis().SetTitle(var)
-    #    hist.Write(hist.GetName())
-    #    #file.Write(hist.GetName())
-    #  file.Close()
+      LOG.verb("SampleSet.gethists: method %r"%(method),verbosity,1)
+      hist_dict = getattr(self,method)(variables,selections,rdf=True,**kwargs) # { selection : { variable: TH1D } } }
+      histset_dict.insert(hist_dict,imethod,verb=verbosity+2) # weave/insert histograms from hist_dict into histset_dict
     
     # YIELDS
-    if verbosity>=2 and len(variables)>0:
-      var = variables[0]
-      print(">>> selection:")
-      print(">>>  %r"%(selection.selection))
-      print(">>> yields: ")
-      TAB = LOG.table("%11.1f %11.2f    %r")
-      TAB.printheader("entries","integral","hist name")
-      totint = 0
-      totent = 0
-      if dodata and result.data[var]:
-        TAB.printrow(result.data[var].Integral(),result.data[var].GetEntries(),result.data[var].GetName())
-      for hist in result.exp[var]:
-        totint += hist.Integral()
-        totent += hist.GetEntries()
-        TAB.printrow(hist.Integral(),hist.GetEntries(),hist.GetName())
-      TAB.printrow(totint,totent,"total exp.")
-      if dosignal:
-        for hist in result.signal[var]:
-          TAB.printrow(hist.Integral(),hist.GetEntries(),hist.GetName())
+    if verbosity>=3:
+      histset_dict.display()
     
-    if issingle:
-      result.setsingle()
-      return result # HistSet with single result.data histogram, result.exp list of histograms
-    return result # HistSet with result.data dictionary of histograms, result.exp dictionary of list of histograms
+    # RETURN nested dictionarys of HistSets:  { selection: { variable: HistSet } }
+    return histset_dict.results(singlevar=issinglevar,singlesel=issinglesel)
   
-  def gethists2D(self, *args, **kwargs):
-    """Create and fill histograms for all samples and return lists of histograms."""
-    variables, selection, issingle = unwrap_gethist2D_args(*args)
-    verbosity  = LOG.getverbosity(kwargs,self)
-    dodata     = kwargs.get('data',       True     ) # create data hists
-    domc       = kwargs.get('mc',         True     ) # create expected (SM background) hists
-    doexp      = kwargs.get('exp',        domc     ) # create expected (SM background) hists
-    dosignal   = kwargs.get('signal',     domc and self.sigsamples ) # create signal hists (for new physics searches)
-    weight     = kwargs.get('weight',     ""       ) # extra weight (for MC only)
-    dataweight = kwargs.get('dataweight', ""       ) # extra weight for data
-    tag        = kwargs.get('tag',        ""       )
-    #makeJTF    = kwargs.get('JFR',        False    )
-    #nojtf      = kwargs.get('nojtf',      makeJTF  )
-    task       = kwargs.get('task',       "making histograms" )
-    
-    
-    # INPUT / OUTPUT
-    args       = (variables,selection)
-    expkwargs  = { 'tag':tag, 'weight': weight, 'verbosity': verbosity } #, 'nojtf': nojtf
-    sigkwargs  = { 'tag':tag, 'weight': weight, 'verbosity': verbosity }
-    datakwargs = { 'tag':tag, 'weight': dataweight, 'verbosity': verbosity }
-    result     = HistSet(variables,dodata,doexp,dosignal)
-    if not variables:
-      LOG.warn("Sample.gethists: No variables to make histograms for...")
-      return result
-    
-    # FILTER
-    samples = [ ]
-    for sample in self.samples:
-      if not dodata and sample.isdata:
-        continue
-      samples.append(sample)
-    #if nojtf:
-    #  samples = [s for s in samples if not (s.match('WJ',"W*J","W*j") or "gen_match_2==6" in s.cuts or "genPartFlav_2==0" in s.cuts)]
-    
-    # GET HISTOGRAMS
-    bar = None
-    if self.loadingbar and verbosity<=1:
-      bar = LoadingBar(len(samples),width=16,pre=">>> %s: "%(task),counter=True,remove=True)
-    for sample in samples:
-      if bar:   bar.message(sample.title)
-      if sample.name in self.ignore:
-        if bar: bar.count("%s skipped"%sample.title)
-        continue
-      if dosignal and sample.issignal: # SIGNAL
-        hists = sample.gethist2D(*args,**sigkwargs)
-        for variable, hist in zip(variables,hists):
-          result.signal[variable].append(hist)
-      elif doexp and sample.isexp:     # EXPECTED (SM BACKGROUND)
-        hists = sample.gethist2D(*args,**expkwargs)
-        for variable, hist in zip(variables,hists):
-          result.exp[variable].append(hist)
-      elif dodata and sample.isdata:   # DATA
-        hists = sample.gethist2D(*args,**datakwargs)
-        for variable, hist in zip(variables,hists):
-          result.data[variable].append(hist)
-      if bar: bar.count("%s done"%sample.name)
-    
-    ## ADD JTF
-    #if makeJTF:
-    #    print("CHECK IMPLEMENTATION!")
-    #    hists = self.jetFakeRate2D(*args,tag=tag,weight=weight,verbosity=verbosity)
-    #    for variable, hist in zip(variables,hists):
-    #      histsB[variable].insert(0,hist)
-    
-    if issingle:
-      result.setsingle()
-      return result
-    return result
+  def getstack(self, *args, **kwargs):
+    """Create and fill histograms for each given variable, selection with SampleSet.gethists,
+    and create a Stack object to plot a stack of all samples compared to data.
+    Returns dictionary of Stack objects pointing to 2-tuple of (Variable,Selection) for easy iteration."""
+    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    histsets = self.gethists(variables,selections,**kwargs)
+    stacks = { }
+    for selection in histsets:
+      for variable in histsets[selection]:
+        stack = histsets[selection][variable].getstack(var=variable,context=selection,**kwargs) # create Stack object
+        if issinglevar and issinglesel:
+          return stack # return single Stack object (instead of dictionary)
+        else:
+          stacks[stack] = (variable,selection)
+    return stacks # return dictionary: { Stack : (Variable, Selection) }
+  
+  def getTHStack(self, *args, **kwargs):
+    """Get THStack of backgrounds histogram, created by SampleSet.gethists.
+    Returns dictionary of THStack objects pointing to 2-tuple of (Variable,Selection) for easy iteration."""
+    kwargs.update({'data':False, 'signal':False, 'exp':True}) # force bkg-only
+    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    histsets = self.gethists(variables,selections,**kwargs)
+    stacks = { }
+    for selection in histsets:
+      for variable in histsets[selection]:
+        stack = histsets[selection][variable].getTHStack(**kwargs) # create Stack object
+        if issinglevar and issinglesel:
+          return stack # return single ThStack object (instead of dictionary)
+        else:
+          stacks[stack] = (variable,selection)
+    return stacks # return dictionary: { Stack : (Variable, Selection) }
+  
+  def getdatahist(self, *args, **kwargs):
+    """Create and fill histograms of observed data only.
+    Returns dictionary of TH1D objects pointing to 2-tuple of (Variable,Selection) for easy iteration."""
+    kwargs.update({'data':True, 'mc':False, 'signal':False, 'exp':False}) # force data-only
+    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    histsets = self.gethists(variables,selections,**kwargs)
+    hists = { }
+    for selection in histsets:
+      for variable in histsets[selection]:
+        hist = histsets[selection][variable].data
+        if issinglevar and issinglesel:
+          return hist # return single TH1D object (instead of dictionary)
+        else:
+          hists[hist] = (variable,selection)
+    return hists # return dictionary: { TH1D : (Variable, Selection) }
   
   def resetscales(self,*searchterms,**kwargs):
     """Reset scale of sample."""
@@ -619,6 +424,7 @@ class SampleSet(object):
     return found
   
   def remove(self,*searchterms,**kwargs):
+    """Remove samples that match the search terms."""
     samples = self.find(*searchterms,**kwargs)
     for sample in samples:
       self.samples.remove(sample)
