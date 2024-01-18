@@ -3,10 +3,11 @@ from __future__ import print_function # for python3 compatibility
 from past.builtins import basestring # for python2 compatibility
 import os
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TFile, TNamed
+from ROOT import TFile, TNamed, TH2
 from TauFW.common.tools.log import LOG
-from TauFW.common.tools.utils import unpacklistargs, islist
-TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o))) # print name/title
+from TauFW.common.tools.utils import unwraplistargs, islist
+TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o))) # overwrite default representation
+#TH1.__repr__ = lambda o: "<%s(%r,%r,%g,%g,%g) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),o.GetXaxis().GetNbins(),o.GetXaxis().GetXmin(),o.GetXaxis().GetXmax(),id(o))
 
 
 def rootname(*args):
@@ -25,13 +26,18 @@ def rootrepr(*args,**kwargs):
   if len(args)==1 and not islist(args[0]):
     obj   = args[0]
     if hasattr(obj,'GetName') and hasattr(obj,'GetTitle'):
+      name = "%r,%r"%(obj.GetName(),obj.GetTitle())
+      if kwargs.get('bins',False) and hasattr(obj,'GetXaxis'): # include histogram binning
+        name += "%g,%g,%g"%(obj.GetXaxis().GetNbins(),obj.GetXaxis().GetXmin(),obj.GetXaxis().GetXmax())
+        if isinstance(obj,TH2): # add y axis binning
+          name += "%g,%g,%g"%(obj.GetYaxis().GetNbins(),obj.GetYaxis().GetXmin(),obj.GetYaxis().GetXmax())
       if kwargs.get('id',False): # include hex id
-        names = "<%s(%r,%r) at %s>"%(obj.__class__.__name__,obj.GetName(),obj.GetTitle(),hex(id(obj)))
+        names = "<%s(%s) at %s>"%(obj.__class__.__name__,name,hex(id(obj)))
       else:
-        names = "%s(%r,%r)"%(obj.__class__.__name__,obj.GetName(),obj.GetTitle())
-    else:
+        names = "%s(%s)"%(obj.__class__.__name__,name)
+    else: # default representation
       names = repr(obj)
-  else:
+  else: # list of objects
     args = unpacklistargs(args)
     names = [rootrepr(o) for o in args ] # return list of strings
     if kwargs.get('join',True):
