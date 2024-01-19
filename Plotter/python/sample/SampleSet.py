@@ -294,6 +294,7 @@ class SampleSet(object):
     filters       = kwargs.get('filter',        None    ) or [ ] # filter these samples
     vetoes        = kwargs.get('veto',          None    ) or [ ] # filter out these samples
     task          = kwargs.get('task',          ""      ) # task name for progress bar
+    dotgraph      = kwargs.get('dot',           False   ) # name for dot graph (e.g. f"graph_$NAME.dot")
     #reset         = kwargs.get('reset',         False   ) # reset scales
     #sysvars       = kwargs.get('sysvars',       { }     ) # list or dict to be filled up with systematic variations
     #addsys        = kwargs.get('addsys',        True    )
@@ -335,7 +336,7 @@ class SampleSet(object):
       res_dict.display() # print full dictionary
     
     # RUN RDataFrame events loops to fill histograms
-    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity+1)
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,dot=dotgraph,verb=verbosity+1)
     
     # CONVERT TO HISTSET
     # NOTE: in case of many subsamples of MergedSamples,

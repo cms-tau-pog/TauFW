@@ -289,7 +289,7 @@ def makesamples(nevts=10000,**kwargs):
         pt_2[0]  = gen_pt_2()
         if m_vis[0]<0 or pt_1[0]<0 or pt_2[0]<0:
           continue
-      if pt_1[0]<pt_1[0]: # swap
+      if pt_1[0]<pt_2[0]: # swap pt_1 and pt_2
         pt_1[0], pt_2[0] = pt_2[0], pt_1[0]
       q_1[0]      = gen_q_1(gRandom.Uniform(1.))
       q_2[0]      = gen_q_2(gRandom.Uniform(1.),q_1[0]) # correlate charge

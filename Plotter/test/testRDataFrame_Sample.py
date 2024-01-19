@@ -88,7 +88,9 @@ def test_SampleSet_RDF(sampleset,variables,selections,outdir="plots/test",method
   LOG.header("test_SampleSet_RDF")
   
   # GET HISTS
-  hists = sampleset.gethists(variables,selections,method=method,split=split,verb=verb)
+  dot = f"{outdir}/graph_$NAME.dot"
+  sampleset.addalias('ptsum',"pt_1+pt_2",verb=verb+1) # test alias / AddRDFColumn
+  hists = sampleset.gethists(variables,selections,method=method,split=split,dot=dot,verb=verb)
   
   # PLOT
   for selection in hists:
@@ -214,6 +216,7 @@ def test_gethist(sample,variables,selections,outdir="plots/test",split=False,tag
   """Test Sample.gethist."""
   LOG.header("test_gethist")
   hist_dict = sample.gethist(variables,selections,split=split,verb=verb)
+  #hist_dict = sample.gethist(variables,selections,split=split,alias={'ptsum':"pt_1+pt_2"},verb=verb)
   for selection in hist_dict:
     for variable in hist_dict[selection]:
       if split: # convert dict { sample: hist } to list of histograms
@@ -232,6 +235,7 @@ def test_gethist2D(sample,variables,selections,outdir="plots/test",split=False,t
   """Test Sample.gethist2D."""
   LOG.header("test_gethist2D")
   hist_dict = sample.gethist2D(variables,selections,split=split,verb=verb)
+  #hist_dict = sample.gethist2D(variables,selections,split=split,alias={'ptsum':"pt_1+pt_2"},verb=verb)
   for selection in hist_dict:
     for varpair in hist_dict[selection]:
       xvar, yvar = varpair
@@ -271,16 +275,19 @@ def main(args):
 #         'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2>0', fname="ss-ptgt30"),
     Sel('pT > 30, |eta|<2.4, OS',
         'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2<0', fname="os-ptgt30"),
-    Sel('pT > 30, |eta|<2.4, OS (weighted)', # to test propagation of Selection.weight
-        'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2<0', fname="os-ptgt30_wgt", weight="10", only=['m_vis']),
+#     Sel('pT > 30, |eta|<2.4, OS (weighted)', # to test propagation of Selection.weight
+#         'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && q_1*q_2<0', fname="os-ptgt30_wgt", weight="10", only=['m_vis']),
+#     Sel('pT > 30, |eta|<2.4, OS, ptsum > 100',
+#         'pt_1>30 && pt_2>30 && abs(eta_1)<2.4 && abs(eta_2)<2.4 && ptsum>100 && q_1*q_2<0', fname="os-ptgt30-ptsumgt100", only=['pt.*']),
   ]
   variables = [
     Var('m_vis',            20,  0, 140, fname='mvis', cbins={'q_1\*q_2>0': (20,0,200)}, ymarg=1.28),
     Var('m_vis', [40,50,60,65,70,75,80,85,90,95,100,110,130,160,200], fname='mvis_rebin', ymarg=1.28, cut="m_vis>40",blind=(120,130)),
-    Var('pt_1',             40,  0, 120),
-#     Var('pt_2',             40,  0, 120),
+    Var('pt_1',             40,  0, 120, cbins={'ptsum>100': (50,0,250)}),
+    Var('pt_2',             40,  0, 120, cbins={'ptsum>100': (50,0,250)}),
 #     Var('pt_1+pt_2',        40,  50,300), #, cut="pt_1>30 && pt_2>30"
-    Var('eta_1',            20, -4,   4, ymarg=1.4),
+#     Var('ptsum',            40, 50, 250),
+#     Var('eta_1',            20, -4,   4, ymarg=1.4),
 #     ###Var('eta_2',            20, -4,   4, ymarg=1.4),
 #     Var('min(eta_1,eta_2)', 30, -3,   3, fname='mineta'),
 #     Var('njets',            10,  0,  10),
@@ -291,7 +298,7 @@ def main(args):
   ]
   variables2D = [
     (Var('m_vis',20,0,140,fname='mvis'),
-     Var('pt_1',40,0,120)),
+     Var('pt_1', 40,0,120)),
     (Var('q_1',"q_{#mu}", 3,-1,2,fname='q1'),
      Var('q_2',"q_{#tau}",3,-1,2,fname='q2')),
     (Var('q_1>0?0:1',"q_{#mu}", 2,0,2,fname='q1_lab',labs=['#minus1','+1']),

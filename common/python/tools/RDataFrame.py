@@ -122,22 +122,44 @@ def printRDFReport(report,reorder=False):
     printcut(cut,indent="")
   
 
-def AddRDFColumn(self,cexpr,basename="_rdf_col",verb=0):
-  """Define new column in RDF if it does not exist, while ensuring unique column name."""
-  rdf_wgt, cname = self, cexpr 
-  if not cname:
+def AddRDFColumn(self,cexpr,basename="_rdf_col",expr_dict=None,exact=False,verb=0):
+  """Define new column in RDF if it does not exist, while ensuring unique column name and avoid duplicates.
+  To avoid duplicate definition of the same expression, one can keep track via a dictionary (expr_dict)."""
+  # cexpr: mathematical expression to be defined in column
+  # cname: column name for cexpr
+  # basename: string to define cname if needed (numbers may be added to create unique name)
+  # expr_dict = { cexpr: cname }: dictionary to look up cname for given cexpr (if already defined)
+  if cexpr and not isinstance(cexpr,str):
+    cexpr = cexpr.name # assume cexpr is a Variable object
+  rdframe, cname = self, cexpr
+  if not cexpr: # cname not defined (empty string?)
+    cname = ""
     if verb>=4:
       print(">>> RDataFrame.AddRDFColumn: Ignoring %r in %r..."%(cname,self))
-  elif not self.HasColumn(cname):
-    i = 1
-    cname = basename+"1"
-    while self.HasColumn(cname): # ensure column name is unique
-      i += 1
-      cname = basename+str(i)
-    rdf_wgt = self.Define(cname,cexpr) # to compile expressions as new column
-    if verb>=2:
-      print(">>> RDataFrame.AddRDFColumn: Defining %r (i=%d) as %r in %r..."%(cname,i,cexpr,self))
-  elif verb>=4:
-    print(">>> RDataFrame.AddRDFColumn: Ignoring %r in %r..."%(cname,self))
-  return rdf_wgt, cname
+  elif expr_dict and cexpr in expr_dict: # already defined in expr_dict !
+    cname = expr_dict[cexpr] # reuse unique column name for this variable
+  else: # if mathematical expression: compile & define column in RDF with unique column name
+    if exact: # assert that column with name cname is not defined yet !
+      cname = basename # use this exact column name for cexpr
+      if self.HasColumn(cname):
+        print(">>> AddRDFColumn: Could not uniquely define expression %r as column %r, because column %r already exists in %r! Ignoring..."%(
+              cexpr,cname,cname,rdframe))
+      else: # define first time
+        rdframe = self.Define(cname,cexpr) # compile expression as new column called cname
+        if verb>=2:
+          print(">>> RDataFrame.AddRDFColumn: Defining %r (exact) as %r in %r..."%(cname,cexpr,self))
+    elif not self.HasColumn(cexpr): # column does not exist yet, define cexpr with column name cname
+      i = 1
+      cname = basename+"1"
+      while self.HasColumn(cname): # ensure column name is unique
+        i += 1
+        cname = basename+str(i)
+      rdframe = self.Define(cname,cexpr) # compile expression as new column called cname
+      if verb>=2:
+        print(">>> RDataFrame.AddRDFColumn: Defining %r (i=%d) as %r in %r..."%(cname,i,cexpr,self))
+    elif verb>=4: # column already defined !
+      print(">>> RDataFrame.AddRDFColumn: Column %r already defined in %r! Ignoring..."%(cname,self))
+    if expr_dict!=None and cname!=cexpr and cexpr not in expr_dict: # not yet in expr_dict
+      expr_dict[cexpr] = cname # save column name for reuse by other variables
+  return rdframe, cname
 RDataFrame.EnsureColumn = AddRDFColumn # add as new class method
