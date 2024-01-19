@@ -649,7 +649,7 @@ class Sample(object):
     blind         = kwargs.get('blind',    self.isdata ) # blind data in some given range: self.blinddict={xvar:(xmin,xmax)}
     rdf_dict      = kwargs.get('rdf_dict', None        ) # reuse RDF for the same filename / selection (used for optimizing split MergedSamples)
     task          = kwargs.get('task',     ""          ) # task name for progress bar
-    ntreads       = kwargs.get('nthread',  None        ) # number of threads
+    nthreads      = kwargs.get('nthreads', None        ) # number of threads: serial if nthreads==0 or 1, default 8 if nthreads==True
     domean        = kwargs.get('mean',     False       ) # get mean of given variables instead of histograms
     dosumw        = kwargs.get('sumw',     False       ) # get sum of event weights (e.g. for cutflows)
     replaceweight = kwargs.get('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
@@ -667,8 +667,8 @@ class Sample(object):
                scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights),verbosity,1)
     
     # SET NTHREADS (NOTE: set before creating RDataFrame!)
-    if ntreads!=None:
-      RDF.SetNumberOfThreads(ntreads) # see TauFW/common/python/tools/RDataFrame.py
+    if nthreads!=None:
+      RDF.SetNumberOfThreads(nthreads) # see TauFW/common/python/tools/RDataFrame.py
     
     # SELECTIONS
     rdframe = None # main RDataFrame, initialize during iteration if needed
