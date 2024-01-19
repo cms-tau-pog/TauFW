@@ -653,6 +653,10 @@ class Sample(object):
     domean        = kwargs.get('mean',     False       ) # get mean of given variables instead of histograms
     dosumw        = kwargs.get('sumw',     False       ) # get sum of event weights (e.g. for cutflows)
     replaceweight = kwargs.get('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
+    alias_dict    = self.aliases
+    if 'alias' in kwargs: # update alias dictionary
+      alias_dict  = alias_dict.copy()
+      alias_dict.update(kwargs['alias'])
     extracuts     = joincuts(kwargs.get('cuts',""),kwargs.get('extracuts',""))
     samples       = self.splitsamples if split else [self]
     rdfkey_main   = (self.treename,self.filename)
@@ -668,6 +672,7 @@ class Sample(object):
     
     # SELECTIONS
     rdframe = None # main RDataFrame, initialize during iteration if needed
+    rdframe_alias = None # RDataFrame with aliases (common for all selections)
     res_dict = ResultDict() # { selection : { variable: { sample: RDF.RResultPtr<TH1D> } } } }
     for selection in selections:
       LOG.verb("Sample.getrdframe:   Selection %r: %r (extracuts=%r, sample.cuts=%r)"%(
@@ -685,7 +690,8 @@ class Sample(object):
       variables_ = [ ] # list of variables filtered for this selection
       expr_dict  = { } # expression -> unique name of RDF column
       if rdf_dict!=None and rdfkey_sel in rdf_dict:
-        # NOTE: It's assumed that the variables are correctly filtered and defined in expr_dict
+        # NOTE: It is assumed that the variables are correctly filtered and defined in expr_dict
+        # NOTE: It is assumed that the aliases (if any) are exactly the same as defined earlier
         variables_, expr_dict, rdf_sel = rdf_dict[rdfkey_sel] # reuse RDataFrame for same file, selection and variable list
         LOG.verb("Sample.getrdframe:   Reusing RDataFrame %r (cuts=%r)..."%(rdf_sel,cuts),verbosity,2)
       
@@ -697,14 +703,20 @@ class Sample(object):
           if rdf_dict!=None and rdfkey_main in rdf_dict:
             rdframe = rdf_dict[rdfkey_main] # reuse shared RDataFrame for improved performance
           else: # create main RDataFrame common to all selections
-            rdframe = RDataFrame(self.treename,self.filename)
+            rdframe = RDataFrame(self.treename,self.filename) # save for next iteration on selection
             nevts = self.getentries_from_tree() # get total number of events to process
             RDF.AddProgressBar(rdframe,nevts,": "+task+name)
             if rdf_dict!=None:
               rdf_dict[rdfkey_main] = rdframe # store for reuse & reporting, etc.
         
+        # ADD ALIASES to top RDataFrame
+        if rdframe_alias==None:
+          rdframe_alias = rdframe
+          for alias, expr in alias_dict.items(): # define aliases as new columns (assume used in selection, variable, and/or weight) !
+            rdframe_alias, _ = AddRDFColumn(rdframe_alias,expr,alias,expr_dict=expr_dict,exact=True,verb=verbosity-3)
+        
         # SELECTIONS: Add common filter
-        rdf_sel = rdframe # RDataFrame specific to this selection (filter)
+        rdf_sel = rdframe_alias # RDataFrame specific to this selection (filter)
         if cuts: # add fiter
           #LOG.verb("Sample.getrdframe:   Applying filter for cuts=%r..."%(cuts),verbosity,3)
           rdf_sel = rdf_sel.Filter(cuts,repr(selection.selection))
@@ -726,17 +738,11 @@ class Sample(object):
             continue # do not plot this variable
           variables_.append(variable) # plot this variable
           
-          # 2. COMPILE mathematical expressions & DEFINE unique column name that can be reused
+          # 2. COMPILE mathematical expressions & DEFINE unique column name that can be reused,
+          #    reuse column name from expr_dict if already defined
           for var in [xvar,yvar]:
             if var==None: continue
-            vname = "" # column name
-            vexpr = var.name # mathematical expression of variable
-            if vexpr in expr_dict: # reuse unique column name for this variable (if exists)
-              vexpr = expr_dict.get(var.name,var.name)
-            elif vexpr: # if mathematical expression: compile & define column in RDF with unique column name
-              rdf_sel, vname = AddRDFColumn(rdf_sel,vexpr,"_rdf_var",verb=verbosity-3)
-              if vname!=vexpr and vexpr not in expr_dict:
-                expr_dict[vexpr] = vname # save column name for reuse by other variables
+            rdf_sel, _ = AddRDFColumn(rdf_sel,var,"_rdf_var",expr_dict=expr_dict,verb=verbosity-3)
         
         if not dosumw and not variables_: # no variables made it past the filters
           LOG.verb("Sample.getrdframe:   No variables! Ignoring...",verbosity,2)
