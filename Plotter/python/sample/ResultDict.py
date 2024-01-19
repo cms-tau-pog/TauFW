@@ -344,7 +344,7 @@ class ResultDict(): #object
     reports = [ ]
     if (dot or verb>=2) and isinstance(rdf_dict,dict): # add RDataFrame reports of selections
       for keys, value in rdf_dict.items():
-        if len(keys)==2: #and isinstance(value,RDataFrame):
+        if len(keys)==2 and isinstance(value,RDataFrame):
           reports.append((keys[1],value.Report()))
           if dot: # make graphical representation of RDataFrame's structure
             if isinstance(dot,str): # print to file
