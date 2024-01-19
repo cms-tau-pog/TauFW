@@ -277,27 +277,28 @@ class SampleSet(object):
     if not variables or not selections:
       LOG.warn("SampleSet.gethists: No variables or selections to make histograms for... Got args=%r"%(args,))
       return { }
-    dodata        = kwargs.get('data',          True    ) # create data hists
-    domc          = kwargs.get('mc',            True    ) # create expected (SM background) hists
-    doexp         = kwargs.get('exp',           domc    ) # create expected (SM background) hists
+    dodata        = kwargs.get('data',          True     ) # create data hists
+    domc          = kwargs.get('mc',            True     ) # create expected (SM background) hists
+    doexp         = kwargs.get('exp',           domc     ) # create expected (SM background) hists
     dosignal      = kwargs.get('signal',        domc and self.sigsamples ) # create signal hists (for new physics searches)
-    weight        = kwargs.get('weight',        ""      ) # extra weight (for MC only)
-    dataweight    = kwargs.get('dataweight',    ""      ) # extra weight for data
-    replaceweight = kwargs.get('replaceweight', None    ) # replace substring of weight
-    split         = kwargs.get('split',         True    ) # split samples into components (e.g. by genmatch)
-    blind         = kwargs.get('blind',         True    ) # blind data in some given range: blind={xvar:(xmin,xmax)}
-    sigscale      = kwargs.get('sigscale',      None    ) # scale up signal histograms to make visible in plot
-    nthreads      = kwargs.get('nthreads',      None    ) # number of threads (1=serial), default=4
-    tag           = kwargs.get('tag',           ""      ) # extra tag for all histograms
-    method        = kwargs.get('method',        None    ) # data-driven method; 'QCD_OSSS', 'QCD_ABCD', 'JTF', 'FakeFactor', ...
-    imethod       = kwargs.get('imethod',       -1      ) # position on list; -1 = last (bottom of stack)
-    filters       = kwargs.get('filter',        None    ) or [ ] # filter these samples
-    vetoes        = kwargs.get('veto',          None    ) or [ ] # filter out these samples
-    task          = kwargs.get('task',          ""      ) # task name for progress bar
-    dotgraph      = kwargs.get('dot',           False   ) # name for dot graph (e.g. f"graph_$NAME.dot")
-    #reset         = kwargs.get('reset',         False   ) # reset scales
-    #sysvars       = kwargs.get('sysvars',       { }     ) # list or dict to be filled up with systematic variations
-    #addsys        = kwargs.get('addsys',        True    )
+    weight        = kwargs.get('weight',        ""       ) # extra weight (for MC only)
+    dataweight    = kwargs.get('dataweight',    ""       ) # extra weight for data
+    replaceweight = kwargs.get('replaceweight', None     ) # replace substring of weight
+    split         = kwargs.get('split',         True     ) # split samples into components (e.g. by genmatch)
+    blind         = kwargs.get('blind',         True     ) # blind data in some given range: blind={xvar:(xmin,xmax)}
+    sigscale      = kwargs.get('sigscale',      None     ) # scale up signal histograms to make visible in plot
+    nthreads      = kwargs.get('parallel',      None     ) # alias
+    nthreads      = kwargs.get('nthreads',      nthreads ) # number of threads: serial if nthreads==0 or 1, default 8 if nthreads==True
+    tag           = kwargs.get('tag',           ""       ) # extra tag for all histograms
+    method        = kwargs.get('method',        None     ) # data-driven method; 'QCD_OSSS', 'QCD_ABCD', 'JTF', 'FakeFactor', ...
+    imethod       = kwargs.get('imethod',       -1       ) # position on list; -1 = last (bottom of stack)
+    filters       = kwargs.get('filter',        None     ) or [ ] # filter these samples
+    vetoes        = kwargs.get('veto',          None     ) or [ ] # filter out these samples
+    task          = kwargs.get('task',          ""       ) # task name for progress bar
+    dotgraph      = kwargs.get('dot',           False    ) # name for dot graph (e.g. f"graph_$NAME.dot")
+    #reset         = kwargs.get('reset',         False    ) # reset scales
+    #sysvars       = kwargs.get('sysvars',       { }      ) # list or dict to be filled up with systematic variations
+    #addsys        = kwargs.get('addsys',        True     )
     filters       = ensurelist(filters)
     vetoes        = ensurelist(vetoes)
     if method and not hasattr(self,method):

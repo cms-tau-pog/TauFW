@@ -362,10 +362,10 @@ class ResultDict(): #object
     if not results:
       LOG.warn("ResultDict.run: Did not get any results to run... self._dict=%r"%(self._dict))
     elif graphs: # should be faster for large number of results in parallel
-      LOG.verb("ResultDict.run: Start RunGraphs of %s results..."%(len(results)),verb,1)
+      LOG.verb("ResultDict.run: Start RunGraphs of %s results with %s threads..."%(len(results),ROOT.GetThreadPoolSize()),verb,1)
       RDF.RunGraphs(results) # run results concurrently
     else: # trigger sequentially (might be slower)
-      LOG.verb("ResultDict.run: Start %s RDF results..."%(len(results)),verb,1)
+      LOG.verb("ResultDict.run: Start GetValue of %s RDF results with %s threads..."%(len(results),ROOT.GetThreadPoolSize()),verb,1)
       for result in results: # run results one-by-one
         result.GetValue() # trigger event loop
     RDF.StopProgressBar(" in %s with %s threads"%(took(*start),ROOT.GetThreadPoolSize()))

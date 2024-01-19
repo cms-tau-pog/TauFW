@@ -70,7 +70,10 @@ RDF.StopProgressBar = StopProgressBar # save as part of RDF module
 
 
 def SetNumberOfThreads(nthreads=None,verb=0):
-  """Set number of threads."""
+  """Set number of threads.
+  If nthreads==None: Change nothing.
+  If nthreads==0, 1: Serial (disable multithreading).
+  If nthreads==True: allow 8 threads (default)."""
   # NOTE:
   #   1) RDataFrame parallelizes over TTree clusters, check tree->Print("clusters")
   #   2) After creating of RDataFrame, the number of threads cannot be changed anymore
