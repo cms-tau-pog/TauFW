@@ -44,7 +44,6 @@ class SampleSet(object):
     self.sharedsamples  = kwargs.get('shared',     [ ]  ) # shared samples with set variation to reduce number of files
     #self.shiftqcd       = kwargs.get('shiftqcd',   0    )
     #self.weight         = kwargs.get('weight',     ""   ) # use Sample objects to store weight !
-    self.closed         = False
   
   def __str__(self):
     """Returns string representation of Sample object."""
@@ -202,27 +201,12 @@ class SampleSet(object):
     """Add (dictionary of) aliases for TTree."""
     for sample in self.samples:
       sample.addaliases(*args, **kwargs)
-    
-  def open(self,**kwargs):
-    """Help function to open all files in samples list."""
-    for sample in self.samples:
-      sample.open(**kwargs)
-    self.closed = False
-  
-  def close(self,**kwargs):
-    """Help function to close all files in samples list, to clean memory"""
-    shared = kwargs.get('shared', False)
-    for sample in self.samples:
-      if shared and sample in self.sharedsamples: continue
-      sample.close(**kwargs)
-    self.closed = True
   
   def clone(self,name="",**kwargs):
     """Clone samples in sample set by creating new samples with new filename/titlename."""
     verbosity     = LOG.getverbosity(kwargs,self)
     filter        = kwargs.get('filter', False ) # only include samples passing the filter
     share         = kwargs.get('share',  False ) # share other samples (as opposed to cloning them)
-    close         = kwargs.get('close',  False ) # set sample status to close, so files are reopened upon first use
     deep          = kwargs.get('deep',   True  ) # deep copy
     filterterms   = filter if islist(filter) else ensurelist(filter) if isinstance(filter,str) else [ ]
     shareterms    = share  if islist(share)  else ensurelist(share)  if isinstance(share,str)  else [ ]
@@ -265,7 +249,6 @@ class SampleSet(object):
     kwargs['channel']   = self.channel
     kwargs['verbosity'] = self.verbosity
     newset = SampleSet(datasample,expsamples,sigsamples,**kwargs)
-    newset.closed = close
     return newset
   
   def gethists(self, *args, **kwargs):
@@ -505,7 +488,6 @@ class SampleSet(object):
     filter        = kwargs.get('filter', False       ) # filter non-matched samples out
     share         = kwargs.get('share',  False       ) # reduce memory by sharing non-matched samples (as opposed to cloning)
     split         = kwargs.get('split',  False       ) # also look in split samples
-    close         = kwargs.get('close',  False       )
     kwargs.setdefault('name',    filetag.lstrip('_') )
     kwargs.setdefault('label',   filetag             )
     kwargs.setdefault('channel', self.channel        )
@@ -519,8 +501,6 @@ class SampleSet(object):
       """Help function to append filename for a single sample."""
       newsample = sample_.clone(samename=True,deep=True)
       newsample.appendfilename(filetag,nametag,titletag,verb=verbosity)
-      if close:
-        newsample.close()
       return newsample
     for oldsamples, newsamples in [(self.expsamples,expsamples),(self.sigsamples,sigsamples)]:
       for sample in oldsamples:
@@ -535,9 +515,8 @@ class SampleSet(object):
             elif share:
               newsubsample = newsample.splitsamples[i]
               newsample.splitsamples[i] = sample.splitsamples[i]
-              newsubsample.close()
         if newsample==None and not filter:
-          newsample = sample if share else sample.clone(samename=True,deep=True,close=True)
+          newsample = sample if share else sample.clone(samename=True,deep=True)
           if share:
             sharedsamples.append(newsample)
         if newsample!=None:
@@ -547,7 +526,6 @@ class SampleSet(object):
       sharedsamples.append(datasample)
     kwargs['shared'] = sharedsamples
     newset = SampleSet(datasample,expsamples,sigsamples,**kwargs)
-    newset.closed = close
     return newset
   
   def shiftweight(self,searchterms,newweight,titletag="",**kwargs):

@@ -278,8 +278,7 @@ class Sample(object):
     """Shallow copy."""
     verbosity    = LOG.getverbosity(kwargs)
     samename     = kwargs.get('samename', False )
-    deep         = kwargs.get('deep',     False ) # deep copy
-    close        = kwargs.get('close',    False ) # keep new sample closed for memory space
+    deep         = kwargs.get('deep',     False ) # deep copy (create new Sample objects)
     splitsamples = [s.clone(samename=samename,deep=deep) for s in self.splitsamples] if deep else self.splitsamples[:]
     if name==None:
       name = self.name + ("" if samename else  "_clone" )
@@ -298,14 +297,10 @@ class Sample(object):
     newdict['weight']       = kwargs.get('weight', self.weight    )
     newdict['extraweight']  = kwargs.get('extraweight', self.extraweight )
     newdict['fillcolor']    = kwargs.get('color',  self.fillcolor )
-    if deep and self.file: # force new, separate file
-      newdict['file'] = None #ensureTFile(self.file.GetName())
     newsample               = type(self)(name,title,filename,**kwargs)
     newsample.__dict__.update(newdict) # overwrite defaults
     LOG.verb('Sample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
              newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),verbosity,2)
-    if close:
-      newsample.close()
     return newsample
   
   def appendfilename(self,filetag,nametag=None,titletag=None,**kwargs):
@@ -321,9 +316,6 @@ class Sample(object):
       titletag    = nametag
     self.name    += nametag
     self.title   += titletag
-    if self.file:
-      self.file.Close()
-      self.file   = ensureTFile(self.filename)
     if not isinstance(self,MergedSample):
       norm_old    = self.norm
       sumw_old    = self.sumweights
@@ -469,11 +461,12 @@ class Sample(object):
     
   def stylehist(self,hist,**kwargs):
     """Style histogram."""
-    fcolor = kwargs.get('color',  self.fillcolor ) # fill color
-    lcolor = kwargs.get('lcolor', self.linecolor ) # line color
-    hist.SetLineColor(lcolor)
-    hist.SetFillColor(kWhite if self.isdata or self.issignal else fcolor)
-    hist.SetMarkerColor(lcolor)
+    if hasattr(hist,'SetFillColor'): # avoid errors in edge cases
+      fcolor = kwargs.get('color',  self.fillcolor ) # fill color
+      lcolor = kwargs.get('lcolor', self.linecolor ) # line color
+      hist.SetLineColor(lcolor)
+      hist.SetFillColor(kWhite if self.isdata or self.issignal else fcolor)
+      hist.SetMarkerColor(lcolor)
     return hist
   
   def addcuts(self, cuts):

@@ -92,8 +92,7 @@ class MergedSample(Sample):
   def clone(self,*args,**kwargs):
     """Shallow copy."""
     samename     = kwargs.get('samename', False )
-    deep         = kwargs.get('deep',     False )
-    close        = kwargs.get('close',    False )
+    deep         = kwargs.get('deep',     False ) # deep copy (create new Sample objects)
     #samples      = kwargs.get('samples',  False )
     strings      = [a for a in args if isinstance(a,str)]
     name         = args[0] if len(args)>0 else self.name + ("" if samename else  "_clone" )
@@ -122,8 +121,6 @@ class MergedSample(Sample):
     newdict['fillcolor']    = kwargs.get('color',  self.fillcolor )
     newsample               = type(self)(name,title,*samples,**kwargs)
     newsample.__dict__.update(newdict)
-    if close:
-      newsample.close()
     LOG.verb('MergedSample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
              newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),level=2)
     return newsample
