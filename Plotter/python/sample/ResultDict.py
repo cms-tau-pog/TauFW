@@ -180,7 +180,7 @@ class ResultDict(): #object
             # NOTE: This triggers event loop if not run before !
             # NOTE: If MergedResult, its values are (recursively) summed
             value = result.GetValue()
-            if style and hasattr(value,'SetFillColor'): # set fill/line/marker color
+            if style: # set fill/line/marker color
               sample.stylehist(value)
             yield sel, var, sample, value # 3 keys, 1 value
           elif isinstance(result,MergedResult):
@@ -207,7 +207,7 @@ class ResultDict(): #object
             # NOTE: This triggers event loop if not run before !
             # NOTE: If MergedResult, its values are summed
             value = result.GetValue()
-            if style and hasattr(value,'SetFillColor'): # set fill/line/marker color
+            if style: # set fill/line/marker color
               sample.stylehist(value)
             values.append(value)
           else: # return RDF.RResultPtr<T> values
@@ -235,12 +235,15 @@ class ResultDict(): #object
             LOG.warn("ResultDict.gethists: single=%r, but found more than one sample key for sel=%r, var=%r (%r) in self._dict=%r... Only getting the first"%(
               single,keys,sel,var,self._dict))
           sample = keys[0] # only keep first sample key
-          hist_dict[sel][var] = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
+          hist = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
+          if style: # set fill/line/marker color
+            sample.stylehist(hist)
+          hist_dict[sel][var] = hist
         else: # return multiple sample-histograms with { selection : { variable: { sample: TH1 } } }
           hist_dict[sel][var] = { }
           for sample in keys:
             hist = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
-            if style and hasattr(hist,'SetFillColor'): # set fill/line/marker color
+            if style: # set fill/line/marker color
               sample.stylehist(hist)
             hist_dict[sel][var][sample] = hist
         if clean: # remove nested dictionary to clean memory
