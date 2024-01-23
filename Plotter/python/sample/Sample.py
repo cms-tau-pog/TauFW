@@ -646,6 +646,7 @@ class Sample(object):
     domean        = kwargs.get('mean',     False       ) # get mean of given variables instead of histograms
     dosumw        = kwargs.get('sumw',     False       ) # get sum of event weights (e.g. for cutflows)
     replaceweight = kwargs.get('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
+    preselection  = kwargs.get('preselect', None       ) # pre-selection string (common pre-filter, before aliases all other selections)
     alias_dict    = self.aliases
     if 'alias' in kwargs: # update alias dictionary
       alias_dict  = alias_dict.copy()
@@ -653,6 +654,7 @@ class Sample(object):
     extracuts     = joincuts(kwargs.get('cuts',""),kwargs.get('extracuts',""))
     samples       = self.splitsamples if split else [self]
     rdfkey_main   = (self.treename,self.filename)
+    rdfkey_alias  = (self.treename,self.filename,'alias') # for common preselection & aliases
     if verbosity>=1:
       LOG.verb("Sample.getrdframe: Creating RDataFrame for %s ('%s'): %s, split=%r, extracuts=%r"%(
                color(name,'grey',b=True),color(title,'grey',b=True),self.filename,split,extracuts),verbosity,1)
@@ -684,7 +686,7 @@ class Sample(object):
       expr_dict  = { } # expression -> unique name of RDF column
       if rdf_dict!=None and rdfkey_sel in rdf_dict:
         # NOTE: It is assumed that the variables are correctly filtered and defined in expr_dict
-        # NOTE: It is assumed that the aliases (if any) are exactly the same as defined earlier
+        # NOTE: It is assumed that the preselection & aliases (if any) are exactly the same as defined earlier
         variables_, expr_dict, rdf_sel = rdf_dict[rdfkey_sel] # reuse RDataFrame for same file, selection and variable list
         LOG.verb("Sample.getrdframe:   Reusing RDataFrame %r (cuts=%r)..."%(rdf_sel,cuts),verbosity,2)
       
@@ -702,11 +704,17 @@ class Sample(object):
             if rdf_dict!=None:
               rdf_dict[rdfkey_main] = rdframe # store for reuse & reporting, etc.
         
-        # ADD ALIASES to top RDataFrame
-        if rdframe_alias==None:
+        # ADD PRESELECTION & ALIASES to main RDataFrame
+        if rdf_dict!=None and rdfkey_alias in rdf_dict:
+          rdframe_alias = rdf_dict[rdfkey_alias] # reuse shared RDataFrame (with preselection & aliases) for improved performance
+        elif rdframe_alias==None: # create for first time
           rdframe_alias = rdframe
-          for alias, expr in alias_dict.items(): # define aliases as new columns (assume used in selection, variable, and/or weight) !
+          if preselection!=None: # apply common preselection/filter (before aliases!)
+            rdframe_alias = rdframe_alias.Filter(preselection)
+          for alias, expr in alias_dict.items(): # define aliases as new columns (assume used downstream in selection, variable, and/or weight) !
             rdframe_alias, _ = AddRDFColumn(rdframe_alias,expr,alias,expr_dict=expr_dict,exact=True,verb=verbosity-3)
+          if rdf_dict!=None:
+            rdf_dict[rdfkey_alias] = rdframe_alias # store for reuse
         
         # SELECTIONS: Add common filter
         rdf_sel = rdframe_alias # RDataFrame specific to this selection (filter)
