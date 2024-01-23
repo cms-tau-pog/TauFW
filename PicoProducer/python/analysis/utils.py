@@ -243,7 +243,13 @@ def deltaPhi(phi1, phi2):
 
 def getmet(era,var="",useT1=False,verb=0):
   """Return year-dependent MET recipe."""
-  branch  = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
+  if '2017' in era and 'UL' not in era :
+    branch  = 'METFixEE2017'
+  elif '2022' in era:
+    branch = 'PuppiMET'
+  else :
+    branch = 'MET'
+  #branch  = 'METFixEE2017' if ('2017' in era and 'UL' not in era) else 'MET'
   if useT1 and 'unclustEn' not in var:
     branch += "_T1"
     if var=='nom':
@@ -256,6 +262,7 @@ def getmet(era,var="",useT1=False,verb=0):
   funcstr = "lambda e: TLorentzVector(e.%s*cos(e.%s),e.%s*sin(e.%s),0,e.%s)"%(pt,phi,pt,phi,pt)
   if verb>=1:
     LOG.verb(">>> getmet: %r"%(funcstr))
+  print(">>> getmet: %r"%(funcstr))
   return eval(funcstr)
   
 
@@ -287,7 +294,7 @@ def getmetfilters(era,isdata,verb=0):
     'Flag_goodVertices',
     'Flag_globalSuperTightHalo2016Filter',
     'Flag_HBHENoiseFilter',
-    'Flag_HBHENoiseIsoFilter',
+    'Flag_HBHENoiseIsoFFlag_eeBadScFilterlter',
     'Flag_EcalDeadCellTriggerPrimitiveFilter',
     'Flag_BadPFMuonFilter',
   ]
@@ -295,9 +302,19 @@ def getmetfilters(era,isdata,verb=0):
     filters.extend(['Flag_eeBadScFilter']) # eeBadScFilter "not suggested" for MC
   if ('2017' in era or '2018' in era) and ('UL' not in era):
     filters.extend(['Flag_ecalBadCalibFilterV2']) # under review for change in Ultra Legacy
+  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_2_recommendations
+  if '2022' in era : 
+    filters.extend(['Flag_BadPFMuonDzFilter'])
+    filters.extend(['Flag_hfNoisyHitsFilter'])
+    filters.extend(['Flag_eeBadScFilter'])
+    filters.extend(['Flag_ecalBadCalibFilter'])
+    filters.remove('Flag_HBHENoiseFilter')
+    filters.remove('Flag_HBHENoiseIsoFFlag_eeBadScFilterlter')
+
   funcstr = "lambda e: e."+' and e.'.join(filters)
   if verb>=1:
     LOG.verb(">>> getmetfilters: %r"%(funcstr))
+  print(">>> getmetfilters: %r"%(funcstr))
   return eval(funcstr)
   
 
@@ -338,7 +355,8 @@ def getlepvetoes(event, electrons, muons, taus, channel, era='2018'):
       extramuon_veto = True
     if muon.pt>15 and muon.isPFcand and muon.isGlobal and muon.isTracker:
       looseMuons.append(muon)
-  
+
+
   # EXTRA ELECTRON VETO
   looseElectrons = [ ]
   for electron in Collection(event,'Electron'):
@@ -421,3 +439,10 @@ def getTotalWeight(file): #This function was proposed by Konstantin Androsov to 
         w = df.Sum('genWeightD')
         total_w += w.GetValue()
     return total_w
+  
+def getNevt(file): #This function extracts the number of events form Data files
+  df = RDataFrame('Events', file)
+  count_result = df.Count()
+  return count_result.GetValue()
+  
+

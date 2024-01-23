@@ -3,10 +3,10 @@ import sys
 
 
 job = sys.argv[1] #submit-resubmit-hadd-clean 
-tes_start = 0.970
+tes_start = 0.900
 # tes_stop = 0.972
 # tes_step = 0.002
-tes_stop = 1.03
+tes_stop = 0.958
 tes_step = 0.002
 
 for tes_val in [tes_start + i * tes_step for i in range(int((tes_stop - tes_start) / tes_step) + 1)]:
