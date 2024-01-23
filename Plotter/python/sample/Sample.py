@@ -711,8 +711,8 @@ class Sample(object):
           rdframe_alias = rdf_dict[rdfkey_alias] # reuse shared RDataFrame (with preselection & aliases) for improved performance
         elif rdframe_alias==None: # create for first time
           rdframe_alias = rdframe
-          if preselection!=None: # apply common preselection/filter (before aliases!)
-            LOG.verb("Sample.getrdframe:   Adding common preselection %r..."%(preselection),verbosity,2)
+          if preselection: # apply common preselection/filter (before aliases!)
+            LOG.verb("Sample.getrdframe:   Adding common preselection %r..."%(preselection),verbosity,1)
             rdframe_alias = rdframe_alias.Filter(preselection)
           for alias, expr in alias_dict.items(): # define aliases as new columns (assume used downstream in selection, variable, and/or weight) !
             rdframe_alias, _ = AddRDFColumn(rdframe_alias,expr,alias,expr_dict=expr_dict,exact=True,verb=verbosity-3)
@@ -801,7 +801,8 @@ class Sample(object):
           weight = replacepattern(weight,replaceweight)
         if wexpr: # if mathematical expression: compile & define column in RDF with unique column name
           rdf_sam, wname = AddRDFColumn(rdf_sam,wexpr,"_rdf_sam_wgt",verb=verbosity-4)
-        LOG.verb("Sample.getrdframe:   Common/sample/selection weight: %s=%r"%(wname,wexpr),verbosity,1)
+        if wname and verbosity>=1:
+          LOG.verb("Sample.getrdframe:   Common/sample/selection weight: %s=%r"%(wname,wexpr),verbosity,1)
         
         # COMPUTE SUM OF WEIGHTS
         res_sumw = None
