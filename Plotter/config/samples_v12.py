@@ -152,6 +152,7 @@ def getsampleset(channel,era,**kwargs):
     weight = joinweights(weight,sf)
   kwargs.setdefault('weight',weight) # common weight for MC
   kwargs.setdefault('fname', fname)  # default filename pattern
+  print(expsamples)
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)
   LOG.verb("weight = %r"%(weight),verbosity,1)
   

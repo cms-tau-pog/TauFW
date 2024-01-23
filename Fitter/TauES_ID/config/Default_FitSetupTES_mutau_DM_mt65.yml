@@ -31,9 +31,9 @@ regions:
     baseline:
         definition: "mt_1<65"
         title: "baseline"
-    DM0: 
-        definition: "dm_2==0 && mt_1<65"
-        title: "h^{#pm}"
+    # DM0: 
+    #     definition: "dm_2==0 && mt_1<65"
+    #     title: "h^{#pm}"
     DM1: 
         definition: "dm_2==1 && mt_1<65"
         title: "h^{#pm}#pi^{0}"
@@ -44,13 +44,13 @@ regions:
         definition: " dm_2==11 && mt_1<65"
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
 
-plottingOrder: ["DM11", "DM10","DM1", "DM0"]
-#plottingOrder: ["DM11"]
+#plottingOrder: ["DM11", "DM10","DM1", "DM0"]
+plottingOrder: ["DM11", "DM10","DM1"]
 
 
 tesRegions:
-    DM0: 
-        title: "h^{#pm}"
+    # DM0: 
+    #     title: "h^{#pm}"
     DM1: 
         title: "h^{#pm}#pi^{0}"
     DM10: 
@@ -59,8 +59,8 @@ tesRegions:
         title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}" ###
 
 tid_SFRegions:
-    DM0: 
-        title: "h^{#pm}"
+    # DM0: 
+    #     title: "h^{#pm}"
     DM1: 
         title: "h^{#pm}#pi^{0}"
     DM10: 
@@ -78,8 +78,10 @@ observables:
         title: "m_{vis}"
         extra:
             cut: "50<m_vis && m_vis<150"
-        fitRegions: [DM0, DM1, DM10, DM11]
-        scanRegions: ["DM0", "DM1", "DM10", "DM11"] 
+        # fitRegions: [DM0, DM1, DM10, DM11]
+        # scanRegions: ["DM0", "DM1", "DM10", "DM11"] 
+        fitRegions: [ DM1, DM10, DM11]
+        scanRegions: [ "DM1", "DM10", "DM11"] 
         # fitRegions: ["DM11"]
         # scanRegions: ["DM11"] 
 
@@ -160,16 +162,16 @@ systematics:
         scaleFactor: 1.50
     lumi:
         effect: "lnN"
-        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "ST", "VV","W"] # W a enlever ? "
         scaleFactor: 1.025
     eff_m:
         effect: "lnN"
         processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
         scaleFactor: 1.02
-    xsec_dy:
-        effect: "lnN"
-        processes: ["ZTT", "ZL", "ZJ"]
-        scaleFactor: 1.02
+    # xsec_dy:
+    #     effect: "lnN"
+    #     processes: ["ZTT", "ZL", "ZJ"]
+    #     scaleFactor: 1.02
     xsec_tt:
         effect: "lnN"
         processes: ["TTT", "TTL", "TTJ"]
@@ -192,7 +194,7 @@ systematics:
         scaleFactor: 1.10
     rate_jTauFake_$BIN:
         effect: "lnN"
-        processes: ["W","QCD","ZJ","TTJ","STJ"]
+        processes: ["QCD","ZJ","TTJ","STJ","W"] # enlever W ? 
         scaleFactor: 1.15
 
 # Additional scale factors per year for specific processes (correction of xsec, reco SFs, etc.)

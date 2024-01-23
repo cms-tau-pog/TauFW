@@ -164,6 +164,61 @@ def getParameters(filename,*parameters,**kwargs):
     
 
 
+def writeParametersFitVal(channel,var,region,year,*parameters,**kwargs):
+    """Write the value of the parameter after the fit in a txt file"""
+    print green("\n>>> Write parameter %s, %s"%(region, var))
+
+    # define the parameter
+    if len(parameters)==1 and isinstance(parameters[0],list): parameters = parameters[0]
+    parameters  = [p.replace('$CAT',region).replace('$CHANNEL',channel) for p in list(parameters)]
+    print(parameters)
+
+
+    # get variables
+    indir       = kwargs.get('indir',     "output_%s"%year  )
+    tag         = kwargs.get('tag',       ""                )
+    poi         = kwargs.get('poi',       ""                )
+    era         = "%s-13TeV"%year
+    filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
+    outdir      = kwargs.get('outdir',    "postfit_%s"%year )
+    outfile = "%s/FitparameterValues_%s_%s_%s.txt" %(outdir,tag,era,region)
+    
+    # remove file to not append to it 
+    if os.path.exists(outfile):
+        os.remove(outfile)
+
+    ensureDirectory(outdir)
+
+    # Get tes values
+    tes         = measurepoi(filename,poi, region=region)
+    tes_name = "%s_%s"%(poi,region) #combine DM
+    
+    # Get the lsit of parameter
+    parameters  = [p.replace('$CAT',region).replace('$CHANNEL',channel) for p in list(parameters)]
+    parlist = getParameters(filename,parameters)
+
+    print(parlist)
+
+    parVal = 0 
+    N = len(parlist) # Number of parameters 
+    iPOI = -1 # save position of POI in the parlist(here: TES)
+
+    for ipar in range(N):
+      if parlist[ipar].title == tes_name:  
+        iPOI = ipar
+
+    for ipar in range(N):
+      parVal = parlist[ipar].getfitVal(tes,parlist[iPOI])
+      print("%s : %s" %(parlist[ipar].title,parVal )) 
+      # Write parameter title and value for each region to outdir
+      with open(outfile, 'a') as file:
+        file.write("%s : %s\n" %(parlist[ipar].title,parVal ))
+        print("Writing in file %s" %(outfile))
+
+
+    file.close()
+
+
 class Parameter(object):
     """Parameter."""
     
@@ -174,6 +229,7 @@ class Parameter(object):
         self.N     = None
         self.mean  = None
         self.sigma = None
+        self.fitVal = None
         
     def __str__(self):
         return self.title
@@ -184,7 +240,7 @@ class Parameter(object):
     def set(self):
         self.N     = len(self.list)
         self.mean  = sum(self.list) / float(self.N)
-        self.sigma = sqrt(sum((x-self.mean)**2 for x in self.list)/float(self.N-1))
+        self.sigma = sqrt(sum((x-self.mean)**2 for x in self.list)/float(self.N-1)) 
         
     def corr(self,opar,poiBestFit,poi):
         """Correlation coefficient with another parameter."""
@@ -199,14 +255,25 @@ class Parameter(object):
         covariance /= float(N-1)
         return covariance/(self.sigma*opar.sigma)
         
+    def getfitVal(self,poiBestFit,poi):
+        for paramVal, poiVal in zip(self.list,poi.list):
+          # print("poiVal = ", poiVal)
+          # print("poiBestFit = ", poiBestFit)
+          if poiVal == poiBestFit :
+            self.fitVal = paramVal
+        #print(self.title, self.fitVal)
+        return self.fitVal
 
 
-def plotPostFitValues(channel,var,region,year,*parameters,**kwargs):
+
+def plotPostFitValues(channel,var,region,year,paramfull_list,*parameters,**kwargs):
     """Draw post-fit values for parameter using MultiDimFit and FitDiagnostics output."""
     print green("\n>>> plotPostFitValues %s, %s"%(region, var))
     if len(parameters)==1 and isinstance(parameters[0],list): parameters = parameters[0]
     
     parameters  = [p.replace('$CAT',region).replace('$CHANNEL',channel) for p in list(parameters)]
+
+    
     title       = kwargs.get('title',     ""    )
     name        = kwargs.get('name',      ""    )
     indir       = kwargs.get('indir',     "output_%s"%year  )
@@ -330,16 +397,45 @@ def plotPostFitValues(channel,var,region,year,*parameters,**kwargs):
       else:
         legend.AddEntry(graph, parameter, 'l')
     
+    parlist = getParameters(filename,paramfull_list)
+
+    latex = TLatex()
+    # Get aprameter value 
+    paramVal = 0 
+    N = len(parlist) # Number of parameters 
+    iPOI = -1 # save position of POI in the parlist(here: TES)
+
+    print("N = ", N)
+    print("parlist = ", parlist)
+
+    for ipar in range(N):
+      print("parlist[ipar].title = ",parlist[ipar].title  )
+      print("tes_name = ", tes_name)
+      if parlist[ipar].title == tes_name:  
+          iPOI = ipar
+          print("iPOI= ",iPOI)
+
+
+    for ipar in range(N):
+      if parlist[ipar].title == parameter:
+        print("tes = ", tes)
+        print("parlist[iPOI] = ", parlist[iPOI])
+        parVal = parlist[ipar].getfitVal(tes,parlist[iPOI])
+        print("%s : %s" %(parlist[ipar].title,parVal )) 
+        latex.DrawLatex(tes-0.04*(xmax-xmin),ymax-0.09*(ymax-ymin),parameter+" = %.3f"%parVal) #combine DM
+
+
     line = TLine(tes, ymin, tes, ymax)
     #line.SetLineWidth(1)
     line.SetLineStyle(7)
     line.Draw('SAME')
-    latex = TLatex()
     latex.SetTextSize(0.045)
     latex.SetTextAlign(13)
     latex.SetTextFont(42)
     #latex.DrawLatex(tes+0.02*(xmax-xmin),ymax-0.04*(ymax-ymin),"tes = %.3f"%tes)
-    latex.DrawLatex(tes+0.02*(xmax-xmin),ymax-0.04*(ymax-ymin),tes_name+" = %.3f"%tes) #combine DM
+    latex.DrawLatex(tes-0.04*(xmax-xmin),ymax-0.03*(ymax-ymin),tes_name+" = %.3f"%tes) #combine DM
+    # latex.DrawLatex(0.920,1.2,tes_name+" = %.3f"%tes) #combine DM  
+    # latex.DrawLatex(0.920,0.2,parameter+" = %s"%paramVal) #combine DM
 
     if compareFD:
       graphFD.SetLineColor(kBlue)
@@ -544,44 +640,89 @@ def main(args):
                   "shape_jTauFake", "rate_jTauFake", "xsec_tt", "trackedParam_tes_DM0","trackedParam_tes_DM1","trackedParam_tes_DM10","trackedParam_tes_DM11" ]
     compare   = {
       "norm":
-        [ "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0", "rate_jTauFake_DM1","rate_jTauFake_DM10","rate_jTauFake_DM11"
+          [ "eff_m", "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0", "rate_jTauFake_DM1","rate_jTauFake_DM10","rate_jTauFake_DM11","muonFakerate_DM0","muonFakerate_DM1","muonFakerate_DM10","muonFakerate_DM11"
         ],
       # "norm":
       #   [ "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0_pt1","rate_jTauFake_DM0_pt2","rate_jTauFake_DM0_pt3", "rate_jTauFake_DM1_pt1","rate_jTauFake_DM1_pt2","rate_jTauFake_DM1_pt3", "rate_jTauFake_DM10_pt1","rate_jTauFake_DM10_pt2","rate_jTauFake_DM10_pt3", "rate_jTauFake_DM11_pt1","rate_jTauFake_DM11_pt2","rate_jTauFake_DM11_pt3"
       #   ],
+      "norm":
+        [ "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd"
+        ],
+      # "shapes":
+      #   [  "shape_mTauFake_DM0","shape_mTauFake_DM1","shape_mTauFake_DM10","shape_mTauFake_DM11" ,"shape_dy","shape_jTauFake_DM0","shape_jTauFake_DM1","shape_jTauFake_DM10","shape_jTauFake_DM11"
+      #   ],
       "shapes":
-        [  "shape_mTauFakeSF", 
-          "shape_dy"
+        ["shape_mTauFake_DM0_pt1","shape_mTauFake_DM0_pt2","shape_mTauFake_DM0_pt3", "shape_mTauFake_DM0_pt4",
+         "shape_mTauFake_DM1_pt1","shape_mTauFake_DM1_pt2","shape_mTauFake_DM1_pt3", "shape_mTauFake_DM1_pt4",
+         "shape_mTauFake_DM10_pt1","shape_mTauFake_DM10_pt2","shape_mTauFake_DM10_pt3", "shape_mTauFake_DM10_pt4",
+         "shape_mTauFake_DM11_pt1","shape_mTauFake_DM11_pt2","shape_mTauFake_DM11_pt3", "shape_mTauFake_DM11_pt4",
+         "shape_jTauFake_DM0_pt1","shape_jTauFake_DM0_pt2","shape_jTauFake_DM0_pt3", "shape_jTauFake_DM0_pt4",
+         "shape_jTauFake_DM1_pt1","shape_jTauFake_DM1_pt2","shape_jTauFake_DM1_pt3", "shape_jTauFake_DM1_pt4",
+         "shape_jTauFake_DM10_pt1","shape_jTauFake_DM10_pt2","shape_jTauFake_DM10_pt3", "shape_jTauFake_DM10_pt4",
+         "shape_jTauFake_DM11_pt1","shape_jTauFake_DM11_pt2","shape_jTauFake_DM11_pt3", "shape_jTauFake_DM11_pt4",
+         "shape_dy"
         ],
         # "rateParam":
         # [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1", "trackedParam_sf_W_DM0_pt2", "trackedParam_sf_W_DM1_pt1", "trackedParam_sf_W_DM1_pt2", "trackedParam_sf_W_DM10_pt1", "trackedParam_sf_W_DM10_pt2", "trackedParam_sf_W_DM11_pt1", "trackedParam_sf_W_DM11_pt2"
         # ],
-        "rateParam":
-        [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0", "trackedParam_sf_W_DM1", "trackedParam_sf_W_DM10", "trackedParam_sf_W_DM11"
+      # "rateParam":
+      #   [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0", "trackedParam_sf_W_DM1", "trackedParam_sf_W_DM10", "trackedParam_sf_W_DM11","trackedParam_muonFakerate"
+      #   ],
+      "rateParam":
+        [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1","trackedParam_sf_W_DM0_pt2","trackedParam_sf_W_DM0_pt3", "trackedParam_sf_W_DM1_pt1","trackedParam_sf_W_DM1_pt2","trackedParam_sf_W_DM1_pt3", "trackedParam_sf_W_DM10_pt1", "trackedParam_sf_W_DM10_pt2","trackedParam_sf_W_DM10_pt3","trackedParam_sf_W_DM11_pt1", "trackedParam_sf_W_DM11_pt2","trackedParam_sf_W_DM11_pt3"
         ],
-        #  "rateParam":
-        # [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1","trackedParam_sf_W_DM0_pt2","trackedParam_sf_W_DM0_pt3", "trackedParam_sf_W_DM1_pt1","trackedParam_sf_W_DM1_pt2","trackedParam_sf_W_DM1_pt3", "trackedParam_sf_W_DM10_pt1", "trackedParam_sf_W_DM10_pt2","trackedParam_sf_W_DM10_pt3","trackedParam_sf_W_DM11_pt1", "trackedParam_sf_W_DM11_pt2","trackedParam_sf_W_DM11_pt3"
-        # ],
+      # "rateParam":
+      #   [ "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1","trackedParam_sf_W_DM0_pt2"
+      #   ],
       # "tid":
       #   ["trackedParam_tid_SF_pt1","trackedParam_tid_SF_pt2","trackedParam_tid_SF_pt3","trackedParam_tid_SF_pt4","trackedParam_tid_SF_pt5","trackedParam_tid_SF_pt6","trackedParam_tid_SF_pt7"],
-      "tid":
-        ["trackedParam_tid_SF_DM0","trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11"],
+      # "tid":
+      #   ["trackedParam_tid_SF_DM0","trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11"],
       # "tid":
       #   ["trackedParam_tid_SF_DM0_pt1","trackedParam_tid_SF_DM0_pt2", "trackedParam_tid_SF_DM1_pt1","trackedParam_tid_SF_DM1_pt2","trackedParam_tid_SF_DM10_pt1","trackedParam_tid_SF_DM10_pt2","trackedParam_tid_SF_DM11_pt1","trackedParam_tid_SF_DM11_pt2"],
-    #  "tid":
-    #     ["trackedParam_tid_SF_DM0", "trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11"],
-     
-      "tes":
-        [ "tes_DM0","tes_DM1","tes_DM10","tes_DM11"]
-
+      # "tid":
+      #   ["trackedParam_tid_SF_DM0", "trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11"],
+      # "tid":
+      # ["trackedParam_tid_SF_DM0_pt1","trackedParam_tid_SF_DM0_pt2"],
+      "tid":
+      ["trackedParam_tid_SF_DM0_pt1", "trackedParam_tid_SF_DM0_pt2", "trackedParam_tid_SF_DM0_pt3","trackedParam_tid_SF_DM0_pt4",
+      "trackedParam_tid_SF_DM1_pt1","trackedParam_tid_SF_DM1_pt2", "trackedParam_tid_SF_DM1_pt3","trackedParam_tid_SF_DM1_pt4",
+      "trackedParam_tid_SF_DM10_pt1","trackedParam_tid_SF_DM10_pt2", "trackedParam_tid_SF_DM10_pt3","trackedParam_tid_SF_DM10_pt4",
+      "trackedParam_tid_SF_DM11_pt1","trackedParam_tid_SF_DM11_pt2", "trackedParam_tid_SF_DM11_pt3","trackedParam_tid_SF_DM11_pt4"]
+      # "tes":
+      #   [ "tes_DM0","tes_DM1","tes_DM10","tes_DM11"]
+      # "tes":
+      #   [ "tes_DM0_pt1","tes_DM0_pt2","tes_DM0_pt3","tes_DM0_pt4","tes_DM1_pt1","tes_DM1_pt2","tes_DM1_pt3","tes_DM1_pt4","tes_DM10_pt1","tes_DM10_pt2","tes_DM10_pt3","tes_DM10_pt4","tes_DM0_pt1","tes_DM0_pt2","tes_DM11_pt3","tes_DM11_pt4"],
       #  "tes":
       #   [ "tes_DM0_pt1","tes_DM0_pt2","tes_DM0_pt3","tes_DM1_pt1","tes_DM1_pt2","tes_DM1_pt3","tes_DM10_pt1","tes_DM10_pt2","tes_DM10_pt3","tes_DM11_pt1","tes_DM11_pt2","tes_DM11_pt3"]
     }
     
+    # fulllist  = [
+    #   "tes_DM0","tes_DM1","tes_DM10","tes_DM11", "trackedParam_xsec_dy", "trackedParam_sf_W_DM0", "trackedParam_sf_W_DM1", "trackedParam_sf_W_DM10", "trackedParam_sf_W_DM11",
+    #   "trackedParam_tid_SF_DM0","trackedParam_tid_SF_DM1","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11",
+    #   "shape_mTauFake_DM0","shape_mTauFake_DM1","shape_mTauFake_DM10","shape_mTauFake_DM11" ,"shape_dy","shape_jTauFake_DM0","shape_jTauFake_DM1","shape_jTauFake_DM10","shape_jTauFake_DM11",
+    #   "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0", "rate_jTauFake_DM1","rate_jTauFake_DM10","rate_jTauFake_DM11","eff_m","muonFakerate_DM0","muonFakerate_DM1","muonFakerate_DM10","muonFakerate_DM11"
+    # ]
+    # fulllist  = [
+    #   "tes_DM0_pt1","tes_DM0_pt2", "trackedParam_xsec_dy", "trackedParam_sf_W_DM0_pt1", "trackedParam_sf_W_DM0_pt2",
+    #   "trackedParam_tid_SF_DM0_pt1","trackedParam_tid_SF_DM0_pt2",
+    #   "shape_mTauFake_DM0_pt1","shape_mTauFake_DM0_pt2" ,"shape_dy","shape_jTauFake_DM0_pt1","shape_jTauFake_DM0_pt2",
+    #   "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "rate_jTauFake_DM0_pt1", "rate_jTauFake_DM0_pt2","muonFakerate","eff_m","trackedParam_muonFakerate"
+    # ]
     fulllist  = [
-      "xsec_dy", "xsec_tt", "xsec_st", "norm_wj", "norm_qcd",
-      "shape_dy", "shape_mTauFakeSF","trackedParam_tid_SF_DM0","trackedParam_tid_SF_DM10","trackedParam_tid_SF_DM11",
-      "trackedParam_tid_SF_DM1"
+      "tes_DM0_pt1","tes_DM0_pt2", "tes_DM0_pt3","tes_DM0_pt4","tes_DM1_pt1","tes_DM1_pt2","tes_DM1_pt3","tes_DM1_pt4",
+      "tes_DM10_pt1","tes_DM10_pt2","tes_DM10_pt3","tes_DM10_pt4",
+      "tes_DM11_pt1","tes_DM11_pt2","tes_DM11_pt3","tes_DM11_pt4",
+      "trackedParam_xsec_dy","trackedParam_sf_W_DM0_pt1", "trackedParam_sf_W_DM0_pt2",  "trackedParam_sf_W_DM0_pt3", "trackedParam_sf_W_DM0_pt4",
+      "trackedParam_sf_W_DM1_pt1", "trackedParam_sf_W_DM1_pt2",  "trackedParam_sf_W_DM1_pt3", "trackedParam_sf_W_DM1_pt4",
+      "trackedParam_sf_W_DM10_pt1", "trackedParam_sf_W_DM10_pt2",  "trackedParam_sf_W_DM10_pt3", "trackedParam_sf_W_DM10_pt4",
+      "trackedParam_sf_W_DM11_pt1", "trackedParam_sf_W_DM11_pt2",  "trackedParam_sf_W_DM11_pt3", "trackedParam_sf_W_DM11_pt4",
+      "trackedParam_tid_SF_DM0_pt1","trackedParam_tid_SF_DM0_pt2", "trackedParam_tid_SF_DM0_pt3","trackedParam_tid_SF_DM0_pt4",
+      "trackedParam_tid_SF_DM1_pt1","trackedParam_tid_SF_DM1_pt2", "trackedParam_tid_SF_DM1_pt3","trackedParam_tid_SF_DM1_pt4",
+      "trackedParam_tid_SF_DM10_pt1","trackedParam_tid_SF_DM10_pt2", "trackedParam_tid_SF_DM10_pt3","trackedParam_tid_SF_DM10_pt4",
+      "trackedParam_tid_SF_DM11_pt1","trackedParam_tid_SF_DM11_pt2", "trackedParam_tid_SF_DM11_pt3","trackedParam_tid_SF_DM11_pt4",
+      "shape_dy", 
+      "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "eff_m"
     ]
     procsBBB  = [ 'QCD', 'W', 'TTT', 'ZTT' ] # 'JTF' ]
     indir     = "output_%s"%year
@@ -602,17 +743,20 @@ def main(args):
 
             # COMPARE nuisances
             for name, parameters in compare.iteritems():
-                plotPostFitValues(channel,var,r,year,*parameters,name=name,tag=tag,compareFD=False,title=title,poi=poi)
+                plotPostFitValues(channel,var,r,year,fulllist,*parameters,name=name,tag=tag,compareFD=False,title=title,poi=poi)
             
             # BIN-BY-BIN
             for process in procsBBB:
                 bbblists = getChunkifiedBBBLists(channel,var,r,year,process,tag=tag)
                 for bbblist in bbblists:
-                    plotPostFitValues(channel,var,r,year,*bbblist,tag=tag,compareFD=False,title=title,poi=poi)
+                    plotPostFitValues(channel,var,r,year,fulllist,*bbblist,tag=tag,compareFD=False,title=title,poi=poi)
             
             # CORRELATION
             correlate = [tes_name] + fulllist + getBBBList(channel,var,r,year,'ZTT',tag=tag)
             #plotCorrelation(channel,var,r,year,correlate,tag=tag,title=title,poi=poi)
+
+            # Write parameter values 
+            writeParametersFitVal(channel,var,r,year,fulllist,tag=tag,title=title,poi=poi)
           
 
 
@@ -622,7 +766,7 @@ if __name__ == '__main__':
     argv = sys.argv
     description = '''This script makes datacards with CombineHarvester.'''
     parser = ArgumentParser(prog="LowMassDiTau_Harvester",description=description,epilog="Succes!")
-    parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018', 'UL2018_v10','2022_postEE'], type=str, default='2017', action='store', help="select year")
+    parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018', 'UL2018_v10','2022_postEE','2022_preEE'], type=str, default='2017', action='store', help="select year")
     parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup" )
     parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar="TAG", help="extra tag for output files")
     parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store', metavar="RANGE", help="range of TES shifts")

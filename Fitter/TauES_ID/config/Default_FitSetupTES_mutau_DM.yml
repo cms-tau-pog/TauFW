@@ -124,28 +124,28 @@ processes: ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"]
 # # Systematic uncertainties: can have effect shape or lnN (normalisation)
 
 systematics:
-    LTF:
+    LTF: # lepton fake rate energy scale 
         effect: "shape"
         processes: ["ZL", "TTL"]
         name: "shape_mTauFake_$BIN"
-        title: "+/- 2% LTF shape"
+        title: "+/- 3% LTF shape"
         variations: ["Up", "Down"]
         sampleAppend: ["_LTFUp","_LTFDown"]
     JTF:
         effect: "shape"
         processes: ["ZJ", "TTJ", "W"]
         name: "shape_jTauFake_$BIN"
-        title: "+/- 5% JTF"
+        title: "+/- 10% JTF"
         variations: ["Up", "Down"]
         sampleAppend: ["_JTFUp","_JTFDown"]
-    shape_mTauFake:
-        effect: "shape"
-        processes: ["ZL", "TTL"]
-        name: "shape_mTauFakeSF"
-        title: "LTF rate syst"
-        variations: ["Up", "Down"]
-        nomWeight: "ltfweight_2"
-        altWeights: ["ltfweightUp_2", "ltfweightDown_2"]
+    # shape_mTauFake: # Not defined for 2022
+    #     effect: "shape"
+    #     processes: ["ZL", "TTL"]
+    #     name: "shape_mTauFakeSF"
+    #     title: "LTF rate syst"
+    #     variations: ["Up", "Down"]
+    #     nomWeight: "ltfweight_2"
+    #     altWeights: ["ltfweightUp_2", "ltfweightDown_2"]
     shape_dy:
         effect: "shape"
         processes: ["ZTT", "ZL", "ZJ"]
@@ -154,6 +154,10 @@ systematics:
         variations: ["Up", "Down"]
         nomWeight: "zptweight"
         altWeights: ["(zptweight+0.1*(zptweight-1))", "(zptweight-0.1*(zptweight-1))"]
+    muonFakerate:
+        effect: "lnN"
+        processes: ["ZL", "TTL"]
+        scaleFactor: 1.50
     lumi:
         effect: "lnN"
         processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
@@ -162,10 +166,10 @@ systematics:
         effect: "lnN"
         processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
         scaleFactor: 1.02
-    xsec_dy:
-        effect: "lnN"
-        processes: ["ZTT", "ZL", "ZJ"]
-        scaleFactor: 1.02
+    # xsec_dy:
+    #     effect: "lnN"
+    #     processes: ["ZTT", "ZL", "ZJ"]
+    #     scaleFactor: 1.02
     xsec_tt:
         effect: "lnN"
         processes: ["TTT", "TTL", "TTJ"]
