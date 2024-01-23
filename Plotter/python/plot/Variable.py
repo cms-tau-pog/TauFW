@@ -2,6 +2,7 @@
 # Author: Izaak Neutelings (2017)
 import re
 from array import array
+from math import floor
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
 from TauFW.Plotter.plot.string import *
@@ -46,7 +47,7 @@ class Variable(object):
     self.nbins        = None
     self.min          = None
     self.max          = None
-    self.bins         = None # bin edges
+    self.edges        = None # bin edges
     self.cut          = kwargs.get('cut',         ""             ) # extra cut when filling histograms
     self.weight       = kwargs.get('weight',      ""             ) # extra weight when filling histograms (MC only)
     self.dataweight   = kwargs.get('dataweight',  ""             ) # extra weight when filling histograms for data
@@ -75,6 +76,7 @@ class Variable(object):
     self.only         = kwargs.get('only',        [ ]            ) # only plot for these patterns
     self.veto         = kwargs.get('veto',        [ ]            ) # do not plot for these patterns
     self.blindcuts    = kwargs.get('blind',       ""             ) # string for blind cuts to blind data
+    self.isint        = kwargs.get('int',         False          ) # this variable is explicitly an interger (used by addoverflow)
     self._addoverflow = kwargs.get('addof',       False          ) # add overflow to last bin
     self._addoverflow = kwargs.get('addoverflow', self._addoverflow ) # add overflow to last bin
     if self.latex:
@@ -197,7 +199,7 @@ class Variable(object):
       self.nbins = numbers[0]
       self.min   = numbers[1]
       self.max   = numbers[2]
-      self.bins  = None
+      self.edges = None
     elif len(bins)>0:
       edges      = list(bins[0])
       if any(x<edges[i] for i, x in enumerate(edges[1:])): # check sorting
@@ -207,14 +209,14 @@ class Variable(object):
       self.nbins = len(edges)-1
       self.min   = edges[0]
       self.max   = edges[-1]
-      self.bins  = edges
+      self.edges = edges
     else:
       LOG.throw(IOError,'Variable: bad arguments "%s" for binning!'%(args,))
   
   def getbins(self,full=False):
     """Get binning: (N,xmin,xmax), or bins if it is set"""
     if self.hasvariablebins():
-      return self.bins
+      return self.edges
     elif full: # get binedges
       return [self.min+i*(self.max-self.min)/self.nbins for i in range(self.nbins+1)]
     else:
@@ -225,17 +227,17 @@ class Variable(object):
     LOG.insist(i>=0,"getedge: Number of bin edge has to be >= 0! Got: %s"%(i))
     LOG.insist(i<=self.nbins+1,"getedge: Number of bin edge has to be <= %d! Got: %s"%(self.nbins+1,i))
     if self.hasvariablebins():
-      return self.bins[i]
+      return self.edges[i]
     return self.min+i*(self.max-self.min)/self.nbins
   
   def hasvariablebins(self):
     """True if bins is set."""
-    return self.bins!=None
+    return self.edges!=None
   
   def hasintbins(self):
     """True if binning is integer."""
     width = (self.max-self.min)/self.nbins
-    return self.bins==None and int(self.min)==self.min and int(self.max)==self.max and width==1
+    return self.edges==None and int(self.min)==self.min and int(self.max)==self.max and width==1
   
   def match(self, *terms, **kwargs):
     """Match search terms to the variable's name and title."""
@@ -260,9 +262,9 @@ class Variable(object):
       if bins!=None:
         if verbosity>=3:
           print(">>> Variable.changecontext: ctxbins=%s, args=%r"%(self.ctxbins.context,args))
-          print(">>> Variable.changecontext: bins=%r -> %r"%(self.bins,bins))
+          print(">>> Variable.changecontext: bins=%r -> %r"%(self.edges,bins))
         elif verbosity>=3:
-          print(">>> Variable.changecontext: ctxbins=%s, args=%r, bins=%r (no change)"%(self.ctxbins.context,args,self.bins))
+          print(">>> Variable.changecontext: ctxbins=%s, args=%r, bins=%r (no change)"%(self.ctxbins.context,args,self.edges))
         self.setbins(*bins)
       if self._addoverflow:
         self.addoverflow() # in case the last bin changed
@@ -337,7 +339,7 @@ class Variable(object):
     # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
     name, title = self.getnametitle(name,title,tag)
     if self.hasvariablebins(): # variable bin width
-      model = (name,title,self.nbins,array('d',list(self.bins)))
+      model = (name,title,self.nbins,array('d',list(self.edges)))
     else: # constant/fixed bin width
       model = (name,title,self.nbins,self.min,self.max)
     return model
@@ -347,7 +349,7 @@ class Variable(object):
     # https://root.cern/doc/master/structROOT_1_1RDF_1_1TH1DModel.html
     model = self.gethistmodel(name,title,tag)
     if yvariable.hasvariablebins(): # variable bin width
-      model += (yvariable.nbins,array('d',list(yvariable.bins)))
+      model += (yvariable.nbins,array('d',list(yvariable.edges)))
     else: # constant/fixed bin width
       model += (yvariable.nbins,yvariable.min,yvariable.max)
     return model
@@ -479,11 +481,11 @@ class Variable(object):
     xlow, xhigh = bmin, bmax
     nbins, xmin, xmax = self.nbins, self.min, self.max
     if self.hasvariablebins(): # variable bin width
-      bins = self.bins
-      for xval in bins:
+      edges = self.edges
+      for xval in edges:
         if xval>bmin: break # edge above lower cut
         xlow = xval
-      for xval in reversed(bins):
+      for xval in reversed(edges):
         if xval<bmax: break # edge below upper cut
         xhigh = xval
     else: # fixed bin width
@@ -500,20 +502,25 @@ class Variable(object):
     LOG.verb('Variable.blind: blindcut = %r for a (%s,%s) window and (%s,%s,%s) binning'%(blindcut,bmin,bmax,nbins,xmin,xmax),verbosity,2) 
     return blindcut
   
-  def addoverflow(self,**kwargs):
+  def addoverflow(self,frac=0.10,**kwargs):
     """Modify variable name in order to add the overflow to the last bin."""
     verbosity = LOG.getverbosity(self,kwargs)
     if self.hasvariablebins():
-      width     = self.bins[-1]-self.bins[-2]
-      threshold = self.bins[-2] + 0.90*width
+      xmax  = self.edges[-1]
+      width = xmax-self.edges[-2]
     else:
-      width     = (self.max-self.min)/float(self.nbins)
-      threshold = self.max - 0.90*width
-    self.name   = "min(%s,%s)"%(self._name,threshold)
+      xmax  = self.max
+      width = (xmax-self.min)/float(self.nbins)
+    thres = xmax - (1.-frac)*width # threshold for minimum min(var,threshold)
+    if self.isint: # ensure integer threshold for min(int,int) to avoid 'no matching function' error
+      thres = int(floor(thres))
+      if thres<(xmax-width): # ensure overflow is added to very last bin
+        LOG.warn("addoverflow: xmax=%s, width=%s, threshold=%s => thres < (xmax-width) = %s"%(xmax,width,thres,xmax-width))
+    self.name   = "min(%s,%s)"%(self._name,thres)
     LOG.verb("Variable.addoverflow: %r -> %r for binning '%s'"%(self._name,self.name,self.getbins()),verbosity,2)
     return self.name
   
-Var = Variable # short alias
+Var = Variable # shortened alias
 
 
 def wrapvariable(*args,**kwargs):

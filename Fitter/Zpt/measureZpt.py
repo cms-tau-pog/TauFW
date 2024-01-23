@@ -111,8 +111,8 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     bvar_gen    = Var('Unroll::GetBin(pt_moth,m_moth,0,1)',"Generated %s bin"%(pgtitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
     bvar_reco_T = Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed %s bin"%(mtitle),*urbins0,units=False,labels=urlabels2) # unroll bin number, transposed
   print ">>> 2D bins: %d = %d pt bins x %d %s bins"%(bvar_reco.nbins,xvar_reco.nbins,yvar_reco.nbins,yvar)
-  print ">>> pt bins: %r"%(xvar_reco.bins)
-  print ">>> %s bins: %r"%(yvar,yvar_reco.bins)
+  print ">>> pt bins: %r"%(xvar_reco.edges)
+  print ">>> %s bins: %r"%(yvar,yvar_reco.edges)
   
   for selection in selections:
     LOG.color(selection.title,col='green')
