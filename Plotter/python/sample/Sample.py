@@ -672,8 +672,8 @@ class Sample(object):
     rdframe_alias = None # RDataFrame with aliases (common for all selections)
     res_dict = ResultDict() # { selection : { variable: { sample: RDF.RResultPtr<TH1D> } } } }
     for selection in selections:
-      LOG.verb("Sample.getrdframe:   Selection %r: %r (extracuts=%r, sample.cuts=%r)"%(
-        selection.filename,selection.selection,extracuts,self.cuts),verbosity,1)
+      LOG.verb("Sample.getrdframe:   Selection %r: '%s' (extracuts=%r, sample.cuts=%r)"%(
+        selection.filename,color(selection.selection,'grey'),extracuts,self.cuts),verbosity,1)
       
       # PARSE COMMON SELECTION STRING
       cuts = selection.selection
