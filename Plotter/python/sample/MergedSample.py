@@ -147,10 +147,10 @@ class MergedSample(Sample):
   def getrdframe(self,variables,selections,**kwargs):
     """Create RDataFrames for list of variables and selections."""
     verbosity = LOG.getverbosity(kwargs)
-    name      = kwargs.get('name',     self.name  ) # hist name
-    name     += kwargs.get('tag',      ""         ) # tag for hist name
-    scales    = kwargs.get('scales',   None       ) # list of scale factors, one for each subsample
-    split     = kwargs.get('split',    False      ) and len(self.splitsamples)>=1 # split sample into components (e.g. with cuts on genmatch)
+    name      = kwargs.get('name',   self.name ) # hist name
+    name     += kwargs.get('tag',    ""        ) # tag for hist name
+    scales    = kwargs.get('scales', None      ) # list of scale factors, one for each subsample
+    split     = kwargs.get('split',  False     ) and len(self.splitsamples)>=1 # split sample into components (e.g. with cuts on genmatch)
     scale     = kwargs.get('scale', 1.0) * self.scale * self.norm # common scale to pass down
     
     # PREPARE SETTING for subsamples
@@ -174,7 +174,7 @@ class MergedSample(Sample):
         hkwargs['name'] = makehistname(kwargs['name'],subsample.name)
       if scales: # apply extra scale factor per subsample
         hkwargs['scale'] = scale*scales[i] # assume scales is a length with the samen length as samples
-        LOG.verb("MergedSample.gethist: Scaling subsample %r by %s (total %s)"%(subsample.name,scales[i],scale),verbosity,1)
+        LOG.verb("MergedSample.getrdframe: Scaling subsample %r by %s (total %s)"%(subsample.name,scales[i],scale),verbosity,1)
       res_dict += subsample.getrdframe(variables,selections,**hkwargs)
     if not split: # merge RDF.RResultPtr<T> into MergedResults list so they can be added coherently later
       hname = name if 'name' in kwargs else "$VAR_"+name # histogram name

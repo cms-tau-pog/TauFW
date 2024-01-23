@@ -62,7 +62,7 @@ class Logger(object):
   
   def __init__(self, name="LOG", verb=0, **kwargs):
     self.name      = name
-    self.verbosity = verb
+    self.verbosity = verb # verbosity level
     self.pre       = kwargs.get('pre',">>> ")
     self._table    = None
     if  kwargs.get('showname',False):

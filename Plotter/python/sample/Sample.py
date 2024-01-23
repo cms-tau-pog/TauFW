@@ -30,7 +30,7 @@ class Sample(object):
   
   def __init__(self, name, *args, **kwargs):
     import TauFW.Plotter.sample.utils as GLOB
-    LOG.setverbosity(kwargs)
+    LOG.setverbosity(kwargs) # set global verbosity
     title    = ""
     filename = ""
     xsec     = -1.0
@@ -876,7 +876,7 @@ class Sample(object):
   def getsumw(self, *args, **kwargs):
     """Compute sum-of-weights for a given lists of selections
     with RDataFrame and return a dictionary of double values."""
-    verbosity = LOG.getverbosity(kwargs,self)
+    verbosity = LOG.getverbosity(kwargs)
     LOG.verb("Sample.getsumw: args=%r"%(args,),verbosity,1)
     
     # SUM-OF-WEIGHTS without selections
@@ -886,7 +886,7 @@ class Sample(object):
         self.sumweights = sumw
       else:
         sumw = self.sumweights
-      LOG.verb('Sample.getsumw: %r %.10g'%(self.name,sumw),level=2)
+      LOG.verb('Sample.getsumw: %r %.10g'%(self.name,sumw),verbosity,level=2)
       return sumw
     
     # APPLY SELECTIONS
@@ -918,8 +918,9 @@ class Sample(object):
   def gethist(self, *args, **kwargs):
     """Create and fill histograms for given lists of variables and selections
     with RDataFrame and return a dictionary of histograms."""
-    verbosity = LOG.getverbosity(kwargs,self)
+    verbosity = LOG.getverbosity(kwargs)
     LOG.verb("Sample.gethist: args=%r"%(args,),verbosity,1)
+    LOG.verb("Sample.gethist: kwargs=%r"%(kwargs,),verbosity,3)
     if kwargs.get('2d',False): # assume Variable arguments for 2D histograms
       variables, selections, issinglevar, issinglesel = unpack_gethist2D_args(*args)
     else: # assume Variable arguments only for 1D histograms
