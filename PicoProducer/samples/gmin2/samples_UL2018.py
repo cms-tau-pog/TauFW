@@ -71,6 +71,10 @@ samples  = [
 #     store=storage,url=url,files=filelist,opts="useT1=False"),
   
   # DIBOSON
+  M('VV','GGToWW',
+    #"GGToWW_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122754/0000", # filter, 1/128
+    "GGToWW_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_nofilter_januarysamples/240109_135325/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','WWTo2L2Nu',
     "WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18_NanoAODv9/221117_165726/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
@@ -89,9 +93,6 @@ samples  = [
   M('VV','ZZTo4L',
     "ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18_NanoAODv9/221117_171953/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
-  M('VV','GGToWW',
-    "GGToWW_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122754/0000",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','VVTo2L2Nu',
     "VVTo2L2Nu_MLL-1toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18_NanoAODv9/231018_130221/0000",
     "VVTo2L2Nu_MLL-1toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18_NanoAODv9/231018_130221/0001",
@@ -100,10 +101,15 @@ samples  = [
   # SIGNAL
   M('Signal','GGToMuMu',
     #"RunIISummer20UL18_GGToMuMu/GGToMuMu/230619_092808/0000",
-    "GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122720/0000",
+    #"GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122720/0000", # filter, 1/128
+    "GGToMuMu_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_nofilter_januarysamples/240109_135356/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
+  M('Signal','GGToEE',
+    "GGToElEl_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_nofilter_januarysamples/240109_135338/0000", # 1/137, no filter
     store=storage,url=url,files=filelist,opts="useT1=False"),
   M('Signal','GGToTauTau',
-    "GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000",
+    #"GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122828/0000", # filter, 1/128
+    "GGToTauTau_Ctb20_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_nofilter_januarysamples/240109_135710/0000", # 1/137, no filter
     store=storage,url=url,files=filelist,opts="useT1=False"),
   
   # SINGLE MUON

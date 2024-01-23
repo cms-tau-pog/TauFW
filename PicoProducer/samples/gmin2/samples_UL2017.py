@@ -28,6 +28,10 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=False,toppt=True"),
   
   # DIBOSON
+  M('VV','GGToWW',
+    #"GGToWW_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_july/230724_122937/0000", # filter, 1/128
+    "GGToWW_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_nofilter_januarysamples/240109_135306/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','WWTo2L2Nu',
     "WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17_NanoAODv9/230413_082948/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
@@ -46,9 +50,6 @@ samples  = [
   M('VV','ZZTo4L',
     "ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL17_NanoAODv9/230413_083049/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
-  M('VV','GGToWW',
-    "GGToWW_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_july/230724_122937/0000",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','VVTo2L2Nu',
     "VVTo2L2Nu_MLL-1toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL17_NanoAODv9/231018_130301/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
@@ -56,7 +57,14 @@ samples  = [
   # SIGNAL
   M('Signal','GGToMuMu',
     #"RunIISummer20UL17_GGToMuMu/RunIISummer20UL17_NanoAODv9/230619_120555/0000",
-    "GGToMuMu_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_july/230724_122907/0000",
+    #"GGToMuMu_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_july/230724_122907/0000", # filter, 1/128
+    "GGToMuMu_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_nofilter_januarysamples/240109_135255/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
+  M('Signal','GGToEE',
+    "GGToElEl_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_nofilter_januarysamples/240109_135239/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
+  M('Signal','GGToTauTau',
+    "GGToTauTau_Ctb20_RunIISummer20UL17/RunIISummer20UL17_NanoAODv9_nofilter_januarysamples/240109_135217/0000", # 1/137, no filter
     store=storage,url=url,files=filelist,opts="useT1=False"),
   
   # SINGLE MUON

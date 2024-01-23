@@ -14,18 +14,15 @@ print(">>> Importing TauFW.sample...")
 from config.gmin2.samples import * # for general getsampleset
 import TauFW.Plotter.sample.utils as GLOB
 from TauFW.Plotter.sample.utils import LOG; SLOG = LOG
-#from TauFW.Plotter.sample.utils import getsampleset as _getsampleset # for getsampleset_simple
-#from TauFW.Plotter.sample.utils import MC, SampleSet, getmcsample, setera, getyear, Sel, Var
 from TauFW.Plotter.plot.Plot import LOG as PLOG
 from TauFW.Plotter.plot.Stack import Plot, Stack, Ratio, TLegend
 from TauFW.Plotter.plot.string import filtervars, makehistname
-#from TauFW.common.tools.file import ensuredir
-#from TauFW.common.tools.utils import ensurelist, repkey
 from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr
 from TauFW.common.tools.log import green
-#from TauFW.common.tools.math import partition
+from TauFW.common.tools.RDataFrame import RDF
 from plot_compare_gmin2 import getbaseline, getweight, getsampleset, makemcsample,\
-                               loadhist, savehist
+                               loadhist, loadallhists, savehist,\
+                               xsec_mm, xsec_tt, xsec_ww
 print(">>> Done importing...")
 mbins = list(range(50,70,10))+list(range(70,110,5))+list(range(110,200,10))+\
         list(range(200,300,25))+list(range(300,400,50))+[400,500,600,800]
@@ -63,11 +60,9 @@ def getsamples(sampleset,channel,era,loadhists=False,dy=False,verb=0):
   
   # CREATE SAMPLES
   print(">>> GLOB.lumi=%s"%(GLOB.lumi))
-  xsec_sig = 0.324*0.328 #0.37553*0.33
-  xsec_ww  = 0.37553*0.33
   sample_obs = sampleset.get('Observed',unique=True,verb=verb-1)
   sample_dy  = sampleset.get('DY',unique=True,verb=verb-1) if dy else None
-  sample_sig = makemcsample('Signal','GGToMuMu',"#gamma#gamma -> #mu#mu (elastic)",xsec_sig,channel,era,
+  sample_sig = makemcsample('Signal','GGToMuMu',"#gamma#gamma -> #mu#mu (elastic)",xsec_mm,channel,era,
                             tag="",extraweight=wgt_sig,color=kRed-9,verb=verb)#+3
   sample_ww  = makemcsample('VV','GGToWW',"#gamma#gamma -> WW (elastic)",xsec_ww,channel,era,
                             tag="",extraweight=wgt_sig,color=kOrange-9,verb=verb)#+3
@@ -94,14 +89,13 @@ def integrateZWindow(hist,xmin=75,xmax=105,verb=0):
   
 
 def studyInclBkg(sampleset,channel,tag="",outdir="plots/g-2/elastic/bkg",era="",
-         selfilter=None,pdf=True,loadhists=False,parallel=False,verb=0):
+         selfilter=None,pdf=True,loadhists=False,verb=0):
   """Study incl. bkg."""
   LOG.header("studyInclBkg")
   
   # SETTINGS
   fraction  = True #and False
   loadhists = loadhists #and False
-  parallel  = parallel #and False
   hfname    = "%s/elastic_sb_%s.root"%(outdir,era)
   hfile     = ensureTFile(hfname,'READ' if loadhists else 'UPDATE') # back up histograms for reuse
   
@@ -151,45 +145,44 @@ def studyInclBkg(sampleset,channel,tag="",outdir="plots/g-2/elastic/bkg",era="",
     htitle = selection.title.split(', ')[-1]
     
     # STEP 1: Create observed data & signal in signal region
-    print(green("Step 1: Creating hists...",bold=True,pre=">>> "))
+    LOG.color("Step 1: Creating hists...",b=True)
     bkgname = "bkg_incl"
-    hists = { s: [ ] for s in samples } # side band
+    hists = { s: { } for s in samples } # side band
     for sample in samples:
       if loadhists: # skip recreating histograms (fast!)
-        for var in variables:
-          hists[sample].append(loadhist(hfile,var,var,sample,subdir=selection,verb=verb))
+        hists[sample] = loadallhists(hfile,variables,variables,sample,subdir=selection,verb=verb)
       else: # create histograms from scratch (slow...)
-        hists[sample] = sample.gethist(variables,selection,parallel=parallel,verb=verb)
+        hists[sample] = sample.gethist(variables,selection,verb=verb)
     
     # STEP 2: Create inclusive background
-    print(green("Step 2: Create inclusive background...",bold=True,pre=">>> "))
-    hists[bkgname] = [ ] # overwrite previous
-    for i, var in enumerate(variables):
-      hist_bkg = hists[sample_obs][i].Clone(f"{var.filename}_{selection.filename}_{bkgname}")
-      hist_bkg.Add(hists[sample_ww][i], -1) # subtract WW signal
-      hist_bkg.Add(hists[sample_sig][i],-1) # subtract mumu signal
+    LOG.color("Step 2: Create inclusive background...",b=True)
+    hists[bkgname] = { } # overwrite previous
+    for var in variables:
+      hist_bkg = hists[sample_obs][var].Clone(f"{var.filename}_{selection.filename}_{bkgname}")
+      hist_bkg.Add(hists[sample_ww][var], -1) # subtract WW signal
+      hist_bkg.Add(hists[sample_sig][var],-1) # subtract mumu signal
       hist_bkg.SetFillColor(kAzure-9)
       hist_bkg.SetTitle("Incl. bkg.")
       hist_bkg2 = hist_bkg.Clone(hist_bkg.GetName()+'_clone') # store for later comparison
       hist_bkg2.SetTitle(htitle)
-      hists[bkgname].append(hist_bkg)
+      hists[bkgname][var] = hist_bkg
       hists_bkg[var].append(hist_bkg2)
-      hist_dy = hists[sample_dy][i]
+      hist_dy = hists[sample_dy][var]
       hist_dy.SetTitle(htitle)
       hists_dy[var].append(hist_dy)
       
-      # STORE for later reusefs
+      # STORE for later reuse
       if not loadhists: # store for later reuse
         for sample in hists.keys():
-          savehist(hists[sample][i],hfile,var,var,sample,subdir=selection,verb=verb+2) # store for later use
+          savehist(hists[sample][var],hfile,var,var,sample,subdir=selection,verb=verb+2) # store for later use
     
     # STEP 3: Plot
-    print(green("Step 3: Plot...",bold=True,pre=">>> "))
+    LOG.color("Step 3: Plot...",b=True)
     fname = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
     text  = selection.title
-    for i, var in enumerate(variables):
-      hist_obs  = hists[sample_obs][i] # observed
-      hists_exp = [hists[s][i] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
+    for var in variables:
+      hist_obs  = hists[sample_obs][var] # observed
+      hists_exp = [hists[s][var] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
       stack = Stack(var,hist_obs,hists_exp,clone=True,verb=verb)
       stack.draw(fraction=fraction,rmin=0,rmax=1.25)
       stack.drawlegend(twidth=1)
@@ -225,7 +218,7 @@ def studyInclBkg(sampleset,channel,tag="",outdir="plots/g-2/elastic/bkg",era="",
     for selection in selections:
       htitle = selection.title.split(', ')[-1]
       if loadhists or True: # always create histogram from scratch
-        hist = sample_dy.gethist(var,selection,parallel=parallel,verb=verb)
+        hist = sample_dy.gethist(var,selection,verb=verb)
         hist.SetTitle(htitle)
         savehist(hist,hfile,var,var,sample_dy,subdir=selection,verb=verb) # store for later reuse
       else:
@@ -245,15 +238,15 @@ def studyInclBkg(sampleset,channel,tag="",outdir="plots/g-2/elastic/bkg",era="",
     
 
 def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
-         selfilter=None,pdf=True,loadhists=False,parallel=False,sideband=None,verb=0):
+         selfilter=None,pdf=True,loadhists=False,sideband=None,verb=0):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("measureElasicSF")
   
   # SETTINGS
   fraction  = True #and False
   loadhists = loadhists #and False
-  parallel  = parallel #and False
   foption   = 'UPDATE' #'READ' if loadhists else 'UPDATE'
+  outdir    = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
   jfname    = "%s/elastic.json"%(outdir)
   hfname    = "%s/elastic_%s.root"%(outdir,era)
   hfile     = ensureTFile(hfname,'UPDATE') # back up histograms for reuse
@@ -262,6 +255,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   rtitle    = "#frac{Obs. #minus Bkg.}{#gamma#gamma #rightarrow #mu#mu, WW}  "
   chstr     = channel.replace('mu','m').replace('tau','t') 
   redoes    = [0,1,2]
+  bkgname   = "bkg_incl"
+  exts      = ['png','pdf'] if pdf else ['png'] # extensions
   if sideband==None:
   #   ntmin, ntmax = 3, 6 # ntrack range in side band
     ntmin, ntmax = 3, 7 # ntrack range in side band
@@ -272,7 +267,6 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   else:
     ntmin, ntmax = (int(t.strip(',')) for t in sideband.split(','))
   print(f">>> loadhists = {loadhists!r}")
-  print(f">>> parallel  = {parallel!r}")
   print(f">>> jfname    = {jfname!r}")
   print(f">>> hfname    = {hfname!r}")
   print(f">>> sideband  = {ntmin!r} <= ntrack <= {ntmax!r}")
@@ -288,23 +282,38 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
     #Sel(f"{tit_nt} = 0",             sel_0t,    fname="ntracks0"),
     #Sel(f"{tit_nt} = 1",             sel_1t,    fname="ntracks1"),
     #Sel(f"A < 0.015, {tit_nt} <= 1", sel_sr,    fname="acolt0p015-ntracksleq1"),
-#     Sel(f"A < 0.015, {tit_nt} = 0",  f"{baseline} && aco<0.015 && ntrack_all==0", fname="acolt0p015-ntracks0"),
-#     Sel(f"A < 0.015, {tit_nt} = 1",  f"{baseline} && aco<0.015 && ntrack_all==1", fname="acolt0p015-ntracks1"),
-    Sel(f"A < 0.015, {tit_nt} = 2",  f"{baseline} && aco<0.015 && ntrack_all==2", fname="acolt0p015-ntracks2"),
-    Sel(f"A < 0.015, {tit_nt} = 3",  f"{baseline} && aco<0.015 && ntrack_all==3", fname="acolt0p015-ntracks3"),
+    Sel(f"A < 0.015, {tit_nt} = 0",  f"{baseline} && aco<0.015 && ntrack_all==0", fname="acolt0p015-ntracks0"),
+    Sel(f"A < 0.015, {tit_nt} = 1",  f"{baseline} && aco<0.015 && ntrack_all==1", fname="acolt0p015-ntracks1"),
+#     Sel(f"A < 0.015, {tit_nt} = 2",  f"{baseline} && aco<0.015 && ntrack_all==2", fname="acolt0p015-ntracks2"),
+#     Sel(f"A < 0.015, {tit_nt} = 3",  f"{baseline} && aco<0.015 && ntrack_all==3", fname="acolt0p015-ntracks3"),
   ]
   selections = filtervars(selections,selfilter) # filter variable list with -S/--sel flag
   
   # SELECTIONS for ntrack SIDEBAND to estimate incl. background
+  allselections = selections[:] # SR + SB selections
+  sel_sb_dict   = { } # to avoid duplicate objects
   for selection in selections:
     fname_sb = re.sub(r"ntracks(?:leq)?\d",f"ntracks{ntmin}to{ntmax}",selection.filename)
     tit_sb   = re.sub(f"{re.escape(tit_nt)}\s*(?:#leq|<|<?=)\s*\d+",f"{ntmin} <= {tit_nt} <= {ntmax}",selection.title) #tit_nt
     repl     = ('ntrack_all[<=]=?[0123]',f"{ntmin}<=ntrack_all && ntrack_all<={ntmax}")
     sel_sb   = selection.clone(title=tit_sb,replace=repl,regex=True,fname=fname_sb,verb=verb)
+    if sel_sb.selection in sel_sb_dict: # duplicate !
+      assert sel_sb.filename==fname_sb, f"sel_sb.filename={sel_sb.filename!r}, fname_sb={fname_sb!r}"
+      #assert sel_sb.title==tit_sb, f"sel_sb.title={sel_sb.title!r}, tit_sb={tit_sb!r}"
+      sel_sb = sel_sb_dict[sel_sb.selection]
+    else: # new side band
+      sel_sb_dict[sel_sb.selection] = sel_sb
+      allselections.append(sel_sb)
     selection.sideband = sel_sb
-    selection.issr = any("ntracks_all=="+n in selection.selection for n in '12')
+    selection.issr = any("ntracks_all=="+n in selection.selection for n in '01')
   
-  # JSON file
+  # VARIABLES
+  variables = [
+    #Var('m_ll', "m_mumu", 80, 50, 450, fname="m_mumu_fine", logy=True, ymargin=1.18, logyrange=6.5 ),
+    Var('m_ll', "m_mumu", mbins, fname="m_mumu", logy=True, ymargin=1.18, logyrange=7 ),
+  ]
+  
+  # JSON file for storing SFs
   sfs = { }
   if os.path.isfile(jfname):
     with open(jfname,'r') as infile:
@@ -318,53 +327,45 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       for tit in ['ZWindow']+ftits:
         sfs[era_][sname].setdefault(key_sb,{ }).setdefault(tit,{ }) # era -> selection -> sideband -> fit title -> fit
   
-  # VARIABLES
-  variables = [
-    #Var('m_ll', "m_mumu", 80, 50, 450, fname="m_mumu_fine", logy=True, ymargin=1.18, logyrange=6.5 ),
-    Var('m_ll', "m_mumu", mbins, fname="m_mumu", logy=True, ymargin=1.18, logyrange=7 ),
-  ]
-  
   # SAMPLES
   sample_obs, sample_dy, sample_sig, sample_ww = getsamples(sampleset,channel,era,dy=True,verb=verb)
   samples = [sample_obs, sample_dy, sample_ww, sample_sig]
   
+  # STEP 0: Create observed data & signal in signal region
+  LOG.color("Step 0: Creating hists...",b=True)
+  allhists = { } # { sample: { selection: { variable: hist } } }
+  for sample in samples:
+    LOG.color("Sample %s (%r) for %s variables, and %s selections"%(
+      sample.name,sample.title,len(variables),len(allselections)),c='grey',b=True)
+    if loadhists: # skip recreating histograms (fast!)
+      allhists[sample] = loadallhists(hfile,variables,variables,sample,subdir=allselections,verb=verb)
+    elif hasattr(sample,'gethist'): # create histograms from scratch (slow...)
+      print(f">>>   Creating hist for {sample.name}...")
+      #allhists[sample] = sample.gethist(variables,allselections,verb=verb+2)
+      allhists[sample] = sample.gethist(variables,allselections,preselect=baseline,verb=verb+1)
+  
   # LOOP over SELECTIONS
-  bkgname      = "bkg_incl"
-  outdir       = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
-  exts         = ['png','pdf'] if pdf else ['png'] # extensions
-  hists_sb_all = { } # for reuse 
-  ratios_dy    = { v: { } for v in variables } # to compute DY extrapolation SF
+  ratios_dy = { s: { } for s in allselections } # to compute DY extrapolation SF
   for selection in selections:
-    LOG.header("Selection %r: %r"%(selection.filename,selection.selection))
+    LOG.header("Selection %r: %r"%(selection.filename,selection.selection.replace(baseline+" && ",'')))
     #print(">>> Selection %r: %r"%(selection.title,selection.selection))
+    sel_sb = selection.sideband
     
-    # STEP 1: Create observed data & signal in signal region
-    print(green("Step 1: Creating hists...",bold=True,pre=">>> "))
+    # STEP 1: Retrieve observed data & signal histograms
+    LOG.color("Step 1: Retrieve histograms for this selection...",b=True)
     #hists_obs, hists_bkg, hists_ww, hists_sig = [ ], [ ], [ ], [ ]
-    hists_sr = { s: [ ] for s in samples } # signal region (ntrack==0, 1)
-    hists_sb = { s: [ ] for s in samples } # side band (high track)
-    for sample in hists_sr:
-      if isinstance(sample,str): continue
-      if loadhists: # skip recreating histograms (fast!)
-        for var in variables:
-          hists_sr[sample].append(loadhist(hfile,var,var,sample,subdir=selection,verb=verb))
-      elif hasattr(sample,'gethist'):
-        print(f">>>   Creating hist for {sample.name}...")
-        verb_ = verb + 4 #+ (4 if 'GGToMuMu' in sample.name else 0)
-        hists_sr[sample] = sample.gethist(variables,selection,parallel=parallel,verb=verb_)
+    hists_sr = { } # signal region (ntrack==0, 1)
+    hists_sb = { } # side band (high track)
+    for sample in samples: # { sample: { variable: hist } }
+      hists_sr[sample] = allhists[sample][selection]
+      hists_sb[sample] = allhists[sample][sel_sb]
     
     # STORE for later reuse
     if not loadhists: # store for later reuse
-      for i, var in enumerate(variables):
+      for var in variables:
         for sample in hists_sr: # SIGNAL REGION
           if not isinstance(sample,str): # store everything, except incl. bkg.
-            savehist(hists_sr[sample][i],hfile,var,var,sample,subdir=selection,verb=verb+3) # store for later reuse
-    
-    # STEP 2: Create inclusive background from side band with inverted track selections
-    print(green("Step 2: Create inclusive background...",bold=True,pre=">>> "))
-    
-    # STEP 2a: Create selections with inverted track selections
-    sel_sb = selection.sideband
+            savehist(hists_sr[sample][var],hfile,var,var,sample,subdir=selection,verb=verb+2) # store for later reuse
     
     # GET ANSATZ SF for JSON
     sf_el = 2.6 if 'ntrack_all==0' in selection.selection else 2.8 # ansatz SF for this selection
@@ -373,48 +374,36 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       lastkey = list(sorted(sfs_.keys()))[-1]
       sf_el   = float(sfs_[lastkey]['0'].split(' ')[0]) # reuse
     
-    # STEP 2b: Get observed data & signal in side band
-    reuse_sb = (sel_sb.selection in hists_sb_all)
-    hists_sb[bkgname] = [ ]
-    if reuse_sb: # reuse from last iteration of selection
-      print(green("Step 2b: Reusing histograms from previous selections...",bold=True,pre=">>> "))
-      hists_sb = hists_sb_all[sel_sb.selection]
-    else: # create from scratch
-      print(green("Step 2b: Creating histograms from sideband...",bold=True,pre=">>> "))
-      for sample in hists_sb:
-        if isinstance(sample,str): continue
-        if loadhists: # skip recreating histograms (fast!)
-          for var in variables:
-            hists_sb[sample].append(loadhist(hfile,var,var,sample,subdir=sel_sb,verb=verb))
-        elif hasattr(sample,'gethist'): # create histograms from scratch (slow...)
-          #assert len(hists_sr[sample])==0
-          print(f">>>   Creating hist for {sample.name}...")
-          hists_sb[sample] = sample.gethist(variables,sel_sb,parallel=parallel,verb=verb)
-      
-      # STEP 2c: Create inclusive background
-      print(green("Step 2c: Create side band hist...",bold=True,pre=">>> "))
-      for i, var in enumerate(variables):
-        hist_sb_bkg = hists_sb[sample_obs][i].Clone(f"{var.filename}_{fname_sb}_{bkgname}")
-        hist_sb_bkg.Add(hists_sb[sample_ww][i], -1) # subtract WW signal
-        hist_sb_bkg.Add(hists_sb[sample_sig][i],-1) # subtract mumu signal
+    # STEP 2: Create inclusive background from side band with inverted track selections
+    LOG.color("Step 2: Create inclusive background...",b=True)
+    
+    # STEP 2a: Create background histogram from side band for first and last time
+    if bkgname not in hists_sb: # create background histogram from side band for first and last time
+      LOG.color("Step 2a: Create inclusive background in side band...",b=True)
+      hists_sb[bkgname] = { } # { variable: hist }
+      allhists[bkgname] = { sel_sb: { } } # { selection: { variable: hist } }
+      for var in variables:
+        hist_sb_bkg = hists_sb[sample_obs][var].Clone(f"{var.filename}_{fname_sb}_{bkgname}")
+        hist_sb_bkg.Add(hists_sb[sample_ww][var], -1) # subtract WW signal (note: no rescaling)
+        hist_sb_bkg.Add(hists_sb[sample_sig][var],-1) # subtract mumu signal (note: no rescaling)
         hist_sb_bkg.SetFillColor(kAzure-9)
         hist_sb_bkg.SetTitle("Incl. bkg.")
-        hists_sb[bkgname].append(hist_sb_bkg)
+        hists_sb[bkgname][var] = hist_sb_bkg # for plotting
+        allhists[bkgname][sel_sb][var] = hist_sb_bkg # save for next selection in iteration
       
       # STORE for later reuse
-      hists_sb_all[sel_sb.selection] = hists_sb # save for selections in next iteration
       if not loadhists: # store for later reuse
-        for i, var in enumerate(variables):
+        for var in variables:
           for sample in hists_sb: # store everything
-            savehist(hists_sb[sample][i],hfile,var,var,sample,subdir=sel_sb,verb=verb) # store for later reuse
+            savehist(hists_sb[sample][var],hfile,var,var,sample,subdir=sel_sb,verb=verb) # store for later reuse
       
-      # STEP 2d: Plot side band region
-      print(green("Step 2d: Plot sideband...",bold=True,pre=">>> "))
+      # STEP 2b: Plot side band region
+      LOG.color("Step 2b: Plot sideband...",b=True)
       fname = f"{outdir}/$VAR_{chstr}-{sel_sb.filename}-{era}$TAG"
       text  = sel_sb.title
-      for i, var in enumerate(variables):
-        hist_obs  = hists_sb[sample_obs][i] # observed
-        hists_exp = [hists_sb[s][i] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
+      for var in variables:
+        hist_obs  = hists_sb[sample_obs][var] # observed
+        hists_exp = [hists_sb[s][var] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
         stack = Stack(var,hist_obs,hists_exp,clone=True,verb=verb)
         stack.draw(fraction=fraction,rmin=0,rmax=1.25,lowerpanels=2)
         stack.drawlegend(twidth=1)
@@ -435,20 +424,20 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       if redo>=1:
         print(f">>>\n>>> FIT AGAIN! redo={redo} with sf={sf_el}...")
       
-      # STEP 2e: Create inclusive background in signal region
-      print(green("Step 2e: Create incl. bkg. in signal region...",bold=True,pre=">>> "))
-      hists_sr[bkgname] = [ ] # overwrite previous
-      for i, var in enumerate(variables):
-        hist_bkg = hists_sb[bkgname][i].Clone(f"{var.filename}_{selection.filename}_{bkgname}")
-        hists_sr[bkgname].append(hist_bkg)
+      # STEP 2c: Create inclusive background in signal region
+      LOG.color("Step 2c: Create incl. bkg. in signal region...",b=True)
+      hists_sr[bkgname] = { } # overwrite previous
+      for var in variables:
+        hist_bkg = hists_sb[bkgname][var].Clone(f"{var.filename}_{selection.filename}_{bkgname}")
+        hists_sr[bkgname][var] = hist_bkg
       
-      # STEP 2f: Apply extrapolation SF from DY MC
+      # STEP 2d: Apply extrapolation SF from DY MC
       if 'extraSF' in tag:
-        print(green("Step 2f: Apply extrapolation SF from DY MC...",bold=True,pre=">>> "))
-        for i, var in enumerate(variables):
-          hist_sr_bkg = hists_sr[bkgname][i]   # signal region (low ntracks)
-          hist_sr_dy  = hists_sr[sample_dy][i] # signal region (low ntracks)
-          hist_sb_dy  = hists_sb[sample_dy][i] # sideband (high ntracks)
+        LOG.color("Step 2d: Apply extrapolation SF from DY MC...",b=True)
+        for var in variables:
+          hist_sr_bkg = hists_sr[bkgname][var]   # signal region (low ntracks)
+          hist_sr_dy  = hists_sr[sample_dy][var] # signal region (low ntracks)
+          hist_sb_dy  = hists_sb[sample_dy][var] # sideband (high ntracks)
           if redo==0: # only do this the first time
             ntrack     = int(selection.title[-1])
             n_dy_sr    = integrateZWindow(hist_sr_dy,75,105)
@@ -461,8 +450,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
             ratio_dy.Divide(hist_sb_dy)
             ratio_dy.Scale(norm_dy) # normalize to Z peak
             savehist(ratio_dy,hfile,var,var,ratio_dy.GetName(),subdir=sel_sb,verb=verb) # store for later reuse
-            ratios_dy[var][selection] = ratio_dy # store for later reuse
-        ratio_dy = ratios_dy[var][selection]
+            ratios_dy[selection][var] = ratio_dy # store for later reuse
+        ratio_dy = ratios_dy[selection][var]
         #hist_sr_bkg.Multiply(ratio_dy) # multiply bin-by-bin
         for i in range(1,hist_sr_bkg.GetXaxis().GetNbins()+1):
           n_bkg = hist_sr_bkg.GetBinContent(i)
@@ -473,13 +462,13 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           hist_sr_bkg.SetBinContent(i,n_bkg*sf_ep)
           print(f">>>   n_bkg={n_bkg:7.2f} in bin={i:2d} ({xval:5.1f}) => sf_ep={sf_ep:5.2f} in bin={i2:2d} ({xval2:4.1f})")
       
-      # STEP 2g: Normalize inclusive background to |M-90| < 15 GeV
-      print(green("Step 2g: Normalize incl. bkg. to Z peak...",bold=True,pre=">>> "))
-      for i, var in enumerate(variables):
-        hist_bkg = hists_sr[bkgname][i]    # expected incl bkg from sideband (before scaling)
-        hist_obs = hists_sr[sample_obs][i] # observed
-        hist_ww  = hists_sr[sample_ww][i]  # expected WW signal
-        hist_sig = hists_sr[sample_sig][i] # expected mumu signal
+      # STEP 2e: Normalize inclusive background to |M-90| < 15 GeV
+      LOG.color("Step 2e: Normalize incl. bkg. to Z peak...",b=True)
+      for var in variables:
+        hist_bkg = hists_sr[bkgname][var]    # expected incl bkg from sideband (before scaling)
+        hist_obs = hists_sr[sample_obs][var] # observed
+        hist_ww  = hists_sr[sample_ww][var]  # expected WW signal
+        hist_sig = hists_sr[sample_sig][var] # expected mumu signal
         n_obs    = integrateZWindow(hist_obs,verb=verb)
         n_bkg    = integrateZWindow(hist_bkg,verb=verb) # before scaling
         n_ww     = integrateZWindow(hist_ww, verb=verb)
@@ -500,24 +489,24 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       # STORE for later reuse
       #if not loadhists and redo==redoes[-1]: # store for later reuse
       if redo==redoes[-1]: # store for later reuse
-        for i, var in enumerate(variables):
+        for var in variables:
           for sample in hists_sr: # SIGNAL REGION
             if isinstance(sample,str): # store only background (after scaling)
               sample_ = sample+f"_ntracks{ntmin}to{ntmax}"+tag
-              savehist(hists_sr[sample][i],hfile,var,var,sample_,subdir=selection,verb=verb+3) # store for later reuse
+              savehist(hists_sr[sample][var],hfile,var,var,sample_,subdir=selection,verb=verb+3) # store for later reuse
       
       # STEP 3: Plot signal region
-      print(green("Step 3: Plot signal region...",bold=True,pre=">>> "))
+      LOG.color("Step 3: Plot signal region...",b=True)
       fname = f"{outdir}/$VAR_{chstr}-{selection.filename}-{era}_bkg{ntmin}to{ntmax}_fit{redo+1}$TAG"
       #text  = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
       text  = selection.title
       rmax  = 3 if selection.issr else 1.6
       rmax2 = 6.7 if selection.issr else 6.7
-      for i, var in enumerate(variables):
+      for var in variables:
         
         # GET HIST
-        hist_obs  = hists_sr[sample_obs][i] # observed
-        hists_exp = [hists_sr[s][i] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
+        hist_obs  = hists_sr[sample_obs][var] # observed
+        hists_exp = [hists_sr[s][var] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
         
         # PLOT STACK
         stack = Stack(var,hist_obs,hists_exp,clone=True,verb=verb)
@@ -526,12 +515,12 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
         stack.drawtext(text)
         
         # STEP 4: Fit ratio
-        print(green("Step 4: Fit...",bold=True,pre=">>> "))
+        LOG.color("Step 4: Fit...",b=True)
         hnum = hist_obs.Clone("num")
-        hnum.Add(hists_sr[bkgname][i],-1)
+        hnum.Add(hists_sr[bkgname][var],-1)
         hnum.SetOption('E0 E1')
-        hden = hists_sr[sample_sig][i].Clone("den")
-        hden.Add(hists_sr[sample_ww][i],+1)
+        hden = hists_sr[sample_sig][var].Clone("den")
+        hden.Add(hists_sr[sample_ww][var],+1)
         funcs = { } # fit functions
         stack.canvas.cd(3)
         ratio2 = Ratio(hnum,hden,errband=True,verb=verb)
@@ -599,14 +588,14 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       
       # STEP 5: Plot again
       if redo==redoes[-1]: # only last time
-        print(green("Step 5: Plot again after applying SF...",bold=True,pre=">>> "))
-        for i, var in enumerate(variables):
+        LOG.color("Step 5: Plot again after applying SF...",b=True)
+        for var in variables:
           
           # GET HISTS
-          hist_obs  = hists_sr[sample_obs][i] # observed
-          hists_exp = [hists_sr[s][i] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
-          hists_sr[sample_sig][i].Scale(sf_el) # scale with SF
-          hists_sr[sample_ww][i].Scale(sf_el)  # scale with SF
+          hist_obs  = hists_sr[sample_obs][var] # observed
+          hists_exp = [hists_sr[s][var] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
+          hists_sr[sample_sig][var].Scale(sf_el) # scale with SF
+          hists_sr[sample_ww][var].Scale(sf_el)  # scale with SF
           
           # PLOT STACK
           stack = Stack(var,hist_obs,hists_exp,clone=True,verb=verb)
@@ -617,10 +606,10 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           
           # PLOT BOTTOM RATIO
           hnum = hist_obs.Clone("num")
-          hnum.Add(hists_sr[bkgname][i],-1)
+          hnum.Add(hists_sr[bkgname][var],-1)
           hnum.SetOption('E0 E1')
-          hden = hists_sr[sample_sig][i].Clone("den")
-          hden.Add(hists_sr[sample_ww][i],+1)
+          hden = hists_sr[sample_sig][var].Clone("den")
+          hden.Add(hists_sr[sample_ww][var],+1)
           stack.canvas.cd(3)
           ratio2 = Ratio(hnum,hden,errband=True,verb=verb)
           ratio2.draw(data=True)
@@ -637,7 +626,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   # STEP 6: Compare Incl. Bkg. to DY MC
   #if redo==redoes[-1]: # only last time
   #LOG.header("Comparing DY & Incl. Bkg.")
-  print(green("Step 6: Compare DY MC & Incl. Bkg. data...",bold=True,pre=">>> "))
+  LOG.color("Step 6: Compare DY MC & Incl. Bkg. data...",b=True)
   hists    = { v: [ ] for v in variables } # for reuse
   sel_sb   = selections[0].sideband
   #ratio_dy = { v: { } for v in variables } # to compute DY extrapolation SF
@@ -651,7 +640,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   #tit_sb = f"{ntmin} <= {tit_nt} <= {ntmax}"
   for var in variables:
     #if loadhists: # skip recreating histograms (fast!)
-    #hist_dy = sample_dy.gethist(var,sel_sb,parallel=parallel,verb=verb)
+    #hist_dy = sample_dy.gethist(var,sel_sb,verb=verb)
     hist_dy = loadhist(hfile,var,var,sample_dy,subdir=sel_sb,verb=verb)
     hist_sb = loadhist(hfile,var,var,bkgname,subdir=sel_sb,verb=verb)
     hist_dy.SetTitle(f"Drell-Yan MC, {sel_sb.title}")
@@ -676,7 +665,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
     plot.close(keep=False)
   
   # JSON file
-  print(green("Step 7: Writing fit results to JSON...",bold=True,pre=">>> "))
+  LOG.color("Step 7: Writing fit results to JSON...",b=True)
   ###for era in sfs:
   ###  for sel in sfs[era]:
   ###    if not sel.issr:
@@ -772,6 +761,7 @@ def printResults(era,outdir):
   
 
 def main(args):
+  verbosity  = args.verbosity
   channels   = args.channels
   eras       = args.eras
   varfilter  = args.varfilter
@@ -780,10 +770,11 @@ def main(args):
   methods    = args.methods
   sidebands  = args.sidebands
   tag        = args.tag
-  parallel   = args.parallel
+  nthreads   = args.nthreads
   outdir     = "plots/g-2/elastic"
   outdir_bkg = "plots/g-2/elastic/bkg"
   #testFit(); exit(0)
+  RDF.SetNumberOfThreads(nthreads,verb=verbosity+1) # set nthreads globally
   
   # LOOP over channels
   for channel in channels:
@@ -793,15 +784,13 @@ def main(args):
         exit(0)
       setera(era) # set era for plot style and lumi-xsec normalization
       sampleset = getsampleset(channel,era,loadcorrs=True)
-      #plotStack(sampleset,channel,parallel=parallel,tag=tag,outdir=outdir,era=era)
+      #plotStack(sampleset,channel,tag=tag,outdir=outdir,era=era)
       if 'sf' in methods:
         for sideband in sidebands:
           measureElasicSF(sampleset,channel,tag=tag,outdir=outdir,era=era,
-                          loadhists=loadhists,parallel=parallel,sideband=sideband)
+                          loadhists=loadhists,sideband=sideband)
       if 'comp' in methods:
-        studyInclBkg(sampleset,channel,tag=tag,outdir=outdir_bkg,era=era,
-                     parallel=parallel,loadhists=loadhists)
-      sampleset.close()
+        studyInclBkg(sampleset,channel,tag=tag,outdir=outdir_bkg,era=era,loadhists=loadhists)
   
 
 if __name__ == "__main__":
@@ -820,8 +809,10 @@ if __name__ == "__main__":
                                            help="only plot the selection passing this filter (glob patterns allowed)" )
   #parser.add_argument('-s', '--serial',    dest='parallel', action='store_false',
   #                                         help="run Tree::MultiDraw serial instead of in parallel" )
-  parser.add_argument('-p', '--parallel',  action='store_true',
-                                           help="run Tree::MultiDraw in parallel instead of in serial" )
+  #parser.add_argument('-p', '--parallel',  action='store_true',
+  #                                         help="run Tree::MultiDraw in parallel instead of in serial" )
+  parser.add_argument('-n', '--nthreads',  type=int, nargs='?', const=10, default=10, action='store',
+                                           help="run RDF in parallel instead of in serial, nthreads=%(default)r" )
   #parser.add_argument('-p', '--pdf',       dest='pdf', action='store_true',
   #                                         help="create pdf version of each plot" )
   parser.add_argument('-m', '--method',    dest='methods', choices=['sf','comp','res'], nargs='+', default=['sf'],

@@ -22,6 +22,10 @@ samples  = [
     store=storage,url=url,files=filelist,opts="useT1=False,toppt=True"),
   
   # DIBOSON
+  M('VV','GGToWW',
+    #"GGToWW_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_july/230803_074038/0000", # filter, 1/128
+    "GGToWW_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_nofilter_januarysamples/240109_133000/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','WWTo2L2Nu',
     "WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16APV_NanoAODv9/230420_083619/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
@@ -40,16 +44,20 @@ samples  = [
   M('VV','ZZTo4L',
     "ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL16APV_NanoAODv9/230420_083725/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
-  M('VV','GGToWW',
-    "GGToWW_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_july/230803_074038/0000",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','VVTo2L2Nu',
     "VVTo2L2Nu_MLL-1toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL16APV_NanoAODv9/231018_130414/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
   
   # SIGNAL
   M('Signal','GGToMuMu',
-    "GGToMuMu_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_july/230803_074000/0000",
+    #"GGToMuMu_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_july/230803_074000/0000", # filter, 1/128
+    "GGToMuMu_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_nofilter_januarysamples/240109_132938/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
+  M('Signal','GGToEE',
+    "GGToElEl_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_nofilter_januarysamples/240109_132913/0000", # 1/137, no filter
+    store=storage,url=url,files=filelist,opts="useT1=False"),
+  M('Signal','GGToTauTau',
+    "GGToTauTau_Ctb20_RunIISummer20UL16APV/RunIISummer20UL16APV_NanoAODv9_nofilter_januarysamples/240109_132834/0000", # 1/137, no filter
     store=storage,url=url,files=filelist,opts="useT1=False"),
   
   # SINGLE MUON

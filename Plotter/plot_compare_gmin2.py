@@ -1,6 +1,9 @@
 #! /usr/bin/env python3
 # Author: Izaak Neutelings (June 2023)
 # Description: Compare distributions in pico analysis tuples
+# Instructions:
+#   ./plot_compare_gmin2.py -y UL2018 -m hs -L
+#   ./plot_compare_gmin2.py -y UL2018 -m pu -L
 print(">>> Importing...")
 import os, re
 #from array import array
@@ -24,7 +27,15 @@ from TauFW.common.tools.file import ensuredir
 from TauFW.common.tools.utils import ensurelist, repkey
 from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr
 from TauFW.common.tools.math import partition, frange
+from TauFW.common.tools.RDataFrame import RDF
 print(">>> Done importing...")
+
+# COMMON CROSS SECTION for signals
+#xsec_mm = 0.324*0.328 #0.37553*0.33 # old samples with filter, alpha = 1/126
+xsec_mm = 0.303 # new samples without filter, alpha = 1/137
+xsec_tt = 1.048*0.0403 # new samples without filter, alpha = 1/137 (GGToTT_Ctb20)
+#xsec_ww = 0.00692*0.368 #0.37553*0.33 # old samples with filter, alpha = 1/126
+xsec_ww = 0.006561 # new samples without filter, alpha = 1/137
 
 
 def getweight(channel,era,**kwargs):
@@ -85,8 +96,20 @@ def makemcsample(group,sname,title,xsec,channel,era,tag="",verb=0,**kwargs):
   if verb>=1:
     print(">>> makemcsample: %s, %s, %s"%(name,sname,fname_))
   sample = MC(name,title,fname_,xsec,**kwargs)
-  sample.addalias('z_mumu',"pv_z+0.5*dz_1+0.5*dz_2",verb=verb)
-  sample.addalias('aco',"(1-abs(dphi_ll)/3.14159265)",verb=verb)
+  #sample.addalias('z_mumu',"pv_z+0.5*dz_1+0.5*dz_2",verb=verb)
+  #sample.addalias('aco',"(1-abs(dphi_ll)/3.14159265)",verb=verb)
+  sample.addaliases(**{
+    'm_ll':          "m_vis",
+    'aco':           "(1-abs(dphi_ll)/3.14159265)",
+    'z_mumu':        "pv_z+0.5*dz_1+0.5*dz_2",
+    #'bs_sigmaUp':    'bs_sigma+bs_sigmaErr',
+    #'bs_sigmaDown':  'bs_sigma-bs_sigmaErr',
+    'ntrack_all':    "ntrack_hs+ntrack_pu",
+    'ntrack_all_raw':"ntrack_hs+ntrack_pu_raw",
+    'ntrack_allUp':  "ntrack_hs+ntrack_puUp",
+    'ntrack_allDown':"ntrack_hs+ntrack_puDown",
+  },verb=0)
+  
   return sample
   
 
@@ -138,6 +161,11 @@ def getsampleset(channel,era,**kwargs):
   dyweight = joinweights(dyweight,wgt_dy)
   kwargs['extraweight'] = joinweights(kwargs.get('extraweight',''),wgt_mc)
   weight   = getweight(channel,era,**kwargs)
+  if '$ERA' in weight or '$ERA' in dyweight:
+    gSystem.Load("python/corrections/g-2/corrs_ntracks_C.so") # faster than compiling
+    from ROOT import getEraIndex # from python/corrections/g-2/ntracks_pileup.C
+    weight   = weight.replace('$ERA',str(getEraIndex(era)))
+    dyweight = dyweight.replace('$ERA',str(getEraIndex(era)))
   if verb+4>=1:
     print(f">>> dyweight = {dyweight!r}")
     print(f">>> weight   = {weight!r}")
@@ -159,7 +187,7 @@ def getsampleset(channel,era,**kwargs):
       ###( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
       ###( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
       ###( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
-      ( 'VV', "WWTo2L2Nu",             "WW",            118.7*0.3*0.3*0.397 ),
+      ###( 'VV', "WWTo2L2Nu",             "WW",            118.7*0.3*0.3*0.397 ),
       ###( 'VV', "WW",                    "WW",                    75.88 ),
       ###( 'VV', "WZ",                    "WZ",                    27.6  ),
       ###( 'VV', "ZZ",                    "ZZ",                    12.14 ),
@@ -186,9 +214,20 @@ def getsampleset(channel,era,**kwargs):
   ###sampleset.stitch("W*Jets",    incl='WJ',  name='WJ',     npart='NUP' )
   ###sampleset.join('TT')
   ###sampleset.join('DY', name='DY'  )
-  sampleset.addalias('z_mumu',"pv_z+0.5*dz_1+0.5*dz_2",verb=verb+4)
-  sampleset.addalias('aco',"(1-abs(dphi_ll)/3.14159265)",verb=verb+4)
-  #sampleset.addalias('ntrack_all',"ntrack_hs+ntrack_pu",verb=verb+4)
+  ###sampleset.addalias('z_mumu',"pv_z+0.5*dz_1+0.5*dz_2",verb=verb+4)
+  ###sampleset.addalias('aco',"(1-abs(dphi_ll)/3.14159265)",verb=verb+4)
+  ###sampleset.addalias('ntrack_all',"ntrack_hs+ntrack_pu",verb=verb+4)
+  sampleset.addaliases(**{
+    'm_ll':          "m_vis",
+    'aco':           "(1-abs(dphi_ll)/3.14159265)",
+    'z_mumu':        "pv_z+0.5*dz_1+0.5*dz_2",
+    #'bs_sigmaUp':    'bs_sigma+bs_sigmaErr',
+    #'bs_sigmaDown':  'bs_sigma-bs_sigmaErr',
+    'ntrack_all':    "ntrack_hs+ntrack_pu",
+    'ntrack_all_raw':"ntrack_hs+ntrack_pu_raw",
+    #'ntrack_allUp':  "ntrack_hs+ntrack_puUp",
+    #'ntrack_allDown':"ntrack_hs+ntrack_puDown",
+  },verb=verb)
   if table:
     sampleset.printtable()
   return sampleset
@@ -220,6 +259,8 @@ def loadhist(hfile,var,var0,sample,subdir=None,verb=0):
   """Load hists from file."""
   if isinstance(var0,dict):
     var0 = var0.get(var,var)
+  #if isinstance(var0,list):
+  #  var0 = var
   dname, hname = gethname(var0,var,sample,subdir=subdir)
   hname = "%s/%s"%(dname,hname)
   LOG.verb("Loading %s..."%(hname),verb,level=2)
@@ -235,20 +276,27 @@ def loadhist(hfile,var,var0,sample,subdir=None,verb=0):
   return hist
   
 
+def loadallhists(hfile,vars,vars0,sample,subdir=None,**kwargs):
+  if isinstance(subdir,list): # return nested dictionary { selection: { variable: hist } }
+    return { s: loadallhists(hfile,vars,vars0,sample,subdir=s,**kwargs) for s in subdir }
+  elif isinstance(vars0,list): # return dictionary { variable: hist }
+    return { v: loadhist(hfile,v,v0,sample,subdir=subdir,**kwargs) for v, v0 in zip(vars,vars0) }
+  else: # return dictionary { variable: hist }
+    return { v: loadhist(hfile,v,vars0,sample,subdir=subdir,**kwargs) for v in vars }
+
+
 def compare_ntracks_hs(era,channel,tag="",**kwargs):
   """Compare number of track."""
   LOG.header("compare_ntracks_hs",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/ntracks_hs" )
-  parallel  = kwargs.get('parallel',  True    ) and False
   loadhists = kwargs.get('loadhists', False   ) #True and False
   norms     = kwargs.get('norm',      [True]  )
   exts      = kwargs.get('exts',      ['png'] ) # figure file extensions
-  verbosity = kwargs.get('verb',      8       )
+  verbosity = kwargs.get('verb',      2       )
   chunk     = kwargs.get('chunk',     -1      )
   ensuredir(outdir)
   norms     = ensurelist(norms)
   rtitle    = "Obs. / Sim."
-  sigtitle  = "#gamma#gamma -> #mumu"
   hfname    = "%s/corrs_ntracks_hs_%s.root"%(outdir,era)
   hfile     = ensureTFile(hfname,'READ' if loadhists else 'UPDATE') # back up histograms for reuse
   lsize     = 0.041 # legend text size
@@ -269,9 +317,10 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
     print(">>> Loading acoplanarity corrections...")
     year = era.replace('UL','').replace('_','').replace('VFP','')
     fname_wgt = "$CMSSW_BASE/src/TauFW/Plotter/python/corrections/g-2/new_correction_acoplanarity_fine_%s.root"%year
-    gROOT.ProcessLine(".L python/corrections/g-2/aco.C+O")
+    #gROOT.ProcessLine(".L python/corrections/g-2/aco.C+O")
+    gSystem.Load("python/corrections/g-2/aco_C.so") # faster than compiling
     from ROOT import loadAcoWeights
-    loadAcoWeights(fname_wgt)
+    loadAcoWeights(era)
     print(">>> Done loading!")
   
   # SELECTIONS
@@ -294,24 +343,23 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   
   # GET SAMPLES
   #print(">>> GLOB.lumi=%s"%(GLOB.lumi))
-  xsec   = 0.324 * 0.328 #0.37553*0.33
-  sigwgt = "( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )"
-  kwargs['dyweight'] = 'getAcoWeight(aco,pt_1,pt_2)'
+  #sigwgt = "( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )" # old rescaling: measured by Cecile
+  sigwgt = "( ntrack_all==0 ? 2.70 : ntrack_all==1 ? 2.71 : 1 )" # new rescaling: measured by Izaak
+  kwargs['dyweight'] = 'getAcoWeight(aco,pt_1,pt_2,$ERA)'
   sampleset  = getsampleset(channel,era,**kwargs)
   sample_obs = sampleset.get('Observed',unique=True,verb=verbosity-1)
   sample_dy  = sampleset.get('DY',title="Z -> mumu",unique=True,verb=verbosity-1)
-  sample_sig = makemcsample('Signal','GGToMuMu',sigtitle,xsec,channel,era,tag="",extraweight=sigwgt,lumi=GLOB.lumi,verb=10)
+  sample_sig = makemcsample('Signal','GGToMuMu',"#gamma#gamma -> #mu#mu", # (elastic)
+                            xsec_mm,channel,era,tag="",extraweight=sigwgt,lumi=GLOB.lumi,verb=6)
+  sample_ww  = makemcsample('VV','GGToWW',"#gamma#gamma -> WW", # (elastic)
+                            xsec_ww,channel,era,tag="",extraweight=sigwgt,lumi=GLOB.lumi,verb=6)
   sample_dy.title = "Z -> mumu"
   samples     = [
     sample_dy,
     sample_obs,
     sample_sig,
+    sample_ww,
   ]
-  for sample in samples:
-    sample.addaliases(
-      z_mumu = "pv_z+0.5*dz_1+0.5*dz_2",
-      verb   = verbosity,
-    )
   
   # ADD HS CUTS
   tit_nhs = "N(reco HS)"
@@ -320,7 +368,7 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   ztitle  = "HS track correction"
   tbins   = (31, 0, 31)
   varsets = [
-    [Var('ntrack_all', ttitle, *tbins, logy=True, ymargin=1.52, ymin=3e-6, addof=True)],
+    [Var('ntrack_all', ttitle, *tbins, logy=True, ymargin=1.52, ymin=3e-6, addof=True, int=True)],
   ]
   hs_bins  = [
     0, 1, 2, 3, 4,
@@ -334,11 +382,11 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   for varset in varsets:
     var0 = varset[0]
     for bin in hs_bins:
-      if isinstance(bin,int):
+      if isinstance(bin,int): # single-valued, integer bins
         cut   = "ntrack_hs==%s"%(bin)
         text  = f"%s = %s"%(tit_nhs,bin)
         fname = "$VAR_%s"%(bin)
-      elif bin[1]<100:
+      elif bin[1]<100: # integer range
         cut   = "%s<=ntrack_hs && ntrack_hs<%s"%bin
         text  = "%.3g <= %s < %.3g"%(bin[0],tit_nhs,bin[1])
         fname = "$VAR_%s-%s"%(bin)
@@ -346,11 +394,11 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
         cut   = "%s<=ntrack_hs"%(bin[0])
         text  = "%s >= %.3g"%(tit_nhs,bin[0])
         fname = "$VAR_%s"%(bin[0])
-      var = Var('ntrack_all', text, *tbins,fname=fname,addof=True,cut=cut,flag=text,data=False)
+      var = Var('ntrack_all', text, *tbins,fname=fname,addof=True,int=True,cut=cut,flag=text,data=False)
       varset.append(var)
       vardict[var] = var0
     text = "Uncorr. BS"
-    var = Var('ntrack_all_raw', text, *tbins, fname=fname,addof=True,flag=text,data=False)
+    var = Var('ntrack_all_raw', text, *tbins, fname=fname,addof=True,int=True,flag=text,data=False)
     varset.append(var)
     vardict[var] = var0
     print(">>> len(varset)=%s"%(len(varset)))
@@ -360,51 +408,43 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   hists2d = { }
   hists2d['incl'] = xvar.gethist2D(yvar,'correction_map',ztitle=ztitle)
   
-  # PLOT
-  header = None #samples[0].title
+  # STEP 1: CREATE HISTOGRAMS for all selections
+  LOG.color("Step 1: Creating hists...",b=True)
+  vars_obs = [v for s in varsets for v in s if v.data]
+  vars_exp = [v for s in varsets for v in s if not v.data]
+  allhists = { } # { sample: { selection: { variable: hist } } }
+  for sample in samples:
+    vars = vars_exp if sample==sample_dy else vars_obs
+    LOG.color("Sample %s (%r) for %s variables, and %s selections"%(
+      sample.name,sample.title,len(vars),len(selections)),c='grey',b=True)
+    if loadhists: # skip recreating histograms (fast!)
+      allhists[sample] = loadallhists(hfile,vars,vardict,sample,selections,verb=verbosity)
+    else: # create histograms from scratch (slow...)
+      allhists[sample] = sample.gethist(vars,selections,preselect=baseline,verb=verbosity)
+  
+  # STEP 2: PLOT
+  LOG.color("Step 2: Plotting...",b=True)
   for selection in selections:
-    print(">>> %s: %r"%(selection,selection.selection))
-    vars_obs = [v for s in varsets for v in s if v.data]
-    vars_exp = [v for s in varsets for v in s if not v.data]
-    histset  = HistSet(vars_obs,sig=True) #{ }
-    fname    = "%s/$VAR_%s_%s%s$TAG"%(outdir,selection.filename,era,tag)
+    LOG.header("Selection %r"%(selection.selection.replace(baseline+" && ",'')),pre=">>>")
+    histsets = {v: HistSet() for v in vars_obs }
     
-    # LOOP over SAMPLES
+    # STEP 2a: LOOP over SAMPLES to regroup
+    LOG.color("Step 2a: Regrouping histograms...",b=True)
     for sample in samples:
-      LOG.header("Sample %s (%r)"%(sample.name,sample.title),pre=">>>")
-      #print(">>> Sample %s (%r)"%(sample.name,sample.title))
-      vars = vars_obs if (sample.isdata or sample==sample_sig) else vars_exp
-      for var in vars:
-        var.changecontext(selection,verb=verbosity-1)
-      
-      # DRAW / LOAD HIST
-      hists = [ ]
-      if loadhists: # skip recreating histograms (fast!)
-        for var in vars:
-          ###var0 = vardict.get(var,var)
-          ###dname, hname = gethname(var0,var,sample,subdir=selection)
-          ###hname = "%s/%s"%(dname,hname)
-          ###LOG.verb("Loading histogram %s..."%(hname),verbosity,level=2)
-          ###hist = hfile.Get(hname)
-          ###assert hist, "Could not find %s:%s"%(hfile.GetName(),hname)
-          hist = loadhist(hfile,var,vardict,sample,selection.filename,verb=verbosity)
-          hists.append(hist)
-      else: # create histograms from scratch (slow...)
-        hists = sample.gethist(vars,selection,parallel=parallel,verb=verbosity)
-      
-      # REODER HISTS
+      vars  = vars_exp if sample==sample_dy else vars_obs
+      hists = allhists[sample][selection]
       assert len(vars)==len(hists), "len(vars)=%s, len(hists)=%s"%(len(vars),len(hists))
       istack = 0
       nstack = sum([1 for v in vars if not v.data and not 'corr' in v.flag])
-      for i, (var, hist) in enumerate(zip(vars,hists)):
-        #htitle = hist.GetTitle()
+      for var, hist in hists.items():
         var0 = vardict.get(var,var)
-        if sample.isdata: # data
+        if sample.isdata: # for observed data
           assert var0==var
-          histset.data[var0] = hist
-        elif sample==sample_sig:
+          histsets[var0].data = hist
+          hist.SetTitle("Obs. #minus (#gamma#gamma -> #mu#mu)")
+        elif sample in [sample_sig,sample_ww]: # for gg -> mumu, WW signal
           assert var0==var
-          dhist = histset.data[var0] # assume already exists
+          dhist = histsets[var0].data # assume already exists
           assert dhist, "Observed hist not created before signal subtraction..."
           print(">>> Subtraction: %r - %r =>  %.1f - %.3f"%(dhist.GetTitle(),hist.GetTitle(),dhist.Integral(),hist.Integral()))
           for i in [1,2,3]:
@@ -412,37 +452,36 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
             ysig = hist.GetBinContent(i)
             print(">>>   ntracks==%s: sig / obs = %.3f / %.1f = %.2f%%"%(i-1,ysig,yobs,100.*ysig/yobs))
           dhist.Add(hist,-1) # subtract from observed data
-          dhist.SetTitle("Obs. #minus (%s)"%(hist.GetTitle()))
-          histset.signal[var0].append(hist) # draw overlay as "signal"
+          #dhist.SetTitle("Obs. #minus (%s)"%(hist.GetTitle()))
+          histsets[var0].sig.append(hist) # draw overlay as "signal"
         elif 'corr' in var.flag: # for overlay (not in stack)
-          htitle = var.title #hist.GetTitle()
-          hist.SetTitle(htitle)
-          histset.signal[var0].append(hist) # draw overlay as "signal"
-        else: # for stack
-          htitle = var.title #hist.GetTitle()
+          hist.SetTitle(var.title)
+          histsets[var0].sig.append(hist) # draw overlay as "signal"
+        else: # for DY stack
           icol   = int(round(istack*(TColor.GetNumberOfColors()-1)/(nstack-1)))
           icol_  = istack*(TColor.GetNumberOfColors()-1)/(nstack-1)
           fcolor = TColor.GetColorPalette(icol)
-          print(">>> i=%s, icol_=%s, icol=%s fcolor=%s, ncols=%s"%(
-            istack,icol_,icol,fcolor,TColor.GetNumberOfColors()))
-          hist.SetTitle(htitle)
+          if verbosity>=1:
+            print(">>> i=%s, icol_=%s, icol=%s, fcolor=%s, ncols=%s, var.title=%r"%(
+              istack,icol_,icol,fcolor,TColor.GetNumberOfColors(),var.title))
+          hist.SetTitle(var.title)
           hist.SetFillColor(fcolor)
-          histset.exp[var0].append(hist)
+          histsets[var0].exp.append(hist)
           istack += 1
         
         # SAVE HIST for later
         if not loadhists:
-          ###dname, hname = gethname(var0,var,sample,subdir=selection)
-          ###hdir = ensureTDirectory(hfile,dname,cd=True,verb=verbosity-2)
-          ###LOG.verb("Writing %s/%s to %s..."%(dname,hname,hfile.GetName()),verbosity,level=4)
-          ###hist.Write(hname,hist.kOverwrite)
-          savehist(hist,hfile,var,var0,sample,selection.filename,verb=verbosity)
+          savehist(hist,hfile,var,var0,sample,selection,verb=verbosity)
     
-    # PLOT all hists
-    for var, dhist, mchists, sighists in histset: #.items():
-      print(">>> dhist    = %s"%(rootrepr(dhist)))
-      print(">>> mchists  = %s"%(rootrepr(mchists)))
-      print(">>> sighists = %s"%(rootrepr(sighists)))
+    # STEP 2b: PLOT all hists
+    LOG.color("Step 2b: Plotting histograms before corrections...",b=True)
+    for var, histset in histsets.items():
+      dhist, mchists, sighists = histset.data, histset.exp, histset.sig
+      if verbosity>=1:
+        print(">>> var      = %r, %r"%(var.name,var.title))
+        print(">>> dhist    = %s"%(rootrepr(dhist)))
+        print(">>> mchists  = %s"%(rootrepr(mchists)))
+        print(">>> sighists = %s"%(rootrepr(sighists)))
       
       # GET TOTAL MC HIST
       sumhist0 = mchists[0].Clone(mchists[0].GetTitle()+'_uncorr')
@@ -461,7 +500,7 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
         sigscale = None
       
       # PLOT
-      print(">>> %r -> %s"%(var.name,', '.join(h.GetName() for h in hists)))
+      fname = "%s/$VAR_%s_%s%s$TAG"%(outdir,selection.filename,era,tag)
       texts = ["Z -> mumu",selection.title]
       #text  = "%s": %s"%(channel.replace("tau","tau_{h}"),selection.title)
       if var.flag:
@@ -474,12 +513,13 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
         plot = Stack(var,dhist,mchists,sighists,norm=norm)
         plot.draw(ratio=True,rtitle=rtitle,lcolors=lcols,reversestack=True,
                   sigscale=sigscale,rmin=rmin,rmax=rmax)
-        plot.drawlegend(pos='y=0.97',tsize=lsize,header=header,ncols=2,colsep=0.01)
+        plot.drawlegend(pos='y=0.97',tsize=lsize,ncols=2,colsep=0.01)
         plot.drawtext(texts+["Uncorrected"],size=tsize) #.replace('-','#minus'))
         plot.saveas(fname,ext=['png','pdf'],tag=ntag) #,'pdf'
         
-        # MAKE MEASUREMENT
+        # STEP 3: MAKE MEASUREMENT
         if norm and any(s in selection.selection for s in ['aco<0.015','aco>=0.015']):
+          LOG.color("Step 3: Measure HS track corrections...",b=True)
           iy = 1 if 'aco<0.015' in selection.selection else 2
           hist2d = hists2d['incl']
           for bin, mchist in zip(hs_bins,mchists): # scale bins from left to right to match data
@@ -508,22 +548,24 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
             if iy==hist2d.GetYaxis().GetNbins():
               hist2d.SetBinContent(ix,iy+1,scale) # overflow
           
-          # PLOT AGAIN after correction
+          # STEP 3a: PLOT AGAIN after correction
+          LOG.color("Step 3a: Plot histograms after corrections...",b=True)
           sighists_ = [sumhist0,]
           if sighist:
             sighists_.append(sighist)
           lcols = [kRed,kOrange+8,kMagenta+1,kGreen+1]
           plot2 = Stack(var,dhist,mchists,sighists_,norm=norm)
           plot2.draw(ratio=True,rtitle=rtitle,lcolors=lcols,reversestack=True,sigscale=sigscale)
-          plot2.drawlegend(pos='y=0.97',tsize=lsize,header=header,ncols=2,colsep=0.01)
+          plot2.drawlegend(pos='y=0.97',tsize=lsize,ncols=2,colsep=0.01)
           plot2.drawtext(texts+['Corrected'],size=tsize) #.replace('-','#minus'))
           plot2.saveas(fname,ext=['png','pdf'],tag="_corr"+ntag) #,'pdf'
           plot2.close(keep=True)
         
         plot.close(keep=False)
   
-  # WRITE 2D HIST
+  # STEP 3b: WRITE 2D HIST
   print(">>> ")
+  LOG.color("Step 3b: Write 2D correction hist...",b=True)
   hist2d = hists2d['incl']
   hname  = hist2d.GetName()
   fname  = "%s/%s_aco-ntrack_hs_%s%s"%(outdir,hname,era,tag)
@@ -552,7 +594,6 @@ def compare_ntracks_pu(era,channel,tag="",**kwargs):
   """Compare number of track."""
   LOG.header("compare_ntracks_pu",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/ntracks_pu" )
-  parallel  = kwargs.get('parallel',  True    ) and False
   loadhists = kwargs.get('loadhists', False   ) #True and False
   norms     = kwargs.get('norm',      [True]  )
   #entries   = kwargs.get('entries',  [str(e) for e in eras] ) # for legend
@@ -587,7 +628,7 @@ def compare_ntracks_pu(era,channel,tag="",**kwargs):
     Var('m_vis', 23, 0, 460, fname="m_mumu_logy", title="m_{#lower[-0.2]{#mu#mu}}", logy=True, cbins={'91.18':(20,70,110)}),
     bs_zRaw, bs_z,
     bs_sigRaw, bs_sigDn, bs_sigUp, bs_sig,
-    ###Var('ntrack_pu_0p1[100]',  50, 0,  50, title="Number of tracks", addof=True),
+    ###Var('ntrack_pu_0p1[100]',  50, 0,  50, title="Number of tracks", addof=True, int=True),
     ###Var('pt_1',   "Leading tau_h pt",    18, 0, 270),
     ###Var('pt_2',   "Subleading tau_h pt", 18, 0, 270),
     ###Var('jpt_1',  18, 0, 270),
@@ -671,14 +712,14 @@ def compare_ntracks_pu(era,channel,tag="",**kwargs):
     fname   = "ntrack_pu_0p1_"+str(i).zfill(3) # e.g. 000, 001, ..., 023, ..., 199
     cut     = "%s<200"%(vname)
     xbins_  = xbins if abs(zmin+0.05)<=9 else xbins2 # coarser at high |z|
-    var0    = Var(vname, xbins_, title=ntitle, fname=fname, flag=vtext, cut=cut, logy=True, ymin=3e-6, addof=True, data=True)
+    var0    = Var(vname, xbins_, title=ntitle, fname=fname, flag=vtext, cut=cut, logy=True, ymin=3e-6, addof=True, int=True, data=True)
     var0.iy = i+1 # index for TH2D #hist2d.GetXaxis().FindBin(0,(zmin+zmax)/2)
     print(">>> %r, %r"%(vname,vtext))
     for syst in systs: # uncorrected, up/down variations
       if syst in ['Down','Up']: continue
       vname_ = "ntrack_pu_0p1%s[%s]"%(syst,i)
       fname_ = fname+syst
-      var_   = Var(vname_, xbins_, title=ntitle, fname=fname_, flag=vtext, cut=cut, logy=True, ymin=3e-6, addof=True, data=False)
+      var_   = Var(vname_, xbins_, title=ntitle, fname=fname_, flag=vtext, cut=cut, logy=True, ymin=3e-6, addof=True, int=True, data=False)
       variables.append(var_)
       vardict[var_] = var0
     variables.append(var0)
@@ -713,23 +754,13 @@ def compare_ntracks_pu(era,channel,tag="",**kwargs):
         
         # DRAW / LOAD HIST
         if loadhists: # skip recreating histograms (fast!)
-          hists = [ ]
-          for var in vars:
-            ###var0  = vardict.get(var,var)
-            ###dname, hname = gethname(var0,var,sample)
-            ###hname = "%s/%s"%(dname,hname)
-            ###LOG.verb("Loading %s..."%(hname),verbosity+4,level=2)
-            ###hist = hfile.Get(hname)
-            ###assert hist, "Could not find %s:%s"%(hfile.GetName(),hname)
-            ###hist.SetDirectory(0)
-            hist = loadhist(hfile,var,vardict,sample,verb=verbosity)
-            hists.append(hist)
+          hists = loadallhists(hfile,vars,vardict,sample,verb=verbosity)
         else: # create histograms from scratch (slow...)
-          hists = sample.gethist(vars,selection,parallel=parallel,verb=verbosity)
+          hists = sample.gethist(vars,selection,verb=verbosity)
         
         # REODER HISTS
         assert len(vars)==len(hists), "len(vars)=%s, len(hists)=%s"%(len(vars),len(hists))
-        for var, hist in zip(vars,hists):
+        for var, hist in hists.items():
           htitle = hist.GetTitle()
           var0 = vardict.get(var,var) # reuse nominal / corrected var
           for syst in systs: # add systematic label to hist title for legend
@@ -747,10 +778,6 @@ def compare_ntracks_pu(era,channel,tag="",**kwargs):
           
           # SAVE HIST for later
           if not loadhists:
-            ###dname, hname = gethname(var0,var,sample)
-            ###hdir   = ensureTDirectory(hfile,dname,cd=True,verb=verbosity-4)
-            ###LOG.verb("Writing %s/%s to %s..."%(dname,hname,hfile.GetName()),verbosity+4,level=2)
-            ###hist.Write(hname,hist.kOverwrite)
             savehist(hist,hfile,var,var0,sample,verb=verbosity)
     
     # PLOT all hists
@@ -882,7 +909,6 @@ def compare_samples(era,channel,tag="",**kwargs):
   """Compare samples."""
   LOG.header("compare_samples",pre=">>>")
   outdir    = kwargs.get('outdir',   "plots/g-2/compare" )
-  parallel  = kwargs.get('parallel', True    ) #and False
   norms     = kwargs.get('norm',     [True]  )
   exts      = kwargs.get('exts',     ['png'] ) # figure file extensions
   verbosity = kwargs.get('verb',     8       )
@@ -996,7 +1022,7 @@ def compare_samples(era,channel,tag="",**kwargs):
         var.changecontext(selection,verb=verbosity-1)
               
       # DRAW
-      hists = sample.gethist(vars,selection,parallel=parallel,verb=verbosity)
+      hists = sample.gethist(vars,selection,verb=verbosity)
       
       # REODER HISTS
       assert len(vars)==len(hists), "len(vars)=%s, len(hists)=%s"%(len(vars),len(hists))
@@ -1031,7 +1057,6 @@ def compare_vars(era,channel,tag="",**kwargs):
   LOG.header("compare_vars",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/compare" )
   loadhists = kwargs.get('loadhists', True    ) and False
-  parallel  = kwargs.get('parallel',  True    ) #and False
   norms     = kwargs.get('norm',      [False] )
   exts      = kwargs.get('exts',      ['png'] ) # figure file extensions
   verbosity = kwargs.get('verb',      8       )
@@ -1058,10 +1083,10 @@ def compare_vars(era,channel,tag="",**kwargs):
 #   xt = lambda i: ("%d: %-4.3g <= z < %-4.3g cm"%(i,-10+i*0.1,-10+(i+1)*0.1)).replace('-','#minus')
 #   varsets = [
 #     ( Var('ntrack_pu_0p1_090-100', 50, 0, 50, title="Number of tracks", logy=True, logyrange=5.5),
-#       [Var('ntrack_pu_0p1[%d]'%(i), 50, 0, 50, title=xt(i), addof=True) for i in range(90,100)]
+#       [Var('ntrack_pu_0p1[%d]'%(i), 50, 0, 50, title=xt(i), addof=True, int=True) for i in range(90,100)]
 #     ),
 #     ( Var('ntrack_pu_0p1_100-110', 50, 0, 50, title="Number of tracks", logy=True, logyrange=5.5),
-#       [Var('ntrack_pu_0p1[%d]'%(i), 50, 0, 50, title=xt(i), addof=True) for i in range(100,110)]
+#       [Var('ntrack_pu_0p1[%d]'%(i), 50, 0, 50, title=xt(i), addof=True, int=True) for i in range(100,110)]
 #     ),
 #   ]
   
@@ -1158,12 +1183,9 @@ def compare_vars(era,channel,tag="",**kwargs):
       
       # DRAW / LOAD HIST
       if loadhists: # skip recreating histograms (fast!)
-        hists = [ ]
-        for var in vars:
-          hist = loadhist(hfile,var,vardict,sample,verb=verbosity)
-          hists.append(hist)
+        hists = loadallhists(hfile,vars,vardict,sample,verb=verbosity)
       else: # create histograms from scratch (slow...)
-        hists = sample.gethist(vars,selection,parallel=parallel,verb=verbosity+4)
+        hists = sample.gethist(vars,selection,verb=verbosity+4)
       for var, hist in zip(vars,hists):
         hist.SetTitle(var.title)
       
@@ -1200,7 +1222,6 @@ def compare_dz(era='UL2018',tag="",**kwargs):
   LOG.header("compare_dz",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/compare" )
   loadhists = kwargs.get('loadhists', True    ) and False
-  parallel  = kwargs.get('parallel',  True    ) #and False
   exts      = kwargs.get('exts',      ['png'] ) # figure file extensions
   verbosity = kwargs.get('verb',      8       )
   chunk     = kwargs.get('chunk',     -1      )
@@ -1300,7 +1321,6 @@ def compare_aco(era='UL2018',tag="",**kwargs):
   LOG.header("compare_aco",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/compare" )
   loadhists = kwargs.get('loadhists', True    ) and False
-  parallel  = kwargs.get('parallel',  True    ) #and False
   exts      = kwargs.get('exts',      ['png'] ) # figure file extensions
   verbosity = kwargs.get('verb',      8       )
   chunk     = kwargs.get('chunk',     -1      )
@@ -1404,7 +1424,9 @@ def main(args):
   outdir    = "plots/g-2"
   tag       = ""
   chunk     = args.chunk
+  nthreads  = args.nthreads
   verbosity = args.verbosity
+  RDF.SetNumberOfThreads(nthreads,verb=verbosity+1) # set nthreads globally
   
   #### COMPARE SELECTIONS
   ###for era in eras:
@@ -1456,10 +1478,12 @@ if __name__ == "__main__":
                                            help="set era" )
   parser.add_argument('-L', '--loadhists', action='store_true',
                                            help="load histograms from ROOT file" )
+  parser.add_argument('-n', '--nthreads',  type=int, nargs='?', const=10, default=10, action='store',
+                                           help="run RDF in parallel instead of in serial, nthreads=%(default)r" )
   parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                            help="set verbosity" )
   args = parser.parse_args()
-  LOG.verbosity = args.verbosity
+  LOG.verbosity  = args.verbosity
   PLOG.verbosity = args.verbosity-1
   SLOG.verbosity = args.verbosity
   main(args)
