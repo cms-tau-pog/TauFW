@@ -648,6 +648,8 @@ class Sample(object):
     replaceweight = kwargs.get('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
     preselection  = kwargs.get('preselect', None       ) # pre-selection string (common pre-filter, before aliases all other selections)
     alias_dict    = self.aliases
+    if hasattr(preselection,'selection'): # ensure string
+      preselection = preselection.selection
     if 'alias' in kwargs: # update alias dictionary
       alias_dict  = alias_dict.copy()
       alias_dict.update(kwargs['alias'])
@@ -656,8 +658,8 @@ class Sample(object):
     rdfkey_main   = (self.treename,self.filename)
     rdfkey_alias  = (self.treename,self.filename,'alias') # for common preselection & aliases
     if verbosity>=1:
-      LOG.verb("Sample.getrdframe: Creating RDataFrame for %s ('%s'): %s, split=%r, extracuts=%r"%(
-               color(name,'grey',b=True),color(title,'grey',b=True),self.filename,split,extracuts),verbosity,1)
+      LOG.verb("Sample.getrdframe: Creating RDataFrame for %s ('%s'): %s, split=%r, extracuts=%r, presel=%r"%(
+               color(name,'grey',b=True),color(title,'grey',b=True),self.filename,split,extracuts,preselection),verbosity,1)
       LOG.verb("Sample.getrdframe:   Total scale=%.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(
                scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights),verbosity,1)
     
@@ -710,6 +712,7 @@ class Sample(object):
         elif rdframe_alias==None: # create for first time
           rdframe_alias = rdframe
           if preselection!=None: # apply common preselection/filter (before aliases!)
+            LOG.verb("Sample.getrdframe:   Adding common preselection %r..."%(preselection),verbosity,2)
             rdframe_alias = rdframe_alias.Filter(preselection)
           for alias, expr in alias_dict.items(): # define aliases as new columns (assume used downstream in selection, variable, and/or weight) !
             rdframe_alias, _ = AddRDFColumn(rdframe_alias,expr,alias,expr_dict=expr_dict,exact=True,verb=verbosity-3)
