@@ -14,12 +14,16 @@ from argparse import ArgumentParser
 argv = sys.argv
 description = '''This script creates datacards with CombineHarvester.'''
 parser = ArgumentParser(prog="harvestercards",description=description,epilog="Succes!")
-parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP','2022_postEE'], default=['UL2017'], action='store',
+parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP'], default=['UL2017'], action='store',
                                         help="set era" )
+parser.add_argument('-c', '--channel',  dest='channels', choices=['mt','et'], type=str, nargs='+', default=['mt'], action='store',
+                                        help="channels to submit")
 parser.add_argument('-t', '--tag',      dest='tags', type=str, nargs='+', default=[""], action='store',
                     metavar='TAG',      help="tag for input and output file names")
 parser.add_argument('-e', '--outtag',   dest='outtag', type=str, default="", action='store',
                     metavar='TAG',      help="extra tag for output files")
+parser.add_argument('-o', '--obs',      dest='observables', type=str, nargs='*', default=[ 'mvis' ], action='store',
+                    metavar='VARIABLE', help="name of observable for TES measurement" )
 parser.add_argument('-n', '--noshapes', dest='noshapes', default=False, action='store_true',
                                         help="do not include shape uncertainties")
 parser.add_argument('-v', '--verbose',  dest='verbose',  default=False, action='store_true',
@@ -32,8 +36,8 @@ args = parser.parse_args()
 def main(args):
     print ""
     analysis = 'zee_fr'
-    obsset   = 'm_vis'
-    channels = 'mt'
+    obsset   = args.observables
+    channels = args.channels
     eras     = args.eras
     tag      = ""
     bin      = args.workpoint
@@ -57,6 +61,8 @@ def main(args):
     ]
     title_dict = {
       'mvis': "m_{vis} (GeV)",
+      'mtau': "#mu(#tau_{h}) (GeV)",
+      'etau': "e(#tau_{h}) (GeV)",
     }
     tsize   = 0.054
     PLOT._lsize = 0.040 # label size
