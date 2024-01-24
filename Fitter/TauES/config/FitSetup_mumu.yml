@@ -39,7 +39,7 @@ observables:
             rrange: 0.08
         fitRegions: ["baseline"]
 
-processes: ['ZTT','ZL','ZJ','data_obs'] #enlever les bruits de fond 
+processes: ['ZTT','ZL','ZJ','data_obs'] 
 
 systematics:
     lumi:
