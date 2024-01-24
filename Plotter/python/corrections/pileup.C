@@ -10,14 +10,13 @@
 #include "TH2F.h"
 #include <iostream>
 #include <algorithm>
+#include "TSystem.h" // for gSystem
 using namespace std;
-
-TString filename_data_2017 = "$SFRAME_DIR/../plots/PlotTools/pileup/Data_PileUp_2017_69p2.root";
-TString filename_MC_2017 = "$SFRAME_DIR/../plots/PlotTools/pileup/MC_PileUp_2017_Winter17_V2.root";
-TH1F* hist_PU_data;
-TH1F* hist_PU_data_old;
-TH1F* hist_PU_MC;
-//TH1F* hist_PU_weights;
+TString _datadir_pu = gSystem->ExpandPathName("$CMSSW_BASE/src/TauFW/PicoProducer/data/pileup");
+TString _fname_pu_data = _datadir_pu+"/Data_PileUp_UL2018_69p2.root";
+TString _fname_pu_mc = _datadir_pu+"/MC_PileUp_UL2018.root";
+TH1F* _hist_pu_data;
+TH1F* _hist_pu_mc;
 
 
 TH1F* getPUHist(TString filename, TString histname="pileup"){
@@ -25,34 +24,21 @@ TH1F* getPUHist(TString filename, TString histname="pileup"){
   TFile *file = new TFile(filename);
   TH1F* hist = (TH1F*) file->Get(histname);
   hist->SetDirectory(0);
+  hist->Scale(1./hist->Integral());
   file->Close();
   return hist;
 }
 
 
-void readPUFile(TString filename_data=filename_data_2017,TString filename_MC=filename_MC_2017, TString filename_data_old=""){
-  
-  // DATA
-  hist_PU_data = getPUHist(filename_data);
-  hist_PU_data->Scale(1./hist_PU_data->Integral());
-  
-  // OLD DATA PROFILE
-  if(filename_data_old!=""){
-    hist_PU_data_old = getPUHist(filename_data_old);
-    hist_PU_data_old->Scale(1./hist_PU_data_old->Integral());
-  }
-  
-  // MC
-  hist_PU_MC = getPUHist(filename_MC);
-  hist_PU_MC->Scale(1./hist_PU_MC->Integral());
-  
+void readPUFile(TString filename_data=_fname_pu_data,TString filename_mc=_fname_pu_mc){
+  _hist_pu_data = getPUHist(filename_data);
+  _hist_pu_mc = getPUHist(filename_mc);
 }
 
 
-
 Float_t getPUWeight(Int_t npu){
-  float data = hist_PU_data->GetBinContent(hist_PU_data->FindBin(npu));
-  float mc   = hist_PU_MC->GetBinContent(hist_PU_MC->FindBin(npu));
+  float data = _hist_pu_data->GetBinContent(_hist_pu_data->FindBin(npu));
+  float mc   = _hist_pu_mc->GetBinContent(_hist_pu_mc->FindBin(npu));
   //std::cout << data << " " << mc << " " << npu << " -> " << data/mc << std::endl;
   if(mc > 0.){
     return data/mc;
@@ -60,24 +46,11 @@ Float_t getPUWeight(Int_t npu){
   }//else{
     //std::cout << "No predefined pileup weights" << std::endl;
   //  }
-  return 1;
+  return 1.0;
 }
-
-
-
-Float_t reweightDataPU(Int_t npu){
-  // Reweight PU weight, by dividing out old data PU
-  float data_new = hist_PU_data->GetBinContent(hist_PU_data->FindBin(npu));
-  float data_old = hist_PU_data_old->GetBinContent(hist_PU_data_old->FindBin(npu));
-  if(data_old > 0.)
-    return data_new/data_old;
-  return 1;
-}
-
 
 
 void pileup(){
   std::cout << ">>> initializing pileup.C ... " << std::endl;
 }
-
 
