@@ -6,7 +6,7 @@ from `combine` represent the sigma variation of the parameters. This script read
 corresponding 1-sigma variation and calculates the parameter values after the fit. For rate parameters, the values are preserved 
 as it is. The results are saved in a text file with associated processes affected by the systematics. These results can be 
 utilized in the `./Plotter/plot_postfit.py` script to generate postfit plots.
-"""
+
 
 Function:
 calculate_SFpostfit(config, year, output_file)
