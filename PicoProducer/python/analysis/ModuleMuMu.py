@@ -34,7 +34,7 @@ class ModuleMuMu(ModuleTauPair):
       self.muonCutEta = lambda e: 2.4
     self.muon2CutPt   = 15
     self.tauCutPt     = 20
-    self.tauCutEta    = 2.3 #2.5 Deeptau 2P5
+    self.tauCutEta    = 2.5 #2.5 Deeptau 2P5
     
     # CORRECTIONS
     if self.ismc:
@@ -52,7 +52,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.cutflow.addcut('muon',         "muon"                       )
     self.out.cutflow.addcut('pair',         "pair"                       )
     self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
-    self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
+    self. out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
     self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )
     self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
