@@ -9,8 +9,8 @@ import os, re
 #from array import array
 print(">>> Importing ROOT...")
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gROOT, gSystem, gStyle, TH2D, TLatex,\
-  kBlack, kRed, kBlue, kGreen, kMagenta, kSpring, kOrange
+from ROOT import gStyle, TH2D, TLatex,\
+                 kBlack, kRed, kBlue, kGreen, kMagenta, kSpring, kOrange
 print(">>> Importing TauFW.sample...")
 #from config.samples import * # for general getsampleset
 import TauFW.Plotter.sample.utils as GLOB
@@ -25,16 +25,16 @@ from TauFW.Plotter.plot.Stack import Stack
 from TauFW.Plotter.plot.CMSStyle import lumi_dict
 from TauFW.common.tools.file import ensuredir
 from TauFW.common.tools.utils import ensurelist, repkey
-from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr
+from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr, loadmacro
 from TauFW.common.tools.math import partition, frange
 from TauFW.common.tools.RDataFrame import RDF
 print(">>> Done importing...")
 
-# COMMON CROSS SECTION for signals
+# COMMON CROSS SECTION for elastic signals
 #xsec_mm = 0.324*0.328 #0.37553*0.33 # old samples with filter, alpha = 1/126
 xsec_mm = 0.303 # new samples without filter, alpha = 1/137
 xsec_tt = 1.048*0.0403 # new samples without filter, alpha = 1/137 (GGToTT_Ctb20)
-#xsec_ww = 0.00692*0.368 #0.37553*0.33 # old samples with filter, alpha = 1/126
+#xsec_ww = 0.00692*0.368 #WRONG: 0.37553*0.33 # old samples with filter, alpha = 1/126
 xsec_ww = 0.006561 # new samples without filter, alpha = 1/137
 
 
@@ -127,47 +127,60 @@ def getsampleset(channel,era,**kwargs):
     sampleset.printtable()
     return sampleset
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-  fname     = kwargs.get('fname',     fname  ) or fname # file name pattern of pico files
-  tag       = kwargs.get('tag',       ""     )
-  table     = kwargs.get('table',     True   ) # print sample set table
-  loadcorrs = kwargs.get('loadcorrs', False  ) # load special corrections for SMP-23-005
-  dyweight  = kwargs.get('dyweight',  ""     ) # print sample set table
+  fname     = kwargs.get('fname',       fname  ) or fname # file name pattern of pico files
+  tag       = kwargs.get('tag',         ""     )
+  table     = kwargs.get('table',       True   ) # print sample set table
+  loadcorrs = kwargs.get('loadcorrs',   False  ) # load special corrections for SMP-23-005
+  mcweight  = kwargs.get('extraweight', ""     ) # extra weight for all MC
+  dyweight  = kwargs.get('dyweight',    ""     ) # print sample set table
   year      = getyear(era) # get integer year
   setera(era) # set era for plot style and lumi-xsec normalization
   
   # DEFINE CORRECTIONS
-  wgt_dy  = "" #( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )"
-  wgt_mc  = "" #( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )"
-  if loadcorrs: # skip recreating histograms (fast!)
+  if loadcorrs or 'getPUTrackWeight' in mcweight or 'getHSTrackWeight' in dyweight: # skip recreating histograms (fast!)
     print(">>> Loading PU track corrections...")
-    #gROOT.ProcessLine(".L python/corrections/g-2/corrs_ntracks.C+O")
-    gSystem.Load("python/corrections/g-2/corrs_ntracks_C.so") # faster than compiling
-    from ROOT import loadPUTrackWeights, getEraIndex
-    loadPUTrackWeights(era)
-    iera   = getEraIndex(era)
-    wgt_mc = f"getPUTrackWeight(ntrack_pu,z_mumu,{iera})" # set $ERA later
-    #wgt_mc = "getPUTrackWeight(ntrack_pu,pv_z+0.5*dz_1+0.5*dz_2,$ERA)" # set $ERA later
-    print(">>> Loading HS track & acoplanarity corrections...")
-    #gROOT.ProcessLine(".L python/corrections/g-2/aco.C+O")
-    gSystem.Load("python/corrections/g-2/aco_C.so") # faster than compiling
-    from ROOT import loadHSTrackWeights, loadAcoWeights
-    loadHSTrackWeights(era)
+    loadmacro("python/corrections/g-2/corrs_ntracks.C",fast=True,verb=verb)
+    from ROOT import loadPUTrackWeights, loadHSTrackWeights, getEraIndex
+    iera = getEraIndex(era)
+    if loadcorrs or 'getPUTrackWeight' in mcweight:
+      loadPUTrackWeights(era)
+      if 'getPUTrackWeight' not in mcweight:
+        mcweight = joinweights(mcweight,f"getPUTrackWeight(ntrack_pu,z_mumu,{iera})")
+        #mcweight = joinweights(mcweight,"getPUTrackWeight(ntrack_pu,pv_z+0.5*dz_1+0.5*dz_2,{iera})")
+    else:
+      print(">>> Skip loading PU track corrections...")
+    if loadcorrs or 'getHSTrackWeight' in dyweight:
+      loadHSTrackWeights(era)
+      if 'getHSTrackWeight' not in dyweight:
+        dyweight = joinweights(dyweight,f"getHSTrackWeight(ntrack_hs,aco,{iera})")
+    else:
+      print(">>> Skip loading HS track corrections...")
+  else:
+    print(">>> Skip loading PU & HS track corrections...")
+  if loadcorrs or 'getAcoWeight' in dyweight:
+    print(">>> Loading acoplanarity corrections...")
+    loadmacro("python/corrections/g-2/aco.C",fast=True,verb=verb)
+    from ROOT import loadAcoWeights, getEraIndex2
     loadAcoWeights(era)
-    wgt_dy = f"getHSTrackWeight(ntrack_hs,aco,{iera})" # set $ERA later
-    wgt_dy += f"*getAcoWeight(aco,pt_1,pt_2,{iera})" # set $ERA later
+    iera = getEraIndex2(era)
+    if 'getAcoWeight' not in dyweight:
+      dyweight = joinweights(dyweight,f"*getAcoWeight(aco,pt_1,pt_2,{iera})")
+    if '$ERA' in dyweight:
+      dyweight = dyweight.replace('$ERA',str(getEraIndex2(era)))
     print(">>> Done loading corrections!")
-  else: # create histograms from scratch (slow...)
-    print(">>> Skip loading PU track corrections...")
-  dyweight = joinweights(dyweight,wgt_dy)
-  kwargs['extraweight'] = joinweights(kwargs.get('extraweight',''),wgt_mc)
-  weight   = getweight(channel,era,**kwargs)
+  else:
+    print(">>> Skip loading aco corrections...")
+  #kwargs['extraweight'] = joinweights(kwargs.get('extraweight',''),wgt_mc)
+  kwargs['extraweight'] = mcweight
+  weight = getweight(channel,era,**kwargs)
   if '$ERA' in weight or '$ERA' in dyweight:
-    gSystem.Load("python/corrections/g-2/corrs_ntracks_C.so") # faster than compiling
+    loadmacro("python/corrections/g-2/corrs_ntracks.C",fast=True,verb=verb+1)
     from ROOT import getEraIndex # from python/corrections/g-2/ntracks_pileup.C
     weight   = weight.replace('$ERA',str(getEraIndex(era)))
     dyweight = dyweight.replace('$ERA',str(getEraIndex(era)))
   if verb+4>=1:
     print(f">>> dyweight = {dyweight!r}")
+    print(f">>> mcweight = {mcweight!r}")
     print(f">>> weight   = {weight!r}")
   
   # DEFINE SAMPLE LIST
@@ -310,19 +323,6 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   gStyle.SetPalette(kBlackBody)
   gStyle.SetPalette(kBird)
   
-  # ACO WEIGHTS
-  if loadhists: # skip recreating histograms (fast!)
-    print(">>> Skip loading acoplanarity corrections...")
-  else: # create histograms from scratch (slow...)
-    print(">>> Loading acoplanarity corrections...")
-    year = era.replace('UL','').replace('_','').replace('VFP','')
-    fname_wgt = "$CMSSW_BASE/src/TauFW/Plotter/python/corrections/g-2/new_correction_acoplanarity_fine_%s.root"%year
-    #gROOT.ProcessLine(".L python/corrections/g-2/aco.C+O")
-    gSystem.Load("python/corrections/g-2/aco_C.so") # faster than compiling
-    from ROOT import loadAcoWeights
-    loadAcoWeights(era)
-    print(">>> Done loading!")
-  
   # SELECTIONS
   baseline   = getbaseline(channel)
   zmmtitle   = "|m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV"
@@ -344,9 +344,11 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   # GET SAMPLES
   #print(">>> GLOB.lumi=%s"%(GLOB.lumi))
   #sigwgt = "( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )" # old rescaling: measured by Cecile
-  sigwgt = "( ntrack_all==0 ? 2.70 : ntrack_all==1 ? 2.71 : 1 )" # new rescaling: measured by Izaak
+  sigwgt = "( ntrack_all==0 ? 2.703 : ntrack_all==1 ? 2.711 : 1 )" # new rescaling: measured by Izaak
+  sigwgt += "*getPUTrackWeight(ntrack_pu,z_mumu,$ERA)"
   kwargs['dyweight'] = 'getAcoWeight(aco,pt_1,pt_2,$ERA)'
-  sampleset  = getsampleset(channel,era,**kwargs)
+  kwargs['extraweight'] = 'getPUTrackWeight(ntrack_pu,z_mumu,$ERA)'
+  sampleset  = getsampleset(channel,era,loadcorrs=False,**kwargs)
   sample_obs = sampleset.get('Observed',unique=True,verb=verbosity-1)
   sample_dy  = sampleset.get('DY',title="Z -> mumu",unique=True,verb=verbosity-1)
   sample_sig = makemcsample('Signal','GGToMuMu',"#gamma#gamma -> #mu#mu", # (elastic)
@@ -384,21 +386,21 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
     for bin in hs_bins:
       if isinstance(bin,int): # single-valued, integer bins
         cut   = "ntrack_hs==%s"%(bin)
-        text  = f"%s = %s"%(tit_nhs,bin)
+        title = f"%s = %s"%(tit_nhs,bin)
         fname = "$VAR_%s"%(bin)
       elif bin[1]<100: # integer range
         cut   = "%s<=ntrack_hs && ntrack_hs<%s"%bin
-        text  = "%.3g <= %s < %.3g"%(bin[0],tit_nhs,bin[1])
+        title = "%.3g <= %s < %.3g"%(bin[0],tit_nhs,bin[1])
         fname = "$VAR_%s-%s"%(bin)
       else: # incl. infinity
         cut   = "%s<=ntrack_hs"%(bin[0])
-        text  = "%s >= %.3g"%(tit_nhs,bin[0])
+        title = "%s >= %.3g"%(tit_nhs,bin[0])
         fname = "$VAR_%s"%(bin[0])
-      var = Var('ntrack_all', text, *tbins,fname=fname,addof=True,int=True,cut=cut,flag=text,data=False)
+      var = Var('ntrack_all',title,*tbins,fname=fname,addof=True,int=True,cut=cut,flag=title,data=False)
       varset.append(var)
       vardict[var] = var0
-    text = "Uncorr. BS"
-    var = Var('ntrack_all_raw', text, *tbins, fname=fname,addof=True,int=True,flag=text,data=False)
+    title = "Uncorr. BS"
+    var   = Var('ntrack_all_raw',title,*tbins,fname='ntrack_all_raw',addof=True,int=True,flag=title,data=False)
     varset.append(var)
     vardict[var] = var0
     print(">>> len(varset)=%s"%(len(varset)))
@@ -426,7 +428,7 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   LOG.color("Step 2: Plotting...",b=True)
   for selection in selections:
     LOG.header("Selection %r"%(selection.selection.replace(baseline+" && ",'')),pre=">>>")
-    histsets = {v: HistSet() for v in vars_obs }
+    histsets = { v: HistSet() for v in vars_obs }
     
     # STEP 2a: LOOP over SAMPLES to regroup
     LOG.color("Step 2a: Regrouping histograms...",b=True)
@@ -441,18 +443,8 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
         if sample.isdata: # for observed data
           assert var0==var
           histsets[var0].data = hist
-          hist.SetTitle("Obs. #minus (#gamma#gamma -> #mu#mu)")
         elif sample in [sample_sig,sample_ww]: # for gg -> mumu, WW signal
           assert var0==var
-          dhist = histsets[var0].data # assume already exists
-          assert dhist, "Observed hist not created before signal subtraction..."
-          print(">>> Subtraction: %r - %r =>  %.1f - %.3f"%(dhist.GetTitle(),hist.GetTitle(),dhist.Integral(),hist.Integral()))
-          for i in [1,2,3]:
-            yobs = dhist.GetBinContent(i)
-            ysig = hist.GetBinContent(i)
-            print(">>>   ntracks==%s: sig / obs = %.3f / %.1f = %.2f%%"%(i-1,ysig,yobs,100.*ysig/yobs))
-          dhist.Add(hist,-1) # subtract from observed data
-          #dhist.SetTitle("Obs. #minus (%s)"%(hist.GetTitle()))
           histsets[var0].sig.append(hist) # draw overlay as "signal"
         elif 'corr' in var.flag: # for overlay (not in stack)
           hist.SetTitle(var.title)
@@ -473,8 +465,45 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
         if not loadhists:
           savehist(hist,hfile,var,var0,sample,selection,verb=verbosity)
     
-    # STEP 2b: PLOT all hists
-    LOG.color("Step 2b: Plotting histograms before corrections...",b=True)
+    # STEP 2b SUBTRACT TOTAL SIGNAL from OBSERVED DATA
+    LOG.color("Step 2b: Subtract total signal from observed data...",b=True)
+    def printSigSubtraction(dhist,shist):
+      print(">>> Subtraction: %r - %r"%(dhist.GetTitle(),shist.GetTitle()))
+      #print(">>> Subtraction: %r - %r =>  %.1f - %.3f"%(dhist.GetTitle(),shist.GetTitle(),dhist.Integral(),shist.Integral()))
+      yobstot, ysigtot = 0, 0
+      ntracks = [0,1,2]
+      for nt in ntracks: # first three ntracks bins
+        nbin = dhist.GetXaxis().FindBin(nt)
+        yobs = dhist.GetBinContent(nbin)
+        ysig = shist.GetBinContent(nbin)
+        yobstot += yobs
+        ysigtot += ysig
+        print(">>>      ntracks==%s: sig / obs = %7.3f / %.1f = %.2f%%"%(nt,ysig,yobs,100.*ysig/yobs))
+      print(">>>   %s<=ntracks<=%s: sig / obs = %7.3f / %.1f = %.2f%%"%(ntracks[0],ntracks[-1],ysigtot,yobstot,100.*ysigtot/yobstot))
+    for var in histsets:
+      obshist = histsets[var].data
+      assert obshist, "Observed hist not created before signal subtraction..."
+      sighist = None # total signal histogram
+      #print(histsets[var].sig)
+      for sighist_ in histsets[var].sig[:]:
+        if 'corr' in sighist_.GetTitle().lower(): continue
+        printSigSubtraction(obshist,sighist_)
+        if sighist==None:
+          sighist = sighist_.Clone(f"sigtot_{var.filename}_{selection.filename}")
+        else:
+          sighist.Add(sighist_) # add
+        histsets[var].sig.remove(sighist_)
+      sighist.SetTitle("#gamma#gamma -> #mu#mu, WW")
+      printSigSubtraction(obshist,sighist)
+      obshist.Add(sighist,-1) # subtract total signal from observed data
+      obshist.SetTitle("Obs. #minus (#gamma#gamma -> #mu#mu, WW)")
+      histsets[var].sig.append(sighist) # only plot total signal (overlaid over DY MC stack)
+      if not loadhists:
+        savehist(obshist,hfile,var,var0,sample_obs.name+"_min_sigtot",selection,verb=verbosity)
+        savehist(sighist,hfile,var,var0,"sigtot",selection,verb=verbosity)
+    
+    # STEP 2c: PLOT all hists
+    LOG.color("Step 2c: Plotting histograms before corrections...",b=True)
     for var, histset in histsets.items():
       dhist, mchists, sighists = histset.data, histset.exp, histset.sig
       if verbosity>=1:
@@ -484,6 +513,7 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
         print(">>> sighists = %s"%(rootrepr(sighists)))
       
       # GET TOTAL MC HIST
+      sigscale = None
       sumhist0 = mchists[0].Clone(mchists[0].GetTitle()+'_uncorr')
       sumhist  = mchists[0].Clone(mchists[0].GetTitle()+'_corr')
       sumhist0.Reset()
@@ -492,12 +522,8 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
       sumhist.SetTitle("Corrected")
       for hist in mchists:
         sumhist0.Add(hist) # total uncorrected (for plotting)
-      if len(sighists)==2:
-        sighist  = sighists[-1]
-        sigscale = [1.,sighist.Integral()/sumhist0.Integral()]
-      else:
-        sighist  = None
-        sigscale = None
+      if len(sighists)>=2: # scale signal to DY
+        sigscale = [(h.Integral()/sumhist0.Integral() if 'gamma' in h.GetTitle() else 1.) for h in sighists]
       
       # PLOT
       fname = "%s/$VAR_%s_%s%s$TAG"%(outdir,selection.filename,era,tag)
@@ -551,8 +577,9 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
           # STEP 3a: PLOT AGAIN after correction
           LOG.color("Step 3a: Plot histograms after corrections...",b=True)
           sighists_ = [sumhist0,]
-          if sighist:
-            sighists_.append(sighist)
+          for sighist in sighists:
+            if 'gamma' in sighist.GetTitle():
+              sighists_.append(sighist)
           lcols = [kRed,kOrange+8,kMagenta+1,kGreen+1]
           plot2 = Stack(var,dhist,mchists,sighists_,norm=norm)
           plot2.draw(ratio=True,rtitle=rtitle,lcolors=lcols,reversestack=True,sigscale=sigscale)
@@ -571,14 +598,14 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   fname  = "%s/%s_aco-ntrack_hs_%s%s"%(outdir,hname,era,tag)
   nxbins = hist2d.GetXaxis().GetNbins()
   nybins = hist2d.GetYaxis().GetNbins()
-  hist2d.SetOption('COLZ')
+  hist2d.SetOption('COLZTEXT55')
   hist2d.SetBinContent(nxbins+1,nybins+1,hist2d.GetBinContent(nxbins,nybins))
-  plot = Plot2D(xvar,yvar,hist2d)
-  plot.draw('COLZTEXT55',tcolor=kRed,logy=True,logz=False,grid=False,
+  plot2d = Plot2D(xvar,yvar,hist2d)
+  plot2d.draw('COLZTEXT55',tcolor=kRed,logy=True,logz=False,grid=False,
             zoffset=5.5,ymin=0.01,zmin=0.5,zmax=1.3)
-  #plot.frame.GetYaxis().SetBinLabel(0,'< 0.015')
-  #plot.frame.GetYaxis().SetBinLabel(1,'#geq 0.015')
-  plot.frame.GetYaxis().SetNdivisions(3,False)
+  #plot2d.frame.GetYaxis().SetBinLabel(0,'< 0.015')
+  #plot2d.frame.GetYaxis().SetBinLabel(1,'#geq 0.015')
+  plot2d.frame.GetYaxis().SetNdivisions(3,False)
   latex = TLatex()
   latex.SetTextSize(0.04)
   latex.SetTextAlign(32)
@@ -586,7 +613,7 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   if not loadhists:
     hfile.cd()
     hist2d.Write(hist2d.GetName(),hist2d.kOverwrite)
-  plot.saveas(fname,ext=['.png','.pdf'])
+  plot2d.saveas(fname,ext=['.png','.pdf'])
   hfile.Close()
   
 
@@ -1135,24 +1162,6 @@ def compare_vars(era,channel,tag="",**kwargs):
       mvars.append(mvar_) # create new variable with extra cut
       vardict[mvar_] = mvar # for renaming histogram to be written to ROOT fle
     varsets.append(( mvar, mvars )) # overwrite
-  
-  #### EXTRA WEIGHT
-  ###print(">>> Loading PU track corrections...")
-  ###fname = "plots/g-2/ntracks_pu/corrs_ntracks_pu_%s.root"%(era)
-  ####gROOT.ProcessLine(".L python/corrections/g-2/corrs_ntracks.C+O")
-  ####gROOT.ProcessLine(".L python/corrections/g-2/aco.C+O")
-  ###gSystem.Load("python/corrections/g-2/corrs_ntracks_C.so") # faster than compiling
-  ###gSystem.Load("python/corrections/g-2/aco_C.so") # faster than compiling
-  ###from ROOT import loadPUTrackWeights, loadHSTrackWeights, loadAcoWeights, closeAcoWeights
-  ###loadPUTrackWeights(era)
-  ###loadHSTrackWeights(era)
-  ###loadAcoWeights(era)
-  ####wgt_sig = "getPUTrackWeight(ntrack_pu,pv_z+0.5*dz_1+0.5*dz_2,$ERA)" # set $ERA later
-  ####wgt_sig += "getHSTrackWeight(ntrack_hs,(1-abs(dphi_ll)/3.14159265),$ERA)" # set $ERA later
-  ###wgt_dy = "getPUTrackWeight(ntrack_pu,z_mumu,$ERA)" # set $ERA later
-  ###wgt_dy += "*getHSTrackWeight(ntrack_hs,aco,$ERA)" # set $ERA later
-  ###wgt_dy += "*getAcoWeight(aco,pt_1,pt_2,$ERA)" # set $ERA later
-  ###print(">>> Done loading PU track corrections!")
   
   # GET SAMPLES
   dytitle    = "Drell-Yan MC" #Z -> mumu"

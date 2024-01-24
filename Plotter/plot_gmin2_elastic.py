@@ -9,16 +9,15 @@ import os, json
 from array import array
 #print(">>> Importing ROOT...")
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gROOT, gSystem, TF1, kAzure, kRed, kGreen, kOrange #, kMagenta
+from ROOT import TF1, kAzure, kRed, kGreen, kOrange #, kMagenta
 print(">>> Importing TauFW.sample...")
 from config.gmin2.samples import * # for general getsampleset
 import TauFW.Plotter.sample.utils as GLOB
 from TauFW.Plotter.sample.utils import LOG; SLOG = LOG
 from TauFW.Plotter.plot.Plot import LOG as PLOG
 from TauFW.Plotter.plot.Stack import Plot, Stack, Ratio, TLegend
-from TauFW.Plotter.plot.string import filtervars, makehistname
-from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr
-from TauFW.common.tools.log import green
+from TauFW.Plotter.plot.string import filtervars
+from TauFW.common.tools.root import ensureTFile, rootrepr, loadmacro
 from TauFW.common.tools.RDataFrame import RDF
 from plot_compare_gmin2 import getbaseline, getweight, getsampleset, makemcsample,\
                                loadhist, loadallhists, savehist,\
@@ -41,21 +40,10 @@ def getsamples(sampleset,channel,era,loadhists=False,dy=False,verb=0):
     print(">>> Skip loading PU track corrections...")
   else: # create histograms from scratch (slow...)
     print(">>> Loading PU track corrections...")
-    #gROOT.ProcessLine(".L python/corrections/g-2/corrs_ntracks.C+O")
-    gSystem.Load("python/corrections/g-2/corrs_ntracks_C.so") # faster than compiling
+    loadmacro("python/corrections/g-2/corrs_ntracks.C",fast=True,verb=verb+1)
     from ROOT import loadPUTrackWeights
     loadPUTrackWeights(era)
     wgt_sig = "getPUTrackWeight(ntrack_pu,z_mumu,$ERA)" # set $ERA later
-    ###if dy:
-    ###  print(">>> Loading HS track & acoplanarity corrections...")
-    ###  #gROOT.ProcessLine(".L python/corrections/g-2/aco.C+O")
-    ###  gSystem.Load("python/corrections/g-2/aco_C.so") # faster than compiling
-    ###  from ROOT import loadHSTrackWeights, loadAcoWeights
-    ###  loadHSTrackWeights(era)
-    ###  loadAcoWeights(era)
-    ###  wgt_dy  = "getPUTrackWeight(ntrack_pu,z_mumu,$ERA)" # set $ERA later
-    ###  wgt_dy += "*getHSTrackWeight(ntrack_hs,aco,$ERA)" # set $ERA later
-    ###  wgt_dy += "*getAcoWeight(aco,pt_1,pt_2,$ERA)" # set $ERA later
     print(">>> Done loading corrections!")
   
   # CREATE SAMPLES
@@ -368,7 +356,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
             savehist(hists_sr[sample][var],hfile,var,var,sample,subdir=selection,verb=verb+2) # store for later reuse
     
     # GET ANSATZ SF for JSON
-    sf_el = 2.6 if 'ntrack_all==0' in selection.selection else 2.8 # ansatz SF for this selection
+    #sf_el = 2.6 if 'ntrack_all==0' in selection.selection else 2.8 # ansatz SF for this selection (old, 11/2024)
+    sf_el = 2.7 if 'ntrack_all==0' in selection.selection else 2.7 # ansatz SF for this selection (new, 11/2024)
     sfs_  = sfs[era][selection.filename][sel_sb.filename].get('Flat',{ })
     if len(sfs_)>=1:
       lastkey = list(sorted(sfs_.keys()))[-1]
@@ -481,7 +470,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           'obs': round(n_obs,6), 'bkg_sb': round(n_bkg,6), 'ww': round(n_ww,7), 'sig': round(n_sig,6)
         })
         sfs[era][selection.filename][sel_sb.filename]['ZWindow'][fitkey] = { # SF-dependent bkg estimation
-          f"bkg_sr": round(sf_bkg*n_bkg,6), f"sf_el": round(sf_el,6), f"sf_bkg": round(sf_bkg,6)
+          'bkg_sr': round(sf_bkg*n_bkg,6), 'sf_el': round(sf_el,6), 'sf_bkg': round(sf_bkg,6)
         }
         hist_bkg.Scale(sf_bkg)
         hist_bkg.SetTitle(f"Incl. bkg. ({ntmin} <= N_{{#lower[-0.2]{{track}}}} <= {ntmax})")
@@ -678,13 +667,13 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   hfile.Close()
   
 
-def printResults(era,outdir):
+def printResults(era,outdir,all=False):
   """Print fit results."""
   jfname = "%s/elastic.json"%(outdir)
   fits = [
     "Flat",
-    #"Lin.", 
-    #"Quadr.",
+    "Lin.", 
+    "Quadr.",
   ]
   def printFit(fit):
     res = [ ]
@@ -706,13 +695,23 @@ def printResults(era,outdir):
   if os.path.isfile(jfname):
     with open(jfname,'r') as infile:
       sfs = json.load(infile)
-    for sel in sfs[era]:
-      for sel_sb, sfs_ in sfs[era][sel].items():
-        #if not '3to7' in sel_sb: continue
-        print(f">>> {sel} with sideband {sel_sb}:")
-        for fit in fits:
+    print(">>> "+'-'*100)
+    sfs_final = [ ] 
+    for sel_sr in sfs[era]:
+      for sel_sb, sfs_ in sfs[era][sel_sr].items():
+        if any('ntracks'+n in sel_sr for n in '01') and '3to7' in sel_sb:
+          sfs_final.append((sel_sr,sel_sb,sfs_))
+        print(f">>> {sel_sr} with sideband {sel_sb}:")
+        for fit in ["Flat"]: # only linear
           print(f">>>   {(fit+':').ljust(10)} {printFit(sfs_[fit])}")
-      
+    print(">>> "+'-'*100)
+    for fit in fits:
+      print(f">>> {fit}:")
+      for sel_sr, sel_sb, sfs_ in sfs_final:
+        print(f">>>   {sel_sr} with sideband {sel_sb}:")
+        print(f">>>     {printFit(sfs_[fit])}")
+    print(">>> "+'-'*100)
+    
 
 # def testFit():
 #   """Test if TH1::Fit takes into account errors in bin content."""
