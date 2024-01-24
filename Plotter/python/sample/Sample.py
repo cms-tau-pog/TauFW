@@ -543,10 +543,8 @@ class Sample(object):
       for sample in self.samples:
         sample.addweight(weight)
     else:
-      print('Sample.addweight: before: %s, weight=%r, extraweight=%r'%(self,self.weight,self.extraweight))
       LOG.verb('Sample.addweight: before: %s, weight=%r, extraweight=%r'%(self,self.weight,self.extraweight),level=3)
       self.weight = joinweights(self.weight, weight)
-      print('Sample.addweight: after: %s, weight=%r, extraweight=%r'%(self,self.weight,self.extraweight))
       LOG.verb('                  after:  %s, weight=%r, extraweight=%r'%(self,self.weight,self.extraweight),level=3)
     for sample in self.splitsamples:
         sample.addweight(weight)

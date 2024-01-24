@@ -9,7 +9,6 @@ channel: mumu
 #tag: "_mumu_zptDY_etacut"
 #tag: "_mumu_trigger"
 #tag: "_mumu_v10"
-#tag: "_mumu_Dt2p5_2022"
 #tag: "_mumu_Dt2p5_202-test"
 tag: "_mumu_Dt2p5_puppiMET"
 
@@ -45,35 +44,13 @@ processes: ['ZTT','ZL','ZJ','data_obs'] #enlever les bruits de fond
 systematics:
     lumi:
         effect: "lnN"
-        processes: ["ZTT","ZL","ZJ"]
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
         scaleFactor: 1.025
     eff_m:
         effect: "lnN"
-<<<<<<< HEAD
-        processes: ["ZTT","ZL","ZJ"]
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
         scaleFactor: 1.02
-=======
-        processes: ["ZTT","ZL","ZJ","TT", "W", "ST", "VV"]
+    xsec_dy:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ"]
         scaleFactor: 1.02
-
-# Additional scale factors per year for specific processes (correction of xsec, reco SFs, etc.)
-scaleFactors:
-  eff_m:
-    processes: ['ZTT', 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'ST', 'VV']
-    values:
-      {
-      '': 1.00013301952,
-      }
-  lumi:
-    processes: ['ZTT', 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'ST', 'VV']
-    values:
-      {
-      '': 1.00030709917,
-      }
-  xsec_dy:
-    processes: ['ZTT','ZL','ZJ']
-    values:
-      {
-      '': 0.973431169987,
-      }
->>>>>>> 7dbb809642e518a89c445b264c8226d5f2f9de43
