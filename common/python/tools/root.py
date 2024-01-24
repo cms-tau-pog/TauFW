@@ -1,9 +1,9 @@
 # Author: Izaak Neutelings (July 2023)
 from __future__ import print_function # for python3 compatibility
 from past.builtins import basestring # for python2 compatibility
-import os
+import os, re
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TFile, TNamed, TH2
+from ROOT import gROOT, gSystem, TFile, TNamed, TH2
 from TauFW.common.tools.log import LOG
 from TauFW.common.tools.utils import unpacklistargs, islist
 TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o))) # overwrite default representation
@@ -134,4 +134,25 @@ def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True,warn=T
   if retfile:
     return file, hist
   return hist
+  
+
+def loadmacro(macro,fast=False,opt='+O',verb=0):
+  """Load C++ macro via ROOT."""
+  if fast: # try to fast load library, assuming it is already exist and the macro is unchanged
+    # NOTE! If you changed the macro, you should set fast=False, or remove the old library
+    macrolib = re.sub(r"(\w+)\.([Cc][CcXx]{0,2})$",r"\1_\2.so",macro)
+    if os.path.exists(macrolib):
+      try:
+        LOG.verb("loadmacro: Loading library %s..."%(macrolib),verb,1)
+        return gSystem.Load(macrolib) # faster than compiling each time
+      except: # loading library failed => compile
+        LOG.warn("loadmacro: Failed to loading library %s for %s... Will try to compile from scratch..."%(macrolib,macro))
+    elif verb>=1:
+      print(">>> loadmacro: Could not find library %s! Will try to compile from scratch..."%(macrolib))
+  line = ".L %s%s"%(macro,opt)
+  if verb>=2:
+    print(">>> loadmacro: Compiling macro %s (processing %r)..."%(macro,line))
+  elif verb>=1:
+    print(">>> loadmacro: Compiling macro %s..."%(macro))
+  return gROOT.ProcessLine(line)
   

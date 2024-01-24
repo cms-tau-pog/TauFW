@@ -3,7 +3,8 @@
 # Description: Quick 'n dirty test of macros
 import os, re
 from TauFW.common.tools.log import header
-from TauFW.Plotter.sample.utils import loadmacro, setera
+from TauFW.common.tools.root import loadmacro
+from TauFW.Plotter.sample.utils import setera
 from TauFW.Plotter.plot.string import makehistname
 from TauFW.Plotter.plot.Plot import Plot
 from ROOT import gROOT, TFile, TH1D
@@ -15,7 +16,7 @@ def testUtils():
   
   # LOAD MACRO
   gROOT.ProcessLine(".L python/macros/utils.C+O")
-  #loadmacro("python/macros/pileup.C")
+  #loadmacro("python/macros/utils.C")
   from ROOT import TLorentzVector, TVector3
   from ROOT import DeltaPhi, DeltaPhi2Pi, DeltaR, Mom, InvMass
   
@@ -68,9 +69,9 @@ def testPileup():
   print(header("testPileup"))
   
   # LOAD MACRO
-  gROOT.ProcessLine(".L python/macros/pileup.C+O")
-  #loadmacro("python/macros/pileup.C")
-  from ROOT import loadPU, getPUWeight
+  gROOT.ProcessLine(".L python/corrections/pileup.C+O")
+  #loadmacro("python/corrections/pileup.C")
+  from ROOT import readPUFile, getPUWeight
   
   # LOAD SF
   npvs = [ # must be integers
@@ -83,9 +84,9 @@ def testPileup():
   ]
   for fname_data, fname_mc in fnamesets:
     if fname_data or fname_mc:
-      loadPU(fname_data,fname_mc)
+      readPUFile(fname_data,fname_mc)
     else:
-      loadPU()
+      readPUFile()
     print(">>> data=%r, mc=%r"%(fname_data,fname_mc))
     print(">>> %7s %9s"%('npv','data/mc'))
     for npv in npvs:
@@ -99,8 +100,8 @@ def testTopPtWeight():
   print(header("testTopPtWeight"))
   
   # LOAD MACRO
-  gROOT.ProcessLine(".L python/macros/topptweight.C+O")
-  #loadmacro("python/macros/topptweight.C")
+  gROOT.ProcessLine(".L python/corrections/topptweight.C+O")
+  #loadmacro("python/corrections/topptweight.C")
   from ROOT import getTopPtSF, getTopPtWeight
   from ROOT import getTopPtSF_NNLO, getTopPtWeight_NNLO
   
@@ -278,11 +279,11 @@ def main():
   testUtils()
   testPileup()
   testTopPtWeight()
-  testTauIDSF()
-  testLoadHist()
+  #testTauIDSF()
+  #testLoadHist()
   
 
 if __name__ == '__main__':
   main()
   print(">>> Done")
-    
+  

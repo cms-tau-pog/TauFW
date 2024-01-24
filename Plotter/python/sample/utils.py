@@ -3,7 +3,7 @@
 import os, re, glob
 from TauFW.common.tools.utils import isnumber, islist, ensurelist, unpacklistargs, quotestrs, repkey, getyear
 from TauFW.common.tools.file import ensuredir, ensuremodule
-from TauFW.common.tools.root import ensureTFile
+from TauFW.common.tools.root import ensureTFile, loadmacro
 from TauFW.common.tools.log import Logger, color
 from TauFW.Plotter.plot.Variable import Variable, Var, ensurevar
 from TauFW.Plotter.plot.Selection import Selection, Sel
@@ -626,12 +626,6 @@ def selectbranches(tree,selections,verb=0):
       tree.SetBranchStatus(branch,1)
   #print("selectbranches: DONE")
   return tree
-  
-
-def loadmacro(macro,verb=0):
-  line = ".L %s+O"%(macro)
-  LOG.verb("loadmacro: Loading macro %r..."%(macro),level=1)
-  return gROOT.ProcessLine(line)
   
 
 from TauFW.Plotter.sample.Sample import *
