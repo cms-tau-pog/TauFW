@@ -28,40 +28,36 @@ def plot(sampleset,setup,region,parallel=True,tag="",extratext="",outdir="plots"
   # Check region and use the right TES value from 
   print("Region = %s" %(region))
   if region in setup['regions']: # add extra regions on top of baseline
-      print(region)
-      if region == 'DM0' :
-        #channel = "mutau_TES0p914"
-        #channel = "mutau_TES0p930"
-        channel = "mutau_TES0p932"
-        #channel = "mutau_DM0_mt65"
-      # elif region == 'DM0_pt1' :
+      # print(region)
+      # if region == 'DM0' :
       #   #channel = "mutau_TES0p914"
       #   #channel = "mutau_TES0p930"
-      #   channel = "mutau_TES0p892"
-      # elif region == 'DM0_pt2' :
-      #   #channel = "mutau_TES0p914"
+      #   channel = "mutau_TES0p927"
       #   #channel = "mutau_TES0p930"
-      #   channel = "mutau_TES0p952"
-      elif region == 'DM1':
-        #channel = "mutau_TES0p980"
-        channel = "mutau_TES0p984"
-        #channel = "mutau_TES0p901"
-        #channel = "mutau_DM1_mt65"
-      elif region == 'DM10':
-        #channel = "mutau_TES0p998"
-        #channel = "mutau_TES0p972" 
-        #channel = "mutau_TES1p012"
-        channel = "mutau_TES1p002"
-        #channel = "mutau_DM10_mt65"
-      elif region == 'DM11':
-        #channel = "mutau_TES1p012"
-        #channel = "mutau_TES1p008"
-        #channel = "mutau_TES1p018"
-        channel = "mutau_TES1p006"
-        #channel = "mutau_DM11_mt65"
-      else :
-        channel = setup["channel"]
+      # # elif region == 'DM0_pt1' :
+      # #   #channel = "mutau_TES0p914"
+      # #   #channel = "mutau_TES0p930"
+      # #   channel = "mutau_TES0p892"
+      # # elif region == 'DM0_pt2' :
+      # #   #channel = "mutau_TES0p914"
+      # #   #channel = "mutau_TES0p930"
+      # #   channel = "mutau_TES0p952"
+      # elif region == 'DM1':
+      #   #channel = "mutau_TES0p980"
+      #   #channel = "mutau_TES0p982"
+      #   channel = "mutau_TES0p0p901"
+      # elif region == 'DM10':
+      #   #channel = "mutau_TES0p998"
+      #   channel = "mutau_TES0p972" 
+      #   #channel = "mutau_TES1p012"
+      # elif region == 'DM11':
+      #   #channel = "mutau_TES1p012"
+      #   channel = "mutau_TES1p008"
+      #   #channel = "mutau_TES1p018"
+      # else :
+      #   channel = setup["channel"]
 
+      channel = setup["channel"]
       print("Channel = %s" %(channel))
       skwargs = setup['regions'][region].copy() # extra key-word options
       assert 'definition' in skwargs
@@ -135,40 +131,31 @@ def plot(sampleset,setup,region,parallel=True,tag="",extratext="",outdir="plots"
     region_mapping = {'DM0': 'dm_2==0', 'DM1': 'dm_2==1', 'DM10': 'dm_2==10', 'DM11': 'dm_2==11'}
     region_cut = region_mapping.get(region, region)
 
+    
+    # JTF["ZJ", "TTJ", "W"]
+    # iSysVar = "JTF_0p950"
+  
 
     # Extract relevant parameters for modifying the sample
-    sampleAppend = ""
-    
-    if region == "DM0":
-      dy_shape_val =  0.355279177427
-    elif region == "DM1":
-      dy_shape_val = -0.714294493198
-    elif region == "DM10":
-      dy_shape_val =  0.264388531446
-    elif region == "DM11":
-      dy_shape_val = -0.808251798153
-    else:
-      dy_shape_val = 1
-
-    dy_weight_ZTT = "(genmatch_2==5 ? 1+((zptweight+0.1*(zptweight-1))*%s ): 1)" %(dy_shape_val)
-    dy_weight_ZL = "(genmatch_2>0 && genmatch_2<5 ? 1+((zptweight+0.1*(zptweight-1))*%s): 1)" %(dy_shape_val)
-    dy_weight_ZJ = "(genmatch_2==0 ? 1+((zptweight+0.1*(zptweight-1))*%s ): 1)" %(dy_shape_val)
+    #sampleAppend = sysDef["sampleAppend"][iSysVar] if "sampleAppend" in sysDef else ""
+    sampleAppend = "_JTF0p950"
+    #weightReplaced = [sysDef["nomWeight"],sysDef["altWeights"][iSysVar]] if "altWeights" in sysDef else ["",""]
+    weightReplaced = ""
 
     # Create a new sample set with systematic variations
-    # sampleset.gethists(obsset,selection,method=method,split=True,
-    #                            parallel=parallel,filter=filters,veto=vetoes,replaceweight=weightReplaced)
+    newsampleset_sys = sampleset.shift(["ZJ", "TTJ", "W"], "_JTF1p050", "_JTF1p050", "+5% JTF", split=True,filter=False,share=True)
+    newsampleset_sysTES = newsampleset_sys.shift(["ZTT"], "_TES0p928", "_JTF0p928", "TES 0.928", split=True,filter=False,share=True)
+    newsampleset_sys.close()
+    newsampleset_sysTES.close()
 
 
-    stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
-
-    # sampleset.get("ZTT", unique=True,split=True,method='QCD_OSSS').setextraweight(dy_weight_ZTT)
-    # sampleset.get("ZL", unique=True,split=True,method='QCD_OSSS').setextraweight(dy_weight_ZL)
-    # sampleset.get("ZJ", unique=True,split=True,method='QCD_OSSS').setextraweight(dy_weight_ZJ)
+    stacks = newsampleset_sysTES.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
+    #stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
 
 
     print("sampleset = %s" %(sampleset))
 
-    # Applying SFs on specific processes -- do after splitting and renaming! 
+    #Applying SFs on specific processes -- do after splitting and renaming! 
     if "scaleFactors" in setup:
         #print("scaleFactors")
         for SF in setup["scaleFactors"]:
@@ -193,7 +180,7 @@ def plot(sampleset,setup,region,parallel=True,tag="",extratext="",outdir="plots"
     print("stacks = %s" %(stacks))
     
 
-    fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
+    fname  = "%s/$VAR_%s-%s-%s$TAG_postfit"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
     text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
