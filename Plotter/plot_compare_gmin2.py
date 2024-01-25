@@ -164,7 +164,7 @@ def getsampleset(channel,era,**kwargs):
     loadAcoWeights(era)
     iera = getEraIndex2(era)
     if 'getAcoWeight' not in dyweight:
-      dyweight = joinweights(dyweight,f"*getAcoWeight(aco,pt_1,pt_2,{iera})")
+      dyweight = joinweights(dyweight,f"getAcoWeight(aco,pt_1,pt_2,{iera})")
     if '$ERA' in dyweight:
       dyweight = dyweight.replace('$ERA',str(getEraIndex2(era)))
     print(">>> Done loading corrections!")
@@ -298,9 +298,9 @@ def loadallhists(hfile,vars,vars0,sample,subdir=None,**kwargs):
     return { v: loadhist(hfile,v,vars0,sample,subdir=subdir,**kwargs) for v in vars }
 
 
-def compare_ntracks_hs(era,channel,tag="",**kwargs):
+def measure_ntracks_hs(era,channel,tag="",**kwargs):
   """Compare number of track."""
-  LOG.header("compare_ntracks_hs",pre=">>>")
+  LOG.header("measure_ntracks_hs",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/ntracks_hs" )
   loadhists = kwargs.get('loadhists', False   ) #True and False
   norms     = kwargs.get('norm',      [True]  )
@@ -310,12 +310,13 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   ensuredir(outdir)
   norms     = ensurelist(norms)
   rtitle    = "Obs. / Sim."
-  hfname    = "%s/corrs_ntracks_hs_%s.root"%(outdir,era)
+  hfname    = "%s/corrs_ntracks_hs_%s%s.root"%(outdir,era,tag)
   hfile     = ensureTFile(hfname,'READ' if loadhists else 'UPDATE') # back up histograms for reuse
   lsize     = 0.041 # legend text size
   tsize     = 0.044 # corner text size
   rmin      = 0.2
   rmax      = 1.8
+  print(f">>> hfname = {hfname} (loadhists={loadhists!r})")
   
   # COLOR PALETTE
   # https://root.cern.ch/doc/master/classTColor.html#C06
@@ -490,7 +491,9 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
         printSigSubtraction(obshist,sighist_)
         if sighist==None:
           sighist = sighist_.Clone(f"sigtot_{var.filename}_{selection.filename}")
+          print(f">>> Setting sighist={sighist!r} = {sighist_!r}.Clone()")
         else:
+          print(f">>> Adding {sighist_!r} to sighist={sighist!r}")
           sighist.Add(sighist_) # add
         histsets[var].sig.remove(sighist_)
       sighist.SetTitle("#gamma#gamma -> #mu#mu, WW")
@@ -506,7 +509,7 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
     LOG.color("Step 2c: Plotting histograms before corrections...",b=True)
     for var, histset in histsets.items():
       dhist, mchists, sighists = histset.data, histset.exp, histset.sig
-      if verbosity>=1:
+      if verbosity+1>=1:
         print(">>> var      = %r, %r"%(var.name,var.title))
         print(">>> dhist    = %s"%(rootrepr(dhist)))
         print(">>> mchists  = %s"%(rootrepr(mchists)))
@@ -523,7 +526,10 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
       for hist in mchists:
         sumhist0.Add(hist) # total uncorrected (for plotting)
       if len(sighists)>=2: # scale signal to DY
+        #sigscale = [(1. if 'corr' in h.GetTitle().lower() else h.Integral()/sumhist0.Integral()) for h in sighists]
         sigscale = [(h.Integral()/sumhist0.Integral() if 'gamma' in h.GetTitle() else 1.) for h in sighists]
+      if verbosity+1>=1:
+        print(f">>> scale signals: sigscale={sigscale}")
       
       # PLOT
       fname = "%s/$VAR_%s_%s%s$TAG"%(outdir,selection.filename,era,tag)
@@ -617,9 +623,9 @@ def compare_ntracks_hs(era,channel,tag="",**kwargs):
   hfile.Close()
   
 
-def compare_ntracks_pu(era,channel,tag="",**kwargs):
+def measure_ntracks_pu(era,channel,tag="",**kwargs):
   """Compare number of track."""
-  LOG.header("compare_ntracks_pu",pre=">>>")
+  LOG.header("measure_ntracks_pu",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/ntracks_pu" )
   loadhists = kwargs.get('loadhists', False   ) #True and False
   norms     = kwargs.get('norm',      [True]  )
@@ -1431,7 +1437,7 @@ def main(args):
   loadhists = args.loadhists
   channels  = ['mumu',] #'tautau'
   outdir    = "plots/g-2"
-  tag       = ""
+  tag       = args.tag
   chunk     = args.chunk
   nthreads  = args.nthreads
   verbosity = args.verbosity
@@ -1461,9 +1467,9 @@ def main(args):
     setera(era) # set era for plot style and lumi-xsec normalization
     for channel in channels:
       if 'pu' in methods:
-        compare_ntracks_pu(era,channel,tag=tag,outdir=outdir+"/ntracks_pu",loadhists=loadhists,chunk=chunk,verb=verbosity)
+        measure_ntracks_pu(era,channel,tag=tag,outdir=outdir+"/ntracks_pu",loadhists=loadhists,chunk=chunk,verb=verbosity)
       if 'hs' in methods:
-        compare_ntracks_hs(era,channel,tag=tag,outdir=outdir+"/ntracks_hs",loadhists=loadhists,verb=verbosity)
+        measure_ntracks_hs(era,channel,tag=tag,outdir=outdir+"/ntracks_hs",loadhists=loadhists,verb=verbosity)
       if 'sam' in methods:
         compare_samples(era,channel,tag=tag,outdir=outdir+"/compare",verb=verbosity)
       if 'var' in methods:
@@ -1485,6 +1491,8 @@ if __name__ == "__main__":
                                            help="only run chunk of variables" )
   parser.add_argument('-y', '--era',       dest='eras', nargs='*', default=['UL2018'],
                                            help="set era" )
+  parser.add_argument('-t', '--tag',       default="",
+                                           help="extra tag for output" )
   parser.add_argument('-L', '--loadhists', action='store_true',
                                            help="load histograms from ROOT file" )
   parser.add_argument('-n', '--nthreads',  type=int, nargs='?', const=10, default=10, action='store',

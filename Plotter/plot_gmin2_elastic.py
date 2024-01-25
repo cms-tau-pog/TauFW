@@ -272,8 +272,11 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
     #Sel(f"A < 0.015, {tit_nt} <= 1", sel_sr,    fname="acolt0p015-ntracksleq1"),
     Sel(f"A < 0.015, {tit_nt} = 0",  f"{baseline} && aco<0.015 && ntrack_all==0", fname="acolt0p015-ntracks0"),
     Sel(f"A < 0.015, {tit_nt} = 1",  f"{baseline} && aco<0.015 && ntrack_all==1", fname="acolt0p015-ntracks1"),
-#     Sel(f"A < 0.015, {tit_nt} = 2",  f"{baseline} && aco<0.015 && ntrack_all==2", fname="acolt0p015-ntracks2"),
-#     Sel(f"A < 0.015, {tit_nt} = 3",  f"{baseline} && aco<0.015 && ntrack_all==3", fname="acolt0p015-ntracks3"),
+  ]
+  if ntmin in [3,4] and ntmax in [7]:
+    selections += [ # study
+      Sel(f"A < 0.015, {tit_nt} = 2",  f"{baseline} && aco<0.015 && ntrack_all==2", fname="acolt0p015-ntracks2"),
+      Sel(f"A < 0.015, {tit_nt} = 3",  f"{baseline} && aco<0.015 && ntrack_all==3", fname="acolt0p015-ntracks3"),
   ]
   selections = filtervars(selections,selfilter) # filter variable list with -S/--sel flag
   
@@ -692,6 +695,7 @@ def printResults(era,outdir,all=False):
       #return ', '.join(f"{p}: {s}" for p,s in fit['fit3'].items() )
       #', '.join(f"{s} \\times { if p else }" for p,s in fit['fit3'].items() )
     return (' + '.join(res)).replace('+ (-','- (')
+  print(f">>> Opening {jfname!r}...")
   if os.path.isfile(jfname):
     with open(jfname,'r') as infile:
       sfs = json.load(infile)
