@@ -41,7 +41,9 @@ class ModuleMuMu(ModuleTauPair):
       self.muSFs   = MuonSFs(era=self.era)
 
     # TRIGGERS
-    jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
+    # jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
+    jsonfile = os.path.join(datadir,"trigger/tau_triggers_2018.json"%(self.year)) # take the same trigger as 2018 for 2022
+
     self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)
     
     # CUTFLOW
