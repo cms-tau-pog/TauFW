@@ -233,7 +233,6 @@ def getsampleset(channel,era,**kwargs):
   if 'TT' in split:
     sampleset.split('TT',[('TMM',GMR),('TTJ',GMF),])
   
-
   if table:
     sampleset.printtable(merged=True,split=True)
   return sampleset
