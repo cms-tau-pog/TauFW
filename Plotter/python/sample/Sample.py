@@ -29,7 +29,6 @@ class Sample(object):
   def __init__(self, name, *args, **kwargs):
     import TauFW.Plotter.sample.utils as GLOB
     LOG.setverbosity(kwargs)
-    #LOG.setverbosity(3)
     title    = ""
     filename = ""
     xsec     = -1.0

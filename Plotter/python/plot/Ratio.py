@@ -254,7 +254,6 @@ class Ratio(object):
         for hist in rubbish.GetHists():
           deletehist(hist)
       else:
-        print(rubbish)
         deletehist(rubbish)
 
   
