@@ -34,16 +34,14 @@ class ModuleMuMu(ModuleTauPair):
       self.muonCutEta = lambda e: 2.4
     self.muon2CutPt   = 15
     self.tauCutPt     = 20
-    self.tauCutEta    = 2.5 #2.5 Deeptau 2P5
+    self.tauCutEta    = 2.3
     
     # CORRECTIONS
     if self.ismc:
       self.muSFs   = MuonSFs(era=self.era)
 
     # TRIGGERS
-    # jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
-    jsonfile = os.path.join(datadir,"trigger/tau_triggers_2018.json"%(self.year)) # take the same trigger as 2018 for 2022
-
+    jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
     self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)
     
     # CUTFLOW
@@ -52,15 +50,9 @@ class ModuleMuMu(ModuleTauPair):
     self.out.cutflow.addcut('muon',         "muon"                       )
     self.out.cutflow.addcut('pair',         "pair"                       )
     self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
-    self. out.cutflow.addcut('weight',       "no cut, weighted", 15       )
+    self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
-    self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
-  
+    
   
   def beginJob(self):
     """Before processing any events or files."""
