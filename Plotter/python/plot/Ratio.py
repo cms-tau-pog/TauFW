@@ -165,35 +165,34 @@ class Ratio(object):
     # STORE
     self.frame    = histdens[0] if num==None else histnums[0] # use as frame
     self.fraction = fraction
-    #self.frame   = self.histden.Clone("frame_ratio_%s"%(self.histden.GetName()))
+    #self.frame    = self.histden.Clone("frame_ratio_%s"%(self.histden.GetName()))
     #self.frame.Reset() # make empty
     #self.frame.SetLineColor(0)
     #self.frame.SetLineWidth(0)
     #self.frame.SetMarkerSize(0)
-    self.garbage = [self.fraction,self.errband]
+    if isinstance(self.frame,TH1): # set default xmin/xmax
+      self.xmin  = self.frame.GetXaxis().GetXmin()
+      self.xmax  = self.frame.GetXaxis().GetXmax()
+    else: # assume TGraph(Asymm)(Errors)
+      xvals     = self.frame.GetX()
+      self.xmin = min(xvals)
+      self.xmax = max(xvals)
+    self.garbage  = [self.fraction,self.errband]
     
   
   def draw(self, option=None, **kwargs):
     """Draw all objects."""
-    verbosity   = LOG.getverbosity(kwargs,self)
-    ratios      = self.ratios
-    if isinstance(self.frame,TH1):
-      xmin      = self.frame.GetXaxis().GetXmin()
-      xmax      = self.frame.GetXaxis().GetXmax()
-    else: # assume TGraph(Asymm)(Errors)
-      xvals     = self.frame.GetX()
-      xmin      = min(xvals)
-      xmax      = max(xvals)
-    xmin        = kwargs.get('xmin',   xmin  )
-    xmax        = kwargs.get('xmax',   xmax  )
-    ymin        = kwargs.get('ymin',   0.5   ) #default = 0.5
-    ymax        = kwargs.get('ymax',   1.5   ) #default = 1.5
-    data        = kwargs.get('data',   False )
-    xtitle      = kwargs.get('xtitle', ""    )
-    ytitle      = kwargs.get('ytitle', "Obs. / Exp." if data else "Ratio" )
-    size        = 1.0 if data else 0.0 #0.9
-    #self.frame  = gPad.DrawFrame(xmin,ymin,xmax,ymax)
-    frame       = getframe(gPad,self.frame,xmin=xmin,xmax=xmax)
+    verbosity = LOG.getverbosity(kwargs,self)
+    ratios = self.ratios
+    xmin   = kwargs.get('xmin', self.xmin )
+    xmax   = kwargs.get('xmax', self.xmax )
+    ymin   = kwargs.get('ymin',   0.5     ) #default = 0.5
+    ymax   = kwargs.get('ymax',   1.5     ) #default = 1.5
+    data   = kwargs.get('data',   False   )
+    xtitle = kwargs.get('xtitle', ""      )
+    ytitle = kwargs.get('ytitle', "Obs. / Exp." if data else "Ratio" )
+    size   = 1.0 if data else 0.0 #0.9
+    frame  = getframe(gPad,self.frame,xmin=xmin,xmax=xmax,verb=verbosity)
     self.garbage.append(frame)
     
     frame.GetYaxis().SetTitle(ytitle)
@@ -231,8 +230,19 @@ class Ratio(object):
       self.line.Draw('LSAME') # only draw line if a histogram has been drawn!
       self.garbage.append(self.line)
     
+    self.drawratios(option)
+    
+    self.frame = frame
+    self.xmin  = xmin
+    self.xmax  = xmax
+    return frame
+    
+  
+  def drawratios(option,**kwargs):
+    """Just draw ratios."""
+    verbosity = LOG.getverbosity(kwargs,self)
     for ratio in self.ratios:
-      ratio.SetMaximum(ymax*1e10)
+      ratio.SetMaximum(1e50)
       if option:
         roption = option
       elif (ratio.GetLineWidth()==0 or 'E' in ratio.GetOption()) and ratio.GetMarkerSize()>0.05:
@@ -242,9 +252,7 @@ class Ratio(object):
       roption += 'SAME'
       ratio.Draw(roption)
       LOG.verb("Ratio.draw: ratio=%s, roption=%r"%(ratio,roption),verbosity,2)
-    
-    self.frame = frame
-    return frame
+    return self.ratios
     
   
   def close(self):
