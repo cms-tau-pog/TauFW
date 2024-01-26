@@ -869,10 +869,13 @@ class Plot(object):
     if ncols>1: nlines  = int(ceil(nlines/float(ncols)))
     if title:   nlines += 1 + title.count('\n')
     
-    # DIMENSIONS
-    if width<0:  width  = twidth*(tsize/_lsize)*xscale*max(0.22,min(0.60,0.036+0.016*maxlen))
-    if height<0: height = theight*0.0643*(tsize/_lsize)*nlines
-    if ncols>1:  width *= ncols/(1-colsep)
+    # LEGEND DIMENSIONS
+    if width<0: # automatic width
+      width  = twidth*(tsize/_lsize)*xscale*max(0.22,min(0.60,0.036+0.016*maxlen))
+      if ncols>1:
+        width *= ncols/(1-colsep)
+    if height<0:
+      height = theight*0.0643*(tsize/_lsize)*nlines
     x2 = 0.90; x1 = x2 - width
     y1 = 0.92; y2 = y1 - height
     
