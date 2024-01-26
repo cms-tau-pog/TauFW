@@ -76,7 +76,6 @@ class Variable(object):
     self.only         = kwargs.get('only',        [ ]            ) # only plot for these patterns
     self.veto         = kwargs.get('veto',        [ ]            ) # do not plot for these patterns
     self.blindcuts    = kwargs.get('blind',       ""             ) # string for blind cuts to blind data
-    self.isint        = kwargs.get('int',         False          ) # this variable is explicitly an interger (used by addoverflow)
     self._addoverflow = kwargs.get('addof',       False          ) # add overflow to last bin
     self._addoverflow = kwargs.get('addoverflow', self._addoverflow ) # add overflow to last bin
     if self.latex:
@@ -502,7 +501,7 @@ class Variable(object):
     LOG.verb('Variable.blind: blindcut = %r for a (%s,%s) window and (%s,%s,%s) binning'%(blindcut,bmin,bmax,nbins,xmin,xmax),verbosity,2) 
     return blindcut
   
-  def addoverflow(self,frac=0.10,**kwargs):
+  def addoverflow(self,frac=0.90,**kwargs):
     """Modify variable name in order to add the overflow to the last bin."""
     verbosity = LOG.getverbosity(self,kwargs)
     if self.hasvariablebins():
@@ -511,12 +510,11 @@ class Variable(object):
     else:
       xmax  = self.max
       width = (xmax-self.min)/float(self.nbins)
-    thres = xmax - (1.-frac)*width # threshold for minimum min(var,threshold)
-    if self.isint: # ensure integer threshold for min(int,int) to avoid 'no matching function' error
-      thres = int(floor(thres))
-      if thres<(xmax-width): # ensure overflow is added to very last bin
-        LOG.warn("addoverflow: xmax=%s, width=%s, threshold=%s => thres < (xmax-width) = %s"%(xmax,width,thres,xmax-width))
-    self.name   = "min(%s,%s)"%(self._name,thres)
+    thres = xmax - (1.-frac)*width # threshold for minimum min(x,threshold)
+    # NOTE: the min(x,thres) function causes errors in RDataFrame when x and thres are different data types,
+    # The ternary operation (x<xmax?x:thres) should not affect performance unless x is a complicated expression
+    ###self.name = "min(%s,%s)"%(self._name,thres) # causes errors
+    self.name = "%s<%s?%s:%s"%(self._name,xmax,self._name,thres) # (x<xmax?x:thres)
     LOG.verb("Variable.addoverflow: %r -> %r for binning '%s'"%(self._name,self.name,self.getbins()),verbosity,2)
     return self.name
   
