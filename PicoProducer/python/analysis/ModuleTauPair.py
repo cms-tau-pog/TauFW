@@ -38,6 +38,8 @@ class ModuleTauPair(Module):
     self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
     self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
+    ##addition Z resolution
+    self.Zres       = kwargs.get('Zres',     None           ) # Z resolution 
     self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting

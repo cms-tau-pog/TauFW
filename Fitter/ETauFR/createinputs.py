@@ -77,22 +77,23 @@ def main(args):
           ('FES',"_shape_fes",   ['ZL']),
           #Add other samples when EES rerun for all
           ('EES',"_shape_ees",   ['ZL','ZTT','ZJ','W','VV','ST','TTT','TTL','TTJ']), #Electron energy scale
-          #('RES',"_shape_res",   ['ZL','ZTT','ZJ','W','VV','ST','TTT','TTL','TTJ']),
+          ('RES',"_shape_res",   ['ZL','ZTT','ZJ']), #'W','VV','ST','TTT','TTL','TTJ']),
           ('JTF',"_shape_jtf",   ['ZJ', 'TTJ', 'QCD', 'W']),
-          #('JTF',"_shape_jtf",   ['ZJ', 'TTJ', 'QCD', 'W']),
           ERA=era,CHANNEL=channel)
+
+               
         samplesets = { # sets of samples per variation
           'Nom':     sampleset, # nominal
           'TESUp':   sampleset.shift(systs['TES'].procs,"_TES1p05",systs['TES'].up," +5% TES", split=True,filter=False,share=True, parallel=parallel),
           'TESDown': sampleset.shift(systs['TES'].procs,"_TES0p95",systs['TES'].dn," -5% TES", split=True,filter=False,share=True, parallel=parallel),
           #'FESUp':   sampleset.shift(systs['FES'].procs,"_FES1p15",systs['FES'].up," +25% FES", split=True,filter=False,share=True, parallel=parallel),
           #'FESDown': sampleset.shift(systs['FES'].procs,"_FES0p85",systs['FES'].dn," -25% FES", split=True,filter=False,share=True, parallel=parallel),
-          'EESUp':   sampleset.shift(systs['EES'].procs,"_EES1p05",systs['EES'].up," +5% EES", split=True,filter=False,share=True, parallel=parallel),
-          'EESDown': sampleset.shift(systs['EES'].procs,"_EES0p95",systs['EES'].dn," -5% EES", split=True,filter=False,share=True, parallel=parallel),
-          'JTFUp':   sampleset.shift(systs['JTF'].procs,"_JTF1p05",systs['JTF'].up," +5% JTF", split=True,filter=False,share=True, parallel=parallel),
-          'JTFDown': sampleset.shift(systs['JTF'].procs,"_JTF0p95",systs['JTF'].dn," -5% JTF", split=True,filter=False,share=True, parallel=parallel),
-          #'RESUp':   sampleset.shift(systs['RES'].procs,"",systs['RES'].up," +3% mvisRES", split=True,filter=False,share=True, parallel=parallel),
-          #'RESDown': sampleset.shift(systs['RES'].procs,"",systs['RES'].dn," -3% mvisRES", split=True,filter=False,share=True, parallel=parallel),
+          'EESUp':   sampleset.shift(systs['EES'].procs,"_EES1p04",systs['EES'].up," +4% EES", split=True,filter=False,share=True, parallel=parallel),
+          'EESDown': sampleset.shift(systs['EES'].procs,"_EES0p96",systs['EES'].dn," -4% EES", split=True,filter=False,share=True, parallel=parallel),
+          #'JTFUp':   sampleset.shift(systs['JTF'].procs,"_JTF1p05",systs['JTF'].up," +5% JTF", split=True,filter=False,share=True, parallel=parallel),
+          #'JTFDown': sampleset.shift(systs['JTF'].procs,"_JTF0p95",systs['JTF'].dn," -5% JTF", split=True,filter=False,share=True, parallel=parallel),
+          'RESUp':   sampleset.shift(systs['RES'].procs,"_RES1p10",systs['RES'].up," +10% mvisRES", split=True,filter=False,share=True, parallel=parallel),
+          'RESDown': sampleset.shift(systs['RES'].procs,"_RES0p90",systs['RES'].dn," -10% mvisRES", split=True,filter=False,share=True, parallel=parallel),
         }
 
         if not fesVar: 
@@ -121,18 +122,10 @@ def main(args):
       else:
         
         mvis_pass = Var('m_vis', 11, 60, 120)
-        mvis_fail = Var('m_vis', 1,  60, 120)
-        #mvis_pass_resUp = Var('m_vis_resoUp', 11, 60, 120)
-        #mvis_fail_resUp = Var('m_vis_resoUp', 1, 60, 120)
-        #mvis_pass_resDown = Var('m_vis_resoDown', 11, 60, 120)
-        #mvis_fail_resDown = Var('m_vis_resoDown', 1, 60, 120)
+        mvis_fail = Var('m_vis', 1, 60, 120)
         observables_pass = []
         observables_fail = []
-        #observables_pass_resUp =[]
-        #observables_fail_resUp =[]
-        #observables_pass_resDown =[]
-        #observables_fail_resDown =[]
-        
+       
         # ADDED Eta for E->Tau FR
         # PT & DM BINS
         # drawing observables can be run in parallel
@@ -174,21 +167,17 @@ def main(args):
             else:
               etamax = etabins[imax]
               etacut = "abs(eta_2)>%s && abs(eta_2)<=%s"%(etamin,etamax)
-              fname = "$VAR_eta%sto%s"%(etamin,etamax)
-            mvis_pass_cut = mvis_pass.clone(fname=fname,cut=etacut) # create observable with extra cut for eta bin
-            mvis_fail_cut = mvis_fail.clone(fname=fname,cut=etacut) # create observable with extra cut for eta bin
-            #mvis_pass_resUp_cut = mvis_pass_resUp.clone(fname=fname,cut=etacut) 
-            #mvis_fail_resUp_cut = mvis_fail_resUp.clone(fname=fname,cut=etacut) 
-            #mvis_pass_resDown_cut = mvis_pass_resDown.clone(fname=fname,cut=etacut) 
-            #mvis_fail_resDown_cut = mvis_fail_resDown.clone(fname=fname,cut=etacut) 
-            print(">>>   %r (%r)"%(etacut,fname))
-            observables_pass.append(mvis_pass_cut)
-            observables_fail.append(mvis_fail_cut)
-            #observables_pass_resUp.append(mvis_pass_resUp_cut)
-            #observables_fail_resUp.append(mvis_fail_resUp_cut)
-            #observables_pass_resDown.append(mvis_pass_resDown_cut)
-            #observables_fail_resDown.append(mvis_fail_resDown_cut)
-          
+            for idm in dmbins:
+              dmcut = " && dm_2==%d"%(idm) 
+              etadmcut = etacut + dmcut
+              fname = "$VAR_eta%sto%s_dm%s"%(etamin,etamax, idm)
+              
+              mvis_pass_cut = mvis_pass.clone(fname=fname,cut=etadmcut) # create observable with extra cut for eta bin and dm
+              mvis_fail_cut = mvis_fail.clone(fname=fname,cut=etadmcut) # create observable with extra cut for eta bin and dm
+              print(">>>   %r (%r)"%(etadmcut,fname))
+              observables_pass.append(mvis_pass_cut)
+              observables_fail.append(mvis_fail_cut)
+         
       
       ############
       #   BINS   #
@@ -215,9 +204,9 @@ def main(args):
         if channel=='mutau' :
           iso_2     = "idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=$WP"
           iso_2_fail     = "idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=$WP"
-          
+         
         passregion  = "q_1*q_2<0 && mt_1<60 && %s && %s && !lepton_vetoes_notau && metfilter"%(iso_1,iso_2)
-        failregion = "q_1*q_2<0 && mt_1<60 && %s && %s && !lepton_vetoes_notau && metfilter"%(iso_1,iso_2_fail)
+        failregion = "q_1*q_2<0  && mt_1<60 && %s && %s && !lepton_vetoes_notau && metfilter"%(iso_1,iso_2_fail)
         #zttregion = "%s && mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"%(baseline)
         bins_pass = [
           #Sel('baseline', repkey(baseline,WP=16)),
@@ -255,12 +244,14 @@ def main(args):
         
         createinputs(fname,samplesets['EESUp'],  observables_pass,bins_pass,systs['EES'].up,filter=systs['EES'].procs, parallel=parallel)
         createinputs(fname,samplesets['EESDown'],observables_pass,bins_pass,systs['EES'].dn,filter=systs['EES'].procs, parallel=parallel)
-        createinputs(fname,samplesets['JTFUp'],  observables_pass,bins_pass,systs['JTF'].up,filter=systs['JTF'].procs, parallel=parallel)
-        createinputs(fname,samplesets['JTFDown'],observables_pass,bins_pass,systs['JTF'].dn,filter=systs['JTF'].procs, parallel=parallel) 
+        #createinputs(fname,samplesets['JTFUp'],  observables_pass,bins_pass,systs['JTF'].up,filter=systs['JTF'].procs, parallel=parallel)
+        #createinputs(fname,samplesets['JTFDown'],observables_pass,bins_pass,systs['JTF'].dn,filter=systs['JTF'].procs, parallel=parallel) 
         #createinputs(fname,samplesets['Nom'],observables_pass,bins_pass,"_shape_resUp",shift="_resoUp")
         #createinputs(fname,samplesets['Nom'],observables_pass,bins_pass,"_shape_resDown",shift="_resoDown")
-        #createinputs(fname,samplesets['RESUp'],observables_pass_resUp,bins_pass,systs['RES'].up,filter=systs['RES'].procs, parallel=parallel)
-        #createinputs(fname,samplesets['RESDown'],observables_pass_resDown,bins_pass,systs['RES'].dn,filter=systs['RES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['RESUp'],observables_pass,bins_pass,systs['RES'].up,filter=systs['RES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['RESDown'],observables_pass,bins_pass,systs['RES'].dn,filter=systs['RES'].procs, parallel=parallel)
+        
+
         createinputs(fname,samplesets['TESUp'],  observables_fail,bins_fail,systs['TES'].up,filter=systs['TES'].procs, parallel=parallel)
         createinputs(fname,samplesets['TESDown'],observables_fail,bins_fail,systs['TES'].dn,filter=systs['TES'].procs, parallel=parallel)
         
@@ -270,46 +261,71 @@ def main(args):
         
         createinputs(fname,samplesets['EESUp'],  observables_fail,bins_fail,systs['EES'].up,filter=systs['EES'].procs, parallel=parallel)
         createinputs(fname,samplesets['EESDown'],observables_fail,bins_fail,systs['EES'].dn,filter=systs['EES'].procs, parallel=parallel)
-        createinputs(fname,samplesets['JTFUp'],  observables_fail,bins_fail,systs['JTF'].up,filter=systs['JTF'].procs, parallel=parallel)
-        createinputs(fname,samplesets['JTFDown'],observables_fail,bins_fail,systs['JTF'].dn,filter=systs['JTF'].procs, parallel=parallel)
+        #createinputs(fname,samplesets['JTFUp'],  observables_fail,bins_fail,systs['JTF'].up,filter=systs['JTF'].procs, parallel=parallel)
+        #createinputs(fname,samplesets['JTFDown'],observables_fail,bins_fail,systs['JTF'].dn,filter=systs['JTF'].procs, parallel=parallel)
         #createinputs(fname,samplesets['Nom'],observables_fail,bins_fail,"_shape_resUp",shift="_resoUp")
         #createinputs(fname,samplesets['Nom'],observables_fail,bins_fail,"_shape_resDown",shift="_resoDown")
-        #createinputs(fname,samplesets['RESUp'],observables_fail_resUp,bins_fail,systs['RES'].up,filter=systs['RES'].procs, parallel=parallel)
-        #createinputs(fname,samplesets['RESDown'],observables_fail_resDown,bins_fail,systs['RES'].dn,filter=systs['RES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['RESUp'],observables_fail,bins_fail,systs['RES'].up,filter=systs['RES'].procs, parallel=parallel)
+        createinputs(fname,samplesets['RESDown'],observables_fail,bins_fail,systs['RES'].dn,filter=systs['RES'].procs, parallel=parallel)
       
-      if fesVar:
-         ##FESvariation!!!
-         variation = [0.75,0.80,0.85,0.90,0.95,1.05,1.10,1.15,1.20,1.25] 
-         for var in variation:
-           print("Variation: FES = %f"%var)
-           newsampleset = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p"),""," %.1d"%((1.-var)*100.)+"% FES", split=True,filter=False,share=True, parallel=parallel)
-           createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
-           createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+        if fesVar:
+           ##FESvariation!!!
+           variation = [0.75,0.80,0.85,0.90,0.95,1.05,1.10,1.15,1.20,1.25] 
+           for var in variation:
+             print("Variation: FES = %f"%var)
+             newsampleset = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p"),""," %.1d"%((1.-var)*100.)+"% FES", split=True,filter=False,share=True, parallel=parallel)
+             createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+             createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES%.2f"%var, filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+             newsampleset.close()
+             
+             ##overlap_EES_sys
+             newsampleset_EESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_EES1p04", ""," %.1d"%((1.-var)*100.)+"% FES & +4% EES", split=True,filter=False,share=True,  parallel=parallel)
+             createinputs(fname,newsampleset_EESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             createinputs(fname,newsampleset_EESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             newsampleset_EESsys.close()
+             
+
+             newsampleset_EESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_EES0p96", ""," %.1d"%((1.-var)*100.)+"% FES & -4% EES", split=True,filter=False,share=True,  parallel=parallel)
+             createinputs(fname,newsampleset_EESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             createinputs(fname,newsampleset_EESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             newsampleset_EESsys.close()
+              
+             ##overlap_RES_sys
+             newsampleset_RESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_RES1p10", ""," %.1d"%((1.-var)*100.)+"% FES & +20% RES", split=True,filter=False,share=True,  parallel=parallel)
+             createinputs(fname,newsampleset_RESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_resUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             createinputs(fname,newsampleset_RESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_resUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             newsampleset_RESsys.close()
+             
+
+             newsampleset_RESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_RES0p90", ""," %.1d"%((1.-var)*100.)+"% FES & -10% RES", split=True,filter=False,share=True,  parallel=parallel)
+             createinputs(fname,newsampleset_RESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_resDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             createinputs(fname,newsampleset_RESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_resDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+             newsampleset_RESsys.close()
+
+            
+           #Nominal ==> fes = 1p00
+           print("Nominal: FES = 100%")
+           newsampleset = sampleset
+           createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
+           createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
            newsampleset.close()
-           
-           ##overlap_EES_sys
-           newsampleset_EESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_EES1p05", ""," %.1d"%((1.-var)*100.)+"% FES & +5% EES", split=True,filter=False,share=True,  parallel=parallel)
-           createinputs(fname,newsampleset_EESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
-           createinputs(fname,newsampleset_EESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
-           newsampleset_EESsys.close()
-           
 
-           newsampleset_EESsys = sampleset.shift(systs['FES'].procs, ("_FES%.2f"%var).replace(".","p")+"_EES0p95", ""," %.1d"%((1.-var)*100.)+"% FES & +5% EES", split=True,filter=False,share=True,  parallel=parallel)
-           createinputs(fname,newsampleset_EESsys, observables_pass, bins_pass, "_FES%.2f"%var+"_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
-           createinputs(fname,newsampleset_EESsys, observables_fail, bins_fail, "_FES%.2f"%var+"_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
-           newsampleset_EESsys.close()
+           sUp   = sampleset.shift(systs['EES'].procs,"_EES1p04",""," +5% EES", split=True,filter=False,share=True, parallel=parallel)
+           sDown = sampleset.shift(systs['EES'].procs,"_EES0p96",""," +5% EES", split=True,filter=False,share=True, parallel=parallel)
+           createinputs(fname, sUp, observables_pass, bins_pass, "_FES1.00_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           createinputs(fname, sDown, observables_pass, bins_pass, "_FES1.00_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True) 
+           createinputs(fname, sUp, observables_fail, bins_fail, "_FES1.00_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           createinputs(fname, sDown, observables_fail, bins_fail, "_FES1.00_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
 
-          
-         #Nominal ==> fes = 1p00
-         print("Nominal: FES = 100%")
-         newsampleset = sampleset
-         createinputs(fname,newsampleset, observables_pass, bins_pass, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
-         createinputs(fname,newsampleset, observables_fail, bins_fail, "_FES1.00", filter=systs['FES'].procs, parallel=parallel) #, dots=True, recreate=False)
-         newsampleset.close()
-         createinputs(fname,samplesets['EESUp'], observables_pass, bins_pass, "_FES1.00_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
-         createinputs(fname,samplesets['EESDown'], observables_pass, bins_pass, "_FES1.00_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True) 
-         createinputs(fname,samplesets['EESUp'], observables_fail, bins_fail, "_FES1.00_shape_eesUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
-         createinputs(fname,samplesets['EESDown'], observables_fail, bins_fail, "_FES1.00_shape_eesDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           s2Up   = sampleset.shift(systs['RES'].procs,"_RES1p10",""," +10% RES", split=True,filter=False,share=True, parallel=parallel)
+           s2Down = sampleset.shift(systs['RES'].procs,"_RES0p90",""," -10% RES", split=True,filter=False,share=True, parallel=parallel)
+           createinputs(fname, s2Up, observables_pass, bins_pass, "_FES1.00_shape_resUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           createinputs(fname, s2Down, observables_pass, bins_pass, "_FES1.00_shape_resDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True) 
+           createinputs(fname, s2Up, observables_fail, bins_fail, "_FES1.00_shape_resUp", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+           createinputs(fname, s2Down, observables_fail, bins_fail, "_FES1.00_shape_resDown", filter=systs['FES'].procs,  parallel=parallel)#, replaceweight=weightReplaced, dots=True)
+
+
+
       ############
       #   PLOT   #
       ############
@@ -324,14 +340,14 @@ def main(args):
                    pname=pname,tag=tag,group=groups,parallel=parallel)
         plotinputs(fname,systs,observables_fail,bins_fail,text=text,
                    pname=pname,tag=tag,group=groups,parallel=parallel)
-      
+       
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
   argv = sys.argv
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017', 'UL2018', '2022_postEE'], default=['UL2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017', 'UL2018', '2022_postEE', '2022_preEE'], default=['UL2017'], action='store',
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mutau','mumu','etau'], default=['etau'], action='store',
                                          help="set channel" )

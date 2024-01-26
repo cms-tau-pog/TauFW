@@ -18,9 +18,7 @@ class ModuleETau(ModuleTauPair):
     super(ModuleETau,self).__init__(fname,**kwargs)
     self.out = TreeProducerETau(fname,self)
     self.resoScale = 0.
-    if self.fes:
-      self.ltf=self.fes
-
+   
     # TRIGGERS
     
     print("---> YEAR: ", self.year)
@@ -166,9 +164,9 @@ class ModuleETau(ModuleTauPair):
           tau.pt   *= self.ltf
           tau.mass *= self.ltf
           tau.es    = self.ltf
-        elif genmatch in [1,3]: # electron -> tau fake (apply by default, override with 'ltf=1.0')
+        elif self.fes and genmatch in [1,3]: # electron -> tau fake (apply by default, override with 'ltf=1.0')
           #fes = self.fesTool.getFES(tau.eta,tau.decayMode,unc=self.fes)
-          fes = 1.0
+          #fes = 1.0
           tau.pt   *= fes
           tau.mass *= fes
           tau.es    = fes

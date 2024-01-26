@@ -14,7 +14,7 @@ from argparse import ArgumentParser
 argv = sys.argv
 description = '''This script creates datacards with CombineHarvester.'''
 parser = ArgumentParser(prog="harvestercards",description=description,epilog="Succes!")
-parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP', '2022_postEE'], default=['UL2017'], action='store',
+parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP', '2022_postEE', '2022_preEE'], default=['UL2017'], action='store',
                                         help="set era" )
 parser.add_argument('-c', '--channel',  dest='channels', choices=['mt','et'], type=str, nargs='+', default=['mt'], action='store',
                                         help="channels to submit")
@@ -81,32 +81,37 @@ def main(args):
             ]   
             analysis = 'ETauFR'
             etas= ['eta0to1p46','eta1p56to2p5']
+            if bin =="Tight":
+                dms = [0, 1]
+            else:    
+                dms = [0, 1 , 10, 11]
             #procs_ = procs[:]
             pos    = 'x=0.56,y=0.88'
             ncol   = 1
             regs =['pass','fail']
             for eta in etas:
-                if eta =='eta0to1p46':
-                    title = "0 < #eta < 1.46"
-                elif eta== 'eta1p56to2p5':
-                    title = "1.56 < #eta < 2.50"
-                for reg in regs:
-                    if reg == "pass":
-                        title += " , Pass"
-                    else:
-                        title = title.replace(" , Pass", " ") 
-                        print(title)
-                        title += " , Fail"
-                    fname    = "$DIR/$ANALYSIS$BIN_$ETA_PostFitShape.root"
-                    pname    = "$DIR/$ANALYSIS_$OBS_$CHANNEL-$BIN-$ERA-$ETA-$REG-$TAG_$FIT.png"
-                    indir  = "output/%s/%s"%(era,analysis)
-                    outdir = ensuredir("plots/%s"%era)
-                    xtitle = title_dict.get(obs)
-                    fname_ = repkey(fname,DIR=indir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,ETA=eta,BIN=bin,ERA=era,TAG=tag)
-                    pname_ = repkey(pname,DIR=outdir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,ETA=eta,BIN=bin,ERA=era,REG=reg,TAG=tag)
-                    bin_merged=bin+"_"+reg
-                    drawpostfit(fname_,bin_merged,procs_,pname=pname_,tag=tag,group=groups,title=title,xtitle=xtitle,
-                                tsize=tsize,pos=pos,ncol=ncol,ratio=ratio,square=square,reg=reg,exts=exts)
+               for idm in dms:
+                  if eta =='eta0to1p46':
+                      title = "0 < #eta < 1.46, dm %s"%(idm)
+                  elif eta== 'eta1p56to2p5':
+                      title = "1.56 < #eta < 2.50 , dm %s"%(idm) 
+                  for reg in regs:
+                      if reg == "pass":
+                          title += " , Pass"
+                      else:
+                          title = title.replace(" , Pass", " ") 
+                          print(title)
+                          title += " , Fail"
+                      fname    = "$DIR/$ANALYSIS$BIN_$ETA_dm$DM_PostFitShape.root"
+                      pname    = "$DIR/$ANALYSIS_$OBS_$CHANNEL-$BIN-$ERA-$ETA-dm$DM-$REG-$TAG_$FIT.png"
+                      indir  = "output/%s/%s"%(era,analysis)
+                      outdir = ensuredir("plots/%s"%era)
+                      xtitle = title_dict.get(obs)
+                      fname_ = repkey(fname,DIR=indir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,ETA=eta,DM=idm,BIN=bin,ERA=era,TAG=tag)
+                      pname_ = repkey(pname,DIR=outdir,ANALYSIS=analysis,OBS=obs,CHANNEL=channel,ETA=eta,DM=idm,BIN=bin,ERA=era,REG=reg,TAG=tag)
+                      bin_merged=bin+"_"+reg
+                      drawpostfit(fname_,bin_merged,procs_,pname=pname_,tag=tag,group=groups,title=title,xtitle=xtitle,
+                                  tsize=tsize,pos=pos,ncol=ncol,ratio=ratio,square=square,reg=reg,exts=exts)
     
 
 if __name__ == '__main__':

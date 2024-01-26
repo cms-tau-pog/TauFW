@@ -7,6 +7,7 @@ from ROOT import TFile
 from TauFW.PicoProducer.storage.utils import getsamples
 from TauFW.PicoProducer.analysis.utils import getTotalWeight
 
+#python3 ./scripts/modify_cutflow_hist_v2.py --pico_dir /nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/ --veto 'Muon'  --sumw_file /nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/samples/nanoaod_sumw_2022_postEE.json -m --bin 17 -c mumu
  
 def get_nanoaod_sumw(args):
     """
@@ -40,7 +41,7 @@ def get_nanoaod_sumw(args):
     vetoes       = args.vetoes
     dtype        = ['mc']
     sumw_dict = {}
-    path2sampleP_dir = "/eos/cms/store/group/phys_tau/irandreo/Run3_22_postEE/"
+    path2sampleP_dir = "/eos/user/o/oponcet/TauPOG/Run3_v1/2022_postEE/"
     samples = glob.glob1(path2sampleP_dir, '*')
     print(samples)
     for sample in samples:
@@ -70,7 +71,7 @@ def get_nanoaod_sumw(args):
 #     return None
             
 def check_sample_name(sample_name_full, keys):
-    sample_name = sample_name_full.replace("_mutau", "").replace("_mumu", "").replace("_etau", "")
+    sample_name = sample_name_full.replace("_mutau", "").replace("_mumu", "").replace("_etau", "").replace("_ee", "")
     # print("sample_name_full = ", sample_name_full)
     # print("sample_name cut = ", sample_name)
     # print("keys = ", keys)
@@ -115,16 +116,11 @@ def modify_cutflow_hist(args):
         norm_dict = json.load(tf)
         if len(args.pico_dir) > 1: sample_dir = args.pico_dir
         else: sample_dir = "$CMSSW_BASE/src/TauFW/PicoProducer/"
-<<<<<<< HEAD
-        samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + args.tag + '.root')
-        print("====> test: ", sample_dir)
-        print("====> test: ", samples)
-=======
         print("sample_dir ", sample_dir)
-        #samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + args.tag + '.root')
-        samples = glob.glob(sample_dir + args.era + '/*/*' + args.channel + args.tag + '.root')
+        samples = glob.glob(sample_dir + '/analysis/' + args.era + '/*/*' + args.channel + '*' + args.tag + '.root')
+        #samples = glob.glob('/nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/analysis/2022_preEE/*/*etau.root')
+        print("era ", args.era)
         print("samples ", samples)
->>>>>>> c0ff098673ef5272e8c086edadc9a8aa5608dbbb
         print('Samples: ' + str(map(os.path.basename, samples)))
         print("\n%40s:\t%15s%15s%15s"%('sample_name', 'cutflow_norm', 'nanoaod_norm', 'difference'))
         for sample in samples:
@@ -132,7 +128,10 @@ def modify_cutflow_hist(args):
             if any([True for veto in args.vetoes if veto in sample_name_full]) : continue
             root_file = TFile(sample, 'UPDATE' if args.modify_cutflow else 'READ' )
             cutflow_hist = root_file.Get('cutflow')
-            sample_name = check_sample_name(sample_name_full, norm_dict.keys())
+            #print("====>>>")
+            #print(sample_name_full.replace(args.tag, ""))
+            #print(norm_dict.keys())
+            sample_name = check_sample_name(sample_name_full.replace(args.tag, "").split("_"+args.channel)[0], norm_dict.keys())
             if sample_name:
                 if args.modify_cutflow: cutflow_hist.SetBinContent(bin_id, float(norm_dict[sample_name]))
                 cf_n   = int(cutflow_hist.GetBinContent(bin_id))

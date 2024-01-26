@@ -38,6 +38,8 @@ class ModuleETau(ModuleTauPair):
     print("FES: ", self.fes)
     print("LTF: ", self.ltf)
     print("EES: ", self.ees) 
+    print("RES: ", self.Zres)
+
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
     self.out.cutflow.addcut('trig',         "trigger"                    )
@@ -89,20 +91,10 @@ class ModuleETau(ModuleTauPair):
     ##### ELECTRON ###################################
     electrons = [ ]
     for electron in Collection(event,'Electron'):
-    #electron energy scale variation
-    #ees=1.0 -> pt and mass unchanged
-    #ees=1.01 -> pt and mass *1.01 barrel and *1.025 endcap
-    #ees=0.99 -> pt and mass *0.99 barrel and *0.975 endcap
+    #electron energy scale variation 
       if self.ismc and self.ees!=1:
-        if abs(electron.eta)<1.5 :
-          electron.pt   *= self.ees
-          electron.mass *= self.ees
-        elif self.ees==1.01 :
-          electron.pt   *= 1.025
-          electron.mass *= 1.025
-        else :
-          electron.pt   *= 0.975
-          electron.mass *= 0.975
+        electron.pt   *= self.ees
+        electron.mass *= self.ees       
       if electron.pt<self.eleCutPt: continue
       if abs(electron.eta)>self.eleCutEta: continue
       if abs(electron.dz)>0.2: continue
@@ -301,7 +293,11 @@ class ModuleETau(ModuleTauPair):
         
     # MET & DILEPTON VARIABLES
     self.fillMETAndDiLeptonBranches(event,electron,tau,met,met_vars)
-    
+    if self.Zres:
+      print("---")
+      print(self.out.m_vis[0])
+      self.out.m_vis[0]   = 91.19 + (self.Zres)*(self.out.m_vis[0]-91.19) 
+      print(self.out.m_vis[0])
     
     self.out.fill()
     return True
