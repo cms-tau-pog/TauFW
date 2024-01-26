@@ -238,7 +238,7 @@ class Ratio(object):
     return frame
     
   
-  def drawratios(option,**kwargs):
+  def drawratios(self, option=None, **kwargs):
     """Just draw ratios."""
     verbosity = LOG.getverbosity(kwargs,self)
     for ratio in self.ratios:
