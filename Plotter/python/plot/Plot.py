@@ -1093,25 +1093,27 @@ class Plot(object):
     return latex
     
   
-  def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,**kwargs):
+  def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,width=1,pad=1,redraw=True):
     """Draw line on canvas. If it already exists, draw now on top,
     else draw later in Plot.draw on bottom."""
     if x1=='min': x1 = self.xmin
     if x2=='max': x2 = self.xmax
     if y1=='min': y1 = self.ymin # if available after Plot.draw
     if y2=='max': y2 = self.ymax # if available after Plot.draw
-    pad  = kwargs.get('pad', 1 ) # 1: main, 2: ratio
     line = TGraph(2) #TLine(xmin,1,xmax,1)
     line.SetPoint(0,x1,y1)
     line.SetPoint(1,x2,y2)
     line.SetLineColor(color)
     line.SetLineStyle(style)
+    line.SetLineWidth(width)
     line.pad = pad
     if self.canvas:
       oldpad = gPad
-      self.canvas.cd(pad)
+      self.canvas.cd(pad) # 1: main, 2: ratio (typically)
       line.Draw("LSAME")
       oldpad.cd()
+    if redraw:
+      gPad.RedrawAxis()
     self.lines.append(line)
     return line
     
