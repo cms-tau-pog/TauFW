@@ -241,7 +241,7 @@ class Stack(Plot):
     if drawsignal: # signal
       soption += " SAME"
       for hist in self.sighists:
-        LOG.verb("Stack.draw: draw signal %s with soption=%r"%(rootrepr(hist),soption),verbosity,3)
+        LOG.verb("Stack.draw: draw signal %r with soption=%r"%(hist,soption),verbosity,3)
         hist.Draw(soption)
         hist.SetOption(soption) # for legend and ratio
     if drawdata: # data
