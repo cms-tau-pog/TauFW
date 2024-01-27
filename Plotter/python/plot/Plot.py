@@ -5,7 +5,6 @@ import os, re
 #import ctypes # for passing by reference
 from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
 from TauFW.common.tools.math import log10, magnitude, columnize, scalevec, ceil
-from TauFW.common.tools.root import rootrepr
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable, Var
@@ -262,7 +261,7 @@ class Plot(object):
         iband = max(1,len(self.hists)+iband+1)
       iband = max(0,min(len(self.hists)-1,iband-1))
     if verbosity>=1:
-      print(">>> Plot.draw: hists=%s, ratio=%r, norm=%r, dividebins=%r"%(rootrepr(hists),ratio,norm,dividebins))
+      print(">>> Plot.draw: hists=%r, ratio=%r, norm=%r, dividebins=%r"%(hists,ratio,norm,dividebins))
       print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
       print(">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
     
@@ -349,7 +348,7 @@ class Plot(object):
         option_ += " SAME"
       hist.Draw(option_)
       hist.SetOption(option_)
-      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,rootrepr(hist),option_),verbosity,2)
+      LOG.verb("Plot.draw: i=%s, hist=%r, option=%r"%(i,hist,option_),verbosity,2)
     
     # CMS STYLE
     if CMSStyle.lumiText:

@@ -222,7 +222,7 @@ def getTGraphRange(graphs,axis='y',margin=0.0,err=False,**kwargs):
   return retval
   
 
-def copystyle(hist1,hist2):
+def copystyle(hist1,hist2,option=True):
   """Copy the line, fill and marker style from another histogram."""
   hist1.SetFillColor(hist2.GetFillColor())
   hist1.SetFillColor(hist2.GetFillColor())
@@ -233,6 +233,9 @@ def copystyle(hist1,hist2):
   hist1.SetMarkerSize(hist2.GetMarkerSize())
   hist1.SetMarkerColor(hist2.GetMarkerColor())
   hist1.SetMarkerStyle(hist2.GetMarkerStyle())
+  if option and hasattr(hist1,'SetOption') and hasattr(hist2,'GetOption'):
+    hist1.SetOption(hist2.GetOption())
+  return hist
   
 
 def seterrorbandstyle(hist,**kwargs):
