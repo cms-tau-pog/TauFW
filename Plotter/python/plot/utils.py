@@ -235,7 +235,7 @@ def copystyle(hist1,hist2,option=True):
   hist1.SetMarkerStyle(hist2.GetMarkerStyle())
   if option and hasattr(hist1,'SetOption') and hasattr(hist2,'GetOption'):
     hist1.SetOption(hist2.GetOption())
-  return hist
+  return hist1
   
 
 def seterrorbandstyle(hist,**kwargs):
