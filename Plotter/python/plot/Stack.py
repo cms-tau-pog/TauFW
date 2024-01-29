@@ -101,7 +101,7 @@ class Stack(Plot):
     denom        = kwargs.get('den',          denom           ) # index of common denominator histogram in ratio plot (count from 1)
     denom        = kwargs.get('denom',        denom           ) # alias
     num          = kwargs.get('num',          None            ) # index of common numerator histogram in ratio plot (count from 1)
-    rhists       = kwargs.get('rhists',       self.hists      ) # custom histogram argument for ratio plot
+    rhists       = kwargs.get('rhists',       None            ) # custom histogram argument for ratio plot
     nxdiv        = kwargs.get('nxdiv',        None            ) # tick divisions of x axis
     nydiv        = kwargs.get('nydiv',        None            ) # tick divisions of y axis
     nrdiv        = kwargs.get('nrdiv',        506             ) # tick divisions of y axis of ratio panel
@@ -280,7 +280,13 @@ class Stack(Plot):
     if ratio:
       drawx = (lowerpanels<=1)
       self.canvas.cd(2)
-      rhists = [stack]+self.sighists+[self.datahist] # default: use stack as denominator (denom=1)
+      if rhists==None: # if not set by user, use default
+        rhists = [stack]+self.sighists+[self.datahist] # default: use stack as denominator (denom=1)
+      else: # histograms for ratio set by user
+        while 'stack' in rhists: # replace 'stack' string with actual THStack object
+          rhists[rhists.index('stack')] = stack
+        while 'data' in rhists: # replace 'data' string with actual TH1/TGraph object
+          rhists[rhists.index('data')] = self.datahist
       self.ratio = Ratio(*rhists,denom=denom,num=num,errband=self.errband,
                          drawzero=True,errorX=errorX,fraction=fraction,verb=verbosity)
       self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
