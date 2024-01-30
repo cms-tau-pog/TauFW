@@ -4,34 +4,18 @@
 channel: mumu
 
 #tag: "_mumu"
-#tag: "_mumu_zptD"
-#tag: "_mumu_zptDY"
-#tag: "_mumu_zptDY_etacut"
-#tag: "_mumu_trigger"
-#tag: "_mumu_v10"
-tag: "_mumu_Dt2p5"
+tag: "_mumu_Dt2p5_puppiMET" # tag used for derivation of TauES SFs for 2022_preEE and 2022_postEE
 
 
-#baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter && eta_1<2.1 && eta_2<2.4"
 baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfilter"
 
 
 samples:
     filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-    join: ["VV","TT","ST"]
     split:
         DY: [ ["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"] ]
-        #DY: [ ["ZLL","genmatch_2>0 && genmatch_2<5 && genmatch_1>0 && genmatch_1<5"], ["ZJ","genmatch_2==0"] ]
-    rename:
-        WJ: "W"
-        #DY_M50: "ZLL"
     data: "data_obs"
 
-
-
-# regions:
-#     ZMM: 
-#         definition: "true"
 
 observables:
     m_vis:
@@ -41,14 +25,14 @@ observables:
             rrange: 0.08
         fitRegions: ["baseline"]
 
-processes: ['ZTT','ZL','ZJ', 'W','VV','ST','TT','QCD','data_obs']
+processes: ['ZTT','ZL','ZJ','data_obs'] 
 
 systematics:
     lumi:
         effect: "lnN"
-        processes: ["ZTT","ZL","ZJ", "TT", "W", "ST", "VV"]
+        processes: ['ZTT','ZL','ZJ']
         scaleFactor: 1.025
     eff_m:
         effect: "lnN"
-        processes: ["ZTT","ZL","ZJ","TT", "W", "ST", "VV"]
+        processes: ["ZTT","ZL","ZJ"]
         scaleFactor: 1.02

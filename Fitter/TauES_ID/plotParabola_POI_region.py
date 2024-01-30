@@ -115,10 +115,10 @@ def plotParabola(setup,var,region,year,**kwargs):
           break
     
     poi_val         = round(list_poi[min_index],4)
-    print poi
     poi_errDown = round((poi_val-tmin_left)*10000)/10000
     poi_errUp   = round((tmin_right-poi_val)*10000)/10000
     shift       = (list_poi[min_index]-1)*100
+    
     
     # GRAPHS
     graph       = createParabolaFromLists(list_poi,list_dnll,fit=fit)
@@ -150,7 +150,7 @@ def plotParabola(setup,var,region,year,**kwargs):
     canvas.cd()
     
     if poi == 'tid_SF' or poi == 'trackedParam_tid_SF':
-          xmin, xmax = 0.7, 1.1
+          xmin, xmax = 0.55, 1.05
     if poi == 'tes' :
           xmin, xmax = min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]) 
     ymin, ymax   = 0.0,  10.
@@ -191,12 +191,25 @@ def plotParabola(setup,var,region,year,**kwargs):
       poif = para.GetParameter(1)
       if asymmetric:
         yline = 1+para.GetParameter(2)
-        poif_errDown = poif-para.GetX(yline,poif-0.02,poif)
-        poif_errUp   = para.GetX(yline,poif,poif+0.02)-poif
+        print("yline = " ,yline)
+        print("para.GetParameter(1) = " ,para.GetParameter(1))
+        poif_errDown = poif-para.GetX(yline,poif-0.05,poif)
+        poif_errUp   = para.GetX(yline,poif,poif+0.05)-poif
       else:
         poif_errUp   = round( sqrt( 1./(1000.*para.GetParameter(0)) )*10000)/10000 # TODO: propagate fit uncertainties with GetParError(i) !
         poif_errDown = round( sqrt( 1./(1000.*para.GetParameter(0)) )*10000)/10000        
-    
+
+    # print("poi_val = ", poi_val)
+    # print("poif = ", poif)
+    # print("poi_errDown = ", poi_errDown)
+    # print("poi_errUp = ", poi_errUp)
+    # print("poif_errDown = ", poif_errDown)
+    # print("poif_errUp = ", poif_errUp)
+
+    # print("tmin_right = ", tmin_right)
+    # print("tmin_left = ", tmin_left)
+
+    print("shift = ", shift)
     # RESULTS
     latex = TLatex()
     lines = [ ]
@@ -424,12 +437,18 @@ def fitParabola(xmin,xmax,poi,list_poi_left,list_dnll_left,list_poi_right,list_d
     wmin_fit, wmax_fit = sorted([ymax_left/(1000.*(dtmin**2)),ymax_right/(1000.*(dtmax**2))])
     #print ">>> poi=%.3f, tmin_fit=%.3f, tmin_fit=%.3f, bmid=xmin_fit+(xmax_fit-xmin_fit)/2=%.3f"%(poi,tmin_fit,tmax_fit,bmid)
     #print ">>> wmin_fit=%.3f, wmax_fit=%.3f"%(wmin_fit,wmax_fit)
-    
+    # print("wmin_fit = ", wmin_fit)
+    # print("wmax_fit = ", wmax_fit)
+
     # FIT Y RANGE (<ymax)
     #ymax_fit = 0.5
     
     # FIT PARAMETERS
-    wmin, wval, wmax = wmin_fit*0.99, wmin_fit, wmax_fit*1.50
+    wmin, wval, wmax = wmin_fit*0.20, wmin_fit, wmax_fit*1.80
+    wmin_fit = 0
+    wmax_fit = 50
+    print("wmin_fit = ", wmin_fit)
+    print("wmax_fit = ", wmax_fit)
     bmin, bval, bmax = tmin_fit, poi, tmax_fit
     cmin, cval, cmax = -0.0001, 0.0, 0.5 #max(min(ymax_fit,3),0.001)
     amin, aval, amax = -1000, 0.0, 1000
@@ -885,6 +904,30 @@ def writeMeasurement(filename,categories,measurements,**kwargs):
             file.write(sformat%("-","-","-"))
         file.write('\n')
 
+def writeMeasurement_Json(setup,filename,categories,measurements,**kwargs):
+    """Write measurements to file."""
+    if ".json" not in filename[-4]: filename += ".json"
+    mformat = kwargs.get('format',"fit_value: %10.4f down_variation: %10.4f up variation:%10.4f") #" %10.6g %10.6g %10.6g"
+    sformat = re.sub(r"%(\d*).?\d*[a-z]",r"%\1s",mformat)
+    with open(filename,'w+') as file:
+      print ">>>   created txt file %s"%(filename)
+      baselineCuts = setup["baselineCuts"]
+      #startdate = time.strftime("%a %d/%m/%Y %H:%M:%S",time.gmtime())
+      file.write("\"baselineCuts = %s\"\n"%(baselineCuts))
+      for category, points in zip(categories,measurements):
+        for region in setup["regions"]:
+          if category == region:
+            print("category = ", category)
+            print("region = ", region)
+            region_def = setup["regions"][region]["definition"]
+            file.write("\"%s: %-10s\""%(category,region_def))
+            for point in points:
+              if point:
+                file.write(mformat%point)
+              else:
+                file.write(sformat%("-","-","-"))
+            file.write('\n')
+
 def readMeasurement(filename,**kwargs):
     """Read measurements from file."""
     if ".txt" not in filename[-4]: filename += ".txt"
@@ -1109,9 +1152,11 @@ def main(args):
                 print green("write results to file",pre="\n>>> ")
                 filename = "%s/measurement_%s_%s%s"%(outdir,poi,channel,tag)
                 writeMeasurement(filename,allRegions,points)
+                writeMeasurement_Json(setup,filename,allRegions,points)
             if args.fit:
                 filename = "%s/measurement_%s_%s%s"%(outdir,poi,channel,tag)
                 writeMeasurement(filename+fittag,allRegions,points_fit)
+                writeMeasurement_Json(setup,filename+fittag,allRegions,points_fit)
     
     # SUMMARY plot
     if summary:
@@ -1122,7 +1167,7 @@ def main(args):
             measurements = readMeasurement(canvas)
 
             if poi == 'tid_SF' or poi == 'trackedParam_tid_SF':
-              plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau id scale factor",xmin=0.7,xmax=1.05,L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
+              plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau id scale factor",xmin=0.55,xmax=1.05,L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
             #defaut case = tes 
             elif poi == 'tes':
               plotMeasurements(setup, measurements, (setup["plottingOrder"] if "plottingOrder" in setup else allRegions) ,canvas=canvas,xtitle="tau energy scale",xmin=min(setup["TESvariations"]["values"]),xmax=max(setup["TESvariations"]["values"]),L=0.20, position="out",entries=allObsTitles,emargin=0.14,cposition='topright',exts=['png','pdf'], poi=poi)
@@ -1140,7 +1185,7 @@ if __name__ == '__main__':
     argv = sys.argv
     description = '''Plot parabolas.'''
     parser = ArgumentParser(prog="plotParabola",description=description,epilog="Succes!")
-    parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018', 'UL2018_v10'], type=str, default='2017', action='store', help="select year")
+    parser.add_argument('-y', '--year',        dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018', 'UL2018_v10','2022_postEE','2022_preEE'], type=str, default='2017', action='store', help="select year")
     parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetuppoi_mutau.yml', action='store', help="set config file containing sample & fit setup" )
     parser.add_argument('-e', '--extra-tag',   dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
     parser.add_argument('-r', '--shift-range', dest='shiftRange', type=str, default="0.940,1.060", action='store', metavar='RANGE',       help="range of poi shifts")

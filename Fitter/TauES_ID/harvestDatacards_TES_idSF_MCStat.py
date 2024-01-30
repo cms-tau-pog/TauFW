@@ -120,18 +120,24 @@ def harvest(setup, year, obs, **kwargs):
         # Add SF
         harvester.cp().signals().AddSyst(harvester, tid_name,'rateParam', SystMap()(1.00))
 
-        '''
+        
         # Add W+Jets SF as a free parameter 
         if not "norm_wj" in setup["systematics"]:
           print("W+Jets SF as a free parameter ")
           sf_W = "sf_W_%s"%(region)
-          harvester.cp().process("W").AddSyst(harvester, sf_W,'rateParam', SystMap()(1.00))
+          harvester.cp().process(['W']).AddSyst(harvester, sf_W,'rateParam', SystMap()(1.00))
           print(">>>Add sf_W : %s" %(sf_W))
-        '''
+        
         # Add DY cross section as a free parameter. Don't forgot to add Zmm CR !
         if not "xsec_dy" in setup["systematics"]:
           print("DY cross section as a free parameter")
           harvester.cp().process(['ZTT','ZL','ZJ']).AddSyst(harvester, "xsec_dy" ,'rateParam', SystMap()(1.00))
+
+        # Add DY cross section as a free parameter. Don't forgot to add Zmm CR !
+        
+        # print("muon fake rate free parameter")
+        # harvester.cp().process(['ZL', 'TTL']).AddSyst(harvester, "muonFakerate" ,'rateParam', SystMap()(1.00))
+
 
 
         # EXTRACT SHAPES
@@ -310,7 +316,7 @@ if __name__ == '__main__':
   argv = sys.argv
   description = '''This script makes datacards with CombineHarvester.'''
   parser = ArgumentParser(prog="harvesterDatacards_TES",description=description,epilog="Succes!")
-  parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v10'], type=str, default=2018, action='store', help="select year")
+  parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v10','2022_postEE','2022_preEE'], type=str, default=2018, action='store', help="select year")
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup")
   parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
   parser.add_argument('-M', '--multiDimFit', dest='multiDimFit', default=False, action='store_true', help="assume multidimensional fit with a POI for each DM")

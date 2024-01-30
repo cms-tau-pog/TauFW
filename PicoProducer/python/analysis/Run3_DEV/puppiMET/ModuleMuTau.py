@@ -3,7 +3,7 @@
 import sys
 import numpy as np
 from TauFW.PicoProducer.analysis.TreeProducerMuTau import *
-from TauFW.PicoProducer.analysis.ModuleTauPair import *
+from TauFW.PicoProducer.analysis.Run3_DEV.puppiMET.ModuleTauPair import *
 from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, matchgenvistau, matchtaujet, filtermutau
 from TauFW.PicoProducer.corrections.MuonSFs import *
 #from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
@@ -233,6 +233,7 @@ class ModuleMuTau(ModuleTauPair):
     
     # JETS
     jets, met, njets_vars, met_vars = self.fillJetBranches(event,muon,tau)
+
 
     if self.ismc:
       self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau,self.ismc)

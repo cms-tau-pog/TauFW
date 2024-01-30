@@ -22,7 +22,8 @@ gROOT.SetBatch(True)
 
 # CMS style
 #TGaxis.SetExponentOffset(-0.074,0.015,'y')
-CMSStyle.extraText  = "Preliminary"
+CMSStyle.extraText  = ""
+#CMSStyle.extraText  = "Preliminary"
 CMSStyle.outOfFrame = True
 CMSStyle.setTDRStyle()
 

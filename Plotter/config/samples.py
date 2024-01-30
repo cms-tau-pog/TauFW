@@ -51,8 +51,8 @@ def getsampleset(channel,era,**kwargs):
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85 )
     ]
-    if 'mutau' in channel:
-      expsamples.append(('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh_M-50",5343.0,{'extraweight': dyweight})) # apply correct normalization in stitching
+    #if 'mutau' in channel:
+    #  expsamples.append(('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh_M-50",5343.0,{'extraweight': dyweight})) # apply correct normalization in stitching
   elif era=='2016': # pre-UL
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
@@ -176,19 +176,20 @@ def getsampleset(channel,era,**kwargs):
   # Note: titles are set via STYLE.sample_titles
   sampleset.stitch("W*Jets",    incl='WJ',  name='WJ'     ) # W + jets
   if "v2p5" in era:
-    sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50",
-                     eff_nanoAOD_DYll=0.47435726,
-                     eff_nanoAOD_DYll_0orp4j=0.439206,
-                     eff_nanoAOD_DYll_1j=0.54153996,
-                     eff_nanoAOD_DYll_2j=0.59700258,
-                     eff_nanoAOD_DYll_3j=0.65562099,
-                     eff_nanoAOD_DYll_4j=0.74383978,
-                     eff_nanoAOD_mutau=0.82747870,
-                     eff_nanoAOD_mutau_0orp4j=0.814466,
-                     eff_nanoAOD_mutau_1j=0.847658,
-                     eff_nanoAOD_mutau_2j=0.867779,
-                     eff_nanoAOD_mutau_3j=0.889908,
-                     eff_nanoAOD_mutau_4j=0.922111) # Drell-Yan, M > 50 GeV
+    sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50")
+    ## The following skimming efficiencies should be removed when running on nTuples with corrected cutflow content!!!!
+    #                 eff_nanoAOD_DYll=0.47435726,
+    #                 eff_nanoAOD_DYll_0orp4j=0.439206,
+    #                 eff_nanoAOD_DYll_1j=0.54153996,
+    #                 eff_nanoAOD_DYll_2j=0.59700258,
+    #                 eff_nanoAOD_DYll_3j=0.65562099,
+    #                 eff_nanoAOD_DYll_4j=0.74383978,
+    #                 eff_nanoAOD_mutau=0.82747870,
+    #                 eff_nanoAOD_mutau_0orp4j=0.814466,
+    #                 eff_nanoAOD_mutau_1j=0.847658,
+    #                 eff_nanoAOD_mutau_2j=0.867779,
+    #                 eff_nanoAOD_mutau_3j=0.889908,
+    #                 eff_nanoAOD_mutau_4j=0.922111) # Drell-Yan, M > 50 GeV
   else:
     sampleset.stitch("DY*J*M-50", incl='DYJ', name="DY_M50")
   #sampleset.stitch("DY*J*M-10to50", incl='DYJ', name="DY_M10to50" )

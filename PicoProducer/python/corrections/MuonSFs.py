@@ -75,7 +75,13 @@ class MuonSFs:
         ###sftool_id         = ScaleFactor(pathPOG+"Run2018/RunABCD_SF_ID.root","NUM_MediumID_DEN_genTracks_pt_abseta",'mu_id',ptvseta=False)
         ###sftool_iso        = ScaleFactor(pathPOG+"Run2018/RunABCD_SF_ISO.root","NUM_TightRelIso_DEN_MediumID_pt_abseta",'mu_iso',ptvseta=False)
         ###self.sftool_idiso = sftool_id*sftool_iso
-      elif '2022' in era:
+      elif '2022_preEE' in era:
+        self.sftool_trig  = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root",'ScaleFactor_trg','mu_trig',ptvseta=False,verb=verb)
+        self.sftool_id         = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root","ScaleFactor_id",'mu_id',ptvseta=False)
+        self.sftool_iso        = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root","ScaleFactor_iso",'mu_iso',ptvseta=False)
+        assert self.sftool_id != None and self.sftool_iso != None, "MuonSFs.__init__: Did not find muon ID/ISO tool for %r"%(era)
+        self.sftool_idiso = self.sftool_id*self.sftool_iso
+      elif '2022_postEE' in era:
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root",'ScaleFactor_trg','mu_trig',ptvseta=False,verb=verb)
         self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_id",'mu_id',ptvseta=False)
         self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_iso",'mu_iso',ptvseta=False)

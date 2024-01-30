@@ -37,7 +37,7 @@ def QCD_OSSS(self, variables, selection, **kwargs):
   parallel       = kwargs.get('parallel',        False          )
   negthres       = kwargs.get('negthres',        0.25           ) # threshold for warning about negative QCD bins
   
-  # SCALE
+  # SCALE 
   if "q_1*q_2>0" in cuts_OS.replace(' ',''):
     scale = 1.0
   elif not scale:
@@ -144,7 +144,8 @@ def QCD_OSSS(self, variables, selection, **kwargs):
     LOG.verbose("SampleSet.QCD_OSSS: SS yields: data=%.1f, exp=%.1f, qcd=%.1f, scale=%.3f"%(ndata,nexp,nqcd,scale),verbosity,level=2)
     
     # CLEAN
-    deletehist([datahist,exphist]+exphists)
+    if not parallel: # avoid segmentation faults for parallel
+      deletehist([datahist,exphist]+exphists) # clean histogram from memory
   
   return qcdhists
   
