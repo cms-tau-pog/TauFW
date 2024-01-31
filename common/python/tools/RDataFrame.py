@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Author: Izaak Neutelings (August 2020)
+# Author: Izaak Neutelings (November 2023)
 import os
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import gROOT, gInterpreter, RDataFrame, RDF
