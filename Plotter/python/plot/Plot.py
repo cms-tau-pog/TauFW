@@ -52,7 +52,7 @@ class Plot(object):
       Plot(variable,hists)
       Plot(variable,hist1,hist2,...)
     """
-    self.verbosity = LOG.getverbosity(self,kwargs)
+    self.verbosity = LOG.getverbosity(kwargs)
     
     # PARSE ARGUMENTS: variable & (list of) histogram(s)
     variable   = None
@@ -162,7 +162,6 @@ class Plot(object):
     rmargin      = kwargs.get('rmargin',      1.              ) # canvas righ margin
     tmargin      = kwargs.get('tmargin',      1.              ) # canvas bottom margin
     bmargin      = kwargs.get('bmargin',      1.              ) # canvas top margin
-    errbars      = kwargs.get('errbars',      True            ) # add error bars to histogram
     norm         = kwargs.get('norm',         self.norm       ) # normalize all histograms
     xtitle       = kwargs.get('xtitle',       xtitle          ) # x axis title
     ytitle       = kwargs.get('ytitle',       self.ytitle     ) # y axis title (if None, automatically set by Plot.setaxis)
@@ -199,10 +198,6 @@ class Plot(object):
     num          = kwargs.get('num',          None            ) # index of common numerator histogram in ratio plot (count from 1)
     rhists       = kwargs.get('rhists',       self.hists      ) # custom histogram argument for ratio plot
     iband        = denom if isinstance(denom,int) else -1
-    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for (count from 1)
-    staterr      = kwargs.get('staterr',      False           ) # create stat. error band
-    sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
-    errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     nxdiv        = kwargs.get('nxdiv',        None            ) # tick divisions of x axis
     nydiv        = kwargs.get('nydiv',        None            ) # tick divisions of y axis
     nrdiv        = kwargs.get('nrdiv',        506             ) # tick divisions of y axis of ratio panel
@@ -231,9 +226,14 @@ class Plot(object):
     msizes       = kwargs.get('msizes',       msizes          ) # marker style
     lwidth       = kwargs.get('lwidth',       2               ) # line width
     option       = kwargs.get('option',       'HIST'          ) # draw option for every histogram
-    options      = kwargs.get('options',      [ ]             ) # draw option list per histogram
+    options      = kwargs.get('options',      [ ]             ) # list of individual draw options for each histogram
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     drawden      = kwargs.get('drawden',      False           ) # draw denominator in ratio plot
+    errbars      = kwargs.get('errbars',      not options     ) # add error bars to histogram
+    staterr      = kwargs.get('staterr',      False           ) # create stat. error band
+    sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
+    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for (count from 1)
+    errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       self.hasvarbins and not 'HIST' in option ) # horizontal error bars
     dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide content / y values by bin size
