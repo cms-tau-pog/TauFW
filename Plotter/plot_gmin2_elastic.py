@@ -2,10 +2,13 @@
 # Author: Izaak Neutelings (August 2023)
 # Description: Measure elastic SF for g-2
 # Instructions:
-#   ./plot_gmin2_elastic.py -y Run2 -m sf -s 3,7 -p -v
-#   ./plot_gmin2_elastic.py -y Run2 -m comp -s 3,7 -p -v
+#   ./plot_gmin2_elastic.py -y Run2 -m sf -s 3,7 -v
+#   ./plot_gmin2_elastic.py -y Run2 -m sf -s 3,7 -v -L # reuse previous histograms
+#   ./plot_gmin2_elastic.py -y Run2 -m sf -s 3,7 -v -L -t _paper
+#   ./plot_gmin2_elastic.py -y Run2 -m comp -s 3,7 -v
 print(">>> Importing...")
 import os, json
+from datetime import datetime
 from array import array
 #print(">>> Importing ROOT...")
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -35,14 +38,14 @@ def getsamples(sampleset,channel,era,loadhists=False,dy=False,verb=0):
   
   # LOAD WEIGHTS
   ###wgt_dy  = "" #( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )"
-  wgt_sig = "" #( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )"
+  wgt_sig = ""
   if loadhists: # skip recreating histograms (fast!)
     print(">>> Skip loading PU track corrections...")
   else: # create histograms from scratch (slow...)
     print(">>> Loading PU track corrections...")
     loadmacro("python/corrections/g-2/corrs_ntracks.C",fast=True,verb=verb+1)
     from ROOT import loadPUTrackWeights
-    loadPUTrackWeights(era)
+    loadPUTrackWeights(era,verb+1)
     wgt_sig = "getPUTrackWeight(ntrack_pu,z_mumu,$ERA)" # set $ERA later
     print(">>> Done loading corrections!")
   
@@ -54,7 +57,8 @@ def getsamples(sampleset,channel,era,loadhists=False,dy=False,verb=0):
                             tag="",extraweight=wgt_sig,color=kRed-9,verb=verb)#+3
   sample_ww  = makemcsample('VV','GGToWW',"#gamma#gamma -> WW (elastic)",xsec_ww,channel,era,
                             tag="",extraweight=wgt_sig,color=kOrange-9,verb=verb)#+3
-  setera(era) # set era for plot style and lumi-xsec normalization
+  showEra = ('Run2' not in era) #or paper
+  setera(era,showEra=showEra) # set era for plot style and lumi-xsec normalization
   print(">>> GLOB.lumi=%s"%(GLOB.lumi))
   
   return sample_obs, sample_dy, sample_sig, sample_ww
@@ -223,10 +227,10 @@ def studyInclBkg(sampleset,channel,tag="",outdir="plots/g-2/elastic/bkg",era="",
     plot.drawtext(texts,size=0.052)
     plot.saveas(fname,ext=exts)
     plot.close(keep=False)
-    
+  
 
 def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
-         selfilter=None,pdf=True,loadhists=False,sideband=None,verb=0):
+         selfilter=None,pdf=True,loadhists=False,sideband=None,paper=False,verb=0):
   """Test plotting of SampleSet class for data/MC comparison."""
   LOG.header("measureElasicSF")
   
@@ -273,7 +277,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
     Sel(f"A < 0.015, {tit_nt} = 0",  f"{baseline} && aco<0.015 && ntrack_all==0", fname="acolt0p015-ntracks0"),
     Sel(f"A < 0.015, {tit_nt} = 1",  f"{baseline} && aco<0.015 && ntrack_all==1", fname="acolt0p015-ntracks1"),
   ]
-  if ntmin in [3,4] and ntmax in [7]:
+  if (ntmin in [3,4] and ntmax in [7]) and (not paper):
     selections += [ # study
       Sel(f"A < 0.015, {tit_nt} = 2",  f"{baseline} && aco<0.015 && ntrack_all==2", fname="acolt0p015-ntracks2"),
       Sel(f"A < 0.015, {tit_nt} = 3",  f"{baseline} && aco<0.015 && ntrack_all==3", fname="acolt0p015-ntracks3"),
@@ -296,7 +300,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       sel_sb_dict[sel_sb.selection] = sel_sb
       allselections.append(sel_sb)
     selection.sideband = sel_sb
-    selection.issr = any("ntracks_all=="+n in selection.selection for n in '01')
+    selection.issr = any(("ntrack_all=="+n) in selection.selection for n in '01')
   
   # VARIABLES
   variables = [
@@ -456,6 +460,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       
       # STEP 2e: Normalize inclusive background to |M-90| < 15 GeV
       LOG.color("Step 2e: Normalize incl. bkg. to Z peak...",b=True)
+      sfs[era][selection.filename][sel_sb.filename]['timestamp'] = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
       for var in variables:
         hist_bkg = hists_sr[bkgname][var]    # expected incl bkg from sideband (before scaling)
         hist_obs = hists_sr[sample_obs][var] # observed
@@ -492,7 +497,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       fname = f"{outdir}/$VAR_{chstr}-{selection.filename}-{era}_bkg{ntmin}to{ntmax}_fit{redo+1}$TAG"
       #text  = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
       text  = selection.title
-      rmax  = 3 if selection.issr else 1.6
+      rmax  = 3.1 if selection.issr else 1.6
       rmax2 = 6.7 if selection.issr else 6.7
       for var in variables:
         
@@ -525,62 +530,63 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           func.SetTitle(ftit)
           func.SetLineColor(fcol)
           func.SetLineWidth(2)
-          hrat.Fit(func)
-          func.Draw('SAME')
+          hrat.Fit(func,'0') # fit but do not draw (yet)
+          if i<=1 or (not paper): # do not draw quadratic fit in paper
+            func.Draw('SAME')
           funcs[i] = func
           sgn  = lambda s: '#minus' if s<0 else '+'
           mtit = "m_{#mu#mu}"
           sfs_ = sfs[era][selection.filename][sel_sb.filename][ftit][fitkey] = { } # for storing to JSON
           for ip in range(0,i+1): # store fit results
             sfs_[ip] = f"{func.GetParameter(ip):.4g} +- {func.GetParError(ip):.4g}"
-          if i==0:
+          if i==0: # flat fit
             sf_el = func.GetParameter(0) # save for redo
             text = f"Flat SF = {sf_el:.3f} #pm {func.GetParError(0):.3f}"
-          elif i==1:
+          elif i==1: # linear fit
             sf = func.GetParameter(1)
             text = f"Lin. SF = {func.GetParameter(0):.3f}"
             text += f" {sf:+.3g} #times #frac{{{mtit}}}{{GeV}}"
             #text += f" {sgn(sf)} ({sf:.2f} #pm {func.GetParError(1):.2f} )x"
-          elif i==2:
+          else: # do not print result of quadratic fit
             continue
-            #sf1 = func.GetParameter(1)
-            #sf2 = func.GetParameter(2)
-            #text = f"Lin. SF = {func.GetParameter(0):.3f}"
-            ##text += f" {sgn(sf1)} ({sf1:.2f} #pm {func.GetParError(1):.2f} )x"
-            ##text += f" {sgn(sf2)} ({sf2:.2f} #pm {func.GetParError(2):.2f} )x^{2}"
-            #text += f" {abs(sf1):+.3g} #times {mtit}"
-            #text += f" {abs(sf2):+.3g} #times {mtit}^{{2}}"
           text = text.replace('+','+ ').replace('-','#minus ')
           print(text)
           fres.append(text)
-        hrat.Draw('E0 E1 SAME') # draw on top (DOES NOT WORK?)
-        stack.drawtext(fres,x=0.50,y=0.57,size=0.044,theight=1.16)
-        stack.canvas.cd(3)
-        stack.setaxes(ratio2,ymin=0,ymax=rmax2,xtitle=var.title,ytitle=rtitle,nydiv=506,
-                      ytitlesize=0.054,ytitleoffset=0.92,center=True,latex=False)
         
-        # RATIO LEGEND
-        x1 = 0.17; x2 = x1 + 0.32
-        y1 = 0.96; y2 = y1 - 0.15
-        legend = TLegend(x1,y1,x2,y2)
-        legend.SetFillStyle(0)
-        legend.SetBorderSize(0)
-        legend.SetTextSize(0.075)
-        legend.SetMargin(0.3)
-        legend.SetTextFont(42)
-        legend.SetNColumns(len(funcs))
-        legend.SetColumnSeparation(0.011)
-        for i, func in sorted(funcs.items()):
-          legend.AddEntry(func,func.GetTitle(),'l')
-        legend.Draw()
-        
-        # SAVE & CLOSE STACK
-        stack.saveas(fname,ext=exts,tag=tag)
+        if redo==redoes[-1] or (not paper) or (ntmin!=3 or ntmax!=7): # reduce number of plots by excluding intermediate fits
+          hrat.Draw('E0 E1 SAME') # draw on top (DOES NOT WORK?)
+          stack.drawtext(fres,x=0.50,y=0.57,size=0.044,theight=1.16)
+          stack.canvas.cd(3)
+          stack.setaxes(ratio2,ymin=0,ymax=rmax2,xtitle=var.title,ytitle=rtitle,nydiv=506,
+                        ytitlesize=0.054,ytitleoffset=0.92,center=True,latex=False)
+          
+          # RATIO LEGEND
+          lwidth = 0.28 if paper else 0.32
+          x1 = 0.17; x2 = x1 + lwidth
+          y1 = 0.96; y2 = y1 - 0.15
+          legend = TLegend(x1,y1,x2,y2)
+          legend.SetFillStyle(0)
+          legend.SetBorderSize(0)
+          legend.SetTextSize(0.075)
+          legend.SetMargin(0.3)
+          legend.SetTextFont(42)
+          legend.SetNColumns(len(funcs))
+          legend.SetColumnSeparation(0.011)
+          for i, func in sorted(funcs.items()):
+            ftitle = func.GetTitle()
+            if paper:
+              if i>=2: continue # skip quadratic fit for paper
+              ftitle = "Linear fit" if 'lin' in ftitle.lower() else "Flat fit"
+            legend.AddEntry(func,ftitle,'l')
+          legend.Draw()
+          
+          # SAVE & CLOSE STACK
+          stack.saveas(fname,ext=exts,tag=tag)
         stack.close()
       
-      # STEP 5: Plot again
+      # STEP 5: Plot again after applying SF
       if redo==redoes[-1]: # only last time
-        LOG.color("Step 5: Plot again after applying SF...",b=True)
+        LOG.color("Step 5: Plot again after applying flat SF...",b=True)
         for var in variables:
           
           # GET HISTS
@@ -614,6 +620,20 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           # SAVE & CLOSE STACK
           stack.saveas(fname,ext=exts,tag=tag+"_applied")
           stack.close()
+  
+  ### TODO:
+  ### STEP 5b: Create observed data & signal in signal region
+  ###if redo==redoes[-1] and not loadhists:
+  ###  LOG.color("Step 5b: Creating signal hists with linear SF...",b=True)
+  ###  allhists = { } # { sample: { selection: { variable: hist } } }
+  ###  for sample in samples:
+  ###    LOG.color("Sample %s (%r) for %s variables, and %s selections"%(
+  ###      sample.name,sample.title,len(variables),len(allselections)),c='grey',b=True)
+  ###    if hasattr(sample,'gethist'): # create histograms from scratch (slow...)
+  ###      print(f">>>   Creating hist for {sample.name}...")
+  ###      allhists[sample] = sample.gethist(variables,allselections,preselect=baseline,verb=verb+1)
+  ###  if redo==redoes[-1]: # only last time
+  ###    LOG.color("Step 5c: Plot again after applying linear SF...",b=True)
   
   # STEP 6: Compare Incl. Bkg. to DY MC
   #if redo==redoes[-1]: # only last time
@@ -770,6 +790,7 @@ def main(args):
   varfilter  = args.varfilter
   selfilter  = args.selfilter
   loadhists  = args.loadhists
+  paper      = 'paper' in args.tag #args.paper 
   methods    = args.methods
   sidebands  = args.sidebands
   tag        = args.tag
@@ -791,7 +812,7 @@ def main(args):
       if 'sf' in methods:
         for sideband in sidebands:
           measureElasicSF(sampleset,channel,tag=tag,outdir=outdir,era=era,
-                          loadhists=loadhists,sideband=sideband)
+                          loadhists=loadhists,sideband=sideband,paper=paper)
       if 'comp' in methods:
         studyInclBkg(sampleset,channel,tag=tag,outdir=outdir_bkg,era=era,loadhists=loadhists)
   
@@ -799,7 +820,7 @@ def main(args):
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Simple plotting script to compare distributions in pico analysis tuples"""
-  parser = ArgumentParser(prog="plot_compare",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   #parser.add_argument('-m', '--method',    dest='methods', choices=['pu','hs','sam','var'], nargs='+', default=['pu'],
   #                                         help="routine" )
   parser.add_argument('-y', '--era',       dest='eras', nargs='*', default=['UL2018'],
@@ -818,6 +839,8 @@ if __name__ == "__main__":
                                            help="run RDF in parallel instead of in serial, nthreads=%(default)r" )
   #parser.add_argument('-p', '--pdf',       dest='pdf', action='store_true',
   #                                         help="create pdf version of each plot" )
+  #parser.add_argument('-P', '--paper',     action='store_true',
+  #                                         help="use plotting style for paper" )
   parser.add_argument('-m', '--method',    dest='methods', choices=['sf','comp','res'], nargs='+', default=['sf'],
                                            help="routine" )
   parser.add_argument('-s', '--sb',        dest='sidebands', nargs='+', default=[None],
