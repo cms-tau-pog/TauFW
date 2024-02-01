@@ -10,5 +10,47 @@
 
 channel: etau
 
-baselineCuts: "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4 && !lepton_vetoes_notau && metfilter"
-
+baselineCuts: "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSmu_2>=4 && !lepton_vetoes_notau && metfilter" #&& idDeepTau2018v2p5VSe_2>=6"
+regions:
+    VVLVsele:
+       definition: "idDeepTau2018v2p5VSe_2>=2  && mt_1<60"
+       title: "VVLoose VSele"
+    VVLVsele_endcap:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) > 1.56 && abs(eta_2) < 2.5 && mt_1<60"
+       title: "VVLoose VSele endcap"
+    VVLVsele_barrel_0:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==0 "
+       title: "VVLoose VSele barrel no pt cut DM0"
+    VVLVsele_barrel_1:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==1 "
+       title: "VVLoose VSele barrel no pt cut DM1"
+    VVLVsele_barrel_10:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==10 "
+       title: "VVLoose VSele barrel no pt cut DM10"
+    VVLVsele_barrel_11:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==11 "
+       title: "VVLoose VSele barrel no pt cut DM11"
+    VVLVsele_barrel:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) < 1.46  && mt_1<60"
+       title: "VVLoose VSele barrel no pt cut"
+    VVLVsele_barrel_lowpt:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) < 1.46  && mt_1<60 && pt_2 < 50"
+       title: "VVLoose VSele barrel low pt"
+    VVLVsele_barrel_highpt:
+       definition: "idDeepTau2018v2p5VSe_2>=2 && abs(eta_2) < 1.46  && mt_1<60 && pt_2 > 50"
+       title: "VVLoose VSele barrel high pt"
+    tightVsele_barrel:
+       definition: "idDeepTau2018v2p5VSe_2>=6 && mt_1<60 2 && abs(eta_2) < 1.46"
+       title: "tight VSele barrel"
+    tightVsele_endcap:
+       definition: "idDeepTau2018v2p5VSe_2>=6 && mt_1<60 && abs(eta_2) > 1.56 && abs(eta_2) < 2.5"
+       title: "tight VSele endcap"
+    failVsele:
+       definition: "idDeepTau2018v2p5VSe_2<2 && mt_1<60"
+       title: "fail VSele"
+    failVsele_endcap:
+       definition: "idDeepTau2018v2p5VSe_2<6 && abs(eta_2) > 1.56 && abs(eta_2) < 2.5 && mt_1<60"
+       title: "fail VSele endcap"
+    failVsele_barrel:
+       definition: "idDeepTau2018v2p5VSe_2<6 && abs(eta_2) < 1.46 && mt_1<60"
+       title: "fail VSele barrel"

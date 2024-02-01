@@ -26,7 +26,6 @@ class ZptCorrectionTool:
    
     if not filename:
       if "2022" in era:
-         print("Zpt entered 2022postEE")
          histname = "zptmass_histo"
          filename = zptpath+"zpt_reweighting_LO_2022.root"
       else:

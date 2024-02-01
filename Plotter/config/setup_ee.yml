@@ -8,7 +8,7 @@
 #       These are not needed for plotting only
 
 
-channel: mumu
+channel: ee
 
 baselineCuts: "q_1*q_2<0 && !lepton_vetoes && metfilter && iso_1<0.15 && iso_2<0.15"
 
