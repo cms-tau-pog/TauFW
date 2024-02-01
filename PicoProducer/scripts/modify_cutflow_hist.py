@@ -8,6 +8,7 @@ from TauFW.PicoProducer.storage.utils import getsamples
 from TauFW.PicoProducer.analysis.utils import getTotalWeight,  getNevt
 from IPython import embed
 
+#python3 ./scripts/modify_cutflow_hist_v2.py --pico_dir /nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/ --veto 'Muon'  --sumw_file /nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/samples/nanoaod_sumw_2022_postEE.json -m --bin 17 -c mumu
  
 def get_nanoaod_info(args):
     """
@@ -115,7 +116,7 @@ def check_sample_name(full_filename, args):
     
     return sample_name if not faled_check else None 
    
-    
+
 
 def modify_cutflow_hist(args):
     """
