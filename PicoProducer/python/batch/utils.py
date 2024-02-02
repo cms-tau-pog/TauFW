@@ -26,6 +26,8 @@ def guess_batch():
   ###  batch = "HTCondor_NAF"
   elif "t3" in host and "psi.ch" in host:
     batch = "SLURM"
+  elif "ucl" in host:
+    batch = "SLURM_UCL"
   return batch
   
 
