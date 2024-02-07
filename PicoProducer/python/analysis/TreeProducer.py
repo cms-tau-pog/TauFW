@@ -12,17 +12,17 @@
 #   Float_t   'F'     'f'/'float32'        32-bit float
 #   Double_t  'D'     'd'/'float64'/float  64-bit float
 import numpy as np
-from ROOT import TTree, TFile, TH1D, TH2D, gDirectory
+from ROOT import TTree, TFile, TH1D, TH2D, gDirectory, kRed
 from TauFW.common.tools.root import ensureTFile
 from TauFW.PicoProducer.analysis.Cutflow import Cutflow
 
 root_dtype = { # python/numpy -> root data type
-  '?': 'O',  'bool':    'O',  bool:   'O', # Bool_t  
-  'b': 'b',  'int8':    'b',  'byte': 'b', # UChar_t 
-  'i': 'I',  'int32':   'I',               # Int_t   
+  '?': 'O',  'bool':    'O',  bool:   'O', # Bool_t
+  'b': 'b',  'int8':    'b',  'byte': 'b', # UChar_t
+  'i': 'I',  'int32':   'I',               # Int_t
   'l': 'L',  'int64':   'L',  int:    'L', # Long64_t
   'L': 'l',  'uint64':  'l',               # ULong64_t
-  'f': 'F',  'float32': 'F',               # Float_t 
+  'f': 'F',  'float32': 'F',               # Float_t
   'd': 'D',  'float64': 'D',  float:  'D', # Double_t
 }
 np_dtype = { # ROOT -> numpy data type
@@ -50,7 +50,7 @@ class TreeProducer(object):
     self.tree      = TTree('tree','tree')
     self.hists     = { } #OrderedDict() # extra histograms to be drawn
   
-  def addHist(self,name,*args):
+  def addHist(self,name,*args,**kwargs):
     """Add a histogram. Call as
          self.addHist(name,title,nxbins,xmin,xmax) # constant binning
          self.addHist(name,title,[xmin,...,xmax])  # variable binning via list of edges
@@ -58,8 +58,13 @@ class TreeProducer(object):
          self.addHist(name,title,[xmin,...,xmax],nybins,ymin,ymax)  # TH2D: variable x binning
          self.addHist(name,title,nxbins,xmin,xmax,[ymin,...,ymax])  # TH2D: variable y binning
     """
-    dname = ""
-    hname = name
+    hname  = name
+    dname  = kwargs.get('dir',    ""   ) # name of subdirectory
+    key    = kwargs.get('key',    name ) # key name for histogram dictionary
+    xlabs  = kwargs.get('xlabs',  None ) # list of alphanumeric x axis labels
+    ylabs  = kwargs.get('ylabs',  None ) # list of alphanumeric y axis labels
+    lsize  = kwargs.get('lsize',  None ) # label size
+    option = kwargs.get('option', None ) # draw option, e.g. 'COLZ TEXT44'
     if '/' in name: # make subdirectory in file
       dname = '/'.join(name.split('/')[:-1])
       hname = name.split('/')[-1]
@@ -69,19 +74,19 @@ class TreeProducer(object):
     else:
       title = hname
       bins  = args
-    if len(bins)==1 and isinstance(bins[0],list): # TH1D: variable binning: list of binedges
+    if len(bins)==1 and isinstance(bins[0],list): # TH1D: variable binning: list of bin edges
       edges = np.array(bins[0],'f')
       hist = TH1D(hname,title,len(edges)-1,edges)
     elif len(bins)==3: # TH1D: constant binning: nbins, xmin, xmax
       hist = TH1D(hname,title,*bins)
-    elif len(bins)==2 and isinstance(bins[0],list) and isinstance(bins[1],list): # TH2D: list of x and y binedges
+    elif len(bins)==2 and isinstance(bins[0],list) and isinstance(bins[1],list): # TH2D: list of x and y bin edges
       xedges = np.array(bins[0],'d')
       yedges = np.array(bins[1],'d')
       hist = TH2D(hname,title,len(xedges)-1,xedges,len(yedges)-1,yedges)
-    elif len(bins)==4 and isinstance(bins[0],list): # TH2D: list of x binedges
+    elif len(bins)==4 and isinstance(bins[0],list): # TH2D: list of x bin edges
       binning = (len(bins[0])-1,np.array(bins[0],'d'))+bins[1:]
       hist = TH2D(hname,title,*binning)
-    elif len(bins)==4 and isinstance(bins[3],list): # TH2D: list of y binedges
+    elif len(bins)==4 and isinstance(bins[3],list): # TH2D: list of y bin edges
       binning = bins[:3]+(len(bins[3])-1,np.array(bins[3],'d'))
       hist = TH2D(hname,title,*binning)
     elif len(bins)==6: # TH2D: constant binning: nxbins, xmin, xmax, nybins, ymin, ymax
@@ -90,9 +95,10 @@ class TreeProducer(object):
       raise IOError("TreeProducer.addHist: Could not parse histogram arguments: %r, args=%r"%(name,args))
     if self.verbosity>=1:
       print(">>> TreeProducer.addHist: Adding TH1D %r with bins %r..."%(hname,bins))
-    self.hists[name] = hist
-    if isinstance(hist,TH2D):
-      hist.SetOption('COLZ') # for display in TBrowser
+    if option!=None:
+      hist.SetOption(option) # for default display in TBrowser
+    elif isinstance(hist,TH2D):
+      hist.SetOption('COLZ') # for default display in TBrowser
     if dname: # make subdirectory
       subdir = self.outfile.GetDirectory(dname)
       if not subdir: # create directory for the first time
@@ -100,12 +106,31 @@ class TreeProducer(object):
           print(">>> TreeProducer.addHist: Creating subdirectory %s..."%(dname)) 
         subdir = self.outfile.mkdir(dname) #,'',True)
       hist.SetDirectory(subdir)
+    if xlabs: # add alphanumeric x axis labels
+      for i, xlab in enumerate(xlabs,1):
+        if isinstance(xlab,str):
+          hist.GetXaxis().SetBinLabel(i,xlab)
+        elif isinstance(xlab,tuple): # assume (ibin,label)
+          hist.GetXaxis().SetBinLabel(*xlab)
+    if ylabs: # add alphanumeric y axis labels
+      for i, ylab in enumerate(ylabs,1):
+        if isinstance(ylab,str):
+          hist.GetYaxis().SetBinLabel(i,ylab)
+        elif isinstance(ylab,tuple): # assume (ibin,label)
+          hist.GetYaxis().SetBinLabel(*ylab)
+    if lsize!=None:
+      hist.GetXaxis().SetLabelSize(lsize)
+      hist.GetYaxis().SetLabelSize(lsize)
+    if key in self.hists:
+      print(">>> WARNING! TreeProducer.addHist: key %r (name %r) already in list of histograms,"%(key,name)+\
+            " which may cause confusion when filling by key! Please chose a unique histogram or key name...")
+    self.hists[key] = hist # store for filling and writing
     return hist
   
   def addBranch(self, name, dtype='f', default=None, title=None, arrname=None, **kwargs):
     """Add branch with a given name, and create an array of the same name as address."""
     if hasattr(self,name):
-      raise IOError("Branch of name '%s' already exists!"%(name))
+      raise IOError("Class attribute or branch with name %r already exists! Please rename this branch..."%(name))
     if not arrname:
       arrname = name
     arrlen = kwargs.get('len',None) # make vector branch
@@ -159,7 +184,7 @@ class TreeProducer(object):
   
   def fill(self,hname=None,*args):
     """Fill tree."""
-    if hname: # fill histograms
+    if hname: # fill histograms for this key
       return self.hists[hname].Fill(*args)
     else: # fill trees
       return self.tree.Fill()

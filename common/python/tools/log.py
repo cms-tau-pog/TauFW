@@ -32,7 +32,7 @@ def error(string,**kwargs):
   
 
 def green(string,**kwargs):
-  return "\033[32m%s\033[0m"%string
+  return kwargs.get('pre',"") + ("\033[1m" if kwargs.get('bold',False) else '') + "\033[32m%s\033[0m"%(string)
   
 
 def bold(string,**kwargs):

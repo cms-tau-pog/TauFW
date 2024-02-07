@@ -1,9 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (June 2022)
-# Description: Compare distributions in GENSIM tuples to test stitching
-# Sources:
-#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/MCStitching
-#   https://github.com/IzaakWN/cmssw/blob/addDYToHepMCFilter/GeneratorInterface/Core/src/EmbeddingHepMCFilter.cc
+# Description: Compare distributions in GENSIM tuples
 # Instructions
 #   cd ../PicoProducer/utils
 #   ./convertGENSIM.py GENSIM_*.root -o GENSIM_converted.root
@@ -412,8 +409,7 @@ def main(args):
 if __name__ == "__main__":
   import sys
   from argparse import ArgumentParser
-  argv = sys.argv
-  description = """Simple plotting script to compare distributions in pico analysis tuples"""
+  description = """Simple plotting script to compare distributions in GENSIM tuples"""
   parser = ArgumentParser(prog="plot_compare",description=description,epilog="Good luck!")
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
                                          help="only plot the variables passing this filter (glob patterns allowed)" )

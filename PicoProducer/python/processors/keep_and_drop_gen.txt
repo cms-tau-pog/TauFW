@@ -1,0 +1,5 @@
+drop * # start with all
+keep genWeight
+keep *Gen*
+#keep *LHE*
+#keep *Tau*

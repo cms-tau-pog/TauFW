@@ -29,6 +29,7 @@ class ModuleTauPair(Module):
     self.ismc       = self.dtype=='mc'
     self.isdata     = self.dtype=='data' or self.dtype=='embed'
     self.isembed    = self.dtype=='embed'
+    self.branchsel  = None # keep/drop file for branches: disable unneeded branches for faster processing
     self.channel    = kwargs.get('channel',  'none'         ) # channel name
     self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
     self.era        = kwargs.get('era',      '2022postEE'   ) # string, e.g. '2017', 'UL2017'

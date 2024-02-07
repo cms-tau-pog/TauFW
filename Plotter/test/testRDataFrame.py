@@ -108,6 +108,7 @@ if __name__ == "__main__":
   parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-i', '--fnames',    nargs='+', help="input files" )
   parser.add_argument('-t', '--tag',       default="", help="extra tag for output" )
+  parser.add_argument('-n', '--ncores',    default=4, type=int, help="number of cores, default=%(default)s" )
   parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                            help="set verbosity" )
   args = parser.parse_args()

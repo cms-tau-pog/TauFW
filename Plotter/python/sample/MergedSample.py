@@ -206,12 +206,12 @@ class MergedSample(Sample):
     dots       = kwargs.get('dots',     False      ) # allow dots in histogram name
     parallel   = kwargs.get('parallel', False      ) # split subsamples into parallel jobs
     scales     = kwargs.get('scales',   None       ) # list of scale factors, one for each subsample
-    kwargs['cuts']     = joincuts(kwargs.get('cuts'), self.cuts            )
-    kwargs['weight']   = joinweights(kwargs.get('weight', ""), self.weight ) # pass weight down
-    kwargs['scale']    = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
-    kwargs['parallel'] = False # set to false to stop splitting further
+    kwargs['cuts']   = joincuts(kwargs.get('cuts'), self.cuts            )
+    kwargs['weight'] = joinweights(kwargs.get('weight', ""), self.weight ) # pass weight down
+    kwargs['scale']  = kwargs.get('scale', 1.0) * self.scale * self.norm # pass scale down
     LOG.verb("MergedSample.gethist: name=%r, title=%r, cuts=%r, weight=%r, scale=%r, parallel=%s, len(samples)=%s"%(
       name,title,kwargs['cuts'],kwargs['weight'],kwargs['scale'],parallel,len(self.samples)),verbosity,4)
+    kwargs['parallel'] = False # set to false to stop splitting further in subsamples
     
     # HISTOGRAMS
     allhists = [ ]

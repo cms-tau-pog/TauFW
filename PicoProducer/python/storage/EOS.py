@@ -19,8 +19,10 @@ class EOS(StorageSystem):
         self.lscmd = "eos ls" # first do export EOS_MGM_URL=root://eosuser.cern.ch
         self.lscmd = "eos rm" # first do export EOS_MGM_URL=root://eosuser.cern.ch
       else: # use uberftp; NOTE: doest not work for /eos/user/...
-        self.lscmd = "uberftp -ls"
-        self.lsurl = "gsiftp://eoscmsftp.cern.ch/"
+        #self.lscmd = "uberftp -ls" # stopped working 12/2023
+        #self.lsurl = "gsiftp://eoscmsftp.cern.ch/"
+        self.lscmd = "LD_LIBRARY_PATH='' PYTHONPATH='' gfal-ls -l"
+        self.lsurl = "root://eoscms.cern.ch/"
         self.lscol = -1 # take last column
         self.rmcmd = 'uberftp -rm'
         self.rmurl = 'gsiftp://eoscmsftp.cern.ch/'
