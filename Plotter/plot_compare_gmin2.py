@@ -1508,7 +1508,7 @@ def main(args):
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Simple plotting script to compare distributions in pico analysis tuples"""
-  parser = ArgumentParser(prog="plot_compare",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   methods = ['pu','hs','sam','var','dz','aco']
   parser.add_argument('-m', '--method',    dest='methods', choices=methods, nargs='+', default=['pu'],
                                            help="routine" )
