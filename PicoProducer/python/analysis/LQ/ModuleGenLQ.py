@@ -72,6 +72,10 @@ class GenVisTau:
     self.mother = mother if mother!=None else tau.mother if tau!=None else 0 # PDG ID of tau's mother, default: 0 (bin 1) = no daughter found
     return mother
   
+  def __repr__(self):
+    """Returns string representation."""
+    return '<%s(%r,dm=%r,pt=%r)>'%(self.__class__.__name__,self.obj._index,self.dm,self.pt)
+  
   @property
   def pt(self):
     return self.p4.Pt()
@@ -104,13 +108,20 @@ class ModuleGenLQ(Module):
     # ADD CUTS TO CUTFLOW
     self.out.cutflow.addcut('nocut',"No cut")
     self.out.cutflow.addcut('notop',"No top quarks in the event")
+    self.out.cutflow.addcut('nocut_sumw', "no cut, weighted", 16 ) # use for normalization
     
     # ADD HISTOGRAMS
     dmlabs     = ['None','Electron','Muon','Hadronic'] # axis labels for tau decay modes
     dmlabs_all = ['None','e^{#pm}','#mu^{#pm}', # leptonic decays (1=electron, 2=muon)
                   'h^{#pm}','h^{#pm}#pi^{0}','h^{#pm}#pi^{0}#pi^{0}', # one-prong
                   'h^{#pm}h^{#mp}h^{#pm}','h^{#pm}h^{#mp}h^{#pm}#pi^{0}','Other'] # axis labels for hadronic tau decay modes
-    self.out.addHist('mass_lq',"LQ mass",2500,0,2500)
+    mbins    = list(range(0,120,5)) + list(range(120,200,10)) + list(range(200,400,20)) + list(range(400,1000,50)) + list(range(1000,3000,100))
+    dptbins  = [-0.6,-0.4,-0.3,-0.2,-0.15,-0.1,-0.05,-0.02,-0.01,-0.005,0,0.005,0.01,0.02,0.05,0.1,0.15,0.2,0.3,0.4,0.6]
+    dphibins = [-4,-2,-1,-0.5,-0.2,-0.1,-0.05,-0.02,0,0.02,0.05,0.1,0.2,0.5,1,2,4]
+    self.out.addHist('mass_lq',"LQ mass",125,0,2500)
+    self.out.addHist('mass_nl',"HNL mass",300,0,6000)
+    self.out.addHist('mass_wr',"WR mass",300,0,6000)
+    self.out.addHist('mass_zp',"Zprime mass",300,0,6000)
     self.out.addHist('dR_tj',"#DeltaR between #tau and closest jet",60,-1,5) # to study optimal dR cut
     self.out.addHist('dR_jt',"#DeltaR between jet and closest #tau",60,-1,5) # to study optimal dR cut
     self.out.addHist('dR_vt',"#DeltaR between visible #tau (hadronic decay) and closest tau",100,0,5)
@@ -120,10 +131,16 @@ class ModuleGenLQ(Module):
     self.out.addHist('dptvis_fsr',"(p_{T,vis}^{after} #minus p_{T,vis}^{before})/p_{T,vis}^{before} between tau and its FSR photon (#DeltaR<0.3)",100,-0.5,0.7) # to study FSR
     self.out.addHist('dptvis_lep',"(p_{T}^{vis} #minus p_{T}^{#tau})/p_{T}^{#tau} (leptonic decay, p_{T} > 20 GeV)",100,-1.2,0.8) # to study tau decay
     self.out.addHist('dptvis_had',"(p_{T}^{vis} #minus p_{T}^{#tau})/p_{T}^{#tau} (hadronic decay, p_{T} > 20 GeV)",100,-1.2,0.8) # to study tau decay
-    self.out.addHist('pt_tau_vs_vis_had',"Leptonic decay;p_{T}^{#tau};p_{T}^{vis}",80,0,800,80,0,800) # to study tau decay
-    self.out.addHist('pt_tau_vs_vis_lep',"Leptonic decay;p_{T}^{#tau};p_{T}^{vis}",80,0,800,80,0,800) # to study tau decay
-    self.out.addHist('dptmiss_nu',"(p_{T,#nu}^{miss} #minus p_{T,gen}^{miss})/p_{T,gen}^{miss}",100,-0.6,0.6) # to study gen-level MET
-    self.out.addHist('dphimiss_nu',"#phi_{#nu}^{miss} #minus #phi_{gen}^{miss}",100,-4,4) # to study gen-level MET
+    self.out.addHist('dmttvis_fulllep',"(m_{#tau#tau}^{vis} #minus m_{#tau#tau})/m_{#tau#tau} (fully leptonic decay, p_{T} > 20 GeV)",100,-1.2,0.8)
+    self.out.addHist('dmttvis_semilep',"(m_{#tau#tau}^{vis} #minus m_{#tau#tau})/m_{#tau#tau} (semileptonic decay, p_{T} > 20 GeV)",100,-1.2,0.8)
+    self.out.addHist('dmttvis_fullhad',"(m_{#tau#tau}^{vis} #minus m_{#tau#tau})/m_{#tau#tau} (fully hadronic decay, p_{T} > 20 GeV)",100,-1.2,0.8)
+    self.out.addHist('pt_tau_vs_vis_had',"Hadronic decay;p_{T}^{#tau};p_{T}^{vis}",40,0,800,40,0,800) # to study tau decay
+    self.out.addHist('pt_tau_vs_vis_lep',"Leptonic decay;p_{T}^{#tau};p_{T}^{vis}",40,0,800,40,0,800) # to study tau decay
+    self.out.addHist('mtt_vs_vis_fulllep',"Fully leptonic decay;m_{#tau#tau};m_{#tau#tau}^{vis}",mbins,mbins) # to study tau decay
+    self.out.addHist('mtt_vs_vis_semilep',"Semileptonic decay;m_{#tau#tau};m_{#tau#tau}^{vis}",mbins,mbins) # to study tau decay
+    self.out.addHist('mtt_vs_vis_fullhad',"Fully hadronic decay;m_{#tau#tau};m_{#tau#tau}^{vis}",mbins,mbins) # to study tau decay
+    self.out.addHist('dptmiss_nu',"(p_{T,#nu}^{miss} #minus p_{T,gen}^{miss})/p_{T,gen}^{miss}",dptbins) # to study gen-level MET
+    self.out.addHist('dphimiss_nu',"#phi_{#nu}^{miss} #minus #phi_{gen}^{miss}",dphibins) # to study gen-level MET
     self.out.addHist('tau_dm',"#tau lepton decay modes",4,0,4,xlabs=dmlabs) # to study tau lepton decay (compare to PDG)
     self.out.addHist('tau_dm_all',"Hadronic decay modes of #tau lepton (p_{T} > 20 GeV)",9,0,9,xlabs=dmlabs_all) # to study tau lepton decay (compare to PDG)
     self.out.addHist('tau_dm2D',"#tau decay modes;Leading #tau;Subleading #tau",
@@ -131,38 +148,47 @@ class ModuleGenLQ(Module):
     
     # ADD BRANCHES
     self.out.addBranch('genweight',      'f', title="Generator weight")
-    self.out.addBranch('nlqs',           'i', title="Number of LQs")
-    self.out.addBranch('nelecs',         'i', title="Number of electrons")
-    self.out.addBranch('nmuons',         'i', title="Number of muons")
-    self.out.addBranch('ntaus',          'i', title="Number of tau leptons")
-    self.out.addBranch('ntaus20',        'i', title="Number of tau leptons (pT > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('nleptaus',       'i', title="Number of leptonic tau decays")
-    self.out.addBranch('nleptaus20',     'i', title="Number of leptonic tau decays (pTvis > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('nhadtaus',       'i', title="Number of hadronic tau decays (pTvis > 10 GeV)")
-    self.out.addBranch('nhadtaus20',     'i', title="Number of hadronic tau decays (pTvis > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('nvistaus',       'i', title="Number of visible tau decay products (pT > 10 GeV for had.)") # default cut
-    self.out.addBranch('nvistaus20',     'i', title="Number of visible tau decay products (pT > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('nvistaus50',     'i', title="Number of visible tau decay products (pT > 50 GeV, |eta|<2.5)")
-    self.out.addBranch('nnus',           'i', title="Number of neutrinos")
-    self.out.addBranch('ntnus',          'i', title="Number of tau neutrinos")
-    self.out.addBranch('nbots',          'i', title="Number of bottom quarks")
-    self.out.addBranch('nbots20',        'i', title="Number of bottom quarks (pT > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('ntops',          'i', title="Number of top quarks")
-    self.out.addBranch('njets',          'i', title="Number of gen AK4 jets (no tau decays)")
-    self.out.addBranch('nbjets',         'i', title="Number of gen AK4 b jets")
-    self.out.addBranch('nbjets20',       'i', title="Number of gen AK4 b jets (pT > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('nbjets50',       'i', title="Number of gen AK4 b jets (pT > 50 GeV, |eta|<2.5)")
-    self.out.addBranch('ncjets20',       'i', title="Number of gen AK4 jets (pT > 20 GeV, |eta|<2.5)")
-    self.out.addBranch('ncjets50',       'i', title="Number of gen AK4 jets (pT > 50 GeV, |eta|<2.5)")
-    self.out.addBranch('nfjets20',       'i', title="Number of gen AK4 jets (pT > 20 GeV, 2.5<|eta|<4.7)")
-    self.out.addBranch('nfjets50',       'i', title="Number of gen AK4 jets (pT > 50 GeV, 2.5<|eta|<4.7)")
+    self.out.addBranch('nlqs',           'b', title="Number of LQs")
+    self.out.addBranch('nleps',          'b', title="Number of leptons (not from tau decay)")
+    self.out.addBranch('nleps20',        'b', title="Number of leptons (not from tau decay, pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('nleps50',        'b', title="Number of leptons (not from tau decay, pT > 50 GeV, |eta|<2.5)")
+    self.out.addBranch('nelecs',         'b', title="Number of electrons")
+    self.out.addBranch('nelecs20',       'b', title="Number of electrons (pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('nmuons',         'b', title="Number of muons")
+    self.out.addBranch('nmuons20',       'b', title="Number of muons (pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('ntaus',          'b', title="Number of tau leptons")
+    self.out.addBranch('ntaus20',        'b', title="Number of tau leptons (pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('ntaus50',        'b', title="Number of tau leptons (pT > 50 GeV, |eta|<2.5)")
+    self.out.addBranch('nleptaus',       'b', title="Number of leptonic tau decays")
+    self.out.addBranch('nleptaus20',     'b', title="Number of leptonic tau decays (pTvis > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('nhadtaus',       'b', title="Number of hadronic tau decays (pTvis > 10 GeV)")
+    self.out.addBranch('nhadtaus20',     'b', title="Number of hadronic tau decays (pTvis > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('nvistaus',       'b', title="Number of visible tau decay products (pT > 10 GeV for had.)") # default cut
+    self.out.addBranch('nvistaus20',     'b', title="Number of visible tau decay products (pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('nvistaus50',     'b', title="Number of visible tau decay products (pT > 50 GeV, |eta|<2.5)")
+    self.out.addBranch('nnus',           'b', title="Number of neutrinos")
+    self.out.addBranch('ntnus',          'b', title="Number of tau neutrinos")
+    self.out.addBranch('nbots',          'b', title="Number of bottom quarks")
+    self.out.addBranch('nbots20',        'b', title="Number of bottom quarks (pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('nbots50',        'b', title="Number of bottom quarks (pT > 50 GeV, |eta|<2.5)")
+    self.out.addBranch('ntops',          'b', title="Number of top quarks")
+    self.out.addBranch('njets',          'b', title="Number of gen AK4 jets (no tau decays)")
+    self.out.addBranch('nbjets',         'b', title="Number of gen AK4 b jets")
+    self.out.addBranch('nbjets20',       'b', title="Number of gen AK4 b jets (pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('nbjets50',       'b', title="Number of gen AK4 b jets (pT > 50 GeV, |eta|<2.5)")
+    self.out.addBranch('ncjets20',       'b', title="Number of gen AK4 jets (pT > 20 GeV, |eta|<2.5)")
+    self.out.addBranch('ncjets50',       'b', title="Number of gen AK4 jets (pT > 50 GeV, |eta|<2.5)")
+    self.out.addBranch('nfjets20',       'b', title="Number of gen AK4 jets (pT > 20 GeV, 2.5<|eta|<4.7)")
+    self.out.addBranch('nfjets50',       'b', title="Number of gen AK4 jets (pT > 50 GeV, 2.5<|eta|<4.7)")
     
     # ADD BRANCHES for RECONSTRUCTED VARIABLES
+    self.out.addBranch('dR_ll',          'f', title="DeltaR between leading leptons")
     self.out.addBranch('dR_tt',          'f', title="DeltaR between leading tau leptons")
     self.out.addBranch('dRvis_tt',       'f', title="DeltaR between visible decays of leading tau leptons")
     self.out.addBranch('dR_ttvis',       'f', title="DeltaR between visible tau leptons")
     self.out.addBranch('dR_bb',          'f', title="DeltaR between bottom quarks")
     self.out.addBranch('m_lq',           'f', title="LQ mass")
+    self.out.addBranch('m_ll',           'f', title="Invariant mass between two leading leptons")
     self.out.addBranch('m_tt',           'f', title="Invariant mass between two leading taus")
     self.out.addBranch('mvis_tt',        'f', title="Visible mass between two leading taus")
     self.out.addBranch('pt_tt',          'f', title="pT of two leading taus")
@@ -180,7 +206,15 @@ class ModuleGenLQ(Module):
     self.out.addBranch('dau2_lq1',       'i', title="PDG ID of daughter 1 of subleading LQ") # for pair production only
     self.out.addBranch('dau2_lq2',       'i', title="PDG ID of daughter 2 of subleading LQ") # for pair production only
     
-    # ADD BRANCHES for TAU DECAYS
+    # ADD BRANCHES for LEPTONS (electrons + muons + tau leptons)
+    self.out.addBranch('pt_lep1',        'f', title="pT of leading lepton (no tau decay)")
+    self.out.addBranch('pt_lep2',        'f', title="pT of subleading lepton (no tau decay)")
+    self.out.addBranch('eta_lep1',       'f', title="eta of leading lepton (no tau decay)")
+    self.out.addBranch('eta_lep2',       'f', title="eta of subleading lepton (no tau decay)")
+    self.out.addBranch('lep1',           'i', title="PDG ID of leading lepton (no tau decay)")
+    self.out.addBranch('lep2',           'i', title="PDG ID of subleading lepton (no tau decay)")
+    
+    # ADD BRANCHES for TAU LEPTONS
     self.out.addBranch('pt_tau1',        'f', title="pT of leading tau")
     self.out.addBranch('pt_tau2',        'f', title="pT of subleading tau")
     self.out.addBranch('ptvis_tau1',     'f', title="Visible pT of leading tau")
@@ -231,12 +265,12 @@ class ModuleGenLQ(Module):
     self.out.setAlias('stmet',       "pt_tau1+pt_tau2+pt_jet1+met") # scalar sum pT with full tau
     self.out.setAlias('stvis',       "pt_vistau1+pt_vistau2+pt_jet1") # scalar sum pT (visible)
     self.out.setAlias('stmetvis',    "pt_vistau1+pt_vistau2+pt_jet1+met") # scalar sum pT (visible)
-    self.out.setAlias('nleps',       "nelecs+nmuons") # all leptonic decays
+    #self.out.setAlias('nleps',       "nelecs+nmuons") # all leptonic decays
     self.out.setAlias('njets20',     "nfjets20+ncjets20") # all jets with pT > 20 GeV, |eta|<4.7
     self.out.setAlias('njets50',     "nfjets50+ncjets50") # all jets with pT > 50 GeV, |eta|<4.7
     self.out.setAlias('nljets20',    "nfjets20+ncjets20-nbjets20") # number of light jets with pT > 20 GeV, |eta|<4.7
     self.out.setAlias('nljets50',    "nfjets50+ncjets50-nbjets50") # number of light jets with pT > 50 GeV, |eta|<4.7
-    self.out.setAlias('ll',          "1<=dm_vistau1 && dm_vistau1<=2 && 1<=dm_vistau2 && dm_vistau2<=2 ") # fully leptonic tau decay
+    self.out.setAlias('ll',          "1<=dm_vistau1 && dm_vistau1<=2 && 1<=dm_vistau2 && dm_vistau2<=2") # fully leptonic tau decay
     self.out.setAlias('etau',        "(dm_vistau1==1 && dm_vistau2>=3) || (dm_vistau2==1 && dm_vistau1>=3)") # electronic tau decay
     self.out.setAlias('mutau',       "(dm_vistau1==2 && dm_vistau2>=3) || (dm_vistau2==2 && dm_vistau1>=3)") # muonic tau decay
     self.out.setAlias('ltau',        "((dm_vistau1==1||dm_vistau1==2) && dm_vistau2>=3) || ((dm_vistau2==1||dm_vistau2==2) && dm_vistau1>=3)") # semileptonic tau decay
@@ -270,10 +304,12 @@ class ModuleGenLQ(Module):
   def analyze(self, event):
     """Process event, return True (pass, go to next module) or False (fail, go to next event)."""
     self.out.cutflow.fill('nocut')
+    self.out.cutflow.fill('nocut_sumw',16)
     
     # PREPARE lists of selected gen-level particles
     elecs   = [ ] # electrons
     muons   = [ ] # muons
+    leptons = [ ] # prompt leptons (not from tau decay)
     leptaus = [ ] # leptons from tau decay
     hadtaus = [ ] # hadronic tau decays
     taus    = [ ] # tau leptons
@@ -289,6 +325,9 @@ class ModuleGenLQ(Module):
     vistaus = [ ] # visible tau decay products (visible four-momentum)
     lqs     = [ ] # LQs
     lqids   = [46,9000002,9000006] # PDG IDs of LQs in various MadGraph or Pythia generators
+    nlpids  = [9900012,9900014,9900016] # HNL
+    zppid   = 32 # Zprime
+    wrpid   = 34 # WR
     p4_nu   = TLorentzVector() # four-momentum of all neutrinos (to compare to gen-level MET)
     #p4_met  = TLorentzVector() # four-momentum of gen-level MET
     #p4_met.SetPtEtaPhiE(event.GenMET_pt,0,event.GenMET_phi,event.GenMET_pt)
@@ -305,6 +344,7 @@ class ModuleGenLQ(Module):
       for lq in lqs: # check if part is LQ decay product
         if lq._index==part.genPartIdxMother: # LQ is mother
           lq.decays.append(part.pdgId) # save PDG only
+          break
       
       # LAST COPY
       if not part.statusflag('isLastCopy'):
@@ -314,8 +354,21 @@ class ModuleGenLQ(Module):
       if pid in lqids: # this particle is a LQ
         #if part.status<60:
         #  continue # about to decay (i.e. last copy)
+        self.out.fill('mass_lq',part.mass)
         part.decays = [ ]
         lqs.append(part)
+      
+      # HNLs
+      elif pid in nlpids: # this particle is a HNL
+        self.out.fill('mass_nl',part.mass)
+        part.decays = [ ]
+        lqs.append(part)
+      
+      # WR, Zprime
+      elif pid==wrpid: # this particle is a WR
+        self.out.fill('mass_wr',part.mass)
+      elif pid==zppid: # this particle is a Zprime
+        self.out.fill('mass_zp',part.mass)
       
       # BOTTOM quark
       elif pid==5 and part.status!=21 and abs(part.eta)<10: # remove initial state b quark (from hard process)
@@ -339,6 +392,8 @@ class ModuleGenLQ(Module):
             self.out.fill('dR_lt',moth.DeltaR(part)) # DeltaR between tau and its daughter lepton
             leptaus.append(part)
             vistaus.append(moth.vistau)
+        else:
+          leptons.append(part)
       
       # MUON
       elif pid==13:
@@ -351,12 +406,15 @@ class ModuleGenLQ(Module):
             self.out.fill('dR_lt',moth.DeltaR(part)) # DeltaR between tau and its daughter lepton
             leptaus.append(part)
             vistaus.append(moth.vistau)
+        else:
+          leptons.append(part)
       
       # TAU lepton
       elif pid==15:
         part.mother = getmother(part,genparts).pdgId # get mother PDG ID
         part.vistau = None # visible pT, default: -2 = no visible decay product found
         taus.append(part)
+        leptons.append(part)
         self.out.fill('dR_tj',getdRmin(part,genjets)) # DeltaR between tau and closest jet
       
       # ELECTRON or MUON neutrinos
@@ -413,7 +471,7 @@ class ModuleGenLQ(Module):
       if dRmin<0.4: # found mother tau
         if tmoth.vistau!=None: # visible decay product already set => ignore
           print(f"WARNING! Multiple matches between tau and visible decay product!"
-                "{vistau} ({vistau.dm}) will be ignored in favor of {tmoth.vistau} ({tmoth.vistau.dm})!")
+                f"{vistau} ({vistau.dm}) will be ignored in favor of {tmoth.vistau} ({tmoth.vistau.dm})!")
         else: # set visible decay product for first time
           tmoth.vistau = vistau # assign visible daughter to tau
           vistau.settau(tmoth) # set tau and mother
@@ -432,7 +490,7 @@ class ModuleGenLQ(Module):
       jets.append(jet) # inclusive (except taus)
       if abs(jet.partonFlavour)==5: # b quark
         bjets.append(jet)
-      if jet.pt>20:
+      if jet.pt>20 and abs(jet.eta)<4.7:
         ht += sqrt( jet.mass*jet.mass + jet.pt*jet.pt )
         if abs(jet.eta)<2.5: # central jets (barrel)
           cjets.append(jet)
@@ -450,15 +508,22 @@ class ModuleGenLQ(Module):
     self.out.nlqs[0]         = len(lqs)
     self.out.nbots[0]        = len(bots)
     self.out.nbots20[0]      = sum(b.pt>20 and abs(b.eta)<2.5 for b in bots)
+    self.out.nbots50[0]      = sum(b.pt>50 and abs(b.eta)<2.5 for b in bots)
     self.out.ntops[0]        = len(tops)
+    self.out.nleps[0]        = len(leptons)
+    self.out.nleps20[0]      = sum(l.pt>20 and abs(l.eta)<2.5 for l in leptons)
+    self.out.nleps50[0]      = sum(l.pt>50 and abs(l.eta)<2.5 for l in leptons)
     self.out.nelecs[0]       = len(elecs)
+    self.out.nelecs20[0]     = sum(e.pt>20 and abs(e.eta)<2.5 for e in elecs)
     self.out.nmuons[0]       = len(muons)
+    self.out.nmuons20[0]     = sum(m.pt>20 and abs(m.eta)<2.5 for m in muons)
     self.out.nleptaus[0]     = len(leptaus) # leptonic decay modes
     self.out.nleptaus20[0]   = sum(t.pt>20 and abs(t.eta)<2.5 for t in leptaus) # hadronic decay modes
     self.out.nhadtaus[0]     = len(hadtaus) # hadronic decay modes
     self.out.nhadtaus20[0]   = sum(t.pt>20 and abs(t.eta)<2.5 for t in hadtaus) # hadronic decay modes
     self.out.ntaus[0]        = len(taus)
     self.out.ntaus20[0]      = sum(t.pt>20 and abs(t.eta)<2.5 for t in taus)
+    self.out.ntaus50[0]      = sum(t.pt>50 and abs(t.eta)<2.5 for t in taus)
     self.out.ntnus[0]        = len(tnus)
     self.out.nnus[0]         = len(nus)
     self.out.nvistaus[0]     = len(vistaus)
@@ -487,7 +552,7 @@ class ModuleGenLQ(Module):
       self.out.dau1_lq2[0] = lqs[1].decays[0] if len(lqs[1].decays)>=1 else -1
       self.out.dau2_lq1[0] = lqs[0].decays[1] if len(lqs[0].decays)>=2 else -1
       self.out.dau2_lq2[0] = lqs[1].decays[1] if len(lqs[1].decays)>=2 else -1
-      self.out.m_lq[0]     = lqs[0].p4().M() # get mass from TLorentzVector
+      self.out.m_lq[0]     = lqs[0].mass #.p4().M() # get mass from TLorentzVector
     elif len(lqs)>=1: # single LQ production
       lqs[0].decays.sort(key=lambda p: abs(p)) # sort by PDG ID
       self.out.pt_lq1[0]   = lqs[0].pt
@@ -496,7 +561,7 @@ class ModuleGenLQ(Module):
       self.out.dau1_lq2[0] = -1
       self.out.dau2_lq1[0] = lqs[0].decays[1] if len(lqs[0].decays)>=2 else -1
       self.out.dau2_lq2[0] = -1
-      self.out.m_lq[0]     = lqs[0].p4().M() # get mass from TLorentzVector
+      self.out.m_lq[0]     = lqs[0].mass #.p4().M() # get mass from TLorentzVector
     else: # nonres. production (LQ in the t-channel)
       self.out.pt_lq1[0]   = -1
       self.out.pt_lq2[0]   = -1
@@ -523,12 +588,44 @@ class ModuleGenLQ(Module):
         elif dm in [1,2]: # leptonic tau decay
           self.out.fill('dptvis_lep',(tau.vistau.pt-tau.pt)/tau.pt)
     
+    # FILL LEPTON BRANCHES
+    #leptons = elecs+muons+taus
+    if len(leptons)>=2:
+      leptons.sort(key=lambda l: l.pt,reverse=True) # sort leptons by pT
+      dilep_p4             = leptons[0].p4() + leptons[1].p4() # ditau system
+      self.out.dR_ll[0]    = leptons[0].DeltaR(leptons[1])
+      self.out.m_ll[0]     = dilep_p4.M()
+      self.out.pt_lep1[0]  = leptons[0].pt
+      self.out.pt_lep2[0]  = leptons[1].pt
+      self.out.eta_lep1[0] = leptons[0].eta
+      self.out.eta_lep2[0] = leptons[1].eta
+      self.out.lep1[0]     = leptons[0].pdgId
+      self.out.lep2[0]     = leptons[1].pdgId
+    elif len(leptons)==1:
+      self.out.dR_ll[0]    = -1
+      self.out.m_ll[0]     = -1
+      self.out.pt_lep1[0]  = leptons[0].pt
+      self.out.pt_lep2[0]  = -1
+      self.out.eta_lep1[0] = leptons[0].eta
+      self.out.eta_lep2[0] = -9
+      self.out.lep1[0]     = leptons[0].pdgId
+      self.out.lep2[0]     = 0
+    else: # no leptons found
+      self.out.dR_ll[0]    = -1
+      self.out.m_ll[0]     = -1
+      self.out.pt_lep1[0]  = -1
+      self.out.pt_lep2[0]  = -1
+      self.out.eta_lep1[0] = -9
+      self.out.eta_lep2[0] = -9
+      self.out.lep1[0]     = 0
+      self.out.lep2[0]     = 0
+    
     # FILL TAU BRANCHES
     if len(taus)>=2:
       taus.sort(key=lambda t: t.pt,reverse=True) # sort taus by pT
+      dm1 = taus[0].vistau.dm if taus[0].vistau else 0
+      dm2 = taus[1].vistau.dm if taus[1].vistau else 0
       if taus[0].pt>20 and taus[1].pt>20: # to remove bias caused by pT > 10 GeV on GenVisTau
-        dm1 = taus[0].vistau.dm if taus[0].vistau else 0
-        dm2 = taus[1].vistau.dm if taus[1].vistau else 0
         self.out.fill('tau_dm2D',dm1,dm2) # hname, binx, biny
       ditau_p4               = taus[0].p4() + taus[1].p4() # ditau system
       self.out.dR_tt[0]      = taus[0].DeltaR(taus[1])
@@ -539,6 +636,17 @@ class ModuleGenLQ(Module):
         self.out.dRvis_tt[0] = taus[0].vistau.p4.DeltaR(taus[1].vistau.p4)
         self.out.mvis_tt[0]  = ditau_p4vis.M()
         self.out.ptvis_tt[0] = ditau_p4vis.Pt()
+        if taus[0].pt>20 and taus[1].pt>20 and self.out.m_tt[0]>0: # to remove bias caused by pT > 10 GeV on GenVisTau
+          dmass = (self.out.mvis_tt[0]-self.out.m_tt[0])/self.out.m_tt[0]
+          if dm1==3 and dm2==3: # fully hadronic tau decay
+            self.out.fill('dmttvis_fullhad',dmass)
+            self.out.fill('mtt_vs_vis_fullhad',self.out.m_tt[0],self.out.mvis_tt[0])
+          elif dm1==3 or dm2==3: # semileptonic tau decay
+            self.out.fill('dmttvis_semilep',dmass)
+            self.out.fill('mtt_vs_vis_semilep',self.out.m_tt[0],self.out.mvis_tt[0])
+          else: # fully leptonic tau decay
+            self.out.fill('dmttvis_fulllep',dmass)
+            self.out.fill('mtt_vs_vis_fulllep',self.out.m_tt[0],self.out.mvis_tt[0])
       else:
         self.out.dRvis_tt[0] = -2
         self.out.mvis_tt[0]  = -2
@@ -551,9 +659,9 @@ class ModuleGenLQ(Module):
       self.out.eta_tau2[0]   = taus[1].eta
       self.out.moth_tau1[0]  = taus[0].mother
       self.out.moth_tau2[0]  = taus[1].mother
-      self.out.dm_tau1[0]    = taus[0].vistau.dm if taus[0].vistau!=None else 0
-      self.out.dm_tau2[0]    = taus[1].vistau.dm if taus[1].vistau!=None else 0
-    elif len(taus)>=1:
+      self.out.dm_tau1[0]    = dm1
+      self.out.dm_tau2[0]    = dm2
+    elif len(taus)==1:
       self.out.dR_tt[0]      = -1
       self.out.dRvis_tt[0]   = -1
       self.out.m_tt[0]       = -1
@@ -708,10 +816,10 @@ class ModuleGenLQ(Module):
       self.out.eta_bjet1[0] = -9
       self.out.eta_bjet2[0] = -9
     
-    # FILL HISTOGRAMS
-    for lq in lqs:
-      mass = lq.p4().M() # get mass from TLorentzVector
-      self.out.fill('mass_lq',mass)
+    #### FILL HISTOGRAMS
+    ###for lq in lqs:
+    ###  mass = lq.p4().M() # get mass from TLorentzVector
+    ###  self.out.fill('mass_lq',mass)
     
     self.out.fill() # fill branches
     return True
@@ -727,86 +835,97 @@ if __name__ == '__main__':
   parser.add_argument('-o',   '--outdir', default='.')
   parser.add_argument('-tag', '--tag', default='', help="extra tag for name of output file")
   parser.add_argument('-n',   '--maxevts', type=int, default=10000)
-  parser.add_argument('-L',   '--lq', choices=['s','p','t','x'], default='t',
+  parser.add_argument('-L',   '--lq', dest='lqs',choices=['s','p','t','w','z','x'],nargs='+',default='t',
                                       help="select pre-defined list of input files for pair ('p'), single ('s'), or nonres. ('t')")
   args = parser.parse_args()
   
   # SETTINGS
   maxevts   = args.maxevts if args.maxevts>0 else None
-  outfname  = "genAnalyzer_LQ%s.root"%(args.tag)
-  modules   = [ModuleGenLQ(outfname)]
   #branchsel = "keep_and_drop_gen.txt" # only keep gen-related branches to speed up processing
   
   # INPUT FILES
   url = "root://cms-xrd-global.cern.ch/"
   indir = "/eos/user/i/ineuteli/public/forCalTech/NANOAOD/"
-  if args.infiles:
-    infiles = args.infiles
-  elif args.lq=='p': # LQ pair production
-    # for d in /eos/user/i/ineuteli/public/forCalTech/NANOAOD/*1400*/*/*; do ls $d/*root | head; done
-    infiles = [
-      indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_100_skimmed_JECSys.root",
-      #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_101_skimmed_JECSys.root",
-      #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_102_skimmed_JECSys.root",
-      #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_103_skimmed_JECSys.root",
-      #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_104_skimmed_JECSys.root",
-      #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_106_skimmed_JECSys.root",
-      #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_107_skimmed_JECSys.root",
-      #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_108_skimmed_JECSys.root",
-    ]
-  elif args.lq=='s': # single LQ production
-    infiles = [
-      indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_100_skimmed_JECSys.root",
-      #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_101_skimmed_JECSys.root",
-      #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_102_skimmed_JECSys.root",
-      #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_103_skimmed_JECSys.root",
-      #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_104_skimmed_JECSys.root",
-      #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_105_skimmed_JECSys.root",
-      #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_106_skimmed_JECSys.root",
-      #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_107_skimmed_JECSys.root",
-    ]
-  elif args.lq=='t': # nonresonant production
-    infiles = [
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_0_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_10_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_11_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_12_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_100_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_101_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_102_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_103_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_104_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_105_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_106_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_107_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_108_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_109_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_110_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_111_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_112_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_113_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_114_skimmed_JECSys.root",
-      indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_115_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_116_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_117_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_118_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_119_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_120_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_121_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_122_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_123_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_124_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_125_skimmed_JECSys.root",
-      #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_126_skimmed_JECSys.root",
-    ]
-  else:
-    infiles = [
-      #url+'/store/mc/RunIISummer20UL18NanoAODv9/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/280000/525CD279-3344-6043-98B9-2EA8A96623E4.root',
-      url+'/store/mc/RunIISummer20UL18NanoAODv9/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/130000/44187D37-0301-3942-A6F7-C723E9F4813D.root',
-    ]
-  
-  # PROCESS NANOAOD
-  processor = PostProcessor(args.outdir,infiles,modules=modules,maxEntries=maxevts,
-                            branchsel=branchsel,noOut=True)
-  processor.run()
+  for lq in args.lqs:
+    outfname  = "genAnalyzer_LQ%s_%s.root"%(args.tag,lq)
+    #outfname  = "genAnalyzer_LQ%s.root"%(args.tag)
+    modules = [ModuleGenLQ(outfname)]
+    if args.infiles:
+      infiles = args.infiles
+    elif lq=='p': # LQ pair production
+      # for d in /eos/user/i/ineuteli/public/forCalTech/NANOAOD/*1400*/*/*; do ls $d/*root | head; done
+      infiles = [
+        indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_100_skimmed_JECSys.root",
+        #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_101_skimmed_JECSys.root",
+        #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_102_skimmed_JECSys.root",
+        #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_103_skimmed_JECSys.root",
+        #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_104_skimmed_JECSys.root",
+        #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_106_skimmed_JECSys.root",
+        #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_107_skimmed_JECSys.root",
+        #indir+"/PairVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_108_skimmed_JECSys.root",
+      ]
+    elif lq=='s': # single LQ production
+      infiles = [
+        indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_100_skimmed_JECSys.root",
+        #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_101_skimmed_JECSys.root",
+        #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_102_skimmed_JECSys.root",
+        #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_103_skimmed_JECSys.root",
+        #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_104_skimmed_JECSys.root",
+        #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_105_skimmed_JECSys.root",
+        #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_106_skimmed_JECSys.root",
+        #indir+"/SingleVectorLQ_InclusiveDecay_M-1400_TuneCP2_13TeV-madgraph-pythia8/ineuteli-RunIIAutumn18NanoAODv6_102X_upgrade2018_realistic_v20-46cdbfd14e9c61da1d6c94f005ec4720/USER/nanoAOD_2018_107_skimmed_JECSys.root",
+      ]
+    elif lq=='t': # nonresonant production
+      infiles = [
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_0_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_10_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_11_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_12_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_100_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_101_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_102_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_103_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_104_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_105_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_106_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_107_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_108_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_109_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_110_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_111_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_112_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_113_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_114_skimmed_JECSys.root",
+        indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_115_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_116_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_117_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_118_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_119_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_120_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_121_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_122_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_123_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_124_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_125_skimmed_JECSys.root",
+        #indir+"/LQ_VecNonRes_M1400/LegacyRun2_2018_deepTauIDv2p1/USER/nanoAOD_LegacyRun2_2018_deepTauIDv2p1_test_LQ_VecNonRes_5f_Madgraph_LO_M1400_126_skimmed_JECSys.root",
+      ]
+    elif lq=='w': # WRtoNLtoLLJJ_MWR3500to5000
+      infiles = [
+        "root://cms-xrd-global.cern.ch//store/mc/RunIISummer16NanoAODv7/WRtoNLtoLLJJ_MWR3500to5000_TuneCP5-madgraph-pythia8/NANOAODSIM/PUMoriond17_Nano02Apr2020_rpscan_102X_mcRun2_asymptotic_v8-v1/40000/DB80444F-C3E3-144F-BA18-67D4F7D22ADE.root",
+      ]
+    elif lq=='z': # ZptoNN_EEJJJJ_Zp2000_N100_WR5000
+      infiles = [
+        "root://cms-xrd-global.cern.ch//store/mc/RunIIAutumn18NanoAODv7/ZprimetoNN_EEJJJJ_Zprime2000_N100_WR5000_NLO/NANOAODSIM/Nano02Apr2020_102X_upgrade2018_realistic_v21-v1/70000/12E3DCF7-1E68-5B49-8403-73B87D3665ED.root",
+      ]
+    else:
+      infiles = [
+        #url+'/store/mc/RunIISummer20UL18NanoAODv9/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/280000/525CD279-3344-6043-98B9-2EA8A96623E4.root',
+        url+'/store/mc/RunIISummer20UL18NanoAODv9/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/130000/44187D37-0301-3942-A6F7-C723E9F4813D.root',
+      ]
+    
+    # PROCESS NANOAOD
+    processor = PostProcessor(args.outdir,infiles,modules=modules,maxEntries=maxevts,
+                              branchsel=branchsel,noOut=True)
+    processor.run()
+    
   
