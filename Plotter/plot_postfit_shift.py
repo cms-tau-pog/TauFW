@@ -28,36 +28,50 @@ def plot(sampleset,setup,region,parallel=True,tag="",extratext="",outdir="plots"
   # Check region and use the right TES value from 
   print("Region = %s" %(region))
   if region in setup['regions']: # add extra regions on top of baseline
-      # print(region)
-      # if region == 'DM0' :
-      #   #channel = "mutau_TES0p914"
-      #   #channel = "mutau_TES0p930"
-      #   channel = "mutau_TES0p927"
-      #   #channel = "mutau_TES0p930"
-      # # elif region == 'DM0_pt1' :
-      # #   #channel = "mutau_TES0p914"
-      # #   #channel = "mutau_TES0p930"
-      # #   channel = "mutau_TES0p892"
-      # # elif region == 'DM0_pt2' :
-      # #   #channel = "mutau_TES0p914"
-      # #   #channel = "mutau_TES0p930"
-      # #   channel = "mutau_TES0p952"
-      # elif region == 'DM1':
-      #   #channel = "mutau_TES0p980"
-      #   #channel = "mutau_TES0p982"
-      #   channel = "mutau_TES0p0p901"
-      # elif region == 'DM10':
-      #   #channel = "mutau_TES0p998"
-      #   channel = "mutau_TES0p972" 
-      #   #channel = "mutau_TES1p012"
-      # elif region == 'DM11':
-      #   #channel = "mutau_TES1p012"
-      #   channel = "mutau_TES1p008"
-      #   #channel = "mutau_TES1p018"
-      # else :
-      #   channel = setup["channel"]
+      if region == 'DM0_pt1' :
+        channel = "mutau_DM0_pt1_postEE"
+      elif region == 'DM0_pt2' :
+        channel = "mutau_DM0_pt2_postEE"
+      elif region == 'DM0_pt3' :
+        channel = "mutau_DM0_pt3_postEE"
+      elif region == 'DM0_pt4' :
+        channel = "mutau_DM0_pt4_postEE"
+      elif region == 'DM1_pt1' :
+        channel = "mutau_DM1_pt1_postEE"
+      elif region == 'DM1_pt2' :
+        channel = "mutau_DM1_pt2_postEE"
+      elif region == 'DM1_pt3' :
+        channel = "mutau_DM1_pt3_postEE"
+      elif region == 'DM1_pt4' :
+        channel = "mutau_DM1_pt4_postEE"
+      elif region == 'DM10_pt1' :
+        channel = "mutau_DM10_pt1_postEE"
+      elif region == 'DM10_pt2' :
+        channel = "mutau_DM10_pt2_postEE"
+      elif region == 'DM1_pt3' :
+        channel = "mutau_DM1_pt3_postEE"
+      elif region == 'DM10_pt4' :
+        channel = "mutau_DM10_pt4_postEE"
+      elif region == 'DM11_pt1' :
+        channel = "mutau_DM11_pt1_postEE"
+      elif region == 'DM11_pt2' :
+        channel = "mutau_DM11_pt2_postEE"
+      elif region == 'DM11_pt3' :
+        channel = "mutau_DM11_pt3_postEE"
+      elif region == 'DM11_pt4' :
+        channel = "mutau_DM11_pt4_postEE"
+      elif region == 'DM0' :
+        channel = "mutau_DM0_preEE"
+      elif region == 'DM1' :
+        channel = "mutau_DM1_preEE"
+      elif region == 'DM10' :
+        channel = "mutau_DM10_preEE"
+      elif region == 'DM11' :
+        channel = "mutau_DM11_preEE"
+      else :
+        channel = setup["channel"]
 
-      channel = setup["channel"]
+      #channel = setup["channel"]
       print("Channel = %s" %(channel))
       skwargs = setup['regions'][region].copy() # extra key-word options
       assert 'definition' in skwargs
@@ -138,19 +152,19 @@ def plot(sampleset,setup,region,parallel=True,tag="",extratext="",outdir="plots"
 
     # Extract relevant parameters for modifying the sample
     #sampleAppend = sysDef["sampleAppend"][iSysVar] if "sampleAppend" in sysDef else ""
-    sampleAppend = "_JTF0p950"
+    # sampleAppend = "_JTF0p950"
     #weightReplaced = [sysDef["nomWeight"],sysDef["altWeights"][iSysVar]] if "altWeights" in sysDef else ["",""]
-    weightReplaced = ""
+    # weightReplaced = ""
 
     # Create a new sample set with systematic variations
-    newsampleset_sys = sampleset.shift(["ZJ", "TTJ", "W"], "_JTF1p050", "_JTF1p050", "+5% JTF", split=True,filter=False,share=True)
-    newsampleset_sysTES = newsampleset_sys.shift(["ZTT"], "_TES0p928", "_JTF0p928", "TES 0.928", split=True,filter=False,share=True)
-    newsampleset_sys.close()
-    newsampleset_sysTES.close()
+    # newsampleset_sys = sampleset.shift(["ZJ", "TTJ", "W"], "_JTF1p050", "_JTF1p050", "+5% JTF", split=True,filter=False,share=True)
+    # newsampleset_sysTES = newsampleset_sys.shift(["ZTT"], "_TES0p928", "_JTF0p928", "TES 0.928", split=True,filter=False,share=True)
+    # newsampleset_sys.close()
+    # newsampleset_sysTES.close()
 
 
-    stacks = newsampleset_sysTES.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
-    #stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
+    #stacks = newsampleset_sysTES.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
+    stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
 
 
     print("sampleset = %s" %(sampleset))
@@ -167,7 +181,7 @@ def plot(sampleset,setup,region,parallel=True,tag="",extratext="",outdir="plots"
                 for cond in SFset["values"]:
                   #print("cond = ", cond)
                   #print("region_cut = ", region_cut)
-                  if cond == region_cut : 
+                  if cond == region : 
                     weight = SFset["values"][cond]
                     print("Applying weight: %s to process %s" %(weight,proc))
                     for stack, variable in stacks.items():
@@ -230,14 +244,14 @@ def main(args):
 
         sampleset = getsampleset(setup['channel'],era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split)
        
-        print("split = ", split)
-        print(">>>>>>>sampleset")
+        # print("split = ", split)
+        # print(">>>>>>>sampleset")
 
-        split_list = [["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"], 
-                  ["TTT","genmatch_2==5"], ["TTL","genmatch_2>0 && genmatch_2<5"], ["TTJ","genmatch_2==0"], 
-                  ["ST","genmatch_2==5 && genmatch_2<5"],["STJ","genmatch_2<5"]]
+        # split_list = [["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"], 
+        #           ["TTT","genmatch_2==5"], ["TTL","genmatch_2>0 && genmatch_2<5"], ["TTJ","genmatch_2==0"], 
+        #           ["ST","genmatch_2==5 && genmatch_2<5"],["STJ","genmatch_2<5"]]
 
-        sampleset.split(split_list)
+        # sampleset.split(split_list)
 
         for region in setup["regions"] : 
           plot(sampleset,setup,region,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
