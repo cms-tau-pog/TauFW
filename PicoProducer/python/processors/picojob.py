@@ -16,6 +16,7 @@ parser.add_argument('-o', '--outdir',   dest='outdir',    default='.')
 parser.add_argument('-C', '--copydir',  dest='copydir',   default=None)
 parser.add_argument('-s', '--firstevt', dest='firstevt',  type=int, default=0)
 parser.add_argument('-m', '--maxevts',  dest='maxevts',   type=int, default=None)
+parser.add_argument('-n', '--nfiles',   dest='nfiles',    type=int, default=None)
 parser.add_argument('-t', '--tag',      dest='tag',       default="")
 parser.add_argument('-d', '--dtype',    dest='dtype',     choices=['data','mc','embed'], default=None)
 parser.add_argument('-y','-e','--era',  dest='era',       default='2018')
@@ -23,6 +24,7 @@ parser.add_argument('-M', '--module',   dest='module',    default=None)
 parser.add_argument('-c', '--channel',  dest='channel',   default=None)
 parser.add_argument('-E', '--opts',     dest='extraopts', default=[ ], nargs='+')
 parser.add_argument('-p', '--prefetch', dest='prefetch',  action='store_true')
+parser.add_argument('-b', '--branchsel',dest='branchsel', default=None)
 parser.add_argument('-A', '--compress', dest='compress',  help="e.g. 'LZMA:9'")
 parser.add_argument('-v', '--verbose',  dest='verbosity', type=int, nargs='?', const=1, default=0)
 args = parser.parse_args()
@@ -48,7 +50,7 @@ outdir    = ensuredir(args.outdir) # directory to create output
 copydir   = args.copydir           # directory to copy output to at end
 firstevt  = args.firstevt          # index of first event to run
 maxevts   = args.maxevts           # maximum number of events to run
-nfiles    = 1 if (maxevts!=None and maxevts>0) else -1 # maximum number of files to run
+nfiles    = args.nfiles or (1 if (maxevts!=None and maxevts>0) else -1) # maximum number of files to run
 tag       = args.tag               # postfix tag of job output file
 if tag:
   tag     = ('' if tag.startswith('_') else '_') + tag
@@ -58,7 +60,8 @@ prefetch  = args.prefetch          # copy input file(s) to ouput directory first
 compress  = args.compress          # compression algorithm & level, e.g. 'LZMA:9'
 verbosity = args.verbosity         # verbosity level
 presel    = None                   # simple pre-selection string, e.g. "Muon_pt[0] > 50"
-branchsel = os.path.join(moddir,"keep_and_drop_skim.txt") # file with branch selection
+branchsel = args.branchsel or None # file with branch selection (disable unneeded branches for faster processing)
+#branchsel = os.path.join(moddir,"keep_and_drop_skim.txt")
 json      = None                   # JSON file of certified events
 modules   = [ ]                    # list of modules to run
 
@@ -111,9 +114,12 @@ print('-'*80)
 # GET MODULE
 module = getmodule(modname)(outfname,**kwargs)
 modules.append(module)
+if not branchsel and hasattr(module,'branchsel') and module.branchsel:
+  branchsel = module.branchsel # default keep/drop file for this module (if it exists)
+  print(">>> Using default branchsel=%r"%(branchsel))
 
 # RUN
-p = PostProcessor(outdir,infiles,cut=None,branchsel=None,firstEntry=firstevt,maxEntries=maxevts,
+p = PostProcessor(outdir,infiles,cut=None,branchsel=branchsel,firstEntry=firstevt,maxEntries=maxevts,
                   jsonInput=json,modules=modules,noOut=True,prefetch=prefetch)
 p.run()
 

@@ -62,10 +62,10 @@ class Sample(object):
     self.channels     = kwargs.get('channel',       None   )
     self.channels     = kwargs.get('channels', self.channels )
     self.storage      = None
-    self.storepath    = kwargs.get('storage',       None   ) # if stored elsewhere than DAS
+    self.storepath    = kwargs.get('storage',       None   ) # if stored elsewhere than DAS (on GRID)
     self.storepath    = kwargs.get('store', self.storepath ) # alias
     self.url          = kwargs.get('url',           None   ) # URL if stored elsewhere
-    self.dasurl       = kwargs.get('dasurl',        None   ) or "root://cms-xrd-global.cern.ch/" # URL for DAS
+    self.dasurl       = kwargs.get('dasurl',        None   ) or "root://cms-xrd-global.cern.ch/" # URL for DAS (on GRID)
     self.blacklist    = kwargs.get('blacklist',     [ ]    ) # black list for ROOT files
     self.instance     = kwargs.get('instance', 'prod/phys03' if self.paths[0].endswith('USER') else 'prod/global') # if None, does not exist in DAS
     self.nfilesperjob = kwargs.get('nfilesperjob',  -1     ) # number of nanoAOD files per job
@@ -90,7 +90,7 @@ class Sample(object):
     self.refreshable  = not self.files                       # allow refresh of file list in getfiles()
     
     # CHECK PATH FORMAT
-    if not self.storepath: #and not self.files:
+    if not self.storepath and not self.filelist: #and not self.files:
       for path in self.paths:
         if path.count('/')<3 or not path.startswith('/'):
           LOG.warn("DAS path %r has wrong format. Need /SAMPLE/CAMPAIGN/TIER."%(path))
@@ -415,8 +415,8 @@ class Sample(object):
             #if line.endswith('.root'):
             if line.startswith("DASPATH="): # to keep track of multiple DAS data set paths
               path = line.split('=')[-1] # DAS data set path
-              LOG.insist(path.count('/')>=3 and path.startswith('/'),
-                "DAS path %r in %s has wrong format. Need /SAMPLE/CAMPAIGN/TIER..."%(path,listname_))
+              #LOG.insist(path.count('/')>=3 and path.startswith('/'),
+              #  "DAS path %r in %s has wrong format. Need /SAMPLE/CAMPAIGN/TIER..."%(path,listname_))
               if path in self.paths: # store file list for this path
                 self.pathfiles[path] = [ ]
                 subpaths.append(path)

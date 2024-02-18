@@ -38,17 +38,17 @@ class StorageSystem(object):
       self.parent = '/'+'/'.join(path.split('/')[:3])
     self.mounted  = os.path.exists(self.parent)
     if verb>=3:
-      print(">>> EOS.__init__:")
-      print(">>> %-10s = %r"%('path',self.path))
-      print(">>> %-10s = %r"%('parent',self.parent))
-      print(">>> %-10s = %r"%('tmpdir',self.tmpdir))
-      print(">>> %-10s = %r"%('mounted',self.mounted))
-      print(">>> %-10s = %r"%('lscmd',self.lscmd))
-      print(">>> %-10s = %r"%('lsurl',self.lsurl))
-      print(">>> %-10s = %r"%('rmcmd',self.rmcmd))
-      print(">>> %-10s = %r"%('rmurl',self.rmurl))
-      print(">>> %-10s = %r"%('mkdrcmd',self.mkdrcmd))
-      print(">>> %-10s = %r"%('mkdrurl',self.mkdrurl))
+      print(">>> StorageSystem.__init__:")
+      print(">>>   %-10s = %r"%('path',self.path))
+      print(">>>   %-10s = %r"%('parent',self.parent))
+      print(">>>   %-10s = %r"%('tmpdir',self.tmpdir))
+      print(">>>   %-10s = %r"%('mounted',self.mounted))
+      print(">>>   %-10s = %r"%('lscmd',self.lscmd))
+      print(">>>   %-10s = %r"%('lsurl',self.lsurl))
+      print(">>>   %-10s = %r"%('rmcmd',self.rmcmd))
+      print(">>>   %-10s = %r"%('rmurl',self.rmurl))
+      print(">>>   %-10s = %r"%('mkdrcmd',self.mkdrcmd))
+      print(">>>   %-10s = %r"%('mkdrurl',self.mkdrurl))
   
   def __str__(self):
     return self.path

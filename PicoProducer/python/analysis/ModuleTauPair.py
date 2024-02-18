@@ -29,6 +29,7 @@ class ModuleTauPair(Module):
     self.ismc       = self.dtype=='mc'
     self.isdata     = self.dtype=='data' or self.dtype=='embed'
     self.isembed    = self.dtype=='embed'
+    self.branchsel  = None # keep/drop file for branches: disable unneeded branches for faster processing
     self.channel    = kwargs.get('channel',  'none'         ) # channel name
     self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
     self.era        = kwargs.get('era',      '2022postEE'   ) # string, e.g. '2017', 'UL2017'
@@ -38,6 +39,8 @@ class ModuleTauPair(Module):
     self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
     self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
+    ##addition Z resolution
+    self.Zres       = kwargs.get('Zres',     None           ) # Z resolution 
     self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting

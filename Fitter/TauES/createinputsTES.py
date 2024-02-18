@@ -112,7 +112,7 @@ def main(args):
         print("Variation: TES = %f"%var)
 
         newsampleset = sampleset.shift(setup["TESvariations"]["processes"], ("_TES%.3f"%var).replace(".","p"), "_TES%.3f"%var, " %.1d"%((1.-var)*100.)+"% TES", split=True,filter=False,share=True)
-        createinputs(fname,newsampleset, observables, bins, filter=setup["TESvariations"]["processes"], dots=True)
+        createinputs(fname,newsampleset, observables, bins, filter=setup["TESvariations"]["processes"], dots=True, parallel=parallel)
         newsampleset.close()
 
     if "systematics" in setup:
@@ -132,7 +132,7 @@ def main(args):
 
           # Create a new sample set with systematic variations
           newsampleset_sys = sampleset.shift(sysDef["processes"], sampleAppend, "_"+sysDef["name"]+sysDef["variations"][iSysVar], sysDef["title"], split=True,filter=False,share=True)
-          createinputs(fname,newsampleset_sys, observables, bins, filter=sysDef["processes"], replaceweight=weightReplaced, dots=True)
+          createinputs(fname,newsampleset_sys, observables, bins, filter=sysDef["processes"], replaceweight=weightReplaced, dots=True, parallel=parallel)
           newsampleset_sys.close()
 
           # Check for overlap with TES variations in setup
@@ -143,7 +143,7 @@ def main(args):
               for var in setup["TESvariations"]["values"]:
                 print("Variation: TES = %f"%var)
                 newsampleset_TESsys = sampleset.shift(overlap_TES_sys, ("_TES%.3f"%var).replace(".","p")+sampleAppend, "_TES%.3f"%var+"_"+sysDef["name"]+sysDef["variations"][iSysVar], " %.1d"%((1.-var)*100.)+"% TES" + sysDef["title"], split=True,filter=False,share=True)
-                createinputs(fname,newsampleset_TESsys, observables, bins, filter=overlap_TES_sys, replaceweight=weightReplaced, dots=True)
+                createinputs(fname,newsampleset_TESsys, observables, bins, filter=overlap_TES_sys, replaceweight=weightReplaced, dots=True, parallel=parallel)
                 newsampleset_TESsys.close()
 
 
@@ -172,7 +172,6 @@ def main(args):
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
-  argv = sys.argv
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v2p5','2022_postEE','2022_preEE' ], default=['UL2017'], action='store',

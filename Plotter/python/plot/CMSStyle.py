@@ -56,8 +56,8 @@ lumi_dict      = {
   'Run2':   138,                'UL2017': 41.5,
   'Phase2': 3000,               'UL2018': 59.8,
   '2022': 35.0842,
-  '2022_preEE': 8.077, #
-  '2022_postEE': 27.0,
+  '2022_preEE': 8.077,
+  '2022_postEE': 27.0072,
 }
 cme_dict       = {
   '7':      7,    '2016': 13,
@@ -212,7 +212,7 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText_)
   
   if iPosX==0:
-    relPosX_ = relPosX_*(42*t*scale)*(cmsTextSize/0.84)
+    relPosX_ = relPosX_*(42*t*scale)*(cmsTextSize/0.84) # scale
     posX = l + relPosX_ #*(1-l-r)
     posY = 1 - t + lumiTextOffset*t
   else:

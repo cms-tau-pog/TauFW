@@ -8,11 +8,13 @@ from TauFW.PicoProducer.storage.utils import getsamples
 from TauFW.PicoProducer.analysis.utils import getTotalWeight,  getNevt
 from IPython import embed
 
+#python3 ./scripts/modify_cutflow_hist_v2.py --pico_dir /nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/ --veto 'Muon'  --sumw_file /nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/samples/nanoaod_sumw_2022_postEE.json -m --bin 17 -c mumu
  
 def get_nanoaod_info(args):
     """
     Analyzes NanoAOD samples and extracts total number of events
     and the number of files for each sample. Generates a JSON file containing the results.
+
 
     Parameters:
     - args (Namespace): Command-line arguments and configurations.
@@ -45,7 +47,6 @@ def get_nanoaod_info(args):
     ```
    
     """
-    
     n_evt = {}
     n_files = {}
     if args.use_taufw_samples:
@@ -115,7 +116,7 @@ def check_sample_name(full_filename, args):
     
     return sample_name if not faled_check else None 
    
-    
+
 
 def modify_cutflow_hist(args):
     """
@@ -155,7 +156,8 @@ def modify_cutflow_hist(args):
         print(f'Unable to find json file: {args.sumw_file}')
         exit()
     print('Opening file: %s'%(sumw_file))
-    bin_id = int(args.bin)
+    bin_ids = args.bins
+
     with open(sumw_file, "r") as tf:
         json_content = json.load(tf)
         n_evt = json_content['n_evt']      
@@ -230,6 +232,10 @@ def main():
     cmd_args = sys.argv[1:]
     args = parser.parse_args(cmd_args)
     if hasattr(args,'tag') and len(args.tag)>=1 and args.tag[0]!='_': args.tag = '_'+args.tag
+
+    if not len(args.bins) == len(args.selections):
+        print("Number of bins does not correspond to number of selections for which to change the normalisation -- please check!")
+        exit()
     
     if args.get_nanoaod_w:
         print('Acquring weights from nanoaod...')

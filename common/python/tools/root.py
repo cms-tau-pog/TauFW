@@ -91,7 +91,7 @@ def parsecompression(compression='LZMA:9'):
 
 def ensureTDirectory(file,dirname,cd=True,split=True,verb=0):
   """Make TDirectory in a file (or other TDirectory) if it does not yet exist."""
-  if split and '/' in dirname:
+  if split and '/' in dirname: # split subdirectory structure to ensure they exist recursively
     dirs = dirname.strip('/').split('/')
     topdir = '/'.join(dirs[:-1])
     dirname = dirs[-1]
