@@ -23,9 +23,15 @@ class ZptCorrectionTool:
   def __init__(self, era, filename=None, histname='zptmass_weight'):
     """Load Z pT weights."""
     #assert year in [2016,2017,2018], "ZptCorrectionTool: You must choose a year from: 2016, 2017, or 2018."
+   
     if not filename:
-      histname = "zptmass_histo"
-      filename = zptpath+"zpt_reweighting_LO.root"  ## Test with Danny's weights  #zptmass_weights_UL2018.root"
+      if "2022" in era:
+         histname = "zptmass_histo"
+         filename = zptpath+"zpt_reweighting_LO_2022.root"
+      else:
+         histname = "zptmass_histo"
+         filename = zptpath+"zpt_reweighting_LO.root"  ## Test with Danny's weights  #zptmass_weights_UL2018.root"
+   
     assert filename, "ZptCorrectionTool.__init__: Did not find filename for %r"%(era)
     print("Loading ZptCorrectionTool for %s:%r..."%(filename,histname))
     file    = ensureTFile(filename,'READ')

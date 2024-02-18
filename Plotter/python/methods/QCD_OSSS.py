@@ -37,7 +37,7 @@ def QCD_OSSS(self, variables, selection, **kwargs):
   parallel       = kwargs.get('parallel',        False          )
   negthres       = kwargs.get('negthres',        0.25           ) # threshold for warning about negative QCD bins
   
-  # SCALE
+  # SCALE 
   if "q_1*q_2>0" in cuts_OS.replace(' ',''):
     scale = 1.0
   elif not scale:

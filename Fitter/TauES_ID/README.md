@@ -81,8 +81,7 @@ The results of the fit are saved in a root file (ex: `higgsCombine*root` in outp
 
 - NLL pararabola and summary plots can be produced via `plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)` that called `plotParabola_POI_region.py`.
 - Postfit plots showing the correlation between parameters can be produced via `plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)` that called `plotPostFitScan_POI.py`. The parameter to be plot need to be change in `plotPostFitScan_POI.py` code.
-- Summary plot of the results of the POI (tes or tid_SF) in function of pt (DM inclusive or not with `--dm-bins` option) via `plotpt_poi.py`. This script uses the txt output file of `plotParabola_POI_region.py`to produce the plots. The values of the mean of the pt bin and its std dev need to be change in the fit. These values can be obtained using `./Plotter/get_ptmean.py` (need pt plots of the distribution).
-
+- Summary plot of the results of the POI (tes or tid_SF) in function of pt (DM and DM-pt inclusive or not with `--dm-bins` and `dmpt-bins` options) via `saveSFs_root_JSON.py`. This script uses the txt output file of `plotParabola_POI_region.py`to produce the root and Json files. The values of the mean of the pt bin has been obtained by taking the mean of the pt distribution for each region. The values for 4 bins are hardcoded as an example for postEE_2022 but can easily be changed.
 
 ## Example of recipe
 
@@ -116,3 +115,18 @@ python TauES_ID/makecombinedfitTES_SF.py -y UL2018_v10 -o 2 -c TauES_ID/config/D
  ```
 The id SF NLL parabolae and summary plots are automatically generated. 
 
+## Post-fit Plots :construction:
+
+This section is dedicated to the recipe followed to create post-fit plots.
+
+### Difficulty
+Achieving the combined fit of TauES and Identification Scale Factor necessitates the use of the `-M MultidimFit --algo=grid` method. Unfortunately, the option provided by the combined fit does not allow for saving post-fit results. While post-fit plots can be saved with the `-M FitDiagnostic` method (refer to the commented code in `TauES_ID/makecombinedfitTES_SF.py`), the parameter results differ between the two fits. Consequently, a set of scripts has been developed to save the values of the parameters after the `-M MultidimFit --algo=grid` fit.
+
+### Recipe
+The values of the fit parameters specified in `fulllist` within `plotPostFitScan_POI.py` are saved in a text file by the `writeParametersFitVal()` function. These values correspond to the sigma variation of the parameter after the fit (for LnN and shape systematic).
+- **For LnN systematics and rate parameters:** The script `WriteSFsFit.py` calculates and saves Post-fit Scale Factors to a text file. For LnN systematic uncertainties, the values obtained from `combine` represent the sigma variation of the parameters. This script reads the configuration file to determine the corresponding 1-sigma variation and calculates the parameter values after the fit. For rate parameters, the values are preserved as is. The results are saved in a text file with associated processes affected by the systematics. These results can be copied into the config file (like `Default_FitSetupTES_mutau_DM_pt.yml`) and utilized in the `./Plotter/plot_postfit.py` script to generate post-fit plots.
+- **For Shape systematics:** The variation can be calculated in the same way with `shape_syt.py`. The values of the parameters need to be used to generate new templates with the picoproducer. The script `plot_postfit_shift.py` has been used to generate the post-fit plots by specifying the TES values, shape parameter values, and the values of the LnN and rateParameter in the config file.
+
+### Warning :warning:
+- These plots do not include `dy_shape` systematics.
+- This procedure is not optimized and automated; more developments are welcomed!

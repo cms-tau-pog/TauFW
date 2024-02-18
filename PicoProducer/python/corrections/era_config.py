@@ -10,6 +10,7 @@ def getjson(era,dtype='data'):
   """Get JSON file of data."""
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2016Analysis
+  # https://twiki.cern.ch/twiki/bin/view/CMS/PdmVRun3Analysis#Year_2022
   json = None
   year = getyear(era)
   if dtype=='data':
@@ -21,13 +22,17 @@ def getjson(era,dtype='data'):
       elif year==2018:
         json = 'Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'
     else:
-      if year==2016:
-        json = 'Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
-      elif year==2017:
-        json = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
-      elif year==2018:
-        json = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
-      print("Warning! Using outdated certified run JSON file %s for era %s... Please move to UltraLegacy (UL)!"%(json,era))
+      if year==2022:
+        json = 'Cert_Collisions2022_355100_362760_Golden_JSON.txt'
+      else:
+        print("Warning! Using outdated certified run JSON file %s for era %s... Please move to UltraLegacy (UL)!"%(json,era))
+        if year==2016:
+          json = 'Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
+        elif year==2017:
+          json = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+        elif year==2018:
+          json = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
+     
     assert json!=None, "getjson: Did not find certified run JSON for era %r, year %r"%(era,year)
   json = ensurefile(datadir,'json',str(year),json)
   return json
