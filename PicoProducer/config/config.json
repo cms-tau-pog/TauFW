@@ -1,16 +1,29 @@
 {
   "channels": {
-    "skim": "skimjob.py", 
+    "skim": "skimjob.py",
     "skim-jec": "skimjob.py --jec-sys",
-    "gen": "GenDumper", 
-    "mutau": "ModuleMuTauSimple"
-  }, 
+    "gen": "GenDumper",
+    "mutau": "tutorial.ModuleMuTau jec=False"
+  },
   "eras": {
-    "2016": "examples/samples_2016.py", 
-    "2017": "examples/samples_2017.py", 
-    "2018": "examples/samples_2018.py"
-  }, 
-  "nfilesperjob": 1, 
-  "filelistdir": "samples/files/$ERA/$SAMPLE.txt", 
-  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE"
+    "2016": "examples/samples_2016.py",
+    "2017": "examples/samples_2017.py",
+    "2018": "examples/samples_2018.py",
+    "2018UL": "tutorial/samples_UL2018.py",
+    "2022_postEE": "PODAS23/samples_2022_postEE.py"
+  },
+  "nfilesperjob": 1,
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "outdir": "/eos/user/p/pmastrap/output/$ERA/$CHANNEL/$SAMPLE",
+  "nanodir": "/eos/user/p/pmastrap/samples/nano/$ERA/$DAS",
+  "picodir": "/eos/user/p/pmastrap/analysis/$ERA/$GROUP",
+  "tmpskimdir": "",
+  "batch": "HTCondor",
+  "queue": "",
+  "maxevtsperjob": -1,
+  "maxopenfiles": 500,
+  "haddcmd": "",
+  "ncores": 4,
+  "batchopts": ""
 }

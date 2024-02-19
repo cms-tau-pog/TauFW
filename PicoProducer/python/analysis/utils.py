@@ -315,7 +315,8 @@ def getmetfilters(era,isdata,verb=0):
     'Flag_goodVertices',
     'Flag_globalSuperTightHalo2016Filter',
     'Flag_HBHENoiseFilter',
-    'Flag_HBHENoiseIsoFFlag_eeBadScFilterlter',
+    'Flag_HBHENoiseIsoFilter',
+    'Flag_eeBadScFilter',
     'Flag_EcalDeadCellTriggerPrimitiveFilter',
     'Flag_BadPFMuonFilter',
   ]
@@ -330,7 +331,7 @@ def getmetfilters(era,isdata,verb=0):
     filters.extend(['Flag_eeBadScFilter'])
     filters.extend(['Flag_ecalBadCalibFilter'])
     filters.remove('Flag_HBHENoiseFilter')
-    filters.remove('Flag_HBHENoiseIsoFFlag_eeBadScFilterlter')
+  
 
   funcstr = "lambda e: e."+' and e.'.join(filters)
   if verb>=1:
