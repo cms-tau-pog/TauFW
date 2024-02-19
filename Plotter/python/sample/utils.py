@@ -55,7 +55,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     else:
       LOG.throw(IOError,"Did not recognize mc row %s"%(info))
     fname = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel,TAG=tag)
-    #print(fname)
+    print(fname)
     sample = MC(name,title,fname,xsec,**expkwargs)
     expsamples[i] = sample
   
@@ -395,6 +395,8 @@ def stitch(samplelist,*searchterms,**kwargs):
   kfactor   = kwargs.get('kfactor',   None          ) # k-factor
   cme = kwargs.get('cme',13) # COM energy
 
+
+  print("kfactor step 1  = ",kfactor)
   verbosity = 2
   ###### NanoAOD efficiencies -- currently hard-coded
 
@@ -420,18 +422,25 @@ def stitch(samplelist,*searchterms,**kwargs):
 
   # GET list samples to-be-stitched
   stitchlist = samplelist.samples if isinstance(samplelist,SampleSet) else samplelist
+  print("stitchlist =", stitchlist)
   stitchlist = [s for s in stitchlist if s.match(*searchterms,incl=True)]
+  print("stitchlist =", stitchlist)
   for s in stitchlist:
     print(">>>   %s"%s.name)
 
   sample_incl = None
   sample_mutau = None #"DYJetsToMuTauh_M-50"
-  samples_jetIncl = [s for s in stitchlist if s.match(name_incl)]
+  if era=='2022_postEE' or era=='2022_preEE': 
+    samples_jetIncl = [s for s in stitchlist if s.name == name_incl]
+  else:
+    samples_jetIncl = [s for s in stitchlist if s.match(name_incl)]
+  print("samples_jetIncl = ", samples_jetIncl)
   for sample in samples_jetIncl:
     if sample.match("DYJets*MuTau",incl=False):
       sample_mutau = sample
     else:
       sample_incl = sample
+      print("sample_incl" ,sample_incl)
   if not sample_incl:
     print("No inclusive sample to stitch... abort")
     return samplelist
@@ -457,6 +466,7 @@ def stitch(samplelist,*searchterms,**kwargs):
     # in the Run-3 method the kfactor is applied to the inputted cross-sections, so by setting this to 1 we ensure it does not get applied twice 
     xsec_incl_corrected = xsec_incl_initial
     kfactor=1. 
+    print("kfactor set to 1 = ", kfactor)
   LOG.verb("  %s k-factor = %.2f = %.2f / %.2f"%(name,kfactor,xsec_incl_corrected,xsec_incl_initial),verbosity,level=2)
 
   if len(stitchlist)<2:
@@ -464,7 +474,8 @@ def stitch(samplelist,*searchterms,**kwargs):
                  name,name,len(stitchlist),"', '".join(searchterms)))
     sample_incl.norm *= kfactor
     return samplelist
-  
+  print("cme = %s and in else " %(cme))
+  print("kfactor step 2 = %s" %(kfactor))
 
   if sample_mutau:
     cutflow_incl = sample_incl.getcutflow()
@@ -491,13 +502,22 @@ def stitch(samplelist,*searchterms,**kwargs):
       continue
     else:
       print(sample.name)
-      njets = int(sample.name[int(sample.name.find("Jets")-1)])
+      
+      if era=='2022_postEE' or era=='2022_preEE': 
+        match = re.search(r'_(\d{1,2}J)', sample.name)
+        if match:
+          njets = int(match.group(1)[:-1])
+      else: 
+        njets = int(sample.name[int(sample.name.find("Jets")-1)])
       print("...jet multiplcity: %i"%njets)
       sample_njet[njets] = sample
 
   print("Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample_incl.lumi, kfactor, sample_incl.xsec, sample_incl.sumweights))
   print("Sample_incl.norm = %.6g"%sample_incl.norm)
+  sample_incl.xsec=xsec_incl_corrected
   wIncl = sample_incl.lumi * kfactor * sample_incl.xsec * 1000. / sample_incl.sumweights
+  print("kfactor step 3 = ", kfactor)
+  print("Inclusve : Lumi = %.6g, kfactor = %.6g, xsec = %.6g, sumw = %.6g"%(sample_incl.lumi, kfactor, sample_incl.xsec, sample_incl.sumweights))
   print("Inclusive weight = %.6g"%wIncl)
 
   effIncl_njet = dict()
@@ -505,6 +525,8 @@ def stitch(samplelist,*searchterms,**kwargs):
   wIncl_njet = dict()
   for njets in sample_njet:
     sample = sample_njet[njets]
+    print("sample = ", sample)
+    print("Avant le reweight sample.sumweights = ", sample.sumweights)
     effIncl_njet[njets] = sample.xsec/sample_incl.xsec
     print("%i-jet efficiency in inclusive sample = %.6g"%(njets,effIncl_njet[njets]))
     wIncl_njet[njets] = sample.lumi * kfactor * sample.xsec * 1000. / (sample.sumweights + effIncl_njet[njets]*sample_incl.sumweights)
@@ -560,13 +582,16 @@ def stitch(samplelist,*searchterms,**kwargs):
     else:
       conditionalWeight_njet = "(%.6g)"%wIncl_njet[njets]
     conditionalWeight_njet = "("+conditionalWeight_njet+")"
+    print("conditionalWeight_njet = ", conditionalWeight_njet)
     sample_njet[njets].norm = 1.0
     sample_njet[njets].addweight(conditionalWeight_njet)
+    print("sample_njet[njets].weight = ",sample_njet[njets].weight)
 
   # JOIN
   join(samplelist,*searchterms,name=name,title=title,verbosity=5)
   newsample = findsample(samplelist,name,unique=True)
   newsample.sample_incl = sample_incl
+  print("samplelist = ",samplelist)
   return samplelist
   
 

@@ -1,0 +1,27 @@
+##
+## Config file for default TES fit in mutau channel
+## contact: saskia.falke@cern.ch
+##
+
+# NOTE: In general, the main information (channel, baselineCuts, etc.) should be given.
+#       More specific sub-options (like weight replacement for systematic uncertainties) are optional
+#       These are not needed for plotting only
+
+
+channel: ee
+
+baselineCuts: "q_1*q_2<0 && !lepton_vetoes && metfilter && iso_1<0.15 && iso_2<0.15"
+
+regions:
+    ZMM: 
+        definition: "m_ll>70 && m_ll<110"
+        title: "60 < m_mumu < 120 GeV"
+        fname: "zttregion"
+    barrel: 
+        definition: "abs(eta_1) < 1.2 && abs(eta_2) < 1.2"
+        title: "barrel"
+        fname: "barrel"
+    endcap:
+        definition: "abs(eta_1) > 1.2 && abs(eta_2) > 1.2"
+        title: "endcap"
+        fname: "endcap"

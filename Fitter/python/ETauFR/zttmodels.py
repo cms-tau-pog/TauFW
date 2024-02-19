@@ -52,6 +52,7 @@ class ZttEff(PhysicsModel):
 		"""Create POI and other parameters, and define the POI set."""
 		# POI is the efficiency scale factor (r = eff'/eff)
 		self.modelBuilder.doVar("r[1,0,5]")
+                #self.modelBuilder.doVar("fes[1,0,2]")
 		self.modelBuilder.factory_('expr::failExpr("(1 - @0 * @1)/(1 - @1)", r, %s)' % (self.efficiency))
 
 		if self.options.mass != 0:
@@ -61,7 +62,7 @@ class ZttEff(PhysicsModel):
 			else:
 			  self.modelBuilder.doVar("MH[%g]" % self.options.mass)
 
-		self.modelBuilder.doSet("POI","r")
+		self.modelBuilder.doSet("POI","r,fes")
 
 	def getYieldScale(self,bin,process):
 		if self.DC.isSignal[process]:

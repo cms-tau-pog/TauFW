@@ -16,7 +16,7 @@ class BatchSystem(object):
     self.verbosity  = verb
     self.statusdict = { }
     self.system     = self.__class__.__name__
-    self.script     = "python/batch/submit_%s.sub"%(self.system)
+    self.script     = "python/batch/submit_%s.sh"%(self.system)
   
   def __str__(self):
     return self.system
