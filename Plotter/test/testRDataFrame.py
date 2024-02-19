@@ -3,6 +3,7 @@
 # Description: Test RDataFrame to run some samples in parallel
 # References:
 #   https://root.cern/doc/master/classROOT_1_1RDataFrame.html#parallel-execution
+#   TauFW/common/python/tools/RDataFrame.py
 import re
 import time
 from array import array
@@ -15,7 +16,9 @@ TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(
 #RDF.RInterface.__repr__ = lambda o: "xxx<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o)))
 lcolors = [kBlue+1, kRed+1, kGreen+1, kMagenta+1]
 
+
 # PROGRESS BAR
+# Full example in TauFW/common/python/tools/RDataFrame.py
 ROOT.gInterpreter.Declare("""
   // Based on https://root-forum.cern.ch/t/onpartialresult-and-progress-bar-with-pyroot/39739/4
   // Note: Escape the '\' when defined in python string
@@ -50,6 +53,7 @@ print(">>> Done declaring.")
 
 def dmmap(dm='dm_2'):
   return f"{dm}==0 ? 0 : ({dm}==1 || {dm}==2) ? 1 : {dm}==10 ? 2 : {dm}==11 ? 3 : 4"
+
 
 def took(start_wall,start_cpu,pre=""):
   time_wall = time.time() - start_wall # wall clock time
