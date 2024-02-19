@@ -46,7 +46,7 @@ class Context(object):
     # MATCH
     ckey   = args[0]
     if ckey.__class__.__name__=='Selection':
-      ckey = ckey.selection
+      ckey = ckey.contextstr
     result = None
     if regex:
       for key in sorted(self.context,key=lambda x: len(x) if isinstance(x,str) else 1,reverse=True):

@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (July 2020)
-# Description: Test unwrapping of arguments for gethist and gethist2D
-#   test/testUnwrapping.py
+# Description: Test unpacking of arguments for gethist and gethist2D
+#   test/testUnpacking.py
 from TauFW.common.tools.log import color
-from TauFW.Plotter.sample.utils import LOG, unwrap_gethist_args, unwrap_gethist2D_args
+from TauFW.Plotter.sample.utils import LOG, unpack_gethist_args, unpack_gethist2D_args
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Selection import Selection
 LOG.verbosity = 1
@@ -16,7 +16,7 @@ def colvar(string):
   for classname in ['Variable', 'Selection' ]:
     string = string.replace(classname,color(classname,'grey'))
   return string
-
+  
 
 def printIO(name,func,*args):
   print(colvar(">>> %s(%s) returns "%(name,','.join(repr(a) for a in args))))
@@ -48,9 +48,9 @@ def main():
   xvarlist2 = varlist2
   yvarlist2 = varlist2[::-1] # reverse
   
-  # UNWRAP args to gethist
-  LOG.header("unwrap_gethist_args")
-  name, func = "unwrap_gethist_args", unwrap_gethist_args
+  # UNPACK args to gethist
+  LOG.header("unpack_gethist_args")
+  name, func = "unpack_gethist_args", unpack_gethist_args
   for selection in selections:
     printIO(name,func,'m_vis',40,0,200,selection)
     printIO(name,func,'m_vis',mvisbins,selection)
@@ -59,9 +59,9 @@ def main():
     printIO(name,func,varlist2,selection)
     print(">>> ")
   
-  # UNWRAP args to gethist2D
-  LOG.header("unwrap_gethist2D_args")
-  name, func = "unwrap_gethist2D_args", unwrap_gethist2D_args
+  # UNPACK args to gethist2D
+  LOG.header("unpack_gethist2D_args")
+  name, func = "unpack_gethist2D_args", unpack_gethist2D_args
   for selection in selections:
     printIO(name,func,'m_vis',40,0,200,'pt_1',40,0,200,selection)
     printIO(name,func,'m_vis',mvisbins,'pt_1',pt_1bins,selection)

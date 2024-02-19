@@ -1,10 +1,11 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (July 2020)
 # Description: Test joining or stitching of Sample objects
-#   test/testStitching.py -v2
+#   python3 test/testStitching.py -v2
 from TauFW.Plotter.sample.utils import LOG, STYLE, setera, CMSStyle, ensuredir,\
                                        join, Sample, MergedSample, SampleSet
 from pseudoSamples import makesamples
+
 
 def printsamples(samples,title=None):
   if title:
@@ -61,13 +62,13 @@ def main():
     ('TT',   "t#bar{t}",            0.15),
     #('Data', "Observed",             -1 ),
   ]
-  lumi     = setera(2018,0.001) # [fb-1] to cancel xsec [pb]
+  lumi     = setera(2018,1) # [fb-1] to cancel xsec [pb]
   nevts    = 50000
   snames   = [n[0] for n in sampleset]
   scales   = {n[0]: n[2] for n in sampleset} # relative contribtions to pseudo data
   outdir   = ensuredir('plots')
   indir    = outdir
-  filedict = makesamples(nevts,sample=snames,scales=scales,outdir=outdir)
+  filedict = makesamples(nevts,sample=snames,scales=scales,outdir=outdir,lumi=lumi)
   samples  = [ ]
   for name, title, xsec in sampleset:
     file, tree = filedict[name]

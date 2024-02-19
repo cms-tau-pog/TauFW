@@ -5,7 +5,6 @@ import os, re
 #import ctypes # for passing by reference
 from TauFW.common.tools.utils import ensurelist, islist, isnumber, repkey
 from TauFW.common.tools.math import log10, magnitude, columnize, scalevec, ceil
-from TauFW.common.tools.root import rootrepr
 from TauFW.Plotter.plot.utils import *
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname, estimatelen
 from TauFW.Plotter.plot.Variable import Variable, Var
@@ -164,7 +163,6 @@ class Plot(object):
     rmargin      = kwargs.get('rmargin',      1.              ) # canvas righ margin
     tmargin      = kwargs.get('tmargin',      1.              ) # canvas bottom margin
     bmargin      = kwargs.get('bmargin',      1.              ) # canvas top margin
-    errbars      = kwargs.get('errbars',      True            ) # add error bars to histogram
     norm         = kwargs.get('norm',         self.norm       ) # normalize all histograms
     xtitle       = kwargs.get('xtitle',       xtitle          ) # x axis title
     ytitle       = kwargs.get('ytitle',       self.ytitle     ) # y axis title (if None, automatically set by Plot.setaxis)
@@ -201,10 +199,6 @@ class Plot(object):
     num          = kwargs.get('num',          None            ) # index of common numerator histogram in ratio plot (count from 1)
     rhists       = kwargs.get('rhists',       self.hists      ) # custom histogram argument for ratio plot
     iband        = denom if isinstance(denom,int) else -1
-    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for (count from 1)
-    staterr      = kwargs.get('staterr',      False           ) # create stat. error band
-    sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
-    errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     nxdiv        = kwargs.get('nxdiv',        None            ) # tick divisions of x axis
     nydiv        = kwargs.get('nydiv',        None            ) # tick divisions of y axis
     nrdiv        = kwargs.get('nrdiv',        506             ) # tick divisions of y axis of ratio panel
@@ -233,9 +227,14 @@ class Plot(object):
     msizes       = kwargs.get('msizes',       msizes          ) # marker style
     lwidth       = kwargs.get('lwidth',       2               ) # line width
     option       = kwargs.get('option',       'HIST'          ) # draw option for every histogram
-    options      = kwargs.get('options',      [ ]             ) # draw option list per histogram
+    options      = kwargs.get('options',      [ ]             ) # list of individual draw options for each histogram
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     drawden      = kwargs.get('drawden',      False           ) # draw denominator in ratio plot
+    errbars      = kwargs.get('errbars',      not options     ) # add error bars to histogram
+    staterr      = kwargs.get('staterr',      False           ) # create stat. error band
+    sysvars      = kwargs.get('sysvars',      [ ]             ) # create sys. error band from variations
+    iband        = kwargs.get('iband',        iband           ) # index of histogram to make error band for (count from 1)
+    errtitle     = kwargs.get('errtitle',     None            ) # title for error band
     enderrorsize = kwargs.get('enderrorsize', 2.0             ) # size of line at end of error bar
     errorX       = kwargs.get('errorX',       self.hasvarbins and not 'HIST' in option ) # horizontal error bars
     dividebins   = kwargs.get('dividebins',   self.dividebins ) # divide content / y values by bin size
@@ -263,7 +262,7 @@ class Plot(object):
         iband = max(1,len(self.hists)+iband+1)
       iband = max(0,min(len(self.hists)-1,iband-1))
     if verbosity>=1:
-      print(">>> Plot.draw: hists=%s, ratio=%r, norm=%r, dividebins=%r"%(rootrepr(hists),ratio,norm,dividebins))
+      print(">>> Plot.draw: hists=%r, ratio=%r, norm=%r, dividebins=%r"%(hists,ratio,norm,dividebins))
       print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
       print(">>> Plot.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
     
@@ -350,7 +349,7 @@ class Plot(object):
         option_ += " SAME"
       hist.Draw(option_)
       hist.SetOption(option_)
-      LOG.verb("Plot.draw: i=%s, hist=%s, option=%r"%(i,rootrepr(hist),option_),verbosity,2)
+      LOG.verb("Plot.draw: i=%s, hist=%r, option=%r"%(i,hist,option_),verbosity,2)
     
     # CMS STYLE
     if CMSStyle.lumiText:
@@ -386,6 +385,7 @@ class Plot(object):
         if line.pad==2:
           line.Draw("LSAME")
       self.canvas.cd(1)
+    return self.canvas
     
   
   def saveas(self,*fnames,**kwargs):
@@ -869,10 +869,13 @@ class Plot(object):
     if ncols>1: nlines  = int(ceil(nlines/float(ncols)))
     if title:   nlines += 1 + title.count('\n')
     
-    # DIMENSIONS
-    if width<0:  width  = twidth*(tsize/_lsize)*xscale*max(0.22,min(0.60,0.036+0.016*maxlen))
-    if height<0: height = theight*0.0643*(tsize/_lsize)*nlines
-    if ncols>1:  width *= ncols/(1-colsep)
+    # LEGEND DIMENSIONS
+    if width<0: # automatic width
+      width  = twidth*(tsize/_lsize)*xscale*max(0.22,min(0.60,0.036+0.016*maxlen))
+      if ncols>1:
+        width *= ncols/(1-colsep)
+    if height<0:
+      height = theight*0.0643*(tsize/_lsize)*nlines
     x2 = 0.90; x1 = x2 - width
     y1 = 0.92; y2 = y1 - height
     
@@ -1023,7 +1026,7 @@ class Plot(object):
     ndc        = kwargs.get('ndc',      True      ) # normalized coordinates
     align_user = kwargs.get('align',    None      ) # text line
     panel      = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
-    texts      = unwraplistargs(texts)
+    texts      = unpacklistargs(texts)
     i = 0
     while i<len(texts):
       line = texts[i]
@@ -1037,7 +1040,7 @@ class Plot(object):
       return None
     
     # CHECK
-    LOG.insist(self.canvas,"Canvas does not exist!")
+    LOG.insist(self.canvas,"Canvas does not exist! Did you call Plot.draw?")
     self.canvas.cd(panel)
     scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     tsize *= scale # text size
@@ -1090,25 +1093,27 @@ class Plot(object):
     return latex
     
   
-  def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,**kwargs):
+  def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,width=1,pad=1,redraw=True):
     """Draw line on canvas. If it already exists, draw now on top,
     else draw later in Plot.draw on bottom."""
     if x1=='min': x1 = self.xmin
     if x2=='max': x2 = self.xmax
     if y1=='min': y1 = self.ymin # if available after Plot.draw
     if y2=='max': y2 = self.ymax # if available after Plot.draw
-    pad  = kwargs.get('pad', 1 ) # 1: main, 2: ratio
     line = TGraph(2) #TLine(xmin,1,xmax,1)
     line.SetPoint(0,x1,y1)
     line.SetPoint(1,x2,y2)
     line.SetLineColor(color)
     line.SetLineStyle(style)
+    line.SetLineWidth(width)
     line.pad = pad
     if self.canvas:
       oldpad = gPad
-      self.canvas.cd(pad)
+      self.canvas.cd(pad) # 1: main, 2: ratio (typically)
       line.Draw("LSAME")
       oldpad.cd()
+    if redraw:
+      gPad.RedrawAxis()
     self.lines.append(line)
     return line
     
@@ -1272,7 +1277,7 @@ class Plot(object):
   def setfillstyle(self, *hists, **kwargs):
     """Set the fill style for a list of histograms."""
     verbosity = LOG.getverbosity(self,kwargs)
-    hists   = unwraplistargs(hists)
+    hists   = unpacklistargs(hists)
     reset   = kwargs.get('reset',  False ) # if reset==False: only set color if not kBlack or kWhite
     line    = kwargs.get('line',   True  )
     fcolors = kwargs.get('colors', None  ) or self.fcolors

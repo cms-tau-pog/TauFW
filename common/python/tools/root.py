@@ -1,11 +1,13 @@
 # Author: Izaak Neutelings (July 2023)
 from __future__ import print_function # for python3 compatibility
 from past.builtins import basestring # for python2 compatibility
-import os
+import os, re
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TFile
+from ROOT import gROOT, gSystem, TFile, TNamed, TH2
 from TauFW.common.tools.log import LOG
-from TauFW.common.tools.utils import unwraplistargs, islist
+from TauFW.common.tools.utils import unpacklistargs, islist
+TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o))) # overwrite default representation
+#TH1.__repr__ = lambda o: "<%s(%r,%r,%g,%g,%g) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),o.GetXaxis().GetNbins(),o.GetXaxis().GetXmin(),o.GetXaxis().GetXmax(),id(o))
 
 
 def rootname(*args):
@@ -14,7 +16,7 @@ def rootname(*args):
     obj   = args[0]
     names = obj.GetName() if hasattr(obj,'GetName') else str(obj) # return string
   else:
-    args = unwraplistargs(args)
+    args = unpacklistargs(args)
     names = [getname(o) for o in args ] # return list of strings
   return names
   
@@ -24,14 +26,19 @@ def rootrepr(*args,**kwargs):
   if len(args)==1 and not islist(args[0]):
     obj   = args[0]
     if hasattr(obj,'GetName') and hasattr(obj,'GetTitle'):
+      name = "%r,%r"%(obj.GetName(),obj.GetTitle())
+      if kwargs.get('bins',False) and hasattr(obj,'GetXaxis'): # include histogram binning
+        name += "%g,%g,%g"%(obj.GetXaxis().GetNbins(),obj.GetXaxis().GetXmin(),obj.GetXaxis().GetXmax())
+        if isinstance(obj,TH2): # add y axis binning
+          name += "%g,%g,%g"%(obj.GetYaxis().GetNbins(),obj.GetYaxis().GetXmin(),obj.GetYaxis().GetXmax())
       if kwargs.get('id',False): # include hex id
-        names = "<%s(%r,%r) at %s>"%(obj.__class__.__name__,obj.GetName(),obj.GetTitle(),hex(id(obj)))
+        names = "<%s(%s) at %s>"%(obj.__class__.__name__,name,hex(id(obj)))
       else:
-        names = "%s(%r,%r)"%(obj.__class__.__name__,obj.GetName(),obj.GetTitle())
-    else:
+        names = "%s(%s)"%(obj.__class__.__name__,name)
+    else: # default representation
       names = repr(obj)
-  else:
-    args = unwraplistargs(args)
+  else: # list of objects
+    args = unpacklistargs(args)
     names = [rootrepr(o) for o in args ] # return list of strings
     if kwargs.get('join',True):
       names = '['+', '.join(names)+']' # return string of list
@@ -127,4 +134,25 @@ def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True,warn=T
   if retfile:
     return file, hist
   return hist
+  
+
+def loadmacro(macro,fast=False,opt='+O',verb=0):
+  """Load C++ macro via ROOT."""
+  if fast: # try to fast load library, assuming it is already exist and the macro is unchanged
+    # NOTE! If you changed the macro, you should set fast=False, or remove the old library
+    macrolib = re.sub(r"(\w+)\.([Cc][CcXx]{0,2})$",r"\1_\2.so",macro)
+    if os.path.exists(macrolib):
+      try:
+        LOG.verb("loadmacro: Loading library %s..."%(macrolib),verb,1)
+        return gSystem.Load(macrolib) # faster than compiling each time
+      except: # loading library failed => compile
+        LOG.warn("loadmacro: Failed to loading library %s for %s... Will try to compile from scratch..."%(macrolib,macro))
+    elif verb>=1:
+      print(">>> loadmacro: Could not find library %s! Will try to compile from scratch..."%(macrolib))
+  line = ".L %s%s"%(macro,opt)
+  if verb>=2:
+    print(">>> loadmacro: Compiling macro %s (processing %r)..."%(macro,line))
+  elif verb>=1:
+    print(">>> loadmacro: Compiling macro %s..."%(macro))
+  return gROOT.ProcessLine(line)
   

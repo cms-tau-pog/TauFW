@@ -59,9 +59,12 @@ def ensurelist(arg,nonzero=False):
   return arg
   
 
-def unwraplistargs(args):
-  """Unwrap arguments from function's *args,
-  works as long as expected args are not lists or tuples."""
+def unpacklistargs(args):
+  """Unpack arguments from function's *args, e.g. 
+    unpacklistargs([1,2]) = [1,2]
+    unpacklistargs([(1,2)]) = [1,2]
+  Works as long as expected args are not lists or tuples.
+  """
   if len(args)==1 and islist(args[0]):
     args = args[0]
   if isinstance(args,tuple): # convert tuple to list
