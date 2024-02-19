@@ -331,6 +331,7 @@ def getmetfilters(era,isdata,verb=0):
     filters.extend(['Flag_eeBadScFilter'])
     filters.extend(['Flag_ecalBadCalibFilter'])
     filters.remove('Flag_HBHENoiseFilter')
+    filters.remove('Flag_HBHENoiseIsoFilter')
   
 
   funcstr = "lambda e: e."+' and e.'.join(filters)
