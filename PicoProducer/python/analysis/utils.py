@@ -382,8 +382,7 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
 
   # EXTRA ELECTRON VETO
   looseElectrons = [ ]
-  for electron in Collection(event,'Electron'):
-    print(era) 
+  for electron in Collection(event,'Electron'): 
     if '2022' in era:
       electronIso90=electron.mvaIso_Fall17V2_WP90
       electronIso=electron.mvaIso_Fall17V2_WPL
