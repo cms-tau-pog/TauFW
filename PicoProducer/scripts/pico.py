@@ -146,7 +146,7 @@ if __name__ == "__main__":
   #parser_get.add_argument('variable',           help='variable to change in the config file')
   parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+list(CONFIG.keys()))
   parser_set.add_argument('variable',           help="variable to set or change in the config file")
-  parser_set.add_argument('key',                help="channel or era key name", nargs='?', default=None)
+  parser_set.add_argument('key',                help="channel or era key name",choices=['channel','era'], nargs='?', default=None)
   parser_set.add_argument('value',              help="value for given value")
   parser_wrt.add_argument('listname',           help="file name of text file for file list, default=%(default)r", nargs='?', default=str(CONFIG.filelistdir))
   parser_rmv.add_argument('variable',           help="variable to remove from the config file")
@@ -175,7 +175,7 @@ if __name__ == "__main__":
                                                 help="do not write file with zero events")
   parser_wrt.add_argument('-T','--try',         dest='retries', type=int, default=1, action='store',
                                                 help="number of retries if file is not found")
-  parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
+  parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=-1,
                           metavar='NEVTS',      help="maximum number of events (per file) to process")
   parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
                                                 help="preselection to be shipped to skimjob.py during run command")

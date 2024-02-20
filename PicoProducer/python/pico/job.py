@@ -120,7 +120,7 @@ def preparejobs(args):
         if sample.extraopts:
           extraopts_ = sample.extraopts + extraopts_ # allow overwrite from command line
         nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob # priority: USER > SAMPLE > CONFIG
-        maxevts_   = maxevts if maxevts!=None else sample.maxevts if sample.maxevts!=None else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
+        maxevts_   = maxevts if maxevts<=0 else sample.maxevts if sample.maxevts<=0 else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
           nfilesperjob_ = int(max(1,nfilesperjob_/float(split_nfpj)))
         elif resubmit and (maxevts==None or maxevts<=0): # reuse previous maxevts settings if maxevts not set by user
