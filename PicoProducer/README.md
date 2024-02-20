@@ -1,3 +1,6 @@
+This page has been moved to https://github.com/cms-tau-pog/TauFW/wiki/PicoProducer
+
+
 # PicoProducer
 
 This setup runs the [post-processors](https://github.com/cms-nanoAOD/nanoAOD-tools) on nanoAOD.
