@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from TauFW.PicoProducer.analysis.TreeProducerMuTau import *
 from TauFW.PicoProducer.analysis.ModuleTauPair import *
-from TauFW.PicoProducer.analysis.utils import LeptonTauPair, matchgenvistau, matchtaujet, filtermutau
+from TauFW.PicoProducer.analysis.utils import LeptonTauPair, matchgenvistau, matchtaujet, filtermutau, ensurebranches
 from TauFW.PicoProducer.corrections.MuonSFs import *
 
 class ModuleMuTau(ModuleTauPair):
@@ -93,8 +93,8 @@ class ModuleMuTau(ModuleTauPair):
     if len(muons)==0:
       return False
     self.out.cutflow.fill('muon')
-    
-    
+   
+
     ##### TAU ########################################
     taus = [ ]
     for tau in Collection(event,'Tau'):
@@ -102,9 +102,9 @@ class ModuleMuTau(ModuleTauPair):
       if abs(tau.dz)>0.2: continue
       if tau.decayMode not in [0,1,10,11]: continue
       if abs(tau.charge)!=1: continue
-      if tau.idDeepTau2017v2p1VSe<1: continue # VVVLoose
-      if tau.idDeepTau2017v2p1VSmu<1: continue # VLoose
-      if tau.idDeepTau2017v2p1VSjet<1 : continue #VVVLoose
+      if tau.idDeepTau2018v2p5VSe<1: continue # VVVLoose
+      if tau.idDeepTau2018v2p5VSmu<1: continue # VLoose
+      if tau.idDeepTau2018v2p5VSjet<1 : continue #VVVLoose
       if self.ismc:
         tau.es   = 1 # store energy scale for propagating to MET
         genmatch = tau.genPartFlav
@@ -136,7 +136,7 @@ class ModuleMuTau(ModuleTauPair):
     for muon in muons:
       for tau in taus:
         if tau.DeltaR(muon)<0.5: continue
-        ltau = LeptonTauPair(muon,muon.pfRelIso04_all,tau,tau.rawDeepTau2017v2p1VSjet)
+        ltau = LeptonTauPair(muon,muon.pfRelIso04_all,tau,tau.rawDeepTau2018v2p5VSjet)
         ltaus.append(ltau)
     if len(ltaus)==0:
       return False
@@ -148,8 +148,8 @@ class ModuleMuTau(ModuleTauPair):
     
 
     # VETOES
-    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon],[tau],self.channel)
-    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[muon],[ ],self.channel)
+    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon],[tau],self.channel,era=self.era)
+    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[muon],[ ],self.channel,era=self.era)
     self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] or self.out.dilepton_veto[0]
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto
     
@@ -185,21 +185,15 @@ class ModuleMuTau(ModuleTauPair):
     self.out.q_2[0]                        = tau.charge
     self.out.dm_2[0]                       = tau.decayMode
     self.out.iso_2[0]                      = tau.rawIso
-    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
-    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
-    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
+    self.out.rawDeepTau2018v2p5VSe_2[0]    = tau.rawDeepTau2018v2p5VSe
+    self.out.rawDeepTau2018v2p5VSmu_2[0]   = tau.rawDeepTau2018v2p5VSmu
+    self.out.rawDeepTau2018v2p5VSjet_2[0]  = tau.rawDeepTau2018v2p5VSjet
     self.out.idDecayMode_2[0]              = tau.idDecayMode
     self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
-    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
-    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
-    self.out.chargedIso_2[0]               = tau.chargedIso
-    self.out.neutralIso_2[0]               = tau.neutralIso
-    self.out.leadTkPtOverTauPt_2[0]        = tau.leadTkPtOverTauPt
-    self.out.photonsOutsideSignalCone_2[0] = tau.photonsOutsideSignalCone
-    self.out.puCorr_2[0]                   = tau.puCorr
-    
-    
+    self.out.idDeepTau2018v2p5VSe_2[0]     = tau.idDeepTau2018v2p5VSe
+    self.out.idDeepTau2018v2p5VSmu_2[0]    = tau.idDeepTau2018v2p5VSmu
+    self.out.idDeepTau2018v2p5VSjet_2[0]   = tau.idDeepTau2018v2p5VSjet
+        
     # GENERATOR
     if self.ismc:
       self.out.genmatch_1[0]     = muon.genPartFlav
@@ -224,7 +218,7 @@ class ModuleMuTau(ModuleTauPair):
     # WEIGHTS
     if self.ismc:
       self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
-      if muon.pfRelIso04_all<0.50 and tau.idDeepTau2017v2p1VSjet>=2:
+      if muon.pfRelIso04_all<0.50 and tau.idDeepTau2018v2p5VSjet>=2:
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
       # MUON WEIGHTS
