@@ -315,7 +315,8 @@ def getmetfilters(era,isdata,verb=0):
     'Flag_goodVertices',
     'Flag_globalSuperTightHalo2016Filter',
     'Flag_HBHENoiseFilter',
-    'Flag_HBHENoiseIsoFFlag_eeBadScFilterlter',
+    'Flag_HBHENoiseIsoFilter',
+    'Flag_eeBadScFilter',
     'Flag_EcalDeadCellTriggerPrimitiveFilter',
     'Flag_BadPFMuonFilter',
   ]
@@ -330,7 +331,8 @@ def getmetfilters(era,isdata,verb=0):
     filters.extend(['Flag_eeBadScFilter'])
     filters.extend(['Flag_ecalBadCalibFilter'])
     filters.remove('Flag_HBHENoiseFilter')
-    filters.remove('Flag_HBHENoiseIsoFFlag_eeBadScFilterlter')
+    filters.remove('Flag_HBHENoiseIsoFilter')
+  
 
   funcstr = "lambda e: e."+' and e.'.join(filters)
   if verb>=1:
@@ -355,7 +357,7 @@ def idIso(tau):
   return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
 
 
-def getlepvetoes(event, electrons, muons, taus, channel, era='2018'):
+def getlepvetoes(event, electrons, muons, taus, channel, era):
   """Check if event has extra electrons or muons. (HTT definitions.)"""
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorkingLegacyRun2#Common_lepton_vetoes
   
@@ -381,7 +383,7 @@ def getlepvetoes(event, electrons, muons, taus, channel, era='2018'):
   # EXTRA ELECTRON VETO
   looseElectrons = [ ]
   for electron in Collection(event,'Electron'):
-    
+    print(era) 
     if '2022' in era:
       electronIso90=electron.mvaIso_Fall17V2_WP90
       electronIso=electron.mvaIso_Fall17V2_WPL
