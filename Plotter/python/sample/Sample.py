@@ -798,7 +798,7 @@ class Sample(object):
         wname = "" # weight column name
         wexpr = joinweights(kwargs.get('weight',""),sample.weight,sample.extraweight,selection.weight,scale_)
         if replaceweight: # replace patterns, e.g. replaceweight=('idweight_2','idweightUp_2')
-          weight = replacepattern(weight,replaceweight)
+          wexpr = replacepattern(wexpr,replaceweight)
         if wexpr: # if mathematical expression: compile & define column in RDF with unique column name
           rdf_sam, wname = AddRDFColumn(rdf_sam,wexpr,"_rdf_sam_wgt",verb=verbosity-4)
         if wname and verbosity>=1:
