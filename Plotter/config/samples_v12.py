@@ -5,7 +5,7 @@ from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, 
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 import json
 
-f = open("/nfs/user/pmastra/TestRun3/Run3_ACardini/CMSSW_12_4_8/src/TauFW/PicoProducer/samples/nanoaod_sumw_2022_postEE.json")
+f = open("../../PicoProducer/samples/nanoaod_sumw_2022_postEE.json")
 nevts_json = json.load(f)
 
 def getsampleset(channel,era,**kwargs):
