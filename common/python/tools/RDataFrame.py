@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
-# Author: Izaak Neutelings (August 2020)
+# Author: Izaak Neutelings (November 2023)
 import os
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import gROOT, gInterpreter, RDataFrame, RDF
-
-#### NOTE: RDataFrame parallelizes over TTree clusters, check tree->Print("clusters")
-###if ROOT.GetThreadPoolSize()==0:
-###  ROOT.EnableImplicitMT(4) # default number of threads
 
 # REPRESENTATION: shorten for debugging
 RDataFrame.__repr__ = lambda o: "<%s at %s>"%(o.__class__.__name__,hex(id(o)))
