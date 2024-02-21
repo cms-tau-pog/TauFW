@@ -146,7 +146,7 @@ if __name__ == "__main__":
   #parser_get.add_argument('variable',           help='variable to change in the config file')
   parser_get.add_argument('variable',           help="variable to get information on",choices=['samples','files','nevents','nevts',]+list(CONFIG.keys()))
   parser_set.add_argument('variable',           help="variable to set or change in the config file")
-  parser_set.add_argument('key',                help="channel or era key name",choices=['channel','era'], nargs='?', default=None)
+  parser_set.add_argument('key',                help="channel or era key name", nargs='?', default=None)
   parser_set.add_argument('value',              help="value for given value")
   parser_wrt.add_argument('listname',           help="file name of text file for file list, default=%(default)r", nargs='?', default=str(CONFIG.filelistdir))
   parser_rmv.add_argument('variable',           help="variable to remove from the config file")
