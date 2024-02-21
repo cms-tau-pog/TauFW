@@ -1,3 +1,5 @@
+For instructions, please refer to the [PicoProducer wiki page](https://github.com/cms-tau-pog/TauFW/wiki/PicoProducer-corrections)
+
 # Correction Tools
 Several tools to get corrections, efficiencies, scale factors (SFs), event weights, etc.
 
