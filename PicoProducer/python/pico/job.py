@@ -801,11 +801,11 @@ def main_submit(args):
       appcmds = ["initialdir=%s"%(jobdir),
                  "mylogfile='log/%s.$(ClusterId).$(ProcId).log'"%(jobname)]
       jkwargs.update({ 'app': appcmds })
-    elif batch.system=='SLURM':
+    elif 'SLURM' in batch.system:
       logfile = os.path.join(logdir,"%x.%A.%a.log") # $JOBNAME.o$JOBID.$TASKID.log
       jkwargs.update({ 'log': logfile, 'array': nchunks })
-    #elif batch.system=='SGE':
-    #elif batch.system=='CRAB':
+    #elif 'SGE' in batch.system:
+    #elif 'CRAB' in batch.system:
     #else:
     #  LOG.throw(NotImplementedError,"Submission for batch system '%s' has not been implemented (yet)..."%(batch.system))
     

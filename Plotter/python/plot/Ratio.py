@@ -271,5 +271,5 @@ class Ratio(object):
           deletehist(hist)
       else:
         deletehist(rubbish)
-    
+
   
