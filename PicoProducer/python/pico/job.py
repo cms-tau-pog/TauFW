@@ -972,12 +972,12 @@ def main_status(args):
           if cleanup:
             allcfgs = os.path.join(cfgdir,"job*_try[0-9]*.*")
             rmcmds  = [ ]
-            if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check for other jobs in same directory
+            if len(glob.glob(allcfgs))>=len(glob.glob(cfgfiles)): # check for other jobs in same directory
               if verbosity>=2:
                 print(">>> %-12s = %s"%('cfgfiles',cfgfiles))
               rmcmds.append("rm -r %s"%(jobdir)) # remove whole job directory
-              if outdir!=jobdir and len(infiles)==len(glob.glob(os.path.join(outdir,"*.root"))):
-                rmcmds.append("rm -r %s"%(outdir)) # remove whole output directory
+              if outdir!=jobdir and len(glob.glob(infiles))>=len(glob.glob(os.path.join(outdir,"*.root"))): # check for other jobs in same directory
+                rmcmds.append("rm -r %s"%(outdir)) # remove whole output directory with ROOT output files
             else: # only remove files related to this job (era/channel/sample)
               rmfiles   = [ ]
               rmfileset = [infiles,cfgfiles,logfiles]
