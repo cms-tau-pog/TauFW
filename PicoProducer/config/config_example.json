@@ -1,0 +1,24 @@
+{
+  "channels": {
+    "skim": "skimjob.py",
+    "skim-jec": "skimjob.py --jec-sys",
+    "gen": "GenDumper",
+    "test": "test.py",
+    "mutau": "ModuleMuTauSimple"
+  },
+  "eras": {
+    "UL2016": "samples_UL2016.py",
+    "UL2017": "samples_UL2017.py",
+    "UL2018": "samples_UL2018.py",
+    "2022_postEE": "tutorial/samples_2022_postEE.py"
+  },
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "outdir": "/eos/user/i/ineuteli/output/$ERA/$CHANNEL/$SAMPLE",
+  "nanodir": "/eos/user/i/ineuteli/samples/nano/$ERA/$DAS",
+  "picodir": "/eos/user/i/ineuteli/analysis/$ERA/$GROUP",
+  "nfilesperjob": 1,
+  "maxevtsperjob": -1,
+  "maxopenfiles": 500,
+  "ncores": 4
+}
