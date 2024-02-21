@@ -50,7 +50,9 @@ gInterpreter.Declare("""
       progressBar = ""; processed = 0; totalEvents = 0; // reset
     };
     void _StopProgressBar(std::string post) { _StopProgressBar(totalEvents,post); };
-  }
+   }
+   Float_t dmmap(Int_t dm) { return dm==0 ? 0 : (dm==1 || dm==2) ? 1 : dm==10 ? 2 : dm==11 ? 3 : 4; };
+   Float_t sign(Float_t x) { return x<0 ? -1 : 1; };
 """)
 
 
