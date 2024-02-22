@@ -33,17 +33,17 @@ def getsampleset(channel,era,**kwargs):
     setera(era)
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ), # apply k-factor in stitching
-      #( 'WJ', "WJetsToLNu",            "W + jets",           52940.0 ),
-      #( 'VV', "WWTo2L2Nu",             "WW",                    11.090 ),
-      #( 'VV', "WZTo2Q2L",              "WZ",                    6.4190 ),
-      #( 'VV', "WZTo3LNu",              "WZ",                    5.213 ),
-      #( 'VV', "ZZTo2L2Nu",             "ZZ",                   0.60080 ),
-      #( 'VV', "ZZTo2Q2L",              "ZZ",                    3.6760 ),
-      #( 'VV', "ZZTo4L",                "ZZ",                    1.3250 ),
-      #( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight),
-      #( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight ),
-      #( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight ),
+      ( "DY", "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ), # apply k-factor in stitching
+      ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0 ),
+      ( 'VV', "WWTo2L2Nu",             "WW",                    11.090 ),
+      ( 'VV', "WZTo2Q2L",              "WZ",                    6.4190 ),
+      ( 'VV', "WZTo3LNu",              "WZ",                    5.213 ),
+      ( 'VV', "ZZTo2L2Nu",             "ZZ",                   0.60080 ),
+      ( 'VV', "ZZTo2Q2L",              "ZZ",                    3.6760 ),
+      ( 'VV', "ZZTo4L",                "ZZ",                    1.3250 ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight ),
       ]
   
  
@@ -64,14 +64,14 @@ def getsampleset(channel,era,**kwargs):
     expsamples = [ # table of MC samples to be converted to Sample objects
      # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
      ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight , 'nevts':nevts_json["DYto2L-4Jets_MLL-50"]} ), # LO times kfactor
-#     ( 'WJ', "WtoLNu-4Jets",            "W + jets",           55300.*kfactor_wj, {'nevts':nevts_json["WtoLNu-4Jets"]} ), # LO times kfactor 
-#     ( 'VV', "WW",             "WW",                    80.23*kfactor_ww, {'nevts':nevts_json["WW"]} ), # LO times kfactor
-#     ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz, {'nevts':nevts_json["WZ"]}), # LO times kfactor
-#     ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz, {'nevts':nevts_json["ZZ"]} ), # LO times kfactor
-#
-#     ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight, 'nevts':nevts_json["TTTo2L2Nu"]} ), # NLO times BR times kfactor
-#     ( 'TT', "TTto4Q",                "ttbar hadronic",       346.4*kfactor_ttbar, {'extraweight': ttweight, 'nevts': nevts_json["TTto4Q"]} ), # NLO times BR times kfactor
-#     ( 'TT', "TTtoLNu2Q",             "ttbar semileptonic",   334.8*kfactor_ttbar, {'extraweight': ttweight, 'nevts':nevts_json["TTtoLNu2Q"]} ), # NLO times BR times kfactor
+     ( 'WJ', "WtoLNu-4Jets",            "W + jets",           55300.*kfactor_wj, {'nevts':nevts_json["WtoLNu-4Jets"]} ), # LO times kfactor 
+     ( 'VV', "WW",             "WW",                    80.23*kfactor_ww, {'nevts':nevts_json["WW"]} ), # LO times kfactor
+     ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz, {'nevts':nevts_json["WZ"]}), # LO times kfactor
+     ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz, {'nevts':nevts_json["ZZ"]} ), # LO times kfactor
+
+     ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight, 'nevts':nevts_json["TTTo2L2Nu"]} ), # NLO times BR times kfactor
+     ( 'TT', "TTto4Q",                "ttbar hadronic",       346.4*kfactor_ttbar, {'extraweight': ttweight, 'nevts': nevts_json["TTto4Q"]} ), # NLO times BR times kfactor
+     ( 'TT', "TTtoLNu2Q",             "ttbar semileptonic",   334.8*kfactor_ttbar, {'extraweight': ttweight, 'nevts':nevts_json["TTtoLNu2Q"]} ), # NLO times BR times kfactor
      ]
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
