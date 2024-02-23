@@ -175,7 +175,7 @@ def main(args):
           #Sel('baseline', repkey(baseline,WP=16)),
           #Sel('zttregion',repkey(zttregion,WP=16)),
         ]
-        for wpname in tauwps: # loop over tau ID WPs
+        for wpname in tauwps_sel: # loop over tau ID WPs
           wpbit = tauwpbits[wpname]
           bins.append(Sel(wpname,repkey(zttregion,WP=wpbit)))
       
