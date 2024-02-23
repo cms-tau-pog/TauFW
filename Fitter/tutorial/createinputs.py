@@ -127,27 +127,28 @@ def main(args):
         
         # PT & DM BINS
         dmbins = [0,1,10,11]
-        ptbins = [20,25,30,35,40,50,70,2000] #500,1000]
-        print(">>> DM cuts:")
+        ##not dividing in pt bins for this simpliflied version 
+        ptbins = [20,150] #500,1000]
+        #print(">>> DM cuts:")
         for dm in dmbins:
           dmcut = "pt_2>40 && dm_2==%d"%(dm) # tau pt > 40 for ditau triggers
-          fname = "$FILE_dm%s"%(dm)
-          mvis_cut = mvis.clone(fname=fname,cut=dmcut) # create observable with extra cut for dm bin
-          print(">>>   %r (%r)"%(dmcut,fname))
-          observables.append(mvis_cut)
-        print(">>> pt cuts:")
-        for imax, ptmin in enumerate(ptbins,1):
-          if imax<len(ptbins):
-            ptmax = ptbins[imax]
-            ptcut = "pt_2>%s && pt_2<=%s"%(ptmin,ptmax)
-            fname = "$FILE_pt%sto%s"%(ptmin,ptmax)
-          else: # overflow
-            #ptcut = "pt_2>%s"%(ptmin)
-            #fname = "$FILE_ptgt%s"%(ptmin)
-            continue # skip overflow bin
-          mvis_cut = mvis.clone(fname=fname,cut=ptcut) # create observable with extra cut for pt bin
-          print(">>>   %r (%r)"%(ptcut,fname))
-          observables.append(mvis_cut)
+          #fname = "$FILE_dm%s"%(dm)
+          #mvis_cut = mvis.clone(fname=fname,cut=dmcut) # create observable with extra cut for dm bin
+          #print(">>>   %r (%r)"%(dmcut,fname))
+          #observables.append(mvis_cut)
+          print(">>> DM and pt cuts:")
+          for imax, ptmin in enumerate(ptbins,1):
+            if imax<len(ptbins):
+              ptmax = ptbins[imax]
+              dmptcut = "%s && pt_2>%s && pt_2<=%s"%(dmcut,ptmin,ptmax)
+              fname = "$FILE_dm%s_pt%sto%s"%(dm,ptmin,ptmax)
+            else: # overflow
+              #ptcut = "pt_2>%s"%(ptmin)
+              #fname = "$FILE_ptgt%s"%(ptmin)
+              continue # skip overflow bin
+            mvis_cut = mvis.clone(fname=fname,cut=dmptcut) # create observable with extra cut for pt bin
+            print(">>>   %r (%r)"%(dmptcut,fname))
+            observables.append(mvis_cut)
       
       
       ############

@@ -41,9 +41,9 @@ def getsampleset(channel,era,**kwargs):
       ( 'VV', "ZZTo2L2Nu",             "ZZ",                   0.60080 ),
       ( 'VV', "ZZTo2Q2L",              "ZZ",                    3.6760 ),
       ( 'VV', "ZZTo4L",                "ZZ",                    1.3250 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight ),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight}),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight}),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight}),
       ]
   
  
