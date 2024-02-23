@@ -33,7 +33,7 @@ def main(args):
       #'mm':['ZLL']
     },
     'bkg': {
-      'mt': ['TTT','TTJ','TTL','ZL','ST','VV'],
+      'mt': ['ZL','TTT','TTJ','TTL','ZL','ST','VV'],
       #'mm': ['TT','W','ST','VV','QCD'],
     }
   }
@@ -167,8 +167,8 @@ def main(args):
   # WRITE DATACARDS
   print(">>> Writing datacards...")
   writer = ch.CardWriter(
-    "$TAG/$ANALYSIS_%s_$ERA%s.card.txt"%(wp,tag), #$ERA_$MASS
-    "$TAG/$ANALYSIS_%s_$ERA%s.input.root"%(wp,tag)
+    "$TAG/$ANALYSIS_%s_$ERA_%s.card.txt"%(wp,tag), #$ERA_$MASS
+    "$TAG/$ANALYSIS_%s_$ERA_%s.input.root"%(wp,tag)
   )
   writer.SetVerbosity(verbosity+1)
   writer.WriteCards(outdir,cb.cp())
