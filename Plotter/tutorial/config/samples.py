@@ -35,12 +35,9 @@ def getsampleset(channel,era,**kwargs):
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( "DY", "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ), # apply k-factor in stitching
       ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0 ),
-      ( 'VV', "WWTo2L2Nu",             "WW",                    11.090 ),
-      ( 'VV', "WZTo2Q2L",              "WZ",                    6.4190 ),
-      ( 'VV', "WZTo3LNu",              "WZ",                    5.213 ),
-      ( 'VV', "ZZTo2L2Nu",             "ZZ",                   0.60080 ),
-      ( 'VV', "ZZTo2Q2L",              "ZZ",                    3.6760 ),
-      ( 'VV', "ZZTo4L",                "ZZ",                    1.3250 ),
+      ( 'VV', "WW",                    "WW",                    75.88 ),
+      ( 'VV', "WZ",                    "WZ",                    27.6  ),
+      ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
       ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight}),
       ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight}),
       ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight}),
