@@ -57,6 +57,10 @@ class PileupWeightTool:
       elif '2022' in era and 'postEE' in era:
         datafilename = os.path.join(datadir,"Data_PileUp_2022_postEE.root")
         mcfilename   = os.path.join(datadir,"MC_PileUp_2022.root")
+      elif '2023' in era:
+        print(">>> WARNING! PileupWeightTool.__init__ using Run2022 SFs as placeholders! Please replace me! https://github.com/cms-tau-pog/TauFW/wiki/PicoProducer-corrections#pileup-reweighting")
+        datafilename = os.path.join(datadir,"Data_PileUp_2022_postEE.root")
+        mcfilename   = os.path.join(datadir,"MC_PileUp_2022.root")
     assert datafilename and mcfilename, "PileupWeightTool: Did not recognize era %r!"%(era)
     
     if flat or (sample and hasFlatPU(sample)):
