@@ -26,8 +26,8 @@ def getsampleset(channel,era,**kwargs):
   
   # SM BACKGROUND MC SAMPLES
   if 'UL' in era: # UltraLegacy
-    
-    expsamples = [ # table of MC samples to be converted to Sample objects
+    if '2018' in era: 
+      expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {"nevts" : 99288125.0}),
       ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight, "nevts":197553995.0} ), # apply k-factor in stitching
@@ -60,7 +60,98 @@ def getsampleset(channel,era,**kwargs):
       ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95, {"nevts" : 90216506} ),
       ( 'ST', "ST_tW_top",             "ST tW",                 35.85, {"nevts" : 11269836} ),
       ( 'ST', "ST_tW_antitop",         "ST atW",                35.85, {"nevts" : 11015416} ),
-    ]
+      ]
+    elif '2017' in era:
+      expsamples = [ # table of MC samples to be converted to Sample objects
+      # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
+      ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {"nevts" : 68480179.0}),
+      ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight, "nevts":205238822.0} ), # apply k-factor in stitching
+      ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight, "nevts": 66063783.0} ),
+      ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight, "nevts": 27099640.0} ),
+      ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight, "nevts": 20165687.0} ),
+      ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight, "nevts": 11315390.0} ),
+      ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0, {"nevts" : 78981243.0 } ),
+      ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0, {"nevts" : 46923030.0}  ),
+      ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0, {"nevts" : 26941858.0}  ),
+      ( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5, {"nevts" : 18045982.0}  ),
+      ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3, {"nevts" : 9606448.0}  ),
+      
+      ( 'VV', "WWTo2L2Nu",             "WW",                    11.09,{"nevts" :  7071358.0} ),
+      ( 'VV', "WZTo2Q2L",              "WZ",                    6.419,{"nevts" : 18136498.0} ),
+      ( 'VV', "WZTo3LNu",              "WZ",                    5.213,{"nevts" : 6826898.0 } ),
+      ( 'VV', "ZZTo2L2Nu",             "ZZ",                   0.6008,{"nevts" : 40753260.0} ),
+      ( 'VV', "ZZTo2Q2L",              "ZZ",                    3.676,{"nevts" : 19134840.0} ),
+      ( 'VV', "ZZTo4L",                "ZZ",                    1.325,{"nevts" : 98323626.0} ),
+   
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight, "nevts" : 105859990.0} ),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight, "nevts" : 233815417.0} ),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight, "nevts" : 352462632.0} ),
+      ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02, {"nevts" : 121728252.0} ),
+      ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95, {"nevts" : 65821722.0} ),
+      ( 'ST', "ST_tW_top",             "ST tW",                 35.85, {"nevts" : 8506765.0} ),
+      ( 'ST', "ST_tW_antitop",         "ST atW",                35.85, {"nevts" : 8433562.0} ),
+      ] 
+    elif '2016' in era:
+      if 'post' in era: 
+        expsamples = [ # table of MC samples to be converted to Sample objects
+        # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
+        ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {"nevts" : 23706672.0}),
+        ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight, "nevts": 82448537.0} ), # apply k-factor in stitching
+        ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight, "nevts": 31570459.0} ),
+        ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight, "nevts": 14573456.0} ),
+        ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight, "nevts": 9553830.0} ),
+        ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight, "nevts": 4450325.0} ),
+        ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0, {"nevts" : 82754918.0} ),
+        ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0, {"nevts" : 42019790.0}  ),
+        ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0, {"nevts" : 24529883.0}  ),
+        ( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5, {"nevts" : 17832683.0}  ),
+        ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3, {"nevts" : 4816485.0}  ),
+   
+        ( 'VV', "WWTo2L2Nu",             "WW",                    11.09,{"nevts" :  2888924.0} ),
+        ( 'VV', "WZTo2Q2L",              "WZ",                    6.419,{"nevts" :  8434516.0} ),
+        ( 'VV', "WZTo3LNu",              "WZ",                    5.213,{"nevts" :  6890010.0} ),
+        ( 'VV', "ZZTo2L2Nu",             "ZZ",                   0.6008,{"nevts" :  15894442.0} ),
+        ( 'VV', "ZZTo2Q2L",              "ZZ",                    3.676,{"nevts" :  8901074.0} ),
+        ( 'VV', "ZZTo4L",                "ZZ",                    1.325,{"nevts" :  51609810.0} ),
+  
+        ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight, "nevts" : 43275620.0} ),
+        ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight, "nevts" : 108494782.0} ),
+        ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight, "nevts" : 143804034.0} ),
+        ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02, {"nevts" : 59099222.0} ),
+        ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95, {"nevts" : 28814596.0} ),
+        ( 'ST', "ST_tW_top",             "ST tW",                 35.85, {"nevts" : 3368237.0} ),
+        ( 'ST', "ST_tW_antitop",         "ST atW",                35.85, {"nevts" : 3654330.0} ),
+        ] 
+      elif 'pre'  in era:
+        expsamples = [ # table of MC samples to be converted to Sample objects
+        # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
+        ( 'DY', "DYJetsToLL_M-10to50",   "Drell-Yan 10-50",    18610.0, {"nevts" : 25799525.0}),
+        ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight, "nevts": 95170542.0} ), # apply k-factor in stitching
+        ( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight, "nevts": 31752105.0 } ),
+        ( 'DY', "DY2JetsToLL_M-50",      "Drell-Yan 2J 50",      304.4, {'extraweight': dyweight, "nevts": 12696373.0} ),
+        ( 'DY', "DY3JetsToLL_M-50",      "Drell-Yan 3J 50",      111.5, {'extraweight': dyweight, "nevts": 10285720.0} ),
+        ( 'DY', "DY4JetsToLL_M-50",      "Drell-Yan 4J 50",      44.05, {'extraweight': dyweight, "nevts": 4655680.0} ),
+        ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0, {"nevts" : 74676454.0 } ),
+        ( 'WJ', "W1JetsToLNu",           "W + 1J",              8104.0, {"nevts" : 47939105.0}  ),
+        ( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0, {"nevts" : 26899459.0}  ),
+        ( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5, {"nevts" : 16517929.0}  ),
+        ( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3, {"nevts" : 4575554.0}  ),
+  
+        ( 'VV', "WWTo2L2Nu",             "WW",                    11.09,{"nevts" : 3006596.0} ),
+        ( 'VV', "WZTo2Q2L",              "WZ",                    6.419,{"nevts" : 9780392.0} ),
+        ( 'VV', "WZTo3LNu",              "WZ",                    5.213,{"nevts" : 6363896.0} ),
+        ( 'VV', "ZZTo2L2Nu",             "ZZ",                   0.6008,{"nevts" : 16826232.0} ),
+        ( 'VV', "ZZTo2Q2L",              "ZZ",                    3.676,{"nevts" : 10406942.0} ),
+        ( 'VV', "ZZTo4L",                "ZZ",                    1.325,{"nevts" : 49189654.0} ),
+
+        ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight, "nevts" : 37202074.0} ),
+        ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight, "nevts" : 96811856.0} ),
+        ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight, "nevts" : 131106830.0} ),
+        ( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02, {"nevts" : 52437432.0} ),
+        ( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95, {"nevts" : 29205918.0} ),
+        ( 'ST', "ST_tW_top",             "ST tW",                 35.85, {"nevts" : 3294485.0} ),
+        ( 'ST', "ST_tW_antitop",         "ST atW",                35.85, {"nevts" : 3176335.0} ),
+        ]   
     #if 'mutau' in channel:
     #  expsamples.append(('DY',"DYJetsToMuTauh_M-50","DYJetsToMuTauh_M-50",5343.0,{'extraweight': dyweight})) # apply correct normalization in stitching
   elif era=='2016': # pre-UL
