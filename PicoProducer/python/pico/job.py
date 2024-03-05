@@ -120,7 +120,7 @@ def preparejobs(args):
         if sample.extraopts:
           extraopts_ = sample.extraopts + extraopts_ # allow overwrite from command line
         nfilesperjob_ = nfilesperjob if nfilesperjob>0 else sample.nfilesperjob if sample.nfilesperjob>0 else CONFIG.nfilesperjob # priority: USER > SAMPLE > CONFIG
-        maxevts_   = maxevts if maxevts!=None else sample.maxevts if sample.maxevts!=None else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
+        maxevts_   = maxevts if maxevts!=None else sample.maxevts if sample.maxevts<=0 else CONFIG.maxevtsperjob # priority: USER > SAMPLE > CONFIG
         if split_nfpj>1: # divide nfilesperjob by split_nfpj
           nfilesperjob_ = int(max(1,nfilesperjob_/float(split_nfpj)))
         elif resubmit and (maxevts==None or maxevts<=0): # reuse previous maxevts settings if maxevts not set by user
@@ -165,10 +165,10 @@ def preparejobs(args):
           # TODO: check for running jobs ?
           skip = False
           if force:
-            LOG.warning("Job configuration %r already exists and will be overwritten! "%(cfgname)+
+            LOG.warn("Job configuration %r already exists and will be overwritten! "%(cfgname)+
                         "Please beware of conflicting job output!")
           elif args.prompt:
-            LOG.warning("Job configuration %r already exists and might cause conflicting job output!"%(cfgname))
+            LOG.warn("Job configuration %r already exists and might cause conflicting job output!"%(cfgname))
             while True:
               submit = input(">>> Submit anyway? [y/n] "%(nchunks))
               if 'f' in submit.lower(): # submit this job, and stop asking
@@ -184,7 +184,7 @@ def preparejobs(args):
                 print(">>> '%s' is not a valid answer, please choose y/n."%submit)
           else:
             skip = True
-            LOG.warning("Job configuration %r already exists and might cause conflicting job output! "%(cfgname)+
+            LOG.warn("Job configuration %r already exists and might cause conflicting job output! "%(cfgname)+
                         "To submit anyway, please use the --force flag")
           if skip: # do not submit this job
             failed.append(sample)
@@ -194,7 +194,7 @@ def preparejobs(args):
           cfgpattern = re.sub(r"(?<=try)\d+(?=.json(?:\.gz)?$)",r"*",cfgname)
           cfgnames   = [f for f in glob.glob(cfgpattern) if not f.endswith("_try1.json")]
           if cfgnames:
-            LOG.warning("Job configurations for resubmission already exists! This can cause conflicting job output! "+
+            LOG.warn("Job configurations for resubmission already exists! This can cause conflicting job output! "+
               "If you are sure you want to submit from scratch, please remove these files:\n>>>   "+"\n>>>   ".join(cfgnames))
         storage = getstorage(outdir,verb=verbosity,ensure=True)
         
@@ -230,7 +230,7 @@ def preparejobs(args):
         # CHUNKS - partition/split list of input files
         infiles.sort() # to have consistent order with resubmission
         chunks    = [ ] # chunk indices
-        if maxevts_>1:
+        if maxevts_>1: # split jobs by number of events (max. maxevts_ events per job)
           if verbosity>=1:
             print(">>> Preparing jobs with chunks split by number of events...")
           try:
@@ -239,15 +239,19 @@ def preparejobs(args):
               nevents = ntot
           except IOError as err: # capture if opening files fail
             print("IOError: "+err.message)
-            LOG.warning("Skipping submission...")
+            LOG.warn("Skipping submission...")
             failed.append(sample)
             print("")
             continue # ignore this submission
           if testrun:
             fchunks = fchunks[:4]
-        else:
+        else: # split jobs by number of files (max. nfilesperjob_ files per job)
           if verbosity>=1:
-            print(">>> Preparing jobs with chunks split by number of files...")
+            print(">>> Preparing jobs with chunks split by number of files (nfilesperjob_=%r)..."%(nfilesperjob_))
+          if nfilesperjob_<1:
+            LOG.warn("preparejobs: nfilesperjob_=%r<1 ! (user: %r, sample: %r, config: %r) Setting to 1..."%(
+                      nfilesperjob_,nfilesperjob,sample.nfilesperjob,CONFIG.nfilesperjob))
+            nfilesperjob_ = 1
           fchunks = chunkify(infiles,nfilesperjob_) # list of file chunks split by number of files
         nfiles    = len(infiles)
         nchunks   = len(fchunks)
@@ -508,7 +512,7 @@ def checkchunks(sample,**kwargs):
             if checkexpevts or verbosity>=2:
               filentot = filenevts.get(inmatch.group(1),-1)
               if filentot>-1 and firstevt>=filentot: # sanity check
-                LOG.warning("checkchunks: chunk %d has firstevt=%s>=%s=filentot, which indicates a bug or changed input file %s."%(
+                LOG.warn("checkchunks: chunk %d has firstevt=%s>=%s=filentot, which indicates a bug or changed input file %s."%(
                   ichunk,firstevt,filentot,chunkfile))
               nevtsexp = min(maxevts,filentot-firstevt) if filentot>-1 else maxevts # = maxevts; roughly expected nevts (some loss due to cuts)
           elif checkexpevts or verbosity>=2:
@@ -524,7 +528,7 @@ def checkchunks(sample,**kwargs):
             badfiles.append(chunkfile)
           else:
             if checkexpevts and nevtsexp>-1 and nevents!=nevtsexp:
-              LOG.warning("checkchunks: Found %s processed events, but expected %s for %s..."%(nevents,nevtsexp,fname))
+              LOG.warn("checkchunks: Found %s processed events, but expected %s for %s..."%(nevents,nevtsexp,fname))
             if verbosity>=2:
               if nevtsexp>0:
                 frac = "%.1f%%"%(100.0*nevents/nevtsexp) if nevtsexp!=0 else ""
@@ -539,7 +543,7 @@ def checkchunks(sample,**kwargs):
             print(">>>   => No match with input file (ipart=%d, but found in %d chunks; %s)..."%(ipart,len(matches),matches))
           else:
             print(">>>   => No match with input file...")
-        #LOG.warning("Did not recognize output file '%s'!"%(fname))
+        #LOG.warn("Did not recognize output file '%s'!"%(fname))
         continue
       if bar:
         status = "files, %s/%s events (%d%%)"%(nprocevents,ndasevents,100.0*nprocevents/ndasevents) if ndasevents>0 else "files"
@@ -629,7 +633,7 @@ def checkchunks(sample,**kwargs):
         if ichunk in pendchunks:
           continue
       else:
-        #LOG.warning("Did not recognize output file '%s'!"%(fname))
+        #LOG.warn("Did not recognize output file '%s'!"%(fname))
         continue
       nevents = isvalid(fname) if checkevts else 0 # get number of processed events & check for corruption
       if nevents<0:
@@ -647,13 +651,13 @@ def checkchunks(sample,**kwargs):
               maxevts   = int(inmatch.group(3))
               filentot  = filenevts.get(inmatch.group(1),-1)
               if firstevt>=filentot: # sanity check
-                LOG.warning("checkchunks: Chunk %d has firstevt=%s>=%s=filentot, which indicates a bug or changed input file %s."%(
+                LOG.warn("checkchunks: Chunk %d has firstevt=%s>=%s=filentot, which indicates a bug or changed input file %s."%(
                   ichunk,firstevt,filentot,chunkfile))
               nevtsexp += min(maxevts,filentot-firstevt) if filentot>-1 else maxevts
             else:
               nevtsexp += filenevts.get(chunkfile,0)
           if checkexpevts and nevtsexp>0 and nevents!=nevtsexp:
-            LOG.warning("checkchunks: Found %s processed events, but expected %s for %s..."%(nevents,nevtsexp,fname))
+            LOG.warn("checkchunks: Found %s processed events, but expected %s for %s..."%(nevents,nevtsexp,fname))
         if verbosity>=2:
           if nevtsexp>0:
             frac = "%.1f%%"%(100.0*nevents/nevtsexp) if nevtsexp!=0 else ""
@@ -734,7 +738,7 @@ def checkchunks(sample,**kwargs):
           newtag  = "_try%d.json"%(oldjobcfg['try']-i)
           logname = oldcfgname.replace(oldtag,newtag)
           if not os.path.isfile(logname):
-            LOG.warning("Did not find job config %r!"%(logname))
+            LOG.warn("Did not find job config %r!"%(logname))
             continue
           with open(logname,'r') as file:
             jobcfg = json.load(file)
@@ -750,7 +754,7 @@ def checkchunks(sample,**kwargs):
             lognames.remove(matches[0])
             break
       else:
-        LOG.warning("Did not find log file for chunk %d"%(chunk))
+        LOG.warn("Did not find log file for chunk %d"%(chunk))
   
   return resubfiles, chunkdict, len(pendchunks)
   
@@ -907,7 +911,7 @@ def main_status(args):
       if verbosity>=2:
         print(">>> Found samples: "+", ".join(repr(s.name) for s in samples))
       if subcmd in ['hadd','haddclean'] and 'skim' in channel.lower():
-        LOG.warning("Hadding into one file not available for skimming...")
+        LOG.warn("Hadding into one file not available for skimming...")
         print('')
         continue
       
@@ -959,8 +963,8 @@ def main_status(args):
           resubfiles, chunkdict, npend = checkchunks(sample,channel=channel_,tag=tag,jobs=jobs,checkqueue=checkqueue,checkevts=checkevts,
                                                      das=checkdas,checkexpevts=checkexpevts,ncores=ncores,verb=verbosity)
           if (len(resubfiles)>0 or npend>0) and not force: # only clean or hadd if all jobs were successful
-            LOG.warning("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
-                        " Please use -f or --force to %s anyway.\n"%(subcmd))
+            LOG.warn("Cannot %s job output because %d chunks need to be resubmitted..."%(subcmd,len(resubfiles))+
+                     " Please use -f or --force to %s anyway.\n"%(subcmd))
             continue
           
           if subcmd in ['hadd','haddclean']:
@@ -972,12 +976,12 @@ def main_status(args):
           if cleanup:
             allcfgs = os.path.join(cfgdir,"job*_try[0-9]*.*")
             rmcmds  = [ ]
-            if len(glob.glob(allcfgs))==len(glob.glob(cfgfiles)): # check for other jobs in same directory
+            if len(glob.glob(allcfgs))>=len(glob.glob(cfgfiles)): # check for other jobs in same directory
               if verbosity>=2:
                 print(">>> %-12s = %s"%('cfgfiles',cfgfiles))
               rmcmds.append("rm -r %s"%(jobdir)) # remove whole job directory
-              if outdir!=jobdir and len(infiles)==len(glob.glob(os.path.join(outdir,"*.root"))):
-                rmcmds.append("rm -r %s"%(outdir)) # remove whole output directory
+              if outdir!=jobdir and len(glob.glob(infiles))>=len(glob.glob(os.path.join(outdir,"*.root"))): # check for other jobs in same directory
+                rmcmds.append("rm -r %s"%(outdir)) # remove whole output directory with ROOT output files
             else: # only remove files related to this job (era/channel/sample)
               rmfiles   = [ ]
               rmfileset = [infiles,cfgfiles,logfiles]

@@ -249,16 +249,16 @@ class ModuleMuTau(ModuleTauPair):
       self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta) # assume leading muon was triggered on
       self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
       
-      print("eta: ", muon.eta)
-      print("pt: ",  muon.pt)
-      #print("idiso sf: ", self.out.idisoweight_1[0])
-      #print("trig sf: ", self.out.trigweight[0])
-      print("===>>> ID&ISO SF")
-      print("sf wo abs: ", self.muSFs.getIdIsoSF(muon.pt,muon.eta))
-      print("sf w abs: ", self.muSFs.getIdIsoSF(muon.pt,abs(muon.eta)))
-      print("===>>> TRIG SF")
-      print("sf wo abs: ", self.muSFs.getTriggerSF(muon.pt,muon.eta))
-      print("sf w abs: ", self.muSFs.getTriggerSF(muon.pt,abs(muon.eta)))
+      #print("eta: ", muon.eta)
+      #print("pt: ",  muon.pt)
+      ##print("idiso sf: ", self.out.idisoweight_1[0])
+      ##print("trig sf: ", self.out.trigweight[0])
+      #print("===>>> ID&ISO SF")
+      #print("sf wo abs: ", self.muSFs.getIdIsoSF(muon.pt,muon.eta))
+      #print("sf w abs: ", self.muSFs.getIdIsoSF(muon.pt,abs(muon.eta)))
+      #print("===>>> TRIG SF")
+      #print("sf wo abs: ", self.muSFs.getTriggerSF(muon.pt,muon.eta))
+      #print("sf w abs: ", self.muSFs.getTriggerSF(muon.pt,abs(muon.eta)))
 
       # DEFAULTS
       self.out.idweight_2[0]          = 1.

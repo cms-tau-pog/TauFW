@@ -52,7 +52,7 @@ class MuonSFs:
         sftool_id         = ScaleFactor(pathPOG+"Run2018UL/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
         sftool_iso        = ScaleFactor(pathPOG+"Run2018UL/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root","NUM_TightRelIso_DEN_MediumID_abseta_pt",'mu_iso',ptvseta=True,verb=verb)
         self.sftool_idiso = sftool_id*sftool_iso
-    else: # pre-UL
+    else: # pre-UL or Run3
       if era=='2016':
         # https://gitlab.cern.ch/cms-muonPOG/MuonReferenceEfficiencies/-/tree/master/EfficienciesStudies/2016_trigger
         #self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb)
@@ -75,13 +75,20 @@ class MuonSFs:
         ###sftool_id         = ScaleFactor(pathPOG+"Run2018/RunABCD_SF_ID.root","NUM_MediumID_DEN_genTracks_pt_abseta",'mu_id',ptvseta=False)
         ###sftool_iso        = ScaleFactor(pathPOG+"Run2018/RunABCD_SF_ISO.root","NUM_TightRelIso_DEN_MediumID_pt_abseta",'mu_iso',ptvseta=False)
         ###self.sftool_idiso = sftool_id*sftool_iso
-      elif '2022_preEE' in era:
+      elif '2022' in era and 'pre' in era:
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root",'ScaleFactor_trg','mu_trig',ptvseta=False,verb=verb)
         self.sftool_id         = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root","ScaleFactor_id",'mu_id',ptvseta=False)
         self.sftool_iso        = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root","ScaleFactor_iso",'mu_iso',ptvseta=False)
         assert self.sftool_id != None and self.sftool_iso != None, "MuonSFs.__init__: Did not find muon ID/ISO tool for %r"%(era)
         self.sftool_idiso = self.sftool_id*self.sftool_iso
-      elif '2022_postEE' in era:
+      elif '2022' in era and 'post' in era:
+        self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root",'ScaleFactor_trg','mu_trig',ptvseta=False,verb=verb)
+        self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_id",'mu_id',ptvseta=False)
+        self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_iso",'mu_iso',ptvseta=False)
+        assert self.sftool_id != None and self.sftool_iso != None, "MuonSFs.__init__: Did not find muon ID/ISO tool for %r"%(era)
+        self.sftool_idiso = self.sftool_id*self.sftool_iso
+      elif '2023' in era: # PLACEHOLDERS
+        print(">>> WARNING! MuonSFs.__init__ using Run2022 SFs as placeholders! Please replace me! https://twiki.cern.ch/twiki/bin/view/CMS/MuonRun3_2023")
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root",'ScaleFactor_trg','mu_trig',ptvseta=False,verb=verb)
         self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_id",'mu_id',ptvseta=False)
         self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_iso",'mu_iso',ptvseta=False)

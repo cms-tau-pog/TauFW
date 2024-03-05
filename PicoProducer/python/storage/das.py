@@ -1,6 +1,6 @@
 # Author: Izaak Neutelings (May 2020)
 import os
-from TauFW.common.tools.utils import unwraplistargs, execute, CalledProcessError
+from TauFW.common.tools.utils import unpacklistargs, execute, CalledProcessError
 from TauFW.PicoProducer.storage.utils import LOG
 
 
@@ -55,7 +55,7 @@ def expanddas(*datasets,**kwargs):
   verbosity = kwargs.get('verb', 0)
   if verbosity>=1:
     print(">>> expanddas(%r)"%(datasets))
-  datasets = unwraplistargs(datasets)
+  datasets = unpacklistargs(datasets)
   for dataset in datasets[:]:
     if '*' not in dataset: continue
     index    = datasets.index(dataset)

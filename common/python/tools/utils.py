@@ -59,9 +59,12 @@ def ensurelist(arg,nonzero=False):
   return arg
   
 
-def unwraplistargs(args):
-  """Unwrap arguments from function's *args,
-  works as long as expected args are not lists or tuples."""
+def unpacklistargs(args):
+  """Unpack arguments from function's *args, e.g. 
+    unpacklistargs([1,2]) = [1,2]
+    unpacklistargs([(1,2)]) = [1,2]
+  Works as long as expected args are not lists or tuples.
+  """
   if len(args)==1 and islist(args[0]):
     args = args[0]
   if isinstance(args,tuple): # convert tuple to list
@@ -71,8 +74,12 @@ def unwraplistargs(args):
 
 def chunkify(iterable,chunksize):
   """Divide up iterable into chunks of a given size."""
-  it     = iter(iterable)
-  item   = list(islice(it,chunksize))
+  try:
+    it   = iter(iterable)
+    item = list(islice(it,chunksize))
+  except Exception as err:
+    print(">>> \033[1m\033[91mERROR!\033[0m\033[91m chunkify: chunksize=%r, iterable=%r\033[0m"%(chunksize,iterable))
+    raise err
   chunks = [ ]
   while item:
     chunks.append(item)

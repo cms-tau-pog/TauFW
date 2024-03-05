@@ -13,7 +13,7 @@ def color(string,c='green',b=False,ul=False,**kwargs):
   """Give string color in shell print out."""
   tcol_key   = kwargs.get('color',     c       )
   bcol_key   = kwargs.get('bg',        None    )
-  bcol_key   = kwargs.get('background',bcol_key)
+  bcol_key   = kwargs.get('background',bcol_key) # alias
   bold_code  = "\033[1m" if kwargs.get('bold',b) else ""
   ul_code    = "\033[4m" if ul else ""
   tcol_code  = "\033[%dm"%tcol_dict[tcol_key] if tcol_key!=None else ""
@@ -62,7 +62,7 @@ class Logger(object):
   
   def __init__(self, name="LOG", verb=0, **kwargs):
     self.name      = name
-    self.verbosity = verb
+    self.verbosity = verb # verbosity level
     self.pre       = kwargs.get('pre',">>> ")
     self._table    = None
     if  kwargs.get('showname',False):

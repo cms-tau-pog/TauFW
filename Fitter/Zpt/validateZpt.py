@@ -173,7 +173,7 @@ def main(args):
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Simple plotting script for pico analysis tuples"""
-  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', default=['2017'], action='store', #, choices=['2016','2017','2018','UL2017']
                                          help="set era" )
   parser.add_argument('-c', '--channel', dest='channels', nargs='*', choices=['mumu'], default=['mumu'], action='store',
@@ -190,5 +190,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print("\n>>> Done.")
   

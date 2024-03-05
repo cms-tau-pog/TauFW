@@ -63,11 +63,12 @@ def getyear(string):
   """Recognize year from era string."""
   year = string
   if isinstance(string,str):
-    matches = re.findall(r"(?:20)?[0-3]\d",string)
+    # match either 2 digits ('18','22'), or 4 digits starting with '20' ('2018')
+    matches = re.findall(r"(?<!\d)(?:20)?[0-4]\d(?!\d)",string)
     if matches:
       matches.sort(key=lambda x: len(x),reverse=True)
       year = int(matches[0])
-      if year<2000:
+      if year<100: # e.g. to map 18->2018, 22->2022, etc.
         year += 2000
   return year
   
@@ -80,3 +81,19 @@ def tryint(x):
     return x
   
 
+def took(wall,cpu=None,pre=""):
+  """Convert time to minutes/seconds."""
+  import time
+  time_wall = time.time() - wall # wall clock time via wall=time.time()
+  time_cpu  = (time.process_time() - cpu) if cpu!=None else None # CPU time via cpu=time.process_time()
+  if time_wall>60:
+    string = pre+"%d min %.1f sec"%divmod(time_wall,60)
+  else:
+    string = pre+"%.1f sec"%time_wall
+  if cpu!=None:
+    if time_cpu>60:
+      string += " (CPU: %d min %.1f sec)"%divmod(time_cpu,60)
+    else:
+      string += " (CPU: %.1f sec)"%time_cpu
+  return string
+  
