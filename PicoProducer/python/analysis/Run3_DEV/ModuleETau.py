@@ -28,7 +28,7 @@ class ModuleETau(ModuleTauPair):
     self.eleCutPt  = self.trigger.ptmins[0]
     self.tauCutPt  = 20
     self.eleCutEta = 2.1
-    self.tauCutEta = 2.3 
+    self.tauCutEta = 2.5 
     
     #CORRECTIONS
     if self.ismc:
