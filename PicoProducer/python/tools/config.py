@@ -40,6 +40,7 @@ def getdefaultconfig(verb=0):
       ('skim-jec','skimjob.py --jec-sys'),
       ('gen',     'GenDumper'),
       ('test',    'test.py'),
+      ('pileup',  'PileUp'),
       ('mutau',   'ModuleMuTauSimple')
     ])
     sedir         = guess_sedir()                    # guess storage element on current host
