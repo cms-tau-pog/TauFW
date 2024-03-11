@@ -5,8 +5,8 @@
 #   cd $CMSSW_BASE/src/TauFW/PicoProducer/
 #   pico.py channel pileup PileUp # link channel to module
 #   pico.py submit -c pileup -y UL2016 --dtype mc
-#   # wait until the jobs are done
-#   pico.py hadd -c pileup -y UL2016 --dtype mc
+#   # wait until the jobs are done (it will say "FAIL" because there's no tree inside)
+#   pico.py hadd -c pileup -y UL2016 --force --dtype mc
 #   cd $CMSSW_BASE/src/TauFW/PicoProducer/data/pileup/
 #   ./getPileupProfiles.py -y UL2016 -c pileup
 # Sources:

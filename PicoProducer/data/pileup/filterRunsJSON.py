@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (June 2021)
 # Description: Help script to getPileupProfiles to filter run numbers in JSON file.
 #              Also see compareJSON.py --and JSON1.json JSON2.json INTERSECTION.json
@@ -28,6 +28,7 @@ def getyear(era):
 
 def getJSON(era):
   """Return hardcorded name of certification JSON for a given era"""
+  # https://github.com/cms-tau-pog/TauFW/blob/master/PicoProducer/python/corrections/era_config.py
   year    = getyear(era)
   jsondir = os.path.join(datadir,'json',str(year))
   if '2016' in era:
@@ -63,6 +64,10 @@ def getJSON(era):
       # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco
       # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt
       jname = os.path.join(jsondir,"Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt")
+  elif '2022' in era:
+    jname = os.path.join(jsondir,'Cert_Collisions2022_355100_362760_Golden_JSON.txt')
+  elif '2023' in era:
+    jname = os.path.join(jsondir,'Cert_Collisions2023_366442_370790_Golden.json')
   else:
     raise IOError("getJSONs: Did not recognize era %r"%era)
   return jname
@@ -164,7 +169,7 @@ def filterJSONByRunNumberRange(jsoninname,era="",period=None,rrange=None,start=N
     raise IOError("filterJSONByRunNumberRange: Please set either period (e.g. period='BCD'), "
                   "or the range (e.g. rrange='272007-278770'), or start and end (start=272007, end=278770)")
   jsonoutname = os.path.join(outdir,range_rexp.sub(eraname,os.path.basename(jsoninname)))
-  print ">>> filterJSONByRunNumberRange: %r for period=%r, range=%s-%s"%(eraname,period,start,end)
+  print(">>> filterJSONByRunNumberRange: %r for period=%r, range=%s-%s"%(eraname,period,start,end))
   
   # READ JSON IN
   with open(jsoninname,'r') as jsonin:
@@ -178,28 +183,28 @@ def filterJSONByRunNumberRange(jsoninname,era="",period=None,rrange=None,start=N
       runnumber = int(element)
       if runnumber<start or runnumber>end:
         ndrop += 1
-        if verb>=2: print ">>>     dropping %s"%runnumber
+        if verb>=2: print(">>>     dropping %s"%runnumber)
         del data[element]
       else:
         nkeep += 1
-        if verb>=2: print ">>>     keeping %s"%runnumber
+        if verb>=2: print(">>>     keeping %s"%runnumber)
     else:
-      print "Warning! filterJSONByRunNumberRange: element is not an integer (run number): '%s'"%element
+      print("Warning! filterJSONByRunNumberRange: element is not an integer (run number): '%s'"%element)
   
   # WRITE JSON OUT
   with open(jsonoutname,'w') as jsonout:
     data = json.dump(data,jsonout,sort_keys=True)
   
   # SUMMARY
-  print ">>>   output: %r"%(jsonoutname)
-  print ">>>   saved %s / %s run numbers"%(nkeep,nkeep+ndrop)
+  print(">>>   output: %r"%(jsonoutname))
+  print(">>>   saved %s / %s run numbers"%(nkeep,nkeep+ndrop))
   
   return jsonoutname
   
 
 def compareJSONs(jnames,verb=0):
   """Compare JSON files."""
-  print ">>> Comparing JSONs..."
+  print(">>> Comparing JSONs...")
   run_dicts = { }
   runs = set()
   for jname in jnames:
@@ -211,8 +216,8 @@ def compareJSONs(jnames,verb=0):
       runs |= set(run_dicts[jname].keys())
   runstatus = { j: { 'miss': [ ], 'diff': { } } for j in jnames }
   if verb>=2:
-    print ">>> All runs (union):"
-    print runs
+    print(">>> All runs (union):")
+    print(runs)
   for run in sorted(runs):
     lumis = [ ]
     lumi_dict = { }
@@ -227,17 +232,17 @@ def compareJSONs(jnames,verb=0):
     if len(lumis)>=2: # at least two lumi list are different
       for jname in lumi_dict:
         runstatus[jname]['diff'][run] = run_dicts[jname][run] # different lumi list
-  print ">>> "
+  print(">>> ")
   for jname in jnames:
     nruns = len(run_dicts[jname])
-    print ">>>   %s (%d runs)"%(jname,nruns)
+    print(">>>   %s (%d runs)"%(jname,nruns))
     nmiss = len(runstatus[jname]['miss'])
     ndiff = len(runstatus[jname]['diff'])
     misslist = ', '.join("\033[1m%s\033[0m"%(r) for r in runstatus[jname]['miss'])
     difflist = ', '.join("\033[1m%s\033[0m: %s"%(r,runstatus[jname]['diff'][r]) for r in sorted(runstatus[jname]['diff'].keys()))
-    print ">>>     missing runs (%d/%d):\n>>>       %s"%(nmiss,nruns,misslist or "none")
-    print ">>>     different limis (%d/%d):\n>>>       %s"%(ndiff,nruns,difflist or "none")
-    print ">>> "
+    print(">>>     missing runs (%d/%d):\n>>>       %s"%(nmiss,nruns,misslist or "none"))
+    print(">>>     different limis (%d/%d):\n>>>       %s"%(ndiff,nruns,difflist or "none"))
+    print(">>> ")
   
 
 def main(args):
@@ -261,13 +266,13 @@ def main(args):
       jname   = injson or getJSON(era)
       jsonout = filterJSONByRunNumberRange(jname,era,rrange=rrange,outdir=outdir,verb=verbosity)
     else:
-      print ">>> Please specifiy a period (-p BCD) or a range of run numbers (-r 272007-278770)"
-      print ">>> JSON for %r: %s"%(era,jname)
-      print ">>> datasets: "
+      print(">>> Please specifiy a period (-p BCD) or a range of run numbers (-r 272007-278770)")
+      print(">>> JSON for %r: %s"%(era,jname))
+      print(">>> datasets: ")
       datasets  = getRuns(era)
       for period in sorted(datasets.keys()):
         start, end = datasets[period]
-        print ">>>   %s: %s-%s"%(period,start,end)
+        print(">>>   %s: %s-%s"%(period,start,end))
   
 
 if __name__ == '__main__':
@@ -291,5 +296,5 @@ if __name__ == '__main__':
                                            help="set verbosity" )
   args = parser.parse_args()
   main(args)
-  print ">>> Done!"
+  print(">>> Done!")
   
