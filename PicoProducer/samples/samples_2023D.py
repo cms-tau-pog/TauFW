@@ -64,12 +64,12 @@ samples  = [
   M('ST','TWminusto2L2Nu',
     "/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage_new,url=url,files=filelist,opts="useT1=False"),
-  #M('ST','TbarWplustoLNu2Q',#temporary miss to add later
-  #  "",
-  #  store=storage_new,url=url,files=filelist,opts="useT1=False"),
-  #M('ST','TbarWplusto2L2Nu',#temporary miss to add later
-  #  "",
-  #  store=storage_new,url=url,files=filelist,opts="useT1=False"), 
+  M('ST','TbarWplustoLNu2Q',
+    "/TbarWplustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v5-v2/NANOAODSIM",
+    store=storage_new,url=url,files=filelist,opts="useT1=False"),
+  M('ST','TbarWplusto2L2Nu',
+    "/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v5-v2/NANOAODSIM",
+    store=storage_new,url=url,files=filelist,opts="useT1=False"), 
     
   # DIBOSON
   M('VV','WW',
