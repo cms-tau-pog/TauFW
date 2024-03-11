@@ -22,7 +22,7 @@ from TauFW.Plotter.plot.Plot import LOG as PLOG
 from TauFW.Plotter.plot.Plot import Plot, deletehist
 from TauFW.Plotter.plot.Plot2D import Plot2D
 from TauFW.Plotter.plot.Stack import Stack
-from TauFW.Plotter.plot.CMSStyle import lumi_dict
+from TauFW.Plotter.plot.CMSStyle import lumi_dict, era_dict
 from TauFW.common.tools.file import ensuredir
 from TauFW.common.tools.utils import ensurelist, repkey
 from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr, loadmacro
@@ -134,8 +134,9 @@ def getsampleset(channel,era,**kwargs):
   mcweight  = kwargs.get('extraweight', ""     ) # extra weight for all MC
   dyweight  = kwargs.get('dyweight',    ""     ) # print sample set table
   showEra   = kwargs.get('showEra',     True   ) #and (era not in ['UL2017','UL2018'])
+  extratext = kwargs.get('extra', "Preliminary" ) # extra CMS text
   year      = getyear(era) # get integer year
-  setera(era,showEra=showEra) # set era for plot style and lumi-xsec normalization
+  setera(era,showEra=showEra,extra=extratext) # set era for plot style and lumi-xsec normalization
   
   # DEFINE CORRECTIONS
   if loadcorrs or 'getPUTrackWeight' in mcweight or 'getHSTrackWeight' in dyweight: # skip recreating histograms (fast!)
@@ -527,7 +528,7 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
       # PLOT
       fname = "%s/$VAR_%s_%s%s$TAG"%(outdir,selection.filename,era,tag)
       plot  = plot_ntracks_hs(fname,var,selection,dhist,mchists,sighists,sigscales,
-                              tag=tag,hs_bins=hs_bins,verb=verbosity)
+                              exts=exts,tag=tag,hs_bins=hs_bins,verb=verbosity)
       
       # STEP 3: MAKE MEASUREMENT
       if any(s in selection.selection for s in ['aco<0.015','aco>=0.015']):
@@ -567,7 +568,7 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
           if 'gamma' in sighist.GetTitle():
             sighists_.append(sighist)
         plot2 = plot_ntracks_hs(fname,var,selection,dhist,mchists,sighists_,sigscales,
-                                tag="_corr"+tag,hs_bins=hs_bins,verb=verbosity)
+                                exts=exts,tag="_corr"+tag,hs_bins=hs_bins,verb=verbosity)
         plot2.close(keep=True)
       
       plot.close(keep=False)
@@ -602,7 +603,7 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
   
 
 def plot_ntracks_hs(fname,var,selection,dhist,mchists,sighists,sigscales,
-                    hs_bins=[],tag="",norm=True,lcols=None,verb=0):
+                    hs_bins=[ ],exts=['png','pdf'],tag="",norm=True,lcols=None,verb=0):
   lsize     = 0.041 # legend text size
   tsize     = 0.044 # corner text size
   lcols     = [kGreen+1,kOrange+1,kMagenta+1]
@@ -636,7 +637,7 @@ def plot_ntracks_hs(fname,var,selection,dhist,mchists,sighists,sigscales,
     plot.drawline(x,0,x,2,pad=2,color=19,width=1) # light gray
   plot.ratio.drawratios(verb=verb) # draw ratio again
   plot.canvas.GetPad(2).RedrawAxis()
-  plot.saveas(fname,ext=['png','pdf'],tag=tag) #,'pdf'
+  plot.saveas(fname,ext=exts,tag=tag) #,'pdf'
   #plot.close(keep=True)
   return plot
   
@@ -645,10 +646,12 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   """Measure correction to number of PU tracks."""
   LOG.header("measure_ntracks_pu",pre=">>>")
   outdir    = kwargs.get('outdir',    "plots/g-2/ntracks_pu" )
-  loadhists = kwargs.get('loadhists', False   ) #True and False
+  plotonly  = kwargs.get('plotonly',  False   ) or True # plot only without changing 2D histogram
+  loadhists = kwargs.get('loadhists', False   ) or plotonly #True and False
   norms     = kwargs.get('norm',      [True]  )
   #entries   = kwargs.get('entries',  [str(e) for e in eras] ) # for legend
-  exts      = kwargs.get('exts',      ['png'] ) # figure file extensions
+  exts      = kwargs.get('exts',      ['png','pdf'] ) # figure file extensions
+  extratext = kwargs.get('extra',     "Preliminary" ) # extra CMS text
   verbosity = kwargs.get('verb',      1       )
   chunk     = kwargs.get('chunk',     -1      )
   ensuredir(outdir)
@@ -746,7 +749,7 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
     ifirst = (chunk-1)*nmax_nt # e.g.  0,  50, 100, 150
     ilast  = ifirst+nmax_nt    # e.g. 50, 100, 150, 200
     hfname = hfname.replace(".root","_%s.root"%(chunk)) # split hist file to avoid conflict
-  if chunk>=2:
+  if chunk>=2 or plotonly:
     variables = [ ]
   ntitle = "Number of pileup tracks"
   print(">>> Add ntrack variables %s-%s"%(ifirst,ilast))
@@ -758,7 +761,10 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   for i in range(ifirst,ilast):
     zmin    = -10+i*0.1
     zmax    = zmin+0.1 
-    if abs(zmax)<1e-10: zmax = 0
+    if plotonly and zmin not in [-7,-3.5,0]:
+      continue
+    if abs(zmax)<1e-10:
+      zmax = 0
     vtext   = ("%.1f <= z < %.1f cm"%(zmin,zmax)).replace(".0",'').replace('-','#minus')
     vname   = "ntrack_pu_0p1[%s]"%(i)     # BS-corrected
     fname   = "ntrack_pu_0p1_"+str(i).zfill(3) # e.g. 000, 001, ..., 023, ..., 199
@@ -778,7 +784,8 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   print(">>> len(variables)=%s"%(len(variables)))
   
   # FOR STORING HISTS
-  hfile = ensureTFile(hfname,'UPDATE') # back up histograms for reuse
+  ropt  = 'READ' if plotonly else 'UPDATE'
+  hfile = ensureTFile(hfname,ropt) # back up histograms for reuse
   
   # PLOT
   header = None #samples[0].title
@@ -863,7 +870,8 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
         if len(hists)>=4:
           lcols = [kRed,kMagenta+1,kBlue,kSpring-6][:len(hists)-1]+[kBlack]
         elif len(hists)>=3:
-          lcols = [kRed,kSpring-6][:len(hists)-1]+[kBlack]
+          #lcols = [kRed,kSpring-6][:len(hists)-1]+[kBlack] # not good for color blind
+          lcols = [kRed,kBlue][:len(hists)-1]+[kBlack] # not good for color blind
         else:
           lcols = [kGreen-2][:len(hists)-1]+[kBlack]
         plot    = Plot(var,hists,norm=scales)
@@ -871,11 +879,11 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
                   ratio=True,rmin=rmin,rmax=rmax,num=num,rtitle=rtitle,ymargin=ymarg)
         plot.drawlegend(pos=lpos,tsize=tsize,reverse=True,header=header)
         plot.drawtext(text,size=tsize) #.replace('-','#minus'))
-        plot.saveas(fname,ext=['png','pdf'],tag=ntag)
+        plot.saveas(fname,ext=exts,tag=ntag)
         plot.close(keep=True)
         
         # STORE in hist2D
-        if hasattr(var,'iy'):
+        if hasattr(var,'iy') and not plotonly:
           iy = var.iy
           obshist = hists[-1]
           assert 'Observed' in obshist.GetTitle(), f"title={obshist.GetTitle()} not 'Observed'!"
@@ -945,20 +953,27 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   
   # DRAW 2D histogram
   print(">>> ")
+  if not extratext:
+    extratext = "Supplementary"
+  setera(era,showEra=True,extra=extratext) # set era for plot style and lumi-xsec normalization
   hfile.cd()
   for syst, hist2d in hists2d.items():
-    if hist2d.GetEntries()==0:
-      continue
     nxbins = hist2d.GetXaxis().GetNbins()
     nybins = hist2d.GetYaxis().GetNbins()
-    hname = hist2d.GetName()
-    fname = "%s/%s_z-ntracks_pu_%s%s"%(outdir,hname,era,tag)
+    hname  = hist2d.GetName()
+    fname  = "%s/%s_z-ntracks_pu_%s%s"%(outdir,hname,era,tag)
+    if plotonly:
+      hist2d = hfile.Get(hname) #loadhist(hfile,var,var0,sample,subdir=None,verb=0)
+    if not hist2d or hist2d.GetEntries()==0:
+      continue
+    print(f">>> 2D: hname={hname}, syst={syst}")
     hist2d.SetOption('COLZ')
     hist2d.SetBinContent(nxbins+1,nybins+1,hist2d.GetBinContent(nxbins,nybins))
-    hist2d.Write(hist2d.GetName(),hist2d.kOverwrite)
+    if not plotonly:
+      hist2d.Write(hname,hist2d.kOverwrite)
     plot = Plot2D(xvar,yvar,hist2d)
     plot.draw(zmin=0.4,zmax=1.5,logz=False,grid=True,zoffset=5.5)
-    plot.saveas(fname,ext=['.png','.pdf'])
+    plot.saveas(fname,ext=exts)
   hfile.Close()
   
 
@@ -1458,7 +1473,9 @@ def main(args):
   fname     = None #"$PICODIR/$SAMPLE_$CHANNEL.root" # fname pattern
   eras      = args.eras #['UL2018']pattern
   methods   = args.methods
-  loadhists = args.loadhists
+  plotonly  = args.plotonly
+  loadhists = args.loadhists or plotonly
+  extratext = args.extratext # "Preliminary" or ""
   channels  = ['mumu',] #'tautau'
   outdir    = "plots/g-2"
   tag       = args.tag
@@ -1466,6 +1483,7 @@ def main(args):
   nthreads  = args.nthreads
   verbosity = args.verbosity
   RDF.SetNumberOfThreads(nthreads,verb=verbosity+1) # set nthreads globally
+  exts = ['png','pdf','root'] if plotonly else ['png','pdf']
   
   #### COMPARE SELECTIONS
   ###for era in eras:
@@ -1489,12 +1507,14 @@ def main(args):
   # COMPARE NTRACKS
   for era in eras:
     setera(era) # set era for plot style and lumi-xsec normalization
-    showEra = (era not in ['UL2017','UL2018'])
+    era_dict[era] = era_dict.get(era,era).strip('UL')
+    showEra = True #'2017' not in era
+    #showEra = (era not in ['UL2017','UL2018'])
     for channel in channels:
       if 'pu' in methods:
-        measure_ntracks_pu(era,channel,tag=tag,outdir=outdir+"/ntracks_pu",loadhists=loadhists,showEra=showEra,chunk=chunk,verb=verbosity)
+        measure_ntracks_pu(era,channel,tag=tag,outdir=outdir+"/ntracks_pu",extra=extratext,loadhists=loadhists,showEra=showEra,exts=exts,plotonly=plotonly,chunk=chunk,verb=verbosity)
       if 'hs' in methods:
-        measure_ntracks_hs(era,channel,tag=tag,outdir=outdir+"/ntracks_hs",loadhists=loadhists,showEra=showEra,verb=verbosity)
+        measure_ntracks_hs(era,channel,tag=tag,outdir=outdir+"/ntracks_hs",extra=extratext,loadhists=loadhists,showEra=showEra,exts=exts,verb=verbosity)
       if 'sam' in methods:
         compare_samples(era,channel,tag=tag,outdir=outdir+"/compare",verb=verbosity)
       if 'var' in methods:
@@ -1516,12 +1536,16 @@ if __name__ == "__main__":
                                            help="only run chunk of variables" )
   parser.add_argument('-y', '--era',       dest='eras', nargs='*', default=['UL2018'],
                                            help="set era" )
+  parser.add_argument('-e', '--extratext', default="Preliminary",
+                                           help="extra CMS text, default=%(default)r" )
   parser.add_argument('-t', '--tag',       default="",
                                            help="extra tag for output" )
+  parser.add_argument('-p', '--plotonly',  action='store_true',
+                                           help="plot only (load hists, do not write)" )
   parser.add_argument('-L', '--loadhists', action='store_true',
                                            help="load histograms from ROOT file" )
   parser.add_argument('-n', '--nthreads',  type=int, nargs='?', const=10, default=10, action='store',
-                                           help="run RDF in parallel instead of in serial, nthreads=%(default)r" )
+                                           help="run RDF in parallel instead of in serial, default=%(default)r" )
   parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                            help="set verbosity" )
   args = parser.parse_args()

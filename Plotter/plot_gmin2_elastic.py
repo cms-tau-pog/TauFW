@@ -32,6 +32,7 @@ mbins2 = list(range(50,120,10))+list(range(120,160,20))+list(range(160,200,40))+
          list(range(200,300,50))+[300,400,600,800]
 #assert all(e in mbins for e in mbins2) # make sure all edges of mbins2 is in mbins
 
+import TauFW.Plotter.plot.CMSStyle as CMSStyle
 
 def getsamples(sampleset,channel,era,loadhists=False,dy=False,verb=0):
   setera(era) # set era for plot style and lumi-xsec normalization
@@ -242,13 +243,13 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   jfname    = "%s/elastic.json"%(outdir)
   hfname    = "%s/elastic_%s.root"%(outdir,era)
   hfile     = ensureTFile(hfname,'UPDATE') # back up histograms for reuse
-  fcols     = [ kRed, kGreen, kOrange ] # line colors for fit functions
+  fcols     = [ kRed, kGreen+1, kOrange ] # line colors for fit functions
   ftits     = [ "Flat", "Lin.", "Quadr." ] # titles for fit functions
   rtitle    = "#frac{Obs. #minus Bkg.}{#gamma#gamma #rightarrow #mu#mu, WW}  "
   chstr     = channel.replace('mu','m').replace('tau','t') 
   redoes    = [0,1,2]
   bkgname   = "bkg_incl"
-  exts      = ['png','pdf'] if pdf else ['png'] # extensions
+  exts      = ['png','pdf','root'] if paper else ['png','pdf'] if pdf else ['png'] # extensions
   if sideband==None:
   #   ntmin, ntmax = 3, 6 # ntrack range in side band
     ntmin, ntmax = 3, 7 # ntrack range in side band
@@ -585,7 +586,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
         stack.close()
       
       # STEP 5: Plot again after applying SF
-      if redo==redoes[-1]: # only last time
+      if redo==redoes[-1] and (not paper): # only last time
         LOG.color("Step 5: Plot again after applying flat SF...",b=True)
         for var in variables:
           
@@ -790,15 +791,17 @@ def main(args):
   varfilter  = args.varfilter
   selfilter  = args.selfilter
   loadhists  = args.loadhists
-  paper      = 'paper' in args.tag #args.paper 
+  tag        = args.tag
+  paper      = any(s in tag for s in ['paper','pas']) #args.paper
+  extratext  = args.extratext # "Preliminary" or ""
   methods    = args.methods
   sidebands  = args.sidebands
-  tag        = args.tag
   nthreads   = args.nthreads
   outdir     = "plots/g-2/elastic"
   outdir_bkg = "plots/g-2/elastic/bkg"
   #testFit(); exit(0)
   RDF.SetNumberOfThreads(nthreads,verb=verbosity+1) # set nthreads globally
+  extratext  = "" if 'paper' in tag else extratext #"Preliminary"
   
   # LOOP over channels
   for channel in channels:
@@ -806,8 +809,8 @@ def main(args):
       if 'res' in methods:
         printResults(era,outdir=outdir)
         exit(0)
-      setera(era) # set era for plot style and lumi-xsec normalization
-      sampleset = getsampleset(channel,era,loadcorrs=True)
+      setera(era,extra=extratext,verb=10) # set era for plot style and lumi-xsec normalization
+      sampleset = getsampleset(channel,era,loadcorrs=True,extra=extratext)
       #plotStack(sampleset,channel,tag=tag,outdir=outdir,era=era)
       if 'sf' in methods:
         for sideband in sidebands:
@@ -847,6 +850,8 @@ if __name__ == "__main__":
                                            help="sidebands ntrack limits, comma-separated integers, e.g. '-s 3,7 3,8'" )
   parser.add_argument('-L', '--loadhists', action='store_true',
                                            help="load histograms from ROOT file" )
+  parser.add_argument('-e', '--extratext', default="Preliminary",
+                                           help="extra CMS text, default=%(default)r" )
   parser.add_argument('-t', '--tag',       default="", help="extra tag for output" )
   parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                            help="set verbosity" )
