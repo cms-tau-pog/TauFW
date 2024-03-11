@@ -25,7 +25,6 @@
 #   https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Recommended_cross_section
 #   https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#PileupInformation
 import os, sys, re, shutil, json
-
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from filterRunsJSON import getJSON, getRuns, cleanPeriods, getPeriodRunNumbers, filterJSONByRunNumberRange
 from TauFW.common.tools.file import ensuredir
