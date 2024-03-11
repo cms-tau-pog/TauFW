@@ -28,15 +28,14 @@ from __future__ import print_function # for python3 compatibility
 from ROOT import TStyle, TPad, TLatex, TASImage, kBlack, kWhite, TGaxis
 import re
 
-#cmsText        = "CMS"
-cmsText        = ""
+cmsText        = "CMS"
 cmsTextFont    = 61 # 60: Arial bold (helvetica-bold-r-normal)
 # Guidelines for labels:
 #   https://twiki.cern.ch/twiki/bin/view/CMS/Internal/FigGuidelines#Use_of_the_Preliminary_Simulatio
 #   https://twiki.cern.ch/twiki/bin/view/CMS/PhysicsApprovals#Student_presentations_of_unappro
 #   E.g. "Preliminary", "Simulation", "Simulation Preliminary", "Supplementary", "Work in progress", ...
 #extraText      = "Preliminary"
-extraText      = ""
+extraText      = "Internal"
 lumiText       = ""
 extraTextFont  = 52 # 50: Arial italics (helvetica-medium-o-normal)
 lumiTextSize   = 0.90
