@@ -8,7 +8,8 @@
 #>>>>IMPORTANT!!
 #>>>>Run with --serial option if using py3:
 #   ./plot_v10.py -y 2018 -c mutau --serial
-from config.samples_v10 import *
+
+from config.samples_v12 import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Plotter.plot.Plot import Plot, deletehist
@@ -64,50 +65,26 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     dmlabels  = ["h^{#pm}","h^{#pm}h^{0}","h^{#pm}h^{#mp}h^{#pm}","h^{#pm}h^{#mp}h^{#pm}h^{0}","Other"]
     variables += [
       Var('m_vis',          40,  0, 200, fname="mvis",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(50,0,250),"nbtag\w*>":(60,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
-      Var('m_vis',          20,  0, 200, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
+      Var('m_vis',  1, 60,  120, fname="$VAR_1bin", veto=["m_vis>200"] ),
+      Var('m_vis',          11,  60, 120, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
       Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
       Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
-      #Var("mapRecoDM(dm_2)", 5,  0,   5, fname="dm_2_label",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TT",labels=dmlabels,ymargin=1.2),
-      #Var("pzetavis", 50,    0, 200 ),
-      #Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 50, 0.00, 1, ymin = 1e3, ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5,cbins={"VSjet_2>":(60,0.4,1)}),
-      Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 60, 0.85, 1, ymin = 1e2, fname="$VAR_zoom",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 35, 0.88, 1, ymin = 1e2, fname="$VAR_zoom1",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 63, 0.88, 1, ymin = 1e2, fname="$VAR_zoom2",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 125, 0.88, 1, ymin = 1e2, fname="$VAR_zoom3",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   90, 0.10, 1, ymin = 1e2, fname="$VAR_zoom",ncols=2,logy=True,logyrange=4,pos='L;y=0.85'),
-      Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  50, 0.80, 1, ymin = 1e1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=5,pos='L;y=0.85'),
-
-      #Var('rawDeepTau2018v2p5VSjet_2', "rawDeepTau2018v2p5VSjet", 50, 0.00, 1, ymin = 1e3, ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5,cbins={"VSjet_2>":(60,0.4,1)}),
-      Var('rawDeepTau2018v2p5VSjet_2', "rawDeepTau2018v2p5VSjet", 20, 0.95, 1, ymin = 1e2, fname="$VAR_zoom",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2018v2p5VSjet_2', "rawDeepTau2018v2p5VSjet", 21, 0.96, 1, ymin = 1e2, fname="$VAR_zoom0",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2018v2p5VSjet_2', "rawDeepTau2018v2p5VSjet", 42, 0.96, 1, ymin = 1e2, fname="$VAR_zoom1",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2018v2p5VSjet_2', "rawDeepTau2018v2p5VSjet", 84, 0.96, 1, ymin = 1e2, fname="$VAR_zoom2",ncols=2,pos='L;y=0.85'),
-      Var('rawDeepTau2018v2p5VSjet_2', "rawDeepTau2018v2p5VSjet", 250, 0.96, 1, ymin = 1e2, fname="$VAR_zoom3",ncols=2,pos='L;y=0.85'),
-
-      Var('rawDeepTau2018v2p5VSe_2',   "rawDeepTau2018v2p5VSe",   80, 0.20, 1, ymin = 1e2, fname="$VAR_zoom",ncols=2,logy=True,logyrange=4,pos='L;y=0.85'),
-      Var('rawDeepTau2018v2p5VSmu_2',  "rawDeepTau2018v2p5VSmu",  25, 0.90, 1, ymin = 1e1, fname="$VAR_zoom",ncols=2,logy=True,logyrange=5,pos='L;y=0.85'),
-
-      Var('rawDeepTau2017v2p1VSjet_2', "rawDeepTau2017v2p1VSjet", 50, 0.00, 1, ymin = 1e1, fname="$VAR_allRange", ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5),
-      #Var('rawDeepTau2017v2p1VSe_2',   "rawDeepTau2017v2p1VSe",   50, 0.00, 1, ymin = 1e3, fname="$VAR_allRange", ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5),
-      #Var('rawDeepTau2017v2p1VSmu_2',  "rawDeepTau2017v2p1VSmu",  50, 0.00, 1, ymin = 1e3, fname="$VAR_allRange", ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5),
-
-      Var('rawDeepTau2018v2p5VSjet_2', "rawDeepTau2018v2p5VSjet", 50, 0.00, 1, ymin = 1e1, fname="$VAR_allRange", ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5),
-      #Var('rawDeepTau2018v2p5VSe_2',   "rawDeepTau2018v2p5VSe",   50, 0.00, 1, ymin = 1e3, fname="$VAR_allRange", ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5),
-      #Var('rawDeepTau2018v2p5VSmu_2',  "rawDeepTau2018v2p5VSmu",  50, 0.00, 1, ymin = 1e3, fname="$VAR_allRange", ncols=2,pos='L;y=0.85',logy=True,ymargin=1.5),
 
     ]
-  elif 'mumu' in channel:
+  elif 'mumu' in channel or 'ee' in channel:
     variables += [
-      Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
-      Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
+      # Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
+      # Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
       Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
       Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
+      Var('iso_1', 50, 0.,1., ymin = 1e2,logy=True),
+      Var('iso_2', 50, 0.,1., ymin = 1e2,logy=True),
     ]
   variables  = filtervars(variables,varfilter)  # filter variable list with -V/--var flag
   
   # PLOT
   outdir = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
-  exts   = ['png','pdf'] if pdf else ['png'] # extensions
+  exts   = ['png','pdf','root'] if pdf else ['root'] # extensions
   for selection in selections:
     print(">>> Selection %r: %r"%(selection.title,selection.selection))
     stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)

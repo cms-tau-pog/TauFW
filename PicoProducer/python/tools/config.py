@@ -36,9 +36,11 @@ def getdefaultconfig(verb=0):
       ('2018','samples_2018.py')
     ])
     channels      = OrderedDict([
-      ('skim','skimjob.py'),
-      ('test','test.py'),
-      ('mutau','ModuleMuTauSimple')
+      ('skim',    'skimjob.py'),
+      ('skim-jec','skimjob.py --jec-sys'),
+      ('gen',     'GenDumper'),
+      ('test',    'test.py'),
+      ('mutau',   'ModuleMuTauSimple')
     ])
     sedir         = guess_sedir()                    # guess storage element on current host
     tmpskimdir, tmphadddir = guess_tmpdirs()         # tmphadddir: temporary dir for creating intermediate hadd files
@@ -109,7 +111,7 @@ def getconfig(verb=0,refresh=False):
       with open(cfgname,'w') as file:
         json.dump(cfgdict,file,indent=2)
   else:
-    LOG.warning("Config file '%s' does not exist in %s. Creating with defaults..."%(cfgname,cfgdir))
+    LOG.color("Config file '%s' does not exist in %s. Creating with defaults..."%(cfgname,cfgdir),c='green')
     with open(cfgname,'w') as file:
       json.dump(cfgdict,file,indent=2)
   

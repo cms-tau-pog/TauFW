@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 # Description: Base class to create and prepare a custom output file & tree for analysis modules
 # Sources:

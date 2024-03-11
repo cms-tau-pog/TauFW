@@ -59,12 +59,12 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
       scale   = 1.06 if 'up' in syst else 0.94
       sample  = samples.get('TT',unique=True)
       sample.multiplyscale(scale,verb=4)
-      print ">>> measureZptmass_unfold: Scaling %r by %s"%(sample.name,scale)
+      print(">>> measureZptmass_unfold: Scaling %r by %s"%(sample.name,scale))
     elif syst in ['syst_dy_up','syst_dy_down']: # vary the DY cross section
       scale   = 1.04 if 'up' in syst else 0.96
       sample  = samples.get('DY',unique=True)
       sample.multiplyscale(scale,verb=4)
-      print ">>> measureZptmass_unfold: Scaling %r by %s"%(sample.name,scale)
+      print(">>> measureZptmass_unfold: Scaling %r by %s"%(sample.name,scale))
     else:
       raise IOError("measureZptmass_unfold: Did not recognize systematic %r"%(syst))
   dysample    = samples.get('DY',unique=True)
@@ -110,74 +110,74 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     bvar_reco   = Var('Unroll::GetBin(pt_ll,m_ll,0,1)',"Reconstructed %s bin"%(ptitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
     bvar_gen    = Var('Unroll::GetBin(pt_moth,m_moth,0,1)',"Generated %s bin"%(pgtitle),*urbins0,units=False,labels=urlabels1) # unroll bin number
     bvar_reco_T = Var('Unroll::GetBin(pt_ll,m_ll,1,1)',"Reconstructed %s bin"%(mtitle),*urbins0,units=False,labels=urlabels2) # unroll bin number, transposed
-  print ">>> 2D bins: %d = %d pt bins x %d %s bins"%(bvar_reco.nbins,xvar_reco.nbins,yvar_reco.nbins,yvar)
-  print ">>> pt bins: %r"%(xvar_reco.edges)
-  print ">>> %s bins: %r"%(yvar,yvar_reco.edges)
+  print(">>> 2D bins: %d = %d pt bins x %d %s bins"%(bvar_reco.nbins,xvar_reco.nbins,yvar_reco.nbins,yvar))
+  print(">>> pt bins: %r"%(xvar_reco.edges))
+  print(">>> %s bins: %r"%(yvar,yvar_reco.edges))
   
   for selection in selections:
     LOG.color(selection.title,col='green')
-    print ">>> selection: %r"%(selection.selection)
+    print(">>> selection: %r"%(selection.selection))
     for var in [xvar_reco,xvar_gen,yvar_reco,yvar_gen,bvar_reco,bvar_gen]:
       var.changecontext(selection.selection)
     fname_ = repkey(fname,CAT=selection.filename).replace('_baseline',"")
     
-    print ">>> Unfold reconstruction-level weights as a function of %s vs. %s"%(yvar_reco.title,xvar_reco.title)
+    print(">>> Unfold reconstruction-level weights as a function of %s vs. %s"%(yvar_reco.title,xvar_reco.title))
     outfile = ensureTFile(fname_,'UPDATE')
     ctrldir = ensureTDirectory(outfile,"control",cd=False)
     
     # DY 2D HISTOGRAMS - for checks, and setting axes in unrolling
-    print ">>> Creating DY 2D distributions..."
+    print(">>> Creating DY 2D distributions...")
     dyhist2D_reco = dysample.gethist2D(xvar_reco,yvar_reco,selection,split=False,parallel=parallel)
     dyhist2D_gen  = dysample.gethist2D(xvar_gen, yvar_gen ,selection,split=False,parallel=parallel)
     Unroll.SetBins(dyhist2D_reco,verb) # set bin axes for Unroll.GetBin
     #addoverflow([dyhist2D_reco,dyhist2D_gen],verb=verb) # use Variable.addoverflow instead
     
     # RECO HISTOGRAMS 1D - for checks
-    print ">>> Creating reconstruction-level 1D distributions..."
+    print(">>> Creating reconstruction-level 1D distributions...")
     xhists = samples.gethists(xvar_reco,selection,split=False,blind=False,method=method,signal=False,parallel=parallel)
     yhists = samples.gethists(yvar_reco,selection,split=False,blind=False,method=method,signal=False,parallel=parallel)
     #addoverflow(xhists.all()+yhists.all(),verb=verb) # use Variable.addoverflow instead
     
     # RECO HISTOGRAMS 2D - unrolled
-    print ">>> Creating reconstruction-level 2D distributions (unrolled)..."
+    print(">>> Creating reconstruction-level 2D distributions (unrolled)...")
     hists = samples.gethists(bvar_reco,selection,split=False,blind=False,method=method,signal=False,parallel=parallel)
     obshist, exphist, dyhist, bkghist, obsdyhist = getdyhist(hname,hists,"_reco",verb=verb)
     
     # GEN HISTOGRAMS 2D - unrolled
-    print ">>> Creating generator-level 2D distributions (unrolled)..."
+    print(">>> Creating generator-level 2D distributions (unrolled)...")
     dyhist_gen = dysample.gethist(bvar_gen,selection,split=False,parallel=parallel)
     
     # TRANSPOSE - for checks
-    print ">>> Transpose unrolled 2D histograms..."
+    print(">>> Transpose unrolled 2D histograms...")
     obshist_T = Unroll.Transpose(obshist,dyhist2D_reco,verb)
     histsexp_T = [Unroll.Transpose(h,dyhist2D_reco,verb) for h in hists.exp]
     
     # 4D RESPONSE MATRIX - unrolled to 2D via Unroll::GetBin
-    print ">>> Creating response matrix..."
+    print(">>> Creating response matrix...")
     resphist = dysample.gethist2D(bvar_reco,bvar_gen,selection,split=False,parallel=False) # parallel fails for many bins
     
     # UNFOLD
-    print ">>> Creating RooUnfoldResponse..."
+    print(">>> Creating RooUnfoldResponse...")
     resp   = RooUnfoldResponse(dyhist,dyhist_gen,resphist)
-    #print ">>> Unfolding with RooUnfoldBinByBin..."
+    #print(">>> Unfolding with RooUnfoldBinByBin...")
     #unfold = RooUnfoldBinByBin(resp,obsdyhist)
-    print ">>> Unfolding with RooUnfoldBayes..."
+    print(">>> Unfolding with RooUnfoldBayes...")
     unfold = RooUnfoldBayes(resp,obsdyhist,niter)
     #unfold.unfold()
-    print ">>> Creating Hreco..."
+    print(">>> Creating Hreco...")
     dyhist_unf = unfold.Hreco()
     
     # CREATE ZPT WEIGHTS
-    print ">>> Creating Z pt weights..."
+    print(">>> Creating Z pt weights...")
     ratio = dyhist_unf.Integral()/dyhist_gen.Integral()
-    print ">>> (Unfolded DY) / (Generated DY) = %.4f"%(ratio)
+    print(">>> (Unfolded DY) / (Generated DY) = %.4f"%(ratio))
     sfhist1D = dyhist_unf.Clone(hname+"_weight")
     sfhist1D.Divide(dyhist_gen)
     sfhist1D.Scale(1./ratio)
     
     # RECO WEIGHT
     ratio = obsdyhist.Integral()/dyhist.Integral()
-    print ">>> (Observed DY) / (Reconstructed DY) = %.4f"%(ratio)
+    print(">>> (Observed DY) / (Reconstructed DY) = %.4f"%(ratio))
     sfhist1D_reco = obsdyhist.Clone(hname+"_weight_reco")
     sfhist1D_reco.Divide(dyhist)
     sfhist1D_reco.Scale(1./ratio) # remove normalization effect
@@ -187,13 +187,13 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     rathist1D.Divide(sfhist1D) # (reco weight) / (unfolded weight)
     capoff(sfhist1D_reco,0.3,1.7,verb=verb+1) # cap off large values
     capoff(sfhist1D,0.3,1.7,verb=verb+1) # cap off large values
-    print ">>> Convert 1D unrolled weights back to 2D..."
+    print(">>> Convert 1D unrolled weights back to 2D...")
     dyhist2D_unf  = Unroll.RollUp(dyhist_unf,hname+"_dy_unfold_2D",dyhist2D_reco,verb)
     sfhist2D      = Unroll.RollUp(sfhist1D,  hname+"_weight_2D",dyhist2D_reco,verb)
     sfhist2D_reco = Unroll.RollUp(sfhist1D_reco,hname+"_weight_reco_2D",dyhist2D_reco,verb)
     
     # WRITE
-    print ">>> Writing histograms to %s..."%(outfile.GetPath())
+    print(">>> Writing histograms to %s..."%(outfile.GetPath()))
     outfile.cd()
     writehist(sfhist2D,       hname+"_weight",      "Unfolded Z boson weight",xvar_gen.title,yvar_gen.title,stitle,verb=1)
     writehist(sfhist2D_reco,  hname+"_recoweight",  "Reco. Z boson weight",xvar_reco.title,yvar_reco.title,stitle_reco,verb=1)
@@ -220,7 +220,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
     dyhists_T = [Unroll.Transpose(h,dyhist2D_reco,verb) for h in dyhists]
     
     # PLOT 1D - Unrolled unfolded weight 1D
-    print ">>> Plotting..."
+    print(">>> Plotting...")
     rline  = (bvar_reco.min,1.,bvar_reco.max,1.)
     pname_ = repkey(pname,CAT="weight_1D_"+selection.filename).replace('_baseline',"")
     plot   = Plot(bvar_gen,sfhist1D,dividebins=False)
@@ -415,7 +415,7 @@ def measureZptmass_unfold(samples,outdir='weights',plotdir=None,parallel=True,ta
       outfile.ls()
       #ctrldir.ls()
     outfile.Close()
-    print ">>> "
+    print(">>> ")
   
 
 def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag="",verb=0):
@@ -453,12 +453,12 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
   
   for selection in selections:
     LOG.color(selection.title,col='green')
-    print ">>> %s"%(selection.selection)
+    print(">>> %s"%(selection.selection))
     xvar_reco.changecontext(selection.selection)
     xvar_gen.changecontext(selection.selection)
     fname_ = repkey(fname,CAT=selection.filename).replace('_baseline',"")
     
-    print ">>> Unfold reco-level weights as a function of %s"%(xvar_reco.title)
+    print(">>> Unfold reco-level weights as a function of %s"%(xvar_reco.title))
     outfile = ensureTFile(fname_,'UPDATE')
     ctrldir = ensureTDirectory(outfile,"control",cd=False)
     
@@ -477,26 +477,26 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     resphist = dysample.gethist2D(xvar_reco,xvar_gen,selection,split=False,parallel=parallel)
     
     # UNFOLD
-    print ">>> Creating RooUnfoldResponse..."
+    print(">>> Creating RooUnfoldResponse...")
     resp   = RooUnfoldResponse(dyhist,dyhist_gen,resphist)
-    #print ">>> Unfolding with RooUnfoldBinByBin..."
+    #print(">>> Unfolding with RooUnfoldBinByBin...")
     #unfold = RooUnfoldBinByBin(resp,obsdyhist)
-    print ">>> Unfolding with RooUnfoldBayes..."
+    print(">>> Unfolding with RooUnfoldBayes...")
     unfold = RooUnfoldBayes(resp,obsdyhist,niter)
     #unfold.unfold()
-    print ">>> Creating Hreco..."
+    print(">>> Creating Hreco...")
     dyhist_unf = unfold.Hreco()
     
     # UNFOLDED WEIGHT
     ratio = dyhist_unf.Integral()/dyhist_gen.Integral()
-    print ">>> (Unfolded DY) / (Generated DY) = %.4f"%(ratio)
+    print(">>> (Unfolded DY) / (Generated DY) = %.4f"%(ratio))
     sfhist = dyhist_unf.Clone(hname+"_weight")
     sfhist.Divide(dyhist_gen)
     sfhist.Scale(1./ratio) # remove normalization effect
     
     # RECO WEIGHT
     ratio = obsdyhist.Integral()/dyhist.Integral()
-    print ">>> (Observed DY) / (Reconstructed DY) = %.4f"%(ratio)
+    print(">>> (Observed DY) / (Reconstructed DY) = %.4f"%(ratio))
     sfhist_reco = obsdyhist.Clone(hname+"_weight_reco")
     sfhist_reco.Divide(dyhist) # (obs. DY) / (sim. DY)
     sfhist_reco.Scale(1./ratio) # remove normalization effect
@@ -508,7 +508,7 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     capoff(sfhist_reco,0.4,1.6,verb=verb+1) # cap off large values
     
     # WRITE
-    print ">>> Writing histograms to %s..."%(outfile.GetPath())
+    print(">>> Writing histograms to %s..."%(outfile.GetPath()))
     outfile.cd()
     writehist(sfhist,      hname+"_weight","Z boson unfolding weight", xvar_reco.title,stitle)
     writehist(sfhist_reco, hname+"_recoweight","Z boson unfolding weight",xvar_reco.title,stitle_reco)
@@ -524,7 +524,7 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     writehist(rathist,     hname+"_ratio_weight","Reco. weight / Unf. weight",xvar_gen.title,"Reco. weight / Unf. weight")
     
     # PLOT - weight
-    print ">>> Plotting..."
+    print(">>> Plotting...")
     rline  = (xvar_gen.min,1.,xvar_gen.max,1.)
     pname_ = repkey(pname,CAT="weight_"+selection.filename).replace('_baseline',"")
     plot   = Plot(xvar_gen,sfhist,dividebins=False)
@@ -626,7 +626,7 @@ def measureZpt_unfold(samples,outdir='weights',plotdir=None,parallel=True,tag=""
     # CLOSE
     close([exphist,bkghist]+dyhists) #sfhist,obshist,+hist.exp
     outfile.Close()
-    print ">>> "
+    print(">>> ")
     
 
 def main(args):
@@ -645,13 +645,13 @@ def main(args):
   for era in eras:
     ###if 'UL' in era: # Summer19UL has no DY*JetsToLL_M-10to50
     ###  global Zmbins0, Zmbins1, baseline
-    ###  print ">>> Editing Zmbins0, Zmbins1, and baseline!"
+    ###  print(">>> Editing Zmbins0, Zmbins1, and baseline!")
     ###  if 10 in Zmbins0: Zmbins0.remove(10)
     ###  if 10 in Zmbins1: Zmbins1.remove(10)
     ###  baseline = baseline.replace("m_ll>20","m_ll>50")
-    ###  print ">>> Zmbins0 = %s"%(Zmbins0)
-    ###  print ">>> Zmbins1 = %s"%(Zmbins1)
-    ###  print ">>> baseline = %r"%(baseline)
+    ###  print(">>> Zmbins0 = %s"%(Zmbins0))
+    ###  print(">>> Zmbins1 = %s"%(Zmbins1))
+    ###  print(">>> baseline = %r"%(baseline))
     setera(era) # set era for plot style and lumi-xsec normalization
     tag_     = tag+'_'+era
     outdir_  = ensuredir(repkey(outdir,ERA=era))
@@ -669,7 +669,7 @@ def main(args):
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Measure Z pT reweighting in dimuon events with RooUnfold."""
-  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='+', default=['2017'], action='store', #choices=['2016','2017','2018','UL2017']
                                          help="set era" )
   parser.add_argument('-m', '--method',  dest='methods', type=int, nargs='+', default=[1,2], action='store',
@@ -687,5 +687,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
-  print ">>> Done."
+  print(">>> Done.")
   

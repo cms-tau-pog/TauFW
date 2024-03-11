@@ -13,7 +13,7 @@ from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
 from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, filtermutau
 __metaclass__ = type # to use super() with subclasses from CommonProducer
-tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco' }
+tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022ReReco' }
 
 
 
@@ -31,14 +31,16 @@ class ModuleTauPair(Module):
     self.isembed    = self.dtype=='embed'
     self.branchsel  = None # keep/drop file for branches: disable unneeded branches for faster processing
     self.channel    = kwargs.get('channel',  'none'         ) # channel name
-    self.year       = kwargs.get('year',     2017           ) # integer, e.g. 2017, 2018
-    self.era        = kwargs.get('era',      '2017'         ) # string, e.g. '2017', 'UL2017'
+    self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
+    self.era        = kwargs.get('era',      '2022postEE'   ) # string, e.g. '2017', 'UL2017'
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
     self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
     self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
+    ##addition Z resolution
+    self.Zres       = kwargs.get('Zres',     None           ) # Z resolution 
     self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
@@ -56,7 +58,7 @@ class ModuleTauPair(Module):
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
-    assert self.year in [2016,2017,2018], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
+    assert self.year in [2016,2017,2018,2022], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -78,10 +80,10 @@ class ModuleTauPair(Module):
       #  self.prefireTool  = PreFireTool(self.year)
       if self.dojec:
         self.ptnom = lambda j: j.pt_nom # use 'pt_nom' as nominal jet pt
-      #if self.dojecsys:
-      #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
-      #  self.metUncLabels = [ u+v for u in ['jer','jesTotal','unclustEn'] for v in ['Down','Up']]
-      #  self.met_vars     = { u: getMET(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
+      if self.dojecsys:
+       self.jecUncLabels = [ u+v for u in ['JER','JES'] for v in ['Down','Up']]
+       self.metUncLabels = [ u+v for u in ['JER','JES','Unclustered'] for v in ['Down','Up']]
+       self.met_vars     = { u: getmet(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
     
@@ -143,6 +145,13 @@ class ModuleTauPair(Module):
       ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaNoIso_WP90' ),
       ('Tau_idDecayMode',                [True]*32               ), 
       ('Tau_idDecayModeNewDMs',          [True]*32               ),
+      ('Tau_idDeepTau2018v2p5VSe','Tau_idDeepTau2017v2p1VSe'), 
+      ('Tau_idDeepTau2018v2p5VSmu','Tau_idDeepTau2017v2p1VSmu'),  
+      ('Tau_idDeepTau2018v2p5VSjet','Tau_idDeepTau2017v2p1VSjet'),
+      ('Tau_rawDeepTau2018v2p5VSe','Tau_rawDeepTau2017v2p1VSe'), 
+      ('Tau_rawDeepTau2018v2p5VSmu','Tau_rawDeepTau2017v2p1VSmu'),  
+      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet') 
+ 
       ]
     # for v9
     branches = [
@@ -159,6 +168,13 @@ class ModuleTauPair(Module):
       #('Tau_rawAntiEle',                 [0.]*30                        ), #  # not available anymore in nanoAODv9
       #('Tau_rawMVAoldDM2017v2',          [0.]*30                        ), # not available anymore in nanoAODv9
       #('Tau_rawMVAnewDM2017v2',          [0.]*30                        ), # not available anymore in nanoAODv9
+      ('Tau_idDeepTau2018v2p5VSe','Tau_idDeepTau2017v2p1VSe'), 
+      ('Tau_idDeepTau2018v2p5VSmu','Tau_idDeepTau2017v2p1VSmu'),  
+      ('Tau_idDeepTau2018v2p5VSjet','Tau_idDeepTau2017v2p1VSjet'),
+      ('Tau_rawDeepTau2018v2p5VSe','Tau_rawDeepTau2017v2p1VSe'), 
+      ('Tau_rawDeepTau2018v2p5VSmu','Tau_rawDeepTau2017v2p1VSmu'),  
+      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet') 
+
     ]
     if self.year==2016:
       branches += [
@@ -204,9 +220,9 @@ class ModuleTauPair(Module):
       else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
         return False
       # Specific selections to compute mutau filter efficiencies for stitching of different DY samples
-      if 'weight_mutaufilter' in self.out.cutflow.cuts: # only for mutau module
-        isMuTau = filtermutau(event)
-        self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
+      isMuTau = filtermutau(event)
+      self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
+      try:
         if event.LHE_Njets==0 or event.LHE_Njets>4:
           self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
         elif event.LHE_Njets==1:
@@ -217,7 +233,8 @@ class ModuleTauPair(Module):
           self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
         elif event.LHE_Njets==4:
           self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
-      
+      except RuntimeError:
+        no_LHE_Njets_var = True
       self.out.pileup.Fill(event.Pileup_nTrueInt)
     
     return True
@@ -431,6 +448,7 @@ class ModuleTauPair(Module):
     # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
     if self.ismc and 't' in self.channel:
       if tau1.__dict__.get('es',1)!=1:
+        #if hasattr(tau1,'es') and tau1.es!=1:
         dp = tau1.tlv*(1.-1./tau1.es) # assume shift is already applied
         correctmet(met,dp)
       if hasattr(tau2,'es') and tau2.es!=1:
@@ -478,4 +496,3 @@ class ModuleTauPair(Module):
     self.out.deta_ll[0]   = abs(self.out.eta_1[0] - self.out.eta_2[0])
     self.out.chi[0]       = exp(abs(tau1.Rapidity() - tau2.Rapidity()))
     
-
