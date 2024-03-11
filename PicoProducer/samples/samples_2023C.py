@@ -1,6 +1,6 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-storage  = "/eos/cms/store/group/phys_tau/TauFW/nano/UL2018/$DAS"
+storage  = None #"/eos/cms/store/group/phys_tau/irandreo/Run3_23C/$DAS"
 url      = None #"root://eosuser.cern.ch/"
 filelist = None #"samples/files/UL2018/$SAMPLE.txt"
 samples  = [
@@ -54,22 +54,22 @@ samples  = [
   # SINGLE TOP
   #M('ST','TBbarQ_t-channel',#temporary miss to add later
   #  "",
-  #  store=storage_new,url=url,files=filelist,opts="useT1=False"),
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
   #M('ST','TbarBQ_t-channel',#temporary miss to add later
   #  "",
-  #  store=storage_new,url=url,files=filelist,opts="useT1=False"),
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TWminustoLNu2Q',
     "/TWminustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"),
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TWminusto2L2Nu',
     "/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"),
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TbarWplustoLNu2Q',
     "/TbarWplustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"),
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TbarWplusto2L2Nu',
     "/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"), 
+    store=storage,url=url,files=filelist,opts="useT1=False"), 
   
   # DIBOSON
   M('VV','WW',

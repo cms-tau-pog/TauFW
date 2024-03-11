@@ -1,6 +1,6 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-storage  = "/eos/cms/store/group/phys_tau/TauFW/nano/UL2018/$DAS"
+storage  = None #"/eos/cms/store/group/phys_tau/irandreo/Run3_23D/$DAS"
 url      = None #"root://eosuser.cern.ch/"
 filelist = None #"samples/files/UL2018/$SAMPLE.txt"
 samples  = [
@@ -36,41 +36,41 @@ samples  = [
   
   # W+JETS requested, still not completed
   M('WJ','WtoLNu-4Jets',
-    "WtoLNu-4Jets_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
+    "/WtoLNu-4Jets_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WtoLNu-4Jets_1J',
-    "WtoLNu-4Jets_1J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
+    "/WtoLNu-4Jets_1J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WtoLNu-4Jets_2J',
-    "WtoLNu-4Jets_2J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
+    "/WtoLNu-4Jets_2J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WtoLNu-4Jets_3J',
-    "WtoLNu-4Jets_3J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
+    "/WtoLNu-4Jets_3J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   M('WJ','WtoLNu-4Jets_4J',
-    "WtoLNu-4Jets_4J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM"
+    "/WtoLNu-4Jets_4J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts="useT1=True"),
   
   # SINGLE TOP
   #M('ST','TBbarQ_t-channel',#temporary miss to add later
   #  "",
-  #  store=storage_new,url=url,files=filelist,opts="useT1=False"),
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
   #M('ST','TbarBQ_t-channel',#temporary miss to add later
   #  "",
-  #  store=storage_new,url=url,files=filelist,opts="useT1=False"),
+  #  store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TWminustoLNu2Q',
     "/TWminustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"),
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TWminusto2L2Nu',
     "/TWminusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"),
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TbarWplustoLNu2Q',
     "/TbarWplustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v5-v2/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"),
+    store=storage,url=url,files=filelist,opts="useT1=False"),
   M('ST','TbarWplusto2L2Nu',
     "/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v5-v2/NANOAODSIM",
-    store=storage_new,url=url,files=filelist,opts="useT1=False"), 
-    
+    store=storage,url=url,files=filelist,opts="useT1=False"), 
+  
   # DIBOSON
   M('VV','WW',
     "/WW_TuneCP5_13p6TeV_pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v2/NANOAODSIM",
