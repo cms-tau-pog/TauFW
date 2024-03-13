@@ -25,7 +25,7 @@ class ZptCorrectionTool:
     #assert year in [2016,2017,2018], "ZptCorrectionTool: You must choose a year from: 2016, 2017, or 2018."
    
     if not filename:
-      if "2022" in era:
+      if "2022" in era or "2023" in era:##in principle Zpt weights depend on generator, hence should be same for 2022/2023. They might be re-calculated later for checks
          histname = "zptmass_histo"
          filename = zptpath+"zpt_reweighting_LO_2022.root"
       else:

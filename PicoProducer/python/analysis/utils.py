@@ -386,6 +386,9 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
     if '2022' in era:
       electronIso90=electron.mvaIso_Fall17V2_WP90
       electronIso=electron.mvaIso_Fall17V2_WPL
+    if '2023' in era:
+      electronIso90=electron.mvaIso_WP90
+      electronIso=electron.mvaIso
     else:
       electronIso90=electron.mvaFall17V2Iso_WP90
       electronIso=electron.mvaFall17V2Iso_WPL

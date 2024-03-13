@@ -76,7 +76,14 @@ class ElectronSFs:
            self.sftool_iso        = ScaleFactor(pathPOG+"Run2022preEE/electron_SFs_2022_preEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
            assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
            self.sftool_idiso = self.sftool_id*self.sftool_iso
- 
+      elif '2023' in era: # PLACEHOLDERS
+        print(">>> WARNING! MuonSFs.__init__ using Run2022 SFs as placeholders! Please replace me! https://twiki.cern.ch/twiki/bin/view/CMS/MuonRun3_2023")
+        self.sftool_reco = False
+        self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root",'ScaleFactor_trg','ele_trig',ptvseta=False)
+        self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_id",'ele_id',ptvseta=False)
+        self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
+        assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
+        self.sftool_idiso = self.sftool_id*self.sftool_iso 
     assert self.sftool_trig!=None and self.sftool_idiso!=None, "ElectronSFs.__init__: Did not find electron SF tool for %r"%(era)
    
     if self.sftool_reco:
