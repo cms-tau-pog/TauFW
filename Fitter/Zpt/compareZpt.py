@@ -92,7 +92,7 @@ def compareZptmass(fname,outdir=None,tag="",verb=0):
         hist.SetBinError(ibin,0.0)
   
   # PLOT 1D - Unrolled unfolded weight 1D
-  print ">>> Plotting..."
+  print(">>> Plotting...")
   rline  = ('min',1.,'max',1.)
   pname_ = repkey(pname,CAT="weight_1D")
   plot   = Plot(bvar,hists,dividebins=False)
@@ -106,7 +106,7 @@ def compareZptmass(fname,outdir=None,tag="",verb=0):
   plot.close()
   
   file.Close()
-  print ">>> "
+  print(">>> ")
   
 
 def main(args):
@@ -119,7 +119,7 @@ def main(args):
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Compare Z pT plots from the ROOT files."""
-  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   #parser.add_argument('-y', '--era',     dest='eras', nargs='+', default=['2017'], action='store', #choices=['2016','2017','2018','UL2017']
   #                                       help="set era" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
@@ -127,5 +127,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
-  print ">>> Done."
+  print(">>> Done.")
   

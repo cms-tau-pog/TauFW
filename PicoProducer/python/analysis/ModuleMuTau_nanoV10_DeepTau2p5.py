@@ -31,7 +31,7 @@ class ModuleMuTau_nanoV10_DeepTau2p5(ModuleTauPair):
       self.muonCutPt  = lambda e: 25
       self.muonCutEta = lambda e: 2.4
     self.tauCutPt     = 20
-    self.tauCutEta    = 2.3
+    self.tauCutEta    = 2.5
     
     # CORRECTIONS
     if self.ismc:

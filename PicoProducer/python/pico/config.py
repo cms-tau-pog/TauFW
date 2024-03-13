@@ -256,7 +256,7 @@ def main_set(args):
   if key: # redirect 'channel' and 'era' keys to main_link
     args.subcommand = variable
     return main_link(args)
-  elif variable in ['channel','era']:
+  elif variable.rstrip('s') in ['channel','era']:
       LOG.throw(IOError,"Variable '%s' is reserved for dictionaries!"%(variable))
   if verbosity>=1:
     print('-'*80)

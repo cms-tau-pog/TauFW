@@ -50,7 +50,7 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
   
   for selection in selections:
     LOG.color(selection.title,col='green')
-    print ">>> %s"%(selection.selection)
+    print(">>> %s"%(selection.selection))
     xvar_reco.changecontext(selection.selection)
     xvar_gen.changecontext(selection.selection)
     fname_ = repkey(fname,CAT=selection.filename).replace('_baseline',"")
@@ -58,7 +58,7 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
     
     # RECO-LEVEL
     if doreco:
-      print ">>> Measure reco-level weights as a function of %s"%(xvar_reco.title)
+      print(">>> Measure reco-level weights as a function of %s"%(xvar_reco.title))
       outfile = ensureTFile(fname_,'UPDATE')
       ctrldir = ensureTDirectory(outfile,"control",cd=False)
       
@@ -129,11 +129,11 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
       # CLOSE
       close([exphist,bkghist,obsdyhist]) #sfhist,obshist,+hist.exp
       outfile.Close()
-      print ">>> "
+      print(">>> ")
     
     # AVERAGE RECO-WEIGHT
     if dogen:
-      print ">>> Averaging reco-level weight as a function of %s"%(xvar_gen.title)
+      print(">>> Averaging reco-level weight as a function of %s"%(xvar_gen.title))
       
       weight = "getZptWeight(pt_ll)"
       loadZptWeights(fname_,hname+"_weight_reco")
@@ -175,7 +175,7 @@ def measureZpt(samples,outdir='weights',plotdir=None,parallel=True,tag=""):
       
       # CLOSE
       outfile.Close()
-      print ">>> "
+      print(">>> ")
     
 
 def main(args):
@@ -201,7 +201,7 @@ if __name__ == "__main__":
   from argparse import ArgumentParser
   argv = sys.argv
   description = """Measure Z pT reweighting in dimuon events by averaging."""
-  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2017'], default=['2017'], action='store',
                                          help="set era" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
@@ -211,5 +211,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   main(args)
-  print ">>> Done."
+  print(">>> Done.")
   

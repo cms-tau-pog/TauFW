@@ -175,7 +175,7 @@ if __name__ == "__main__":
                                                 help="do not write file with zero events")
   parser_wrt.add_argument('-T','--try',         dest='retries', type=int, default=1, action='store',
                                                 help="number of retries if file is not found")
-  parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=None,
+  parser_run.add_argument('-m','--maxevts',     dest='maxevts', type=int, default=-1,
                           metavar='NEVTS',      help="maximum number of events (per file) to process")
   parser_run.add_argument('--preselect',        dest='preselect', type=str, default=None,
                                                 help="preselection to be shipped to skimjob.py during run command")

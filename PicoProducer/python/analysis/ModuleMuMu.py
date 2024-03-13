@@ -28,6 +28,10 @@ class ModuleMuMu(ModuleTauPair):
       #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
       self.muon1CutPt = lambda e: 25 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
+    elif self.year==2022:
+      #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
+      self.muon1CutPt  = lambda e: 25
+      self.muonCutEta = lambda e: 2.4
     else:
       #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
       self.muon1CutPt = lambda e: 25
@@ -41,7 +45,7 @@ class ModuleMuMu(ModuleTauPair):
       self.muSFs   = MuonSFs(era=self.era)
 
     # TRIGGERS
-    jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
+    jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(2018))
     self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)
     
     # CUTFLOW
@@ -52,7 +56,12 @@ class ModuleMuMu(ModuleTauPair):
     self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
-    
+    self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
+    self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
   
   def beginJob(self):
     """Before processing any events or files."""
@@ -124,7 +133,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.cutflow.fill('leadTrig')
     
     # VETOS
-    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel)
+    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel, era=self.era)
     self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = extramuon_veto, extraelec_veto, dilepton_veto
     self.out.lepton_vetoes[0]       = extramuon_veto or extraelec_veto or dilepton_veto
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto

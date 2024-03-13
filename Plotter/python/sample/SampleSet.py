@@ -314,13 +314,13 @@ class SampleSet(object):
       elif dosignal and sample.issignal: # SIGNAL
         rkwargs.update({ 'weight': weight, 'replaceweight': replaceweight, 'scale': sigscale })
       res_dict += sample.getrdframe(variables,selections,split=False,task=task,tag=tag,
-                                    rdf_dict=rdf_dict,verb=verbosity+1,**rkwargs)
+                                    rdf_dict=rdf_dict,verb=verbosity,**rkwargs)
     if verbosity>=2:
       print(f">>> SampleSet.gethists: Got res_dict:")
       res_dict.display() # print full dictionary
     
     # RUN RDataFrame events loops to fill histograms
-    res_dict.run(graphs=True,rdf_dict=rdf_dict,dot=dotgraph,verb=verbosity+1)
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,dot=dotgraph,verb=verbosity)
     
     # CONVERT TO HISTSET
     # NOTE: in case of many subsamples of MergedSamples,
@@ -331,7 +331,7 @@ class SampleSet(object):
     if method:
       LOG.verb("SampleSet.gethists: method %r"%(method),verbosity,1)
       hist_dict = getattr(self,method)(variables,selections,rdf=True,**kwargs) # { selection : { variable: TH1D } } }
-      histset_dict.insert(hist_dict,imethod,verb=verbosity+2) # weave/insert histograms from hist_dict into histset_dict
+      histset_dict.insert(hist_dict,imethod,verb=verbosity) # weave/insert histograms from hist_dict into histset_dict
     
     # YIELDS
     if verbosity>=3:

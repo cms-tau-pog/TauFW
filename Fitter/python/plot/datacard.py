@@ -52,7 +52,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   tag           = kwargs.get('tag',           ""     ) # file tag
   filters       = kwargs.get('filter',        None   ) # only create histograms for these processes
   vetoes        = kwargs.get('veto',          None   ) # veto these processes
-  parallel      = kwargs.get('parallel',      True   ) # MultiDraw histograms in parallel
+  parallel      = kwargs.get('parallel',      False   ) # MultiDraw histograms in parallel
   recreate      = kwargs.get('recreate',      False  ) # recreate ROOT file
   replaceweight = kwargs.get('replaceweight', None   ) # replace weight (e.g. for syst. variations)
   replacenames  = kwargs.get('replacename',   [ ]    ) # replace name (regular expressions)
@@ -115,31 +115,32 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
     ljust = 4+max(11,len(htag)) # extra space
     TAB   = LOG.table("%10.1f %10d  %-18s  %s")
     TAB.printheader('events','entries','variable','process'.ljust(ljust))
-    for obs, hist in hists.iterhists():
-      name    = lreplace(hist.GetName(),obs.filename.replace('.','p')).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
-      if not name.endswith(htag):
-        name += htag # HIST = $PROCESS_$SYSTEMATIC
-      name    = repkey(name,BIN=bin)
-      if dots and 'p' in name: # replace 'p' with '.' in float
-        name = re.sub(r"(\d+)p(\d+)",r"\1.\2",name)
-      for exp, sub in replacenames: # replace regular expressions
-        name = re.sub(exp,sub,name)
-      drawopt = 'E1' if 'data' in name else 'EHIST'
-      lcolor  = kBlack if any(s in name for s in ['data','ST','VV']) else hist.GetFillColor()
-      hist.SetOption(drawopt)
-      hist.SetLineColor(lcolor)
-      hist.SetFillStyle(0) # no fill in ROOT file
-      hist.SetName(name)
-      hist.GetXaxis().SetTitle(obs.title)
-      for i, yval in enumerate(hist):
-        if yval<0:
-          print(">>> replace bin %d (%.3f<0) of %r"%(i,yval,hist.GetName()))
-          hist.SetBinContent(i,0)
-      if files[obs].cd(bin): # $FILE:$BIN/$PROCESS_$SYSTEMATC
-        hist.Write(name,TH1.kOverwrite)
-      TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(),name)
-      if not parallel: # avoid segmentation faults for parallel
-        deletehist(hist) # clean histogram from memory
+    for obs, histset in hists.items():
+      for hist in histset: 
+        name    = lreplace(hist.GetName(),obs.filename.replace('.','p')).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
+        if not name.endswith(htag):
+          name += htag # HIST = $PROCESS_$SYSTEMATIC
+        name    = repkey(name,BIN=bin)
+        if dots and 'p' in name: # replace 'p' with '.' in float
+          name = re.sub(r"(\d+)p(\d+)",r"\1.\2",name)
+        for exp, sub in replacenames: # replace regular expressions
+          name = re.sub(exp,sub,name)
+        drawopt = 'E1' if 'data' in name else 'EHIST'
+        lcolor  = kBlack if any(s in name for s in ['data','ST','VV']) else hist.GetFillColor()
+        hist.SetOption(drawopt)
+        hist.SetLineColor(lcolor)
+        hist.SetFillStyle(0) # no fill in ROOT file
+        hist.SetName(name)
+        hist.GetXaxis().SetTitle(obs.title)
+        for i, yval in enumerate(hist):
+          if yval<0:
+            print(">>> replace bin %d (%.3f<0) of %r"%(i,yval,hist.GetName()))
+            hist.SetBinContent(i,0)
+        if files[obs].cd(bin): # $FILE:$BIN/$PROCESS_$SYSTEMATC
+          hist.Write(name,TH1.kOverwrite)
+        TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(),name)
+        if not parallel: # avoid segmentation faults for parallel
+          deletehist(hist) # clean histogram from memory
   
   # CLOSE
   for obs, file in files.items():

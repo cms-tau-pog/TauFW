@@ -89,6 +89,12 @@ class BTagWPs:
           self.loose    = 0.5803 # for 94X
           self.medium   = 0.8838
           self.tight    = 0.9693
+      elif '2022' in era:
+        # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          self.loose    = 0.0490
+          self.medium   = 0.2783
+          self.tight    = 0.7100
     if self.loose==None or self.medium==None or self.tight==None:
       raise IOError("BTagWPs: Did not recognize tagger %s for era %s"%(tagger,era))
     
@@ -136,7 +142,15 @@ class BTagWeightTool:
       if 'UL' not in effname:
         LOG.warning("Using pre-UL place holder %r for efficiencies! Please update."%(effname))
     else: # pre-UL
-      if '2016' in era:
+      if '2022' in era:
+        # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
+        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+        if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
+          #csvname    = datadir+"DeepJet_106XUL18SF.csv"
+          csvname    = datadir+"wp_deepJet_106XUL18_v2_reformatted.csv" # TODO: update BTagCalibration to read correct file !!!
+          csvname_bc = datadir+"DeepJet_106XUL18SF_YearCorrelation-V1.csv"
+          effname    = effsdir+"DeepJet_2018_Autumn18_eff.root"
+      elif '2016' in era:
         # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
         # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
         if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
