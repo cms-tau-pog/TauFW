@@ -276,13 +276,14 @@ def compareMCProfiles(samples,channel,era,tag="",xmax=100):
   # PLOT
   hists  = [avehist]+hists
   colors = [kBlack]+linecolors
+  lpos   = 'TTR' if '201' in era else 'TTLL'
   avehist.Scale(1./avehist.Integral())
   pname  = "%s/pileup_MC_%s%s"%(outdir,era,tag)
   xtitle = "Number of true interactions"
   plot   = Plot(hists,ratio=True,rmin=0.45,rmax=1.55,xmax=xmax)
   plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="MC / Ave.",
             textsize=0.032,denom=2,colors=colors)
-  plot.drawlegend('TTR',tsize=0.04,latex=False)
+  plot.drawlegend(lpos,tsize=0.04,latex=False,ncols=2)
   plot.saveas(pname+".png")
   plot.saveas(pname+".pdf")
   plot.close(keep=True)

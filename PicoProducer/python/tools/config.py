@@ -36,10 +36,11 @@ def getdefaultconfig(verb=0):
       ('2018','samples_2018.py')
     ])
     channels      = OrderedDict([
+      ('test',    'test.py'),
       ('skim',    'skimjob.py'),
       ('skim-jec','skimjob.py --jec-sys'),
       ('gen',     'GenDumper'),
-      ('test',    'test.py'),
+      ('sumw',    'SumWeights'),
       ('pileup',  'PileUp'),
       ('mutau',   'ModuleMuTauSimple')
     ])

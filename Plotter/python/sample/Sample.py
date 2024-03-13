@@ -880,7 +880,7 @@ class Sample(object):
             else: # no weight
               result = rdf_var.Histo2D(hmodel,xname,yname)
           
-          #print(f">>> Sample.getrdframe:     Adding to results: sel={selection!r}, var={variable!r}, sam={sample!r}, res={result!r}")
+          #print(">>> Sample.getrdframe:     Adding to results: sel={selection!r}, var={variable!r}, sam={sample!r}, res={result!r}")
           res_dict.add(selection,variable,sample,result) # add RDF.RResultPtr<TH1D> to dict
     
     return res_dict
@@ -911,7 +911,7 @@ class Sample(object):
       rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
       res_dict = self.getrdframe([ ],selections,**kwargs)
       if verbosity>=3: # print RDFs RDF.RResultPtr<double>
-        print(f">>> Sample.getsumw: Got res_dict:")
+        print(">>> Sample.getsumw: Got res_dict:")
         res_dict.display() # print full dictionary
       res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
       
@@ -944,7 +944,7 @@ class Sample(object):
     rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
     res_dict = self.getrdframe(variables,selections,**kwargs)
     if verbosity>=3: # print RDFs RResultPtr<TH1>
-      print(f">>> Sample.gethist: Got res_dict:")
+      print(">>> Sample.gethist: Got res_dict:")
       res_dict.display() # print full dictionary
     res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
     
