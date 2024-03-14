@@ -50,7 +50,7 @@ class ModuleTauPair(Module):
     self.dosys      = kwargs.get('sys',      self.dosys     ) # store fewer branches to save disk space
     self.dotight    = self.tes not in [1,None] or not self.dosys # tighten pre-selection to store fewer events
     self.dotight    = kwargs.get('tight',    self.dotight   ) # store fewer events to save disk space
-    self.dojec      = kwargs.get('jec',      True           ) and self.ismc #and self.year==2016 #False
+    self.dojec      = kwargs.get('jec',      False          ) and self.ismc #and self.year==2016 #False
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1 for backwards compatibility with old nanoAOD-tools JME corrector
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
@@ -83,7 +83,7 @@ class ModuleTauPair(Module):
       if self.dojecsys:
        self.jecUncLabels = [ u+v for u in ['JER','JES'] for v in ['Down','Up']]
        self.metUncLabels = [ u+v for u in ['JER','JES','Unclustered'] for v in ['Down','Up']]
-       self.met_vars     = { u: getmet(self.year,u,useT1=self.useT1) for u in self.metUncLabels }
+       self.met_vars     = { u: getmet(self.era,u,useT1=self.useT1) for u in self.metUncLabels }
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
     
