@@ -264,6 +264,9 @@ def deltaPhi(phi1, phi2):
 
 def getmet(era,var="",useT1=False,verb=0):
   """Return year-dependent MET recipe."""
+  if not isinstance(era,str):
+    LOG.warn(">>> getmet: Got era=%r (type==%s), but expected string! Converting..."%(era,type(era)))
+    era = str(era)
   if '2017' in era and 'UL' not in era :
     branch  = 'METFixEE2017'
   elif '2022' in era or '2023' in era:
