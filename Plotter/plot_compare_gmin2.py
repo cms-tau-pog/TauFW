@@ -324,15 +324,35 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
   gStyle.SetPalette(kBird)
   
   # SELECTIONS
-  baseline   = getbaseline(channel)
-  zmmtitle   = "|m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV"
-  zmmcuts    = baseline+" && abs(m_ll-91.1876)<15"
-  selections = [
+  zmass       = 91.1876
+  baseline    = getbaseline(channel)
+  zmmtitle    = "|m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV"
+  zmmtitle2   = zmmtitle.replace(' 15 ',' 30 ')
+  zmmcuts     = f"{baseline} && abs(m_ll-{zmass})<15"
+  zmmcuts2    = zmmcuts.replace(')<15',')<30')
+  sel_acobin1 = Sel(zmmtitle, zmmcuts+" && aco<0.015",  flag="A < 0.015", fname="ZMM-Alt0p015")
+  sel_acobin2 = Sel(zmmtitle, zmmcuts+" && aco>=0.015", flag="A >= 0.015", fname="ZMM-Agt0p015")
+  sel_acobin1.iy = 1
+  sel_acobin2.iy = 2
+  selections  = [
     #Sel('baseline', baseline),
-    Sel(zmmtitle, zmmcuts, fname="baseline-ZMM"),
-    Sel(zmmtitle, zmmcuts+" && aco<0.015",  flag="A < 0.015", fname="baseline-ZMM-Alt0p015"),
-    Sel(zmmtitle, zmmcuts+" && aco>=0.015", flag="A >= 0.015", fname="baseline-ZMM-Agt0p015"),
+#     Sel(zmmtitle, zmmcuts, fname="ZMM-baseline"),
+#     sel_acobin1,
+#     sel_acobin2,
+    Sel(zmmtitle2, zmmcuts2+" && aco<0.015",  flag="A < 0.015", fname="ZMM30-Alt0p015"),
   ]
+  
+  # Z MASS BINS
+  massbins = [ 
+    (-30,-15),(-15,0),(0,15),(15,30),
+  ]
+  for i, (mmin, mmax) in enumerate(massbins,1):
+    stitle = "%s < m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}} <= %s GeV"%(mmin,mmax)
+    scuts  = f"{baseline} && {mmin}<m_ll-{zmass} && m_ll-{zmass}<={mmax} && aco<0.015"
+    fname  = f"ZMM{mmin}to{mmax}-Alt0p015"
+    sel    = Sel(stitle, scuts, flag="A < 0.015", fname=fname)
+    sel.iy = i # for 2D hist
+    selections.append(sel)
   
   # GET SAMPLES
   #print(">>> GLOB.lumi=%s"%(GLOB.lumi))
@@ -373,6 +393,7 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
   xbins   = [b if isinstance(b,int) else b[0] for b in hs_bins]+[40]
   xvar    = Var('ntrack_hs', "Number of HS tracks", xbins)
   yvar    = Var('aco',       "Acoplanarity A",      [0,0.015,1])
+  mvar    = Var('dm_mumu',   "m_{#lower[-0.3]{#mu#mu}} #minus %s"%(zmass), [-30,-15,0,15,30])
   for varset in varsets:
     var0 = varset[0]
     for bin in hs_bins:
@@ -401,6 +422,7 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
   # 2D corrections
   hists2d = { }
   hists2d['incl'] = xvar.gethist2D(yvar,'correction_map',ztitle=ztitle)
+  hists2d['mass'] = xvar.gethist2D(mvar,'correction_map_zmass',ztitle=ztitle)
   
   # STEP 1: CREATE HISTOGRAMS for all selections
   LOG.color("Step 1: Creating hists...",b=True)
@@ -531,10 +553,12 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
                               exts=exts,tag=tag,hs_bins=hs_bins,verb=verbosity)
       
       # STEP 3: MAKE MEASUREMENT
-      if any(s in selection.selection for s in ['aco<0.015','aco>=0.015']):
-        LOG.color("Step 3: Measure HS track corrections...",b=True)
-        iy = 1 if 'aco<0.015' in selection.selection else 2
-        hist2d = hists2d['incl']
+      #any(zmmcuts+" && "+s in selection.selection for s in ['aco<0.015','aco>=0.015']) or\
+      if hasattr(selection,'iy'):
+        iy = selection.iy
+        ismass = f"<m_ll-{zmass} && m_ll-{zmass}<=" in selection.selection
+        LOG.color(f"Step 3: Measure HS track corrections (iy={iy})...",b=True)
+        hist2d = hists2d['mass' if ismass else 'incl']
         for bin, mchist in zip(hs_bins,mchists): # scale bins from left to right to match data
           if isinstance(bin,int):
             ix   = hist2d.GetXaxis().FindBin(bin+0.5)
@@ -574,29 +598,32 @@ def measure_ntracks_hs(era,channel,tag="",**kwargs):
       plot.close(keep=False)
   
   # STEP 3b: WRITE 2D HIST
-  print(">>> ")
-  LOG.color("Step 3b: Write 2D correction hist...",b=True)
-  hist2d = hists2d['incl']
-  hname  = hist2d.GetName()
-  fname  = "%s/%s_aco-ntrack_hs_%s%s"%(outdir,hname,era,tag)
-  nxbins = hist2d.GetXaxis().GetNbins()
-  nybins = hist2d.GetYaxis().GetNbins()
-  hist2d.SetOption('COLZTEXT55')
-  hist2d.SetBinContent(nxbins+1,nybins+1,hist2d.GetBinContent(nxbins,nybins))
-  plot2d = Plot2D(xvar,yvar,hist2d)
-  plot2d.draw('COLZTEXT55',tcolor=kRed,logy=True,logz=False,grid=False,
-            zoffset=5.5,ymin=0.01,zmin=0.5,zmax=1.3)
-  #plot2d.frame.GetYaxis().SetBinLabel(0,'< 0.015')
-  #plot2d.frame.GetYaxis().SetBinLabel(1,'#geq 0.015')
-  plot2d.frame.GetYaxis().SetNdivisions(3,False)
-  latex = TLatex()
-  latex.SetTextSize(0.04)
-  latex.SetTextAlign(32)
-  latex.DrawLatex(-0.6,0.015,"0.015")
-  if not loadhists:
-    hfile.cd()
-    hist2d.Write(hist2d.GetName(),hist2d.kOverwrite)
-  plot2d.saveas(fname,ext=['.png','.pdf'])
+  for hist2d in hists2d.values():
+    hname = hist2d.GetName()
+    print(">>> ")
+    if all(hist2d.GetBinContent(*b)!=0 for b in [(1,1),(2,2)]):
+      LOG.color("Step 3b: Write 2D correction hist {hname!r}...",b=True)
+      fname  = "%s/%s_aco-ntrack_hs_%s%s"%(outdir,hname,era,tag)
+      nxbins = hist2d.GetXaxis().GetNbins()
+      nybins = hist2d.GetYaxis().GetNbins()
+      hist2d.SetOption('COLZTEXT55')
+      hist2d.SetBinContent(nxbins+1,nybins+1,hist2d.GetBinContent(nxbins,nybins))
+      plot2d = Plot2D(xvar,yvar,hist2d)
+      plot2d.draw('COLZTEXT55',tcolor=kRed,logy=True,logz=False,grid=False,
+                zoffset=5.5,ymin=0.01,zmin=0.5,zmax=1.3)
+      #plot2d.frame.GetYaxis().SetBinLabel(0,'< 0.015')
+      #plot2d.frame.GetYaxis().SetBinLabel(1,'#geq 0.015')
+      plot2d.frame.GetYaxis().SetNdivisions(3,False)
+      latex = TLatex()
+      latex.SetTextSize(0.04)
+      latex.SetTextAlign(32)
+      latex.DrawLatex(-0.6,0.015,"0.015")
+      if not loadhists:
+        hfile.cd()
+        hist2d.Write(hname,hist2d.kOverwrite)
+      plot2d.saveas(fname,ext=['.png','.pdf'])
+    else:
+      print(f">>> Ignoring 2D histogram {hname!r}")
   
   # CLOSE
   hfile.Close()
@@ -652,6 +679,7 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   #entries   = kwargs.get('entries',  [str(e) for e in eras] ) # for legend
   exts      = kwargs.get('exts',      ['png','pdf'] ) # figure file extensions
   extratext = kwargs.get('extra',     "Preliminary" ) # extra CMS text
+  logx      = kwargs.get('logx',      False   ) or True
   verbosity = kwargs.get('verb',      1       )
   chunk     = kwargs.get('chunk',     -1      )
   ensuredir(outdir)
@@ -858,10 +886,19 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
         rmin    = 0.55
         rmax    = 1.45
         tsize   = 0.054
+        xmin    = None
+        ymin    = None
+        ymax    = var.ymax
         ntag    = '' if norm else "_lumi"
         opts    = ['E1 HIST']*(len(hists)-1)+['E1']
         mstyles = ['hist']*(len(hists)-1)+['data']
         errbars = True
+        if logx:
+          ntag += "_logx"
+          xmin  = 0.55
+          ymin  = 3e-5
+          ymax  = 15
+          ymarg = 1.55
         if 'ntrack' in var.name:
           rmax  = 2.0 if '2017' in era else 1.7
           tsize = 0.061
@@ -874,9 +911,9 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
           lcols = [kRed,kBlue][:len(hists)-1]+[kBlack] # not good for color blind
         else:
           lcols = [kGreen-2][:len(hists)-1]+[kBlack]
-        plot    = Plot(var,hists,norm=scales)
+        plot    = Plot(var,hists,norm=scales,xmin=xmin,ymin=ymin,ymax=ymax)
         plot.draw(options=opts,colors=lcols,mstyles=mstyles,lstyle=1,grid=False,errbars=errbars,
-                  ratio=True,rmin=rmin,rmax=rmax,num=num,rtitle=rtitle,ymargin=ymarg)
+                  ratio=True,rmin=rmin,rmax=rmax,num=num,rtitle=rtitle,ymargin=ymarg,logx=logx)
         plot.drawlegend(pos=lpos,tsize=tsize,reverse=True,header=header)
         plot.drawtext(text,size=tsize) #.replace('-','#minus'))
         plot.saveas(fname,ext=exts,tag=ntag)
