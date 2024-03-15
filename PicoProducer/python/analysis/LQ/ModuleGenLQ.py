@@ -285,20 +285,21 @@ class ModuleGenLQ(Module):
     nall = hist.GetEntries()
     if nall>0:
       ntau = nall-hist.GetBinContent(1)
-      print(f">>> Tau decays: {ntau} with pT > 20 GeV (assigned {100.0*ntau/nall:.1f}%)")
+      print(">>> Tau decays: %s with pT > 20 GeV (assigned %.1f%%)"%(ntau,100.0*ntau/nall))
+      #print(f">>> Tau decays: {ntau} with pT > 20 GeV (assigned {100.0*ntau/nall:.1f}%)")
       if ntau>0:
         eff  = lambda n, N: (100.*n/N, 100.*sqrt((n/N)*(1.-n/N)/N)) # efficiency & uncertainty
         perc = lambda *l: "(%5.1f +-%4.1f )%%"%eff(sum(hist.GetBinContent(i) for i in l),ntau) # percentage
-        print(f">>>   Leptonic:   {perc(2,3)}")
-        print(f">>>     Electron: {perc(2)}")
-        print(f">>>     Muon:     {perc(3)}")
-        print(f">>>   Hadronic:   {perc(4,5,6,7,8,9)}")
-        print(f">>>     1h:       {perc(4)}") # one-prong (one charged hadron)
-        print(f">>>     1h+1pi0:  {perc(5)}")
-        print(f">>>     1h+2pi0:  {perc(6)}")
-        print(f">>>     3h:       {perc(7)}") # three-prong (three charged hadrons)
-        print(f">>>     3h+1pi0:  {perc(8)}")
-        print(f">>>     Other:    {perc(9)}")
+        print(">>>   Leptonic:   "+perc(2,3))
+        print(">>>     Electron: "+perc(2))
+        print(">>>     Muon:     "+perc(3))
+        print(">>>   Hadronic:   "+perc(4,5,6,7,8,9))
+        print(">>>     1h:       "+perc(4)) # one-prong (one charged hadron)
+        print(">>>     1h+1pi0:  "+perc(5))
+        print(">>>     1h+2pi0:  "+perc(6))
+        print(">>>     3h:       "+perc(7)) # three-prong (three charged hadrons)
+        print(">>>     3h+1pi0:  "+perc(8))
+        print(">>>     Other:    "+perc(9))
     self.out.endJob()
     
   def analyze(self, event):
@@ -470,8 +471,10 @@ class ModuleGenLQ(Module):
           tmoth = tau
       if dRmin<0.4: # found mother tau
         if tmoth.vistau!=None: # visible decay product already set => ignore
-          print(f"WARNING! Multiple matches between tau and visible decay product!"
-                f"{vistau} ({vistau.dm}) will be ignored in favor of {tmoth.vistau} ({tmoth.vistau.dm})!")
+          #print(f"WARNING! Multiple matches between tau and visible decay product!"
+          #      f"{vistau} ({vistau.dm}) will be ignored in favor of {tmoth.vistau} ({tmoth.vistau.dm})!")
+          print("WARNING! Multiple matches between tau and visible decay product!"
+                "%s (%s) will be ignored in favor of %s (%s)!"%(vistau,vistau.dm,tmoth.vistau,tmoth.vistau.dm))
         else: # set visible decay product for first time
           tmoth.vistau = vistau # assign visible daughter to tau
           vistau.settau(tmoth) # set tau and mother

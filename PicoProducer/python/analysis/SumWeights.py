@@ -38,9 +38,11 @@ class SumWeights(Module):
     nevts = self.sumw_scale.GetBinContent(self.sumw_scale.GetXaxis().FindBin('1p0_1p0'))
     sumw  = self.sumw_scale_genw.GetBinContent(self.sumw_scale_genw.GetXaxis().FindBin('1p0_1p0'))
     if nevts>0:
-      print(f">>> Average (nominal) gen-weight: {sumw} / {nevts} = {sumw/nevts}")
+      #print(f">>> Average (nominal) gen-weight: {sumw} / {nevts} = {sumw/nevts}")
+      print(">>> Average (nominal) gen-weight: %s / %s = %s"%(sumw,nevts,sumw/float(nevts)))
     for hist in [self.sumw_scale,self.sumw_scale_genw]:
-      print(f">>> {hist.GetTitle().replace('#','').replace('{','').replace('}','')}:")
+      #print(f">>> {hist.GetTitle().replace('#','').replace('{','').replace('}','')}:")
+      print(">>> %s:"%(hist.GetTitle().replace('#','').replace('{','').replace('}','')))
       sumw_nom = hist.GetBinContent(hist.GetXaxis().FindBin('1p0_1p0'))
       if sumw_nom<=0: continue
       for i in range(1,hist.GetXaxis().GetNbins()+1):
@@ -48,12 +50,14 @@ class SumWeights(Module):
         if name=="": continue
         sumw = hist.GetBinContent(i)
         ave  = sumw/sumw_nom
-        print(f">>>   {name:<8s} {sumw:8.1f} / {sumw_nom:8.1f}  = {ave:5.2f}")
+        #print(f">>>   {name:<8s} {sumw:8.1f} / {sumw_nom:8.1f}  = {ave:5.2f}")
+        print(">>>   %-8s %8.1f / %8.1f  = %5.2f"%(name,sumw,sumw_nom,ave))
     self.outfile.Close()
   
   def analyze(self, event):
     """Process event, return True (pass, go to next module) or False (fail, go to next event)."""
-    assert event.nLHEScaleWeight==9, f"Got event.nLHEScaleWeight={event.nLHEScaleWeight}, expected 9..."
+    #assert event.nLHEScaleWeight==9, f"Got event.nLHEScaleWeight={event.nLHEScaleWeight}, expected 9..."
+    assert event.nLHEScaleWeight==9, "Got event.nLHEScaleWeight=%s, expected 9..."%(event.nLHEScaleWeight)
     for ibin in range(0,event.nLHEScaleWeight): # Ren. & fact. scale
       #if idx>=event.nLHEScaleWeight: break
       self.sumw_scale.Fill(     ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[ibin])

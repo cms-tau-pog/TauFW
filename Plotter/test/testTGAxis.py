@@ -3,8 +3,10 @@
 # Description: Plot custom axis
 print(">>> Importing ROOT...")
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gROOT, gStyle, TCanvas, TF1, TGaxis,\
-                 kBlack, kRed, kBlue, kGreen
+from ROOT import gROOT, gStyle, TCanvas, TH1F, TF1, TGaxis,\
+                 kBlack, kRed, kBlue, kGreen, kDashed
+from math import log10
+from array import array
 gROOT.SetBatch(True)       # don't open GUI windows
 gStyle.SetOptTitle(False)  # don't make title on top of histogram
 gStyle.SetOptStat(False)   # don't make stat. box
@@ -31,7 +33,7 @@ def plot_customaxis_log(verb=0):
   # FRAME
   tsize = 0.050
   lsize = 0.044
-  ysize = 0.98*lsize # for logarithmic axis label
+  gsize = 0.98*lsize # for logarithmic axis label
   frame = canvas.DrawFrame(xmin,ymin,xmax,ymax)
   ###frame.SetMinimum(ymin)
   ###frame.SetMaximum(ymax)
@@ -45,7 +47,7 @@ def plot_customaxis_log(verb=0):
   #frame.GetYaxis().SetTitleSize(tsize)
   frame.GetYaxis().SetTitleSize(0) # hide y axis
   frame.GetXaxis().SetLabelSize(lsize)
-  #frame.GetYaxis().SetLabelSize(ysize)
+  #frame.GetYaxis().SetLabelSize(gsize)
   frame.GetYaxis().SetLabelSize(0) # hide y axis
   frame.GetYaxis().SetTickLength(0) # hide y axis
   
@@ -72,7 +74,7 @@ def plot_customaxis_log(verb=0):
   yaxis.SetTitleSize(lsize)
   yaxis.SetLabelFont(42)
   yaxis.SetLabelColor(kRed)
-  yaxis.SetLabelSize(ysize)
+  yaxis.SetLabelSize(gsize)
   yaxis.SetLabelOffset(6e-3)
   yaxis.Draw()
   
@@ -109,7 +111,7 @@ def plot_customaxis_log2(xmin=0,xmax=100,ymin=1e-3,ymax=1.6,nydiv=506,verb=0):
   # FRAME
   tsize = 0.050
   lsize = 0.044
-  ysize = 0.98*lsize # for logarithmic axis label
+  gsize = 0.98*lsize # for logarithmic axis label
   frame = canvas.DrawFrame(xmin,ymin,xmax,ymax)
   frame.GetXaxis().SetTitle(xtitle)
   frame.GetYaxis().SetTitle("") # hide y axis
@@ -144,7 +146,7 @@ def plot_customaxis_log2(xmin=0,xmax=100,ymin=1e-3,ymax=1.6,nydiv=506,verb=0):
   yaxis.SetTitleSize(lsize)
   yaxis.SetLabelFont(42)
   yaxis.SetLabelColor(kRed)
-  yaxis.SetLabelSize(ysize)
+  yaxis.SetLabelSize(gsize)
   yaxis.SetLabelOffset(6e-3)
   yaxis.Draw()
   
@@ -161,7 +163,98 @@ def plot_customaxis_log2(xmin=0,xmax=100,ymin=1e-3,ymax=1.6,nydiv=506,verb=0):
   canvas.SaveAs(fname+".png")
   #canvas.SaveAs(fname+".pdf")
   canvas.Close()
+  
 
+def plot_customaxis_partial(verb=0):
+  """Plot with custom x axis that is partially logarithmic."""
+  print(">>> plot_customaxis_partial")
+  
+  # FUNCTION
+  fname = "plot_customaxis_partial"
+  xmin, xmax = 70, 250 # x = mass
+  ymin, ymax =  0, 500 # y = Events
+  xmid, xlast = 200, 500
+  xtitle = "m_{#lower[-0.16]{vis}} [GeV]" # visible mass
+  ytitle = "Events / bin"
+  
+  # PLOT
+  canvas = TCanvas('canvas','canvas',100,100,1000,800) # XYWH
+  canvas.SetMargin(0.11,0.03,0.11,0.02) # LRBT
+  canvas.SetTicks(0,1) # draw y ticks on opposite side (right)
+  
+  # FRAME
+  tsize = 0.050
+  lsize = 0.044
+  frame = canvas.DrawFrame(xmin,ymin,xmax,ymax)
+  frame.GetXaxis().SetTitle(xtitle)
+  frame.GetYaxis().SetTitle(ytitle)
+  frame.GetXaxis().SetTitleOffset(0.97)
+  frame.GetYaxis().SetTitleOffset(1.05)
+  frame.GetXaxis().SetTitleSize(tsize) # hide x axis
+  frame.GetYaxis().SetTitleSize(tsize)
+  frame.GetXaxis().SetLabelSize(0.0) # hide x axis
+  frame.GetYaxis().SetLabelSize(lsize)
+  frame.GetXaxis().SetTickLength(0) # hide x axis
+  
+  # DRAW HISTOGRAM
+  xbins = [xmin,75,100,150,xmid,xmax]
+  ybins = [5,19,37,16,15]
+  h1 = TH1F('h1','h1',len(xbins)-1,array('d',xbins))
+  h1.SetLineColor(kBlack)
+  h1.SetFillColor(kRed-9)
+  for i, ybin in enumerate(ybins,1):
+    h1.SetBinContent(i,ymax/50.*ybin)
+  h1.Draw('HIST SAME')
+  
+  # CUSTOM X AXES
+  ndiv_lin = 506 # Ndivisions = 100*nminor + nmajor
+  ndiv_log = 506 # Ndivisions = 100*nminor + nmajor
+  flin = TF1('flin',"x",xmin,xmid) # scale logarithmically, while keeping ticks at linear equidistance
+  flog = TF1('flog',"log(x)",xmid,xlast) # scale logarithmically, while keeping ticks at linear equidistance
+  axes = [ ]
+  for y in [ymin,ymax]: # bottom, top
+    if y==ymin: # bottom
+      chopt = '+S' # draw tick marks positive side
+      gsize = 0.98*lsize # for tick label
+    else: # top
+      chopt = '-S' # draw tick marks negative side
+      gsize = 0.0 # for tick label
+    
+    # LEFT PART (linear)
+    xaxis = TGaxis(xmin,y,xmid,y,'flin',ndiv_lin,chopt)
+    xaxis.SetLineWidth(1)
+    xaxis.SetLineColor(kRed)
+    xaxis.SetTickSize(0.03*(xmax-xmin)/(xmid-xmin)) # scales with axis length
+    xaxis.SetLabelFont(42)
+    xaxis.SetLabelColor(kRed)
+    xaxis.SetLabelSize(gsize)
+    xaxis.SetLabelOffset(6e-3)
+    xaxis.SetTitleSize(0)
+    xaxis.Draw()
+    axes.append(xaxis)
+    
+    # RIGHT PART (logarithmic)
+    #xaxis = TGaxis(gPad.GetUxmin(),gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymin(),'fpart',nxdiv,'-')
+    xaxis = TGaxis(xmid,y,xmax,y,'flog',ndiv_log,chopt)
+    xaxis.SetLineWidth(1)
+    xaxis.SetLineColor(kBlue)
+    xaxis.SetTickSize(0.03*(xmax-xmin)/(xmax-xmid)) # scales with axis length
+    xaxis.SetLabelFont(42)
+    xaxis.SetLabelColor(kBlue)
+    xaxis.SetLabelSize(gsize)
+    xaxis.SetLabelOffset(6e-3)
+    xaxis.SetTitleSize(0)
+    for x in [150,250,350,450]:
+      xaxis.ChangeLabelByValue(x,-1,0) # remove tick labels
+    xaxis.Draw()
+    axes.append(xaxis)
+  
+  # SAVE
+  canvas.RedrawAxis()
+  canvas.SaveAs(fname+".png")
+  #canvas.SaveAs(fname+".pdf")
+  canvas.Close()
+  
 
 def plot_customaxis_ratio(verb=0):
   """Plot with custom ratio axis using two panels."""
@@ -187,7 +280,7 @@ def plot_customaxis_ratio(verb=0):
   ysplit = 0.5 # ratio of heights of top/bottom panel
   tsize  = 0.050
   lsize  = 0.044
-  ysize  = 0.98*lsize # for logarithmic axis label
+  gsize  = 0.98*lsize # for logarithmic axis label
   tmarg, bmarg = 0.05, 0.22
   lmarg, rmarg = 0.12, 0.03
   canvas = TCanvas('canvas','canvas',100,100,1000,800) # XYWH
@@ -262,7 +355,7 @@ def plot_customaxis_ratio(verb=0):
   yaxis.SetTitleSize(0) #scale2*lsize)
   yaxis.SetLabelFont(42)
   yaxis.SetLabelColor(kRed)
-  yaxis.SetLabelSize(scale2*ysize*0.9)
+  yaxis.SetLabelSize(scale2*gsize*0.9)
   yaxis.SetLabelOffset(6e-3)
   yaxis.Draw()
   
@@ -309,7 +402,7 @@ def plot_customaxis_pval(verb=0):
   # FRAME
   tsize = 0.050
   lsize = 0.044
-  ysize = 0.98*lsize # for logarithmic axis label
+  gsize = 0.98*lsize # for logarithmic axis label
   frame = canvas.DrawFrame(xmin,ymin,xmax,ymax)
   ###frame.SetMinimum(ymin)
   ###frame.SetMaximum(ymax)
@@ -321,7 +414,7 @@ def plot_customaxis_pval(verb=0):
   frame.GetXaxis().SetTitleSize(tsize)
   frame.GetYaxis().SetTitleSize(tsize)
   frame.GetXaxis().SetLabelSize(lsize)
-  frame.GetYaxis().SetLabelSize(ysize)
+  frame.GetYaxis().SetLabelSize(gsize)
   
   # CUSTOM AXIS on top
   fx = TF1('fx',"RooStats::PValueToSignificance(TMath::Power(10,x))",log10(pmax),log10(pmin)) # p-value
@@ -362,7 +455,8 @@ def plot_customaxis_pval(verb=0):
 def main():
   #plot_customaxis_log(verb=0)
   #plot_customaxis_log2(0,100,1e-2,1.55,nydiv=510)
-  plot_customaxis_ratio(verb=0)
+  plot_customaxis_partial(verb=0)
+  #plot_customaxis_ratio(verb=0)
   #plot_customaxis_pval(verb=0)
   
 

@@ -1,12 +1,18 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Author: Izaak Neutelings (January 2019)
 # Description: Create PU profiles for data & MC
 # Instructions
+#   https://github.com/cms-tau-pog/TauFW/wiki/PicoProducer-corrections#pileup-reweighting
 #   Create pilup histograms for as many MC samples as possible
 #   pico.py channel pileup PileUp # link channel to module
 #   pico.py submit -c pileup -y UL2016 --dtype mc
-#   pico.py hadd -c pileup -y UL2016 --dtype mc
-#   ./getPileupProfiles.py -y UL2016 -c pileup
+#   # wait until the jobs are done (it will say "FAIL" because there's no tree inside)
+#   pico.py hadd -c pileup -y UL2016 --dtype mc --force
+#   cd $CMSSW_BASE/src/TauFW/PicoProducer/data/pileup
+#   python3 getPileupProfiles.py -y UL2016 -c pileup
+#   python3 getPileupProfiles.py -y 2023C -c pileup -t mc -i /eos/user/i/ineuteli/analysis/2023C/*/*pileup.root
+#   python3 getPileupProfiles.py -y 2023C -c pileup -t data --json /eos/user/c/cmsdqm/www/CAF/certification/Collisions23/Cert_Collisions2023_eraC_367095_368823_Golden.json --pileup /eos/user/c/cmsdqm/www/CAF/certification/Collisions23/PileUp/BCD/pileup_JSON.txt -v4
+#   python3 getPileupProfiles.py -y 2023D -c pileup -t data --json /eos/user/c/cmsdqm/www/CAF/certification/Collisions23/Cert_Collisions2023_eraD_369803_370790_Golden.json --pileup /eos/user/c/cmsdqm/www/CAF/certification/Collisions23/PileUp/BCD/pileup_JSON.txt -v4
 # Sources:
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2016Analysis
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis
@@ -15,9 +21,10 @@
 #   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2016postVFPAnalysis
 #   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2017Analysis
 #   https://twiki.cern.ch/twiki/bin/view/CMS/PdmVLegacy2018Analysis
+#   https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun3
+#   https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Recommended_cross_section
 #   https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#PileupInformation
 import os, sys, re, shutil, json
-
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from filterRunsJSON import getJSON, getRuns, cleanPeriods, getPeriodRunNumbers, filterJSONByRunNumberRange
 from TauFW.common.tools.file import ensuredir
@@ -36,18 +43,18 @@ linecolors = [ kRed+1, kAzure+5, kGreen+2, kOrange+1, kMagenta-4, kYellow+1,
 
 def getMCProfile(outfname,samples,channel,era,tag=""):
   """Get pileup profile in MC by adding Pileup_nTrueInt histograms from a given list of samples."""
-  print '>>> getMCProfile("%s")'%(outfname)
+  print('>>> getMCProfile("%s")'%(outfname))
   nprofiles = 0
   histname  = 'pileup'
   tothist   = None
   for sample, infname in samples:
-    print ">>>   %s"%(infname)
+    print(">>>   %s"%(infname))
     file, hist = gethist(infname,histname,retfile=True)
     if not file:
-      print ">>> Did not find %s..."%(infname)
+      print(">>> Did not find %s..."%(infname))
       continue
     if not hist:
-      print ">>> Did not find %s:%r..."%(infname,histname)
+      print(">>> Did not find %s:%r..."%(infname,histname))
       continue
     if tothist==None:
       tothist = hist.Clone('pileup')
@@ -59,7 +66,7 @@ def getMCProfile(outfname,samples,channel,era,tag=""):
       tothist.Add(hist)
       nprofiles += 1
     file.Close()
-  print ">>>   added %d MC profiles, %d entries, %.1f mean"%(nprofiles,tothist.GetEntries(),tothist.GetMean())
+  print(">>>   added %d MC profiles, %d entries, %.1f mean"%(nprofiles,tothist.GetEntries(),tothist.GetMean()))
   
   file = TFile(outfname,'RECREATE')
   tothist.Write('pileup')
@@ -71,7 +78,7 @@ def getMCProfile(outfname,samples,channel,era,tag=""):
 
 def getDataProfile(outfname,JSON,pileup,bins,era,minbias,local=False):
   """Get pileup profile in data with pileupCalc.py tool."""
-  print '>>> getDataProfile("%s",%d,%s)'%(outfname,bins,minbias)
+  print('>>> getDataProfile("%s",%d,%s)'%(outfname,bins,minbias))
   
   # CREATE profile
   if local:
@@ -80,14 +87,14 @@ def getDataProfile(outfname,JSON,pileup,bins,era,minbias,local=False):
     command = "./pileupCalc.py -i %s --inputLumiJSON %s --calcMode true --maxPileupBin %d --numPileupBins %d --minBiasXsec %d %s --verbose"%(JSON,pileup,bins,bins,minbias*1000,outfname)
   else:
     command = "pileupCalc.py -i %s --inputLumiJSON %s --calcMode true --maxPileupBin %d --numPileupBins %d --minBiasXsec %d %s"%(JSON,pileup,bins,bins,minbias*1000,outfname)
-  print ">>>   executing command (this may take a while):"
-  print ">>>   " + command
+  print(">>>   executing command (this may take a while):")
+  print(">>>   " + command)
   os.system(command)
   
   # GET profile
   histname = 'pileup'
   if not os.path.isfile(outfname):
-    print ">>>   Warning! getDataProfile: Could find output file %s!"%(outfname)
+    print(">>>   Warning! getDataProfile: Could find output file %s!"%(outfname))
     return
   file, hist = gethist(outfname,histname,retfile=True)
   hist.SetName("%s_%s"%(histname,str(minbias).replace('.','p')))
@@ -96,10 +103,10 @@ def getDataProfile(outfname,JSON,pileup,bins,era,minbias,local=False):
   bin0 = 100.0*hist.GetBinContent(0)/hist.Integral()
   bin1 = 100.0*hist.GetBinContent(1)/hist.Integral()
   if bin0>0.01 or bin1>0.01:
-    print ">>>   Warning! First to bins have %.2f%% (0) and %.2f%% (1)"%(bin0,bin1)
+    print(">>>   Warning! First to bins have %.2f%% (0) and %.2f%% (1)"%(bin0,bin1))
     hist.SetBinContent(0,0.0)
     hist.SetBinContent(1,0.0)
-  print ">>>   pileup profile in data with min. bias %s mb has a mean of %.1f"%(minbias,hist.GetMean())
+  print(">>>   pileup profile in data with min. bias %s mb has a mean of %.1f"%(minbias,hist.GetMean()))
   file.Close()
   
   return hist
@@ -107,7 +114,7 @@ def getDataProfile(outfname,JSON,pileup,bins,era,minbias,local=False):
 
 def getGenProfile(outfname,era):
   """Create generator pileup profile."""
-  print ">>> getGenProfile(%s):"%(era)
+  print(">>> getGenProfile(%s):"%(era))
   if era=='2016':
     if 'UL' in era:
       # https://github.com/cms-sw/cmssw/blob/CMSSW_10_6_X/SimGeneral/MixingModule/python/mix_2016_25ns_UltraLegacy_PoissonOOTPU_cfi.py
@@ -203,7 +210,7 @@ def getGenProfile(outfname,era):
         6.119019e-08, 5.443693e-08, 4.85036e-08,  4.31486e-08,  3.822112e-08
     ]
   else:
-    print ">>>   Warning! No generator pileup profile for era %s"%(era)
+    print(">>>   Warning! No generator pileup profile for era %s"%(era))
   
   nbins = len(bins)
   hist  = TH1F('pileup','pileup',nbins,0,nbins)
@@ -220,7 +227,7 @@ def getGenProfile(outfname,era):
 
 def getFlatProfile(outfname,max=75,nbins=100,xmin=0,xmax=100):
   """Create flat profile."""
-  print ">>> getFlatProfile()"
+  print(">>> getFlatProfile()")
   hist = TH1F('pileup','pileup',nbins,xmin,xmax)
   hist.Sumw2()
   binc = 1./max
@@ -236,7 +243,7 @@ def getFlatProfile(outfname,max=75,nbins=100,xmin=0,xmax=100):
 
 def compareMCProfiles(samples,channel,era,tag="",xmax=100):
   """Compare MC profiles."""
-  print ">>> compareMCProfiles()"
+  print(">>> compareMCProfiles()")
   
   hname   = 'pileup'
   htitle  = 'MC average'
@@ -251,7 +258,7 @@ def compareMCProfiles(samples,channel,era,tag="",xmax=100):
   # GET histograms
   assert samples, "compareMCProfiles: Did not find any samples..."
   for sample, fname in samples:
-    print ">>>   %s"%(fname)
+    print(">>>   %s"%(fname))
     file, hist = gethist(fname,hname,retfile=True)
     hist.SetName(sample)
     hist.SetTitle(sample)
@@ -269,13 +276,14 @@ def compareMCProfiles(samples,channel,era,tag="",xmax=100):
   # PLOT
   hists  = [avehist]+hists
   colors = [kBlack]+linecolors
+  lpos   = 'TTR' if '201' in era else 'TTLL'
   avehist.Scale(1./avehist.Integral())
   pname  = "%s/pileup_MC_%s%s"%(outdir,era,tag)
   xtitle = "Number of true interactions"
   plot   = Plot(hists,ratio=True,rmin=0.45,rmax=1.55,xmax=xmax)
   plot.draw(xtitle=xtitle,ytitle="A.U.",rtitle="MC / Ave.",
             textsize=0.032,denom=2,colors=colors)
-  plot.drawlegend('TTR',tsize=0.04,latex=False)
+  plot.drawlegend(lpos,tsize=0.04,latex=False,ncols=2)
   plot.saveas(pname+".png")
   plot.saveas(pname+".pdf")
   plot.close(keep=True)
@@ -292,7 +300,7 @@ def compareMCProfiles(samples,channel,era,tag="",xmax=100):
 
 def compareDataMCProfiles(datahists,mchist,era="",minbiases=0.0,tag="",rmin=0.6,rmax=1.4,xmax=100,delete=False):
   """Compare data/MC profiles."""
-  print ">>> compareDataMCProfiles()"
+  print(">>> compareDataMCProfiles()")
   mctitle = "MC average"
   outdir  = ensuredir("plots")
   if islist(datahists): # multiple datahists
@@ -353,7 +361,7 @@ def copy2local(filename):
   assert os.path.isfile(fileold), "Copy failed! Old file %s does not exist!"%(fileold)
   filenew = filename.split('/')[-1]
   if filenew==re.sub(r"^\./","",fileold):
-    print ">>> Warning! copy2local: No sense in copying %s to %s"%(fileold,filenew)
+    print(">>> Warning! copy2local: No sense in copying %s to %s"%(fileold,filenew))
   shutil.copyfile(fileold,filenew)
   assert os.path.isfile(filenew), "Copy failed! New file %s does not exist!"%(filenew)
   return filenew
@@ -365,6 +373,9 @@ def main(args):
   periods   = cleanPeriods(args.periods) 
   channel   = args.channel
   types     = args.types
+  jname     = args.jname
+  pileup    = args.pileup # JSON file "pileup_latest.txt" or "pileup_JSON.txt"
+  samples   = args.samples
   xmax      = args.xmax
   verbosity = args.verbosity
   minbiases = [ 69.2 ] if periods else [ 69.2*0.954, 69.2, 69.2*1.046, 80.0 ]
@@ -380,135 +391,140 @@ def main(args):
     year       = getyear(era)
     mcfilename = "MC_PileUp_%s.root"%(era)
     jsondir    = os.path.join(datadir,'json',str(year))
-    pileup     = os.path.join(jsondir,"pileup_latest.txt")
-    jname      = getJSON(era)
+    pileup     = repkey(pileup,era=year if 'UL' in era else era) if pileup else os.path.join(jsondir,"pileup_latest.txt")
+    jname      = jname if jname else getJSON(era)
     CMSStyle.setCMSEra(era,extra="Internal",thesis=False)
     #CMSStyle.setCMSEra(era,extra="(CMS data/simulation)",thesis=True,cmsTextSize=0.76,relPosX=2.38*0.045)
-    samples_bug = [ ] # buggy samples in (pre-UL) 2017 with "old pmx" library
-    samples_fix = [ ] # fixed samples in (pre-UL) 2017 with "new pmx" library
-    samples = [ # default set of samples
-      ( 'DY', "DYJetsToMuTauh_M-50"   ),
-      ( 'DY', "DYJetsToLL_M-50"       ),
-      ( 'DY', "DY4JetsToLL_M-50"      ),
-      ( 'DY', "DY3JetsToLL_M-50"      ),
-      ( 'DY', "DY2JetsToLL_M-50"      ),
-      ( 'DY', "DY1JetsToLL_M-50"      ),
-      ( 'WJ', "WJetsToLNu"            ),
-      ( 'WJ', "W4JetsToLNu"           ),
-      ( 'WJ', "W3JetsToLNu"           ),
-      ( 'WJ', "W2JetsToLNu"           ),
-      ( 'WJ', "W1JetsToLNu"           ),
-      ( 'TT', "TTToHadronic"          ),
-      ( 'TT', "TTTo2L2Nu"             ),
-      ( 'TT', "TTToSemiLeptonic"      ),
-      ( 'ST', "ST_tW_top"             ),
-      ( 'ST', "ST_tW_antitop"         ),
-      ( 'ST', "ST_t-channel_top"      ),
-      ( 'ST', "ST_t-channel_antitop"  ),
-      ( 'VV', "WW"                    ),
-      ( 'VV', "WZ"                    ),
-      ( 'VV', "ZZ"                    ),
-    ]
-    if era=='2016':
-      campaign = "Moriond17"
-      if 'UL' in era and 'preVFP' in era:
-        campaign = "Summer19"
-      elif 'UL' in era:
-        campaign = "Summer19"
-      else:
-        samples  = [
-          ( 'TT', "TT",                   ),
-          ( 'DY', "DYJetsToLL_M-10to50",  ),
-          ( 'DY', "DYJetsToLL_M-50",      ),
-          ( 'DY', "DY1JetsToLL_M-50",     ),
-          ( 'DY', "DY2JetsToLL_M-50",     ),
-          ( 'DY', "DY3JetsToLL_M-50",     ),
-          ( 'WJ', "WJetsToLNu",           ),
-          ( 'WJ', "W1JetsToLNu",          ),
-          ( 'WJ', "W2JetsToLNu",          ),
-          ( 'WJ', "W3JetsToLNu",          ),
-          ( 'WJ', "W4JetsToLNu",          ),
-          ( 'ST', "ST_tW_top",            ),
-          ( 'ST', "ST_tW_antitop",        ),
-          ( 'ST', "ST_t-channel_top",     ),
-          ( 'ST', "ST_t-channel_antitop", ),
-          #( 'ST', "ST_s-channel",         ),
-          ( 'VV', "WW",                   ),
-          ( 'VV', "WZ",                   ),
-          ( 'VV', "ZZ",                   ),
-        ]
-    elif '2017' in era:
-      if 'UL' in era:
-        campaign = "Summer19"
-      else:
-        campaign = "Winter17_V2"
-        samples_bug = [ # buggy samples in (pre-UL) 2017
-          ( 'DY', "DYJetsToLL_M-50",      ),
-          ( 'WJ', "W3JetsToLNu",          ),
-          ( 'VV', "WZ",                   ),
-        ]
-        samples_fix = [ # fixed samples in (pre-UL) 2017
-          ( 'DY', "DYJetsToLL_M-10to50",  ),
-          ( 'DY', "DY1JetsToLL_M-50",     ),
-          ( 'DY', "DY2JetsToLL_M-50",     ),
-          ( 'DY', "DY3JetsToLL_M-50",     ),
-          ( 'DY', "DY4JetsToLL_M-50",     ),
-          ( 'TT', "TTTo2L2Nu",            ),
-          ( 'TT', "TTToHadronic",         ),
-          ( 'TT', "TTToSemiLeptonic",     ),
-          ( 'WJ', "WJetsToLNu",           ),
-          ( 'WJ', "W1JetsToLNu",          ),
-          ( 'WJ', "W2JetsToLNu",          ),
-          ( 'WJ', "W4JetsToLNu",          ),
-          ( 'ST', "ST_tW_top",            ),
-          ( 'ST', "ST_tW_antitop",        ),
-          ( 'ST', "ST_t-channel_top",     ),
-          ( 'ST', "ST_t-channel_antitop", ),
-          #( 'ST', "ST_s-channel",         ),
-          ( 'VV', "WW",                   ),
-          ( 'VV', "ZZ",                   ),
-        ]
-        samples = samples_bug + samples_fix
-    else:
-      if 'UL' in era:
-        campaign = "Summer19"
-      else:
-        campaign = "Autumn18"
-        samples = [
-          ( 'TT', "TTTo2L2Nu",            ),
-          ( 'TT', "TTToHadronic",         ),
-          ( 'TT', "TTToSemiLeptonic",     ),
-          ( 'DY', "DYJetsToLL_M-10to50",  ),
-          ( 'DY', "DYJetsToLL_M-50",      ),
-          ( 'DY', "DY1JetsToLL_M-50",     ),
-          ( 'DY', "DY2JetsToLL_M-50",     ),
-          ( 'DY', "DY3JetsToLL_M-50",     ),
-          ( 'DY', "DY4JetsToLL_M-50",     ),
-          #( 'WJ', "WJetsToLNu",           ),
-          ( 'WJ', "W1JetsToLNu",          ),
-          ( 'WJ', "W2JetsToLNu",          ),
-          ( 'WJ', "W3JetsToLNu",          ),
-          ( 'WJ', "W4JetsToLNu",          ),
-          ( 'ST', "ST_tW_top",            ),
-          ( 'ST', "ST_tW_antitop",        ),
-          ( 'ST', "ST_t-channel_top",     ),
-          ( 'ST', "ST_t-channel_antitop", ),
-          #( 'ST', "ST_s-channel",         ),
-          ( 'VV', "WW",                   ),
-          ( 'VV', "WZ",                   ),
-          ( 'VV', "ZZ",                   ),
-        ]
     
-    # SAMPLES FILENAMES
-    samples_ = [ ]
-    suberas = [era+"_preVFP",era+"_postVFP"] if era=='UL2016' else [era]
-    for subera in suberas:
-      for i, (group,sample) in enumerate(samples):
-          fname = repkey(fname_,ERA=subera,GROUP=group,SAMPLE=sample,CHANNEL=channel)
-          samples_.append((sample,fname))
-    samples = samples_ # replace sample list
+    if samples:
+      samples = [(os.path.basename(f).replace(f"_{channel}.root",""),f) for f in samples]
+      print(samples)
+    else:
+      samples_bug = [ ] # buggy samples in (pre-UL) 2017 with "old pmx" library
+      samples_fix = [ ] # fixed samples in (pre-UL) 2017 with "new pmx" library
+      samples = [ # default set of samples
+        ( 'DY', "DYJetsToMuTauh_M-50"   ),
+        ( 'DY', "DYJetsToLL_M-50"       ),
+        ( 'DY', "DY4JetsToLL_M-50"      ),
+        ( 'DY', "DY3JetsToLL_M-50"      ),
+        ( 'DY', "DY2JetsToLL_M-50"      ),
+        ( 'DY', "DY1JetsToLL_M-50"      ),
+        ( 'WJ', "WJetsToLNu"            ),
+        ( 'WJ', "W4JetsToLNu"           ),
+        ( 'WJ', "W3JetsToLNu"           ),
+        ( 'WJ', "W2JetsToLNu"           ),
+        ( 'WJ', "W1JetsToLNu"           ),
+        ( 'TT', "TTToHadronic"          ),
+        ( 'TT', "TTTo2L2Nu"             ),
+        ( 'TT', "TTToSemiLeptonic"      ),
+        ( 'ST', "ST_tW_top"             ),
+        ( 'ST', "ST_tW_antitop"         ),
+        ( 'ST', "ST_t-channel_top"      ),
+        ( 'ST', "ST_t-channel_antitop"  ),
+        ( 'VV', "WW"                    ),
+        ( 'VV', "WZ"                    ),
+        ( 'VV', "ZZ"                    ),
+      ]
+      if era=='2016':
+        campaign = "Moriond17"
+        if 'UL' in era and 'preVFP' in era:
+          campaign = "Summer19"
+        elif 'UL' in era:
+          campaign = "Summer19"
+        else:
+          samples  = [
+            ( 'TT', "TT",                   ),
+            ( 'DY', "DYJetsToLL_M-10to50",  ),
+            ( 'DY', "DYJetsToLL_M-50",      ),
+            ( 'DY', "DY1JetsToLL_M-50",     ),
+            ( 'DY', "DY2JetsToLL_M-50",     ),
+            ( 'DY', "DY3JetsToLL_M-50",     ),
+            ( 'WJ', "WJetsToLNu",           ),
+            ( 'WJ', "W1JetsToLNu",          ),
+            ( 'WJ', "W2JetsToLNu",          ),
+            ( 'WJ', "W3JetsToLNu",          ),
+            ( 'WJ', "W4JetsToLNu",          ),
+            ( 'ST', "ST_tW_top",            ),
+            ( 'ST', "ST_tW_antitop",        ),
+            ( 'ST', "ST_t-channel_top",     ),
+            ( 'ST', "ST_t-channel_antitop", ),
+            #( 'ST', "ST_s-channel",         ),
+            ( 'VV', "WW",                   ),
+            ( 'VV', "WZ",                   ),
+            ( 'VV', "ZZ",                   ),
+          ]
+      elif '2017' in era:
+        if 'UL' in era:
+          campaign = "Summer19"
+        else:
+          campaign = "Winter17_V2"
+          samples_bug = [ # buggy samples in (pre-UL) 2017
+            ( 'DY', "DYJetsToLL_M-50",      ),
+            ( 'WJ', "W3JetsToLNu",          ),
+            ( 'VV', "WZ",                   ),
+          ]
+          samples_fix = [ # fixed samples in (pre-UL) 2017
+            ( 'DY', "DYJetsToLL_M-10to50",  ),
+            ( 'DY', "DY1JetsToLL_M-50",     ),
+            ( 'DY', "DY2JetsToLL_M-50",     ),
+            ( 'DY', "DY3JetsToLL_M-50",     ),
+            ( 'DY', "DY4JetsToLL_M-50",     ),
+            ( 'TT', "TTTo2L2Nu",            ),
+            ( 'TT', "TTToHadronic",         ),
+            ( 'TT', "TTToSemiLeptonic",     ),
+            ( 'WJ', "WJetsToLNu",           ),
+            ( 'WJ', "W1JetsToLNu",          ),
+            ( 'WJ', "W2JetsToLNu",          ),
+            ( 'WJ', "W4JetsToLNu",          ),
+            ( 'ST', "ST_tW_top",            ),
+            ( 'ST', "ST_tW_antitop",        ),
+            ( 'ST', "ST_t-channel_top",     ),
+            ( 'ST', "ST_t-channel_antitop", ),
+            #( 'ST', "ST_s-channel",         ),
+            ( 'VV', "WW",                   ),
+            ( 'VV', "ZZ",                   ),
+          ]
+          samples = samples_bug + samples_fix
+      else:
+        if 'UL' in era:
+          campaign = "Summer19"
+        else:
+          campaign = "Autumn18"
+          samples = [
+            ( 'TT', "TTTo2L2Nu",            ),
+            ( 'TT', "TTToHadronic",         ),
+            ( 'TT', "TTToSemiLeptonic",     ),
+            ( 'DY', "DYJetsToLL_M-10to50",  ),
+            ( 'DY', "DYJetsToLL_M-50",      ),
+            ( 'DY', "DY1JetsToLL_M-50",     ),
+            ( 'DY', "DY2JetsToLL_M-50",     ),
+            ( 'DY', "DY3JetsToLL_M-50",     ),
+            ( 'DY', "DY4JetsToLL_M-50",     ),
+            #( 'WJ', "WJetsToLNu",           ),
+            ( 'WJ', "W1JetsToLNu",          ),
+            ( 'WJ', "W2JetsToLNu",          ),
+            ( 'WJ', "W3JetsToLNu",          ),
+            ( 'WJ', "W4JetsToLNu",          ),
+            ( 'ST', "ST_tW_top",            ),
+            ( 'ST', "ST_tW_antitop",        ),
+            ( 'ST', "ST_t-channel_top",     ),
+            ( 'ST', "ST_t-channel_antitop", ),
+            #( 'ST', "ST_s-channel",         ),
+            ( 'VV', "WW",                   ),
+            ( 'VV', "WZ",                   ),
+            ( 'VV', "ZZ",                   ),
+          ]
+    
+      # SAMPLES FILENAMES
+      samples_ = [ ]
+      suberas = [era+"_preVFP",era+"_postVFP"] if era=='UL2016' else [era]
+      for subera in suberas:
+        for i, (group,sample) in enumerate(samples):
+            fname = repkey(fname_,ERA=subera,GROUP=group,SAMPLE=sample,CHANNEL=channel)
+            samples_.append((sample,fname))
+      samples = samples_ # replace sample list
     if verbosity>=1:
-      print ">>> samples = %r"%(samples)
+      print(">>> samples = %r"%(samples))
     
     # JSON
     jsons = { }
@@ -575,7 +591,7 @@ def main(args):
 if __name__ == '__main__':
   from argparse import ArgumentParser
   description = '''This script makes pileup profiles for MC and data.'''
-  parser = ArgumentParser(prog="pileup",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-y', '-e', '--era', dest='eras', nargs='+',
                       metavar='ERA',       help="select era" )
   parser.add_argument('-c', '--channel',   dest='channel', default='pileup',
@@ -586,6 +602,12 @@ if __name__ == '__main__':
                                            help="make data profiles for given data taking period (e.g. B, BCD, GH, ...)" )
   parser.add_argument('-p', '--plot',      dest='plot', default=False, action='store_true', 
                                            help="plot profiles" )
+  parser.add_argument('-i', '--samples',   dest='samples',nargs='+',
+                      metavar='ROOTFILE',  help="ROOT file with histograms" )
+  parser.add_argument('-j', '--json',      dest='jname',
+                      metavar='JSON',      help="JSON/txt file with good runs & lumi sections" )
+  parser.add_argument('--pileup',          dest='pileup',
+                      metavar='JSON',      help="pileup JSON/txt file" )
   parser.add_argument('-m', '--xmax',      dest='xmax', type=float, default=90, 
                                            help="x axis maximum (for plotting)" )
   parser.add_argument('-v', '--verbose',   dest='verbosity', type=int, nargs='?', const=1, default=0,
@@ -593,5 +615,5 @@ if __name__ == '__main__':
   args = parser.parse_args()
   print('')
   main(args)
-  print ">>> Done!\n"
+  print(">>> Done!\n")
   

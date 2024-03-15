@@ -264,6 +264,9 @@ def deltaPhi(phi1, phi2):
 
 def getmet(era,var="",useT1=False,verb=0):
   """Return year-dependent MET recipe."""
+  if not isinstance(era,str):
+    LOG.warn(">>> getmet: Got era=%r (type==%s), but expected string! Converting..."%(era,type(era)))
+    era = str(era)
   if '2017' in era and 'UL' not in era :
     branch  = 'METFixEE2017'
   elif '2022' in era or '2023' in era:
@@ -386,6 +389,9 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
     if '2022' in era:
       electronIso90=electron.mvaIso_Fall17V2_WP90
       electronIso=electron.mvaIso_Fall17V2_WPL
+    if '2023' in era:
+      electronIso90=electron.mvaIso_WP90
+      electronIso=electron.mvaIso
     else:
       electronIso90=electron.mvaFall17V2Iso_WP90
       electronIso=electron.mvaFall17V2Iso_WPL

@@ -57,7 +57,8 @@ def mapabspid(pid):
   elif pid==11: return 1
   elif pid==13: return 2
   elif pid==15: return 3
-  print(f">>> mapsabspid: WARNING! Unrecognized PID={pid}")
+  #print(f">>> mapsabspid: WARNING! Unrecognized PID={pid}")
+  print(">>> mapsabspid: WARNING! Unrecognized PID=%s"%pid)
   return -1
   
 def mappid(pid):
@@ -69,7 +70,8 @@ def mappid(pid):
   elif pid==-13: return 4
   elif pid==15:  return 5
   elif pid==-15: return 6
-  print(f">>> mappid: WARNING! Unrecognized PID={pid}")
+  #print(f">>> mappid: WARNING! Unrecognized PID={pid}")
+  print(">>> mappid: WARNING! Unrecognized PID=%s"%pid)
   return -1
   
 def mappid2(pid1,pid2):
@@ -191,8 +193,10 @@ class ModuleGen_gmin2(Module):
         name = hist.GetXaxis().GetBinLabel(i).replace('#','').replace('^{+}','+').replace('^{minus}','-')
         eff  = nevt/nall # efficiency
         err  = sqrt(eff*(1.-eff)/nall) # uncertainty in efficiency
-        seff = f"{0:4d}" if nevt==0 else f"({100*eff:6.2f} +-{100*err:5.2f} )"
-        print(f">>>   {name:<8s} {nevt:7d} / {nall} = {seff}%")
+        #seff = f"{0:4d}" if nevt==0 else f"({100*eff:6.2f} +-{100*err:5.2f} )"
+        seff = "   0" if nevt==0 else ("(%6.2f +-%5.2f )"%(100*eff,100*err))
+        #print(f">>>   {name:<8s} {nevt:7d} / {nall} = {seff}%")
+        print(">>>   %-8s %7d / %s = %s%%"%(name,nevt,nall,seff))
     self.out.endJob()
     
   def analyze(self, event):

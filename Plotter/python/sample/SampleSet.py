@@ -278,7 +278,7 @@ class SampleSet(object):
     filters       = kwargs.get('filter',        None     ) or [ ] # filter these samples
     vetoes        = kwargs.get('veto',          None     ) or [ ] # filter out these samples
     task          = kwargs.get('task',          ""       ) # task name for progress bar
-    dotgraph      = kwargs.get('dot',           False    ) # name for dot graph (e.g. f"graph_$NAME.dot")
+    dotgraph      = kwargs.get('dot',           False    ) # name for dot graph (e.g. "graph_$NAME.dot")
     #reset         = kwargs.get('reset',         False    ) # reset scales
     #sysvars       = kwargs.get('sysvars',       { }      ) # list or dict to be filled up with systematic variations
     #addsys        = kwargs.get('addsys',        True     )
@@ -316,7 +316,7 @@ class SampleSet(object):
       res_dict += sample.getrdframe(variables,selections,split=False,task=task,tag=tag,
                                     rdf_dict=rdf_dict,verb=verbosity,**rkwargs)
     if verbosity>=2:
-      print(f">>> SampleSet.gethists: Got res_dict:")
+      print(">>> SampleSet.gethists: Got res_dict:")
       res_dict.display() # print full dictionary
     
     # RUN RDataFrame events loops to fill histograms
