@@ -5,8 +5,8 @@ from TauFW.Plotter.sample.utils import LOG, STYLE, ensuredir, repkey, joincuts, 
 from TauFW.Plotter.sample.utils import getsampleset as _getsampleset
 import json
 
-f = open("../../PicoProducer/samples/nanoaod_sumw_2022_postEE.json")
-nevts_json = json.load(f)
+#f = open("../../PicoProducer/samples/nanoaod_sumw_2022_postEE.json")
+#nevts_json = json.load(f)
 
 def getsampleset(channel,era,**kwargs):
   verbosity = LOG.getverbosity(kwargs)
@@ -51,21 +51,21 @@ def getsampleset(channel,era,**kwargs):
         ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         ( 'DY', "DYto2L-4Jets_MLL-50_3J",      "Drell-Yan 3J 50",      93.7*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         ( 'DY', "DYto2L-4Jets_MLL-50_4J",      "Drell-Yan 4J 50",      45.4*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
-        ( 'WJ', "WJetsToLNu-4Jets",            "W + jets",           55300.*kfactor_wj ), # LO times kfactor
-        ( 'WJ', "WJetsToLNu-4Jets_1J",           "W + 1J",              9128.*kfactor_wj), # LO times kfactor
-        ( 'WJ', "WJetsToLNu-4Jets_2J",           "W + 2J",              2922.*kfactor_wj  ), # LO times kfactor
-        ( 'WJ', "WJetsToLNu-4Jets_3J",           "W + 3J",               861.3*kfactor_wj ), # LO times kfactor
-        ( 'WJ', "WJetsToLNu-4Jets_4J",           "W + 4J",               415.4*kfactor_wj), # LO times kfactor
+        ( 'WJ', "WtoLNu-4Jets",            "W + jets",           55300.*kfactor_wj ), # LO times kfactor
+        ( 'WJ', "WtoLNu-4Jets_1J",           "W + 1J",              9128.*kfactor_wj), # LO times kfactor
+        ( 'WJ', "WtoLNu-4Jets_2J",           "W + 2J",              2922.*kfactor_wj  ), # LO times kfactor
+        ( 'WJ', "WtoLNu-4Jets_3J",           "W + 3J",               861.3*kfactor_wj ), # LO times kfactor
+        ( 'WJ', "WtoLNu-4Jets_4J",           "W + 4J",               415.4*kfactor_wj), # LO times kfactor
    
         ( 'VV', "WW",             "WW",                    80.23*kfactor_ww ), # LO times kfactor
         ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz), # LO times kfactor
         ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz ), # LO times kfactor
 
-        ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
+        ( 'TT', "TTto2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
         ( 'TT', "TTto4Q",                "ttbar hadronic",       346.4*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
         ( 'TT', "TTtoLNu2Q",             "ttbar semileptonic",   334.8*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
-        ( 'ST', "TBbarQ_t-channel",      "ST t-channel t",       123.8), # NLO
-        ( 'ST', "TbarBQ_t-channel",      "ST t-channel at",      75.47), # NLO
+        #( 'ST', "TBbarQ_t-channel",      "ST t-channel t",       123.8), # NLO
+        #( 'ST', "TbarBQ_t-channel",      "ST t-channel at",      75.47), # NLO
         ( 'ST', "TWminustoLNu2Q",             "ST tW semileptonic",         15.8 ), # NLO (36.0) times LNu2Q BR
         ( 'ST', "TWminusto2L2Nu",             "ST tW 2l2#nu",               3.8 ), # NLO (36.0) times 2L2Nu BR
         ( 'ST', "TbarWplustoLNu2Q",         "ST atW semileptonic",          15.9 ), # NLO (36.1) times LNu2Q BR
@@ -144,21 +144,21 @@ def getsampleset(channel,era,**kwargs):
   
   # OBSERVED DATA SAMPLES
   if   'tautau' in channel: dataset = "Tau_Run%d?"%year
-  elif 'mutau'  in channeli or 'mumu' in channel:
+  elif 'mutau'  in channel or 'mumu' in channel:
     if era=='2022_preEE':
       dataset = "*Muon_Run%d?"%year
       print("dataset = ", dataset) 
       #dataset = "SingleMuon_Run%d?"%year # need this one as well for C
       # TODO: need to somehow handle that we need SingleMuonC, MuonC, and MuonD for preEE
     elif era=='2022_postEE': dataset = "Muon_Run%d?"%year
-    elif '2023' in era: dataset = "Muon"
+    elif '2023' in era: dataset = "Muon*"
     else: dataset = "SingleMuon_Run%d?"%year
     
   elif 'etau' in channel or 'ee' in channel: 
     if (year==2018 or year==2022):
       dataset = "EGamma_Run%d?"%year
-    elif '2023' in era: dataset = "EGamma" 
-    else "SingleElectron_Run%d?"%year
+    elif '2023' in era: dataset = "EGamma*" 
+    else: "SingleElectron_Run%d?"%year
 
   elif 'emu'    in channel: dataset = "SingleMuon_Run%d?"%year
   else:
@@ -176,11 +176,11 @@ def getsampleset(channel,era,**kwargs):
     weight = ""
   #elif channel in ['mutau','etau']:
   if 'mutau' in channel or 'etau' in channel:
-    weight = "sign(genweight)*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
+    weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
   elif channel in ['tautau','ditau']:
     weight = "genweight*trigweight*puweight*idweight_1*idweight_2*ltfweight_1*ltfweight_2"
   else: # mumu, emu, ...
-    weight = "sign(genweight)*trigweight*puweight*idisoweight_1*idisoweight_2"
+    weight = "genweight*trigweight*puweight*idisoweight_1*idisoweight_2"
   for sf in rmsfs: # remove (old) SFs, e.g. for SF measurement
     weight = weight.replace(sf,"").replace("**","*").strip('*')
   for sf in addsfs:  # add extra SFs, e.g. for SF measurement
@@ -195,7 +195,7 @@ def getsampleset(channel,era,**kwargs):
   # Note: titles are set via STYLE.sample_titles
   #sampleset.stitch("W*LNu*",    incl='WJ',  name='WJ', cme=cme     ) # W + jets
   #sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYJ', name="DY_M50", cme=cme ) # Drell-Yan, M > 50 GeV
-  if '2022_postEE' in era:
+  if '2022_postEE' in era or '2023' in era:
       sampleset.stitch("W*LNu*Jets*",    incl='WtoLNu-4Jets',  name='WJ', cme=cme) # W + jets
   elif '2022_preEE' in era:
       sampleset.stitch("W*LNu*Jets*",    incl='WJetsToLNu-4Jets',  name='WJ', cme=cme) # W + jets
