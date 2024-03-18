@@ -8,7 +8,7 @@ opts_dy  = opts+",zpt=True"
 opts_tt  = opts+",toppt=True"
 samples  = [
   
-  # DRELL-YAN ##binned ones requested but still pending 
+  # DRELL-YAN 
   M('DY','DYto2L-4Jets_MLL-50',                                                                                                         
     "/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
@@ -26,17 +26,17 @@ samples  = [
     store=storage,url=url,files=filelist,opts=opts_dy), 
   
   # TTBAR
-  M('TT','TTTo2L2Nu',
+  M('TT','TTto2L2Nu',
     "/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_tt),
-  M('TT','TTToSemiLeptonic',
+  M('TT','TTtoLNu2Q',
     "/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_tt),
-  M('TT','TTToHadronic',
+  M('TT','TTto4Q',
     "/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_tt),
   
-  # W+JETS requested, still not completed
+  # W+JETS
   M('WJ','WtoLNu-4Jets',
     "/WtoLNu-4Jets_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts),

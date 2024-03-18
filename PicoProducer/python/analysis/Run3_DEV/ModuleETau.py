@@ -21,7 +21,7 @@ class ModuleETau(ModuleTauPair):
     
     # TRIGGERS
     y_trig = self.year
-    if "2022" in self.era:
+    if "2022" in self.era or "2023" in self.era:
        y_trig = 2018
     jsonfile       = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(y_trig))
     self.trigger   = TrigObjMatcher(jsonfile,trigger='SingleElectron',isdata=self.isdata)
