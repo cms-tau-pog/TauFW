@@ -1,6 +1,6 @@
 # Author: Jacopo Malvaso (August 2022)
-# Description: Base class for tau HighPT analysis
-from ROOT import TFile, TTree
+# Description: Base class for high pT tau analysis
+from ROOT import TFile, TTree, RDataFrame
 import sys, re
 import math
 import numpy as np
@@ -13,10 +13,9 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 #from TauFW.PicoProducer.corrections.PreFireTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
-from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes
+from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, deltaPhiLV, deltaPhi
 __metaclass__ = type # to use super() with subclasses from CommonProducer
-tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco' }
-
+tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022'}
 
 
 class ModuleHighPT(Module):
@@ -32,8 +31,8 @@ class ModuleHighPT(Module):
     self.isdata     = self.dtype=='data' or self.dtype=='embed'
     self.isembed    = self.dtype=='embed'
     self.channel    = kwargs.get('channel',  'none'         ) # channel name
-    self.year       = kwargs.get('year',     2017           ) # integer, e.g. 2017, 2018
-    self.era        = kwargs.get('era',      '2017'         ) # string, e.g. '2017', 'UL2017'
+    self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
+    self.era        = kwargs.get('era',      '2022'         ) # string, e.g. '2017', 'UL2017'
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
@@ -56,8 +55,29 @@ class ModuleHighPT(Module):
     self.dowmasswgt = kwargs.get('dowmasswgt',  False       ) # doing w mass reweighting
     self.jetCutPt   = 30
     self.isUL       = 'UL' in self.era
+    if self.year==2018 or self.year==2017:
+      self.trigtau1 = lambda e: e.HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_1pr
+      self.trigtau2 = lambda e: e.HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1
+    elif self.year==2016:
+      self.trigtau1 = lambda e: e.HLT_VLooseIsoPFTau120_Trk50_eta2p1
+      self.trigtau2 = lambda e: e.HLT_VLooseIsoPFTau140_Trk50_eta2p1
+    else:
+      self.trigtau1 = lambda e: e.HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1
+      self.trigtau2 = lambda e: e.HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1
 
-    assert self.year in [2016,2017,2018], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
+    if '2016' in self.era:
+      self.year = 2016
+    elif '2017' in self.era:
+      self.year = 2017
+    elif '2018' in self.era:
+      self.year = 2018
+      
+
+    self.histnameZpt = 'zptmass_weight'
+    if self.year == 2022:
+      self.histnameZpt = 'zptmass_histo'
+
+    assert self.year in [2016,2017,2018,2022], "Did not recognize year %s! Please choose from 2016, 2017, 2018, 2022"%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -70,7 +90,7 @@ class ModuleHighPT(Module):
     if self.ismc:
       self.puTool     = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
       if self.dozpt:
-        self.zptTool  = ZptCorrectionTool(era=self.era)
+        self.zptTool  = ZptCorrectionTool(era=self.era,histname=self.histnameZpt)
       if self.dojecsys:
       #  self.jecUncLabels = [ u+v for u in ['jer','jesTotal'] for v in ['Down','Up']]
         self.metUncLabels = [ u+v for u in ['JER','JES','Unclustered'] for v in ['Down','Up']]
@@ -80,7 +100,7 @@ class ModuleHighPT(Module):
   
   def beginJob(self):
     """Before processing any events or files."""
-    print('-'*80)
+    print("")
     print(">>> %-12s = %r"%('filename',  self.filename))
     print(">>> %-12s = %s"%('year',      self.year))
     print(">>> %-12s = %r"%('dtype',     self.dtype))
@@ -94,12 +114,9 @@ class ModuleHighPT(Module):
       print(">>> %-12s = %r"%('fes',     self.fes))
       print(">>> %-12s = %s"%('ltf',     self.ltf))
       print(">>> %-12s = %s"%('jtf',     self.jtf))
-    #if self.channel.count('ele')>0:
-    #  print ">>> %-12s = %s"%('ees',     self.ees)
     print(">>> %-12s = %s"%('dotoppt',   self.dotoppt))
     print(">>> %-12s = %s"%('dopdf',     self.dopdf))
     print(">>> %-12s = %s"%('dozpt',     self.dozpt))
-    #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
     print(">>> %-12s = %s"%('dojec',     self.dojec))
     print(">>> %-12s = %s"%('dojecsys',  self.dojecsys))
     print(">>> %-12s = %s"%('dosys',     self.dosys))
@@ -142,18 +159,47 @@ class ModuleHighPT(Module):
         ('HLT_IsoTkMu24',        False ),
       ]
     ensurebranches(inputTree,branches) # make sure Event object has these branches
-    if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
-      redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
+
+    #if self.ismc and re.search(r"W[1-5]?JetsToLNu",inputFile.GetName()): # fix genweight bug in Summer19
+    #redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
     # save number of weights
-    runTree = inputFile.Get('Runs')
-    genEventSumw = np.zeros(1,dtype='d')
-    runTree.SetBranchAddress("genEventSumw",genEventSumw)
-    nentries = runTree.GetEntries()
-    for entry in range(0,nentries):
-      runTree.GetEntry(entry)
-      self.out.sumgenweights.Fill(0.5,genEventSumw[0])
 
+    if self.isdata:
+      total_w = 0.
+      total_w2 = 0.
+      for tree_name in [ 'Events']:
+        df = RDataFrame(tree_name, inputFile)
+        df = df.Define('genWeightD', '1.0')
+        df = df.Define('genWeightD2', 'std::pow(genWeightD, 2)')
+        w = df.Sum('genWeightD')
+        w2 = df.Sum('genWeightD2')
+        total_w += w.GetValue()
+        total_w2 += w2.GetValue()
+      self.out.sumgenweights.Fill(0.5,total_w)
+      self.out.sumgenw2.Fill(0.5,total_w2)
+    else:
+      if self.era=='UL2017':
+        runTree = inputFile.Get('Runs')
+        genEventSumw = np.zeros(1,dtype='d')
+        runTree.SetBranchAddress("genEventSumw",genEventSumw)
+        nentries = runTree.GetEntries()
+        for entry in range(0,nentries):
+          runTree.GetEntry(entry)
+          self.out.sumgenweights.Fill(0.5,genEventSumw[0])
+      else:
+        total_w = 0.
+        total_w2 = 0.
+        for tree_name in [ 'Events', 'EventsNotSelected' ]:
+          df = RDataFrame(tree_name, inputFile)
+          df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
+          df = df.Define('genWeightD2', 'std::pow(genWeightD, 2)')
+          w = df.Sum('genWeightD')
+          w2 = df.Sum('genWeightD2')
+          total_w += w.GetValue()
+          total_w2 += w2.GetValue()
+        self.out.sumgenweights.Fill(0.5,total_w)
+        self.out.sumgenw2.Fill(0.5,total_w2)
   
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
@@ -197,9 +243,16 @@ class ModuleHighPT(Module):
     self.out.npv_good[0]        = event.PV_npvsGood
     self.out.metfilter[0]       = self.filter(event)
     try:
-      self.out.mettrigger[0]    = event.HLT_PFMETNoMu120_PFMHTNoMu120_IDTight
+      self.out.mettrigger[0]    = event.HLT_PFMETNoMu120_PFMHTNoMu120_IDTight or event.HLT_PFMETNoMu130_PFMHTNoMu130_IDTight or event.HLT_PFMETNoMu140_PFMHTNoMu140_IDTight
     except RuntimeError:
       self.out.mettrigger[0]    = False
+
+    try:
+      self.out.tautrigger1[0] = self.trigtau1(event)
+      self.out.tautrigger2[0] = self.trigtau2(event)
+    except RuntimeError:
+      self.out.tautrigger1[0] = False
+      self.out.tautrigger2[0] = False
     
     if self.ismc:
       ###self.out.ngentauhads[0]   = ngentauhads
@@ -216,6 +269,15 @@ class ModuleHighPT(Module):
         self.out.HT[0]          = event.LHE_HT
       except RuntimeError:
         self.out.HT[0]          = -1
+      try:
+        self.out.NUP_LO[0]      = event.LHE_NpLO
+      except RuntimeError:
+        self.out.NUP_LO[0]      = -1
+      try:
+        self.out.NUP_NLO[0]     = event.LHE_NpNLO
+      except RuntimeError:
+        self.out.NUP_NLO[0]     = -1
+  
     elif self.isembed:
       self.out.isdata[0]        = False
     
@@ -251,7 +313,7 @@ class ModuleHighPT(Module):
     met        = TLorentzVector()
     met.SetXYZT(met_pt*math.cos(met_phi),met_pt*math.sin(met_phi),0.,met_pt)
     
-    met_vars = { }
+    met_vars = {}
     if self.dojecsys:
       for unc in self.metUncLabels:
         met_vars[unc]  = self.met_sys(event,unc) # TLVs
@@ -263,14 +325,14 @@ class ModuleHighPT(Module):
         dp = lep1.tlv*(1.-1./lep1.es) # assume shift is already applied
         correctmet(met,dp)
         
-    #print ">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(lep2.es,lep2.pt,dp.Pt(),lep2.genPartFlav)
+    # print(">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(lep2.es,lep2.pt,dp.Pt(),lep2.genPartFlav))
         
     lep1 = lep1.tlv # continue with TLorentzVector
     
     # MET
     self.out.met[0]       = met.Pt()
     self.out.metphi[0]    = met.Phi()
-    dphi = abs(lep1.DeltaPhi(met))
+    dphi = deltaPhiLV(lep1,met)
     self.out.mt_1[0]      = sqrt( 2*lep1.Pt()*met.Pt()*(1-cos(dphi) ) ) 
     self.out.metdphi_1[0] = dphi
 
@@ -279,11 +341,11 @@ class ModuleHighPT(Module):
     self.out.metnomu[0] = metNoMu.Pt()
     
     # MET SYSTEMATICS
-    for unc, met_var in met_vars.items():
-      getattr(self.out,"met_"+unc)[0]    = met_var.Pt()
-      getattr(self.out,"metphi_"+unc)[0] = met_var.Phi()
-      dphi = abs(lep1.DeltaPhi(met_var))
-      getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2 * lep1.Pt() * met_var.Pt() * ( 1 - cos(dphi) ) )
+    for unc in met_vars:
+      getattr(self.out,"met_"+unc)[0]    = met_vars[unc].Pt()
+      getattr(self.out,"metphi_"+unc)[0] = met_vars[unc].Phi()
+      dphi = deltaPhiLV(lep1,met_vars[unc])
+      getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2 * lep1.Pt() * met_vars[unc].Pt() * ( 1 - cos(dphi) ) )
       getattr(self.out,'metdphi_1_'+unc)[0] = dphi
 
 
@@ -295,12 +357,17 @@ class ModuleHighPT(Module):
     ht_jets = TLorentzVector()
     ht_jets.SetXYZT(0,0,0,0)
     # SELECT JET, remove overlap with selected objects
+    lep_jet = lep1
+    drMin = 0.4
     for jet in Collection(event,'Jet'):
       if abs(jet.eta)>5.0: continue
       if (jet.pt<10): continue
       ht_jets = ht_jets + jet.p4() 
       if abs(jet.eta)>4.7: continue
       overlap = False
+      if jet.DeltaR(lep1)<drMin:
+        lep_jet = jet.p4()
+        drMin = jet.DeltaR(lep1)
       for lepton in leptons:
         if jet.DeltaR(lepton)<0.5: 
           overlap = True
@@ -326,6 +393,18 @@ class ModuleHighPT(Module):
           ncjets50 += 1
       
     mht = ht_jets - ht_muons
+
+    #    print('lepjet',lep_jet.Pt(),'lep',lep1.Pt())
+
+    dphi_j = deltaPhiLV(lep_jet,met)
+    self.out.mt_jet_1[0]      = sqrt( 2*lep_jet.Pt()*met.Pt()*(1-cos(dphi_j) ) ) 
+    self.out.metdphi_jet_1[0] = dphi_j
+    # MET SYSTEMATICS
+    for unc in met_vars:
+      dphi_j = deltaPhiLV(lep_jet,met_vars[unc])
+      getattr(self.out,"mt_jet_1_"+unc)[0]   = sqrt( 2 * lep_jet.Pt() * met_vars[unc].Pt() * ( 1 - cos(dphi_j) ) )
+      getattr(self.out,'metdphi_jet_1_'+unc)[0] = dphi_j
+
     
     self.out.njets[0]         = len(jets)
     self.out.njets50[0]       = njets50
@@ -336,7 +415,7 @@ class ModuleHighPT(Module):
     
     ## FILL JET VARIATION BRANCHES (Not available in NanoAOD v10)
     #    if self.dojecsys:
-    #      for unc, jets_var in jets_vars.items():
+    #      for unc, jets_var in jets_vars.iteritems():
     #        getattr(self.out,"njets_"+unc)[0] = len(jets_var)
     #        getattr(self.out,"ncjets_"+unc)[0] = ncjets_var
     #        getattr(self.out,"nfjets_"+unc)[0] = nfjets_var
@@ -344,7 +423,7 @@ class ModuleHighPT(Module):
     return jets, ht_muons, met, met_vars
     
   
-  def fillCommonCorrBranches(self, event):
+  def fillCommonCorrBraches(self, event):
     """Help function to apply common corrections, and fill weight branches."""
     
     #if self.dorecoil:
@@ -372,7 +451,10 @@ class ModuleHighPT(Module):
       self.out.pt_moth2[0]    = min(toppt1,toppt2)
       self.out.ttptweight[0]  = getTopPtWeight(toppt1,toppt2)
     
-    self.out.genweight[0]     = event.genWeight
+    if self.era=='UL2017':
+      self.out.genweight[0]     = event.genWeight
+    else:
+      self.out.genweight[0]     = np.sign(event.genWeight)
     self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
 
   # EXTRA TAU VETO
@@ -384,15 +466,15 @@ class ModuleHighPT(Module):
       if abs(tau.dz)>0.2: continue
       if tau.decayMode not in [0,1,2,10,11]: continue
       if abs(tau.charge)!=1: continue
-      if tau.idDeepTau2017v2p1VSe < 1: continue   # VVVLoose
-      if tau.idDeepTau2017v2p1VSmu < 1: continue  # VLoose
+      if tau.idDeepTau2017v2p1VSe < 1 and tau.DeepTau2018v2p5VSe < 1: continue   # VVVLoose
+      if tau.idDeepTau2017v2p1VSmu < 1 and tau.idDeepTau2018v2p5VSmu < 1: continue  # VLoose
       overlap = False
       for lepton in leptons:
         if tau.DeltaR(lepton)<0.4:
           overlap = True
           break
       if overlap: continue          
-      if tau.idDeepTau2017v2p1VSjet>=1:
+      if tau.idDeepTau2017v2p1VSjet>=4 or tau.idDeepTau2018v2p5VSjet >=4: # Loose
         tau_veto = True
         break
     return tau_veto
@@ -437,3 +519,21 @@ class ModuleHighPT(Module):
         break
     return elec_veto
 
+  def get_taujet(self,event,tau):
+    jp4_match = TLorentzVector()
+    jp4_match.SetPtEtaPhiM(tau.pt,tau.eta,tau.phi,tau.mass)
+    jp4_genmatch = TLorentzVector()
+    jp4_genmatch.SetPtEtaPhiM(tau.pt,tau.eta,tau.phi,tau.mass)
+    if (tau.jetIdx>=0):
+      jp4_match.SetPtEtaPhiM(event.Jet_pt[tau.jetIdx],
+                             event.Jet_eta[tau.jetIdx],
+                             event.Jet_phi[tau.jetIdx],
+                             event.Jet_mass[tau.jetIdx])
+      if self.ismc:
+        if event.Jet_genJetIdx[tau.jetIdx]>=0:
+          index = event.Jet_genJetIdx[tau.jetIdx]
+          jp4_genmatch.SetPtEtaPhiM(event.GenJet_pt[index],
+                                    event.GenJet_eta[index],
+                                    event.GenJet_phi[index],
+                                    event.GenJet_mass[index])
+    return jp4_match,jp4_genmatch

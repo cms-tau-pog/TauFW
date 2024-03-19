@@ -1,9 +1,7 @@
-# Author: Izaak Neutelings (June 2020)
-# Sources:
-#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
-#   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
+# Author: Jacopo Malvaso (August 2022)
+# Description : tree for selected  W*->muv candidates
+#               in studies of high pT taus
 from TauFW.PicoProducer.analysis.TreeProducerHighPT import TreeProducerHighPT
-
 
 class TreeProducerMuNu(TreeProducerHighPT):
   """Class to create and prepare a custom output file & tree."""

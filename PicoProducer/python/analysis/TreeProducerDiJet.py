@@ -1,9 +1,8 @@
-# Author: Izaak Neutelings (June 2020)
-# Sources:
-#   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
-#   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
+# Author : Alexei Raspereza (October 2022)
+# Description : tree class for selected di-jets events
+#               for measurement of jet->tau fake factors
+#               in studies of high pT taus
 from TauFW.PicoProducer.analysis.TreeProducerHighPT import TreeProducerHighPT
-
 
 class TreeProducerDiJet(TreeProducerHighPT):
   """Class to create and prepare a custom output file & tree."""
@@ -28,7 +27,14 @@ class TreeProducerDiJet(TreeProducerHighPT):
     self.addBranch('idDeepTau2017v2p1VSe_2',     'i')
     self.addBranch('idDeepTau2017v2p1VSmu_2',    'i')
     self.addBranch('idDeepTau2017v2p1VSjet_2',   'i')
+    self.addBranch('rawDeepTau2018v2p5VSe_2',    'f')
+    self.addBranch('rawDeepTau2018v2p5VSmu_2',   'f')
+    self.addBranch('rawDeepTau2018v2p5VSjet_2',  'f')
+    self.addBranch('idDeepTau2018v2p5VSe_2',     'i')
+    self.addBranch('idDeepTau2018v2p5VSmu_2',    'i')
+    self.addBranch('idDeepTau2018v2p5VSjet_2',   'i')
     self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
+    self.addBranch('jeta_match_2',               'f', -1, title="eta of jet matching tau")
     self.addBranch('jpt_ratio_2',                'f', -1, title="ratio of tau pt to jet pt")
 
     ##############
@@ -48,3 +54,4 @@ class TreeProducerDiJet(TreeProducerHighPT):
     if self.module.ismc:
       self.addBranch('genmatch_2',     'i', -1)
       self.addBranch('jpt_genmatch_2', 'f', -1, title="pt of gen jet matching fake tau")
+      self.addBranch('jeta_genmatch_2','f', -1, title="eta of gen jet matching fake tau")

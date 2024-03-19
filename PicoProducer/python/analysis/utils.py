@@ -1,7 +1,7 @@
 # Author: Izaak Neutelings (May 2020)
 #from __future__ import print_function # for python3 compatibility
 import os, sys
-from math import sqrt, sin, cos, pi, log10, floor
+from math import sqrt, sin, cos, pi, log10, floor, acos
 from itertools import combinations
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import TH1D, TLorentzVector, RDataFrame
@@ -251,6 +251,19 @@ def deltaR(eta1, phi1, eta2, phi2):
   dphi = deltaPhi(phi1, phi2)
   return sqrt( deta*deta + dphi*dphi )
   
+def deltaPhiLV(lv1,lv2):
+  """Computes DeltaPhi, given two LorentzVectors"""
+  pt1 = sqrt(lv1.Px()*lv1.Px()+lv1.Py()*lv1.Py())
+  pt2 = sqrt(lv2.Px()*lv2.Px()+lv2.Py()*lv2.Py())
+  prod = lv1.Px()*lv2.Px()+lv1.Py()*lv2.Py()
+  pcosinus = prod/(pt1*pt2)
+  # some protection ->
+  if pcosinus>1.0: 
+    pcosinus = 0.99999
+  if pcosinus<-1.0:
+    pcosinus = -0.99999
+  return acos(pcosinus)
+
 
 def deltaPhi(phi1, phi2):
   """Computes DeltaPhi, handling periodic limit conditions."""

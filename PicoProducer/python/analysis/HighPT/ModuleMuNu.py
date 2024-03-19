@@ -1,5 +1,5 @@
 # Authors: Jacopo Malvaso and Alexei Raspereza (December 2022)
-# Description: Module to preselect W*->mu+v events
+# Description: selector of W*->muv events
 import sys
 import numpy as np
 from TauFW.PicoProducer.analysis.TreeProducerMuNu import *
@@ -8,7 +8,6 @@ from TauFW.PicoProducer.analysis.utils import idIso, matchtaujet
 from TauFW.PicoProducer.corrections.MuonSFs import *
 from TauFW.PicoProducer.corrections.WmassCorrection import *
 from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
-from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 from TauFW.PicoProducer import datadir
 
 class ModuleMuNu(ModuleHighPT):
@@ -25,10 +24,14 @@ class ModuleMuNu(ModuleHighPT):
     self.mtCut  = 40
     
     # TRIGGERS
+    print('+++++++++++++++++')
+    print('YEAR   ',self.year)
+    print('+++++++++++++++++')
+    
     jsonfile = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(self.year))
     self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)    
 
-    #print("ModuleMuNu, era=",self.era)
+    print("ModuleMuNu, era=",self.era)
     # CORRECTIONS
     if self.ismc:
       self.muSFs   = MuonSFs(era=self.era)
@@ -127,7 +130,7 @@ class ModuleMuNu(ModuleHighPT):
     # WEIGHTS
     self.out.weight[0] = 1.0 # for data
     if self.ismc:
-      self.fillCommonCorrBranches(event)
+      self.fillCommonCorrBraches(event)
       # MUON WEIGHTS
       self.out.trigweight[0]    = self.muSFs.getTriggerSF(muon1.pt,muon1.eta) # muon trigger
       self.out.idisoweight_1[0] = self.muSFs.getIdIsoSF(muon1.pt,muon1.eta) # muon id and isolation SF
