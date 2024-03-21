@@ -280,7 +280,21 @@ class ModuleHighPT(Module):
   
     elif self.isembed:
       self.out.isdata[0]        = False
-    
+
+  def taujetmatch(self,event,tau,ismc):
+    jpt_match    = -1
+    jpt_genmatch = -1
+    jeta_match   = -9999
+    jeta_genmatch = -9999
+    if tau.jetIdx>=0:
+      jpt_match = event.Jet_pt[tau.jetIdx]
+      jeta_match = event.Jet_eta[tau.jetIdx]
+      if ismc:
+        if event.Jet_genJetIdx[tau.jetIdx]>=0:
+          jpt_genmatch = event.GenJet_pt[event.Jet_genJetIdx[tau.jetIdx]]
+          jeta_genmatch = event.GenJet_eta[event.Jet_genJetIdx[tau.jetIdx]]
+    return jpt_match, jeta_match, jpt_genmatch, jeta_genmatch
+      
   def met_sys(self,event,unc):
     metsys_pt = getattr(event,"PuppiMET_pt"+unc)
     metsys_phi = getattr(event,"PuppiMET_phi"+unc)
@@ -466,7 +480,7 @@ class ModuleHighPT(Module):
       if abs(tau.dz)>0.2: continue
       if tau.decayMode not in [0,1,2,10,11]: continue
       if abs(tau.charge)!=1: continue
-      if tau.idDeepTau2017v2p1VSe < 1 and tau.DeepTau2018v2p5VSe < 1: continue   # VVVLoose
+      if tau.idDeepTau2017v2p1VSe < 1 and tau.idDeepTau2018v2p5VSe < 1: continue   # VVVLoose
       if tau.idDeepTau2017v2p1VSmu < 1 and tau.idDeepTau2018v2p5VSmu < 1: continue  # VLoose
       overlap = False
       for lepton in leptons:

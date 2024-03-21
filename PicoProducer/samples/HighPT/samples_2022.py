@@ -126,10 +126,10 @@ samples  = [
   
     # MET
     D('JetMet_Run2022C','JetMet_Run2022C',"/JetMET/Run2022C-ReRecoNanoAODv11-v1/NANOAOD",
-      store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt', 'taunu', 'dijets']),
+      store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'munu', 'taunu', 'dijets']),
     D('JetMet_Run2022D','JetMet_Run2022D',"/JetMET/Run2022D-ReRecoNanoAODv11-v1/NANOAOD",
-      store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt', 'taunu', 'dijets']),
+      store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'munu', 'taunu', 'dijets']),
     D('JetMet_Run2022E','JetMet_Run2022E',"/JetMET/Run2022E-ReRecoNanoAODv11-v1/NANOAOD",
-      store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'highpt', 'taunu', 'dijets']),
+      store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'munu', 'taunu', 'dijets']),
     
 ]

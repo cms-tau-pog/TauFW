@@ -6,7 +6,7 @@ import math
 from TauFW.PicoProducer import datadir
 from TauFW.PicoProducer.analysis.TreeProducerTauNu import *
 from TauFW.PicoProducer.analysis.ModuleHighPT import *
-from TauFW.PicoProducer.analysis.utils import loosestIso, idIso, matchgenvistau, matchtaujet, deltaPhiLV
+from TauFW.PicoProducer.analysis.utils import loosestIso, idIso, matchgenvistau, deltaPhiLV
 from TauFW.PicoProducer.corrections.TrigObjMatcher import TrigObjMatcher
 from TauFW.PicoProducer.corrections.MetTriggerSF import METTriggerSF
 from TauFW.PicoProducer.corrections.WmassCorrection import WStarWeight 
@@ -183,7 +183,7 @@ class ModuleTauNu(ModuleHighPT):
       return False
     self.out.cutflow.fill('dphi')
 
-    jpt_match, jeta_match, jpt_genmatch, jeta_genmatch = matchtaujet(event,tau1,self.ismc)
+    jpt_match, jeta_match, jpt_genmatch, jeta_genmatch = self.taujetmatch(event,tau1,self.ismc)
     #    print('matchjet',jpt_match,'tau',tau1.pt)
 
 

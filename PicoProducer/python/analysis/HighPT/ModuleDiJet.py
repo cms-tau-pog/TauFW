@@ -24,7 +24,7 @@ class ModuleDiJet(ModuleHighPT):
 
     # TRIGGERS
     if self.year==2022:
-      self.trigger = lambda e: e.HLT_PFHT180 or e.HLT_PFHT250 or e.HLT_PFHT350 or e.HLT_PFHT370 or e.HLT_PFJet140 or e.HLT_PFJet200 or e.HLT_PFJet260 or e.HLT_PFJet320 or e.HLT_PFJet400
+      self.trigger = lambda e: e.HLT_PFHT180 or e.HLT_PFHT250 or e.HLT_PFHT350 or e.HLT_PFHT370
     else:
       self.trigger = lambda e: e.HLT_PFJet80 or e.HLT_PFJet140 or e.HLT_PFJet200 or e.HLT_PFJet260 or e.HLT_PFJet320 or e.HLT_PFJet400
 
@@ -56,8 +56,7 @@ class ModuleDiJet(ModuleHighPT):
     """Process and pre-select events; fill branches and return True if the events passes,
     return False otherwise."""
     sys.stdout.flush()
-    
-    
+
     ##### NO CUT #####################################
     if not self.fillhists(event):
       return False
