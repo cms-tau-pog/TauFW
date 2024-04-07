@@ -9,11 +9,13 @@ parser.add_argument("--e ", type=str, dest="era", help="which era")
 parser.add_argument("--c ", type=str, dest="channel", help="which channel", default='mutau')
 parser.add_argument("--s ", nargs='+', dest="systematics", help="which systematics", default = ['central'])
 parser.add_argument("--C ", action='store_true', dest="clean", help="want to clean root files", default=False)
+parser.add_argument("--f ", action='store_true', dest="force", help="want to hadd forcefully", default=False)
 options = parser.parse_args()
 era = options.era
 channel = options.channel
 systematics = options.systematics
 clean = options.clean
+force = options.force
 
 def run_cmd(which_cmd):
 
@@ -72,7 +74,7 @@ def run_cmd(which_cmd):
             ret = run_pico(cmd)
             if ret == 1: final_ret = 1
         elif 'tauES' in sys:
-               taues_vars = [0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022,1.024, 1.026, 1.028, 1.030]
+               taues_vars = [0.970, 0.971, 0.972, 0.973, 0.974, 0.975, 0.976, 0.977, 0.978, 0.979, 0.980, 0.981, 0.982, 0.983, 0.984, 0.985, 0.986, 0.987, 0.988, 0.989, 0.990, 0.991, 0.992, 0.993, 0.994, 0.995, 0.996, 0.997, 0.998, 0.999, 1.000, 1.001, 1.002, 1.003, 1.004, 1.005, 1.006, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.013, 1.014, 1.015, 1.016, 1.017, 1.018, 1.019, 1.020, 1.021, 1.022, 1.023, 1.024, 1.025, 1.026, 1.027, 1.028, 1.029, 1.030]
                for taues_var in taues_vars:
                    taues_var_with_p = str(taues_var).replace('.', 'p')
                    if len(taues_var_with_p) != 5:
@@ -84,7 +86,7 @@ def run_cmd(which_cmd):
 
 
 first_submit = False
-while True:
+while True and not force:
     if not first_submit:
         ret = run_cmd('submit')
         print('return value: ', ret)
@@ -97,4 +99,9 @@ while True:
     print(datetime.datetime.now())
     if ret == 0:
         break
-run_cmd('hadd clean' if clean else 'hadd')
+hadd = 'hadd'
+if clean:
+   hadd+= ' clean'
+if force:
+   hadd+= ' --force'
+run_cmd(hadd)
