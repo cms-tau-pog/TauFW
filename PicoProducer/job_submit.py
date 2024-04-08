@@ -3,6 +3,7 @@ import sys
 import datetime
 import time
 import argparse
+from concurrent.futures import ProcessPoolExecutor
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--e ", type=str, dest="era", help="which era")
@@ -17,9 +18,7 @@ systematics = options.systematics
 clean = options.clean
 force = options.force
 
-def run_cmd(which_cmd):
-
-    def run_pico(cmd):
+def run_pico(cmd):
         ret = 0
         if 'hadd' in cmd:
             print('running hadd')
@@ -41,20 +40,22 @@ def run_cmd(which_cmd):
         else:
             if not os.system(f'{cmd} | grep exist'):
                 print('jobs were already submitted, check the status')
-                cmd = cmd.replace(which_cmd, 'status')
-                print(cmd)
+                cmd = cmd.replace('submit', 'status')
                 ret = run_pico(cmd)
             else:
                 print(cmd)
                 os.system(cmd)
                 ret = 1
+        print(f'returning {ret}')
         return ret
+
+def run_cmd(which_cmd):
+    print(f'calling run_cmd with {which_cmd}')
     common_cmd = f'pico.py {which_cmd}  -c {channel} -y {era}  -E jec=False useT1=False'
-    final_ret = 0
-    for sys in systematics:#['central']:#, '_LTFUp', '_LTFDown', '_JTFUp', '_JTFDown', 'tauES']:
+    cmds = []
+    for sys in systematics:
         if 'central' in sys:
-            ret = run_pico(common_cmd)
-            if ret == 1: final_ret = 1
+            cmds.append(common_cmd)
         elif 'LTF' in sys:
             cmd = common_cmd + f' -s DY TT -t {sys}'
             if 'Up' in sys:
@@ -62,8 +63,7 @@ def run_cmd(which_cmd):
             else:
                 assert('Down' in sys)
                 cmd += ' -E ltf=0.97'
-            ret = run_pico(cmd)
-            if ret == 1: final_ret = 1
+            cmds.append(cmd)
         elif 'JTF' in sys:
             cmd = common_cmd + f' -s DY TT W*J -t {sys}'
             if 'Up' in sys:
@@ -71,8 +71,7 @@ def run_cmd(which_cmd):
             else:
                 assert('Down' in sys)
                 cmd += ' -E jtf=0.90'
-            ret = run_pico(cmd)
-            if ret == 1: final_ret = 1
+            cmds.append(cmd)
         elif 'tauES' in sys:
                taues_vars = [0.970, 0.971, 0.972, 0.973, 0.974, 0.975, 0.976, 0.977, 0.978, 0.979, 0.980, 0.981, 0.982, 0.983, 0.984, 0.985, 0.986, 0.987, 0.988, 0.989, 0.990, 0.991, 0.992, 0.993, 0.994, 0.995, 0.996, 0.997, 0.998, 0.999, 1.000, 1.001, 1.002, 1.003, 1.004, 1.005, 1.006, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.013, 1.014, 1.015, 1.016, 1.017, 1.018, 1.019, 1.020, 1.021, 1.022, 1.023, 1.024, 1.025, 1.026, 1.027, 1.028, 1.029, 1.030]
                for taues_var in taues_vars:
@@ -80,10 +79,10 @@ def run_cmd(which_cmd):
                    if len(taues_var_with_p) != 5:
                        taues_var_with_p += '0'
                    cmd = common_cmd + f' tes={taues_var} -s DY -t _TES{taues_var_with_p}'
-                   ret = run_pico(cmd)
-                   if ret == 1: final_ret = 1
-    return final_ret
-
+                   cmds.append(cmd)
+        with ProcessPoolExecutor() as executor:
+           ret = list(executor.map(run_pico, cmds))
+           return any([ i !=0 for i in ret])
 
 first_submit = False
 while True and not force:
@@ -93,6 +92,7 @@ while True and not force:
         if ret == 0:
             break
         first_submit = True
+    print('sleeping')
     time.sleep(600)
     ret = run_cmd('status')
     print('return: ', ret)
