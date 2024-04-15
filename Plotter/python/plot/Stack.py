@@ -143,7 +143,7 @@ class Stack(Plot):
     if logx and xmin==0: # reset xmin in binning
       frame = self.frame or self.exphists[0] or self.datahist
       xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
-      xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
       LOG.verb("Stack.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
       for hist in self.exphists+[self.datahist]:
         if hist: hist.SetBins(*xbins) # set binning with xmin>0
@@ -224,17 +224,20 @@ class Stack(Plot):
         stack.Add(hist)
     
     # DRAW FRAME
-    self.canvas.cd(1)
+    mainpad = self.canvas.cd(1)
     if not self.frame: # if not given by user
-      self.frame = getframe(gPad,stack,xmin,xmax)
-      #self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+      self.frame = getframe(mainpad,stack,xmin,xmax,variable=True)
+      #self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes ?
     else:
-      self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+      self.frame.Draw('AXIS') # 'AXIS' breaks grid in combination with TGraph sometimes ?
     
     # DRAW LINE
     for line in self.lines:
       if line.pad==1:
-        line.Draw("LSAME")
+        line.Draw(line.option)
+    for box in self.boxes:
+      if box.pad==1:
+        box.Draw(box.option)
     
     # DRAW
     stack.Draw(option+' SAME')
@@ -255,7 +258,7 @@ class Stack(Plot):
     
     # CMS STYLE
     if CMSStyle.lumiText:
-      CMSStyle.setCMSLumiStyle(gPad,0)
+      CMSStyle.setCMSLumiStyle(mainpad,0,verb=verbosity-2)
     
     # ERROR BAND
     if staterr or sysvars:
@@ -279,7 +282,9 @@ class Stack(Plot):
     # RATIO
     if ratio:
       drawx = (lowerpanels<=1)
-      self.canvas.cd(2)
+      lines = [l for l in self.lines if l.pad==2] # draw first
+      boxes = [b for b in self.boxes if b.pad==2] # draw first
+      self.canvas.cd(2) # go to ratio panel
       if rhists==None: # if not set by user, use default
         rhists = [stack]+self.sighists+[self.datahist] # default: use stack as denominator (denom=1)
       else: # histograms for ratio set by user
@@ -289,13 +294,10 @@ class Stack(Plot):
           rhists[rhists.index('data')] = self.datahist
       self.ratio = Ratio(*rhists,denom=denom,num=num,errband=self.errband,
                          drawzero=True,errorX=errorX,fraction=fraction,verb=verbosity)
-      self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
+      self.ratio.draw(xmin=xmin,xmax=xmax,data=True,lines=lines,boxes=boxes)
       self.setaxes(self.ratio,drawx=drawx,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,nxdiv=nxdiv,nydiv=nrdiv,
                    xtitle=xtitle,ytitle=rtitle,xtitlesize=xtitlesize,ytitlesize=rtitlesize,xtitleoffset=xtitleoffset,ytitleoffset=rtitleoffset,
                    xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
                    center=True,rrange=ratiorange,grid=grid,latex=latex)
-      for line in self.lines:
-        if line.pad==2:
-          line.Draw("LSAME")
-      self.canvas.cd(1)
+      self.canvas.cd(1) # go back to main pad
   

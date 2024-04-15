@@ -108,8 +108,8 @@ def main():
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
-  description = '''Script to test the Plot class for comparing histograms.'''
-  parser = ArgumentParser(prog="testPlot",description=description,epilog="Good luck!")
+  description = '''Script to test the Ratio class for comparing histograms.'''
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity level" )
   args = parser.parse_args()
