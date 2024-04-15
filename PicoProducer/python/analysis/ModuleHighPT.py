@@ -14,8 +14,9 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
 from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, deltaPhiLV, deltaPhi
+from TauFW.PicoProducer.corrections.JetVeto import JetVeto
 __metaclass__ = type # to use super() with subclasses from CommonProducer
-tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022'}
+tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022', 2023: '2023'}
 
 
 class ModuleHighPT(Module):
@@ -55,6 +56,19 @@ class ModuleHighPT(Module):
     self.dowmasswgt = kwargs.get('dowmasswgt',  False       ) # doing w mass reweighting
     self.jetCutPt   = 30
     self.isUL       = 'UL' in self.era
+    self.skimmed    = True
+    if '2016' in self.era:
+      self.year = 2016
+    elif '2017' in self.era:
+      self.year = 2017
+    elif '2018' in self.era:
+      self.year = 2018
+    elif '2022' in self.era:
+      self.year = 2022
+    elif '2023' in self.era:
+      self.year = 2023
+      self.skimmed = False
+
     if self.year==2018 or self.year==2017:
       self.trigtau1 = lambda e: e.HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_1pr
       self.trigtau2 = lambda e: e.HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1
@@ -65,19 +79,18 @@ class ModuleHighPT(Module):
       self.trigtau1 = lambda e: e.HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1
       self.trigtau2 = lambda e: e.HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1
 
-    if '2016' in self.era:
-      self.year = 2016
-    elif '2017' in self.era:
-      self.year = 2017
-    elif '2018' in self.era:
-      self.year = 2018
-      
+    self.hotSpot = None
+    if self.year==2023:
+      if self.era=='2023C':
+        self.hotSpot = JetVeto('Summer23Prompt23_RunC_v1.root','jetvetomap')
+      else:
+        self.hotSpot = JetVeto('Summer23BPixPrompt23_RunD_v1.root','jetvetomap')
 
     self.histnameZpt = 'zptmass_weight'
-    if self.year == 2022:
+    if self.year == 2022 or self.year == 2023:
       self.histnameZpt = 'zptmass_histo'
 
-    assert self.year in [2016,2017,2018,2022], "Did not recognize year %s! Please choose from 2016, 2017, 2018, 2022"%self.year
+    assert self.year in [2016,2017,2018,2022,2023], "Did not recognize year %s! Please choose from 2016, 2017, 2018, 2022"%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -164,53 +177,61 @@ class ModuleHighPT(Module):
     #redirectbranch(1.,"genWeight") # replace Events.genWeight with single 1.0 value
     
     # save number of weights
-
-    if self.isdata:
-      total_w = 0.
-      total_w2 = 0.
-      for tree_name in [ 'Events']:
-        df = RDataFrame(tree_name, inputFile)
-        df = df.Define('genWeightD', '1.0')
-        df = df.Define('genWeightD2', 'std::pow(genWeightD, 2)')
-        w = df.Sum('genWeightD')
-        w2 = df.Sum('genWeightD2')
-        total_w += w.GetValue()
-        total_w2 += w2.GetValue()
-      self.out.sumgenweights.Fill(0.5,total_w)
-      self.out.sumgenw2.Fill(0.5,total_w2)
-    else:
-      if self.era=='UL2017':
-        runTree = inputFile.Get('Runs')
-        genEventSumw = np.zeros(1,dtype='d')
-        runTree.SetBranchAddress("genEventSumw",genEventSumw)
-        nentries = runTree.GetEntries()
-        for entry in range(0,nentries):
-          runTree.GetEntry(entry)
-          self.out.sumgenweights.Fill(0.5,genEventSumw[0])
-      else:
+    # from skimmed tuples
+    if self.skimmed:
+      if self.isdata:
         total_w = 0.
         total_w2 = 0.
-        for tree_name in [ 'Events', 'EventsNotSelected' ]:
+        for tree_name in [ 'Events']:
           df = RDataFrame(tree_name, inputFile)
-          df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
+          df = df.Define('genWeightD', '1.0')
           df = df.Define('genWeightD2', 'std::pow(genWeightD, 2)')
           w = df.Sum('genWeightD')
           w2 = df.Sum('genWeightD2')
           total_w += w.GetValue()
           total_w2 += w2.GetValue()
-        self.out.sumgenweights.Fill(0.5,total_w)
-        self.out.sumgenw2.Fill(0.5,total_w2)
+          self.out.sumgenweights.Fill(0.5,total_w)
+          self.out.sumgenw2.Fill(0.5,total_w2)
+      else:
+        if self.era=='UL2017':
+          runTree = inputFile.Get('Runs')
+          genEventSumw = np.zeros(1,dtype='d')
+          runTree.SetBranchAddress("genEventSumw",genEventSumw)
+          nentries = runTree.GetEntries()
+          for entry in range(0,nentries):
+            runTree.GetEntry(entry)
+            self.out.sumgenweights.Fill(0.5,genEventSumw[0])
+        else:
+          total_w = 0.
+          total_w2 = 0.
+          for tree_name in [ 'Events', 'EventsNotSelected' ]:
+            df = RDataFrame(tree_name, inputFile)
+            df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
+            df = df.Define('genWeightD2', 'std::pow(genWeightD, 2)')
+            w = df.Sum('genWeightD')
+            w2 = df.Sum('genWeightD2')
+            total_w += w.GetValue()
+            total_w2 += w2.GetValue()
+            self.out.sumgenweights.Fill(0.5,total_w)
+            self.out.sumgenw2.Fill(0.5,total_w2)
   
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
     self.out.cutflow.fill('none')
     if self.isdata:
+      if not self.skimmed:
+        self.out.sumgenweights.Fill(0.5,1.0)
       self.out.cutflow.fill('weight',1.)
       if event.PV_npvs>0:
         self.out.cutflow.fill('weight_no0PU',1.)
       else:
         return False
     else:
+      if not self.skimmed:
+        generator_weight = 1.0
+        if event.genWeight<0:
+          generator_weight = -1.0;
+        self.out.sumgenweights.Fill(0.5,generator_weight);
       self.out.cutflow.fill('weight',event.genWeight)
       self.out.pileup.Fill(event.Pileup_nTrueInt)
       #if self.dosys and event.nLHEScaleWeight>0:
@@ -254,6 +275,15 @@ class ModuleHighPT(Module):
       self.out.tautrigger1[0] = False
       self.out.tautrigger2[0] = False
     
+    self.out.hotjet_veto[0] = False
+    if self.year==2023:
+      muons = Collection(event,'Muon')
+      jets = Collection(event,'Jet')
+      try:
+        self.out.hotjet_veto[0] = self.hotSpot.isHot(jets,muons)
+      except RuntimeError: 
+        self.out.hotjet_veto[0] = False
+
     if self.ismc:
       ###self.out.ngentauhads[0]   = ngentauhads
       ###self.out.ngentaus[0]      = ngentaus
@@ -334,10 +364,10 @@ class ModuleHighPT(Module):
     
     lep1.tlv = lep1.p4()
     # PROPAGATE TES/LTF/JTF shift to MET (assume shift is already applied to object)
-    if self.ismc and 'tau' in self.channel:
-      if hasattr(lep1,'es') and lep1.es!=1:
-        dp = lep1.tlv*(1.-1./lep1.es) # assume shift is already applied
-        correctmet(met,dp)
+    #    if self.ismc and 'tau' in self.channel:
+    #      if hasattr(lep1,'es') and lep1.es!=1:
+    #        dp = lep1.tlv*(1.-1./lep1.es) # assume shift is already applied
+    #        correctmet(met,dp)
         
     # print(">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(lep2.es,lep2.pt,dp.Pt(),lep2.genPartFlav))
         

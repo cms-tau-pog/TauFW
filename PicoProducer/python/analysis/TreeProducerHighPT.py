@@ -114,6 +114,7 @@ class TreeProducerHighPT(TreeProducer):
     self.addBranch('extraelec_veto',      '?')
     self.addBranch('extramuon_veto',      '?')
     self.addBranch('extratau_veto',       '?')
+    self.addBranch('hotjet_veto',         '?')
     
     if module.ismc:
       if module.dotoppt:

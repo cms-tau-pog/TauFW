@@ -19,14 +19,14 @@ class ModuleTauNu(ModuleHighPT):
     super(ModuleTauNu,self).__init__(fname,**kwargs)
 
     # conservative unc
-    self.tes_shift = 0.03
+    self.tes_shift = 0.05
     self.unc_names  = ['taues','taues_1pr','taues_1pr1pi0','taues_3pr','taues_3pr1pi0','taues_2pr']
     self.tes_uncs = [ u+v for u in self.unc_names for v in ['Up','Down'] ]  
 
     self.out = TreeProducerTauNu(fname,self)
 
     # loose pre-selection cuts
-    self.tauPtCut  = 90
+    self.tauPtCut  = 80
     self.tauEtaCut = 2.5
     self.metCut    = 80
     self.mtCut     = 80

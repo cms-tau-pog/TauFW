@@ -11,11 +11,14 @@ class WStarWeight:
 
   def getWeight(self,wmass):
 
-    if (wmass<100 or wmass >3000):
+    if (wmass<100):
       weight = 1.0
     else:
-#      print('bin',self.histo.FindBin(wmass))
-      weight = self.histo.GetBinContent(self.histo.FindBin(wmass))
+      wMassToFind = wmass
+      if wMassToFind>999:
+        wMassToFind = 999.
+      #      print('bin',self.histo.FindBin(wmass))
+      weight = self.histo.GetBinContent(self.histo.FindBin(wMassToFind))
 
 #    print('wmass',wmass,'weight',weight)
     return weight 
