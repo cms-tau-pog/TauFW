@@ -55,7 +55,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     else:
       LOG.throw(IOError,"Did not recognize mc row %s"%(info))
     fname = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel,TAG=tag)
-    print(fname)
+    #print(fname)
     sample = MC(name,title,fname,xsec,**expkwargs)
     expsamples[i] = sample
   
