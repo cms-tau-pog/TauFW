@@ -1,0 +1,39 @@
+{
+    "channels": {
+	"skim": "skimjob.py",
+	"skim-jec": "skimjob.py --jec-sys",
+	"gen": "GenDumper",
+	"taunu": "HighPT.ModuleTauNu",
+	"munu": "HighPT.ModuleMuNu",
+	"wjets": "HighPT.ModuleWJ",
+	"dijets": "HighPT.ModuleDiJet"
+    },
+    "eras": {
+	"2016": "examples/samples_2016.py",
+	"2017": "examples/samples_2017.py",
+	"2018": "examples/samples_UL2018.py",
+	"UL2016_preVFP": "HighPT/samples_UL2016_preVFP.py",
+	"UL2016_postVFP": "HighPT/samples_UL2016_postVFP.py",
+	"UL2017": "HighPT/samples_UL2017.py",
+	"UL2018": "HighPT/samples_UL2018.py",
+	"2022_preEE": "HighPT/samples_2022_preEE.py",
+	"2022_postEE": "HighPT/samples_2022_postEE.py",
+	"2023C": "HighPT/samples_2023C.py",
+	"2023D": "HighPT/samples_2023D.py"
+    },
+    "nfilesperjob": 1,
+    "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
+    "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+    "basedir": "/afs/cern.ch/work/r/rasp/CMSSW_12_4_8/src/TauFW/PicoProducer",
+    "outdir": "/eos/user/r/rasp/output/HighPT_2023/$ERA/$CHANNEL/jobs/$SAMPLE",
+    "nanodir": "/eos/user/r/rasp/samples/nano/$ERA/$DAS",
+    "picodir": "/eos/user/r/rasp/output/HighPT_2023/$ERA/$CHANNEL/$SAMPLE",
+    "tmpskimdir": "",
+    "batch": "HTCondor",
+    "queue": "",
+    "maxevtsperjob": 500000,
+    "maxopenfiles": 1000,
+    "ncores": 4,
+    "batchopts": "",
+    "haddcmd": ""
+}
