@@ -137,16 +137,13 @@ class Stack(Plot):
     self.lcolors = lcolors
     self.fcolors = fcolors
     self.lstyles = lstyles
-    hists        = self.hists
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
     if logx and xmin==0: # reset xmin in binning
-      frame = self.frame or self.exphists[0] or self.datahist
-      xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
-      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
-      LOG.verb("Stack.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
-      for hist in self.exphists+[self.datahist]:
-        if hist: hist.SetBins(*xbins) # set binning with xmin>0
+      xmin = 0.25*(self.frame or hists[0]).GetXaxis().GetBinWidth(1)
+      LOG.verb("Stack.draw: Resetting xmin=0 -> %s (logx=True)"%(logx),verbosity,2)
+      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
+        self.frame = None # use getframe below
     if verbosity>=2:
       print(">>> Stack.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle))
       print(">>> Stack.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
@@ -185,7 +182,7 @@ class Stack(Plot):
       if self.datahist:
         self.datahist = datahists[0]
         self.hists = [self.datahist]+self.exphists+self.sighists
-      else:
+      else: # do not include data hists
         self.hists = self.exphists+self.sighists
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
@@ -227,9 +224,9 @@ class Stack(Plot):
     mainpad = self.canvas.cd(1)
     if not self.frame: # if not given by user
       self.frame = getframe(mainpad,stack,xmin,xmax,variable=True)
-      #self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes ?
+      #self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
     else:
-      self.frame.Draw('AXIS') # 'AXIS' breaks grid in combination with TGraph sometimes ?
+      self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
     
     # DRAW LINE
     for line in self.lines:
@@ -274,7 +271,7 @@ class Stack(Plot):
     
     # AXES
     drawx = not bool(ratio)
-    self.setaxes(self.frame,*hists,drawx=drawx,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,nxdiv=nxdiv,nydiv=nydiv,
+    self.setaxes(self.frame,*self.hists,drawx=drawx,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,nxdiv=nxdiv,nydiv=nydiv,
                  xtitle=xtitle,ytitle=ytitle,xtitlesize=xtitlesize,ytitlesize=ytitlesize,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,
                  xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
                  dividebins=dividebins,latex=latex,center=ycenter,ymargin=ymargin,logyrange=logyrange)

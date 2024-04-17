@@ -54,7 +54,7 @@ def testPlot_init(xtitle,hists,norm=False,clone=False):
     print('')
   
 
-def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None,pre="",tag="",**kwargs):
+def plothist(xtitle,hists,ratio=False,logy=False,logx=False,norm=False,cwidth=None,pre="",tag="",**kwargs):
   """Plot comparison of histograms."""
   
   # SETTING
@@ -64,6 +64,8 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None,pre="",t
     fname += "_ratio"
   if logy:
     fname += "_logy"
+  if logx:
+    fname += "_logx"
   if norm:
     fname += "_norm" # normalize each histogram
   if cwidth:
@@ -81,9 +83,9 @@ def plothist(xtitle,hists,ratio=False,logy=False,norm=False,cwidth=None,pre="",t
   
   # PLOT
   LOG.header(fname)
-  print(">>> norm=%r, ratio=%r, logy=%r, cwidth=%r"%(norm,ratio,logy,cwidth))
+  print(">>> norm=%r, ratio=%r, logy=%r, logx=%r, cwidth=%r"%(norm,ratio,logy,logx,cwidth))
   plot = Plot(xtitle,hists,norm=norm)
-  plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,width=cwidth,grid=grid,**kwargs)
+  plot.draw(ratio=ratio,logy=logy,logx=logx,ratiorange=rrange,width=cwidth,grid=grid,**kwargs)
   plot.drawlegend(position,header=header,width=lwidth)
   plot.drawtext(text)
   plot.saveas(fname+".png")
@@ -146,6 +148,7 @@ def main():
   xtitle = "p_{T}^{MET} [GeV]"
   #xtitle = "Leading jet p_{T} [GeV]"
   ratios  = [True,False]
+  logxs   = [True,False]
   logys   = [True,False]
   norms   = [True,False]
   cwidths = [800,500,1400]
@@ -155,12 +158,28 @@ def main():
   if 'hist' in args.methods:
     for ratio in ratios:
       for logy in logys:
-        for norm in norms:
-          for cwidth in cwidths:
-            if (norm or logy) and cwidth!=800: continue # reduce number of plots produced
-            #for cwidth in [None,1000]:
-            hists = createhists()
-            plothist(xtitle,hists,ratio=ratio,logy=logy,norm=norm,cwidth=cwidth)
+        #if logy and ratio: continue # reduce number of plots produced
+        for logx in logxs:
+          for norm in norms:
+            for cwidth in cwidths:
+              if (norm or logy or logx) and cwidth!=800: continue # reduce number of plots produced
+              #for cwidth in [None,1000]:
+              hists = createhists()
+              plothist(xtitle,hists,ratio=ratio,logy=logy,logx=logx,norm=norm,cwidth=cwidth)
+  
+  # TEST FRAME
+  #plothist(variable,hists,ratio=False,logy=False)
+  if 'frame' in args.methods:
+    kwargset = [
+      { 'tag': "_x10-max", 'logx': False, 'xmin': 10 },
+      { 'tag': "_x10-200", 'logx': False, 'xmin': 10, 'xmax': 200, },
+      { 'tag': "_logx", 'logx': True  },
+      { 'tag': "_logx_x10-max", 'logx': True, 'xmin': 10, },
+      { 'tag': "_logx_x10-200", 'logx': True, 'xmin': 10, 'xmax': 200, },
+    ]
+    for kwargs in kwargset:
+      hists = createhists(4,nbins=25)
+      plothist(xtitle,hists,pre='_frame',ratio=True,logy=False,**kwargs)
   
   # TEST DRAW STYLES
   #plothist(variable,hists,ratio=False,logy=False)
@@ -180,7 +199,7 @@ def main():
       nhists = 6 if kwargs.get('triple',False) else 4
       hists  = createhists(nhists,nbins=25)
       graphs = hists2graphs(hists)
-      plothist(xtitle,hists, pre='_style_hist', ratio=True,logy=False,**kwargs)
+      plothist(xtitle,hists,pre='_style_hist',ratio=True,logy=False,**kwargs)
       if 'options' in kwargs:
         kwargs['options'] = [o.replace('E0','PE0').replace('HIST','').strip() for o in kwargs['options']]
       plothist(xtitle,graphs,pre='_style_graph',ratio=True,logy=False,**kwargs)
@@ -204,7 +223,7 @@ def main():
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
-  methods = ['hist','graph','init','style'] # different unit tests
+  methods = ['hist','graph','init','style','frame'] # different unit tests
   description = '''Script to test the Plot class for comparing histograms.'''
   parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-m', '--method',  dest='methods', choices=methods, nargs='+', default=methods,
