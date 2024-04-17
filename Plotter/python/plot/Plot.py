@@ -242,7 +242,6 @@ class Plot(object):
     fcolors      = ensurelist(fcolors or [ ])
     lstyles      = ensurelist(lstyles or [ ])
     hists        = self.hists
-    frame        = self.frame or hists[0]
     self.norm    = norm
     self.ratio   = ratio
     self.lcolors = lcolors
@@ -250,17 +249,15 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    if logx and xmin==0.0: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
     if logx and xmin==0: # reset xmin in binning
-      xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
-      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
-      LOG.verb("Plot.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
-      for hist in hists:
-        if hist: hist.SetBins(*xbins) # set binning with xmin>0
+      xmin = 0.25*(self.frame or hists[0]).GetXaxis().GetBinWidth(1)
+      LOG.verb("Stack.draw: Resetting xmin=0 -> %s (logx=True)"%(logx),verbosity,2)
+      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
+        self.frame = None # use getframe below
     if isinstance(iband,int): # shift by 1
       if iband<0:
-        iband = max(1,len(self.hists)+iband+1)
-      iband = max(0,min(len(self.hists)-1,iband-1))
+        iband = max(1,len(hists)+iband+1)
+      iband = max(0,min(len(hists)-1,iband-1))
     if verbosity>=1:
       print(">>> Plot.draw: hists=%r, ratio=%r, norm=%r, dividebins=%r"%(hists,ratio,norm,dividebins))
       print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
@@ -345,15 +342,14 @@ class Plot(object):
     
     # DRAW FRAME
     mainpad = self.canvas.cd(1)
-    if not frame: # if not given by user
-      frame = getframe(mainpad,hists[0],xmin,xmax,variable=False,verb=verbosity-1)
-      frame.Draw('AXIS')
-    elif isinstance(frame,TGraph):
-      frame = getframe(mainpad,frame,xmin,xmax,variable=False,verb=verbosity-1)
-      frame.Draw() # 'AXIS' breaks grid in combination with TGraph for some reason ?
+    if not self.frame: # if not given by user
+      self.frame = getframe(mainpad,hists[0],xmin,xmax,variable=False,verb=verbosity-1)
+      self.frame.Draw('AXIS')
+    elif isinstance(self.frame,TGraph):
+      self.frame = getframe(mainpad,self.frame,xmin,xmax,variable=False,verb=verbosity-1)
+      self.frame.Draw() # 'AXIS' breaks grid in combination with TGraph for some reason !?
     else: #if frame!=hists[0]:
-      frame.Draw('AXIS')
-    self.frame = frame
+      self.frame.Draw('AXIS')
     
     # DRAW LINE
     for line in self.lines:
@@ -364,7 +360,7 @@ class Plot(object):
         box.Draw(box.option)
     
     # DRAW HISTS
-    LOG.verb("Plot.draw: frame=%r, options=%r"%(frame,options),verbosity,2)
+    LOG.verb("Plot.draw: frame=%r, options=%r"%(self.frame,options),verbosity,2)
     for i, (hist, option_) in enumerate(zip(hists,options)):
       if triple and i%3==2:
         option_ = 'E1'
@@ -383,7 +379,7 @@ class Plot(object):
     # ERROR BAND
     if staterr or sysvars:
       #seterrorbandstyle(hists[0],fill=False)
-      errhist = iband if isinstance(iband,TH1) else self.hists[iband]
+      errhist = iband if isinstance(iband,TH1) else hists[iband]
       LOG.verb("Plot.draw: errhist=%r"%(errhist),verbosity,2)
       self.errband = geterrorband(errhist,sysvars=sysvars,color=errhist.GetLineColor(),title=errtitle,
                                   name=makehistname("errband",self.name),verb=verbosity)
