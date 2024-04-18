@@ -3,10 +3,16 @@ import os
 
 class JetVeto:
 
-  def __init__(self,filename,histoname):
-    fullpath = os.getenv('CMSSW_BASE') + '/src/TauFW/PicoProducer/data/jetveto/' + filename
+  def __init__(self,era):
+    filename = {
+      '2022_preEE': 'Summer22_23Sep2023_RunCD_v1.root',
+      '2022_postEE': 'Summer22EE_23Sep2023_RunEFG_v1.root',
+      '2023C': 'Summer23Prompt23_RunC_v1.root',
+      '2023D': 'Summer23BPixPrompt23_RunD_v1.root'
+    }
+    fullpath = os.getenv('CMSSW_BASE') + '/src/TauFW/PicoProducer/data/jetveto/' + filename[era]
     self.rootfile = r.TFile(fullpath)
-    self.histo = self.rootfile.Get(histoname)
+    self.histo = self.rootfile.Get('')
     print('Full path = ',fullpath,' histo = ',self.histo)
 
   def isHot(self,jetCollection,muonCollection):

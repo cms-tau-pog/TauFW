@@ -13,7 +13,7 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 #from TauFW.PicoProducer.corrections.PreFireTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
-from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, deltaPhiLV, deltaPhi
+from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, deltaPhiLV, deltaPhi, getTotalWeight
 from TauFW.PicoProducer.corrections.JetVeto import JetVeto
 __metaclass__ = type # to use super() with subclasses from CommonProducer
 tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022', 2023: '2023'}
@@ -80,17 +80,14 @@ class ModuleHighPT(Module):
       self.trigtau2 = lambda e: e.HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1
 
     self.hotSpot = None
-    if self.year==2023:
-      if self.era=='2023C':
-        self.hotSpot = JetVeto('Summer23Prompt23_RunC_v1.root','jetvetomap')
-      else:
-        self.hotSpot = JetVeto('Summer23BPixPrompt23_RunD_v1.root','jetvetomap')
-
+    if self.year==2022 or self.year==2023:
+      self.hotSpot = JetVeto(self.era)
+ 
     self.histnameZpt = 'zptmass_weight'
     if self.year == 2022 or self.year == 2023:
       self.histnameZpt = 'zptmass_histo'
 
-    assert self.year in [2016,2017,2018,2022,2023], "Did not recognize year %s! Please choose from 2016, 2017, 2018, 2022"%self.year
+    assert self.year in [2016,2017,2018,2022,2023], "Did not recognize year %s! Please choose from 2016, 2017, 2018, 2022 and 2023"%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -179,41 +176,34 @@ class ModuleHighPT(Module):
     # save number of weights
     # from skimmed tuples
     if self.skimmed:
-      if self.isdata:
-        total_w = 0.
-        total_w2 = 0.
-        for tree_name in [ 'Events']:
-          df = RDataFrame(tree_name, inputFile)
-          df = df.Define('genWeightD', '1.0')
-          df = df.Define('genWeightD2', 'std::pow(genWeightD, 2)')
-          w = df.Sum('genWeightD')
-          w2 = df.Sum('genWeightD2')
-          total_w += w.GetValue()
-          total_w2 += w2.GetValue()
-          self.out.sumgenweights.Fill(0.5,total_w)
-          self.out.sumgenw2.Fill(0.5,total_w2)
+      if self.era=='UL2017':
+        runTree = inputFile.Get('Runs')
+        genEventSumw = np.zeros(1,dtype='d')
+        runTree.SetBranchAddress("genEventSumw",genEventSumw)
+        nentries = runTree.GetEntries()
+        for entry in range(0,nentries):
+          runTree.GetEntry(entry)
+          self.out.sumgenweights.Fill(0.5,genEventSumw[0])
       else:
-        if self.era=='UL2017':
-          runTree = inputFile.Get('Runs')
-          genEventSumw = np.zeros(1,dtype='d')
-          runTree.SetBranchAddress("genEventSumw",genEventSumw)
-          nentries = runTree.GetEntries()
-          for entry in range(0,nentries):
-            runTree.GetEntry(entry)
-            self.out.sumgenweights.Fill(0.5,genEventSumw[0])
-        else:
-          total_w = 0.
-          total_w2 = 0.
-          for tree_name in [ 'Events', 'EventsNotSelected' ]:
-            df = RDataFrame(tree_name, inputFile)
-            df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
-            df = df.Define('genWeightD2', 'std::pow(genWeightD, 2)')
-            w = df.Sum('genWeightD')
-            w2 = df.Sum('genWeightD2')
-            total_w += w.GetValue()
-            total_w2 += w2.GetValue()
-            self.out.sumgenweights.Fill(0.5,total_w)
-            self.out.sumgenw2.Fill(0.5,total_w2)
+        total_w = 0.
+        #        total_w = getTotalWeight(inputFile,selections=[])
+        for tree_name in ['Events', 'EventsNotSelected']:
+          df = RDataFrame(tree_name, inputFile)
+          df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
+          w = df.Sum('genWeightD')
+          total_w += w.GetValue()
+          #          eventTree = inputFile.Get(tree_name)
+          #          eventWeight = np.zeros(1,dtype='d')
+          #          eventTree.SetBranchAddress('genWeight',eventWeight)
+          #          nentries = eventTree.GetEntries()
+          #          for entry in range(0,nentries):
+          #            eventTree.GetEntry(entry)
+          #            weight=1.0 
+          #            if eventWeight[0]<0:
+          #              weight=-1.0
+          #            total_w += weight
+        self.out.sumgenweights.Fill(0.5,total_w)
+
   
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
