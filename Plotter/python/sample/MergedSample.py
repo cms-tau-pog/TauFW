@@ -48,12 +48,8 @@ class MergedSample(Sample):
     for sample in self.samples:
       yield sample
   
-  def __add__(self,sample):
-    """Add Sample object to list of samples."""
-    return self.add(sample)
-  
   def add(self, sample, **kwargs):
-    """Add Sample object to list of samples."""
+    """Add Sample object to list of samples and return self (MergedSample)."""
     if not self.samples: # initiated for the first time based on newly added sample
       self.init(sample)
     self.samples.append(sample)
