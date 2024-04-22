@@ -1,5 +1,5 @@
 # Submit as
-#   condor_submit submit_HTCondor.sub 'mylogfile=log/myjob.$(ClusterId).$(ProcId).log' -queue arg from args.txt
+#   condor_submit submit_HTCondor_CMG.sub 'mylogfile=log/myjob.$(ClusterId).$(ProcId).log' -queue arg from args.txt
 universe              = vanilla
 executable            = python/batch/submit_HTCondor.sh
 arguments             = $(arg)
@@ -10,8 +10,17 @@ output                = $(mylogfile)
 error                 = $(mylogfile)
 should_transfer_files = no
 use_x509userproxy     = true
-getenv                = true
-environment           = JOBID=$(ClusterId);TASKID=$(ProcId)
+# NOTE: the following 'container' line is used to set the OS environment with a container/singularity,
+#       e.g. by adding the `-append container=cmssw-el7` option to condor_submit
+container             = ''
+# NOTE: `getenv = true` may put a large load on HTCondor infrastructure for the large CMSSW
+#       environment and many jobs, so it's better to set the environment during the job itself
+getenv                = CMSSW*, SCRAM_ARCH*
+# NOTE: Make sure to use quotation marks (") to avoid issues with the following line on lxplus:
+environment           = "JOBID=$(ClusterId) TASKID=$(ProcId) CONTAINER=$(container)"
+# NOTE: The following OS should be replaced for CMSSW 13 & later,
+#       or replaced with singularities all together when CentOS7 is phased out on lxplus
+requirements          = (OpSysAndVer =?= "CentOS7")
 +JobFlavour           = workday
 +MaxRuntime           = 20000
 +AccountingGroup      = "group_u_CMST3.all"
