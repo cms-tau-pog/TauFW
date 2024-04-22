@@ -189,7 +189,7 @@ class Ratio(object):
     xtitle = kwargs.get('xtitle', ""       )
     ytitle = kwargs.get('ytitle', "Obs. / Exp." if data else "Ratio" )
     size   = 1.0 if data else 0.0 #0.9
-    frame  = getframe(gPad,self.frame,xmin=xmin,xmax=xmax,verb=verbosity+10)
+    frame  = getframe(gPad,self.frame,xmin=xmin,xmax=xmax,verb=verbosity)
     self.garbage.append(frame)
     LOG.verb("Ratio.draw: (xmin,xmax,ymin,ymax)=(%.3g,%.3g,%.3g,%.3g), option=%r, frame=%r, data=%r"%(
              xmin,xmax,ymin,ymax,option,frame,data),verbosity,2)
