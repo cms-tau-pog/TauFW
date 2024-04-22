@@ -8,6 +8,7 @@ from TauFW.PicoProducer.storage.utils import LOG, getstorage
 from ROOT import gRandom, TFile, TTree, TH1F
 from array import array
 from datetime import datetime
+import traceback
 #from TauFW.common.tools.file import ensuremodule
 
 
@@ -99,28 +100,33 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
     print(">>> Read only. Skip test for cp, rm, mkdir, hadd...")
     return
   
-  # CP
-  LOG.header("cp")
-  fname = createdummy("testStorage.txt")
-  LOG.color("storage.cp(%r,verb=%d)"%(fname,verb))
-  storage.cp(fname,verb=verb)
-  storage.ls(verb=verb)
-  
-  # EXISTS
-  LOG.header("exists")
-  LOG.color("storage.exists(%r,verb=%d)"%(fname,verb))
-  result = storage.exists(fname,verb=verb)
-  print(">>> Exists: %r"%(result))
-  storage.ls(verb=verb)
-  
-  # RM
-  LOG.header("rm")
-  LOG.color("storage.rm(%r,verb=%d)"%(fname,verb))
   try:
-    storage.rm(fname,verb=verb)
-  except Exception as error:
-    print(error)
-  storage.ls(verb=verb)
+    
+    # CP
+    LOG.header("cp")
+    fname = createdummy("testStorage.txt")
+    LOG.color("storage.cp(%r,verb=%d)"%(fname,verb))
+    storage.cp(fname,verb=verb)
+    storage.ls(verb=verb)
+    
+    # EXISTS
+    LOG.header("exists")
+    LOG.color("storage.exists(%r,verb=%d)"%(fname,verb))
+    result = storage.exists(fname,verb=verb)
+    print(">>> Exists: %r"%(result))
+    storage.ls(verb=verb)
+    
+    # RM
+    LOG.header("rm")
+    LOG.color("storage.rm(%r,verb=%d)"%(fname,verb))
+    try:
+      storage.rm(fname,verb=verb)
+    except Exception as error:
+      print(error)
+    storage.ls(verb=verb)
+  
+  except Exception:
+    print(traceback.format_exc())
   
   # MKDIR
   LOG.header("mkdir")
@@ -133,7 +139,7 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
     result = storage.exists(dirname,verb=verb)
     print(">>> Exists: %r"%(result))
   except Exception as error:
-    print(error)
+    print(traceback.format_exc())
   
   # RM DIRECTORY
   LOG.header("rm directory")
@@ -144,7 +150,7 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
       storage.rm(dirname,verb=verb)
       storage.ls(verb=verb)
     except Exception as error:
-      print(error)
+      print(traceback.format_exc())
   
   # HADD
   if hadd:
@@ -158,7 +164,7 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
         storage.ls(verb=verb)
         storage.rm(outfile,verb=verb)
       except Exception as error:
-        print(error)
+        print(traceback.format_exc())
   
 
 def main(args):
