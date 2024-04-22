@@ -97,7 +97,7 @@ def plothist(xtitle,hists,ratio=False,logy=False,logx=False,norm=False,cwidth=No
   print('')
   
 
-def createhists(nhist=3,nbins=50,graph=False):
+def createhists(nhist=3,nbins=50,sigma=10,graph=False):
   """Create some histograms of gaussian distributions."""
   xmin   = 0
   xmax   = 100
@@ -106,8 +106,7 @@ def createhists(nhist=3,nbins=50,graph=False):
   hists  = [ ]
   gRandom.SetSeed(1777)
   for i in range(1,nhist+1):
-    mu     = 50+2*(i-nhist/2)
-    sigma  = 10
+    mu     = 50.+sigma/5.*(i-nhist/2.)
     hname  = "hist%d"%(i)
     htitle = "#mu = %s, #sigma = %s"%(mu,sigma)
     hist   = TH1F(hname,hname,nbins,xmin,xmax)
@@ -171,15 +170,15 @@ def main():
   #plothist(variable,hists,ratio=False,logy=False)
   if 'frame' in args.methods:
     kwargset = [
-      { 'tag': "_x10-max", 'logx': False, 'xmin': 10 },
-      { 'tag': "_x10-200", 'logx': False, 'xmin': 10, 'xmax': 200, },
-      { 'tag': "_logx", 'logx': True  },
-      { 'tag': "_logx_x10-max", 'logx': True, 'xmin': 10, },
-      { 'tag': "_logx_x10-200", 'logx': True, 'xmin': 10, 'xmax': 200, },
+#       { 'tag': "_x10-max", 'logx': False, 'xmin': 10 },
+#       { 'tag': "_x10-200", 'logx': False, 'xmin': 10, 'xmax': 200, },
+      { 'tag': "", 'logx': True  },
+      { 'tag': "_x10-max", 'logx': True, 'xmin': 10, },
+      { 'tag': "_x10-200", 'logx': True, 'xmin': 10, 'xmax': 200, },
     ]
     for kwargs in kwargset:
-      hists = createhists(4,nbins=25)
-      plothist(xtitle,hists,pre='_frame',ratio=True,logy=False,**kwargs)
+      hists = createhists(4,nbins=20,sigma=25)
+      plothist(xtitle,hists,pre='_frame',ratio=True,logy=False,rmin=0,rmax=3,**kwargs)
   
   # TEST DRAW STYLES
   #plothist(variable,hists,ratio=False,logy=False)

@@ -249,11 +249,6 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    if logx and xmin==0: # reset xmin in binning
-      xmin = 0.25*(self.frame or hists[0]).GetXaxis().GetBinWidth(1)
-      LOG.verb("Stack.draw: Resetting xmin=0 -> %s (logx=True)"%(logx),verbosity,2)
-      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
-        self.frame = None # use getframe below
     if isinstance(iband,int): # shift by 1
       if iband<0:
         iband = max(1,len(hists)+iband+1)
@@ -265,6 +260,7 @@ class Plot(object):
     
     # DIVIDE BY BINSIZE
     if dividebins:
+      LOG.verb("Plot.draw: dividebins=%r"%(dividebins),verbosity,2)
       for i, oldhist in enumerate(hists[:]):
         newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,poisson=False,verb=verbosity)
         if oldhist!=newhist: # new hist is actually a TGraph
@@ -278,6 +274,20 @@ class Plot(object):
       #    dividebybinsize(histdown,zero=True,zeroerrs=False,verb=verbosity-2)
       #    if hist not in hists:
       #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
+    
+    # RESET XMIN & BINNING
+    if logx and xmin==0: # reset xmin in binning if logx
+      frame = self.frame or self.hists[0]
+      xmin = 0.35*frame.GetXaxis().GetBinWidth(1)
+      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      LOG.verb("Plot.draw: Resetting xmin=0 -> %s in binning of all histograms (logx=%r, frame=%r): xbins=%r"%(
+        xmin,logx,frame,xbins),verbosity,1)
+      for hist in hists:
+        if hist and isinstance(hist,TH1):
+          hist.SetBins(*xbins) # set xmin>0 to plot correctly with logx
+      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
+        self.frame = None # use getframe below
     
     # NORMALIZE
     if norm:
@@ -560,7 +570,7 @@ class Plot(object):
       return 0, 0, 100, 100
     frame         = hists[0]
     if len(binning)>=2:
-      xmin, xmax  = binning[:2]
+      xmin, xmax  = binning[0], binning[-1]
     else:
       xmin, xmax  = frame.GetXaxis().GetXmin(), frame.GetXaxis().GetXmax()
     nbins         = frame.GetXaxis().GetNbins()
@@ -604,7 +614,7 @@ class Plot(object):
       xlabelsize  = 0.0
     if latex:
       xtitle      = makelatex(xtitle)
-    LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f), frame=%r"%(nbins,xmin,xmax,frame),verbosity,2)
+    LOG.verb("Plot.setaxes: frame=%r with binning (%s,%.6g,%.6g), "%(frame,nbins,xmin,xmax),verbosity,2)
     if verbosity>=3:
       print(">>> Plot.setaxes: drawx=%r, grid=%r, latex=%r"%(drawx,grid,latex))
       print(">>> Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r, nxdiv=%s, nydiv=%s"%(logx,logy,ycenter,intbins,nxdivisions,nydivisions))
@@ -613,7 +623,7 @@ class Plot(object):
     if ratiorange:
       ymin, ymax  = 1.-ratiorange, 1.+ratiorange
     if intbins and nbins<15 and int(xmin)==xmin and int(xmax)==xmax and binwidth==1:
-      LOG.verb("Plot.setaxes: Setting integer binning for (%r,%s,%d,%d)!"%(xtitle,nbins,xmin,xmax),verbosity,2)
+      LOG.verb("Plot.setaxes: Setting integer binning for (%r,%d,%.2f,%.2f)!"%(xtitle,nbins,xmin,xmax),verbosity,2)
       binlabels   = [str(i) for i in range(int(xmin),int(xmax)+1)]
       xlabelsize   *= 1.6
       xlabeloffset *= 0.88*scale
@@ -670,7 +680,8 @@ class Plot(object):
     elif ymax==None:
       ymax = hmax*ymargin
     if logx:
-      if not xmin: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
+      if not xmin:
+        xmin = 0.35*frame.GetXaxis().GetBinWidth(1)
       xmax *= 0.9999999999999
       gPad.Update(); gPad.SetLogx()
     if grid:

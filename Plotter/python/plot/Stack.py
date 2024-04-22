@@ -139,11 +139,6 @@ class Stack(Plot):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    if logx and xmin==0: # reset xmin in binning
-      xmin = 0.25*(self.frame or hists[0]).GetXaxis().GetBinWidth(1)
-      LOG.verb("Stack.draw: Resetting xmin=0 -> %s (logx=True)"%(logx),verbosity,2)
-      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
-        self.frame = None # use getframe below
     if verbosity>=2:
       print(">>> Stack.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle))
       print(">>> Stack.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
@@ -168,6 +163,7 @@ class Stack(Plot):
     
     # DIVIDE BY BINSIZE
     if dividebins:
+      LOG.verb("Stack.draw: dividebins=%r"%(dividebins),verbosity,2)
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
@@ -192,10 +188,23 @@ class Stack(Plot):
       #    if hist not in self.hists:
       #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
+    # RESET XMIN & BINNING
+    if logx and xmin==0: # reset xmin in binning if logx
+      frame = self.frame or self.exphists[0] or self.datahist
+      xmin = 0.35*frame.GetXaxis().GetBinWidth(1)
+      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      LOG.verb("Plot.draw: Resetting xmin=0 -> %s in binning of all histograms (logx=%r, frame=%r): xbins=%r"%(
+        xmin,logx,frame,xbins),verbosity,1)
+      for hist in self.exphists+self.sighists+[self.datahist]:
+        if hist and isinstance(hist,TH1):
+          hist.SetBins(*xbins) # set xmin>0 to plot correctly with logx
+      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
+        self.frame = None # use getframe below
+    
     # DRAW OPTIONS
     gStyle.SetEndErrorSize(enderrorsize) # extra line at end of error bars
     gStyle.SetErrorX(0.5*float(errorX)) # horizontal error bars
-    LOG.verb("Plot.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
+    LOG.verb("Stack.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
     
     # CANVAS
     self.canvas = self.setcanvas(square=square,lower=lowerpanels,width=cwidth,height=cheight,
@@ -223,10 +232,11 @@ class Stack(Plot):
     # DRAW FRAME
     mainpad = self.canvas.cd(1)
     if not self.frame: # if not given by user
-      self.frame = getframe(mainpad,stack,xmin,xmax,variable=True)
-      #self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
+      self.frame = getframe(mainpad,self.exphists[0],xmin,xmax,variable=True)
+      self.frame.Draw('][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
     else:
       self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
+    LOG.verb("Plot.draw: Drawn frame=%r"%(self.frame),verbosity,2)
     
     # DRAW LINE
     for line in self.lines:
@@ -237,36 +247,40 @@ class Stack(Plot):
         box.Draw(box.option)
     
     # DRAW
+    LOG.verb("Stack.draw: Drawing stack %r with option=%r"%(stack,option+' SAME'),verbosity,2)
     stack.Draw(option+' SAME')
     if drawsignal: # signal
       soption += " SAME"
       for hist in self.sighists:
-        LOG.verb("Stack.draw: draw signal %r with soption=%r"%(hist,soption),verbosity,3)
+        LOG.verb("Stack.draw: draw signal %r with soption=%r"%(hist,soption),verbosity,2)
         hist.Draw(soption)
         hist.SetOption(soption) # for legend and ratio
     if drawdata: # data
       self.datahist.SetFillStyle(0)
-      if isinstance(self.datahist,TH1):
-        self.datahist.Draw(doption+' SAME')
-        self.datahist.SetOption(doption+' SAME') # for legend and ratio
-      else:
-        self.datahist.Draw(doption+'PE0 SAME')
-        self.datahist.GetOption = lambda: 'PE0 SAME' # for legend and ratio
+      if not isinstance(self.datahist,TH1):
+        doption += 'PE0'
+      doption += ' SAME'
+      LOG.verb("Stack.draw: Drawing data %r with doption=%r"%(self.datahist,doption),verbosity,2)
+      self.datahist.Draw(doption+' SAME')
+      self.datahist.SetOption(doption+' SAME') # for legend and ratio (NOTE: TGraph.SetOption defined in utils.py)
     
     # CMS STYLE
     if CMSStyle.lumiText:
       CMSStyle.setCMSLumiStyle(mainpad,0,verb=verbosity-2)
     
     # ERROR BAND
+    boption = 'E2 SAME'
     if staterr or sysvars:
       self.errband = geterrorband(self.exphists,name=makehistname("errband",self.name),title=errtitle,sysvars=sysvars)
       if not multibands: # do not draw, but keep for ratio and/or legend
-        self.errband.Draw('E2 SAME')
+        LOG.verb("Stack.draw: Drawing errorband %r with boption=%r"%(self.errband,boption),verbosity,2)
+        self.errband.Draw(boption)
     if multibands:
       for i, hist in enumerate(self.exphists):
         fstyle = 3004 if i%2==0 else 3005
         errband = geterrorband(hist,yhist=stack.GetStack().At(i),name=makehistname("errband",hist),title=errtitle,style=fstyle)
-        errband.Draw('E2 SAME')
+        LOG.verb("Stack.draw: Drawing errorband %r with boption=%r"%(self.errband,boption),verbosity,2)
+        errband.Draw(boption)
         self.errbands.append(errband)
     
     # AXES

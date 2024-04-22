@@ -311,7 +311,7 @@ def getbinedges(hist,**kwargs):
       low  = round(hist.GetXaxis().GetBinLowEdge(i),9)
       up   = round(hist.GetXaxis().GetBinUpEdge(i),9)
       bins.append((low,up))
-  else:
+  else: # assume TGraph
     for i in range(0,hist.GetN()):
       x, y = ctypes.c_double(), ctypes.c_double()
       hist.GetPoint(i,x,y)
