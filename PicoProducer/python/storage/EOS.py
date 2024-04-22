@@ -22,7 +22,7 @@ class EOS(StorageSystem):
       else: # NOTE: uberftp no longer supported for EOS...
         unset = "" if 'ucl' in host else "LD_LIBRARY_PATH='' PYTHONPATH='' " # unset libraries that break gFal tools
         self.lscmd = unset+"gfal-ls -l"
-        self.lsurl = "root://eoscms.cern.ch/"
+        self.lsurl =  self.fileurl #"root://eoscms.cern.ch/"
         self.lscol = -1 # take last column
         self.mkdrcmd = unset+"gfal-mkdir -p"
         self.mkdrurl = self.fileurl
