@@ -13,6 +13,7 @@ class EOS(StorageSystem):
     """EOS is mounted on lxplus, so no special overload are necessary."""
     super(EOS,self).__init__(path,verb=verb,ensure=False,**kwargs)
     if not self.mounted: # EOS is mounted on lxplus
+      self.fileurl = "root://eosuser.cern.ch/" #"root://eoscms/"
       if eos: # use EOS command
         # https://cern.service-now.com/service-portal?id=kb_article&n=KB0001998
         os.environ["EOS_MGM_URL"] = "root://eosuser.cern.ch"
@@ -24,13 +25,12 @@ class EOS(StorageSystem):
         self.lsurl = "root://eoscms.cern.ch/"
         self.lscol = -1 # take last column
         self.mkdrcmd = unset+"gfal-mkdir -p"
-        self.mkdrurl = "root://eosuser.cern.ch/"
+        self.mkdrurl = self.fileurl
         self.rmcmd = unset+"gfal-rm -r"
-        self.rmurl = "root://eosuser.cern.ch/"
+        self.rmurl = self.fileurl
       self.cpcmd   = 'xrdcp -f'
+      self.cpurl   = self.fileurl
       self.chmdprm = '2777'
-      self.cpurl   = "root://eoscms.cern.ch/"
-      self.fileurl = "root://eosuser.cern.ch/" #"root://eoscms/"
       #self.prefix  = "root://eoscms.cern.ch/"
     self.tmpdir    = '/tmp/$USER/'
     if ensure:
