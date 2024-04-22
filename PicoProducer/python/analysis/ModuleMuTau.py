@@ -53,14 +53,14 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.addcut('pair',         "pair"                       )
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization; bug in pre-UL 2017 caused small fraction of events with nPU<=0
-    ## Important cutflow entries to make stitching with exclusive mutauh sample
+    # Important cutflow entries to make stitching with exclusive mutauh sample (DYJetsToTauTauToMuTauh)
     self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )    
     self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
     self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
     self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
     self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
     self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
-
+    
   
   def beginJob(self):
     """Before processing any events or files."""
@@ -244,8 +244,8 @@ class ModuleMuTau(ModuleTauPair):
       self.out.genvistaueta_2[0] = eta
       self.out.genvistauphi_2[0] = phi
       self.out.gendm_2[0]        = status
-      if self.dozpt:
-        self.out.mutaufilter[0]  = filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
+      if self.domutau:
+        self.out.mutaufilter[0]  = self.ismutau #filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
     
     
     # JETS
