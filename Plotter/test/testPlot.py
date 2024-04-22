@@ -170,8 +170,8 @@ def main():
   #plothist(variable,hists,ratio=False,logy=False)
   if 'frame' in args.methods:
     kwargset = [
-#       { 'tag': "_x10-max", 'logx': False, 'xmin': 10 },
-#       { 'tag': "_x10-200", 'logx': False, 'xmin': 10, 'xmax': 200, },
+      { 'tag': "_x10-max", 'logx': False, 'xmin': 10 },
+      { 'tag': "_x10-200", 'logx': False, 'xmin': 10, 'xmax': 200, },
       { 'tag': "", 'logx': True  },
       { 'tag': "_x10-max", 'logx': True, 'xmin': 10, },
       { 'tag': "_x10-200", 'logx': True, 'xmin': 10, 'xmax': 200, },
