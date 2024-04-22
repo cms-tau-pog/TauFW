@@ -154,6 +154,26 @@ def printhist(hist,min_=0,max_=None,**kwargs):
     TAB.printrow(ibin,xmin,xmax,hist.GetBinContent(ibin),hist.GetBinError(ibin))
   
 
+def sumhists(hists,name=None,title=None,**kwargs):
+  """Create sum of histograms."""
+  verbosity = LOG.getverbosity(kwargs)
+  if len(hists)==0:
+    LOG.warn("sumhists: No histograms to sum...")
+    return None
+  if name==None:
+    name = '_'.join([h.GetName() for h in hists])
+  if title==None:
+    title = ', '.join([h.GetTitle() for h in hists])
+  sumhist = hists[0].Clone(name)
+  sumhist.SetTitle(title)
+  LOG.verb("sumhists: Created sumhist=%r from hists[0]=%r"%(sumhist,hists[0]),verbosity,2)
+  for hist in hists[1:]: # add remaining histograms
+    LOG.verb("sumhists: Adding %r to sumhist=%r"%(hist,sumhist),verbosity,2)
+    print(f">>> Adding {hist!r} to sighist={sighist!r}")
+    sighist.Add(hist) # add
+  return sumhist
+  
+
 def grouphists(hists,searchterms,name=None,title=None,color=None,**kwargs):
   """Group histograms in a list corresponding to some searchterm, return their sum.
   E.g. grouphists(hists,['TT','ST'],'Top')
