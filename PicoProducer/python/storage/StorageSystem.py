@@ -126,7 +126,7 @@ class StorageSystem(object):
     retlist = [x for x in retlist.split(delim) if x]
     if isinstance(lscol,int):
       retlist = [l.split(' ')[lscol] for l in retlist]
-    if retlist and 'No such file or directory' in retlist[0]:
+    if retlist and any(e in retlist[0] for e in ['No such file or directory','[ERROR]']):
       LOG.warning(retlist[0])
       retlist = [ ]
     elif filters:
