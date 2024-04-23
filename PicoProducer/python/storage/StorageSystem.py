@@ -29,7 +29,7 @@ class StorageSystem(object):
     self.chmdcmd = 'chmod'
     self.chmdurl = ''
     self.haddcmd = kwargs.get('haddcmd',None) or 'hadd -ff' # same compression level as first in put
-    self.tmpdir  = '/tmp/$USER/' # $TMPDIR # mounted temporary directory
+    self.tmpdir  = os.environ.get('TMPDIR',os.path.join('/tmp/',os.environ.get('USER','TauFW')) # mounted temporary directory
     self.fileurl = ""
     self.verbosity = verb
     if path.startswith('/'):

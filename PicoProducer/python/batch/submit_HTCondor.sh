@@ -44,7 +44,6 @@ fi
 # CMSSW ENVIRONMENT
 if [ -z "$CMSSW_BASE" ]; then # $CMSSW_BASE is not set
   echo ">>> WARNING! CMSSW_BASE was not defined!"
-  # NOTE: HTCondor on lxplus does not seem to transfer environment as expected...
   # Guess CMSSW_BASE path from $CMSSW_BASE/src/TauFW/PicoProducer/python/batch/submit_HTCondor.sh
   SCRIPT="$(echo $TASKCMD | awk '{ print $2 }')" # assume `[COMMAND] [SCRIPT] [OPTIONS]`
   CMSSW_BASE=$(realpath $(dirname "${SCRIPT}")/../../../../..)

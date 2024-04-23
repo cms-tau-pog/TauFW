@@ -32,7 +32,6 @@ class EOS(StorageSystem):
       self.cpurl   = self.fileurl
       self.chmdprm = '2777'
       #self.prefix  = "root://eoscms.cern.ch/"
-    self.tmpdir    = '/tmp/$USER/'
     if ensure:
       self.ensuredir(self.path)
     
