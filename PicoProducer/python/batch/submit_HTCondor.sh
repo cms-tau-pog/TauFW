@@ -17,7 +17,7 @@ TASKID=$TASKID
 HOSTNAME=$HOSTNAME
 PWD=$PWD
 WORKDIR=$PWD
-CONTAINER='$CONTAINER' # to set OS environment with container (Singularity, e.g. "cmssw-el7")
+CONTAINER='${CONTAINER:-${APPTAINER_CONTAINER:-${SINGULARITY_CONTAINER:-}}}' # to set OS environment with container (Singularity, e.g. "cmssw-el7")
 CMSSW_BASE=$CMSSW_BASE # to set CMSSW environment
 TASKCMD='$@'
 EOF
@@ -32,7 +32,11 @@ pbar
 # https://apptainer.org/docs/user/main/environment_and_metadata.html
 if [ ! -z "$CONTAINER" ]; then # if $CONTAINER is set
   echo ">>> Setting OS environment with container '$CONTAINER'..."
-  peval "$CONTAINER" # setup container (Singularity, e.g. "cmssw-el7")
+  if [[ "$CONTAINER" = *"/"* ]]; then # container/singularity image, e.g. "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el7:x86_64"
+    peval "cmssw-env --cmsos \$(basename $CONTAINER)"
+  else # container/singularity command, e.g. just "cmssw-el7"
+    peval "$CONTAINER" # setup container
+  fi
   peval "source setenv.sh" # set environment again (incl. functions) after Singularity
   [ $VERB -ge 1 ] && { peval "env"; pbar; } # print out environment for debugging
 fi
