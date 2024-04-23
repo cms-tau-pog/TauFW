@@ -8,6 +8,7 @@ from TauFW.PicoProducer.storage.utils import LOG, getstorage
 from ROOT import gRandom, TFile, TTree, TH1F
 from array import array
 from datetime import datetime
+import traceback
 #from TauFW.common.tools.file import ensuremodule
 
 
@@ -68,59 +69,78 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
   for patharg in pathargs:
     for pathkwarg in pathkwargs:
       LOG.color("storage.expandpath(%s,%s)"%(','.join(repr(a) for a in patharg),','.join("%s=%r"%(k,v) for k,v in pathkwarg.items())))
-      result = storage.expandpath(*patharg,**pathkwarg)
-      print(">>>   %r"%(result))
+      try:
+        result = storage.expandpath(*patharg,**pathkwarg)
+        print(">>>   %r"%(result))
+      except:
+        LOG.error("storage.expandpath failed")
+        print(traceback.format_exc())
   
   # LS
   LOG.header("ls")
   LOG.color("storage.ls(verb=%d)"%(verb))
-  contents = storage.ls(verb=verb)
-  print(">>> Found %d items"%(len(contents)))
-  print(">>> Contents: %s"%(contents))
+  try:
+    contents = storage.ls(verb=verb)
+    print(">>> Found %d items"%(len(contents)))
+    print(">>> Contents: %s"%(contents))
+  except:
+    LOG.error("storage.ls failed")
+    print(traceback.format_exc())
   
   # FILES
   LOG.header("getfiles")
   LOG.color("storage.getfiles(verb=%d)"%(verb))
-  contents = storage.getfiles(verb=verb)
-  print(">>> Found %d items"%(len(contents)))
-  print(">>> Contents: %s"%(contents))
-  print(">>> ")
-  LOG.color("storage.getfiles(filter='*.*',verb=%d)"%(verb))
-  contents = storage.getfiles(filter='*.*',verb=verb)
-  print(">>> Found %d files"%(len(contents)))
-  print(">>> Contents: %s"%(contents))
-  print(">>> ")
-  LOG.color("storage.getfiles(filter='*.*',url=None,verb=%d)"%(verb))
-  contents = storage.getfiles(filter='*.*',url=None,verb=verb)
-  print(">>> Found %d files"%(len(contents)))
-  print(">>> Contents: %s"%(contents))
+  try:
+    contents = storage.getfiles(verb=verb)
+    print(">>> Found %d items"%(len(contents)))
+    print(">>> Contents: %s"%(contents))
+    print(">>> ")
+    LOG.color("storage.getfiles(filter='*.*',verb=%d)"%(verb))
+    contents = storage.getfiles(filter='*.*',verb=verb)
+    print(">>> Found %d files"%(len(contents)))
+    print(">>> Contents: %s"%(contents))
+    print(">>> ")
+    LOG.color("storage.getfiles(filter='*.*',url=None,verb=%d)"%(verb))
+    contents = storage.getfiles(filter='*.*',url=None,verb=verb)
+    print(">>> Found %d files"%(len(contents)))
+    print(">>> Contents: %s"%(contents))
+  except:
+    LOG.error("storage.getfiles failed")
+    print(traceback.format_exc())
   
   if readonly:
     print(">>> Read only. Skip test for cp, rm, mkdir, hadd...")
     return
   
-  # CP
-  LOG.header("cp")
-  fname = createdummy("testStorage.txt")
-  LOG.color("storage.cp(%r,verb=%d)"%(fname,verb))
-  storage.cp(fname,verb=verb)
-  storage.ls(verb=verb)
-  
-  # EXISTS
-  LOG.header("exists")
-  LOG.color("storage.exists(%r,verb=%d)"%(fname,verb))
-  result = storage.exists(fname,verb=verb)
-  print(">>> Exists: %r"%(result))
-  storage.ls(verb=verb)
-  
-  # RM
-  LOG.header("rm")
-  LOG.color("storage.rm(%r,verb=%d)"%(fname,verb))
   try:
-    storage.rm(fname,verb=verb)
-  except Exception as error:
-    print(error)
-  storage.ls(verb=verb)
+    
+    # CP
+    LOG.header("cp")
+    fname = createdummy("testStorage.txt")
+    LOG.color("storage.cp(%r,verb=%d)"%(fname,verb))
+    storage.cp(fname,verb=verb)
+    storage.ls(verb=verb)
+    
+    # EXISTS
+    LOG.header("exists")
+    LOG.color("storage.exists(%r,verb=%d)"%(fname,verb))
+    result = storage.exists(fname,verb=verb)
+    print(">>> Exists: %r"%(result))
+    storage.ls(verb=verb)
+    
+    # RM
+    LOG.header("rm")
+    LOG.color("storage.rm(%r,verb=%d)"%(fname,verb))
+    try:
+      storage.rm(fname,verb=verb)
+    except:
+      LOG.error("storage.rm failed")
+      print(traceback.format_exc())
+    storage.ls(verb=verb)
+  
+  except:
+    LOG.error("storage.cp/exists/ls file failed")
+    print(traceback.format_exc())
   
   # MKDIR
   LOG.header("mkdir")
@@ -133,7 +153,8 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
     result = storage.exists(dirname,verb=verb)
     print(">>> Exists: %r"%(result))
   except Exception as error:
-    print(error)
+    LOG.error("storage.mkdir/ls/exists directory failed")
+    print(traceback.format_exc())
   
   # RM DIRECTORY
   LOG.header("rm directory")
@@ -143,8 +164,9 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
     try:
       storage.rm(dirname,verb=verb)
       storage.ls(verb=verb)
-    except Exception as error:
-      print(error)
+    except:
+      LOG.error("storage.rm/ls directory failed")
+      print(traceback.format_exc())
   
   # HADD
   if hadd:
@@ -157,8 +179,9 @@ def testStorage(path,readonly=False,hadd=True,verb=0):
         storage.hadd(infiles,outfile,tmpdir=tmpdir,verb=verb)
         storage.ls(verb=verb)
         storage.rm(outfile,verb=verb)
-      except Exception as error:
-        print(error)
+      except:
+        LOG.error("storage.hadd/ls/rm ROOT file failed")
+        print(traceback.format_exc())
   
 
 def main(args):
