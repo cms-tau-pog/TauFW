@@ -29,7 +29,7 @@ class StorageSystem(object):
     self.chmdcmd = 'chmod'
     self.chmdurl = ''
     self.haddcmd = kwargs.get('haddcmd',None) or 'hadd -ff' # same compression level as first in put
-    self.tmpdir  = '/tmp/$USER/' # $TMPDIR # mounted temporary directory
+    self.tmpdir  = os.environ.get('TMPDIR',os.path.join('/tmp/',os.environ.get('USER','TauFW'))) # mounted temporary directory
     self.fileurl = ""
     self.verbosity = verb
     if path.startswith('/'):
@@ -126,7 +126,7 @@ class StorageSystem(object):
     retlist = [x for x in retlist.split(delim) if x]
     if isinstance(lscol,int):
       retlist = [l.split(' ')[lscol] for l in retlist]
-    if retlist and 'No such file or directory' in retlist[0]:
+    if retlist and any(e in retlist[0] for e in ['No such file or directory','[ERROR]']):
       LOG.warning(retlist[0])
       retlist = [ ]
     elif filters:

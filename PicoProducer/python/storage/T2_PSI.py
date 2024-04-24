@@ -19,7 +19,7 @@ class T2_PSI(StorageSystem):
     #self.cpurl   = "root://storage01.lcg.cscs.ch/"
     self.cpcmd   = "LD_LIBRARY_PATH='' PYTHONPATH='' gfal-copy --force"
     self.cpurl   = "gsiftp://storage01.lcg.cscs.ch/"
-    self.tmpdir  = '/scratch/$USER/'
+    self.tmpdir  = os.path('/scratch/',os.environ.get('USER','TauFW'))
     self.fileurl = "root://storage01.lcg.cscs.ch/"
     if ensure:
       self.ensuredir(self.path)

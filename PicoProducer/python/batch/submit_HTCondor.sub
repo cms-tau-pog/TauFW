@@ -10,10 +10,20 @@ output                = $(mylogfile)
 error                 = $(mylogfile)
 should_transfer_files = no
 use_x509userproxy     = true
-getenv                = true
-environment           = JOBID=$(ClusterId);TASKID=$(ProcId)
+# NOTE:
+#   The following 'container' line is used to explicitly set the OS environment with a container/singularity,
+#   by adding the `-append container=cmssw-cc7` option to condor_submit, or defining `export CONTAINER=cmssw-cc7`
+#   in the shell's environment. Alternatively, if APPTAINER_CONTAINER or CONTAINER_CONTAINER is defined and
+#   exported in your environment (e.g. inside a container), the shell script use this with `cmssw-env`.
+container             = $ENV(CONTAINER:$ENV(APPTAINER_CONTAINER:$ENV(SINGULARITY_CONTAINER:)))
+# NOTE: `getenv = true` may put a large load on HTCondor infrastructure for the large CMSSW
+#       environment and many jobs, so it's better to set the environment during the job itself
+getenv                = CMSSW*, SCRAM_ARCH*, *CONTAINER
+# NOTE: Make sure to use quotation marks (") to avoid issues with the following line on lxplus:
+environment           = "JOBID=$(ClusterId) TASKID=$(ProcId) CONTAINER=$(container)"
+# NOTE: The following OS requirement should be replaced for CMSSW 13 & later,
+#       or replaced with singularities all together when CentOS7 is phased out on lxplus
 requirements          = (OpSysAndVer =?= "CentOS7")
 +JobFlavour           = workday
 +MaxRuntime           = 20000
-#+AccountingGroup      = "group_u_BE.ABP.SLAP"
 #queue arg from args.txt

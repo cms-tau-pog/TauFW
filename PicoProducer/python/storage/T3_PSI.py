@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
+import os
 from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
 
 
@@ -18,7 +19,7 @@ class T3_PSI(StorageSystem):
       self.cpcmd   = 'xrdcp -f'
       self.cpurl   = "root://t3dcachedb03.psi.ch/"
     self.fileurl = "root://t3dcachedb03.psi.ch/"
-    self.tmpdir  = '/scratch/$USER/'
+    self.tmpdir  = os.path('/scratch/',os.environ.get('USER','TauFW'))
     if ensure:
       self.ensuredir(self.path)
     
