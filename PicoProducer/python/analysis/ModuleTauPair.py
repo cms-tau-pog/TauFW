@@ -89,7 +89,9 @@ class ModuleTauPair(Module):
        self.met_vars     = { u: getmet(self.era,u,useT1=self.useT1) for u in self.metUncLabels }
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
-    self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity)    
+    self.jetvetoTool = None
+    if '202' in era: # only mandatory for Run 3: 2022, 2023, ... (see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps)
+      self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity) 
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
   
@@ -194,21 +196,22 @@ class ModuleTauPair(Module):
        ensurebranches(inputTree,branches) # make sure Event object has these branches
 
   def jetveto(self, event):
-      vetojets = []
-      muons = [m for m in Collection(event,'Muon') if m.isPFcand]
-      for jet in Collection(event,'Jet'):
-          if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue 
-          if abs(jet.pt) <= 15: continue
-          if jet.jetId < 2: continue
-          if (jet.chEmEF + jet.neEmEF) > 0.90: continue
-          overlap = False
-          for muon in muons:
-             if jet.DeltaR(muon) < 0.2:
-                overlap = True
-                break
-          if not overlap:
-             vetojets.append(jet)
-      return len(vetojets)
+    """Return number of vetoed jets. Jet veto maps are mandatory for Run 3 analyses.
+    The safest procedure would be to veto events if ANY jet with a loose selection lies in the veto regions.
+    See https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps
+    """
+    if not self.jetvetoTool:
+      return 0 # assume no jet veto required (e.g. for Run 2)
+    vetojets = [ ]
+    muons = [m for m in Collection(event,'Muon') if m.isPFcand]
+    for jet in Collection(event,'Jet'):
+      if abs(jet.pt) <= 15: continue
+      if jet.jetId < 2: continue
+      if (jet.chEmEF + jet.neEmEF) > 0.90: continue
+      if self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
+      if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
+      vetojets.append(jet)
+    return len(vetojets)
 
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
