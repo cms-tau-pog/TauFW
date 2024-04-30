@@ -7,6 +7,7 @@ from ROOT import TLorentzVector, TVector3
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 from TauFW.PicoProducer.corrections.PileupTool import *
+from TauFW.PicoProducer.corrections.JetVetoMapTool import *
 from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 #from TauFW.PicoProducer.corrections.PreFireTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
@@ -72,8 +73,8 @@ class ModuleTauPair(Module):
     self.jecUncLabels = [ ]
     self.metUncLabels = [ ]
     if self.ismc:
-      self.puTool     = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
-      self.btagTool   = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+      self.puTool      = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+      self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
       #if self.dorecoil:
@@ -88,7 +89,7 @@ class ModuleTauPair(Module):
        self.met_vars     = { u: getmet(self.era,u,useT1=self.useT1) for u in self.metUncLabels }
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
-    
+    self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity)    
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
   
@@ -191,8 +192,24 @@ class ModuleTauPair(Module):
        ensurebranches(inputTree,branchesV10)
     else: #v9
        ensurebranches(inputTree,branches) # make sure Event object has these branches
-    
-  
+
+  def jetveto(self, event):
+      vetojets = []
+      muons = [m for m in Collection(event,'Muon') if m.isPFcand]
+      for jet in Collection(event,'Jet'):
+          if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue 
+          if abs(jet.pt) <= 15: continue
+          if jet.jetId < 2: continue
+          if (jet.chEmEF + jet.neEmEF) > 0.90: continue
+          overlap = False
+          for muon in muons:
+             if jet.DeltaR(muon) < 0.2:
+                overlap = True
+                break
+          if not overlap:
+             vetojets.append(jet)
+      return len(vetojets)
+
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
     self.out.cutflow.fill('none')
