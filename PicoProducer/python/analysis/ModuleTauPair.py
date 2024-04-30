@@ -223,18 +223,18 @@ class ModuleTauPair(Module):
       # Specific selections to compute mutau filter efficiencies for stitching of different DY samples (DYJetsToTauTauToMuTauh)
       if self.domutau:
         self.ismutau = filtermutau(event) # event passes gen mutau filter
-        self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
+        self.out.cutflow.fill('weight_mutaufilter',event.genWeight*self.ismutau)
         try:
           if event.LHE_Njets==0 or event.LHE_Njets>4:
-            self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*self.ismutau)
           elif event.LHE_Njets==1:
-            self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*self.ismutau)
           elif event.LHE_Njets==2:
-            self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*self.ismutau)
           elif event.LHE_Njets==3:
-            self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*self.ismutau)
           elif event.LHE_Njets==4:
-            self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*self.ismutau)
         except RuntimeError:
           print(">>> WARNING: RuntimeError! Setting domutau=False !")
           self.domutau = False
