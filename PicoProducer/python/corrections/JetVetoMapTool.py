@@ -14,14 +14,16 @@ class JetVetoMapTool:
     
     self.file = None
     self.era = era
-    if re.match('2022[C-D]', era):
-          filename = os.path.join(datadir,"Summer22_23Sep2023_RunCD_v1.root")
-    elif re.match('2022[E-G]', era):
-          filename = os.path.join(datadir,"Summer22EE_23Sep2023_RunEFG_v1.root")
-    elif era == '2023C':
-          filename = os.path.join(datadir,"Summer23Prompt23_RunC_v1.root")
-    elif era == '2023D':
-          filename = os.path.join(datadir,"Summer23BPixPrompt23_RunD_v1.root")
+    if re.search('2022[C-D]', era):
+      filename = os.path.join(datadir,"Summer22_23Sep2023_RunCD_v1.root")
+    elif re.search('2022[E-G]', era):
+      filename = os.path.join(datadir,"Summer22EE_23Sep2023_RunEFG_v1.root")
+    elif '2023C' in era:
+      filename = os.path.join(datadir,"Summer23Prompt23_RunC_v1.root")
+    elif '2023D' in era:
+      filename = os.path.join(datadir,"Summer23BPixPrompt23_RunD_v1.root")
+    else:
+      LOG.throw(OSError,"Did not recognize era=%r..."%(era))
     self.file = ensureTFile(filename, 'READ')
     self.hist = self.file.Get('jetvetomap')
     
