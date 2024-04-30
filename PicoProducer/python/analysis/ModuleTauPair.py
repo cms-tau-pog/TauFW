@@ -208,7 +208,7 @@ class ModuleTauPair(Module):
       if abs(jet.pt) <= 15: continue
       if jet.jetId < 2: continue
       if (jet.chEmEF + jet.neEmEF) > 0.90: continue
-      if self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
+      if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
       if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
       vetojets.append(jet)
     return len(vetojets)
