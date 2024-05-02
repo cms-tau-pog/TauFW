@@ -1,4 +1,5 @@
-# Author: Izaak Neutelings (November 2018)
+# Author: Saswati Nandan & Izaak Neutelings (April 2024)
+# https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps
 import os, re
 from TauFW.PicoProducer import datadir
 from TauFW.common.tools.root import ensureTFile
@@ -9,7 +10,7 @@ LOG     = Logger('JetVetoMapTool',showname=True)
 
 class JetVetoMapTool:
   
-  def __init__(self, era, verb=0):
+  def __init__(self, era, verb=1):
     """Load data and MC jetveto map profiles."""
     filename = None
     if re.search(r"2022([C-D]|.*pre)",era):
@@ -21,11 +22,14 @@ class JetVetoMapTool:
     elif re.search(r"2023(D|.*post)",era):
       filename = os.path.join(datadir,"Summer23BPixPrompt23_RunD_v1.root")
     if not filename:
-      LOG.throw(OSError,"Did not recognize era=%r..."%(era))
+      LOG.throw(OSError,"Did not recognize era=%r... Note: Only mandatory in Run 3,"
+                        " please see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps"%(era))
+    if verb>=1:
+      print("Loading jet veto maps for era %r from %s..."%(era,filename))
     self.era  = era
     self.file = ensureTFile(filename, 'READ')
     self.hist = self.file.Get('jetvetomap')
-    self.hist.SetDirectory(0)
+    self.hist.SetDirectory(0) # load into memory, so we can safely close the file
     self.file.Close()
     
   def applyJetVetoMap(self,eta,phi):
