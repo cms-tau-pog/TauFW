@@ -27,7 +27,7 @@ def getcorr(corrset,sfname,abseta=False,verb=0):
   """Help function to extract Correction object and
   check if Correction inputs are what we expect them to be."""
   keys = list(corrset.keys())
-  LOG.insist(sfname in corrset, "Did not find key %r in correctionset! Available keys: %r"%(sfname,keys))
+  LOG.insist(sfname in keys, "Did not find key %r in correctionset! Available keys: %r"%(sfname,keys))
   corr   = corrset[sfname]
   inputs = [i.name for i in corr._base.inputs]
   eta    = 'eta' #'abseta' if abseta else 'eta' # MuonPOG now consistently uses transform for eta -> abs(eta)
@@ -39,57 +39,70 @@ def getcorr(corrset,sfname,abseta=False,verb=0):
 
 class MuonSFs:
   
-  def __init__(self, era, sf_id="NUM_MediumID_DEN_TrackerMuons", sf_iso="NUM_TightRelIso_DEN_MediumID", flags=[ ], verb=0):
+  def __init__(self, era, sf_id=None, sf_iso=None, sf_trig=None, flags=[ ], verb=0):
     """Prepare muon SFs from JSON files."""
     
     # SETTINGS
-    fname       = None
-    fname_trig  = None
+    fname_id = None
+    fname_trig = None
     #abseta      = True # use absolute eta (default in Run 2, 2022)
-    sf_trig     = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight" # default used in 2018 + Run 3
+    sf_id_   = "NUM_MediumID_DEN_TrackerMuons" # default in Run 2 + Run 3
+    sf_iso_  = "NUM_TightPFIso_DEN_MediumID" # default in Run 3
+    sf_trig_ = "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight" # default used in 2018 + Run 3
     if 'UL' in era:
       # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2016
       # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017
       # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017
+      sf_iso_ = "NUM_TightRelIso_DEN_MediumID" # default in Run 2
       if '2016' in era and 'preVFP' in era:
-        sf_trig = "NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"
-        fname   = pathPOG+"2016preVFP_UL/muon_Z.json.gz"
+        sf_trig_ = "NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"
+        fname_id = pathPOG+"2016preVFP_UL/muon_Z.json.gz"
       elif '2016' in era:
-        sf_trig = "NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"
-        fname   = pathPOG+"2016postVFP_UL/muon_Z.json.gz"
+        sf_trig_ = "NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"
+        fname_id = pathPOG+"2016postVFP_UL/muon_Z.json.gz"
       elif '2017' in era:
-        fname   = pathPOG+"2018_UL/muon_Z.json.gz"
+        fname_id = pathPOG+"2018_UL/muon_Z.json.gz"
         if 'HLT_IsoMu27' in flags: # use only HLT_IsoMu27
-          sf_trig = "NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight"
+          sf_trig_ = "NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight"
         else: # default: use (HLT_IsoMu24 || HLT_IsoMu27)
-          sf_trig = "mu_trig"
+          sf_trig_ = "mu_trig"
           fname_trig = pathHTT+"Run2017/Muon_IsoMu24orIsoMu27.root"
       elif '2018' in era:
-        fname = pathPOG+"2018_UL/muon_Z.json.gz"
+        fname_id = pathPOG+"2018_UL/muon_Z.json.gz"
     else: # Run-3
       # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonRun32022
       # https://twiki.cern.ch/twiki/bin/view/CMS/MuonRun3_2023
       if re.search(r"2022([C-D]|.*pre)",era): # 2022C-D (preEE)
-        fname = pathPOG+"2022_Summer22/muon_Z.json.gz"
+        fname_id = pathPOG+"2022_Summer22/muon_Z.json.gz"
       elif re.search(r"2022([E-G]|.*post)",era): # 2022C-D (postEE)
-        fname = pathPOG+"2022_Summer22EE/muon_Z.json.gz"
+        fname_id = pathPOG+"2022_Summer22EE/muon_Z.json.gz"
       elif re.search(r"2023(C|.*pre)",era): # 2024C (preBPIX)
-        fname = pathPOG+"2023_Summer23/muon_Z.json.gz"
+        fname_id = pathPOG+"2023_Summer23/muon_Z.json.gz"
         #abseta = False
       elif re.search(r"2023(D|.*post)",era): # 2024D (postBPIX)
-        fname = pathPOG+"2023_Summer23BPix/muon_Z.json.gz"
+        fname_id = pathPOG+"2023_Summer23BPix/muon_Z.json.gz"
         #abseta = False
     
-    # LOAD
+    # DEFAULTS
+    if sf_id==None:
+      sf_id = sf_id_
+    if sf_iso==None:
+      sf_iso = sf_iso_
+    if sf_trig==None: # default used in 2018 + Run 3
+      sf_trig = sf_trig_
+    
+    # CHECKS
     if verb>=0:
       if fname_trig: # special exception: (HLT_IsoMu24 || HLT_IsoMu27)
-        print("Loading MuonSF for era=%r, id=%r, iso=%r from %s..."%(era,sf_id,sf_id,sf_trig,fname))
+        print("Loading MuonSF for era=%r, id=%r, iso=%r from %s..."%(era,sf_id,sf_id,fname_id))
       else:
-        print("Loading MuonSF for era=%r, id=%r, iso=%r, trig=%r from %s..."%(era,sf_id,sf_id,sf_trig,fname))
-    if not os.path.exists(fname):
-      LOG.throw(OSError,"MuonSFs: fname={fname} does not exist! Please make sure you have installed the correctionlib JSON data in %s"
-                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname,datadir))
-    corrset = CorrectionSet.from_file(fname) # load JSON
+        print("Loading MuonSF for era=%r, id=%r, iso=%r, trig=%r from %s..."%(era,sf_id,sf_id,sf_trig,fname_id))
+    if not os.path.exists(fname_id):
+      LOG.throw(OSError,"MuonSFs: fname={fname_id} does not exist! Please make sure you have installed the correctionlib JSON data in %s"
+                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname_id,datadir))
+    
+    # LOAD CORRECTIONS
+    corrset = CorrectionSet.from_file(fname_id) # load JSON
     self.sftool_id  = getcorr(corrset,sf_id, verb=verb)
     self.sftool_iso = getcorr(corrset,sf_iso,verb=verb)
     if fname_trig: # special exception: load ROOT file for (HLT_IsoMu24 || HLT_IsoMu27)

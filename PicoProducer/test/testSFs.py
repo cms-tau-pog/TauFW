@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (December 2018)
+# Instructions:
+#   python3 test/testSFs.py -t mu -m 2 -y UL2016_post UL2016_pre UL2017 UL2018 2022_pre 2022_post 2023C 2023D
 import time
 start0 = time.time()
 print(">>> Importing modules...")
@@ -220,6 +222,7 @@ def main(args):
   if not tools or 'mu' in tools:
     for era in eras:
       muonSFs_JSON(era)
+  if not tools or 'muroot' in tools:
     for era in eras:
       muonSFs_ROOT(era)
   if not tools or 'ele' in tools:
@@ -271,7 +274,7 @@ if __name__ == "__main__":
     from TauFW.PicoProducer.corrections.MuonSFs import *
     print(">>>   Imported MuonSFs classes after %.1f seconds"%(time.time()-start1))
   
-  if 'mu' in tools:
+  if 'muroot' in tools:
     start1 = time.time()
     from TauFW.PicoProducer.corrections.MuonSFs_ROOT import MuonSFs as MuonSFs_ROOT
     print(">>>   Imported MuonSFs_ROOT classes after %.1f seconds"%(time.time()-start1))
