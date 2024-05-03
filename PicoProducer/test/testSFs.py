@@ -13,15 +13,19 @@ path       = 'data/lepton/'
 pathHTT_mu = 'data/lepton/HTT/Muon/Run2017/'
 pathHTT_el = 'data/lepton/HTT/Electron/Run2017/'
 maxerr     = 10 # maximum number of errors
+neta       = True # include negative eta
+ptvals_    = [ 10., 20., 21., 22., 24., 25., 26., 27., 34., 35., 36., 40., 60., 156., 223., 410., 560. ]
+etavals_   = [ 0.0, 0.5, 1.1, 1.9, 2.3, 2.4, 2.8, 3.4 ]
 
 # MATRIX
 def printtable(name,method,ptvals=None,etavals=None,etamax=3.0):
   start2 = time.time()
   if ptvals==None:
-    ptvals  = [ 10., 20., 21., 22., 24., 25., 26., 27., 34., 35., 36., 40., 60., 156., 223., 410., 560. ]
+    ptvals  = ptvals_
   if etavals==None:
-    etavals = [ 0.0, 0.5, 1.1, 1.9, 2.3, 2.4, 2.8, 3.4 ]
-    etavals = [-eta for eta in reversed(etavals)]+etavals
+    etavals = etavals_
+    if neta:
+      etavals = [-eta for eta in reversed(etavals) if eta>0]+etavals # add negative values
   if etamax!=None:
     etavals = [eta for eta in etavals if abs(eta)<etamax]
   print(">>>   %s:"%name)
@@ -253,11 +257,22 @@ if __name__ == "__main__":
                                         help="eras to run" )
   parser.add_argument('-m','--maxerr',  dest='maxerr', type=int, default=10,
                                         help="maximum nubmer of errors to print" )
+  parser.add_argument('-e','--eta',     dest='etavals', type=float, nargs='+',
+                                        help="etas to check" )
+  parser.add_argument('-p','--pt',      dest='ptvals', type=float, nargs='+',
+                                        help="pt vals to check" )
+  parser.add_argument('-n','--neta',    dest='neta', action='store_false',
+                                        help="no negative eta" )
   parser.add_argument('-v','--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                         help="set verbosity level" )
-  args   = parser.parse_args()
-  tools  = args.tools
-  maxerr = args.maxerr
+  args     = parser.parse_args()
+  tools    = args.tools
+  maxerr   = args.maxerr
+  neta     = args.neta
+  if args.ptvals:
+    ptvals_  = args.ptvals
+  if args.etavals:
+    etavals_ = args.etavals
   
   # IMPORTS
   start1 = time.time()

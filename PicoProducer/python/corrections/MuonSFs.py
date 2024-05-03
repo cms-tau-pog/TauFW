@@ -72,9 +72,9 @@ class MuonSFs:
     else: # Run-3
       # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonRun32022
       # https://twiki.cern.ch/twiki/bin/view/CMS/MuonRun3_2023
-      if re.search(r"2022([C-D]|.*pre)",era): # 2022C-D (preEE)
+      if re.search(r"2022([C-D]|.*pre)",era): # 2022CD (preEE)
         fname_id = pathPOG+"2022_Summer22/muon_Z.json.gz"
-      elif re.search(r"2022([E-G]|.*post)",era): # 2022C-D (postEE)
+      elif re.search(r"2022([E-G]|.*post)",era): # 2022EFG (postEE)
         fname_id = pathPOG+"2022_Summer22EE/muon_Z.json.gz"
       elif re.search(r"2023(C|.*pre)",era): # 2024C (preBPIX)
         fname_id = pathPOG+"2023_Summer23/muon_Z.json.gz"

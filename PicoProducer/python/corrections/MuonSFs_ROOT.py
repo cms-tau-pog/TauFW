@@ -3,7 +3,7 @@
 # MuonPOG: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2
 # https://twiki.cern.ch/twiki/bin/view/CMS/MuonPOG#User_Recommendations
 # https://twiki.cern.ch/twiki/bin/view/CMS/MuonLegacy2016
-import os
+import os, re
 from TauFW.PicoProducer import datadir
 from TauFW.PicoProducer.corrections.ScaleFactorTool import ScaleFactor, ScaleFactorHTT 
 pathPOG = os.path.join(datadir,"lepton/MuonPOG/")
@@ -20,14 +20,14 @@ class MuonSFs:
     self.sftool_trig = None
     self.sftool_idiso = None
     if 'UL' in era:
-      if '2016' in era and 'preVFP' in era:
+      if '2016' in era and 'pre' in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2016
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2016UL_preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root",
                                            'NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt','mu_trig',verb=verb)
         sftool_id         = ScaleFactor(pathPOG+"Run2016UL_preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
         sftool_iso        = ScaleFactor(pathPOG+"Run2016UL_preVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ISO.root","NUM_TightRelIso_DEN_MediumID_abseta_pt",'mu_iso',ptvseta=True,verb=verb)
         self.sftool_idiso = sftool_id*sftool_iso
-      elif '2016' in era:
+      elif '2016' in era: # assume post-VFP
         # https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2016
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2016UL_postVFP/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root",
                                            'NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt','mu_trig',verb=verb)
@@ -52,7 +52,7 @@ class MuonSFs:
         sftool_id         = ScaleFactor(pathPOG+"Run2018UL/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root","NUM_MediumID_DEN_TrackerMuons_abseta_pt",'mu_id',ptvseta=True,verb=verb)
         sftool_iso        = ScaleFactor(pathPOG+"Run2018UL/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root","NUM_TightRelIso_DEN_MediumID_abseta_pt",'mu_iso',ptvseta=True,verb=verb)
         self.sftool_idiso = sftool_id*sftool_iso
-    else: # pre-UL
+    elif '201' in era: # pre-UL Run 2
       if era=='2016':
         # https://gitlab.cern.ch/cms-muonPOG/MuonReferenceEfficiencies/-/tree/master/EfficienciesStudies/2016_trigger
         #self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Muon_Run2016_legacy_IsoMu22.root",'ZMass','mu_trig',verb=verb)
@@ -75,13 +75,14 @@ class MuonSFs:
         ###sftool_id         = ScaleFactor(pathPOG+"Run2018/RunABCD_SF_ID.root","NUM_MediumID_DEN_genTracks_pt_abseta",'mu_id',ptvseta=False)
         ###sftool_iso        = ScaleFactor(pathPOG+"Run2018/RunABCD_SF_ISO.root","NUM_TightRelIso_DEN_MediumID_pt_abseta",'mu_iso',ptvseta=False)
         ###self.sftool_idiso = sftool_id*sftool_iso
-      elif '2022_preEE' in era:
+    else: # EOY Run 3
+      if re.search(r"2022([C-D]|.*pre)",era): # 2022CD (preEE)
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root",'ScaleFactor_trg','mu_trig',ptvseta=False,verb=verb)
         self.sftool_id         = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root","ScaleFactor_id",'mu_id',ptvseta=False)
         self.sftool_iso        = ScaleFactor(pathPOG+"Run2022preEE/muon_SFs_2022_preEE.root","ScaleFactor_iso",'mu_iso',ptvseta=False)
         assert self.sftool_id != None and self.sftool_iso != None, "MuonSFs.__init__: Did not find muon ID/ISO tool for %r"%(era)
         self.sftool_idiso = self.sftool_id*self.sftool_iso
-      elif '2022_postEE' in era:
+      elif re.search(r"2022([E-G]|.*post)",era): # 2022EFG (postEE)
         self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root",'ScaleFactor_trg','mu_trig',ptvseta=False,verb=verb)
         self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_id",'mu_id',ptvseta=False)
         self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/muon_SFs_2022_postEE.root","ScaleFactor_iso",'mu_iso',ptvseta=False)
