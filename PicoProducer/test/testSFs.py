@@ -170,14 +170,14 @@ def tauTriggerSFs():
   printtable('trigger fake',lambda p,d: tauSFs.getSF(p,d),ptvals=ptvals,etavals=dmvals)
   
 
-def btagSFs(tagger='DeepCSV'):
+def btagSFs(era='UL2018',tagger='DeepJet'):
   LOG.header("btagSFs")
   
   # BTAG SFs
   print(">>> ")
   start1 = time.time()
-  print(">>> Initializing BTagWeightTool(%r) object..."%tagger)
-  btagSFs = BTagWeightTool(tagger)
+  print(">>> Initializing BTagWeightTool(%r,%r) object..."%(tagger,era))
+  btagSFs = BTagWeightTool(tagger,wp='medium',era=era,channel='mutau')
   print(">>>   Initialized in %.1f seconds"%(time.time()-start1))
   
   # GET SFs
@@ -234,8 +234,8 @@ def main(args):
   
   # BTV
   if not tools or 'btag' in tools:
-    #btagSFs('CSVv2')
-    btagSFs('DeepCSV')
+    for era in eras:
+      btagSFs(era=era,tagger='DeepJet')
   
   # PU
   if not tools or 'pu' in tools:
