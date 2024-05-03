@@ -34,9 +34,4 @@ class JetVetoMapTool:
     
   def applyJetVetoMap(self,eta,phi):
     """Get eta phi region where jetveto needs to be applied"""
-    if self.file == None:
-       LOG.warning(f"JetVetoMapTools.applyJetVetoMap: either Jet veto is not applicable for {era} or jet veto file is not defined")
-       return False
-    else:
-       apply_jetveto = self.hist.GetBinContent(self.hist.GetXaxis().FindBin(eta), self.hist.GetYaxis().FindBin(phi))
-       return apply_jetveto
+    return self.hist.GetBinContent(self.hist.GetXaxis().FindBin(eta), self.hist.GetYaxis().FindBin(phi))
