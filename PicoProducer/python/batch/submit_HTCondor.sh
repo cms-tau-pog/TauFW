@@ -22,11 +22,12 @@ echo "\$WORKDIR=$WORKDIR"
 #printf '=%.0s' `seq 60`; echo
 
 # ENVIRONMENT
-if [ ! -z "$CMSSW_BASE" -a -d "$CMSSW_BASE/src" ]; then
-  peval "cd $CMSSW_BASE/src"
-  peval 'eval `scramv1 runtime -sh`'
-  peval "cd $WORKDIR"
-fi
+#if [ ! -z "$CMSSW_BASE" -a -d "$CMSSW_BASE/src" ]; then
+peval "source /cvmfs/cms.cern.ch/cmsset_default.sh"
+peval "cd /afs/cern.ch/user/s/snandan/public/tauid_sf/slc7/fork_wosingularity/CMSSW_12_4_8/src"
+peval 'eval `scramv1 runtime -sh`'
+peval "cd $WORKDIR"
+#fi
 
 # MAIN FUNCTIONALITY
 #TASKCMD=$(cat $JOBLIST | sed "${TASKID}q;d")
