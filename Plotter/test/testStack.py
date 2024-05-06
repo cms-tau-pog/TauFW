@@ -17,16 +17,18 @@ coldict = { # HTT / TauPOG colors
 }
 
 
-def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,fraction=False):
+def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,logx=False,fraction=False,**kwargs):
   """Plot Stack objects for a given data hisogram and list of MC histograms."""
   
   # SETTING
-  outdir   = ensuredir("plots")
+  outdir   = ensuredir("plots/test")
   fname    = "%s/testStack_%s"%(outdir,xname)
   if ratio:
     fname += "_ratio"
   if logy:
     fname += "_logy"
+  if logx:
+    fname += "_logx"
   if fraction:
     fname += "_frac"
   rrange   = 0.5
@@ -36,8 +38,8 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,fraction=Fal
   
   # PLOT
   LOG.header(fname)
-  plot = Stack(xtitle,datahist,exphists,clone=True)
-  plot.draw(ratio=ratio,logy=logy,ratiorange=rrange,grid=grid,fraction=fraction)
+  plot = Stack(xtitle,datahist,exphists[:],clone=True)
+  plot.draw(ratio=ratio,logy=logy,logx=logx,ratiorange=rrange,grid=grid,fraction=fraction,**kwargs)
   plot.drawlegend(position=position)
   plot.drawtext(text)
   plot.saveas(fname+".png")
@@ -45,7 +47,7 @@ def plotstack(xname,xtitle,datahist,exphists,ratio=False,logy=False,fraction=Fal
   #plot.saveas(fname+".C")
   #plot.saveas(fname+".png",fname+".C")
   #plot.saveas(fname,ext=['png','pdf'])
-  plot.close()
+  plot.close(keep=False)
   print('')
   
 
@@ -121,7 +123,7 @@ def main():
       ('QCD', "QCD multiplet",          0.8, gRandom.Gaus,   ( 90,44)),
       ('TT', "t#bar{t}",                0.8, gRandom.Gaus,   (110,70)),
      ]),
-    (('pt_1',"Leading p_{T} [GeV]",50,0,100), [
+    (('pt',"Leading p_{T} [GeV]",42,16,100), [
       ('ZTT', "Z -> #tau_{mu}#tau_{h}", 1.2, gRandom.Landau, (30,2)),
       ('WJ', "W + jets",                0.2, gRandom.Landau, (30,2)),
       ('QCD', "QCD multiplet",          0.3, gRandom.Landau, (37,5)),
@@ -157,15 +159,17 @@ def main():
     datahist, exphists = createhists(procs,binning,nevts)
     for ratio in [True,False]:
       for logy in [True,False]:
-        fractions = [True,False] if ratio and not logy else [False]
-        for fraction in fractions:
-          plotstack(xname,xtitle,datahist,exphists,ratio=ratio,logy=logy,fraction=fraction)
+        for logx in [True,False]:
+          fractions = [True,False] if ratio and not logy and not logx else [False]
+          #if not logx or variable[0] not in ['njets']: continue
+          for fraction in fractions:
+            plotstack(xname,xtitle,datahist,exphists,ratio=ratio,logy=logy,logx=logx,fraction=fraction)
   
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Script to test the Plot class for comparing histograms"""
-  parser = ArgumentParser(prog="testStack",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity level" )
   args = parser.parse_args()
