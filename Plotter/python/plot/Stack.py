@@ -137,16 +137,8 @@ class Stack(Plot):
     self.lcolors = lcolors
     self.fcolors = fcolors
     self.lstyles = lstyles
-    hists        = self.hists
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    if logx and xmin==0: # reset xmin in binning
-      frame = self.frame or self.exphists[0] or self.datahist
-      xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
-      xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
-      LOG.verb("Stack.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
-      for hist in self.exphists+[self.datahist]:
-        if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if verbosity>=2:
       print(">>> Stack.draw: xtitle=%r, ytitle=%r"%(xtitle,ytitle))
       print(">>> Stack.draw: xmin=%s, xmax=%s, ymin=%s, ymax=%s, rmin=%s, rmax=%s"%(xmin,xmax,ymin,ymax,rmin,rmax))
@@ -171,6 +163,7 @@ class Stack(Plot):
     
     # DIVIDE BY BINSIZE
     if dividebins:
+      LOG.verb("Stack.draw: dividebins=%r"%(dividebins),verbosity,2)
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
@@ -185,7 +178,7 @@ class Stack(Plot):
       if self.datahist:
         self.datahist = datahists[0]
         self.hists = [self.datahist]+self.exphists+self.sighists
-      else:
+      else: # do not include data hists
         self.hists = self.exphists+self.sighists
       #if sysvars:
       #  histlist = sysvars.values() if isinstance(sysvars,dict) else sysvars
@@ -195,10 +188,23 @@ class Stack(Plot):
       #    if hist not in self.hists:
       #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
+    # RESET XMIN & BINNING
+    if logx and xmin==0: # reset xmin in binning if logx
+      frame = self.frame or self.exphists[0] or self.datahist
+      xmin = 0.35*frame.GetXaxis().GetBinWidth(1)
+      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      LOG.verb("Plot.draw: Resetting xmin=0 -> %s in binning of all histograms (logx=%r, frame=%r): xbins=%r"%(
+        xmin,logx,frame,xbins),verbosity,1)
+      for hist in self.exphists+self.sighists+[self.datahist]:
+        if hist and isinstance(hist,TH1):
+          hist.SetBins(*xbins) # set xmin>0 to plot correctly with logx
+      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
+        self.frame = None # use getframe below
+    
     # DRAW OPTIONS
     gStyle.SetEndErrorSize(enderrorsize) # extra line at end of error bars
     gStyle.SetErrorX(0.5*float(errorX)) # horizontal error bars
-    LOG.verb("Plot.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
+    LOG.verb("Stack.draw: enderrorsize=%r, errorX=%r"%(enderrorsize,errorX),verbosity,2)
     
     # CANVAS
     self.canvas = self.setcanvas(square=square,lower=lowerpanels,width=cwidth,height=cheight,
@@ -224,54 +230,62 @@ class Stack(Plot):
         stack.Add(hist)
     
     # DRAW FRAME
-    self.canvas.cd(1)
+    mainpad = self.canvas.cd(1)
     if not self.frame: # if not given by user
-      self.frame = getframe(gPad,stack,xmin,xmax)
-      #self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+      self.frame = getframe(mainpad,self.exphists[0],xmin,xmax,variable=True)
+      self.frame.Draw('][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
     else:
-      self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+      self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
+    LOG.verb("Plot.draw: Drawn frame=%r"%(self.frame),verbosity,2)
     
     # DRAW LINE
     for line in self.lines:
       if line.pad==1:
-        line.Draw("LSAME")
+        line.Draw(line.option)
+    for box in self.boxes:
+      if box.pad==1:
+        box.Draw(box.option)
     
     # DRAW
+    LOG.verb("Stack.draw: Drawing stack %r with option=%r"%(stack,option+' SAME'),verbosity,2)
     stack.Draw(option+' SAME')
     if drawsignal: # signal
       soption += " SAME"
       for hist in self.sighists:
-        LOG.verb("Stack.draw: draw signal %r with soption=%r"%(hist,soption),verbosity,3)
+        LOG.verb("Stack.draw: draw signal %r with soption=%r"%(hist,soption),verbosity,2)
         hist.Draw(soption)
         hist.SetOption(soption) # for legend and ratio
     if drawdata: # data
       self.datahist.SetFillStyle(0)
-      if isinstance(self.datahist,TH1):
-        self.datahist.Draw(doption+' SAME')
-        self.datahist.SetOption(doption+' SAME') # for legend and ratio
-      else:
-        self.datahist.Draw(doption+'PE0 SAME')
-        self.datahist.GetOption = lambda: 'PE0 SAME' # for legend and ratio
+      if not isinstance(self.datahist,TH1):
+        doption += 'PE0'
+      doption += ' SAME'
+      LOG.verb("Stack.draw: Drawing data %r with doption=%r"%(self.datahist,doption),verbosity,2)
+      self.datahist.Draw(doption+' SAME')
+      self.datahist.SetOption(doption+' SAME') # for legend and ratio (NOTE: TGraph.SetOption defined in utils.py)
     
     # CMS STYLE
     if CMSStyle.lumiText:
-      CMSStyle.setCMSLumiStyle(gPad,0)
+      CMSStyle.setCMSLumiStyle(mainpad,0,verb=verbosity-2)
     
     # ERROR BAND
+    boption = 'E2 SAME'
     if staterr or sysvars:
       self.errband = geterrorband(self.exphists,name=makehistname("errband",self.name),title=errtitle,sysvars=sysvars)
       if not multibands: # do not draw, but keep for ratio and/or legend
-        self.errband.Draw('E2 SAME')
+        LOG.verb("Stack.draw: Drawing errorband %r with boption=%r"%(self.errband,boption),verbosity,2)
+        self.errband.Draw(boption)
     if multibands:
       for i, hist in enumerate(self.exphists):
         fstyle = 3004 if i%2==0 else 3005
         errband = geterrorband(hist,yhist=stack.GetStack().At(i),name=makehistname("errband",hist),title=errtitle,style=fstyle)
-        errband.Draw('E2 SAME')
+        LOG.verb("Stack.draw: Drawing errorband %r with boption=%r"%(self.errband,boption),verbosity,2)
+        errband.Draw(boption)
         self.errbands.append(errband)
     
     # AXES
     drawx = not bool(ratio)
-    self.setaxes(self.frame,*hists,drawx=drawx,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,nxdiv=nxdiv,nydiv=nydiv,
+    self.setaxes(self.frame,*self.hists,drawx=drawx,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,main=ratio,grid=grid,nxdiv=nxdiv,nydiv=nydiv,
                  xtitle=xtitle,ytitle=ytitle,xtitlesize=xtitlesize,ytitlesize=ytitlesize,ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,
                  xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
                  dividebins=dividebins,latex=latex,center=ycenter,ymargin=ymargin,logyrange=logyrange)
@@ -279,7 +293,9 @@ class Stack(Plot):
     # RATIO
     if ratio:
       drawx = (lowerpanels<=1)
-      self.canvas.cd(2)
+      lines = [l for l in self.lines if l.pad==2] # draw first
+      boxes = [b for b in self.boxes if b.pad==2] # draw first
+      self.canvas.cd(2) # go to ratio panel
       if rhists==None: # if not set by user, use default
         rhists = [stack]+self.sighists+[self.datahist] # default: use stack as denominator (denom=1)
       else: # histograms for ratio set by user
@@ -289,13 +305,10 @@ class Stack(Plot):
           rhists[rhists.index('data')] = self.datahist
       self.ratio = Ratio(*rhists,denom=denom,num=num,errband=self.errband,
                          drawzero=True,errorX=errorX,fraction=fraction,verb=verbosity)
-      self.ratio.draw(xmin=xmin,xmax=xmax,data=True)
+      self.ratio.draw(xmin=xmin,xmax=xmax,data=True,lines=lines,boxes=boxes)
       self.setaxes(self.ratio,drawx=drawx,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,nxdiv=nxdiv,nydiv=nrdiv,
                    xtitle=xtitle,ytitle=rtitle,xtitlesize=xtitlesize,ytitlesize=rtitlesize,xtitleoffset=xtitleoffset,ytitleoffset=rtitleoffset,
                    xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
                    center=True,rrange=ratiorange,grid=grid,latex=latex)
-      for line in self.lines:
-        if line.pad==2:
-          line.Draw("LSAME")
-      self.canvas.cd(1)
+      self.canvas.cd(1) # go back to main pad
   

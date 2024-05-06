@@ -8,7 +8,6 @@ from TauFW.Plotter.sample.ResultDict import ResultDict, MeanResult # for contain
 from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist
 from TauFW.Plotter.sample.SampleStyle import *
-from TauFW.Plotter.plot.MultiDraw import MultiDraw
 from ROOT import TTree, TFile
 
 
@@ -344,12 +343,15 @@ class Sample(object):
     self.fnameshort = '/'.join(self.filename.split('/')[-3:])
     return self.filename
   
-  #def __add__(self, sample):
-  #  """Add samples into MergedSamples."""
-  #  if isinstance(sample,Sample):
-  #    mergedsample = MergedSample(self,sample)
-  #    return self
-  #  return None
+  def __add__(self,sample):
+    """Add Sample object to list of samples and return MergedSample."""
+    return self.add(sample) # overloaded in MergedSample
+  
+  def add(self, *args, **kwargs):
+    """Add Sample object to list of samples and return MergedSample."""
+    samples   = [self]+list(args)
+    newsample = MergedSample(kwargs.get('name',self.name),kwargs.get('title',self.title),samples)
+    return newsample
   
   def __mul__(self, scale):
     """Multiply scale, or add extra weight (that can be string or Selection object)."""
