@@ -98,10 +98,10 @@ class MuonSFs:
       else:
         print("Loading MuonSF for era=%r, id=%r, iso=%r, trig=%r from %s..."%(era,sf_id,sf_id,sf_trig,fname_id))
     if not os.path.exists(fname_id):
-      LOG.throw(OSError,"MuonSFs: fname_id={fname_id} does not exist! Please make sure you have installed the correctionlib JSON data in %s"
+      LOG.throw(OSError,"MuonSFs: fname_id=%s does not exist! Please make sure you have installed the correctionlib JSON data in %s"
                         " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname_id,datadir))
     if fname_trig and not os.path.exists(fname_trig):
-      LOG.throw(OSError,"MuonSFs: fname_trig={fname_trig} does not exist! Please make sure you have installed the HTT lepton ROOT data in %s"
+      LOG.throw(OSError,"MuonSFs: fname_trig=%s does not exist! Please make sure you have installed the HTT lepton ROOT data in %s"
                         " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname_id,datadir))
     
     # LOAD CORRECTIONS
