@@ -78,7 +78,7 @@ class ScaleFactorHTT(ScaleFactor):
         LOG.throw(IOError,"%s You may have to do\n"%(strerr)+
           "        cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/\n"+
           "        rm -rf HTT\n"+
-          "        git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT"+
+          "        git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT\n"+
           "      Please see https://github.com/cms-tau-pog/TauFW/wiki/Installation#corrections")
       else:
         raise error
