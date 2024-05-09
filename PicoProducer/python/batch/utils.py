@@ -157,6 +157,7 @@ def getcfgsamples(jobcfgnames,filter=[ ],veto=[ ],dtype=[ ],verb=0):
       if sample.paths!=osample.paths: continue
       if sample.channels[0] not in osample.channels: continue
       if sample.subtry>osample.subtry: # ensure last job (re)submission
+        #TODO: compare sample.jobcfg['config'] and osample.jobcfg['config'] to avoid mixing different jobs
         samples[samples.index(osample)] = sample # replace
       break
     else: # if no break
