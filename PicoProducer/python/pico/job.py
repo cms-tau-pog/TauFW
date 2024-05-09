@@ -84,7 +84,7 @@ def preparejobs(args):
       if resubmit: # get samples from existing job config files
         # TODO: allow user to resubmit given config file
         jobdir_ = repkey(jobdirformat,ERA=era,SAMPLE='*',CHANNEL=channel,TAG=tag)
-        jobcfgs = repkey(os.path.join(jobdir_,"config/jobconfig_$SAMPLE$TAG_try[0-9]*.json"),
+        jobcfgs = repkey(os.path.join(jobdir_,"config/jobconfig_$CHANNEL$TAG_try[0-9]*.json"),
                          ERA=era,SAMPLE='*',CHANNEL=channel,TAG=tag)
         if verbosity>=2:
           print(">>> %-12s = %s"%('cwd',os.getcwd()))
