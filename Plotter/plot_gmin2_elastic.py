@@ -12,7 +12,7 @@ from datetime import datetime
 from array import array
 #print(">>> Importing ROOT...")
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import TF1, kAzure, kRed, kGreen, kOrange #, kMagenta
+from ROOT import TF1, kAzure, kRed, kBlue, kGreen, kOrange #, kMagenta
 print(">>> Importing TauFW.sample...")
 from config.gmin2.samples import * # for general getsampleset
 import TauFW.Plotter.sample.utils as GLOB
@@ -95,7 +95,7 @@ def studyInclBkg(sampleset,channel,tag="",outdir="plots/g-2/elastic/bkg",era="",
   # SELECTIONS
   baseline = getbaseline(channel)
   sel_sb   = f"{baseline} && aco<0.015 && %s<=ntrack_all && ntrack_all<=%s"
-  tit_nt   = "N_{#lower[-0.23]{track}}"
+  tit_nt   = "#it{N}_{#lower[-0.23]{tracks}}"
   selections = [ # plot these selections
     #Sel(f"A < 0.015, {tit_nt} = 0",  sel_sr_0t, fname="acolt0p015-ntracks0"),
     #Sel(f"A < 0.015, {tit_nt} = 1",  sel_sr_1t, fname="acolt0p015-ntracks1"),
@@ -243,7 +243,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   jfname    = "%s/elastic.json"%(outdir)
   hfname    = "%s/elastic_%s.root"%(outdir,era)
   hfile     = ensureTFile(hfname,'UPDATE') # back up histograms for reuse
-  fcols     = [ kRed, kGreen+1, kOrange ] # line colors for fit functions
+  #fcols     = [ kRed, kGreen+1, kOrange ] # line colors for fit functions
+  fcols     = [ kRed, kBlue, kOrange ] # line colors for fit functions
   ftits     = [ "Flat", "Lin.", "Quadr." ] # titles for fit functions
   rtitle    = "#frac{Obs. #minus Bkg.}{#gamma#gamma #rightarrow #mu#mu, WW}  "
   chstr     = channel.replace('mu','m').replace('tau','t') 
@@ -269,7 +270,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   sel_0t   = f"{baseline} && ntrack_all==0"
   sel_1t   = f"{baseline} && ntrack_all==1"
   sel_sr   = f"{baseline} && aco<0.015 && ntrack_all<=1"
-  tit_nt   = "N_{#lower[-0.23]{track}}"
+  tit_nt   = "#it{N}_{#lower[-0.23]{tracks}}"
   selections = [ # plot these selections
     #Sel(f"{tit_nt} <= 1",            sel_sr,    fname="ntracksleq1"),
     #Sel(f"{tit_nt} = 0",             sel_0t,    fname="ntracks0"),
@@ -482,7 +483,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           'bkg_sr': round(sf_bkg*n_bkg,6), 'sf_el': round(sf_el,6), 'sf_bkg': round(sf_bkg,6)
         }
         hist_bkg.Scale(sf_bkg)
-        hist_bkg.SetTitle(f"Incl. bkg. ({ntmin} <= N_{{#lower[-0.2]{{track}}}} <= {ntmax})")
+        hist_bkg.SetTitle(f"Incl. bkg. ({ntmin} <= #it{{N}}_{{#lower[-0.2]{{tracks}}}} <= {ntmax})")
       
       # STORE for later reuse
       #if not loadhists and redo==redoes[-1]: # store for later reuse
@@ -499,7 +500,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       #text  = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
       text  = selection.title
       rmax  = 3.1 if selection.issr else 1.6
-      rmax2 = 6.7 if selection.issr else 6.7
+      rmax2 = 6.9
       for var in variables:
         
         # GET HIST
@@ -563,12 +564,18 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           
           # RATIO LEGEND
           lwidth = 0.28 if paper else 0.32
-          x1 = 0.17; x2 = x1 + lwidth
-          y1 = 0.96; y2 = y1 - 0.15
+          if 'ntrack_all==1' in selection.selection:
+            x1 = 0.405
+            y1 = 0.960
+          else:
+            x1 = 0.18
+            y1 = 0.94
+          x2 = x1 + lwidth
+          y2 = y1 - 0.15
           legend = TLegend(x1,y1,x2,y2)
           legend.SetFillStyle(0)
           legend.SetBorderSize(0)
-          legend.SetTextSize(0.075)
+          legend.SetTextSize(0.082)
           legend.SetMargin(0.3)
           legend.SetTextFont(42)
           legend.SetNColumns(len(funcs))
@@ -616,7 +623,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           hrat.Draw('E0 E1 SAME') # draw on top (DOES NOT WORK?)
           stack.canvas.cd(3)
           stack.setaxes(ratio2,ymin=0,ymax=2.5,xtitle=var.title,ytitle=rtitle,nydiv=506,
-                        ytitlesize=0.054,ytitleoffset=0.92,center=True,latex=False)
+                        ytitlesize=0.054,ytitleoffset=0.91,center=True,latex=False)
           
           # SAVE & CLOSE STACK
           stack.saveas(fname,ext=exts,tag=tag+"_applied")

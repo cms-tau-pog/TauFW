@@ -75,18 +75,18 @@ samples  = [
     #"GGToWW_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_july/230724_122754/0000", # filter, 1/128
     "GGToWW_RunIISummer20UL18/RunIISummer20UL18_NanoAODv9_nofilter_januarysamples/240109_135325/0000", # 1/137, no filter
     store=storage,url=url,files=filelist,opts="useT1=False"),
-  M('VV','WWTo2L2Nu',
-    "WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18_NanoAODv9/221117_165726/0000",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
+  ###M('VV','WWTo2L2Nu', # use VVTo2L2Nu instead !
+  ###  "WWTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18_NanoAODv9/221117_165726/0000",
+  ###  store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','WZTo2Q2L',
     "WZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18_NanoAODv9/221117_170158/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','WZTo3LNu',
     "WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18_NanoAODv9/221117_170327/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),
-  M('VV','ZZTo2L2Nu',
-    "ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18_NanoAODv9/221117_172331/0000",
-    store=storage,url=url,files=filelist,opts="useT1=False"),
+  ###M('VV','ZZTo2L2Nu', # use VVTo2L2Nu instead !
+  ###  "ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8/RunIISummer20UL18_NanoAODv9/221117_172331/0000",
+  ###  store=storage,url=url,files=filelist,opts="useT1=False"),
   M('VV','ZZTo2Q2L',
     "ZZTo2Q2L_mllmin4p0_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18_NanoAODv9/221117_172209/0000",
     store=storage,url=url,files=filelist,opts="useT1=False"),

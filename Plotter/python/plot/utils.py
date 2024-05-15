@@ -51,7 +51,7 @@ def normalize(*hists,**kwargs):
       hist.SetBinErrorOption(TH1.kNormal)
       hist.Sumw2()
     integral = intsum if tosum else hist.Integral() # denominator
-    if integral:
+    if integral and scale!=integral:
       hist.Scale(scale/integral)
     else:
       LOG.warn("normalize: Could not normalize; integral = 0!")

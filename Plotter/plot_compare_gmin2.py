@@ -6,10 +6,12 @@
 #   ./plot_compare_gmin2.py -y UL2018 -m pu -L
 print(">>> Importing...")
 import os, re
+from math import sqrt
+import ctypes # for passing by reference
 #from array import array
 print(">>> Importing ROOT...")
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from ROOT import gStyle, TH2D, TLatex,\
+from ROOT import gStyle, TH2D, TLatex, TGraphErrors, TColor,\
                  kBlack, kGray, kRed, kBlue, kGreen, kMagenta, kSpring, kOrange
 print(">>> Importing TauFW.sample...")
 #from config.samples import * # for general getsampleset
@@ -23,6 +25,7 @@ from TauFW.Plotter.plot.Plot import Plot, deletehist
 from TauFW.Plotter.plot.Plot2D import Plot2D
 from TauFW.Plotter.plot.Stack import Stack
 from TauFW.Plotter.plot.CMSStyle import lumi_dict, era_dict
+from TauFW.Plotter.plot.utils import sumhists
 from TauFW.common.tools.file import ensuredir
 from TauFW.common.tools.utils import ensurelist, repkey
 from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr, loadmacro
@@ -37,6 +40,18 @@ xsec_tt = 1.048*0.0403 # new samples without filter, alpha = 1/137 (GGToTT_Ctb20
 #xsec_ww = 0.00692*0.368 #WRONG: 0.37553*0.33 # old samples with filter, alpha = 1/126
 xsec_ww = 0.006561 # new samples without filter, alpha = 1/137
 
+# CUSTOM COLOR
+kMyFaintRed = TColor.GetColor(1.0,0.97,0.94) # kRed-10
+kMyLightRed = TColor.GetColor(1.0,0.86,0.90) # 19, kRed-9
+
+
+def integrate(hist,ilow,iup):
+  """Help function to retrieve integral + uncertainty."""
+  yerr = ctypes.c_double()
+  yval = hist.IntegralAndError(ilow,iup,yerr)
+  #assert yval==hist.Integral(ilow,iup)
+  return yval, yerr.value
+            
 
 def getweight(channel,era,**kwargs):
   verb = kwargs.get('verb',0)#+1
@@ -127,14 +142,15 @@ def getsampleset(channel,era,**kwargs):
     sampleset.printtable()
     return sampleset
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
-  fname     = kwargs.get('fname',       fname  ) or fname # file name pattern of pico files
-  tag       = kwargs.get('tag',         ""     )
-  table     = kwargs.get('table',       True   ) # print sample set table
-  loadcorrs = kwargs.get('loadcorrs',   False  ) # load special corrections for SMP-23-005
-  mcweight  = kwargs.get('extraweight', ""     ) # extra weight for all MC
-  dyweight  = kwargs.get('dyweight',    ""     ) # print sample set table
-  showEra   = kwargs.get('showEra',     True   ) #and (era not in ['UL2017','UL2018'])
+  fname     = kwargs.get('fname',       fname   ) or fname # file name pattern of pico files
+  tag       = kwargs.get('tag',         ""      )
+  table     = kwargs.get('table',       True    ) # print sample set table
+  loadcorrs = kwargs.get('loadcorrs',   False   ) # load special corrections for SMP-23-005
+  mcweight  = kwargs.get('extraweight', ""      ) # extra weight for all MC
+  dyweight  = kwargs.get('dyweight',    ""      ) # print sample set table
+  showEra   = kwargs.get('showEra',     True    ) #and (era not in ['UL2017','UL2018'])
   extratext = kwargs.get('extra', "Preliminary" ) # extra CMS text
+  filters   = kwargs.get('filter',      ['DY']  )
   year      = getyear(era) # get integer year
   setera(era,showEra=showEra,extra=extratext) # set era for plot style and lumi-xsec normalization
   
@@ -180,7 +196,7 @@ def getsampleset(channel,era,**kwargs):
     from ROOT import getEraIndex # from python/corrections/g-2/ntracks_pileup.C
     weight   = weight.replace('$ERA',str(getEraIndex(era)))
     dyweight = dyweight.replace('$ERA',str(getEraIndex(era)))
-  if verb+4>=1:
+  if verb+2>=1:
     print(f">>> dyweight = {dyweight!r}")
     print(f">>> mcweight = {mcweight!r}")
     print(f">>> weight   = {weight!r}")
@@ -191,6 +207,7 @@ def getsampleset(channel,era,**kwargs):
     xsec_dy_nnlo = 6077.22
     xsec_dy      = xsec_dy_nnlo*0.318 #*0.98
     expsamples = [ # table of MC samples to be converted to Sample objects
+      # https://github.com/cecilecaillol/MyNanoAnalyzer/blob/master/NtupleAnalyzerCecile/FinalSelection_etau.cc#L99C37-L99C49
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
       ( 'DY', "DYJetsToLL_M-50",       "Drell-Yan",         xsec_dy, {'extraweight': dyweight} ), # apply k-factor in stitching
       ###( 'DY', "DY1JetsToLL_M-50",      "Drell-Yan 1J 50",      877.8, {'extraweight': dyweight} ),
@@ -202,18 +219,22 @@ def getsampleset(channel,era,**kwargs):
       ###( 'WJ', "W2JetsToLNu",           "W + 2J",              2793.0  ),
       ###( 'WJ', "W3JetsToLNu",           "W + 3J",               992.5  ),
       ###( 'WJ', "W4JetsToLNu",           "W + 4J",               544.3  ),
-      ###( 'VV', "WWTo2L2Nu",             "WW",            118.7*0.3*0.3*0.397 ),
-      ###( 'VV', "WW",                    "WW",                    75.88 ),
-      ###( 'VV', "WZ",                    "WZ",                    27.6  ),
-      ###( 'VV', "ZZ",                    "ZZ",                    12.14 ),
+      ###( 'VV', "WWTo2L2Nu",             "WW",            118.7*0.3*0.3*0.397 ), # 8.95*0.397
+      ###( 'VV', "ZZTo2L2Nu",             "ZZ",                   3.0*0.302 ),
+      ( 'VV', "VVTo2L2Nu",             "VVTo2L2Nu",             12.0638*0.392 ), # 11.09+0.9738, 11.950
+      ( 'VV', "WZTo3LNu",              "WZTo3LNu",               5.213*0.341  ),
+      ( 'VV', "WZTo2Q2L",              "WZTo2Q2L",               6.419*0.341  ),
+      ( 'VV', "ZZTo2Q2L",              "ZZTo2Q2L",               3.220*0.373  ),
+      ( 'VV', "ZZTo4L",                "ZZTo4L",                 1.325*0.304  ),
       ###( 'ST', "ST_t-channel_top",      "ST t-channel t",       136.02 ),
       ###( 'ST', "ST_t-channel_antitop",  "ST t-channel at",       80.95 ),
       ###( 'ST', "ST_tW_top",             "ST tW",                 35.85 ),
       ###( 'ST', "ST_tW_antitop",         "ST atW",                35.85 ),
-#       ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': 'ttptweight'} ),
-#       ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': 'ttptweight'} ),
-#       ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': 'ttptweight'} ),
+#       ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29*0.657 ), #, {'extraweight': 'ttptweight'}
+#       ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96*0.170 ), #, {'extraweight': 'ttptweight'}
+#       ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35*0.401 ), #, {'extraweight': 'ttptweight'}
     ]
+  
   else:
     LOG.throw(IOError,"Did not recognize era %r!"%(era))
   datasamples = { # table of data samples (per channel) to be converted to Sample objects
@@ -222,6 +243,8 @@ def getsampleset(channel,era,**kwargs):
     ###'etau':   ('Data', "SingleElectron_Run%s?"%year),
     ###'tautau': ('Data', "Tau_Run%s?"%year),
   }
+  if filters:
+    expsamples = [s for s in expsamples if s[0] in filters]
   
   # SAMPLE SET
   sampleset = _getsampleset(datasamples,expsamples,channel=channel,era=era,weight=weight,file=fname)
@@ -229,6 +252,7 @@ def getsampleset(channel,era,**kwargs):
   ###sampleset.stitch("W*Jets",    incl='WJ',  name='WJ',     npart='NUP' )
   ###sampleset.join('TT')
   ###sampleset.join('DY', name='DY'  )
+  sampleset.join('VV','WZ','WW','ZZ', name='VV' ) # Diboson
   ###sampleset.addalias('z_mumu',"pv_z+0.5*dz_1+0.5*dz_2",verb=verb+4)
   ###sampleset.addalias('aco',"(1-abs(dphi_ll)/3.14159265)",verb=verb+4)
   ###sampleset.addalias('ntrack_all',"ntrack_hs+ntrack_pu",verb=verb+4)
@@ -298,375 +322,6 @@ def loadallhists(hfile,vars,vars0,sample,subdir=None,**kwargs):
     return { v: loadhist(hfile,v,v0,sample,subdir=subdir,**kwargs) for v, v0 in zip(vars,vars0) }
   else: # return dictionary { variable: hist }
     return { v: loadhist(hfile,v,vars0,sample,subdir=subdir,**kwargs) for v in vars }
-
-
-def measure_ntracks_hs(era,channel,tag="",**kwargs):
-  """Compare number of track."""
-  LOG.header("measure_ntracks_hs",pre=">>>")
-  outdir    = kwargs.get('outdir',    "plots/g-2/ntracks_hs" )
-  loadhists = kwargs.get('loadhists', False   ) #True and False
-  norms     = kwargs.get('norm',      [True]  )
-  exts      = kwargs.get('exts',      ['png'] ) # figure file extensions
-  verbosity = kwargs.get('verb',      2       )
-  chunk     = kwargs.get('chunk',     -1      )
-  ensuredir(outdir)
-  norms     = ensurelist(norms)
-  hfname    = "%s/corrs_ntracks_hs_%s%s.root"%(outdir,era,tag)
-  hfile     = ensureTFile(hfname,'READ' if loadhists else 'UPDATE') # back up histograms for reuse
-  lsize     = 0.041 # legend text size
-  tsize     = 0.044 # corner text size
-  print(f">>> hfname = {hfname} (loadhists={loadhists!r})")
-  
-  # COLOR PALETTE
-  # https://root.cern.ch/doc/master/classTColor.html#C06
-  from ROOT import gStyle, TColor, kBird, kBlackBody
-  gStyle.SetPalette(kBlackBody)
-  gStyle.SetPalette(kBird)
-  
-  # SELECTIONS
-  zmass       = 91.1876
-  baseline    = getbaseline(channel)
-  zmmtitle    = "|m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV"
-  zmmtitle2   = zmmtitle.replace(' 15 ',' 30 ')
-  zmmcuts     = f"{baseline} && abs(m_ll-{zmass})<15"
-  zmmcuts2    = zmmcuts.replace(')<15',')<30')
-  sel_acobin1 = Sel(zmmtitle, zmmcuts+" && aco<0.015",  flag="A < 0.015", fname="ZMM-Alt0p015")
-  sel_acobin2 = Sel(zmmtitle, zmmcuts+" && aco>=0.015", flag="A >= 0.015", fname="ZMM-Agt0p015")
-  sel_acobin1.iy = 1
-  sel_acobin2.iy = 2
-  selections  = [
-    #Sel('baseline', baseline),
-#     Sel(zmmtitle, zmmcuts, fname="ZMM-baseline"),
-#     sel_acobin1,
-#     sel_acobin2,
-    Sel(zmmtitle2, zmmcuts2+" && aco<0.015",  flag="A < 0.015", fname="ZMM30-Alt0p015"),
-  ]
-  
-  # Z MASS BINS
-  massbins = [ 
-    (-30,-15),(-15,0),(0,15),(15,30),
-  ]
-  for i, (mmin, mmax) in enumerate(massbins,1):
-    stitle = "%s < m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}} <= %s GeV"%(mmin,mmax)
-    scuts  = f"{baseline} && {mmin}<m_ll-{zmass} && m_ll-{zmass}<={mmax} && aco<0.015"
-    fname  = f"ZMM{mmin}to{mmax}-Alt0p015"
-    sel    = Sel(stitle, scuts, flag="A < 0.015", fname=fname)
-    sel.iy = i # for 2D hist
-    selections.append(sel)
-  
-  # GET SAMPLES
-  #print(">>> GLOB.lumi=%s"%(GLOB.lumi))
-  #sigwgt = "( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )" # old rescaling: measured by Cecile
-  sigwgt = "( ntrack_all==0 ? 2.703 : ntrack_all==1 ? 2.711 : 1 )" # new rescaling: measured by Izaak
-  sigwgt += "*getPUTrackWeight(ntrack_pu,z_mumu,$ERA)"
-  kwargs['dyweight'] = 'getAcoWeight(aco,pt_1,pt_2,$ERA)'
-  kwargs['extraweight'] = 'getPUTrackWeight(ntrack_pu,z_mumu,$ERA)'
-  sampleset  = getsampleset(channel,era,loadcorrs=False,**kwargs)
-  sample_obs = sampleset.get('Observed',unique=True,verb=verbosity-1)
-  sample_dy  = sampleset.get('DY',title="Z -> mumu",unique=True,verb=verbosity-1)
-  sample_sig = makemcsample('Signal','GGToMuMu',"#gamma#gamma -> #mu#mu", # (elastic)
-                            xsec_mm,channel,era,tag="",extraweight=sigwgt,lumi=GLOB.lumi,verb=6)
-  sample_ww  = makemcsample('VV','GGToWW',"#gamma#gamma -> WW", # (elastic)
-                            xsec_ww,channel,era,tag="",extraweight=sigwgt,lumi=GLOB.lumi,verb=6)
-  sample_dy.title = "Z -> mumu"
-  samples     = [
-    sample_dy,
-    sample_obs,
-    sample_sig,
-    sample_ww,
-  ]
-  
-  # ADD HS CUTS
-  tit_nhs = "N(reco HS)"
-  ttitle  = "Number of tracks"
-  ztitle  = "HS track correction"
-  tbins   = (31, 0, 31)
-  varsets = [
-    [Var('ntrack_all', ttitle, *tbins, logy=True, ymargin=1.52, ymin=3e-6, addof=True, int=True)],
-  ]
-  hs_bins  = [
-    0, 1, 2, 3, 4,
-    (5,10), (10,15), (15,20), (20,25), (25,30),
-    (30,999)
-  ]
-  vardict = { }
-  xbins   = [b if isinstance(b,int) else b[0] for b in hs_bins]+[40]
-  xvar    = Var('ntrack_hs', "Number of HS tracks", xbins)
-  yvar    = Var('aco',       "Acoplanarity A",      [0,0.015,1])
-  mvar    = Var('dm_mumu',   "m_{#lower[-0.3]{#mu#mu}} #minus %s"%(zmass), [-30,-15,0,15,30])
-  for varset in varsets:
-    var0 = varset[0]
-    for bin in hs_bins:
-      if isinstance(bin,int): # single-valued, integer bins
-        cut   = f"ntrack_hs=={bin}"
-        title = str(bin)
-        fname = f"$VAR_{bin}"
-      elif bin[1]<100: # integer range
-        cut   = f"{bin[0]}<=ntrack_hs && ntrack_hs<{bin[1]}"
-        title = f"{bin[0]}#minus{bin[1]-1}"
-        fname = f"$VAR_{bin[0]}-{bin[1]}"
-      else: # incl. infinity
-        cut   = f"{bin[0]}<=ntrack_hs"
-        title = f">={bin[0]}"
-        fname = f"$VAR_{bin[0]}"
-      var = Var('ntrack_all',title,*tbins,fname=fname,addof=True,int=True,cut=cut,flag=title,data=False)
-      varset.append(var)
-      vardict[var] = var0
-    title = "Drell-Yan (BS uncorrected)"
-    var   = Var('ntrack_all_raw',title,*tbins,fname='ntrack_all_raw',addof=True,int=True,flag=title,data=False)
-    varset.append(var)
-    vardict[var] = var0
-    print(">>> len(varset)=%s"%(len(varset)))
-  print(">>> len(varsets)=%s"%(len(varsets)))
-  
-  # 2D corrections
-  hists2d = { }
-  hists2d['incl'] = xvar.gethist2D(yvar,'correction_map',ztitle=ztitle)
-  hists2d['mass'] = xvar.gethist2D(mvar,'correction_map_zmass',ztitle=ztitle)
-  
-  # STEP 1: CREATE HISTOGRAMS for all selections
-  LOG.color("Step 1: Creating hists...",b=True)
-  vars_obs = [v for s in varsets for v in s if v.data]
-  vars_exp = [v for s in varsets for v in s if not v.data]
-  allhists = { } # { sample: { selection: { variable: hist } } }
-  for sample in samples:
-    vars = vars_exp if sample==sample_dy else vars_obs
-    LOG.color("Sample %s (%r) for %s variables, and %s selections"%(
-      sample.name,sample.title,len(vars),len(selections)),c='grey',b=True)
-    if loadhists: # skip recreating histograms (fast!)
-      allhists[sample] = loadallhists(hfile,vars,vardict,sample,selections,verb=verbosity)
-    else: # create histograms from scratch (slow...)
-      allhists[sample] = sample.gethist(vars,selections,preselect=baseline,verb=verbosity)
-  
-  # STEP 2: PLOT
-  LOG.color("Step 2: Plotting...",b=True)
-  for selection in selections:
-    LOG.header("Selection %r"%(selection.selection.replace(baseline+" && ",'')),pre=">>>")
-    histsets = { v: HistSet() for v in vars_obs }
-    
-    # STEP 2a: LOOP over SAMPLES to regroup
-    LOG.color("Step 2a: Regrouping histograms...",b=True)
-    for sample in samples:
-      vars  = vars_exp if sample==sample_dy else vars_obs
-      hists = allhists[sample][selection]
-      assert len(vars)==len(hists), "len(vars)=%s, len(hists)=%s"%(len(vars),len(hists))
-      istack = 0
-      nstack = sum([1 for v in vars if not v.data and not 'corr' in v.flag])
-      for var, hist in hists.items():
-        var0 = vardict.get(var,var)
-        if sample.isdata: # for observed data
-          assert var0==var
-          histsets[var0].data = hist
-        elif sample in [sample_sig,sample_ww]: # for gg -> mumu, WW signal
-          assert var0==var
-          histsets[var0].sig.append(hist) # draw overlay as "signal"
-        elif 'corr' in var.flag: # for overlay (not in stack)
-          hist.SetTitle(var.title)
-          histsets[var0].sig.append(hist) # draw overlay as "signal"
-        else: # for DY stack
-          icol   = int(round(istack*(TColor.GetNumberOfColors()-1)/(nstack-1)))
-          icol_  = istack*(TColor.GetNumberOfColors()-1)/(nstack-1)
-          fcolor = TColor.GetColorPalette(icol)
-          if verbosity>=1:
-            print(">>> i=%s, icol_=%s, icol=%s, fcolor=%s, ncols=%s, var.title=%r"%(
-              istack,icol_,icol,fcolor,TColor.GetNumberOfColors(),var.title))
-          hist.SetTitle(var.title)
-          hist.SetFillColor(fcolor)
-          histsets[var0].exp.append(hist)
-          istack += 1
-        
-        # SAVE HIST for later
-        if not loadhists:
-          savehist(hist,hfile,var,var0,sample,selection,verb=verbosity)
-    
-    # STEP 2b SUBTRACT TOTAL SIGNAL from OBSERVED DATA
-    LOG.color("Step 2b: Subtract total signal from observed data...",b=True)
-    def printSigSubtraction(dhist,shist):
-      print(">>> Subtraction: %r - %r"%(dhist.GetTitle(),shist.GetTitle()))
-      #print(">>> Subtraction: %r - %r =>  %.1f - %.3f"%(dhist.GetTitle(),shist.GetTitle(),dhist.Integral(),shist.Integral()))
-      yobstot, ysigtot = 0, 0
-      ntracks = [0,1,2]
-      for nt in ntracks: # first three ntracks bins
-        nbin = dhist.GetXaxis().FindBin(nt)
-        yobs = dhist.GetBinContent(nbin)
-        ysig = shist.GetBinContent(nbin)
-        yobstot += yobs
-        ysigtot += ysig
-        print(">>>      ntracks==%s: sig / obs = %7.3f / %.1f = %.2f%%"%(nt,ysig,yobs,100.*ysig/yobs))
-      print(">>>   %s<=ntracks<=%s: sig / obs = %7.3f / %.1f = %.2f%%"%(ntracks[0],ntracks[-1],ysigtot,yobstot,100.*ysigtot/yobstot))
-    for var in histsets:
-      obshist = histsets[var].data
-      assert obshist, "Observed hist not created before signal subtraction..."
-      sighist = None # total signal histogram
-      #print(histsets[var].sig)
-      for sighist_ in histsets[var].sig[:]:
-        if 'corr' in sighist_.GetTitle().lower(): continue
-        printSigSubtraction(obshist,sighist_)
-        if sighist==None:
-          sighist = sighist_.Clone(f"sigtot_{var.filename}_{selection.filename}")
-          print(f">>> Setting sighist={sighist!r} = {sighist_!r}.Clone()")
-        else:
-          print(f">>> Adding {sighist_!r} to sighist={sighist!r}")
-          sighist.Add(sighist_) # add
-        histsets[var].sig.remove(sighist_)
-      sighist.SetTitle("#gamma#gamma -> #mu#mu, WW")
-      printSigSubtraction(obshist,sighist)
-      obshist.Add(sighist,-1) # subtract total signal from observed data
-      obshist.SetTitle("Obs. #minus (#gamma#gamma -> #mu#mu, WW)")
-      histsets[var].sig.append(sighist) # only plot total signal (overlaid over DY MC stack)
-      if not loadhists:
-        savehist(obshist,hfile,var,var0,sample_obs.name+"_min_sigtot",selection,verb=verbosity)
-        savehist(sighist,hfile,var,var0,"sigtot",selection,verb=verbosity)
-    
-    # STEP 2c: PLOT all hists
-    LOG.color("Step 2c: Plotting histograms before corrections...",b=True)
-    for var, histset in histsets.items():
-      dhist, mchists, sighists = histset.data, histset.exp, histset.sig
-      if verbosity+1>=1:
-        print(">>> var      = %r, %r"%(var.name,var.title))
-        print(">>> dhist    = %s"%(rootrepr(dhist)))
-        print(">>> mchists  = %s"%(rootrepr(mchists)))
-        print(">>> sighists = %s"%(rootrepr(sighists)))
-      
-      # GET TOTAL MC HIST
-      sumhist0 = mchists[0].Clone(mchists[0].GetTitle()+'_uncorr')
-      sumhist  = mchists[0].Clone(mchists[0].GetTitle()+'_corr')
-      sumhist0.Reset()
-      sumhist.Reset()
-      sumhist0.SetTitle("Drell-Yan (HS uncorrected)")
-      sumhist.SetTitle("Drell-Yan (HS corrected)")
-      for hist in mchists:
-        sumhist0.Add(hist) # total uncorrected (for plotting)
-      sigscales = [1.0]*len(sighists) # for normalizing histograms
-      for i, sighist in enumerate(sighists):
-        if not 'gamma' in sighist.GetTitle(): continue # skip non-signals (i.e. DY)
-        if len(sighists)>=2: # scale signal to DY
-          sigscales[i] = sighist.Integral()/sumhist0.Integral()
-        print(f">>> sighist.GetBinContent(0)={sighist.GetBinContent(0)}, sighist.GetBinContent(1)={sighist.GetBinContent(1)}")
-        sighist.SetBinContent(0,sighist.GetBinContent(1)) # avoid vertical line on y axis !
-      if verbosity+1>=1:
-        print(f">>> scale signals: sigscales={sigscales} for normalization")
-      
-      # PLOT
-      fname = "%s/$VAR_%s_%s%s$TAG"%(outdir,selection.filename,era,tag)
-      plot  = plot_ntracks_hs(fname,var,selection,dhist,mchists,sighists,sigscales,
-                              exts=exts,tag=tag,hs_bins=hs_bins,verb=verbosity)
-      
-      # STEP 3: MAKE MEASUREMENT
-      #any(zmmcuts+" && "+s in selection.selection for s in ['aco<0.015','aco>=0.015']) or\
-      if hasattr(selection,'iy'):
-        iy = selection.iy
-        ismass = f"<m_ll-{zmass} && m_ll-{zmass}<=" in selection.selection
-        LOG.color(f"Step 3: Measure HS track corrections (iy={iy})...",b=True)
-        hist2d = hists2d['mass' if ismass else 'incl']
-        for bin, mchist in zip(hs_bins,mchists): # scale bins from left to right to match data
-          if isinstance(bin,int):
-            ix   = hist2d.GetXaxis().FindBin(bin+0.5)
-            ilow = mchist.GetXaxis().FindBin(bin+0.5)
-            iup  = ilow
-          elif bin[1]<100: # (xlow,xup)
-            ix   = hist2d.GetXaxis().FindBin(bin[0]+0.5)
-            ilow = mchist.GetXaxis().FindBin(bin[0]+0.5)
-            iup  = mchist.GetXaxis().FindBin(bin[1]-0.5)
-          else: # (xlow,inf)
-            ix   = hist2d.GetXaxis().FindBin(bin[0]+0.5)
-            ilow = mchist.GetXaxis().FindBin(bin[0]+0.5)
-            iup  = mchist.GetXaxis().GetNbins()
-          ysum  = sumhist.Integral(ilow,iup) # sum of all corrected mchists in last iterations
-          yexp  = mchist.Integral(ilow,iup)
-          yobs  = dhist.Integral(ilow,iup)
-          scale = (yobs-ysum)/yexp
-          print(f">>> bin={bin}, mchist={mchist.GetTitle()!r}, (yobs-ysum)/yexp = ({yobs:.4f}-{ysum:.4f})/{yexp:.4f} = {scale:.4f} in {ix}")
-          mchist.Scale(scale) # scale for next iteration
-          sumhist.Add(mchist) # total corrected (for next iteration)
-          hist2d.SetBinContent(ix,iy,scale)
-          if ix==hist2d.GetXaxis().GetNbins():
-            hist2d.SetBinContent(ix+1,iy,scale) # overflow
-          if iy==hist2d.GetYaxis().GetNbins():
-            hist2d.SetBinContent(ix,iy+1,scale) # overflow
-        
-        # STEP 3a: PLOT AGAIN after correction
-        LOG.color("Step 3a: Plot histograms after corrections...",b=True)
-        sighists_ = [sumhist0,]
-        for sighist in sighists:
-          if 'gamma' in sighist.GetTitle():
-            sighists_.append(sighist)
-        plot2 = plot_ntracks_hs(fname,var,selection,dhist,mchists,sighists_,sigscales,
-                                exts=exts,tag="_corr"+tag,hs_bins=hs_bins,verb=verbosity)
-        plot2.close(keep=True)
-      
-      plot.close(keep=False)
-  
-  # STEP 3b: WRITE 2D HIST
-  for hist2d in hists2d.values():
-    hname = hist2d.GetName()
-    print(">>> ")
-    if all(hist2d.GetBinContent(*b)!=0 for b in [(1,1),(2,2)]):
-      LOG.color("Step 3b: Write 2D correction hist {hname!r}...",b=True)
-      fname  = "%s/%s_aco-ntrack_hs_%s%s"%(outdir,hname,era,tag)
-      nxbins = hist2d.GetXaxis().GetNbins()
-      nybins = hist2d.GetYaxis().GetNbins()
-      hist2d.SetOption('COLZTEXT55')
-      hist2d.SetBinContent(nxbins+1,nybins+1,hist2d.GetBinContent(nxbins,nybins))
-      plot2d = Plot2D(xvar,yvar,hist2d)
-      plot2d.draw('COLZTEXT55',tcolor=kRed,logy=True,logz=False,grid=False,
-                zoffset=5.5,ymin=0.01,zmin=0.5,zmax=1.3)
-      #plot2d.frame.GetYaxis().SetBinLabel(0,'< 0.015')
-      #plot2d.frame.GetYaxis().SetBinLabel(1,'#geq 0.015')
-      plot2d.frame.GetYaxis().SetNdivisions(3,False)
-      latex = TLatex()
-      latex.SetTextSize(0.04)
-      latex.SetTextAlign(32)
-      latex.DrawLatex(-0.6,0.015,"0.015")
-      if not loadhists:
-        hfile.cd()
-        hist2d.Write(hname,hist2d.kOverwrite)
-      plot2d.saveas(fname,ext=['.png','.pdf'])
-    else:
-      print(f">>> Ignoring 2D histogram {hname!r}")
-  
-  # CLOSE
-  hfile.Close()
-  
-
-def plot_ntracks_hs(fname,var,selection,dhist,mchists,sighists,sigscales,
-                    hs_bins=[ ],exts=['png','pdf'],tag="",norm=True,lcols=None,verb=0):
-  lsize     = 0.041 # legend text size
-  tsize     = 0.044 # corner text size
-  lcols     = [kGreen+1,kOrange+1,kMagenta+1]
-  tag       = tag+'' if norm else "_lumi"
-  rhists    = ['stack',sighists[0],'data']
-  rtitle    = "Obs. / Sim."
-  header    = "Drell-Yan in N_{#lower[-0.18]{ track}}^{#lower[0.29]{ HS,reco}} bins" # legend header
-  hists_dy  = mchists # for first DY legend
-  hists_oth = [dhist]+sighists # for second data/sig legend
-  texts = [selection.title]
-  if var.flag:
-    texts.append(var.flag)
-  if selection.flag:
-    texts.append(selection.flag)
-  texts.append("|z_{#lower[-0.25]{track}} #minus z_{#lower[-0.06]{mumu}}| < 0.05 cm")
-  if '_corr' in tag: # HS-corrected
-    lcols[0] = kRed # replace DY color green (corr.) -> red (uncorr.)
-    rmin, rmax = 0.65, 1.65
-  else: # HS-uncorrected
-    lcols[0] = kGreen+1
-    rmin, rmax = 0.48, 1.50
-  plot = Stack(var,dhist,mchists,sighists,norm=norm)
-  plot.draw(ratio=True,rtitle=rtitle,rhists=rhists,lcolors=lcols,reversestack=True,staterr=False,
-            sigscale=sigscales,ymin=3e-6,ymax=2e2,rmin=rmin,rmax=rmax,soption='HIST ][')
-  plot.drawlegend(pos='x=0.45,y=0.705',tsize=lsize,band=False,hists=hists_oth) # obs & sig
-  plot.drawlegend(pos='x=0.45,y=0.960',tsize=lsize,band=False,hists=hists_dy, # stacked DY
-                   ncols=4,colsep=0.12,width=0.49,header=header+" (corrected)",bold=False,verb=verb)
-  plot.drawtext(texts,size=tsize)
-  for bins in hs_bins:
-    x = bins if isinstance(bins,int) else bins[0]
-    plot.drawline(x,0,x,2,pad=2,color=19,width=1) # light gray
-  plot.ratio.drawratios(verb=verb) # draw ratio again
-  plot.canvas.GetPad(2).RedrawAxis()
-  plot.saveas(fname,ext=exts,tag=tag) #,'pdf'
-  #plot.close(keep=True)
-  return plot
   
 
 def measure_ntracks_pu(era,channel,tag="",**kwargs):
@@ -686,6 +341,8 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   norms     = ensurelist(norms)
   rtitle    = "Obs. / Sim."
   hfname    = "%s/corrs_ntracks_pu_%s.root"%(outdir,era)
+  #ntitle    = "Number of pileup tracks"
+  ntitle    = "#it{N}_{#lower[-0.18]{tracks}}^{#lower[0.25]{PU}}"
   #print(verbosity); exit(0)
   
   # SELECTIONS
@@ -722,7 +379,7 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   # GET SAMPLES
   sampleset  = getsampleset(channel,era,**kwargs)
   sample_obs = sampleset.get('Observed',unique=True,verb=verbosity-1)
-  sample_dy  = sampleset.get('DY',title="Z -> mumu",unique=True,verb=verbosity-1)
+  sample_dy  = sampleset.get('DY',unique=True,verb=verbosity-1)
   #print("sample_dy.title",sample_dy.title)
   sample_dy.title = "Z -> mumu"
   samples    = [
@@ -760,7 +417,7 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   ztitle = "Pileup track correction"
   xbins  = list(range(0,30,1))+list(range(30,50,2))+[50] # bin edges for ntracks
   xbins2 = list(range(0,16,1))+list(range(16,38,2))+list(range(38,50,4))+[50] # coarser binning at high |z|
-  xvar   = Var('ntrack_pu_0p1',"Number of pileup tracks",xbins,logy=True,addof=True)
+  xvar   = Var('ntrack_pu_0p1',ntitle,xbins,logy=True,addof=True)
   yvar   = Var('z',"z",200,-10,10,units='cm') #fname="bs_z"
   hists2d = {
     'Nom':  xvar.gethist2D(yvar,'corr',ztitle=ztitle),
@@ -779,7 +436,6 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
     hfname = hfname.replace(".root","_%s.root"%(chunk)) # split hist file to avoid conflict
   if chunk>=2 or plotonly:
     variables = [ ]
-  ntitle = "Number of pileup tracks"
   print(">>> Add ntrack variables %s-%s"%(ifirst,ilast))
   systs = {
     '_raw': 'uncorr',
@@ -788,8 +444,8 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   }
   for i in range(ifirst,ilast):
     zmin    = -10+i*0.1
-    zmax    = zmin+0.1 
-    if plotonly and zmin not in [-7,-3.5,0]:
+    zmax    = zmin+0.1
+    if plotonly and not any(abs(zmin-z)<1e-4 for z in [-7,-3.5,0,3.4,6.9]):
       continue
     if abs(zmax)<1e-10:
       zmax = 0
@@ -886,8 +542,8 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
         rmin    = 0.55
         rmax    = 1.45
         tsize   = 0.054
-        xmin    = None
-        ymin    = None
+        xmin    = var.xmin
+        ymin    = var.ymin
         ymax    = var.ymax
         ntag    = '' if norm else "_lumi"
         opts    = ['E1 HIST']*(len(hists)-1)+['E1']
@@ -913,7 +569,7 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
           lcols = [kGreen-2][:len(hists)-1]+[kBlack]
         plot    = Plot(var,hists,norm=scales,xmin=xmin,ymin=ymin,ymax=ymax)
         plot.draw(options=opts,colors=lcols,mstyles=mstyles,lstyle=1,grid=False,errbars=errbars,
-                  ratio=True,rmin=rmin,rmax=rmax,num=num,rtitle=rtitle,ymargin=ymarg,logx=logx)
+                  ratio=True,rmin=rmin,rmax=rmax,num=num,xtitleoffset=0.88,rtitle=rtitle,ymargin=ymarg,logx=logx)
         plot.drawlegend(pos=lpos,tsize=tsize,reverse=True,header=header)
         plot.drawtext(text,size=tsize) #.replace('-','#minus'))
         plot.saveas(fname,ext=exts,tag=ntag)
@@ -1014,6 +670,512 @@ def measure_ntracks_pu(era,channel,tag="",**kwargs):
   hfile.Close()
   
 
+def measure_ntracks_hs(era,channel,tag="",**kwargs):
+  """Compare number of track."""
+  LOG.header("measure_ntracks_hs",pre=">>>")
+  outdir    = kwargs.get('outdir',    "plots/g-2/ntracks_hs" )
+  loadhists = kwargs.get('loadhists', False   ) #True and False
+  domass    = kwargs.get('domass',    False   )
+  norms     = kwargs.get('norm',      [True]  )
+  exts      = kwargs.get('exts',      ['png'] ) # figure file extensions
+  verbosity = kwargs.get('verb',      2       )
+  chunk     = kwargs.get('chunk',     -1      )
+  ensuredir(outdir)
+  norms     = ensurelist(norms)
+  hfname    = "%s/corrs_ntracks_hs_%s%s.root"%(outdir,era,tag)
+  hfile     = ensureTFile(hfname,'READ' if loadhists else 'UPDATE') # back up histograms for reuse
+  lsize     = 0.041 # legend text size
+  tsize     = 0.044 # corner text size
+  print(f">>> hfname = {hfname} (loadhists={loadhists!r})")
+  
+  # COLOR PALETTE
+  # https://root.cern.ch/doc/master/classTColor.html#C06
+  from ROOT import gStyle, TColor, kBird, kBlackBody
+  #gStyle.SetPalette(kBlackBody)
+  gStyle.SetPalette(kBird)
+  
+  # SELECTIONS
+  mZ          = 91.1876
+  baseline    = getbaseline(channel)
+  zmmtitle    = "|m_{#lower[-0.25]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV"
+  zmmtitle2   = zmmtitle.replace(' 15 ',' 30 ')
+  zmmcuts     = f"{baseline} && abs(m_ll-{mZ})<15"
+  zmmcuts2    = zmmcuts.replace(')<15',')<30')
+  sel_acobin1 = Sel(zmmtitle, zmmcuts+" && aco<0.015",  flag="A < 0.015", fname="ZMM-Alt0p015")
+  sel_acobin2 = Sel(zmmtitle, zmmcuts+" && aco>=0.015", flag="A >= 0.015", fname="ZMM-Agt0p015")
+  sel_acobin1.iy = 1
+  sel_acobin2.iy = 2
+  if domass: # do mass-dependence study (split into m_mumu bins)
+    selections  = [
+      Sel(zmmtitle2, zmmcuts2+" && aco<0.015",  flag="A < 0.015", fname="ZMM30-Alt0p015"),
+    ]
+  else: # split in acoplanarity bins
+    selections  = [
+      #Sel('baseline', baseline),
+#       Sel(zmmtitle, zmmcuts, fname="ZMM"),
+      sel_acobin1,
+      sel_acobin2,
+    ]
+  
+  # Z MASS BINS
+  ###massbins = [-30,-15,0,15,30,60,100] # m_mumu - m_Z
+  massbins = [60,75,91,105,120,150,190] # m_mumu
+  if domass:
+    for i, mmin in enumerate(massbins[:-1],1):
+      mmax   = massbins[i]
+      ###stitle = "%s < m_{#lower[-0.25]{#mu#mu}} #minus m_{#lower[-0.05]{Z}} <= %s GeV"%(
+      ###         str(mmin).replace('-','#minus'),str(mmax).replace('-','#minus'))
+      stitle = "%s < m_{#lower[-0.25]{#mu#mu}} <= %s GeV"%(mmin,mmax)
+      ###scuts  = f"{baseline} && {mmin}<m_ll-{mZ} && m_ll-{mZ}<={mmax} && aco<0.015"
+      scuts  = f"{baseline} && {mmin}<m_ll && m_ll<={mmax} && aco<0.015"
+      fname  = f"ZMM{mmin}to{mmax}-Alt0p015"
+      sel    = Sel(stitle, scuts, flag="A < 0.015", fname=fname)
+      sel.iy = i # for 2D hist
+      selections.append(sel)
+      if verbosity>=1:
+        print(f">>> i={i}, mmin={mmin}, mmax={mmax}, fname={fname!r}, scuts={scuts!r}")
+  
+  # GET SAMPLES
+  #print(">>> GLOB.lumi=%s"%(GLOB.lumi))
+  #sigwgt = "( ntrack_all==0 ? 3.1 : ntrack_all==1 ? 2.3 : 1 )" # old rescaling: measured by Cecile
+  #sigwgt = "( ntrack_all==0 ? 2.703 : ntrack_all==1 ? 2.711 : 1 )" # new rescaling: measured by Izaak
+  #sigwgt = "( ntrack_all==0 ? 2.359+0.0034*m_ll : ntrack_all==1 ? 2.377+0.00316*m_ll : 1 )" # new mass-dependent rescaling: measured by Izaak
+  sigwgt = "( ntrack_all==0 ? 2.359+0.0034*m_ll : 2.377+0.00316*m_ll )" # new mass-dependent rescaling: measured by Izaak
+  sigwgt += "*getPUTrackWeight(ntrack_pu,z_mumu,$ERA)"
+  kwargs['dyweight'] = 'getAcoWeight(aco,pt_1,pt_2,$ERA)'
+  kwargs['extraweight'] = 'getPUTrackWeight(ntrack_pu,z_mumu,$ERA)'
+  if era in [2017,2018]:
+    kwargs['filter'] = ['DY','VV']
+  sampleset  = getsampleset(channel,era,loadcorrs=False,**kwargs)
+  sample_obs = sampleset.get('Observed',unique=True,verb=verbosity-1)
+  sample_dy  = sampleset.get('DY',unique=True,verb=verbosity-1)
+  sample_vv  = sampleset.get('VV',unique=True,verb=verbosity-1)
+  #sample_tt  = sampleset.get('DY',title="Z -> mumu",unique=True,verb=verbosity-1)
+  sample_mm = makemcsample('Signal','GGToMuMu',"#gamma#gamma -> #mu#mu", # (elastic)
+                            xsec_mm,channel,era,tag="",extraweight=sigwgt,lumi=GLOB.lumi,verb=6)
+  sample_ww  = makemcsample('VV','GGToWW',"#gamma#gamma -> WW", # (elastic)
+                            xsec_ww,channel,era,tag="",extraweight=sigwgt,lumi=GLOB.lumi,verb=6)
+  #sample_sig = MergedSample("signal","Bkg. (#gamma#gamma -> #mu#mu, WW)",[sample_mm,sample_ww])
+  #sample_obs.title = "Obs. #minus Bkg."
+  sample_dy.title = "Z -> mumu"
+  samples     = [
+    sample_dy,
+    sample_obs,
+    #sample_sig, # GGToMuMu + GGToWW
+    sample_mm, # GGToMuMu
+    sample_ww, # GGToWW
+    sample_vv,
+  ]
+  
+  # ADD HS CUTS: split DY into ntracks_hs bins to be stacked
+  tit_nhs = "N(reco HS)"
+  ttitle  = "#it{N}_{#lower[-0.20]{tracks}}" #"Number of tracks"
+  ztitle  = "HS track correction"
+  tbins   = (31, 0, 31)
+  tbins2  = list(range(0,20,1))+[20,22.5,25,27.5,30,31] # merged binning
+  hs_bins  = [ # ntrack_hs binning (for splitting DY and measuring corrections)
+    0, 1, 2, 3, 4,
+    (5,10), (10,15), (15,20), (20,25), (25,30),
+    (30,999)
+  ]
+  xmax     = hs_bins[-1][0]+5 # for overflow
+  xbins    = [b if isinstance(b,int) else b[0] for b in hs_bins]+[xmax] #[40]
+  tvar     = Var('ntrack_all', ttitle, *tbins, logy=True, ymargin=1.52, ymin=3e-6, addof=True, int=True) #, cbins={'1.0<m_ll':tbins2})
+  xvar     = Var('ntrack_hs', "Number of HS tracks", xbins)
+  varsets = [
+    [tvar],
+  ]
+  vardict  = { }
+  for varset in varsets:
+    var0 = varset[0]
+    for bin in hs_bins:
+      if isinstance(bin,int): # single-valued, integer bins
+        cut   = f"ntrack_hs=={bin}"
+        title = str(bin)
+        fname = f"$VAR_{bin}"
+      elif bin[1]<100: # integer range
+        cut   = f"{bin[0]}<=ntrack_hs && ntrack_hs<{bin[1]}"
+        title = f"{bin[0]}#minus{bin[1]-1}"
+        fname = f"$VAR_{bin[0]}-{bin[1]}"
+      else: # incl. infinity
+        cut   = f"{bin[0]}<=ntrack_hs"
+        title = f">={bin[0]}"
+        fname = f"$VAR_{bin[0]}"
+      var = Var('ntrack_all',title,*tbins,fname=fname,addof=True,int=True,cut=cut,flag=title,data=False) #, cbins={'1.0<m_ll':tbins2})
+      varset.append(var)
+      vardict[var] = var0
+    title = "Drell-Yan (BS uncorrected)"
+    var   = Var('ntrack_all_raw',title,*tbins,fname='ntrack_all_raw',addof=True,int=True,flag=title,data=False) #, cbins={'1.0<m_ll':tbins2})
+    varset.append(var)
+    vardict[var] = var0
+    print(">>> len(varset)=%s"%(len(varset)))
+  print(">>> len(varsets)=%s"%(len(varsets)))
+  
+  # 2D corrections
+  hists2d = { }
+  if domass: # do mass-dependence study (split into m_mumu bins)
+    #mvar = Var('dm_mumu', "m_{#lower[-0.2]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}", massbins)
+    mvar = Var('m_mumu', "m_{#lower[-0.16]{#mu#mu}}", massbins)
+    hists2d['mass'] = xvar.gethist2D(mvar,'correction_map_zmass',ztitle=ztitle)
+    hists2d['mass'].yvar = mvar # y axis = m_mumu
+  else: # split in acoplanarity bins
+    avar  = Var('aco', "Acoplanarity A", [0,0.015,1], ymin=0.01)
+    hists2d['incl'] = xvar.gethist2D(avar,'correction_map',ztitle=ztitle)
+    hists2d['incl'].yvar = avar # y axis = acoplanarity
+  
+  # STEP 1: CREATE HISTOGRAMS for all selections
+  LOG.color("Step 1: Creating hists...",b=True)
+  vars_obs = [v for s in varsets for v in s if v.data]
+  vars_exp = [v for s in varsets for v in s if not v.data]
+  allhists = { } # { sample: { selection: { variable: hist } } }
+  for sample in samples:
+    vars = vars_exp if sample==sample_dy else vars_obs
+    LOG.color("Sample %s (%r) for %s variables, and %s selections"%(
+      sample.name,sample.title,len(vars),len(selections)),c='grey',b=True)
+    if loadhists: # skip recreating histograms (fast!)
+      allhists[sample] = loadallhists(hfile,vars,vardict,sample,selections,verb=verbosity)
+    else: # create histograms from scratch (slow...)
+      allhists[sample] = sample.gethist(vars,selections,preselect=baseline,verb=verbosity)
+  
+  # STEP 2: PLOT
+  LOG.color("Step 2: Plotting...",b=True)
+  for selection in selections:
+    LOG.header("Selection %r"%(selection.selection.replace(baseline+" && ",'')),pre=">>>")
+    histsets = { v: HistSet() for v in vars_obs }
+    
+    # STEP 2a: LOOP over SAMPLES to regroup histograms into obs, exp (=dy stack), sig (=bkgs to be overlaid)
+    LOG.color("Step 2a: Regrouping histograms...",b=True)
+    for sample in samples:
+      vars  = vars_exp if sample==sample_dy else vars_obs
+      hists = allhists[sample][selection]
+      assert len(vars)==len(hists), "len(vars)=%s, len(hists)=%s"%(len(vars),len(hists))
+      istack = 0
+      nstack = sum([1 for v in vars if not v.data and not 'corr' in v.flag])
+      for var, hist in hists.items():
+        var0 = vardict.get(var,var)
+        if sample.isdata: # for observed data
+          assert var0==var
+          histsets[var0].data = hist
+        elif sample==sample_dy: # DY
+          if 'corr' in var.flag: # DY for overlay (not in stack)
+            hist.SetTitle(var.title)
+            histsets[var0].sig.append(hist) # draw overlay as "signal"
+          else: # for DY stack
+            icol   = int(round(istack*(TColor.GetNumberOfColors()-1)/(nstack-1)))
+            icol_  = istack*(TColor.GetNumberOfColors()-1)/(nstack-1)
+            fcolor = TColor.GetColorPalette(icol)
+            if verbosity>=1:
+              print(">>> i=%s, icol_=%s, icol=%s, fcolor=%s, ncols=%s, var.title=%r"%(
+                istack,icol_,icol,fcolor,TColor.GetNumberOfColors(),var.title))
+            hist.SetTitle(var.title)
+            hist.SetFillColor(fcolor)
+            histsets[var0].exp.append(hist)
+            istack += 1
+        else: #if sample in [sample_mm,sample_ww,sample_vv]: # for gg -> mumu, WW signal + other backgrounds
+          assert var0==var
+          histsets[var0].sig.append(hist) # draw overlay as "signal"
+        #else:
+        #  raise IOError("Did not recognize sample %r"%(sample))
+        
+        # SAVE HIST for later
+        if not loadhists:
+          savehist(hist,hfile,var,var0,sample,selection,verb=verbosity)
+    
+    # HELP FUNCTIONS
+    def printSigSubtraction(dhist,shist):
+      """Help function."""
+      print(">>> Subtraction: %r - %r"%(dhist.GetTitle(),shist.GetTitle()))
+      #print(">>> Subtraction: %r - %r =>  %.1f - %.3f"%(dhist.GetTitle(),shist.GetTitle(),dhist.Integral(),shist.Integral()))
+      yobstot, ysigtot = 0, 0
+      ntracks = [0,1,2]
+      for nt in ntracks: # first three ntracks bins
+        nbin = dhist.GetXaxis().FindBin(nt)
+        yobs = dhist.GetBinContent(nbin)
+        ysig = shist.GetBinContent(nbin)
+        yobstot += yobs
+        ysigtot += ysig
+        print(">>>      ntracks==%s: sig / obs = %7.3f / %.1f = %.2f%%"%(nt,ysig,yobs,100.*ysig/yobs))
+      print(">>>   %s<=ntracks<=%s: sig / obs = %7.3f / %.1f = %.2f%%"%(ntracks[0],ntracks[-1],ysigtot,yobstot,100.*ysigtot/yobstot))
+    
+    # STEP 2b SUBTRACT TOTAL SIGNAL from OBSERVED DATA
+    LOG.color("Step 2b: Subtract total signal from observed data...",b=True)
+    for var in histsets:
+      obshist = histsets[var].data
+      assert obshist, "Observed hist not created before signal subtraction..."
+      dyhist   = None # total DY uncorrected
+      sighists = [ ]  # GGToMuMu + GGToWW
+      bkghists = [ ]  # other background histograms (VV, ...)
+      for hist in histsets[var].sig[:]:
+        if 'corr' in hist.GetTitle().lower(): # DY uncorrected
+          assert dyhist==None, f"DY histogram already set! dyhist={dyhist!r}"
+          dyhist = hist
+          continue
+        if 'gamma' in hist.GetTitle().lower(): # GGToMuMu + GGToWW
+          print(f">>> Adding background {hist!r} to sighists")
+          sighists.append(hist)
+        else: # other backgrounds (VV, ...)
+          print(f">>> Adding background {hist!r} to bkghists")
+          bkghists.append(hist)
+        printSigSubtraction(obshist,hist) # before (single histogram to check relative contribution)
+      sighist = sumhists(sighists,f"sigtot_{var.filename}_{selection.filename}","Bkg. (#gamma#gamma -> #mu#mu, WW)",verb=verbosity+2) # total signal histogram (GGToMuMu + GGToWW)
+      bkghist = sumhists(bkghists,f"bkgtot_{var.filename}_{selection.filename}","Bkg. (#gamma#gamma -> #mu#mu, WW, VV)",verb=verbosity+2) # total background histogram (GGToMuMu, GGToWW, VV, ...)
+      printSigSubtraction(obshist,sighist) # after (total background subtraction)
+      printSigSubtraction(obshist,bkghist) # after (total background subtraction)
+      obshist.Add(sighist,-1) # subtract total signal from observed data
+      #obshist.SetTitle("Obs. #minus (#gamma#gamma -> #mu#mu, WW)")
+      obshist.SetTitle("Obs. #minus Bkg.")
+      histsets[var].sig = [dyhist,sighist]+bkghists # "signal" histograms to be overlaid over DY MC stack
+      if not loadhists:
+        savehist(obshist,hfile,var,var0,sample_obs.name+"_min_sigtot",selection,verb=verbosity)
+        savehist(sighist,hfile,var,var0,"sigtot",selection,verb=verbosity)
+        savehist(bkghist,hfile,var,var0,"bkgtot",selection,verb=verbosity)
+    
+    # STEP 2c: PLOT all hists
+    LOG.color("Step 2c: Plotting histograms before corrections...",b=True)
+    for var, histset in histsets.items():
+      obshist, dyhists, sighists = histset.data, histset.exp, histset.sig
+      if verbosity+1>=1:
+        print(">>> var      = %r, %r"%(var.name,var.title))
+        print(">>> obshist  = %s"%(rootrepr(obshist)))
+        print(">>> dyhists  = %s"%(rootrepr(dyhists)))
+        print(">>> sighists = %s"%(rootrepr(sighists)))
+      
+      # GET TOTAL MC HIST
+      dyname   = dyhists[0].GetName().replace("_0_","_tot_")
+      sumhist0 = dyhists[0].Clone(dyname+'_uncorr') # DY uncorrected
+      sumhist  = dyhists[0].Clone(dyname+'_corr')   # DY corrected
+      ###sumhist0.Reset()
+      ###sumhist.Reset()
+      sumhist0.SetTitle("Drell-Yan (HS uncorrected)")
+      sumhist.SetTitle("Drell-Yan (HS corrected)")
+      for hist in dyhists[1:]: # add others DY components
+        sumhist0.Add(hist) # total uncorrected (for plotting)
+      sigscales = [1.0]*len(sighists) # for normalizing histograms
+      for i, sighist in enumerate(sighists):
+        if not 'gamma' in sighist.GetTitle(): continue # skip non-signals (i.e. DY)
+        if len(sighists)>=2: # scale signal to DY
+          sigscales[i] = sighist.Integral()/sumhist0.Integral()
+        print(f">>> sighist.GetBinContent(0)={sighist.GetBinContent(0)}, sighist.GetBinContent(1)={sighist.GetBinContent(1)}")
+        sighist.SetBinContent(0,sighist.GetBinContent(1)) # avoid vertical line on y axis !
+      if verbosity+1>=1:
+        print(f">>> scale signals: sigscales={sigscales} for normalization")
+      
+      # PLOT
+      fname = "%s/$VAR_%s_%s%s$TAG"%(outdir,selection.filename,era,tag)
+      plot  = plot_ntracks_hs(fname,var,selection,obshist,dyhists,sighists,sigscales,
+                              exts=exts,tag=tag,hs_bins=hs_bins,verb=verbosity)
+      
+      # STEP 3: MAKE MEASUREMENT
+      #any(zmmcuts+" && "+s in selection.selection for s in ['aco<0.015','aco>=0.015']) or\
+      if hasattr(selection,'iy'):
+        iy = selection.iy
+        ###ismass = f"<m_ll-{mZ} && m_ll-{mZ}<" in selection.selection
+        ismass = f"<m_ll && m_ll<" in selection.selection
+        hist2d = hists2d['mass' if ismass else 'incl']
+        LOG.color(f"Step 3: Measure HS track corrections (iy={iy}, ismass={ismass!r}, hist={hist2d!r})...",b=True)
+        for bin, dyhist in zip(hs_bins,dyhists): # scale bins from left to right to match data
+          if isinstance(bin,int):
+            ix   = hist2d.GetXaxis().FindBin(bin+0.5)
+            ilow = dyhist.GetXaxis().FindBin(bin+0.5)
+            iup  = ilow
+          elif bin[1]<100: # (xlow,xup)
+            ix   = hist2d.GetXaxis().FindBin(bin[0]+0.5) # hist2d bin index
+            ilow = dyhist.GetXaxis().FindBin(bin[0]+0.5) # dyhist lower bin index
+            iup  = dyhist.GetXaxis().FindBin(bin[1]-0.5) # dyhist upper bin index
+          else: # (xlow,inf)
+            ix   = hist2d.GetXaxis().FindBin(bin[0]+0.5)
+            ilow = dyhist.GetXaxis().FindBin(bin[0]+0.5)
+            iup  = dyhist.GetXaxis().GetNbins()
+          ysum, esum = integrate(sumhist,ilow,iup) # sum of all corrected dyhists in last iterations
+          yexp, eexp = integrate(dyhist,ilow,iup) # current dyhist to be fitted to observed data
+          yobs, eobs = integrate(obshist,ilow,iup) # observed data (minus backgrounds)
+          scale  = (yobs-ysum)/yexp # correction weight to fit dyhist (this mtracks_hs bin in DY) to observed data
+          totunc = 0
+          if yobs!=ysum:
+            totunc += (eobs**2+esum**2)/abs(yobs-ysum)**2
+          else:
+            print(f">>> Warning! yobs={yobs}=={ysum}=ysum")
+          if yexp!=0:
+            totunc += eexp**2/abs(yexp)**2
+          else:
+            print(f">>> Warning! yexp=={yexp}")
+          totunc = scale * sqrt( totunc ) # total stat.+syst. uncertainty
+          print(f">>> bin={bin}, dyhist={dyhist.GetTitle()!r}, (yobs-ysum)/yexp = ({yobs:.4f}-{ysum:.4f})/{yexp:.4f} = {scale:.4f}"
+                f" +- {totunc:.4f} in ix={ix}, ilow={ilow}, iup={iup}")
+          dyhist.Scale(scale) # scale for next iteration
+          sumhist.Add(dyhist) # total corrected (for next iteration)
+          hist2d.SetBinContent(ix,iy,scale)
+          hist2d.SetBinError(ix,iy,totunc)
+          if ix==hist2d.GetXaxis().GetNbins():
+            hist2d.SetBinContent(ix+1,iy,scale) # overflow
+          if iy==hist2d.GetYaxis().GetNbins():
+            hist2d.SetBinContent(ix,iy+1,scale) # overflow
+        
+        # STEP 3a: PLOT AGAIN after correction
+        LOG.color("Step 3a: Plot histograms after corrections...",b=True)
+        sighists_ = [sumhist0,] # DY uncorrected
+        for sighist in sighists:
+          if sighist!=sumhist0:
+            sighists_.append(sighist)
+        plot2 = plot_ntracks_hs(fname,var,selection,obshist,dyhists,sighists_,sigscales,
+                                exts=exts,tag="_corr"+tag,hs_bins=hs_bins,verb=verbosity)
+        plot2.close(keep=True)
+      
+      plot.close(keep=False)
+  
+  # STEP 3b: WRITE 2D HIST
+  for hist2d in hists2d.values():
+    hname = hist2d.GetName()
+    print(">>> ")
+    if any(hist2d.GetBinContent(*b)==0 for b in [(1,1),(2,2)]):
+      print(f">>> Ignoring 2D histogram {hname!r}")
+      continue
+    LOG.color(f"Step 3b: Write 2D correction hist {hname!r}...",b=True)
+    fname  = "%s/%s_aco-ntrack_hs_%s%s"%(outdir,hname,era,tag)
+    nxbins = hist2d.GetXaxis().GetNbins()
+    nybins = hist2d.GetYaxis().GetNbins()
+    yvar   = hist2d.yvar
+    ymin   = yvar.xmin
+    xmax   = xvar.xmax
+    zmin   = 0.5
+    zmax   = 1.3
+    if 'aco' in yvar.name:
+      ymin = 0.01
+      logy = True #and False
+    else:
+      logy = False
+    hist2d.SetOption('COLZTEXT55')
+    hist2d.SetBinContent(nxbins+1,nybins+1,hist2d.GetBinContent(nxbins,nybins))
+    plot2d = Plot2D(xvar,yvar,hist2d,logy=logy,xmax=xmax,ymin=ymin,zmin=zmin,zmax=zmax)
+    plot2d.draw('COLZTEXT55',tcolor=kRed,logz=False,grid=False,zoffset=5.5,verb=verbosity)
+    if 'aco' in yvar.name:
+      #plot2d.frame.GetYaxis().SetBinLabel(0,'< 0.015')
+      #plot2d.frame.GetYaxis().SetBinLabel(1,'#geq 0.015')
+      plot2d.frame.GetYaxis().SetNdivisions(3,False)
+    latex = TLatex()
+    latex.SetTextSize(0.04)
+    if 'aco' in yvar.name:
+      latex.SetTextAlign(32)
+      latex.DrawLatex(-0.6,0.015,"0.015")
+    else: # mass dependence (assume A < 0.015 applied)
+      latex.SetTextAlign(13)
+      text = "A < 0.015" #yvar.flag
+      x = xvar.xmin+0.04*(xvar.xmax-xvar.xmin)
+      y = yvar.xmax-0.04*(yvar.xmax-yvar.xmin)
+      latex.DrawLatex(x,y,text)
+    if not loadhists:
+      hfile.cd()
+      hist2d.Write(hname,hist2d.kOverwrite)
+    plot2d.saveas(fname,ext=['.png','.pdf'])
+    plot2d.close(keep=True)
+    
+    # STEP 3c: PLOT 1D HIST of mass dependence
+    if 'aco' not in yvar.name:
+      LOG.color(f"Step 3c: Plot 1D correction graph {hname!r}...",b=True)
+      graphs = [ ]
+      fname  = "%s/%s_ntrack_hs_%s%s"%(outdir,hname,era,tag)
+      nxbins = 3
+      nybins = hist2d.GetXaxis().GetNbins()
+      for ix in range(1,nxbins+1):
+        #graph = TGraphAsymmErrors()
+        graph = TGraphErrors()
+        graph.SetTitle("#it{N}_{#lower[-0.18]{tracks}}^{#lower[0.29]{HS,reco}} = %s"%(ix-1))
+        graphs.append(graph)
+        for i, iy in enumerate(range(1,nybins+1)):
+          yval = hist2d.GetYaxis().GetBinCenter(iy)
+          yerr = hist2d.GetYaxis().GetBinWidth(iy)/2
+          zval = hist2d.GetBinContent(ix,iy)
+          zerr = hist2d.GetBinError(ix,iy)
+          print(f">>> (i,iy)=({i},{iy}): yval={yval:4.1f} +- {yerr:4.1f}, zval={zval:5.3f} +- {zerr:5.3f}")
+          graph.SetPoint(i,yval,zval)
+          graph.SetPointError(i,yerr,zerr) # xerr,yerr
+          #graph.SetPointError(i,xerr,xerr,yerr,yerr) # xl,xh,yl,yh
+      lcols = [kRed,kBlue,kSpring-6,kMagenta+1,kBlack]
+      plot  = Plot(yvar,graphs,dividebins=False,verbosity=verbosity) #,ymin=0,ymax=zmax
+      plot.draw(option='PE0',ymin=0.1,ymax=1.25,ytitle=ztitle,colors=lcols,lstyle=1,mstyle=8,ratio=False)
+      plot.drawlegend(pos='BL',theight=1.2,tsize=1.1*tsize) #,header="lol")
+      plot.drawtext(text,size=1.1*tsize)
+      plot.saveas(fname,ext=exts)
+      #plot.close(keep=True) # prevent segfault ?
+  
+  # CLOSE
+  hfile.Close()
+  
+
+def plot_ntracks_hs(fname,var,selection,obshist,dyhists,sighists,sigscales,
+                    hs_bins=[ ],exts=['png','pdf'],tag="",norm=True,lcols=None,verb=0):
+  lsize     = 0.044 # legend text size
+  tsize     = 0.044 # corner text size
+  lcols     = [kGreen+1,kOrange+1,kMagenta+1]
+  tag       = tag+'' if norm else "_lumi"
+  rhists    = ['stack',sighists[0],'data'] # sighists[0] = DY uncorrected
+  #rtitle    = "Obs. / Sim." #"Sim. / Obs."
+  #rtitle    = "#frac{Obs. #minus (#gamma#gamma #rightarrow #mu#mu, WW)}{Drell-Yan}    "
+  rtitle    = "#frac{Obs. #minus Bkg.}{Drell-Yan}  "
+  corr      = 'HS' if '_corr' in tag else 'BS'
+  header    = "Drell-Yan in #it{N}_{#lower[-0.18]{tracks}}^{#lower[0.29]{HS,reco}} bins" # legend header
+  header   += f" ({corr} corrected)"
+  hists_dy  = dyhists # for first DY legend
+  hists_oth = [obshist]+sighists # for second data/sig legend
+  texts = [selection.title]
+  if var.flag:
+    texts.append(var.flag)
+  if selection.flag:
+    texts.append(selection.flag)
+  texts.append("|z_{#lower[-0.25]{track}} #minus z_{#lower[-0.06]{mumu}}| < 0.05 cm")
+  rmin, rmax = 0.60, 1.40
+  if '_corr' in tag: # HS-corrected
+    lcols[0] = kRed # replace DY color green (corr.) -> red (uncorr.)
+  else: # HS-uncorrected
+    lcols[0] = kGreen+1
+  plot = Stack(var,obshist,dyhists,sighists,norm=norm)  
+  
+  # EXTRA LINES & BOXES in ratio panel
+  if 'A < 0.015' in selection.flag: # draw SR box on ratio pad (behind histograms)
+    plot.drawbox(0.01,rmin+0.008,2,rmax-0.004,pad=2,color=kMyFaintRed) # light red
+  for bins in hs_bins: # draw vertical lines on ratio pad (behind histograms)
+    x = bins if isinstance(bins,int) else bins[0]
+    plot.drawline(x,0,x,2,pad=2,color=kMyLightRed,width=1) # light gray #color=19, kRed-9
+  
+  # DRAW HISTOGRAMS
+  plot.draw(lcolors=lcols,reversestack=True,staterr=False,option='HIST ][',soption='HIST ][',
+            sigscale=sigscales,ymin=7e-6,ymax=8e2,rmin=rmin,rmax=rmax,
+            ratio=True,num=-1,rhists=rhists,rtitle=rtitle,rtitlesize=1.15*tsize,rtitleoffset=1.02)
+            #ratio=True,num=-1,rhists=rhists,rtitle=rtitle,rtitlesize=0.033,rtitleoffset=1.16)
+  
+  # DRAW LEGEND & EXTRA TEXT
+  plot.drawlegend(pos='x=0.41,y=0.67',tsize=lsize,band=False,hists=hists_oth) # obs & sig
+  plot.drawlegend(pos='x=0.41,y=0.95',tsize=lsize,band=False,hists=hists_dy, # stacked DY
+                  ncols=4,colsep=0.12,width=0.49,margin=1.1,header=header,bold=False,verb=verb)
+  plot.drawtext(texts,size=tsize) # text on main panel
+  if 'A < 0.015' in selection.flag: # draw SR box on ratio pad (behind histograms)
+    plot.drawtext("SR",x=0.016,y=0.92,align=13,color=kOrange+6,size=tsize,pad=2) # text on ratio panel
+  #plot.ratio.drawratios(verb=verb) # draw ratio again
+  plot.canvas.cd(2)
+  rhists = plot.ratio.ratios
+  rhists[0].SetTitle(f"{corr} corrected")
+  rhists[1].SetTitle(f"{corr} uncorrected")
+  plot.drawlegend(hists=rhists,pos='x=0.49,y=0.35',tsize=lsize,theight=1.1,band=False,pad=2) # ratio legend
+  #plot.canvas.GetPad(2).RedrawAxis()
+  #plot.canvas.ls()
+  plot.canvas.cd()
+  
+  #### DRAW RATIO Y TITLE MANUALLY
+  ###latex = TLatex()
+  ###latex.SetTextSize((0.9 if 'Bkg' in rtitle else 0.69)*tsize)
+  ####latex.SetTextColor(kBlack)
+  ###latex.SetTextAngle(90)
+  ###latex.SetTextAlign(22)
+  ###latex.DrawLatexNDC(0.051,0.215,rtitle.strip())
+  
+  # SAVE
+  ###if 'ZMM-Alt0p015_UL2018' in fname:
+  ###  exts = exts+['.C']
+  plot.saveas(fname,ext=exts,tag=tag) #,'pdf'
+  #plot.close(keep=True)
+  return plot
+  
+
 def compare_samples(era,channel,tag="",**kwargs):
   """Compare samples."""
   LOG.header("compare_samples",pre=">>>")
@@ -1031,7 +1193,7 @@ def compare_samples(era,channel,tag="",**kwargs):
   selections = [
     #Sel('baseline', baseline),
     Sel('|m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV', baseline+" && abs(m_ll-91.1876)<15", fname="baseline-ZMM"),
-    Sel('|m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV, N_{{#lower[-0.20]{track}} < 20', baseline+" && abs(m_ll-91.1876)<15 && ntrack<20", fname="baseline-ZMM-ntracklt20"),
+    Sel('|m_{#lower[-0.3]{#mu#mu}} #minus m_{#lower[-0.05]{Z}}| < 15 GeV, N_{{#lower[-0.20]{tracks}} < 20', baseline+" && abs(m_ll-91.1876)<15 && ntrack<20", fname="baseline-ZMM-ntracklt20"),
   ]
   
   #### VARIABLES
@@ -1212,7 +1374,7 @@ def compare_vars(era,channel,tag="",**kwargs):
   
   # VARIABLES for m_mumu in differen ntrack bins
   norms  = [True]
-  tit_nt = "N_{#lower[-0.21]{track}}"
+  tit_nt = "N_{#lower[-0.21]{tracks}}"
   selections = [
     Sel(f"A < 0.015", f"{baseline} && aco<0.015", fname="acolt0p015"),
   ]
@@ -1551,7 +1713,7 @@ def main(args):
       if 'pu' in methods:
         measure_ntracks_pu(era,channel,tag=tag,outdir=outdir+"/ntracks_pu",extra=extratext,loadhists=loadhists,showEra=showEra,exts=exts,plotonly=plotonly,chunk=chunk,verb=verbosity)
       if 'hs' in methods:
-        measure_ntracks_hs(era,channel,tag=tag,outdir=outdir+"/ntracks_hs",extra=extratext,loadhists=loadhists,showEra=showEra,exts=exts,verb=verbosity)
+        measure_ntracks_hs(era,channel,tag=tag,outdir=outdir+"/ntracks_hs",extra=extratext,loadhists=loadhists,showEra=showEra,exts=exts,domass=args.domass,verb=verbosity)
       if 'sam' in methods:
         compare_samples(era,channel,tag=tag,outdir=outdir+"/compare",verb=verbosity)
       if 'var' in methods:
@@ -1569,6 +1731,8 @@ if __name__ == "__main__":
   methods = ['pu','hs','sam','var','dz','aco']
   parser.add_argument('-m', '--method',    dest='methods', choices=methods, nargs='+', default=['pu'],
                                            help="routine" )
+  parser.add_argument('-M', '--domass',    dest='domass', action='store_true',
+                                           help="do mass dependence study" )
   parser.add_argument('-g', '--chunk',     type=int, default=-1,
                                            help="only run chunk of variables" )
   parser.add_argument('-y', '--era',       dest='eras', nargs='*', default=['UL2018'],
