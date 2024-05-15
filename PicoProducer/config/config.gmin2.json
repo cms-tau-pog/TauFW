@@ -1,0 +1,38 @@
+{
+  "channels": {
+    "skim": "skimjob.py",
+    "skim-jec": "skimjob.py --jec-sys",
+    "gen": "GenDumper",
+    "mutau": "ModuleMuTau",
+    "mumu": "gmin2.ModuleMuMu",
+    "mumu-old": "ModuleMuMu",
+    "mygendumper": "GenDumper",
+    "lq": "LQ.ModuleGenLQ",
+    "sumw": "SumWeights"
+  },
+  "eras": {
+    "2016": "examples/samples_2016.py",
+    "2017": "examples/samples_2017.py",
+    "2018": "LQ/samples_2018.py",
+    "UL2018": "gmin2/samples_UL2018.py",
+    "UL2017": "gmin2/samples_UL2017.py",
+    "UL2016_preVFP": "gmin2/samples_UL2016_preVFP.py",
+    "UL2016_postVFP": "gmin2/samples_UL2016_postVFP.py",
+    "myUL2018": "samples_UL2018.py"
+  },
+  "nfilesperjob": 1,
+  "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
+  "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+  "basedir": "/afs/cern.ch/user/i/ineuteli/analysis/CMSSW_12_4_8_g-2/src/TauFW/PicoProducer",
+  "outdir": "/eos/user/i/ineuteli/output/g-2/$ERA/$CHANNEL/$SAMPLE",
+  "nanodir": "/eos/user/i/ineuteli/samples/nano/$ERA/$DAS",
+  "picodir": "/eos/user/i/ineuteli/analysis/g-2/$ERA/$GROUP",
+  "tmpskimdir": "",
+  "batch": "HTCondor_CMG",
+  "queue": "",
+  "maxevtsperjob": 140000,
+  "maxopenfiles": 200,
+  "ncores": 4,
+  "haddcmd": "",
+  "batchopts": ""
+}
