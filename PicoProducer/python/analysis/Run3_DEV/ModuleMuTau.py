@@ -51,6 +51,7 @@ class ModuleMuTau(ModuleTauPair):
     #self.out.cutflow.addcut('muonveto',     "muon veto"                  )
     #self.out.cutflow.addcut('elecveto',     "electron veto"              )
     self.out.cutflow.addcut('lepvetoes',     "lep vetoes"              )
+    self.out.cutflow.addcut('jetvetoes',     "jet vetoes"              )
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
     ## Important cutflow entries to make stitching with exclusive mutauh sample
@@ -168,6 +169,9 @@ class ModuleMuTau(ModuleTauPair):
     #cutflow on veto
     if self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]: return False
     self.out.cutflow.fill('lepvetoes')
+
+    if self.jetveto(event): return False
+    self.out.cutflow.fill('jetvetoes')
    
  
     # EVENT

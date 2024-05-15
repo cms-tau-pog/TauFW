@@ -45,6 +45,8 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     Var('pt_2',  "tau_h pt",   40,  0, 120, ctitle={'tautau':"Subleading tau_h pt",'mumu':"Subleading muon pt",'emu':"Muon pt"},cbins={"nbtag\w*>":(40,0,200)}),
     Var('eta_1', "Muon eta",   30, -3,   3, ctitle={'etau':"Electron eta",'tautau':"Leading tau_h eta",'mumu':"Leading muon eta",'emu':"Electron eta"},ymargin=1.7,pos='T',ncols=2),
     Var('eta_2', "tau_h eta",  30, -3,   3, ctitle={'etau':"Electron eta",'tautau':"Subleading tau_h eta",'mumu':"Subleading muon eta",'emu':"Muon eta"},ymargin=1.7,pos='T',ncols=2),
+    Var('phi_1', "Muon phi",   30, -3,   3, ctitle={'etau':"Electron phi",'tautau':"Leading tau_h phi",'mumu':"Leading muon phi",'emu':"Electron phi"},ymargin=1.7,pos='T',ncols=2),
+    Var('phi_2', "tau_h phi",  30, -3,   3, ctitle={'etau':"Electron phi",'tautau':"Subleading tau_h phi",'mumu':"Subleading muon phi",'emu':"Muon phi"},ymargin=1.7,pos='T',ncols=2),
     Var('mt_1',  "mt(mu,MET)", 40,  0, 200, ctitle={'etau':"mt(mu,MET)",'tautau':"mt(tau,MET)",'emu':"mt(e,MET)"},cbins={"nbtag\w*>":(50,0,250)}),
     Var("jpt_1",  29,   10,  300, veto=[r"njets\w*==0"]),
     Var("jpt_2",  29,   10,  300, veto=[r"njets\w*==0"]),
@@ -258,12 +260,12 @@ def main(args):
       sampleset = getsampleset(setup['channel'],era,fname=fname,rmsf=rmsfs,addsf=addsfs,split=split)
       plot(sampleset,setup,parallel=parallel,tag=tag,extratext=extratext,outdir=outdir,era=era,
            varfilter=varfilter,selfilter=selfilter,fraction=fraction,pdf=pdf)
-      sampleset.close()
+      #sampleset.close()
   
 
 if __name__ == "__main__":
   from argparse import ArgumentParser, RawTextHelpFormatter
-  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE']
+  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE', '2023C', '2023D']
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],

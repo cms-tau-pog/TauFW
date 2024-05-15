@@ -101,7 +101,7 @@ class BTagWPs:
 
 class BTagWeightTool:
   
-  def __init__(self,tagger,wp,era,channel,maxeta=None,loadsys=False,type_bc='comb',spliteras=False,filltags=[""]):
+  def __init__(self,tagger,wp,era,channel='all',maxeta=None,loadsys=False,type_bc='comb',spliteras=False,filltags=[""]):
     """Load b tag weights from CSV file."""
     
     #assert(year in [2016,2017,2018]), "You must choose a year from: 2016, 2017, or 2018."
@@ -142,9 +142,7 @@ class BTagWeightTool:
       if 'UL' not in effname:
         LOG.warning("Using pre-UL place holder %r for efficiencies! Please update."%(effname))
     else: # pre-UL
-      if '2022' in era or '2023' in era:
-        # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
-        # https://github.com/scodella/ScaleFactorCombinationTools/tree/master/CSVFiles
+      if '2022' in era or '2023' in era: # PLACEHOLDERS
         if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
           #csvname    = datadir+"DeepJet_106XUL18SF.csv"
           csvname    = datadir+"wp_deepJet_106XUL18_v2_reformatted.csv" # TODO: update BTagCalibration to read correct file !!!

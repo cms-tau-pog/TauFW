@@ -55,6 +55,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
     else:
       LOG.throw(IOError,"Did not recognize mc row %s"%(info))
     fname = repkey(fpattern,ERA=era,GROUP=group,SAMPLE=name,CHANNEL=channel,TAG=tag)
+    #print(fname)
     sample = MC(name,title,fname,xsec,**expkwargs)
     expsamples[i] = sample
   
@@ -429,7 +430,7 @@ def stitch(samplelist,*searchterms,**kwargs):
 
   sample_incl = None
   sample_mutau = None #"DYJetsToMuTauh_M-50"
-  if era=='2022_postEE' or era=='2022_preEE': 
+  if "2022" in era or "2023" in era: 
     samples_jetIncl = [s for s in stitchlist if s.name == name_incl]
   else:
     samples_jetIncl = [s for s in stitchlist if s.match(name_incl)]
@@ -502,7 +503,7 @@ def stitch(samplelist,*searchterms,**kwargs):
     else:
       print(sample.name)
       
-      if era=='2022_postEE' or era=='2022_preEE': 
+      if "2022" in era or "2023" in era: 
         match = re.search(r'_(\d{1,2}J)', sample.name)
         if match:
           njets = int(match.group(1)[:-1])

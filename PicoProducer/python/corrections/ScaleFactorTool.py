@@ -76,9 +76,10 @@ class ScaleFactorHTT(ScaleFactor):
       strerr = str(error).replace('\033[0m','')
       if '/HTT/' in filename and "does not exist" in strerr:
         LOG.throw(IOError,"%s You may have to do\n"%(strerr)+
-          "  cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/\n"+
-          "  rm -rf HTT\n"+
-          "  git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT")
+          "        cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/\n"+
+          "        rm -rf HTT\n"+
+          "        git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT\n"+
+          "      Please see https://github.com/cms-tau-pog/TauFW/wiki/Installation#corrections")
       else:
         raise error
     self.hist_eta  = self.file.Get('etaBinsH')
@@ -90,6 +91,10 @@ class ScaleFactorHTT(ScaleFactor):
       self.effs_data[etalabel] = self.file.Get(graphname+etalabel+"_Data")
       self.effs_mc[etalabel]   = self.file.Get(graphname+etalabel+"_MC")
     self.file.Close()
+  
+  def evaluate(self, eta, pt, sf='sf'):
+    """For compatibility with correctionlib's Correction.evaluate for MUO POG."""
+    return self.getSF(pt,eta)
   
   def getSF(self, pt, eta):
     """Get SF for a given pT, eta."""
