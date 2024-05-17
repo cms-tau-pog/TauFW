@@ -11,6 +11,7 @@ class TreeProducerMuTau(TreeProducerTauPair):
   def __init__(self, filename, module, **kwargs):
     print("Loading TreeProducerMuTau for %r"%(filename))
     super(TreeProducerMuTau,self).__init__(filename,module,**kwargs)
+    kwargs.setdefault('study',True) # for addCommonTauBranches
     
     
     ############
@@ -36,50 +37,12 @@ class TreeProducerMuTau(TreeProducerTauPair):
     #   TAU   #
     ###########
     
-    self.addBranch('pt_2',                       'f')
-    self.addBranch('eta_2',                      'f')
-    self.addBranch('phi_2',                      'f')
-    self.addBranch('m_2',                        'f')
-    self.addBranch('y_2',                        'f')
-    self.addBranch('dxy_2',                      'f')
-    self.addBranch('dz_2',                       'f')
-    self.addBranch('q_2',                        'i')
-    self.addBranch('dm_2',                       'i')
-    self.addBranch('iso_2',                      'f', title="rawIso")
-    self.addBranch('idiso_2',                    'i', title="rawIso WPs")
-    #self.addBranch('rawAntiEle_2',               'f') # not available anymore in nanoAODv9
-    #self.addBranch('rawMVAoldDM2017v2_2',        'f')
-    #self.addBranch('rawMVAnewDM2017v2_2',        'f')
-    self.addBranch('rawDeepTau2017v2p1VSe_2',    'f')
-    self.addBranch('rawDeepTau2017v2p1VSmu_2',   'f')
-    self.addBranch('rawDeepTau2017v2p1VSjet_2',  'f')
-
-    self.addBranch('rawDeepTau2018v2p5VSe_2',    'f')
-    self.addBranch('rawDeepTau2018v2p5VSmu_2',   'f')
-    self.addBranch('rawDeepTau2018v2p5VSjet_2',  'f')
-
-
-    #self.addBranch('idAntiEle_2',                'i')
-    #self.addBranch('idAntiMu_2',                 'i')
-    self.addBranch('idDecayMode_2',              '?', title="oldDecayModeFinding")
-    self.addBranch('idDecayModeNewDMs_2',        '?', title="newDecayModeFinding")
-    #self.addBranch('idMVAoldDM2017v2_2',         'i')
-    #self.addBranch('idMVAnewDM2017v2_2',         'i')
-    self.addBranch('idDeepTau2017v2p1VSe_2',     'i')
-    self.addBranch('idDeepTau2017v2p1VSmu_2',    'i')
-    self.addBranch('idDeepTau2017v2p1VSjet_2',   'i')
-
-    self.addBranch('idDeepTau2018v2p5VSe_2',     'i')
-    self.addBranch('idDeepTau2018v2p5VSmu_2',    'i')
-    self.addBranch('idDeepTau2018v2p5VSjet_2',   'i')
-
-
-    self.addBranch('leadTkPtOverTauPt_2',        'f')
-    self.addBranch('chargedIso_2',               'f')
-    self.addBranch('neutralIso_2',               'f')
-    self.addBranch('photonsOutsideSignalCone_2', 'f')
-    self.addBranch('puCorr_2',                   'f')
-    self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
+    self.addCommonTauBranches(tag='_2',**kwargs) # adds pt, eta, idDeepTau*VS*, etc.
+    
+    
+    ###################
+    #   CORRECTIONS   #
+    ###################
     
     if self.module.ismc:
       self.addBranch('jpt_genmatch_2',      'f', -1, title="pt of gen jet matching tau")
@@ -90,17 +53,17 @@ class TreeProducerMuTau(TreeProducerTauPair):
       self.addBranch('genvistauphi_2',      'f', -9)
       self.addBranch('gendm_2',             'i', -1)
       self.addBranch('idisoweight_1',       'f', 1., title="muon ID/iso efficiency SF")
-      self.addBranch('idweight_2',          'f', 1., title="tau ID efficiency SF, Tight")
-      self.addBranch('idweight_dm_2',       'f', 1., title="tau ID efficiency SF, Tight, DM-dependent")
-      self.addBranch('idweight_medium_2',   'f', 1., title="tau ID efficiency SF, Medium")
-      self.addBranch('ltfweight_2',         'f', 1., title="lepton -> tau fake rate SF")
+      self.addBranch('idweight_2',          'f', 1., title="SF for tau ID efficiency, Tight (pT-dependent)")
+      self.addBranch('idweight_dm_2',       'f', 1., title="SF for tau ID efficiency, Tight (DM-dependent)")
+      self.addBranch('idweight_medium_2',   'f', 1., title="SF for tau ID efficiency, Medium")
+      self.addBranch('ltfweight_2',         'f', 1., title="SF for lepton -> tau fake rate")
       if self.module.dosys: # systematic variation (only for nominal tree)
-        self.addBranch('idweightUp_2',      'f', 1.)
-        self.addBranch('idweightDown_2',    'f', 1.)
-        self.addBranch('idweightUp_dm_2',   'f', 1.)
-        self.addBranch('idweightDown_dm_2', 'f', 1.)
-        self.addBranch('ltfweightUp_2',     'f', 1.)
-        self.addBranch('ltfweightDown_2',   'f', 1.)
+        self.addBranch('idweightUp_2',      'f', 1., title="SF for tau VSjet eff. (pT-dependent)")
+        self.addBranch('idweightDown_2',    'f', 1., title="SF for tau VSjet eff. (pT-dependent)")
+        self.addBranch('idweightUp_dm_2',   'f', 1., title="SF for tau VSjet eff. (DM-dependent)")
+        self.addBranch('idweightDown_dm_2', 'f', 1., title="SF for tau VSjet eff. (DM-dependent)")
+        self.addBranch('ltfweightUp_2',     'f', 1., title="SF for lepton -> tau fake rate (up)")
+        self.addBranch('ltfweightDown_2',   'f', 1., title="SF for lepton -> tau fake rate (down)")
       if self.module.domutau:
         self.addBranch('mutaufilter',       '?', title="has tautau -> mutau, pT>18, |eta|<2.5")
     

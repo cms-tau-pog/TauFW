@@ -13,7 +13,11 @@ from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
 from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, filtermutau
 __metaclass__ = type # to use super() with subclasses from CommonProducer
-tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022ReReco' }
+tauSFVersion  = {
+  2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco',
+  #'UL2016_preVFP': '2016_preVFP','UL2016_postVFP': '2016_postVFP', 'UL2017': '2017', 'UL2018': '2018',
+  2022: '2022ReReco'
+}
 
 
 
@@ -51,7 +55,7 @@ class ModuleTauPair(Module):
     self.dosys      = kwargs.get('sys',      self.dosys     ) # store fewer branches to save disk space
     self.dotight    = self.tes not in [1,None] or not self.dosys # tighten pre-selection to store fewer events
     self.dotight    = kwargs.get('tight',    self.dotight   ) # store fewer events to save disk space
-    self.dojec      = kwargs.get('jec',      False          ) and self.ismc #and self.year==2016 #False
+    self.dojec      = kwargs.get('jec',      False          ) and self.ismc
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1 for backwards compatibility with old nanoAOD-tools JME corrector
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
@@ -140,20 +144,20 @@ class ModuleTauPair(Module):
       ('Muon_isTracker',                  [True]*32     ),
       #('Electron_mvaFall17V217Iso',      [1.]*32       ), #not available anymore
       ('Electron_lostHits',               [0]*32        ),
-      ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaIso_WPL'    ),
-      ('Electron_mvaFall17V2Iso_WP80',   'Electron_mvaIso_WP80'   ),
-      ('Electron_mvaFall17V2Iso_WP90',   'Electron_mvaIso_WP90'   ),
-      ('Electron_mvaFall17V2noIso_WPL',  'Electron_mvaNoIso_WPL'  ),
-      ('Electron_mvaFall17V2noIso_WP80', 'Electron_mvaNoIso_WP80' ),
-      ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaNoIso_WP90' ),
-      ('Tau_idDecayMode',                [True]*32               ), 
-      ('Tau_idDecayModeNewDMs',          [True]*32               ),
-      ('Tau_idDeepTau2018v2p5VSe','Tau_idDeepTau2017v2p1VSe'), 
-      ('Tau_idDeepTau2018v2p5VSmu','Tau_idDeepTau2017v2p1VSmu'),  
-      ('Tau_idDeepTau2018v2p5VSjet','Tau_idDeepTau2017v2p1VSjet'),
-      ('Tau_rawDeepTau2018v2p5VSe','Tau_rawDeepTau2017v2p1VSe'), 
-      ('Tau_rawDeepTau2018v2p5VSmu','Tau_rawDeepTau2017v2p1VSmu'),  
-      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet')
+      ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaIso_WPL'        ),
+      ('Electron_mvaFall17V2Iso_WP80',   'Electron_mvaIso_WP80'       ),
+      ('Electron_mvaFall17V2Iso_WP90',   'Electron_mvaIso_WP90'       ),
+      ('Electron_mvaFall17V2noIso_WPL',  'Electron_mvaNoIso_WPL'      ),
+      ('Electron_mvaFall17V2noIso_WP80', 'Electron_mvaNoIso_WP80'     ),
+      ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaNoIso_WP90'     ),
+      ('Tau_idDecayMode',                [True]*32                    ), 
+      ('Tau_idDecayModeNewDMs',          [True]*32                    ),
+      ('Tau_idDeepTau2018v2p5VSe',       'Tau_idDeepTau2017v2p1VSe'   ), 
+      ('Tau_idDeepTau2018v2p5VSmu',      'Tau_idDeepTau2017v2p1VSmu'  ),  
+      ('Tau_idDeepTau2018v2p5VSjet',     'Tau_idDeepTau2017v2p1VSjet' ),
+      ('Tau_rawDeepTau2018v2p5VSe',      'Tau_rawDeepTau2017v2p1VSe'  ), 
+      ('Tau_rawDeepTau2018v2p5VSmu',     'Tau_rawDeepTau2017v2p1VSmu' ),  
+      ('Tau_rawDeepTau2018v2p5VSjet',    'Tau_rawDeepTau2017v2p1VSjet')
     ]
     # for v9
     branches = [
@@ -170,12 +174,12 @@ class ModuleTauPair(Module):
       #('Tau_rawAntiEle',                 [0.]*30                        ), #  # not available anymore in nanoAODv9
       #('Tau_rawMVAoldDM2017v2',          [0.]*30                        ), # not available anymore in nanoAODv9
       #('Tau_rawMVAnewDM2017v2',          [0.]*30                        ), # not available anymore in nanoAODv9
-      ('Tau_idDeepTau2018v2p5VSe','Tau_idDeepTau2017v2p1VSe'), 
-      ('Tau_idDeepTau2018v2p5VSmu','Tau_idDeepTau2017v2p1VSmu'),  
-      ('Tau_idDeepTau2018v2p5VSjet','Tau_idDeepTau2017v2p1VSjet'),
-      ('Tau_rawDeepTau2018v2p5VSe','Tau_rawDeepTau2017v2p1VSe'), 
-      ('Tau_rawDeepTau2018v2p5VSmu','Tau_rawDeepTau2017v2p1VSmu'),  
-      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet')
+      ('Tau_idDeepTau2018v2p5VSe',     'Tau_idDeepTau2017v2p1VSe'   ), 
+      ('Tau_idDeepTau2018v2p5VSmu',    'Tau_idDeepTau2017v2p1VSmu'  ),  
+      ('Tau_idDeepTau2018v2p5VSjet',   'Tau_idDeepTau2017v2p1VSjet' ),
+      ('Tau_rawDeepTau2018v2p5VSe',    'Tau_rawDeepTau2017v2p1VSe'  ), 
+      ('Tau_rawDeepTau2018v2p5VSmu',   'Tau_rawDeepTau2017v2p1VSmu' ),  
+      ('Tau_rawDeepTau2018v2p5VSjet',  'Tau_rawDeepTau2017v2p1VSjet')
     ]
     if self.year==2016:
       branches += [
@@ -184,13 +188,13 @@ class ModuleTauPair(Module):
         ('HLT_IsoMu24',          False ),
         ('HLT_IsoTkMu24',        False ),
       ]
- 
+    
     #check
     fullbranchlist = inputTree.GetListOfBranches()
     if 'Electron_mvaFall17Iso_WPL' not in fullbranchlist: #v10
-       ensurebranches(inputTree,branchesV10)
+      ensurebranches(inputTree,branchesV10)
     else: #v9
-       ensurebranches(inputTree,branches) # make sure Event object has these branches
+      ensurebranches(inputTree,branches) # make sure Event object has these branches
     
   
   def fillhists(self,event):
@@ -223,18 +227,18 @@ class ModuleTauPair(Module):
       # Specific selections to compute mutau filter efficiencies for stitching of different DY samples (DYJetsToTauTauToMuTauh)
       if self.domutau:
         self.ismutau = filtermutau(event) # event passes gen mutau filter
-        self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
+        self.out.cutflow.fill('weight_mutaufilter',event.genWeight*self.ismutau)
         try:
           if event.LHE_Njets==0 or event.LHE_Njets>4:
-            self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*self.ismutau)
           elif event.LHE_Njets==1:
-            self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*self.ismutau)
           elif event.LHE_Njets==2:
-            self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*self.ismutau)
           elif event.LHE_Njets==3:
-            self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*self.ismutau)
           elif event.LHE_Njets==4:
-            self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
+            self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*self.ismutau)
         except RuntimeError:
           print(">>> WARNING: RuntimeError! Setting domutau=False !")
           self.domutau = False
@@ -268,6 +272,34 @@ class ModuleTauPair(Module):
         self.out.NUP[0]         = -1
     ###elif self.isembed:
     ###  self.out.isdata[0]        = False
+    
+  
+  def fillCommonTauBranches(self, event, tau):
+    """Help function to apply common corrections, and fill weight branches."""
+    self.out.pt_2[0]                       = tau.pt
+    self.out.eta_2[0]                      = tau.eta
+    self.out.phi_2[0]                      = tau.phi
+    self.out.m_2[0]                        = tau.mass
+    self.out.y_2[0]                        = tau.tlv.Rapidity()
+    self.out.dxy_2[0]                      = tau.dxy
+    self.out.dz_2[0]                       = tau.dz
+    self.out.q_2[0]                        = tau.charge
+    self.out.dm_2[0]                       = tau.decayMode
+    #self.out.iso_2[0]                      = tau.rawIso
+    #self.out.idiso_2[0]                    = idIso(tau) # cut-based tau isolation (rawIso) # not available anymore in nanoAODv9
+    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
+    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
+    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
+    #self.out.idDecayMode_2[0]              = tau.idDecayMode
+    #self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
+    self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
+    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
+    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
+    self.out.chargedIso_2[0]               = tau.chargedIso
+    self.out.neutralIso_2[0]               = tau.neutralIso
+    self.out.leadTkPtOverTauPt_2[0]        = tau.leadTkPtOverTauPt
+    self.out.photonsOutsideSignalCone_2[0] = tau.photonsOutsideSignalCone
+    self.out.puCorr_2[0]                   = tau.puCorr
     
   
   def fillJetBranches(self,event,tau1,tau2):

@@ -30,7 +30,7 @@
   "tmpskimdir": "",
   "batch": "HTCondor_CMG",
   "queue": "",
-  "maxevtsperjob": 140000,
+  "maxevtsperjob": 500000,
   "maxopenfiles": 200,
   "ncores": 4,
   "haddcmd": "",

@@ -163,3 +163,40 @@ class TreeProducerTauPair(TreeProducer):
         self.addBranch('pt_moth',         'f', -1, title="generator mother pT (Z boson, W boson, top quark, ...)")
     
 
+  def addCommonTauBranches(self, tag='_2', study=False, **kwargs):
+    """Help function to add common tau branches that may depend on the channel and nanoAOD version."""
+    isRun2 = ('UL' in self.module.era or '201' in self.module.era)
+    #deeptau = kwargs.get('deeptau', ["DeepTau2018v2p5"] )
+    deeptau = kwargs.get('deeptau', ['DeepTau2017v2p1'] if isRun2 else ['DeepTau2018v2p5'] )
+    if isinstance(deeptau,str):
+      deeptau = [deeptau] # ensure iterable list
+    
+    self.addBranch('pt'+tag,                 'f')
+    self.addBranch('eta'+tag,                'f')
+    self.addBranch('phi'+tag,                'f')
+    self.addBranch('m'+tag,                  'f')
+    self.addBranch('y'+tag,                  'f')
+    self.addBranch('dxy'+tag,                'f')
+    self.addBranch('dz'+tag,                 'f')
+    self.addBranch('q'+tag,                  'i')
+    self.addBranch('dm'+tag,                 'i')
+    self.addBranch('jpt_match'+tag,          'f', -1, title="pt of jet matching tau")
+    #self.addBranch('iso'+tag,                'f', title="rawIso")     # obsolete
+    #self.addBranch('idiso'+tag,              'i', title="rawIso WPs") # obsolete
+    #self.addBranch('idDecayMode'+tag,        '?', title="oldDecayModeFinding") # obsolete
+    #self.addBranch('idDecayModeNewDMs'+tag,  '?', title="newDecayModeFinding") # obsolete
+    for tid in deeptau:
+      self.addBranch('raw%sVSe%s'%(tid,tag),         'f', title="raw %sVSe score"%(tid))
+      self.addBranch('raw%sVSmu%s'%(tid,tag),        'f', title="raw %sVSmu score"%(tid))
+      self.addBranch('raw%sVSjet%s'%(tid,tag),       'f', title="raw %sVSjet score"%(tid))
+      self.addBranch('id%sVSe%s'%(tid,tag),          'i', title="%sVSe WP"%(tid))
+      self.addBranch('id%sVSmu%s'%(tid,tag),         'i', title="%sVSmu WP"%(tid))
+      self.addBranch('id%sVSjet%s'%(tid,tag),        'i', title="%sVSjet WP"%(tid))
+    if study: # branches to study tau properties
+      self.addBranch('leadTkPtOverTauPt'+tag,        'f')
+      self.addBranch('chargedIso'+tag,               'f')
+      self.addBranch('neutralIso'+tag,               'f')
+      self.addBranch('photonsOutsideSignalCone'+tag, 'f')
+      self.addBranch('puCorr'+tag,                   'f')
+  
+

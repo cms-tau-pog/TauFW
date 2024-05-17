@@ -148,56 +148,23 @@ class ModuleTauTau(ModuleTauPair):
     self.out.dz_1[0]                       = tau1.dz
     self.out.q_1[0]                        = tau1.charge
     self.out.dm_1[0]                       = tau1.decayMode
-    self.out.iso_1[0]                      = tau1.rawIso
-    self.out.idiso_1[0]                    = idIso(tau1) # cut-based tau isolation (rawIso)
+    #self.out.iso_1[0]                      = tau1.rawIso
+    #self.out.idiso_1[0]                    = idIso(tau1) # cut-based tau isolation (rawIso)
     self.out.rawDeepTau2017v2p1VSe_1[0]    = tau1.rawDeepTau2017v2p1VSe
     self.out.rawDeepTau2017v2p1VSmu_1[0]   = tau1.rawDeepTau2017v2p1VSmu
     self.out.rawDeepTau2017v2p1VSjet_1[0]  = tau1.rawDeepTau2017v2p1VSjet
-    self.out.idAntiEle_1[0]                = tau1.idAntiEle
-    self.out.idAntiMu_1[0]                 = tau1.idAntiMu
-    self.out.idDecayMode_1[0]              = tau1.idDecayMode
-    self.out.idDecayModeNewDMs_1[0]        = tau1.idDecayModeNewDMs
-    self.out.idMVAoldDM2017v2_1[0]         = tau1.idMVAoldDM2017v2
-    self.out.idMVAnewDM2017v2_1[0]         = tau1.idMVAnewDM2017v2
     self.out.idDeepTau2017v2p1VSe_1[0]     = tau1.idDeepTau2017v2p1VSe
     self.out.idDeepTau2017v2p1VSmu_1[0]    = tau1.idDeepTau2017v2p1VSmu
     self.out.idDeepTau2017v2p1VSjet_1[0]   = tau1.idDeepTau2017v2p1VSjet
-    self.out.chargedIso_1[0]               = tau1.chargedIso
-    self.out.neutralIso_1[0]               = tau1.neutralIso
-    self.out.leadTkPtOverTauPt_1[0]        = tau1.leadTkPtOverTauPt
-    self.out.photonsOutsideSignalCone_1[0] = tau1.photonsOutsideSignalCone
-    self.out.puCorr_1[0]                   = tau1.puCorr
+    #self.out.chargedIso_1[0]               = tau1.chargedIso
+    #self.out.neutralIso_1[0]               = tau1.neutralIso
+    #self.out.leadTkPtOverTauPt_1[0]        = tau1.leadTkPtOverTauPt
+    #self.out.photonsOutsideSignalCone_1[0] = tau1.photonsOutsideSignalCone
+    #self.out.puCorr_1[0]                   = tau1.puCorr
     
     
     # TAU 2
-    self.out.pt_2[0]                       = tau2.pt
-    self.out.eta_2[0]                      = tau2.eta
-    self.out.phi_2[0]                      = tau2.phi
-    self.out.m_2[0]                        = tau2.mass
-    self.out.y_2[0]                        = tau2.tlv.Rapidity()
-    self.out.dxy_2[0]                      = tau2.dxy
-    self.out.dz_2[0]                       = tau2.dz
-    self.out.q_2[0]                        = tau2.charge
-    self.out.dm_2[0]                       = tau2.decayMode
-    self.out.iso_2[0]                      = tau2.rawIso
-    self.out.idiso_2[0]                    = idIso(tau2) # cut-based tau isolation (rawIso)
-    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau2.rawDeepTau2017v2p1VSe
-    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau2.rawDeepTau2017v2p1VSmu
-    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau2.rawDeepTau2017v2p1VSjet
-    self.out.idAntiEle_2[0]                = tau2.idAntiEle
-    self.out.idAntiMu_2[0]                 = tau2.idAntiMu
-    self.out.idDecayMode_2[0]              = tau2.idDecayMode
-    self.out.idDecayModeNewDMs_2[0]        = tau2.idDecayModeNewDMs
-    self.out.idMVAoldDM2017v2_2[0]         = tau2.idMVAoldDM2017v2
-    self.out.idMVAnewDM2017v2_2[0]         = tau2.idMVAnewDM2017v2
-    self.out.idDeepTau2017v2p1VSe_2[0]     = tau2.idDeepTau2017v2p1VSe
-    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau2.idDeepTau2017v2p1VSmu
-    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau2.idDeepTau2017v2p1VSjet
-    self.out.chargedIso_2[0]               = tau2.chargedIso
-    self.out.neutralIso_2[0]               = tau2.neutralIso
-    self.out.leadTkPtOverTauPt_2[0]        = tau2.leadTkPtOverTauPt
-    self.out.photonsOutsideSignalCone_2[0] = tau2.photonsOutsideSignalCone
-    self.out.puCorr_2[0]                   = tau2.puCorr
+    self.fillCommonTauBranches(event,tau2)
     
     
     # GENERATOR
@@ -218,8 +185,12 @@ class ModuleTauTau(ModuleTauPair):
     
     # JETS
     jets, met, njets_vars, met_vars = self.fillJetBranches(event,tau1,tau2)
-    self.out.jpt_match_1[0], self.out.jpt_genmatch_1[0] = matchtaujet(event,tau1,self.ismc)
-    self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau2,self.ismc)
+    if self.ismc:
+      self.out.jpt_match_1[0], self.out.jpt_genmatch_1[0] = matchtaujet(event,tau1,self.ismc)
+      self.out.jpt_match_2[0], self.out.jpt_genmatch_2[0] = matchtaujet(event,tau2,self.ismc)
+    else:
+      self.out.jpt_match_1[0] = matchtaujet(event,tau1,self.ismc)[0]
+      self.out.jpt_match_2[0] = matchtaujet(event,tau2,self.ismc)[0]
     
     
     # WEIGHTS
@@ -254,9 +225,9 @@ class ModuleTauTau(ModuleTauPair):
       if tau1.genPartFlav==5:
         self.out.idweight_1[0]        = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode)
         self.out.idweight_tight_1[0]  = self.tauSFs_tight.getSFvsDM(tau1.pt,tau1.decayMode)
-        if self.dosys:
-          self.out.idweightUp_1[0]    = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Up')
-          self.out.idweightDown_1[0]  = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Down')
+        ###if self.dosys:
+        ###  self.out.idweightUp_1[0]    = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Up')
+        ###  self.out.idweightDown_1[0]  = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Down')
       elif tau1.genPartFlav>0:
         ltfTool = self.etfSFs if tau1.genPartFlav in [1,3] else self.mtfSFs
         self.out.ltfweight_1[0]       = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav)
@@ -268,15 +239,15 @@ class ModuleTauTau(ModuleTauPair):
       if tau1.genPartFlav==5:
         self.out.idweight_2[0]        = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode)
         self.out.idweight_tight_2[0]  = self.tauSFs_tight.getSFvsDM(tau1.pt,tau1.decayMode)
-        if self.dosys:
-          self.out.idweightUp_2[0]    = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Up')
-          self.out.idweightDown_2[0]  = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Down')
+        ###if self.dosys:
+        ###  self.out.idweightUp_2[0]    = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Up')
+        ###  self.out.idweightDown_2[0]  = self.tauSFs.getSFvsDM(tau1.pt,tau1.decayMode,unc='Down')
       elif tau1.genPartFlav>0:
         ltfTool = self.etfSFs if tau1.genPartFlav in [1,3] else self.mtfSFs
         self.out.ltfweight_2[0]       = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav)
-        if self.dosys:
-          self.out.ltfweightUp_2[0]   = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Up')
-          self.out.ltfweightDown_2[0] = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Down')
+        ###if self.dosys:
+        ###  self.out.ltfweightUp_2[0]   = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Up')
+        ###  self.out.ltfweightDown_2[0] = ltfTool.getSFvsEta(tau1.eta,tau1.genPartFlav,unc='Down')
     
     
     # MET & DILEPTON VARIABLES
