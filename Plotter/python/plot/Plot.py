@@ -689,7 +689,7 @@ class Plot(object):
     #frame.GetXaxis().SetLimits(xmin,xmax)
     frame.GetXaxis().SetRangeUser(xmin,xmax)
     frame.SetMinimum(ymin)
-    frame.SetMaximum(ymax)
+    frame.SetMaximum(1.4*ymax)
     
     # SET Y AXIS TITLE
     if ytitle==None:
