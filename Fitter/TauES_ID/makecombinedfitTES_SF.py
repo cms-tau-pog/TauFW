@@ -69,7 +69,7 @@ def merge_datacards_ZmmCR(setup, setup_mumu, era,extratag,region):
 def run_combined_fit(setup, setup_mumu, option, **kwargs):
     #tes_range    = kwargs.get('tes_range',    "1.000,1.000")
     tes_range    = kwargs.get('tes_range',    "%s,%s" %(min(setup["TESvariations"]["values"]), max(setup["TESvariations"]["values"]))                         )
-    tid_SF_range = kwargs.get('tid_SF_range', "0.60,1.0")
+    tid_SF_range = kwargs.get('tid_SF_range', "0.6,1.6")
     extratag     = kwargs.get('extratag',     "_DeepTau")
     algo         = kwargs.get('algo',         "--algo=grid --alignEdges=1  ")
     npts_fit     = kwargs.get('npts_fit',     "--points=96") ## 66
@@ -126,6 +126,7 @@ def run_combined_fit(setup, setup_mumu, option, **kwargs):
             #POI_OPTS = "-P %s --setParameterRanges %s=%s:tid_SF_%s=%s --setParameters r=1,rgx{.*tes.*}=1,rgx{.*tid.*}=1 --freezeParameters r,tid_SF_%s  --redefineSignalPOIs tid_SF_%s" % (POI, POI, tes_range, r,tid_SF_range,r,r)  # tes_DM
             if POI == "tes_DM10":
                 tes_range = "0.950,1.030"
+            #tes_range = "0.850,1.030"
             POI_OPTS = "--saveWorkspace -P %s --setParameterRanges %s=%s:tid_SF_%s=%s:sf_W_%s=0.0,10.0 --setParameters r=1,rgx{.*tes.*}=1,rgx{.*tid.*}=1 --freezeParameters r  --redefineSignalPOIs tid_SF_%s --floatOtherPOIs=1" % (POI, POI, tes_range, r,tid_SF_range,r,r)  # tes_DM
             MultiDimFit_opts = " -m 90  %s %s %s -n .%s %s %s %s %s --trackParameters %s,rgx{.**.},rgx{.*sf_W_*.} --saveInactivePOI=1" %(workspace, algo, POI_OPTS, BINLABELoutput, fit_opts, xrtd_opts, cmin_opts, save_opts,NP)
             #MutliFitout = "higgsCombine.%s.MultiDimFit.mH90.root" %(BINLABELoutput)
@@ -133,7 +134,7 @@ def run_combined_fit(setup, setup_mumu, option, **kwargs):
             # POI_OPTS_F = " --snapshotName %s --saveNLL --setParameterRanges %s=%s:tid_SF_%s=%s --setParameters r=1,rgx{.*tes.*}=1,rgx{.*tid.*}=1 --freezeParameters r  --redefineSignalPOIs tes_%s " % ( "MultiDimFit",POI, tes_range, r,tid_SF_range,r)  # tes_DM
             # FitDiagnostics_opts = " -m 90  %s %s -n .%s %s %s " %(MutliFitout, POI_OPTS_F, BINLABELoutput, xrtd_opts, cmin_opts)
             # Fit with combine
-            print("MultidimFit %s : " %(r))
+            print("MultidimFit %s : " %(r), '\t', MultiDimFit_opts)
             os.system("combine -M MultiDimFit  %s" %(MultiDimFit_opts))
            
             # print("MultidimFit %s : " %(r))
@@ -166,6 +167,7 @@ def run_combined_fit(setup, setup_mumu, option, **kwargs):
             #POI_OPTS = "-P %s  --setParameterRanges %s=%s:tes_%s=%s -m 90 --setParameters r=1,rgx{.*tid.*}=1,rgx{.*tes.*}=1 --freezeParameters r,tes_%s --redefineSignalPOIs tes_%s --floatOtherPOIs 1" % (POI, POI, tid_SF_range,r,tes_range,r,r)  # tes_DM
             POI_OPTS = "-P %s --redefineSignalPOIs tes_%s --setParameterRanges %s=%s:tes_%s=%s -m 90 --setParameters r=1,rgx{.*tid.*}=1,rgx{.*tes.*}=1 --freezeParameters r --floatOtherPOIs=1" % (POI,r, POI, tid_SF_range, r,tes_range)  # tes_DM
             MultiDimFit_opts = " %s %s %s -n .%s %s %s %s %s --trackParameters rgx{.*tid.*},rgx{.*W.*},rgx{.*dy.*} --saveInactivePOI=1 " %(workspace, algo, POI_OPTS, BINLABELoutput,fit_opts, xrtd_opts, cmin_opts, save_opts)
+            print("MultidimFit %s : " %(r), '\t', MultiDimFit_opts)
             os.system("combine -M MultiDimFit %s " %(MultiDimFit_opts))
 
         # 2D Fit of tes_DM and tid_SF_DM by DM, both are pois
@@ -278,7 +280,7 @@ if __name__ == '__main__':
 
     argv = sys.argv
     parser = ArgumentParser(prog="makeTESfit", description="execute all steps to run TES fit")
-    parser.add_argument('-y', '--era', dest='era', choices=['2016', '2017', '2018', 'UL2016_preVFP','UL2016_postVFP', 'UL2017', 'UL2018','UL2018_v10','2022_postEE','2022_preEE'], default=['UL2018'], action='store', help="set era")
+    parser.add_argument('-y', '--era', dest='era', choices=['2016', '2017', '2018', 'UL2016_preVFP','UL2016_postVFP', 'UL2017', 'UL2018','UL2018_v10','2022_postEE','2022_preEE', '2023C', '2023D'], default=['UL2018'], action='store', help="set era")
     parser.add_argument('-c', '--config', dest='config', type=str, default='TauES_ID/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup")
     parser.add_argument('-o', '--option', dest='option', choices=['1', '2', '3', '4', '5','6'], default='1', action='store',
                         help="set option : Scan of tes and tid SF is profiled (-o 1) ;  Scan of tid SF and tes is profiled (-o 2) ; 2D scan of tes and tid SF (-o 3) \

@@ -109,7 +109,8 @@ def harvest(setup, year, obs, **kwargs):
                   found_match = True
                   break
               if not found_match:
-                print("ERROR : wrong definition of tid_SFRegions in the config file ")
+                print('region: ', region)
+                print('ERROR : wrong definition of tid_SFRegions for in the config file')
         else: 
           if len(listbin) == 1: # Example : DM
             tid_name = "tid_SF_%s"%(listbin[0]) # tid_SF_DM
@@ -297,7 +298,7 @@ def main(args):
     for obs in setup["observables"]:
         observables.append(obs)
     
-    indir = "./input"
+    indir = "./input_pt_nbin6_moretes"
     if args.multiDimFit:
         args.extratag += "_MDF"
 
@@ -316,7 +317,7 @@ if __name__ == '__main__':
   argv = sys.argv
   description = '''This script makes datacards with CombineHarvester.'''
   parser = ArgumentParser(prog="harvesterDatacards_TES",description=description,epilog="Succes!")
-  parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v10','2022_postEE','2022_preEE'], type=str, default=2018, action='store', help="select year")
+  parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v10','2022_postEE','2022_preEE', '2023C', '2023D'], type=str, default=2018, action='store', help="select year")
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup")
   parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
   parser.add_argument('-M', '--multiDimFit', dest='multiDimFit', default=False, action='store_true', help="assume multidimensional fit with a POI for each DM")
