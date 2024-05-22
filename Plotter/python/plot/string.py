@@ -206,7 +206,7 @@ def makehistname(*strings,**kwargs):
   kwargs.setdefault('dots',False)
   #hname = '_'.join(getobjname(s).strip('_') for s in strings) #.replace(' ','_')
   hname = makefilename(*strings,**kwargs)
-  hname = hname.replace('[','').replace(']','').replace('*','x')
+  hname = hname.replace('[','').replace(']','').replace('*','x').replace('.', 'p')
   return hname
   
 
