@@ -9,6 +9,7 @@ sys.path.append("../Plotter/") # for config.samples
 from config.samples_v12 import *
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Fitter.plot.datacard import createinputs, plotinputs
+from TauFW.Fitter.plot.rebinning import rebinning
 import yaml
 
 
@@ -17,15 +18,22 @@ def main(args):
   parallel  = args.parallel
   verbosity = args.verbosity
   setupConfFile = args.config
+  DM = args.DM
   plot      = True
-  outdir    = ensuredir("input")
+  outdir    = ensuredir("input_pt_nbin6_moretes")
   plotdir   = ensuredir(outdir,"plots")
   analysis  = 'ztt'
 
   print("Using configuration file: %s"%setupConfFile  )
   with open(setupConfFile, 'r') as file:
     setup = yaml.safe_load(file)
-
+    if DM and 'regions' in setup:
+       newreg = {}
+       for reg in setup['regions']:
+          if DM+'_' not in reg: continue
+          assert(reg not in newreg)
+          newreg[reg] = setup['regions'][reg]
+       setup['regions'] = newreg
   channel  = setup["channel"]
   tag      = "13TeV"
   if "tag" in setup:
@@ -88,10 +96,12 @@ def main(args):
     #   BINS / FIT REGIONS  #
     ############
       
-    bins = [ Sel("baseline", setup["baselineCuts"]) ]
+    bins = [ ]
+    if DM == '':
+      bins.append(Sel("baseline", setup["baselineCuts"]))
     if "regions" in setup:
       for region in setup["regions"]:
-        bins.append(Sel(region, setup["baselineCuts"]+" && "+setup["regions"][region]["definition"]))
+        bins.append(Sel(region, setup["regions"][region]['title'], setup["baselineCuts"]+" && "+setup["regions"][region]["definition"]))
 
 
     #######################
@@ -102,7 +112,7 @@ def main(args):
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/SMTauTau2016
     chshort = channel.replace('tau','t').replace('mu','m') # abbreviation of channel
 
-    fname   = "%s/%s_%s_tes_$OBS.inputs-%s-%s.root"%(outdir,analysis,chshort,era,tag)
+    fname   = "%s/%s_%s_tes_$OBS%s.inputs-%s-%s.root"%(outdir,analysis,chshort,DM,era,tag)
 
     print("Nominal inputs")
     createinputs(fname, sampleset, observables, bins, filter=setup["processes"], dots=True, parallel=parallel)
@@ -113,7 +123,6 @@ def main(args):
 
         newsampleset = sampleset.shift(setup["TESvariations"]["processes"], ("_TES%.3f"%var).replace(".","p"), "_TES%.3f"%var, " %.1d"%((1.-var)*100.)+"% TES", split=True,filter=False,share=True)
         createinputs(fname,newsampleset, observables, bins, filter=setup["TESvariations"]["processes"], dots=True, parallel=parallel)
-        newsampleset.close()
 
     if "systematics" in setup:
       for sys in setup["systematics"]:
@@ -129,11 +138,9 @@ def main(args):
           # Extract relevant parameters for modifying the sample
           sampleAppend = sysDef["sampleAppend"][iSysVar] if "sampleAppend" in sysDef else ""
           weightReplaced = [sysDef["nomWeight"],sysDef["altWeights"][iSysVar]] if "altWeights" in sysDef else ["",""]
-
           # Create a new sample set with systematic variations
           newsampleset_sys = sampleset.shift(sysDef["processes"], sampleAppend, "_"+sysDef["name"]+sysDef["variations"][iSysVar], sysDef["title"], split=True,filter=False,share=True)
           createinputs(fname,newsampleset_sys, observables, bins, filter=sysDef["processes"], replaceweight=weightReplaced, dots=True, parallel=parallel)
-          newsampleset_sys.close()
 
           # Check for overlap with TES variations in setup
           if "TESvariations" in setup:
@@ -144,10 +151,6 @@ def main(args):
                 print("Variation: TES = %f"%var)
                 newsampleset_TESsys = sampleset.shift(overlap_TES_sys, ("_TES%.3f"%var).replace(".","p")+sampleAppend, "_TES%.3f"%var+"_"+sysDef["name"]+sysDef["variations"][iSysVar], " %.1d"%((1.-var)*100.)+"% TES" + sysDef["title"], split=True,filter=False,share=True)
                 createinputs(fname,newsampleset_TESsys, observables, bins, filter=overlap_TES_sys, replaceweight=weightReplaced, dots=True, parallel=parallel)
-                newsampleset_TESsys.close()
-
-
-
 
       ############
       #   PLOT   #
@@ -161,20 +164,30 @@ def main(args):
 
         if "mumu" in channel:
             varprocs = OrderedDict([
-                       ('Nom',      ['ZLL','W','VV','ST','TT','QCD','data_obs'])])
+                       ('Nom',      ['ZL','ZTT', 'ZJ','W','ST','TT','QCD','data_obs'])])
         elif "mutau"in channel:
             varprocs = OrderedDict([
                        ('Nom',      ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"])])
 
         plotinputs(fname,varprocs,observables,bins,text=text,
+                   pname=pname,tag=tag,group=groups, paralel=parallel)
+        rebinning(fname, obs=observables[0].filename, tag=tag) 
+        fname = fname.split('/')[0] + '/rebinning/' + fname.split('/')[-1]
+        plotdir   = ensuredir(plotdir,"rebinning")
+        pname  = "%s/%s_$OBS_%s-$BIN-%s$TAG%s.png"%(plotdir,analysis,chshort,era,tag)
+        plotinputs(fname,varprocs,observables,bins,text=text,
                    pname=pname,tag=tag,group=groups, parallel=parallel)
-      
+        pname  = "%s/%s_$OBS_%s-$BIN-%s$TAG%s_wqcd_subtracted.png"%(plotdir,analysis,chshort,era,tag)
+        varprocs = OrderedDict([
+                       ('Nom',      ['ZTT', 'data_obs_nonztt_subtratced'])])
+        plotinputs(fname,varprocs,observables,bins,text=text,
+                   pname=pname,tag=tag,group=groups, parallel=parallel, mean=True) 
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v2p5','2022_postEE','2022_preEE' ], default=['UL2017'], action='store',
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v2p5','2022_postEE','2022_preEE', '2023C', '2023D' ], default=['UL2017'], action='store',
                                          help="set era" )
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
                                          help="set config file containing sample & fit setup" )
@@ -182,6 +195,7 @@ if __name__ == "__main__":
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
+  parser.add_argument('-d', '--decaymode', dest='DM', type=str, default='', help="which decay mode" )
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
