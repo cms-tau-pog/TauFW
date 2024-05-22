@@ -163,6 +163,8 @@ class Logger(object):
     """Fatal error by throwing a specified exception."""
     if trigger:
       string = color(string,'red',**kwargs)
+      if isinstance(error,Exception):
+        error = error.__class__
       raise error(string)
     return trigger
   

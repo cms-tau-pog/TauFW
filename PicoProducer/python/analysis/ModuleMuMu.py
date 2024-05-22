@@ -22,19 +22,19 @@ class ModuleMuMu(ModuleTauPair):
     if self.year==2016:
       #self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
       #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoTkMu24
-      self.muon1CutPt = lambda e: 25
+      self.muon1CutPt = lambda e: 26
       self.muonCutEta = lambda e: 2.4 #if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 25 if e.HLT_IsoMu24 else 29
+      self.muon1CutPt = lambda e: 26 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
     elif self.year==2022:
       #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt  = lambda e: 25
+      self.muon1CutPt  = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     else:
       #self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muon1CutPt = lambda e: 25
+      self.muon1CutPt = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     self.muon2CutPt   = 15
     self.tauCutPt     = 20
