@@ -136,7 +136,7 @@ def gethist(file,histname,setdir=True,close=None,retfile=False,fatal=True,warn=T
   return hist
   
 
-def loadmacro(macro,fast=False,opt='+O',verb=0):
+def loadmacro(macro,fast=True,opt='+O',verb=0):
   """Load C++ macro via ROOT."""
   if fast: # try to fast load library, assuming it is already exist and the macro is unchanged
     # NOTE! If you changed the macro, you should set fast=False, or remove the old library

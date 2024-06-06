@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # Author: Izaak Neutelings (November 2023)
 # Description: Unit tests of RDataFrame implementation in Sample
+# Instructions: python3 ./test/testRDataFrame_Sample.py -v2 -u rdf sumw mean hist set data
 import os, re
 import time
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
@@ -18,11 +19,12 @@ from pseudoSamples import getsamples
 
 
 # CUSTUM FUNCTIONs to mimic C++ macro
-ROOT.gInterpreter.Declare("""
-  Float_t dmmap(Int_t dm) {
-    return dm==0 ? 0 : (dm==1 || dm==2) ? 1 : dm==10 ? 2 : dm==11 ? 3 : 4;
-  };
-""")
+#### Already defined in TauFW.common.tools.RFDataFrame
+###ROOT.gInterpreter.Declare("""
+###  Float_t dmmap(Int_t dm) {
+###    return dm==0 ? 0 : (dm==1 || dm==2) ? 1 : dm==10 ? 2 : dm==11 ? 3 : 4;
+###  };
+###""")
 def dmmap(dm='dm_2'): # python version
   return f"{dm}==0 ? 0 : ({dm}==1 || {dm}==2) ? 1 : {dm}==10 ? 2 : {dm}==11 ? 3 : 4"
 
@@ -254,6 +256,7 @@ def main(args):
   verbosity = args.verbosity
   reuse     = args.reuse
   ncores    = args.ncores
+  units     = args.units
   parallel  = ncores>=2
   outdir    = ensuredir('plots/test')
   rungraphs = True #and False # RDF.RunGraphs should be faster
@@ -312,55 +315,66 @@ def main(args):
     RDF.SetNumberOfThreads(ncores,verb=verbosity)
   
   # TEST Sample.getrdframe
-#   test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
-#   test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=True, tag="_split",  verb=verbosity)
+  if 'rdf' in units:
+    test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity)
+    test_getrdframe(expsamples,variables,selections,outdir,rungraphs=rungraphs,split=True, tag="_split",  verb=verbosity)
   
   # TEST Sample.getrdframe2d
-#   test_getrdframe2D(expsamples[1],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity) # single
-#   test_getrdframe2D(expsamples[0],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity) # merged
+  if 'rdf2d' in units:
+    test_getrdframe2D(expsamples[1],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity) # single
+    test_getrdframe2D(expsamples[0],variables2D,selections,outdir,rungraphs=rungraphs,split=False,tag="_nosplit",verb=verbosity) # merged
   
   # TEST Sample.getsumw
-#   test_getsumw(expsamples[1],selections,split=False,verb=verbosity) # single
-#   test_getsumw(expsamples[0],selections,split=False,verb=verbosity) # merged
-#   test_getsumw(expsamples[0],selections,split=True, verb=verbosity) # merged, split
+  if 'sumw' in units:
+    test_getsumw(expsamples[1],selections,split=False,verb=verbosity) # single
+    test_getsumw(expsamples[0],selections,split=False,verb=verbosity) # merged
+    test_getsumw(expsamples[0],selections,split=True, verb=verbosity) # merged, split
   
   # TEST Sample.getmean
-#   test_getmean(expsamples[1],variables,selections,split=False,verb=verbosity) # single
-#   test_getmean(expsamples[0],variables,selections,split=False,verb=verbosity) # merged
-#   test_getmean(expsamples[0],variables,selections,split=True, verb=verbosity) # merged, split
+  if 'mean' in units:
+    test_getmean(expsamples[1],variables,selections,split=False,verb=verbosity) # single
+    test_getmean(expsamples[0],variables,selections,split=False,verb=verbosity) # merged
+    test_getmean(expsamples[0],variables,selections,split=True, verb=verbosity) # merged, split
   
   # TEST Sample.gethist
-#   test_gethist(expsamples[1],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # single
-#   test_gethist(expsamples[0],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # merged
-#   test_gethist(expsamples[0],variables,selections,outdir,split=True, tag="_split",verb=verbosity)   # merged, split
+  if 'hist' in units:
+    test_gethist(expsamples[1],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # single
+    test_gethist(expsamples[0],variables,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # merged
+    test_gethist(expsamples[0],variables,selections,outdir,split=True, tag="_split",verb=verbosity)   # merged, split
   
   # TEST Sample.gethist2D
-  test_gethist2D(expsamples[0],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # single
-  test_gethist2D(expsamples[0],variables2D,selections,outdir,split=True, tag="_split",  verb=verbosity) # merged
-  test_gethist2D(expsamples[1],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # merged, split
+  if 'hist2d' in units:
+    test_gethist2D(expsamples[0],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # single
+    test_gethist2D(expsamples[0],variables2D,selections,outdir,split=True, tag="_split",  verb=verbosity) # merged
+    test_gethist2D(expsamples[1],variables2D,selections,outdir,split=False,tag="_nosplit",verb=verbosity) # merged, split
   
   # TEST SampleSet.gethists
-  ###test_SampleSet_MultiDraw(sampleset_exp,variables,selections,outdir,parallel=parallel,split=True,tag="_split",verb=verbosity) # deprecated
-  test_SampleSet_RDF(sampleset_exp,variables,selections,outdir,split=True,tag="_split",verb=verbosity)
+  if 'set' in units:
+    ###test_SampleSet_MultiDraw(sampleset_exp,variables,selections,outdir,parallel=parallel,split=True,tag="_split",verb=verbosity) # deprecated
+    test_SampleSet_RDF(sampleset_exp,variables,selections,outdir,split=True,tag="_split",verb=verbosity)
   
   # TEST SampleSet.getstack to test QCD
-  ###test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity) # deprecated
-  test_SampleSet_RDF(sampleset,variables,selections,outdir,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
+  if 'data' in units:
+    ###test_SampleSet_MultiDraw(sampleset,variables,selections,outdir,parallel=parallel,split=True,tag="_split",method='QCD_OSSS',verb=verbosity) # deprecated
+    test_SampleSet_RDF(sampleset,variables,selections,outdir,split=True,tag="_split",method='QCD_OSSS',verb=verbosity)
   
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Test RDataFrame."""
+  units = ['rdf','rdf2d','sumw','mean','hist','hist2d','set','data']
   parser = ArgumentParser(description=description,epilog="Good luck!")
-  parser.add_argument('-i', '--fnames',   nargs='+', help="input files" )
-  parser.add_argument('-t', '--tag',      default="", help="extra tag for output" )
-  parser.add_argument('-r', '--reuse',    action='store_true',
-                                          help="reuse previously generated pseudo samples" )
-  parser.add_argument('-n', '--nevts',    type=int, default=50000, action='store',
-                                          help="number of events to generate per sample" )
-  parser.add_argument('-c', '--ncores',   default=8, type=int, help="number of cores/threads, default=%(default)s" )
-  parser.add_argument('-v', '--verbose',  dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
-                                          help="set verbosity" )
+  parser.add_argument('-u', '--unit',    dest='units', choices=units, nargs='+', default=['set'],
+                                         help="test unit" )
+  parser.add_argument('-i', '--fnames',  nargs='+', help="input files" )
+  parser.add_argument('-t', '--tag',     default="", help="extra tag for output" )
+  parser.add_argument('-r', '--reuse',   action='store_true',
+                                         help="reuse previously generated pseudo samples" )
+  parser.add_argument('-n', '--nevts',   type=int, default=50000, action='store',
+                                         help="number of events to generate per sample" )
+  parser.add_argument('-c', '--ncores',  default=8, type=int, help="number of cores/threads, default=%(default)s" )
+  parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
+                                         help="set verbosity" )
   args = parser.parse_args()
   main(args)
   print("\n>>> Done!")

@@ -97,12 +97,30 @@ def SetNumberOfThreads(nthreads=None,verb=0):
 RDF.SetNumberOfThreads = SetNumberOfThreads
 
 
+def printRDFReports(reports,reorder=False):
+  """Print cutflow from RCutFlowReport."""
+  if not reports:
+    return
+  cuts = [list(r) for f, r in reports] # convert to list of RDF.TCutInfo
+  cname = cuts[0][0].GetName() if (cuts[0] and len(cuts[0])==1) else None # common cut name ?
+  if cname and all(len(c)==1 and c[0].GetName()==cname for c in cuts): # one single common cut: print single table for all files
+    print(">>> RDF Report for cut %r:"%(cname))
+    print(">>> \033[4m%10s %10s %10s    %s\033[0m"%("Pass","All","Eff. [%]","filename"+' '*50))
+    for fname, report in reports:
+      cut = report.At(cname) # get (single) RDF.TCutInfo objects
+      print(">>> %10d %10d %10.2f    %s"%(cut.GetPass(),cut.GetAll(),cut.GetEff(),fname))
+  else: # print cutflow per file
+    for fname, report in reports:
+      print(">>> RDF Report %r:"%(fname))
+      printRDFReport(report,reorder=reorder)
+  
+
 def printRDFReport(report,reorder=False):
   """Print cutflow from RCutFlowReport."""
   print(">>> \033[4m%10s %10s %10s %10s    %s\033[0m"%("Pass","All","Eff. [%]","Cum. [%]","Selection"+' '*50))
   evt_dict = { }
   if reorder: # (naively) reorder cuts (by default cuts are ordered according to the order of RDataFrame.Filter calls)
-    for cut in report:
+    for cut in report: # loop over list of RDF.TCutInfo objects
       if cut.GetPass() not in evt_dict:
         evt_dict[cut.GetPass()] = [ ] # add "parent" cut
       if cut.GetAll() in evt_dict: # assume first cut with cut1.GetPass()==cut2.GetAll() is "parent" cut

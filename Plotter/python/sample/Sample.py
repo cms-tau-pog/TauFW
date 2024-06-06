@@ -5,6 +5,7 @@ from TauFW.Plotter.sample.utils import *
 from TauFW.common.tools.math import round2digit, reldiff
 from TauFW.common.tools.RDataFrame import RDF, RDataFrame, AddRDFColumn
 from TauFW.Plotter.sample.ResultDict import ResultDict, MeanResult # for containing RDataFRame RResultPtr
+from TauFW.Plotter.sample.HistSet import HistSetDict, StackDict
 from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist
 from TauFW.Plotter.sample.SampleStyle import *
@@ -591,6 +592,8 @@ class Sample(object):
       #LOG.verb('Sample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
       #         newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),1)
       splitsamples.append(sample)
+    if self.splitsamples:
+      LOG.warn(f"Sample.split: Overwriting existing splitsamples! {self.splitsamples} -> {splitsamples}")
     self.splitsamples = splitsamples # save list of split samples
     return splitsamples
   
@@ -704,7 +707,7 @@ class Sample(object):
           else: # create main RDataFrame common to all selections
             rdframe = RDataFrame(self.treename,self.filename) # save for next iteration on selection
             nevts = self.getentries_from_tree() # get total number of events to process
-            RDF.AddProgressBar(rdframe,nevts,": "+task+name)
+            RDF.AddProgressBar(rdframe,nevts,(f" ({task})" if task else '')+f": {name}")
             if rdf_dict!=None:
               rdf_dict[rdfkey_main] = rdframe # store for reuse & reporting, etc.
         
@@ -904,22 +907,22 @@ class Sample(object):
       return sumw
     
     # APPLY SELECTIONS
-    else:
-      _, selections, issinglesel = unpack_sellist_args(*args)
-      split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
-      
-      # GET & RUN RDATAFRAMES
-      kwargs['sumw'] = True
-      rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
-      res_dict = self.getrdframe([ ],selections,**kwargs)
-      if verbosity>=3: # print RDFs RDF.RResultPtr<double>
-        print(">>> Sample.getsumw: Got res_dict:")
-        res_dict.display() # print full dictionary
-      res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
-      
-      # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
-      hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
-      return hists_dict.results(singlevar=True,singlesel=issinglesel)
+    _, selections, issinglesel = unpack_sellist_args(*args)
+    split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
+    
+    # GET & RUN RDATAFRAMES
+    kwargs['sumw'] = True
+    rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
+    res_dict = self.getrdframe([ ],selections,**kwargs)
+    if verbosity>=3: # print RDFs RDF.RResultPtr<double>
+      print(">>> Sample.getsumw: Got res_dict:")
+      res_dict.display() # print full dictionary
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
+    
+    # CONVERT to & RETURN nested dictionaries of means: { selection: { variable: { sample: float } } }
+    single     = (not split) # return { selection: { variable: float } } instead
+    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
+    return hists_dict.results(singlevar=True,singlesel=issinglesel)
   
   def getmean(self, *args, **kwargs):
     """Compute mean of variables and selections with RDataFrame and return a dictionary of histograms."""
@@ -950,11 +953,28 @@ class Sample(object):
       res_dict.display() # print full dictionary
     res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
     
-    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
-    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
+    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: { sample: TH1 } } }
+    single     = (not split) # return { selection: { variable: TH1 } } instead
+    hists_dict = res_dict.gethists(single=single,style=True,clean=True)
     if verbosity>=3: # print yields
       hists_dict.display(nvars=(1 if split else -1))
     return hists_dict.results(singlevar=issinglevar,singlesel=issinglesel,popvar=popvar)
+  
+  def getstack(self, *args, thstack=False, **kwargs):
+    """Create and fill histograms for given lists of variables and selections,
+    and construct TauFW Stack of sample's subcomponents.
+    Return a StackDict of TauFW Stack objects."""
+    kwargs['split'] = True # force splitting into subcomponents (e.g. gen-level cuts), if available
+    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    hists_dict = self.gethist(*args, **kwargs) # { selection: { variable: { sample: TH1 } } }
+    #histset_dict = HistSetDict.init_from_dict(hists_dict,style=True,clean=False) # convert to HistSetDict as intermediate step
+    stacks = StackDict.init_from_HistDict(hists_dict,singlevar=issinglevar,singlesel=issinglesel,thstack=thstack,**kwargs)
+    return stacks # return StackDict: { Stack : (Variable, Selection) }
+  
+  def getTHStack(self, *args, **kwargs):
+    """Get THStack of sample's subcomponents. Return StackDict of ROOT THStack objects."""
+    kwargs['thstack'] = True
+    return self.getstack(*args, **kwargs) # return StackDict: { THStack : (Variable, Selection) }
   
   def gethist2D(self, *args, **kwargs):
     """Create and fill 2D histograms for given lists of variables and selections
