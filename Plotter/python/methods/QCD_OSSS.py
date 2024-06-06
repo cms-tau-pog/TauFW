@@ -3,7 +3,7 @@
 # Description: Data-driven method to estimate QCD from SS region.
 import os, re
 from TauFW.Plotter.plot.string import invertcharge
-from TauFW.Plotter.sample.SampleSet import LOG, SampleSet, Variable, deletehist, getcolor, makehistname #, HistDict
+from TauFW.Plotter.sample.SampleSet import LOG, SampleSet, Variable, deletehist, getcolor, makehistname
 #from ctypes import c_double
 #print ">>> Loading %s"%(__file__)
 #gROOT.Macro(modulepath+'/QCD/QCD.C+')
@@ -17,26 +17,26 @@ def QCD_OSSS(self, variables, selections, **kwargs):
     LOG.header("Estimating QCD for variables %s"%(', '.join(v.filename for v in variables)))
     #LOG.verbose("\n>>> estimating QCD for variable %s"%(self.var),verbosity,level=2)
   samples       = self.samples
-  name          = kwargs.get('name',            'QCD'          )
-  title         = kwargs.get('title',           "QCD multijet" )
-  tag           = kwargs.get('tag',             ""             )
-  weight        = kwargs.get('weight',          ""             )
-  dataweight    = kwargs.get('dataweight',      ""             )
-  replaceweight = kwargs.get('replaceweight',   ""             )
-  scale         = kwargs.get('scale',           None           ) # OS/SS ratio (SS -> OS extrapolation scale)
-  shift         = kwargs.get('shift',           0.0            ) #+ self.shiftQCD # for systematics
-  parallel      = kwargs.get('parallel',        False          )
-  negthres      = kwargs.get('negthres',        0.25           ) # threshold for warning about negative QCD bins
+  name          = kwargs.get('name',          'QCD'          )
+  title         = kwargs.get('title',         "QCD multijet" )
+  tag           = kwargs.get('tag',           ""             )
+  weight        = kwargs.get('weight',        ""             )
+  dataweight    = kwargs.get('dataweight',    ""             )
+  replaceweight = kwargs.get('replaceweight', ""             )
+  scale         = kwargs.get('scale',         None           ) # OS/SS ratio (SS -> OS extrapolation scale)
+  shift         = kwargs.get('shift',         0.0            ) #+ self.shiftQCD # for systematics
+  negthres      = kwargs.get('negthres',      0.25           ) # threshold for warning about negative QCD bins
   
   # INVERT OS -> SS CHARGE SELECTIONS
   scale_dict = { }
+  selection_dict = { } # { selection_SS: selection_OS }
   selections_SS = [ ]
   for selection_OS in selections:
     
     # SELECTION STRING
-    selection_SS = selection_OS.invertcharge(to='SS') # q_1*q_2<0 (OS) -> q_1*q_2>0 (SS)
+    selection_SS = selection_OS.invertcharge(target='SS') # q_1*q_2<0 (OS) -> q_1*q_2>0 (SS)
     #isjetcat = re.search(r"(nc?btag|n[cf]?jets)",cuts_OS)
-    selection_SS.OS = selection_OS # cache for reuse
+    selection_dict[selection_SS] = selection_OS # cache for reuse below
     selections_SS.append(selection_SS)
     
     # OS/SS RATIO (SS -> OS extrapolation scale)
@@ -50,12 +50,12 @@ def QCD_OSSS(self, variables, selections, **kwargs):
   
   # GET SS HISTOGRAMS
   hists = self.gethists(variables,selections_SS,weight=weight,dataweight=dataweight,replaceweight=replaceweight,tag=tag,
-                        signal=False,split=False,blind=False,task="Estimating QCD: ",verbosity=verbosity-1)
+                        signal=False,split=False,blind=False,task="Estimating QCD",verbosity=verbosity-1)
   
   # CREATE QCD HISTS
-  qcdhists = { } #HistDict()
+  qcdhists = { }
   for selection_SS in hists:
-    selection_OS = selection_SS.OS
+    selection_OS = selection_dict[selection_SS]
     qcdhists[selection_OS] = { }
     for variable, histset in hists[selection_SS].items():
       datahist = histset.data
@@ -71,7 +71,7 @@ def QCD_OSSS(self, variables, selections, **kwargs):
       for hist in exphists[1:]:
         exphist.Add(hist)
       qcdhist = exphists[0].Clone(makehistname(variable,selection_OS,name,tag).rstrip('_')) # $VAR_$SEL_$PROCESS$TAG
-      qcdhist.Reset()
+      qcdhist.Reset() # set all bin content to zero
       qcdhist.Add(datahist) # QCD = observed data in SS
       qcdhist.Add(exphist,-1) # subtract total MC expectation in SS
       qcdhist.SetTitle(title)
@@ -103,10 +103,9 @@ def QCD_OSSS(self, variables, selections, **kwargs):
         LOG.verbose("SampleSet.QCD_OSSS: SS yields: data=%.1f, exp=%.1f, qcd=%.1f, scale=%.3f"%(ndata,nexp,nqcd,scale),verbosity,level=2)
       
       # CLEAN
-      if not parallel: # avoid segmentation faults for parallel
-        deletehist([datahist,exphist]+exphists) # clean histogram from memory
+      deletehist([datahist,exphist]+exphists) # clean histogram from memory
   
-  return qcdhists
+  return qcdhists # dictionary: { selection: { variable: TH1 } } to be inserted into HistSet
   
 
-SampleSet.QCD_OSSS = QCD_OSSS # add as class method of SampleSet
+SampleSet.QCD_OSSS = QCD_OSSS # add as class method of SampleSet, which will be called in SampleSet.gethists

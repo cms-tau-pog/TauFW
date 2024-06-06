@@ -2,7 +2,7 @@
 import re
 from copy import copy, deepcopy
 from ROOT import TH1D, TH2D
-from TauFW.Plotter.plot.string import joinweights, invertcharge
+from TauFW.Plotter.plot.string import joinweights, invertcharge, invertiso
 from TauFW.Plotter.plot.Context import getcontext
 from TauFW.Plotter.plot.utils import LOG, isnumber, islist, ensurelist
 
@@ -214,6 +214,13 @@ class Selection(object):
     """Invert charge requirement:
       q_1*q_2<0 (OS) -> q_1*q_2>0 (SS)
     """
+    oldstr = self.selection # old selection string
+    newsel = deepcopy(self) # create new object
+    newsel.selection = invertcharge(oldstr,**kwargs) # overwrite selection string
+    return newsel
+  
+  def invertiso(self,**kwargs):
+    """Invert isolation requirement."""
     oldstr = self.selection # old selection string
     newsel = deepcopy(self) # create new object
     newsel.selection = invertcharge(oldstr,**kwargs) # overwrite selection string

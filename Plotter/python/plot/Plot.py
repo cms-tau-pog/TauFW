@@ -25,7 +25,8 @@ CMSStyle.setTDRStyle()
 # https://root.cern.ch/doc/master/classTColor.html
 # http://imagecolorpicker.com/nl
 _tsize   = 0.060 # text size for axis titles
-_lsize   = 0.048 # text size for axis labels and legend
+_lsize   = 0.048 # text size for axis labels
+_legsize = 0.052 # text size for legend and extra text
 _lcolors = [ kRed+1, kAzure+5, kGreen+2, kOrange+1, kMagenta-4, kYellow+1,
              kRed-9, kAzure-4, kGreen-2, kOrange+6, kMagenta+3, kYellow+2 ]
 _fcolors = [ kRed-2, kAzure+5,
@@ -834,7 +835,7 @@ class Plot(object):
     y2_user     = kwargs.get('y2',          None           ) # legend bottom side
     width       = kwargs.get('width',       -1             ) # legend width
     height      = kwargs.get('height',      -1             ) # legend height
-    tsize       = kwargs.get('tsize',       _lsize         ) # text size
+    tsize       = kwargs.get('tsize',       _legsize       ) # text size
     twidth      = kwargs.get('twidth',      None           ) or 1 # scalefactor for legend width
     theight     = kwargs.get('theight',     None           ) or 1 # scalefactor for legend height
     texts       = kwargs.get('text',        [ ]            ) # extra text below legend
@@ -906,11 +907,11 @@ class Plot(object):
     
     # LEGEND DIMENSIONS
     if width<0: # automatic width
-      width  = twidth*(tsize/_lsize)*xscale*max(0.22,min(0.60,0.036+0.016*maxlen))
+      width = twidth*tsize*xscale*max(4.42,min(12.5,0.75+0.325*maxlen))
       if ncols>1:
         width *= ncols/(1-colsep)
     if height<0:
-      height = theight*0.0643*(tsize/_lsize)*nlines
+      height = theight*1.23*tsize*nlines
     x2 = 0.90; x1 = x2 - width
     y1 = 0.92; y2 = y1 - height
     
@@ -972,11 +973,11 @@ class Plot(object):
     
     # MARGIN
     if ncols>=3:
-      margin *= 0.045*ncols/width
+      margin *= 0.047*ncols/width
     elif ncols==2:
-      margin *= 0.090/width
+      margin *= 0.094/width
     else:
-      margin *= 0.044/width
+      margin *= 0.047/width
     legend.SetMargin(margin)
     
     # STYLE
@@ -1051,7 +1052,7 @@ class Plot(object):
     verbosity  = LOG.getverbosity(self,kwargs)
     position   = kwargs.get('pos',      None     )
     position   = kwargs.get('position', position ) or 'topleft' #.lower()
-    tsize      = kwargs.get('size',     _lsize   ) # text size
+    tsize      = kwargs.get('size',     _legsize ) # text size
     tsize      = kwargs.get('tsize',    tsize    ) # text size
     theight    = kwargs.get('theight',  None     ) or 1 # scale line height
     color      = kwargs.get('color',    kBlack   ) # text color
