@@ -70,31 +70,32 @@ RDF.StopProgressBar = StopProgressBar # save as part of RDF module
 def SetNumberOfThreads(nthreads=None,verb=0):
   """Set number of threads.
   If nthreads==None: Change nothing.
-  If nthreads==0, 1: Serial (disable multithreading).
+  If nthreads==False, 0, 1: Serial (disable multithreading).
   If nthreads==True: allow 8 threads (default)."""
   # NOTE:
   #   1) RDataFrame parallelizes over TTree clusters, check tree->Print("clusters")
   #   2) After creating of RDataFrame, the number of threads cannot be changed anymore
-  if nthreads==None: # do not do anything
+  if nthreads is None: # do not do anything
     return ROOT.GetThreadPoolSize()
-  else:
-    if isinstance(nthreads,bool):
-      nthreads = min(8,os.cpu_count()) if nthreads else 1 # if nthreads==True: set to default 8 cores
-    if verb>=1:
-      print(">>> SetNumberOfThreads: Setting number of threads from %s to %s..."%(ROOT.GetThreadPoolSize(),nthreads))
-    if ROOT.IsImplicitMTEnabled(): #ROOT.GetThreadPoolSize()<=0:
-      if verb>=2:
-        print(">>> SetNumberOfThreads: Calling ROOT.DisableImplicitMT...")
-      ROOT.DisableImplicitMT() # turn off to overwrite previous setting
-    if nthreads>=2: # only enable implicit multithreading if one or more threads are requested
-      if verb>=2:
-        print(">>> SetNumberOfThreads: Calling ROOT.EnableImplicitMT(%s)..."%(nthreads))
-      ROOT.EnableImplicitMT(nthreads)
+  elif nthreads is False:
+    nthreads = 1
+  elif nthreads is True: # set automatically
+    nthreads = min(8,os.cpu_count()) # set to system's default, but at most 8 cores
+  if verb>=1:
+    print(f">>> SetNumberOfThreads: Setting number of threads from {ROOT.GetThreadPoolSize()} to {nthreads}...")
+  if ROOT.IsImplicitMTEnabled(): #ROOT.GetThreadPoolSize()<=0:
+    if verb>=2:
+      print(">>> SetNumberOfThreads: Calling ROOT.DisableImplicitMT...")
+    ROOT.DisableImplicitMT() # turn off to overwrite previous setting in next step
+  if nthreads>=2: # only enable implicit multithreading if two or more threads are requested
+    if verb>=2:
+      print(f">>> SetNumberOfThreads: Calling ROOT.EnableImplicitMT({nthreads})...")
+    ROOT.EnableImplicitMT(nthreads)
   if ROOT.GetThreadPoolSize()!=nthreads:
-    print(">>> SetNumberOfThreads: Warning! Number of threads is set to ROOT.GetThreadPoolSize()=%s instead of the requested nthreads=%s..."%(
-      ROOT.GetThreadPoolSize(),nthreads))
+    print(f">>> SetNumberOfThreads: Warning! Number of threads is set to ROOT.GetThreadPoolSize()={ROOT.GetThreadPoolSize()} "
+          f"instead of the requested nthreads={nthreads}...")
   return nthreads
-RDF.SetNumberOfThreads = SetNumberOfThreads
+RDF.SetNumberOfThreads = SetNumberOfThreads # add to namespace
 
 
 def printRDFReports(reports,reorder=False):
@@ -104,14 +105,14 @@ def printRDFReports(reports,reorder=False):
   cuts = [list(r) for f, r in reports] # convert to list of RDF.TCutInfo
   cname = cuts[0][0].GetName() if (cuts[0] and len(cuts[0])==1) else None # common cut name ?
   if cname and all(len(c)==1 and c[0].GetName()==cname for c in cuts): # one single common cut: print single table for all files
-    print(">>> RDF Report for cut %r:"%(cname))
+    print(f">>> RDF Report for cut {cname!r}:")
     print(">>> \033[4m%10s %10s %10s    %s\033[0m"%("Pass","All","Eff. [%]","filename"+' '*50))
     for fname, report in reports:
       cut = report.At(cname) # get (single) RDF.TCutInfo objects
       print(">>> %10d %10d %10.2f    %s"%(cut.GetPass(),cut.GetAll(),cut.GetEff(),fname))
   else: # print cutflow per file
     for fname, report in reports:
-      print(">>> RDF Report %r:"%(fname))
+      print(f">>> RDF Report {fname!r}:")
       printRDFReport(report,reorder=reorder)
   
 
@@ -136,7 +137,7 @@ def printRDFReport(report,reorder=False):
   ntot = None # all events processed by RDataFrame
   skipcuts = [ ] # cuts which already have been displayed
   for cut in report: # iterate over TCutInfo in RCutFlowReport
-    if ntot==None: # assume first cut has total of all events processed by RDataFrame
+    if ntot is None: # assume first cut has total of all events processed by RDataFrame
       ntot = cut.GetAll()
     printcut(cut,indent="")
   

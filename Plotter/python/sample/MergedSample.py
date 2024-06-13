@@ -35,6 +35,7 @@ class MergedSample(Sample):
     self.isexp     = sample.isexp
     self.issignal  = sample.issignal
     self.cutflow   = sample.cutflow
+    self.channel   = sample.channel
     self.fillcolor = kwargs.get('color',    self.fillcolor) or sample.fillcolor
     self.linecolor = kwargs.get('linecolor',self.linecolor) or sample.linecolor
     self.lumi      = kwargs.get('lumi',     sample.lumi)
@@ -111,6 +112,7 @@ class MergedSample(Sample):
     newdict['title']        = title
     newdict['samples']      = samples
     newdict['splitsamples'] = splitsamples
+    newdict['channel']      = kwargs.get('channel',self.channel   )
     newdict['cuts']         = kwargs.get('cuts',   self.cuts      )
     newdict['weight']       = kwargs.get('weight', self.weight    )
     newdict['extraweight']  = kwargs.get('extraweight', self.extraweight )
@@ -173,7 +175,7 @@ class MergedSample(Sample):
         LOG.verb("MergedSample.getrdframe: Scaling subsample %r by %s (total %s)"%(subsample.name,scales[i],scale),verbosity,1)
       res_dict += subsample.getrdframe(variables,selections,**hkwargs)
     if not split: # merge RDF.RResultPtr<T> into MergedResults list so they can be added coherently later
-      hname = name if 'name' in kwargs else "$VAR_"+name # histogram name
+      hname = name if 'name' in kwargs else "$VAR_$SEL_"+name # histogram name
       res_dict.merge(self,name=hname,title=self.title,verb=verbosity) # { selection : { variable: { self: hist } } } }
     
     return res_dict

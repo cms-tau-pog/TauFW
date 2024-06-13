@@ -77,7 +77,7 @@ class Variable(object):
     self.veto         = kwargs.get('veto',        [ ]            ) # do not plot for these patterns
     self.blindcuts    = kwargs.get('blind',       ""             ) # string for blind cuts to blind data
     self._addoverflow = kwargs.get('addof',       False          ) # add overflow to last bin
-    self._addoverflow = kwargs.get('addoverflow', self._addoverflow ) # add overflow to last bin
+    self._addoverflow = kwargs.get('addoverflow', self._addoverflow ) # add overflow to last bin (alias)
     if self.latex:
       self.title = makelatex(self.title,units=self.units)
       if 'ctitle' in kwargs:

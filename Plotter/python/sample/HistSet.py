@@ -69,14 +69,14 @@ class HistSet(object):
     
   def getstack(self, var=None, context=None, **kwargs):
     """Create and return a Stack object."""
-    verb = kwargs.get('verb', 0)
-    if var==None: # for initiation of Plot object
+    verbosity = LOG.getverbosity(kwargs)
+    if var is None: # for initiation of Plot object
       var = self.var
-    if self.sel!=None and context==None: # for setting context of Variable object
+    if self.sel!=None and context is None: # for setting context of Variable object
       context = self.sel
-    LOG.verb("HistSet.getstack: context=%r, var=%r, self.var=%r, self.sel=%r"%(context,var,self.var,self.sel),verb,2)
+    LOG.verb("HistSet.getstack: context=%r, var=%r, self.var=%r, self.sel=%r"%(context,var,self.var,self.sel),verbosity,2)
     if context!=None and hasattr(var,'changecontext'):
-      var.changecontext(context,verb=verb)
+      var.changecontext(*context,verb=verbosity)
     stack = Stack(var,self.data,self.exp,self.sig,**kwargs)
     return stack # return Stack object
   
@@ -100,7 +100,7 @@ class HistDict(object):
   """
   
   def __init__(self,histdict=None,**kwargs):
-    if histdict==None:
+    if histdict is None:
       histdict = { } # create new empty dictionary
     self._dict = histdict # { selection : { variable: HistSet } }
   
@@ -301,7 +301,8 @@ class StackDict(dict):
     Called in Sample(Set).getstack & Sample(Set).getTHStack.
     If there's a single stack for a single pair of variables and selections,
     return single Stack/THStack object instead."""
-    stacks = { }
+    stacks  = { }
+    context = kwargs.get('context', [ ])
     for selection in histset_dict:
       for variable, histset in histset_dict[selection].items():
         if isinstance(histset,dict):
@@ -309,7 +310,8 @@ class StackDict(dict):
         if thstack: # ROOT THStack object
           stack = histset.getTHStack(**kwargs) # create ROOT THStack object
         else: # TauFW Stack object
-          stack = histset.getstack(var=variable,context=selection,**kwargs) # create Stack object
+          context_ = context+[selection]
+          stack = histset.getstack(var=variable,context=context_,**kwargs) # create Stack object
         if singlevar and singlesel:
           return stack # return single Stack/THStack object instead of StackDict
         stacks.setdefault(selection,{ })[variable] = stack # { selection : { variable: { stack } } } }
@@ -324,10 +326,13 @@ class StackDict(dict):
     for stack, _ in self.items():
       yield stack
   
-  def items(self):
+  def items(self,**kwargs):
     """Return iterator over dictionary. Yield (stack,(variable,selection))"""
+    ###verbosity = LOG.getverbosity(kwargs)
     for selection in self.keys():
       for variable in self[selection]:
+        ###context = kwargs.get('context',[ ])+[selection]
+        ###variable.changecontext(*context,verb=verbosity)
         stack = self[selection][variable]
         yield (stack,(variable,selection))
   

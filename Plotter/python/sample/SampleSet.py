@@ -366,6 +366,7 @@ class SampleSet(object):
     """
     variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
     histset_dict = self.gethists(variables,selections,**kwargs)
+    kwargs['context'] = kwargs.get('context',[ ])+[self.channel]
     stacks = StackDict.init_from_HistDict(histset_dict,singlevar=issinglevar,singlesel=issinglesel,thstack=thstack,**kwargs)
     return stacks # return StackDict: { Stack : (Variable, Selection) }
   

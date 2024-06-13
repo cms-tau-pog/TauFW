@@ -281,7 +281,7 @@ class ResultDict(): #object
         LOG.verb("ResultDict.merge: Merge %r: %r"%(sample,list(self._dict[sel][var].values())),verb,3)
         vname   = "%s_vs_%s"%(var[1].filename,var[0].filename) if isinstance(var,tuple) else\
                   var.filename if hasattr(var,'filename') else str(var)
-        hname   = name.replace('$VAR',vname) if isinstance(name,str) else name
+        hname   = name.replace('$VAR',vname).replace('$SEL',sel.filename) if isinstance(name,str) else name
         results = MergedResult(self._dict[sel][var].values(),name=hname,title=title,verb=verb)
         self._dict[sel][var] = { sample: results } # replace nested dictionary with on sample
         if nterms<=0: # set first time

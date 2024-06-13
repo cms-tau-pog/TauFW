@@ -33,7 +33,8 @@ class Context(object):
   def getcontext(self,*args,**kwargs):
     """Get the contextual object for a set of ordered arguments. If it is not available, return Default."""
     verbosity = LOG.getverbosity(self,kwargs)
-    regex = kwargs.get('regex', self.regex)
+    regex     = kwargs.get('regex', self.regex)
+    args      = [a for a in args if a] # remove empty args
     
     # CHECK
     if len(args)==0:
@@ -67,7 +68,7 @@ class Context(object):
     # RESULT
     if isinstance(result,Context):
       return result.getcontext(*args[1:],**kwargs) # recursive
-    elif len(args)>1 and result==self.default:
+    elif len(args)>=2 and result==self.default:
       return self.getcontext(*args[1:],**kwargs) # recursive
     return result
   

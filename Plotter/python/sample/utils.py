@@ -516,12 +516,10 @@ def stitch(samplelist,*searchterms,**kwargs):
   wIncl_njet = dict()
   for njets in sample_njet:
     sample = sample_njet[njets]
-    print("sample = ", sample)
-    print("Avant le reweight sample.sumweights = ", sample.sumweights)
     effIncl_njet[njets] = sample.xsec/sample_incl.xsec
     print("%i-jet efficiency in inclusive sample = %.6g"%(njets,effIncl_njet[njets]))
     wIncl_njet[njets] = sample.lumi * kfactor * sample.xsec * 1000. / (sample.sumweights + effIncl_njet[njets]*sample_incl.sumweights)
-    print(">>> Lumi=%.6g, kfactor=%.6g, xsec=%.6g, sumw=%.6g, sample.norm=%.6g"%(sample.lumi, kfactor, sample.xsec, sample.sumweights,sample.norm))
+    print(">>> Lumi=%.6g, kfactor=%.6g, xsec=%.6g, sumw=%.6g, sample.norm=%.6g"%(sample.lumi,kfactor,sample.xsec,sample.sumweights,sample.norm))
     print("Inclusive %i jets weight = %.6g"%(njets,wIncl_njet[njets]))
   
   wIncl_mutau = ""
