@@ -32,6 +32,7 @@ from TauFW.common.tools.root import ensureTFile, ensureTDirectory, rootrepr, loa
 from TauFW.common.tools.math import partition, frange
 from TauFW.common.tools.RDataFrame import RDF
 print(">>> Done importing...")
+picodir = "/eos/user/i/ineuteli/analysis/g-2"
 
 # COMMON CROSS SECTION for elastic signals
 #xsec_mm = 0.324*0.328 #0.37553*0.33 # old samples with filter, alpha = 1/126
@@ -102,7 +103,6 @@ def makemcsample(group,sname,title,xsec,channel,era,tag="",verb=0,**kwargs):
   kwargs.pop('extraweight')
   if 'e' in channel:
     channel = channel.replace('e','ele')
-  picodir = "/eos/user/i/ineuteli/analysis/g-2"
   fname   = "$PICODIR/$ERA/$GROUP/$SAMPLE_$CHANNEL$TAG.root"
   fname_  = repkey(fname,PICODIR=picodir,ERA=era,GROUP=group,SAMPLE=sname,CHANNEL=channel,TAG=tag)
   if not os.path.isfile(fname_):
@@ -141,7 +141,8 @@ def getsampleset(channel,era,**kwargs):
       sample.name = sample.name.replace('2016F','2016F'+t)
     sampleset.printtable()
     return sampleset
-  fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+  #fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+  fname     = f"{picodir}/$ERA/$GROUP/$SAMPLE_$CHANNEL$TAG.root"
   fname     = kwargs.get('fname',       fname   ) or fname # file name pattern of pico files
   tag       = kwargs.get('tag',         ""      )
   table     = kwargs.get('table',       True    ) # print sample set table

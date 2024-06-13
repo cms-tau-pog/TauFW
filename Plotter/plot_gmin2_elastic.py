@@ -249,6 +249,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   rtitle    = "#frac{Obs. #minus Bkg.}{#gamma#gamma #rightarrow #mu#mu, WW}  "
   chstr     = channel.replace('mu','m').replace('tau','t') 
   redoes    = [0,1,2]
+  lsize     = 0.056 # legend size
+  lsize2    = 0.048 # extra text for SFs
   bkgname   = "bkg_incl"
   exts      = ['png','pdf','root'] if paper else ['png','pdf'] if pdf else ['png'] # extensions
   if sideband==None:
@@ -270,7 +272,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   sel_0t   = f"{baseline} && ntrack_all==0"
   sel_1t   = f"{baseline} && ntrack_all==1"
   sel_sr   = f"{baseline} && aco<0.015 && ntrack_all<=1"
-  tit_nt   = "#it{N}_{#lower[-0.23]{tracks}}"
+  tit_nt   = "#it{N}_{#lower[-0.21]{tracks}}"
   selections = [ # plot these selections
     #Sel(f"{tit_nt} <= 1",            sel_sr,    fname="ntracksleq1"),
     #Sel(f"{tit_nt} = 0",             sel_0t,    fname="ntracks0"),
@@ -306,8 +308,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
   
   # VARIABLES
   variables = [
-    #Var('m_ll', "m_mumu", 80, 50, 450, fname="m_mumu_fine", logy=True, ymargin=1.18, logyrange=6.5 ),
-    Var('m_ll', "m_mumu", mbins, fname="m_mumu", logy=True, ymargin=1.18, logyrange=7 ),
+    #Var('m_ll', "m_mumu", 80, 50, 450, fname="m_mumu_fine", logy=True, ymargin=1.21, logyrange=6.5 ),
+    Var('m_ll', "m_mumu", mbins, fname="m_mumu", logy=True, ymargin=1.21, logyrange=7 ),
   ]
   
   # JSON file for storing SFs
@@ -404,8 +406,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
         hists_exp = [hists_sb[s][var] for s in [bkgname,sample_sig,sample_ww]] # expected bkg + sig
         stack = Stack(var,hist_obs,hists_exp,clone=True,verb=verb)
         stack.draw(fraction=fraction,rmin=0,rmax=1.25,lowerpanels=2)
-        stack.drawlegend(twidth=1)
-        stack.drawtext(text)
+        stack.drawlegend(twidth=0.98,tsize=lsize)
+        stack.drawtext(text,tsize=lsize)
         stack.canvas.cd(3)
         fstack = stack.ratio.fraction
         frame3 = fstack.GetStack().Last()
@@ -500,7 +502,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
       #text  = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
       text  = selection.title
       rmax  = 3.1 if selection.issr else 1.6
-      rmax2 = 6.9
+      rmax2 = 7.1
       for var in variables:
         
         # GET HIST
@@ -510,8 +512,8 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
         # PLOT STACK
         stack = Stack(var,hist_obs,hists_exp,clone=True,verb=verb)
         stack.draw(ymin=1e-3,fraction=fraction,rmin=0,rmax=rmax,lowerpanels=2)
-        stack.drawlegend(y=0.94,twidth=0.85)
-        stack.drawtext(text)
+        stack.drawlegend(y=0.94,twidth=0.81,tsize=lsize)
+        stack.drawtext(text,tsize=lsize)
         
         # STEP 4: Fit ratio
         LOG.color("Step 4: Fit...",b=True)
@@ -557,15 +559,15 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
         
         if redo==redoes[-1] or (not paper) or (ntmin!=3 or ntmax!=7): # reduce number of plots by excluding intermediate fits
           hrat.Draw('E0 E1 SAME') # draw on top (DOES NOT WORK?)
-          stack.drawtext(fres,x=0.50,y=0.57,size=0.044,theight=1.16)
+          stack.drawtext(fres,x=0.46,y=0.55,tsize=lsize2,theight=1.04)
           stack.canvas.cd(3)
           stack.setaxes(ratio2,ymin=0,ymax=rmax2,xtitle=var.title,ytitle=rtitle,nydiv=506,
                         ytitlesize=0.054,ytitleoffset=0.92,center=True,latex=False)
           
           # RATIO LEGEND
-          lwidth = 0.28 if paper else 0.32
+          lwidth = 0.32 if paper else 0.36
           if 'ntrack_all==1' in selection.selection:
-            x1 = 0.405
+            x1 = 0.390
             y1 = 0.960
           else:
             x1 = 0.18
@@ -575,11 +577,11 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           legend = TLegend(x1,y1,x2,y2)
           legend.SetFillStyle(0)
           legend.SetBorderSize(0)
-          legend.SetTextSize(0.082)
-          legend.SetMargin(0.3)
+          legend.SetTextSize(1.7*lsize)
+          legend.SetMargin(0.30)
           legend.SetTextFont(42)
           legend.SetNColumns(len(funcs))
-          legend.SetColumnSeparation(0.011)
+          legend.SetColumnSeparation(0.012)
           for i, func in sorted(funcs.items()):
             ftitle = func.GetTitle()
             if paper:
@@ -606,9 +608,9 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
           # PLOT STACK
           stack = Stack(var,hist_obs,hists_exp,clone=True,verb=verb)
           stack.draw(ymin=1e-3,fraction=fraction,rmin=0,rmax=1.6,lowerpanels=2)
-          stack.drawlegend(y=0.94,twidth=0.85)
-          stack.drawtext(selection.title)
-          stack.drawtext(f"SF = {sf_el:.3f} applied",x=0.55,y=0.53,size=0.044)
+          stack.drawlegend(y=0.94,twidth=0.85,tsize=lsize)
+          stack.drawtext(selection.title,tsize=lsize)
+          stack.drawtext(f"SF = {sf_el:.3f} applied",x=0.52,y=0.53,tsize=lsize2)
           
           # PLOT BOTTOM RATIO
           hnum = hist_obs.Clone("num")
@@ -680,7 +682,7 @@ def measureElasicSF(sampleset,channel,tag="",outdir="plots/g-2/elastic",era="",
     plot.draw(lstyle=1,rmin=0.34,rmax=1.3,staterr=True,enderrorsize=4,msize=0.5,#colors=lcols,mstyles=mstyles
               ratio=-1,logy=True,ymargin=1.29,logyrange=5.1,verb=verb+1)
     plot.drawlegend(pos='Ty=0.43',tsize=0.052)
-    plot.drawtext(texts,size=0.052)
+    plot.drawtext(texts,tsize=0.052)
     plot.saveas(fname,ext=exts)
     plot.close(keep=False)
   

@@ -679,7 +679,7 @@ class Plot(object):
           ymax = hmax*ymargin
       gPad.Update(); gPad.SetLogy()
     elif ymax==None:
-      ymax = hmax*ymargin
+      ymax = ymin+(hmax-ymin)*ymargin
     if logx:
       if not xmin:
         xmin = 0.35*frame.GetXaxis().GetBinWidth(1)
