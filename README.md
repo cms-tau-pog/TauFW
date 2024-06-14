@@ -6,10 +6,10 @@ The TauFW is a framework developed for analysis of nanoAOD at CMS.
 The original purpose was to have a common framework for the TauPOG measurements in CMS that can run on common nanoAOD samples, and keep track of the scripts in this repository.
 
 ## How do I install the TauFW ?
-Please see [the Installation page](Installation).
+Please see [the Installation page](https://github.com/cms-tau-pog/TauFW/wiki/Installation).
 
 ## Where do I start?
-Please have a look at our tutorial on lxplus: [Quick start with TauFW](Quick-start-with-TauFW)
+Please have a look at our tutorial on lxplus: [Quick start with TauFW](https://github.com/cms-tau-pog/TauFW/wiki/Quick-start-with-TauFW)
 
 ## What does the TauFW offer ?
 Three main packages are
