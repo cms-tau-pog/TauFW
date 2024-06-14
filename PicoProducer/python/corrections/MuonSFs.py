@@ -1,4 +1,4 @@
-# Author: Izaak Neutelings (December 2018)
+# Author: Izaak Neutelings (May 2025)
 # HTT: https://github.com/CMS-HTT/LeptonEfficiencies
 # MuonPOG: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2
 # https://twiki.cern.ch/twiki/bin/view/CMS/MuonPOG#User_Recommendations

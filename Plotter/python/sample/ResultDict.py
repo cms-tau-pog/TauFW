@@ -5,7 +5,7 @@ import os, time
 from TauFW.common.tools.string import took
 from TauFW.common.tools.root import rootrepr
 from TauFW.common.tools.log import color
-from TauFW.common.tools.RDataFrame import ROOT, RDF, RDataFrame, printRDFReport
+from TauFW.common.tools.RDataFrame import ROOT, RDF, RDataFrame, printRDFReports
 
 
 class MeanResult():
@@ -221,58 +221,14 @@ class ResultDict(): #object
     return self.itervalues(*args,**kwargs)
   
   def gethists(self,single=False,style=True,clean=False):
-    """Organize histograms into HistSet."""
-    hist_dict = HistDict() # { selection : { variable: { sample: TH1 } } }
-    for sel in self._dict:
-      hist_dict[sel] = { }
-      for var in list(self._dict[sel].keys()):
-        keys = list(self._dict[sel][var].keys()) # sample key list
-        if len(keys)==0: # no samples / histogram for these selection/variable keys
-          LOG.warn("ResultDict.gethists: Found no sample key for sel=%r, var=%r in self._dict=%r... Ignoring..."%(
-            sel,var,self._dict))
-        elif single: # return single histogram { selection : { variable: TH1 } }
-          if len(keys)>=2: # expected exactly one key, but got two or more...
-            LOG.warn("ResultDict.gethists: single=%r, but found more than one sample key for sel=%r, var=%r (%r) in self._dict=%r... Only getting the first"%(
-              single,keys,sel,var,self._dict))
-          sample = keys[0] # only keep first sample key
-          hist = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
-          if style: # set fill/line/marker color
-            sample.stylehist(hist)
-          hist_dict[sel][var] = hist
-        else: # return multiple sample-histograms with { selection : { variable: { sample: TH1 } } }
-          hist_dict[sel][var] = { }
-          for sample in keys:
-            hist = self._dict[sel][var][sample].GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
-            if style: # set fill/line/marker color
-              sample.stylehist(hist)
-            hist_dict[sel][var][sample] = hist
-        if clean: # remove nested dictionary to clean memory
-          self._dict[sel].pop(var,None)
-    return hist_dict
+    """Organize histograms into nested dictionaries and return HistDict."""
+    hist_dict = HistDict.init_from_dict(self._dict,single=single,style=style,clean=clean)
+    return hist_dict # { selection : { variable: { sample: TH1 } } }
   
   def gethistsets(self,style=True,clean=False):
-    """Organize histograms into HistSet objects."""
-    histset_dict = HistDict() # { selection : { variable: HistSet } }
-    for sel in self._dict:
-      histset_dict[sel] = { }
-      for var in list(self._dict[sel].keys()):
-        histset = HistSet(var=var,sel=sel)
-        for sample, result in self._dict[sel][var].items():
-          # NOTE: This triggers event loop if not run before !
-          # NOTE: If MergedResult, its histograms are (recursively) summed
-          hist = result.GetValue() # get values via RDF.RResultPtr<TH1D>.GetValue or MergedResult.GetValue
-          if style: # set fill/line/marker color
-            sample.stylehist(hist)
-          if sample.isdata: # observed data
-            histset.data = hist
-          elif sample.issignal: # signal
-            histset.sig.append(hist)
-          else: # exp (background)
-            histset.exp.append(hist)
-        histset_dict[sel][var] = histset
-        if clean: # remove nested dictionary to clean memory
-          self._dict[sel].pop(var,None)
-    return histset_dict
+    """Organize histograms into HistSet objects and return HistDict."""
+    histset_dict = HistSetDict.init_from_dict(self._dict,style=style,clean=clean)
+    return histset_dict # { selection : { variable: HistSet } }
   
   def results(self):
     """Return simple list of results, used in ResultDict.run to trigger RDataFrame
@@ -325,7 +281,7 @@ class ResultDict(): #object
         LOG.verb("ResultDict.merge: Merge %r: %r"%(sample,list(self._dict[sel][var].values())),verb,3)
         vname   = "%s_vs_%s"%(var[1].filename,var[0].filename) if isinstance(var,tuple) else\
                   var.filename if hasattr(var,'filename') else str(var)
-        hname   = name.replace('$VAR',vname) if isinstance(name,str) else name
+        hname   = name.replace('$VAR',vname).replace('$SEL',sel.filename) if isinstance(name,str) else name
         results = MergedResult(self._dict[sel][var].values(),name=hname,title=title,verb=verb)
         self._dict[sel][var] = { sample: results } # replace nested dictionary with on sample
         if nterms<=0: # set first time
@@ -340,23 +296,24 @@ class ResultDict(): #object
     """Set number of threads via RDF namespace (see TauFW/common/python/tools/RDataFrame.py)."""
     return RDF.SetNumberOfThreads(*args,**kwargs)
   
-  def run(self,graphs=True,rdf_dict=None,dot=False,verb=0):
+  def run(self,graphs=True,rdf_dict=None,dot=False,report=False,task=None,verb=0):
     """Run RDataFrame events loops (filling histograms, etc.)."""
     
     # PREPARE REPORTS & DOT GRAPH
     reports = [ ]
-    if (dot or verb>=2) and isinstance(rdf_dict,dict): # add RDataFrame reports of selections
+    if (dot or report or verb>=2) and isinstance(rdf_dict,dict): # add RDataFrame reports of selections
       for keys, value in rdf_dict.items():
         if len(keys)==2 and isinstance(value,RDataFrame):
-          reports.append((keys[1],value.Report()))
+          fname = keys[1]
+          reports.append((fname,value.Report())) # (fname,RCutFlowReport)
           if dot: # make graphical representation of RDataFrame's structure
             if isinstance(dot,str): # print to file
-              name  = keys[1].split('/')[-1].replace('.root','')
+              name  = fname.split('/')[-1].replace('.root','')
               fname = dot.replace('$NAME',name)
-              print(">>> ResultDict.run: dot for %r, print to dot=%r"%(keys[1],fname))
+              print(">>> ResultDict.run: dot for %r, print to dot=%r"%(fname,fname))
               RDF.SaveGraph(value,fname)
             else: # print to screen
-              print(">>> ResultDict.run: dot for %r, dot=%r"%(keys[1],dot))
+              print(">>> ResultDict.run: dot for %r, dot=%r"%(fname,dot))
               RDF.SaveGraph(value) # display with e.g. https://edotor.net
     
     # RUN ALL RDATAFRAMES
@@ -371,15 +328,13 @@ class ResultDict(): #object
       LOG.verb("ResultDict.run: Start GetValue of %s RDF results with %s threads..."%(len(results),ROOT.GetThreadPoolSize()),verb,1)
       for result in results: # run results one-by-one
         result.GetValue() # trigger event loop
-    RDF.StopProgressBar(" in %s with %s threads"%(took(*start),ROOT.GetThreadPoolSize()))
+    RDF.StopProgressBar(" in %s with %s threads %s"%(took(*start),ROOT.GetThreadPoolSize(),('('+task+')') if task else ''))
     
     # PRINT REPORTS
-    for fname, report in reports:
-      print(">>> ResultDict.run: Report %r:"%(fname))
-      printRDFReport(report,reorder=True)
+    printRDFReports(reports,reorder=True)
     
     return self
     
 
 from TauFW.Plotter.sample.utils import LOG
-from TauFW.Plotter.sample.HistSet import HistSet, HistDict # to contain histograms
+from TauFW.Plotter.sample.HistSet import HistSet, HistDict, HistSetDict # to contain histograms

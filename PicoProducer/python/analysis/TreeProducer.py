@@ -37,6 +37,8 @@ class TreeProducer(object):
   def __init__(self, filename, module, **kwargs):
     self.verbosity = kwargs.get('verb',getattr(module,'verbosity',False) or getattr(module,'verb',False))
     compression    = kwargs.get('compress',None)
+    if self.verbosity>=0:
+      print(f"Loading {self.__class__.__name__} for %r"%(filename))
     if self.verbosity>=1:
       print(">>> TreeProducer.__init__: %r, %r, kwargs=%s..."%(filename,module,kwargs))
     self.filename  = filename
@@ -150,7 +152,7 @@ class TreeProducer(object):
         print(">>> TreeProducer.addBranch: Warning! Converting numpy data type 'D' (complex128) to 'd' (float64, Double_t)")
         dtype = 'float64'     # 'd' = 'float64' -> 'D' -> Double_t
     address = np.zeros(maxlen,dtype=dtype) # array address to be filled during event loop
-    setattr(self,arrname,address)
+    setattr(self,arrname,address) # fill this array as self.out.arrname[0] = object.value
     leaflist = "%s%s/%s"%(name,arrstr,root_dtype[dtype])
     if self.verbosity>=1:
       print(">>> TreeProducer.addBranch: tree.Branch(%r,%s,%r), %s=%r, maxlen=%s, default=%s"%(name,arrname,leaflist,arrname,address,maxlen,default))

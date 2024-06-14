@@ -49,19 +49,12 @@ class ModuleMuMu(ModuleTauPair):
     self.trigger = TrigObjMatcher(jsonfile,trigger='SingleMuon',isdata=self.isdata)
     
     # CUTFLOW
-    self.out.cutflow.addcut('none',         "no cut"                     )
-    self.out.cutflow.addcut('trig',         "trigger"                    )
-    self.out.cutflow.addcut('muon',         "muon"                       )
-    self.out.cutflow.addcut('pair',         "pair"                       )
-    self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
-    self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
-    self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
-    self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
+    self.out.cutflow.addcut('weight', "no cut, weighted" ) # use for normalization with sum of weight
+    self.out.cutflow.addcut('none',   "no cut"           ) # number of processed events
+    self.out.cutflow.addcut('trig',   "trigger"          )
+    self.out.cutflow.addcut('muon',   "muon"             )
+    self.out.cutflow.addcut('pair',   "pair"             )
+    ###self.out.cutflow.addcut('leadTrig', "leading muon triggered" ) # ADDED FOR SF CROSS CHECKS!
   
   def beginJob(self):
     """Before processing any events or files."""
@@ -73,7 +66,6 @@ class ModuleMuMu(ModuleTauPair):
     print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
     print(">>> %-12s = %s"%('zwindow',    self.zwindow))
     print(">>> %-12s = %s"%('trigger',    self.trigger))
-    pass
     
   
   def analyze(self, event):
@@ -102,7 +94,7 @@ class ModuleMuMu(ModuleTauPair):
       if abs(muon.dz)>0.2: continue
       if abs(muon.dxy)>0.045: continue
       if not muon.mediumId: continue
-      if muon.pfRelIso04_all>0.50: continue
+      if muon.pfRelIso04_all>0.50: continue # keep loose for QCD OS/SS measurement
       muons.append(muon)
     if len(muons)==0:
       return False
@@ -117,8 +109,8 @@ class ModuleMuMu(ModuleTauPair):
         if muon2.DeltaR(muon1)<0.5: continue
         if muon1.pt<ptcut and muon2.pt<ptcut: continue # larger pt cut
         if self.zwindow and not (70<(muon1.p4()+muon2.p4()).M()<110): continue # Z mass
-        ltau = LeptonPair(muon1,muon1.pfRelIso04_all,muon2,muon2.pfRelIso04_all)
-        dileps.append(ltau)
+        dilep = LeptonPair(muon1,muon1.pfRelIso04_all,muon2,muon2.pfRelIso04_all)
+        dileps.append(dilep)
     if len(dileps)==0:
       return False
     muon1, muon2 = max(dileps).pair
@@ -126,11 +118,11 @@ class ModuleMuMu(ModuleTauPair):
     muon2.tlv    = muon2.p4()
     self.out.cutflow.fill('pair')
     
-    # ADDED FOR SF CROSS CHECKS!
-    # Only keep events with leading muon triggered
-    if not self.trigger.match(event,muon1): 
-      return False
-    self.out.cutflow.fill('leadTrig')
+    #### ADDED FOR SF CROSS CHECKS!
+    #### Only keep events with leading muon triggered
+    ###if not self.trigger.match(event,muon1): 
+    ###  return False
+    ###self.out.cutflow.fill('leadTrig')
     
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon1,muon2],[ ],self.channel, era=self.era)

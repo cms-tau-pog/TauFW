@@ -5,6 +5,7 @@ from TauFW.Plotter.sample.utils import *
 from TauFW.common.tools.math import round2digit, reldiff
 from TauFW.common.tools.RDataFrame import RDF, RDataFrame, AddRDFColumn
 from TauFW.Plotter.sample.ResultDict import ResultDict, MeanResult # for containing RDataFRame RResultPtr
+from TauFW.Plotter.sample.HistSet import HistSetDict, StackDict
 from TauFW.Plotter.plot.string import *
 from TauFW.Plotter.plot.utils import deletehist, printhist
 from TauFW.Plotter.sample.SampleStyle import *
@@ -292,6 +293,7 @@ class Sample(object):
     newdict['name']         = name
     newdict['title']        = title
     newdict['splitsamples'] = splitsamples
+    newdict['channel']      = kwargs.get('channel',self.channel   )
     newdict['cuts']         = kwargs.get('cuts',   self.cuts      )
     newdict['weight']       = kwargs.get('weight', self.weight    )
     newdict['extraweight']  = kwargs.get('extraweight', self.extraweight )
@@ -591,8 +593,170 @@ class Sample(object):
       #LOG.verb('Sample.clone: name=%r, title=%r, color=%s, cuts=%r, weight=%r'%(
       #         newsample.name,newsample.title,newsample.fillcolor,newsample.cuts,newsample.weight),1)
       splitsamples.append(sample)
+    if self.splitsamples:
+      LOG.warn(f"Sample.split: Overwriting existing splitsamples! {self.splitsamples} -> {splitsamples}")
     self.splitsamples = splitsamples # save list of split samples
     return splitsamples
+  
+  def getrdframe_sel(self,variables,selection,rdf_dict,preselection=None,extracuts=None,
+                          alias_dict=None,split=False,isshared=False,dosumw=False,task="",**kwargs):
+    """Help function for getrdframe to create new RDataFrame for a given sample or selection,
+    or reuse a previous one if available in `rdf_dict`. (Factorized from getrdframe for readability.)
+    
+    * `rdframe` is the main, "top" RDataFrame that is unfiltered.
+    * `rdf_alias` is an RDataFrame that is filtered with a common preselection,
+      and add columns for the aliases and expressions of common variables.
+    * `rdf_sel` is a an RDataFrame that is filtered with the current selections.
+      It can be reused for the same selection string and same set of variables.
+    
+    These RDFs are stored/cached in the `rdf_dict` so a parent (Merged)Sample can reuse it.
+    This allows us to loop over the events of each file only a single time.
+    
+    A sample may be split into different components via `extracuts`,
+    which is applied as a new filter to a common RDataFrame for the same file & selection string.
+    E.g. Drell-Yan may be split into ZTT (real taus), ZL (l -> tauh fake), and ZJ (J -> tauh fake).
+    """
+    verbosity  = LOG.getverbosity(kwargs)
+    
+    # OBJECT to be returned
+    variables_ = [ ] # list of variables filtered for this selection
+    expr_dict  = { } # expression -> unique name of RDF column
+    
+    # PARSE COMMON SELECTION STRING
+    cuts = selection.selection
+    if not isshared and extracuts:
+      # if RDataFrame is not shared: apply extra cuts now to minimize number of successive filters
+      # if RDataFrame is shared:     apply extra cuts as second filter below
+      cuts = joincuts(cuts,extracuts)
+    if not split and self.cuts:
+      # if not split: apply sample-specific cuts now to minimize number of filters
+      # if split:     apply sample-specific cuts later per subsample (in getrdframe_sam)
+      cuts = joincuts(cuts,self.cuts)
+    
+    # KEYS for RDF in dictionaries
+    rdfkey_main  = (self.treename,self.filename) # for common tree and file name
+    rdfkey_alias = (self.treename,self.filename,'alias') # for common preselection & aliases
+    rdfkey_sel   = (self.filename,cuts,tuple(variables)) # key for finding common RDataFrame in rdf_dict
+    
+    # RDataFrame objects, reuse shared RDataFrame for improved performance
+    rdframe   = rdf_dict.get(rdfkey_main, None) # main RDataFrame, initialize during iteration if needed
+    rdf_alias = rdf_dict.get(rdfkey_alias,None) # RDataFrame with aliases (common for all selections)
+    
+    # REUSE RDataFrame to optimize event loop for same file
+    if rdfkey_sel in rdf_dict:
+      # NOTE: It is assumed that the variables are correctly filtered and defined in expr_dict
+      # NOTE: It is assumed that the preselection & aliases (if any) are exactly the same as defined earlier
+      variables_, expr_dict, rdf_sel = rdf_dict[rdfkey_sel] # reuse RDataFrame for same file, selection and variable list
+      LOG.verb("Sample.getrdframe:   Reusing RDataFrame %r (cuts=%r)..."%(rdf_sel,cuts),verbosity,2)
+    
+    # CREATE NEW RDataFrame
+    else:
+      
+      # CREATE main RDataFrame
+      if rdframe==None: # create main RDataFrame for this tree & file name that is common to all selections
+        rdframe = RDataFrame(self.treename,self.filename) # save for next iteration on selection
+        nevts = self.getentries_from_tree() # get total number of events to process
+        RDF.AddProgressBar(rdframe,nevts,task)
+        rdf_dict[rdfkey_main] = rdframe # store/cache for reuse & reporting, etc.
+      
+      # ADD PRESELECTION & ALIASES to main RDataFrame
+      if rdf_alias==None: # create RDataFrame with common preselection & aliases
+        rdf_alias = rdframe
+        if preselection: # apply common preselection/filter (before aliases!)
+          LOG.verb("Sample.getrdframe:   Adding common preselection %r..."%(preselection),verbosity,1)
+          rdf_alias = rdf_alias.Filter(preselection)
+        if alias_dict:
+          for alias, expr in alias_dict.items(): # define aliases as new columns (assume used downstream in selection, variable, and/or weight) !
+            rdf_alias, _ = AddRDFColumn(rdf_alias,expr,alias,expr_dict=expr_dict,exact=True,verb=verbosity-3)
+        rdf_dict[rdfkey_alias] = rdf_alias # store/cache for reuse
+      
+      # SELECTIONS: Add common filter
+      rdf_sel = rdf_alias # RDataFrame specific to this selection (filter)
+      if cuts: # add filter for this selection
+        #LOG.verb("Sample.getrdframe:   Applying filter for cuts=%r..."%(cuts),verbosity,3)
+        rdf_sel = rdf_sel.Filter(cuts,repr(cuts)) #repr(selection.selection))
+      
+      # VARIABLES: (1) Filter variables, and (2) define common variables
+      for variable in variables:
+        if isinstance(variable,tuple): # unpack variable pair
+          xvar, yvar = variable # for 2D histograms
+        else: # assume single Variable object
+          xvar = variable # for 1D histgrams
+          yvar = None
+        
+        # 1. FILTER variables for this selection
+        plot_var = xvar.plotfor(selection,data=self.isdata,verb=verbosity-4)
+        plot_sel = selection.plotfor(xvar,verb=verbosity-4)
+        if not plot_var or not plot_sel:
+          LOG.verb("Sample.getrdframe:   Ignoring %r (plot_var=%r, plot_sel=%r, isdata=%r)..."%(
+                   xvar.name,plot_var,plot_sel,self.isdata),verbosity,4)
+          continue # do not plot this variable
+        variables_.append(variable) # plot this variable
+        
+        # 2. COMPILE mathematical expressions & DEFINE unique column name that can be reused,
+        #    reuse column name from expr_dict if already defined
+        for var in [xvar,yvar]:
+          if var==None: continue
+          rdf_sel, _ = AddRDFColumn(rdf_sel,var,"_rdf_var",expr_dict=expr_dict,verb=verbosity-3)
+      
+      if not dosumw and not variables_: # no variables made it past the filters
+        LOG.verb("Sample.getrdframe:   No variables! Ignoring...",verbosity,2)
+        return None, None, None
+      if len(expr_dict)>=1:
+        LOG.verb("Sample.getrdframe:   Defined columns %s"%(', '.join("%r=%r"%(v,k) for k, v in expr_dict.items())),verbosity,2)
+      
+      # STORE RDataFrame for reuse
+      if rdfkey_sel not in rdf_dict: # store for first time
+        LOG.verb("Sample.getrdframe:   Storing RDataFrame %r (cuts=%r) for reuse..."%(rdf_sel,cuts),verbosity,2)
+        rdf_dict[rdfkey_sel] = (variables_,expr_dict,rdf_sel)
+    
+    # APPLY EXTRA CUTS as second filter if RDataFrame is shared
+    if isshared and extracuts:
+      LOG.verb("Sample.getrdframe:   Applying filter for extracuts=%r..."%(extracuts),verbosity,1)
+      rdf_sel = rdf_sel.Filter(extracuts,"Extra %r"%extracuts)
+    
+    return rdf_sel, variables_, expr_dict
+  
+  def getrdframe_sam(self,rdf_sel,sample,name_,title_,scale_,selection,split=False,replaceweight=None,**kwargs):
+    """Help function for getrdframe to create new RDataFrame for a given sample or selection,
+    or reuse a previous one if available in `rdf_dict`. (Factorized from getrdframe for readability.)
+    """
+    verbosity = LOG.getverbosity(kwargs)
+    
+    # APPLY SCALE = (extra scales) * (cross section normalization)
+    if sample!=self:
+      name_  = kwargs.get('name',sample.name) + kwargs.get('tag',"")
+      title_ = kwargs.get('title',sample.title) # hist title
+      if self.scale==sample.scale and self.norm==sample.norm: # exact same scale: omit redundant information to reduce verbosity
+        LOG.verb("Sample.getrdframe:   Subsample %s ('%s') with cuts=%r, scale=%.6g (same)"%(
+          color(name_,'grey',b=True),color(title_,'grey',b=True),sample.cuts,scale),verbosity,1)
+      else: # different scale for this subsample ! Include full list of scale values for debugging
+         norm_  = sample.norm if kwargs.get('norm',True) else 1.0
+         scale_ = kwargs.get('scale',1.0)*sample.scale*norm_
+         LOG.verb("Sample.getrdframe:   Subsample %s with cuts=%r, scale=%.6g (different: scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(
+           color(sample.name,'grey',b=True),sample.cuts,scale_,sample.scale,sample.norm,sample.xsec,sample.nevents,sample.sumweights),verbosity,1)
+    
+    # ADD sample-specific CUTS (if split, e.g. by genmatch)
+    rdf_sam = rdf_sel # RDataFrame specific to this (sub)sample
+    if split: # add filters of sample-specific cuts
+      if sample.cuts:
+        rdf_sam = rdf_sam.Filter(sample.cuts,"Split %r"%sample.cuts)
+      else: # should not happen ! Split samples should always have some cut, otherwise, what is the point? :p
+        LOG.warn("Sample.getrdframe: Preparing subsample %r, but no cuts were defined!"%(sample))
+    
+    # ADD WEIGHTS: common + selection + sample-specific
+    # NOTE: key-word 'weight' is also applied to data samples
+    wname = "" # weight column name
+    wexpr = joinweights(kwargs.get('weight',""),sample.weight,sample.extraweight,selection.weight,scale_)
+    if replaceweight: # replace patterns, e.g. replaceweight=('idweight_2','idweightUp_2')
+      wexpr = replacepattern(wexpr,replaceweight)
+    if wexpr: # if mathematical expression: compile & define column in RDF with unique column name
+      rdf_sam, wname = AddRDFColumn(rdf_sam,wexpr,"_rdf_sam_wgt",verb=verbosity-4)
+    if wname and verbosity>=1:
+      LOG.verb("Sample.getrdframe:   Common/sample/selection weight: %s=%r"%(wname,wexpr),verbosity,1)
+    
+    return rdf_sam, name_, title_, wname, wexpr
+  
   
   def getrdframe(self,variables,selections,**kwargs):
     """Create RDataFrame for list of selections and variables.
@@ -640,171 +804,57 @@ class Sample(object):
     norm          = kwargs.get('norm',     True        ) # normalize to cross section
     norm          = self.norm if norm else 1.0
     scale         = kwargs.get('scale',     1.0        ) * self.scale * norm # total scale
-    split         = kwargs.get('split',    False       ) and len(self.splitsamples)>=1 # split sample into components (e.g. with cuts on genmatch)
+    split         = kwargs.pop('split',    False       ) and len(self.splitsamples)>=1 # split sample into components (e.g. with cuts on genmatch)
     blind         = kwargs.get('blind',    self.isdata ) # blind data in some given range: self.blinddict={xvar:(xmin,xmax)}
     rdf_dict      = kwargs.get('rdf_dict', None        ) # reuse RDF for the same filename / selection (used for optimizing split MergedSamples)
-    task          = kwargs.get('task',     ""          ) # task name for progress bar
-    nthreads      = kwargs.get('nthreads', None        ) # number of threads: serial if nthreads==0 or 1, default 8 if nthreads==True
-    domean        = kwargs.get('mean',     False       ) # get mean of given variables instead of histograms
-    dosumw        = kwargs.get('sumw',     False       ) # get sum of event weights (e.g. for cutflows)
-    replaceweight = kwargs.get('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
-    preselection  = kwargs.get('preselect', None       ) # pre-selection string (common pre-filter, before aliases all other selections)
+    task          = kwargs.pop('task',     ""          ) # task name for progress bar
+    nthreads      = kwargs.pop('nthreads', None        ) # number of threads: serial if nthreads==0 or 1, default 8 if nthreads==True
+    domean        = kwargs.pop('mean',     False       ) # get mean of given variables instead of histograms
+    dosumw        = kwargs.pop('sumw',     False       ) # get sum of event weights (e.g. for cutflows)
+    replaceweight = kwargs.pop('replaceweight', None   ) # replace weight, e.g. replaceweight=('idweight_2','idweightUp_2')
+    preselection  = kwargs.pop('preselect', None       ) # pre-selection string (common pre-filter, before aliases all other selections)
     alias_dict    = self.aliases
-    if hasattr(preselection,'selection'): # ensure string
-      preselection = preselection.selection
     if 'alias' in kwargs: # update alias dictionary
       alias_dict  = alias_dict.copy()
       alias_dict.update(kwargs['alias'])
-    extracuts     = joincuts(kwargs.get('cuts',""),kwargs.get('extracuts',""))
-    samples       = self.splitsamples if split else [self]
-    rdfkey_main   = (self.treename,self.filename)
-    rdfkey_alias  = (self.treename,self.filename,'alias') # for common preselection & aliases
+    if hasattr(preselection,'selection'): # ensure string
+      preselection = preselection.selection
+    extracuts = joincuts(kwargs.get('cuts',""),kwargs.get('extracuts',""))
+    samples   = self.splitsamples if split else [self]
+    task      = (f" ({task})" if task else '')+f": {name}" # for RDF loading bar
     if verbosity>=1:
       LOG.verb("Sample.getrdframe: Creating RDataFrame for %s ('%s'): %s, split=%r, extracuts=%r, presel=%r"%(
                color(name,'grey',b=True),color(title,'grey',b=True),self.filename,split,extracuts,preselection),verbosity,1)
       LOG.verb("Sample.getrdframe:   Total scale=%.6g (scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(
                scale,self.scale,self.norm,self.xsec,self.nevents,self.sumweights),verbosity,1)
+    isshared = (rdf_dict!=None) # RDataFrame objects are shared with other samples for same files
+    if rdf_dict==None: # RDataframe not share outside the scope of this method
+      rdf_dict = { } # construct to share RDataFrames inside this scope
     
-    # SET NTHREADS (NOTE: set before creating RDataFrame!)
+    # SET NTHREADS (NOTE: set number of threads before creating RDataFrame!)
     if nthreads!=None:
       RDF.SetNumberOfThreads(nthreads) # see TauFW/common/python/tools/RDataFrame.py
     
     # SELECTIONS
-    rdframe = None # main RDataFrame, initialize during iteration if needed
-    rdframe_alias = None # RDataFrame with aliases (common for all selections)
     res_dict = ResultDict() # { selection : { variable: { sample: RDF.RResultPtr<TH1D> } } } }
     for selection in selections:
       LOG.verb("Sample.getrdframe:   Selection %r: '%s' (extracuts=%r, sample.cuts=%r)"%(
         selection.filename,color(selection.selection,'grey'),extracuts,self.cuts),verbosity,1)
+      context = [self.channel,selection]
       
-      # PARSE COMMON SELECTION STRING
-      cuts = selection.selection
-      if rdf_dict==None and extracuts: # if RDataFrame is shared (rdf_dict!=None), extra cuts are applied later
-        cuts = joincuts(cuts,extracuts) # apply now to minimize number of filters
-      if not split and self.cuts: # if split, extra cuts are applied later per subsample
-        cuts = joincuts(cuts,self.cuts) # apply now to minimize number of filters
-      
-      ##### REUSE RDataFrame to optimize event loop for same file ########################################
-      rdfkey_sel = (self.filename,cuts,tuple(variables)) # key for finding common RDataFrame in rdf_dict
-      variables_ = [ ] # list of variables filtered for this selection
-      expr_dict  = { } # expression -> unique name of RDF column
-      if rdf_dict!=None and rdfkey_sel in rdf_dict:
-        # NOTE: It is assumed that the variables are correctly filtered and defined in expr_dict
-        # NOTE: It is assumed that the preselection & aliases (if any) are exactly the same as defined earlier
-        variables_, expr_dict, rdf_sel = rdf_dict[rdfkey_sel] # reuse RDataFrame for same file, selection and variable list
-        LOG.verb("Sample.getrdframe:   Reusing RDataFrame %r (cuts=%r)..."%(rdf_sel,cuts),verbosity,2)
-      
-      ##### CREATE NEW RDataFrame ########################################################################
-      else:
-        
-        # CREATE main RDataFrame
-        if rdframe==None:
-          if rdf_dict!=None and rdfkey_main in rdf_dict:
-            rdframe = rdf_dict[rdfkey_main] # reuse shared RDataFrame for improved performance
-          else: # create main RDataFrame common to all selections
-            rdframe = RDataFrame(self.treename,self.filename) # save for next iteration on selection
-            nevts = self.getentries_from_tree() # get total number of events to process
-            RDF.AddProgressBar(rdframe,nevts,": "+task+name)
-            if rdf_dict!=None:
-              rdf_dict[rdfkey_main] = rdframe # store for reuse & reporting, etc.
-        
-        # ADD PRESELECTION & ALIASES to main RDataFrame
-        if rdf_dict!=None and rdfkey_alias in rdf_dict:
-          rdframe_alias = rdf_dict[rdfkey_alias] # reuse shared RDataFrame (with preselection & aliases) for improved performance
-        elif rdframe_alias==None: # create for first time
-          rdframe_alias = rdframe
-          if preselection: # apply common preselection/filter (before aliases!)
-            LOG.verb("Sample.getrdframe:   Adding common preselection %r..."%(preselection),verbosity,1)
-            rdframe_alias = rdframe_alias.Filter(preselection)
-          for alias, expr in alias_dict.items(): # define aliases as new columns (assume used downstream in selection, variable, and/or weight) !
-            rdframe_alias, _ = AddRDFColumn(rdframe_alias,expr,alias,expr_dict=expr_dict,exact=True,verb=verbosity-3)
-          if rdf_dict!=None:
-            rdf_dict[rdfkey_alias] = rdframe_alias # store for reuse
-        
-        # SELECTIONS: Add common filter
-        rdf_sel = rdframe_alias # RDataFrame specific to this selection (filter)
-        if cuts: # add fiter
-          #LOG.verb("Sample.getrdframe:   Applying filter for cuts=%r..."%(cuts),verbosity,3)
-          rdf_sel = rdf_sel.Filter(cuts,repr(selection.selection))
-        
-        # VARIABLES: (1) Filter variables, and (2) define common variables
-        for variable in variables:
-          if isinstance(variable,tuple): # unpack variable pair
-            xvar, yvar = variable # for 2D histograms
-          else: # assume single Variable object
-            xvar = variable # for 1D histgrams
-            yvar = None
-          
-          # 1. FILTER variables for this selection
-          plot_var = xvar.plotfor(selection,data=self.isdata,verb=verbosity-4)
-          plot_sel = selection.plotfor(xvar,verb=verbosity-4)
-          if not plot_var or not plot_sel:
-            LOG.verb("Sample.getrdframe:   Ignoring %r (plot_var=%r, plot_sel=%r, isdata=%r)..."%(
-                     xvar.name,plot_var,plot_sel,self.isdata),verbosity,4)
-            continue # do not plot this variable
-          variables_.append(variable) # plot this variable
-          
-          # 2. COMPILE mathematical expressions & DEFINE unique column name that can be reused,
-          #    reuse column name from expr_dict if already defined
-          for var in [xvar,yvar]:
-            if var==None: continue
-            rdf_sel, _ = AddRDFColumn(rdf_sel,var,"_rdf_var",expr_dict=expr_dict,verb=verbosity-3)
-        
-        if not dosumw and not variables_: # no variables made it past the filters
-          LOG.verb("Sample.getrdframe:   No variables! Ignoring...",verbosity,2)
-          continue
-        if len(expr_dict)>=1:
-          LOG.verb("Sample.getrdframe:   Defined columns %s"%(', '.join("%r=%r"%(v,k) for k, v in expr_dict.items())),verbosity,2)
-        
-        # STORE RDataFrame for reuse
-        if rdf_dict!=None and rdfkey_sel not in rdf_dict: # store for first time
-          LOG.verb("Sample.getrdframe:   Storing RDataFrame %r (cuts=%r) for reuse..."%(rdf_sel,cuts),verbosity,2)
-          rdf_dict[rdfkey_sel] = (variables_,expr_dict,rdf_sel)
-      
-      ##### CREATED / REUSED RDataFrame ##################################################################
-      
-      # APPLY EXTRA CUTS if RDataFrame is shared
-      if rdf_dict!=None and extracuts:
-        LOG.verb("Sample.getrdframe:   Applying filter for extracuts=%r..."%(extracuts),verbosity,1)
-        rdf_sel = rdf_sel.Filter(extracuts,"Extra %r"%extracuts)
+      # CREATE RDataFrame for current selection (or REUSE if exists in rdf_dict)
+      rdf_sel, variables_, expr_dict = self.getrdframe_sel(variables,selection,rdf_dict,alias_dict=alias_dict,
+                                                           preselection=preselection,extracuts=extracuts,dosumw=dosumw,
+                                                           split=split,isshared=isshared,task=task,verb=verbosity)
+      if variables_==None: # none of the plot variables made it past the common filters
+        continue
       
       # RUN over subsamples (to allow for splitting)
       for sample in samples:
         
-        # SET SCALE
-        scale_ = scale # (extra scales) * (cross section normalization)
-        name_  = name
-        title_ = title
-        if sample!=self:
-          name_  = kwargs.get('name',sample.name) + kwargs.get('tag',"")
-          title_ = kwargs.get('title',sample.title) # hist title
-          if self.scale==sample.scale and self.norm==sample.norm: # exact same scale: omit redundant information to reduce verbosity
-            LOG.verb("Sample.getrdframe:   Subsample %s ('%s') with cuts=%r, scale=%.6g (same)"%(
-              color(name_,'grey',b=True),color(title_,'grey',b=True),sample.cuts,scale),verbosity,1)
-          else: # different scale ! Include full list of scale values for debugging
-             norm_  = sample.norm if kwargs.get('norm',True) else 1.0
-             scale_ = kwargs.get('scale',1.0)*sample.scale*norm_
-             LOG.verb("Sample.getrdframe:   Subsample %s with cuts=%r, scale=%.6g (different: scale=%.6g, norm=%.6g, xsec=%.6g, nevents=%.6g, sumw=%.6g)"%(
-               color(sample.name,'grey',b=True),sample.cuts,scale_,sample.scale,sample.norm,sample.xsec,sample.nevents,sample.sumweights),verbosity,1)
-        
-        # ADD sample-specific CUTS (if split, e.g. by genmatch)
-        rdf_sam = rdf_sel # RDataFrame specific to this (sub)sample
-        if split: # add filters of sample-specific cuts
-          if sample.cuts:
-            rdf_sam = rdf_sam.Filter(sample.cuts,"Split %r"%sample.cuts)
-          else: # should not happen ! Split samples should always have some cut, otherwise, what is the point? :p
-            LOG.warn("Sample.getrdframe: Preparing subsample %r, but no cuts were defined!"%(sample))
-        
-        # ADD WEIGHTS: common + selection + sample-specific
-        # NOTE: key-word 'weight' is also applied to data samples
-        wname = "" # weight column name
-        wexpr = joinweights(kwargs.get('weight',""),sample.weight,sample.extraweight,selection.weight,scale_)
-        if replaceweight: # replace patterns, e.g. replaceweight=('idweight_2','idweightUp_2')
-          wexpr = replacepattern(wexpr,replaceweight)
-        if wexpr: # if mathematical expression: compile & define column in RDF with unique column name
-          rdf_sam, wname = AddRDFColumn(rdf_sam,wexpr,"_rdf_sam_wgt",verb=verbosity-4)
-        if wname and verbosity>=1:
-          LOG.verb("Sample.getrdframe:   Common/sample/selection weight: %s=%r"%(wname,wexpr),verbosity,1)
+        # APPLY COMMON SCALE & WEIGHTS for this subsample
+        rdf_sam, name_, title_, wname, wexpr = self.getrdframe_sam(rdf_sel,sample,name,title,scale,selection, 
+                                                                   split=split,replaceweight=replaceweight,**kwargs)
         
         # COMPUTE SUM OF WEIGHTS
         res_sumw = None
@@ -817,13 +867,13 @@ class Sample(object):
         for variable in variables_:
           if isinstance(variable,tuple): # unpack variable pair
             xvar, yvar = variable # for 2D histograms
-            yvar.changecontext(selection,verb=verbosity-2)
+            yvar.changecontext(*context,verb=verbosity-2)
             yname = expr_dict.get(yvar.name,yvar.name) # get unique column name for this variable
           else: # assume single Variable object
             xvar  = variable # for 1D histograms
             yvar  = None
             yname = None
-          xvar.changecontext(selection,verb=verbosity-2)
+          xvar.changecontext(*context,verb=verbosity-2)
           xname = expr_dict.get(xvar.name,xvar.name) # get unique column name for this variable
           
           # PREPARE cuts & weights (only from xvar to keep it simple, ignore yvar's weights & cuts)
@@ -857,7 +907,7 @@ class Sample(object):
           
           # BOOK 1D histograms
           elif yvar==None:
-            hname  = makehistname(xvar,name_) # histogram name
+            hname  = makehistname(xvar,selection,name_) # histogram name
             hmodel = xvar.gethistmodel(hname,title_) # arguments for initiation of an TH1D object (RDF.TH1DModel)
             if verbosity>=1:
               xvarstr = repr(xvar.name)+("" if xvar.name==xname else " (%r)"%(xname))
@@ -871,7 +921,7 @@ class Sample(object):
           
           # BOOK 2D histograms
           else:
-            hname  = makehistname(yvar,'vs',xvar,name_) # histogram name
+            hname  = makehistname(yvar,'vs',xvar,selection,name_) # histogram name
             hmodel = xvar.gethistmodel2D(yvar,hname,title_) # arguments for initiation of an TH2D object (RDF.TH2DModel)
             if verbosity>=1:
               wgtstr  = repr(wname2)+("" if wname==wname2 else " (%r)"%(wexpr2))
@@ -904,22 +954,22 @@ class Sample(object):
       return sumw
     
     # APPLY SELECTIONS
-    else:
-      _, selections, issinglesel = unpack_sellist_args(*args)
-      split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
-      
-      # GET & RUN RDATAFRAMES
-      kwargs['sumw'] = True
-      rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
-      res_dict = self.getrdframe([ ],selections,**kwargs)
-      if verbosity>=3: # print RDFs RDF.RResultPtr<double>
-        print(">>> Sample.getsumw: Got res_dict:")
-        res_dict.display() # print full dictionary
-      res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
-      
-      # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
-      hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
-      return hists_dict.results(singlevar=True,singlesel=issinglesel)
+    _, selections, issinglesel = unpack_sellist_args(*args)
+    split = kwargs.get('split',False) # split sample into components (e.g. with cuts on genmatch)
+    
+    # GET & RUN RDATAFRAMES
+    kwargs['sumw'] = True
+    rdf_dict = kwargs.setdefault('rdf_dict',{ }) # optimization & debugging: reuse RDataFrames for the same filename / selection
+    res_dict = self.getrdframe([ ],selections,**kwargs)
+    if verbosity>=3: # print RDFs RDF.RResultPtr<double>
+      print(">>> Sample.getsumw: Got res_dict:")
+      res_dict.display() # print full dictionary
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
+    
+    # CONVERT to & RETURN nested dictionaries of means: { selection: { variable: { sample: float } } }
+    single     = (not split) # return { selection: { variable: float } } instead
+    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
+    return hists_dict.results(singlevar=True,singlesel=issinglesel)
   
   def getmean(self, *args, **kwargs):
     """Compute mean of variables and selections with RDataFrame and return a dictionary of histograms."""
@@ -950,11 +1000,28 @@ class Sample(object):
       res_dict.display() # print full dictionary
     res_dict.run(graphs=True,rdf_dict=rdf_dict,verb=verbosity)
     
-    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: hist } }
-    hists_dict = res_dict.gethists(single=(not split),style=True,clean=True)
+    # CONVERT to & RETURN nested dictionaries of histograms: { selection: { variable: { sample: TH1 } } }
+    single     = (not split) # return { selection: { variable: TH1 } } instead
+    hists_dict = res_dict.gethists(single=single,style=True,clean=True)
     if verbosity>=3: # print yields
       hists_dict.display(nvars=(1 if split else -1))
     return hists_dict.results(singlevar=issinglevar,singlesel=issinglesel,popvar=popvar)
+  
+  def getstack(self, *args, thstack=False, **kwargs):
+    """Create and fill histograms for given lists of variables and selections,
+    and construct TauFW Stack of sample's subcomponents.
+    Return a StackDict of TauFW Stack objects."""
+    kwargs['split']   = True # force splitting into subcomponents (e.g. gen-level cuts), if available
+    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    hists_dict = self.gethist(*args, **kwargs) # { selection: { variable: { sample: TH1 } } }
+    kwargs['context'] = kwargs.get('context',[ ])+[self.channel]
+    stacks = StackDict.init_from_HistDict(hists_dict,singlevar=issinglevar,singlesel=issinglesel,thstack=thstack,**kwargs)
+    return stacks # return StackDict: { Stack : (Variable, Selection) }
+  
+  def getTHStack(self, *args, **kwargs):
+    """Get THStack of sample's subcomponents. Return StackDict of ROOT THStack objects."""
+    kwargs['thstack'] = True
+    return self.getstack(*args, **kwargs) # return StackDict: { THStack : (Variable, Selection) }
   
   def gethist2D(self, *args, **kwargs):
     """Create and fill 2D histograms for given lists of variables and selections

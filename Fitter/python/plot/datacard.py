@@ -61,7 +61,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   shiftjme      = kwargs.get('shiftjme',      ""     ) # shift jet/MET variable (e.g. 'jer', 'jec')
   shiftQCD      = kwargs.get('shiftQCD',      0      ) # e.g 0.30 for 30%
   dots          = kwargs.get('dots',          False  ) # replace 'p' with '.' in histogram names with floats
-  verbosity     = kwargs.get('verb',          0      )
+  verbosity     = kwargs.get('verb',          0      ) # verbosity level
   option        = 'RECREATE' if recreate else 'UPDATE'
   method        = 'QCD_OSSS' if filters==None or 'QCD' in filters else None
   method        = kwargs.get('method',        method )
@@ -99,6 +99,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
     files[obs] = file
   
   # GET HISTS
+  # TODO: We can now run bins/selections in parallel, using RDF
   for selection in bins:
     bin = selection.filename # bin name
     print(">>>\n>>> "+color(" %s "%(bin),'magenta',bold=True,ul=True))
@@ -117,28 +118,30 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
     TAB.printheader('events','entries','variable','process'.ljust(ljust))
     for obs, histset in hists.items():
       for hist in histset: 
-        name    = lreplace(hist.GetName(),obs.filename.replace('.','p')).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
-        if not name.endswith(htag):
-          name += htag # HIST = $PROCESS_$SYSTEMATIC
-        name    = repkey(name,BIN=bin)
-        if dots and 'p' in name: # replace 'p' with '.' in float
-          name = re.sub(r"(\d+)p(\d+)",r"\1.\2",name)
+        hname = hist.GetName() # = $VAR_$BIN_$NAME (created by makehistname in Sample.getrdframe)
+        hname = lreplace(hist.GetName(),obs.filename.replace('.','p')).strip('_') # remove variable prefix
+        hname = lreplace(hname,selection.filename.replace('.','p')).strip('_') # remove selection prefix
+        if not hname.endswith(htag):
+          hname += htag # HIST = $PROCESS_$SYSTEMATIC
+        hname = repkey(hname,BIN=bin)
+        if dots and 'p' in hname: # replace 'p' with '.' in float
+          hname = re.sub(r"(\d+)p(\d+)",r"\1.\2",hname)
         for exp, sub in replacenames: # replace regular expressions
-          name = re.sub(exp,sub,name)
-        drawopt = 'E1' if 'data' in name else 'EHIST'
-        lcolor  = kBlack if any(s in name for s in ['data','ST','VV']) else hist.GetFillColor()
+          hname = re.sub(exp,sub,hname)
+        drawopt = 'E1' if 'data' in hname else 'EHIST'
+        lcolor  = kBlack if any(s in hname for s in ['data','ST','VV']) else hist.GetFillColor()
         hist.SetOption(drawopt)
         hist.SetLineColor(lcolor)
         hist.SetFillStyle(0) # no fill in ROOT file
-        hist.SetName(name)
+        hist.SetName(hname)
         hist.GetXaxis().SetTitle(obs.title)
         for i, yval in enumerate(hist):
           if yval<0:
             print(">>> replace bin %d (%.3f<0) of %r"%(i,yval,hist.GetName()))
             hist.SetBinContent(i,0)
         if files[obs].cd(bin): # $FILE:$BIN/$PROCESS_$SYSTEMATC
-          hist.Write(name,TH1.kOverwrite)
-        TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(),name)
+          hist.Write(hname,TH1.kOverwrite)
+        TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(),hname)
         if not parallel: # avoid segmentation faults for parallel
           deletehist(hist) # clean histogram from memory
   

@@ -351,28 +351,26 @@ def joinweights(*wargs,**kwargs):
 def joincuts(*cuts,**kwargs):
   """Joins selection strings and apply weight if needed."""
   verbosity = LOG.getverbosity(kwargs)
-  cuts      = [c for c in cuts if c and isinstance(c,str)]
+  cuts      = [c for c in cuts if c and isinstance(c,str)] # filter empty strings
   weight    = kwargs.get('weight', False)
   if any('||' in c and not ('(' in c and ')' in c) for c in cuts):
-    LOG.warn('joincuts: Be careful with those "or" statements in %s! Not sure how to join...'%(cuts,))
-    for i, cut in enumerate(cuts):
+    LOG.warn(f'joincuts: Be careful with those "or" statements in {cuts}! Not sure how to join... Please use parentheses to be safe...')
+    for i, cut in enumerate(cuts): # add parentheses to be safe
       if '||' in cut and not ('(' in cut and ')' in cut):
         cuts[i] = "(%s)"%(cut)
-  if weight:
-    string = re.sub("\(.+\)","",weight)
-    if any(c in string for c in '=<>+-&|'):
-      weight = "(%s)"%(weight)
+  if weight and weight[0]!='(' and weight[-1]!=')' and any(c in weight for c in '=<>+-&|'):
+    weight = "(%s)"%(weight) # add parentheses to be safe
   if cuts:
-    cuts = " && ".join(cuts)
-    if weight:
-      string = re.sub("\(.+\)","",cuts)
-      cuts   = "(%s)*%s"%(cuts,weight)
+    newcuts = " && ".join(cuts)
+    if weight: # apply weight to joined string
+      string  = re.sub("\(.+\)","",cuts)
+      newcuts = "(%s)*%s"%(cuts,weight)
   elif weight:
-    cuts = weight
+    newcuts = weight
   else:
-    cuts = ""
+    newcuts = ""
   #print cuts
-  return cuts
+  return newcuts
   
 
 def replacepattern(oldstr,patterns):
@@ -401,8 +399,8 @@ def replacepattern(oldstr,patterns):
 
 doubleboolrexp = re.compile(r"(?:&&|\|\|) *(?:&&|\|\|)")
 def cleanbool(string):
-  """Clean boolean operators."""
-  return doubleboolrexp.sub(r"&&",string).strip(' ').strip('&').strip(' ')
+  """Clean string to avoid double or dangling boolean operators."""
+  return doubleboolrexp.sub('&&',string).strip(' ').strip('&').strip(' ')
   
 
 def undoshift(string):
@@ -456,7 +454,7 @@ def invertcharge(oldcuts,target='SS',**kwargs):
   oldcuts   = getselstr(oldcuts)
   newcuts   = oldcuts
   if oldcuts=="":
-    newcuts = "q_1*q_2<0" if target=='OS' else "q_1*q_2>0" if target=='OS' else ""
+    newcuts = "q_1*q_2<0" if target=='OS' else "q_1*q_2>0" if target=='SS' else ""
   else:
     matchOS = re.findall(r"q_[12]\s*\*\s*q_[12]\s*<\s*0",oldcuts)
     matchSS = re.findall(r"q_[12]\s*\*\s*q_[12]\s*>\s*0",oldcuts)
@@ -476,37 +474,29 @@ def invertcharge(oldcuts,target='SS',**kwargs):
   return newcuts
   
 
-###isopattern1 = re.compile(r"(?:idMVA\w+|pfRelIso0._all)_1 *!?[<=>]=? *\d+ *[^|]&* *")
-###isopattern2 = re.compile(r"idMVA\w+_2 *!?[<=>]=? *\d+ *[^|]&* *")
-###def invertiso(cuts,**kwargs):
-###  """Helpfunction to find, invert and replace isolation selections."""
-###  
-###  verbosity   = LOG.getverbosity(kwargs)
-###  channel     = kwargs.get('channel', 'emu' )
-###  iso_relaxed = kwargs.get('to',      ''    )
-###  remove1     = kwargs.get('remove1', True  )
-###  cuts0       = cuts
-###  
-###  # MATCH isolations
-###  match_iso_1 = isopattern1.findall(cuts)
-###  match_iso_2 = isopattern2.findall(cuts)
-###  LOG.verbose('invertIsolationNanoAOD:\n>>>   match_iso_1 = %r\n>>>   match_iso_2 = %r'%(match_iso_1,match_iso_2),verbosity,level=2)
-###  
-###  # REPLACE
-###  if match_iso_1 and match_iso_2:
-###    if len(match_iso_1)>1: LOG.warn("invertIsolationNanoAOD: More than one iso_1 match! cuts=%s"%cuts)
-###    if len(match_iso_2)>1: LOG.warn("invertIsolationNanoAOD: More than one iso_2 match! cuts=%s"%cuts)
-###    if remove1:
-###      cuts = cuts.replace(match_iso_1[0],'')
-###    cuts = cuts.replace(match_iso_2[0],'')
-###    if iso_relaxed:
-###      cuts = combineCuts(cuts,iso_relaxed)
-###  elif cuts and match_iso_1 or match_iso_2:
-###      LOG.warn('invertIsolationNanoAOD: %d iso_1 and %d iso_2 matches! cuts=%r'%(len(match_iso_1),len(match_iso_2),cuts))
-###  cuts = cleanBooleans(cuts)
-###  
-###  LOG.verbose('  %r\n>>>   -> %r\n>>>'%(cuts0,cuts),verbosity,level=2)
-###  return cuts
+iso_expr1 = re.compile(r"(?:id\w+VSjet|pfRelIso\d+_all)_1 *!?[<=>]=? *\d+ *[^|]&* *")
+iso_expr2 = re.compile(r"id\w+VSjet_2 *!?[<=>]=? *\d+ *[^|]&* *")
+def invertiso(oldcuts,**kwargs):
+  """Help function to find and replace isolation requirements."""
+  verbosity = LOG.getverbosity(kwargs)
+  newiso    = kwargs.get('to',  None ) # for both legs
+  newiso1   = kwargs.get('to1', ""   ) # for only leg 1 (default: remove from string)
+  newiso2   = kwargs.get('to2', ""   ) # for only leg 2 (default: remove from string)
+  newcuts   = oldcuts
+  match1    = iso_expr1.findall(oldcuts) # leg 1: lepton or leading hadronic tau
+  match2    = iso_expr2.findall(oldcuts) # leg 2: (subleading) hadronic tau
+  LOG.verb(f"invertiso: match_iso_1={match1}, match_iso_2={match2}",verbosity,level=2)
+  if len(match1)>=2: LOG.warn(f"invertiso: More than one iso_1 match! cuts={oldcuts}, match1={match1}")
+  if len(match2)>=2: LOG.warn(f"invertiso: More than one iso_2 match! cuts={oldcuts}, match2={match2}")
+  if match1 and newiso1!=None: # replace isolation requirement with given string for leg 1
+    newcuts = newcuts.replace(match1[0],newiso1)
+  if match2 and newiso2!=None: # replace isolation requirement with given string for leg 2
+    newcuts = newcuts.replace(match2[0],newiso2)
+  if newiso!=None: # add isolation common requirement at end of selection string
+    newcuts = joincuts(newcuts,newiso)
+  newcuts = cleanbool(newcuts)
+  LOG.verbose(f"invertiso: {oldcuts}\n>>>          -> {newcuts}",verbosity,level=2)
+  return newcuts
   
 
 ###def relaxjetcuts(cuts,**kwargs):

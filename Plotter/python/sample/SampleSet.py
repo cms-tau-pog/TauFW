@@ -3,8 +3,8 @@
 import os, re
 from math import sqrt
 from copy import copy, deepcopy
-from TauFW.Plotter.sample.utils import *
-from TauFW.Plotter.sample.HistSet import HistSet, HistDict
+from TauFW.Plotter.sample.utils import * # for unpack_gethist_args, etc.
+from TauFW.Plotter.sample.HistSet import StackDict
 from TauFW.Plotter.plot.string import makelatex, maketitle, makehistname
 from TauFW.Plotter.plot.Variable import Variable
 from TauFW.Plotter.plot.Stack import Stack
@@ -46,7 +46,7 @@ class SampleSet(object):
     #self.weight         = kwargs.get('weight',     ""   ) # use Sample objects to store weight !
   
   def __str__(self):
-    """Returns string representation of Sample object."""
+    """Return string representation of Sample object."""
     return ', '.join(repr(s.name) for s in [self.datasample]+self.mcsamples if s)
   
   def __add__(self,oset,**kwargs):
@@ -253,10 +253,15 @@ class SampleSet(object):
   
   def gethists(self, *args, **kwargs):
     """Create and fill histograms for all samples for given lists of variables and selections
-    with RDataFrame and return nested dictionary of histogram set (HistSet)."""
+    with RDataFrame and return a HistSetDict, a set of nested dictionaries of HistSet objects of form
+      hist_dict = { selection: { variable: HistSet } }
+    """
     verbosity     = LOG.getverbosity(kwargs,self)
     LOG.verb("SampleSet.gethists: args=%r"%(args,),verbosity,1)
-    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
+    if kwargs.get('2d',False): # parse arguments for 2D histograms
+      variables, selections, issinglevar, issinglesel = unpack_gethist2D_args(*args)
+    else: # parse arguments for 1D histograms
+      variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
     if not variables or not selections:
       LOG.warn("SampleSet.gethists: No variables or selections to make histograms for... Got args=%r"%(args,))
       return { }
@@ -286,6 +291,7 @@ class SampleSet(object):
     vetoes        = ensurelist(vetoes)
     if method and not hasattr(self,method):
       ensuremodule(method,'Plotter.methods') # load SampleSet class method from TauFW.Plotter.methods
+      LOG.insist(hasattr(self,method),f"SampleSet must have {method} class method added by Plotter.methods.{method}!")
     
     # FILTER
     samples = [ ] # (filtered) list of samples to create histograms fo
@@ -304,7 +310,8 @@ class SampleSet(object):
     # GET RDATAFRAMES
     rdf_dict = { } # optimization & debugging: reuse RDataFrames for the same filename / selection
     res_dict = ResultDict() # dictionary of booked histograms (as RResultPtr<TH1D>)
-    res_dict.setnthreads(nthreads,verb=verbosity+1) # set before creating RDataFrame
+    if nthreads!=None:
+      res_dict.setnthreads(nthreads,verb=verbosity+1) # set before creating RDataFrame
     for sample in samples:
       rkwargs = { }
       if dodata and sample.isdata:   # (OBSERVED) DATA
@@ -320,14 +327,14 @@ class SampleSet(object):
       res_dict.display() # print full dictionary
     
     # RUN RDataFrame events loops to fill histograms
-    res_dict.run(graphs=True,rdf_dict=rdf_dict,dot=dotgraph,verb=verbosity)
+    res_dict.run(graphs=True,rdf_dict=rdf_dict,dot=dotgraph,task=task,verb=verbosity)
     
     # CONVERT TO HISTSET
-    # NOTE: in case of many subsamples of MergedSamples,
-    # this parts should remove some histograms from the memory
+    # NOTE: in case of MergedSample objects with many subsamples,
+    # this part should remove some histograms from the memory (clean=True)
     histset_dict = res_dict.gethistsets(style=True,clean=True) # { selection : { variable: HistSet } } }
     
-    # EXTRA METHODS (e.g. QCD estimation from OS/SS)
+    # EXTRA METHODS (e.g. QCD estimation from OS/SS or ABCD method)
     if method:
       LOG.verb("SampleSet.gethists: method %r"%(method),verbosity,1)
       hist_dict = getattr(self,method)(variables,selections,rdf=True,**kwargs) # { selection : { variable: TH1D } } }
@@ -337,44 +344,41 @@ class SampleSet(object):
     if verbosity>=3:
       histset_dict.display()
     
-    # RETURN nested dictionarys of HistSets:  { selection: { variable: HistSet } }
+    # RETURN a HistSetDict, nested dictionaries of HistSet objects: { selection: { variable: HistSet } }
     return histset_dict.results(singlevar=issinglevar,singlesel=issinglesel)
   
-  def getstack(self, *args, **kwargs):
+  def gethists2D(self, *args, **kwargs):
+    """Create and fill 2D histograms for all samples for given lists of variables and selections
+    with RDataFrame and return a HistSetDict (nested dictionaries of HistSet objects)."""
+    kwargs['2d'] = True
+    return self.gethists(*args,**kwargs) # use same function
+  
+  def getstack(self, *args, thstack=False, **kwargs):
     """Create and fill histograms for each given variable, selection with SampleSet.gethists,
     and create a Stack object to plot a stack of all samples compared to data.
-    Returns dictionary of Stack objects pointing to 2-tuple of (Variable,Selection) for easy iteration."""
+    Return StackDict of TauFW Stack objects.
+    If you iterate over a StackDict, it will yield the stack objects, e.g.
+      for stack in stack_dict:
+        stack.draw()
+    If you use StackDict.items, it will yield also a 2-tuple of the respective (variable,selection):
+      for stack, (variable,selection) in stack_dict.items():
+        stack.draw()
+    """
     variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
-    histsets = self.gethists(variables,selections,**kwargs)
-    stacks = { }
-    for selection in histsets:
-      for variable in histsets[selection]:
-        stack = histsets[selection][variable].getstack(var=variable,context=selection,**kwargs) # create Stack object
-        if issinglevar and issinglesel:
-          return stack # return single Stack object (instead of dictionary)
-        else:
-          stacks[stack] = (variable,selection)
-    return stacks # return dictionary: { Stack : (Variable, Selection) }
+    histset_dict = self.gethists(variables,selections,**kwargs)
+    kwargs['context'] = kwargs.get('context',[ ])+[self.channel]
+    stacks = StackDict.init_from_HistDict(histset_dict,singlevar=issinglevar,singlesel=issinglesel,thstack=thstack,**kwargs)
+    return stacks # return StackDict: { Stack : (Variable, Selection) }
   
   def getTHStack(self, *args, **kwargs):
     """Get THStack of backgrounds histogram, created by SampleSet.gethists.
-    Returns dictionary of THStack objects pointing to 2-tuple of (Variable,Selection) for easy iteration."""
-    kwargs.update({'data':False, 'signal':False, 'exp':True}) # force bkg-only
-    variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
-    histsets = self.gethists(variables,selections,**kwargs)
-    stacks = { }
-    for selection in histsets:
-      for variable in histsets[selection]:
-        stack = histsets[selection][variable].getTHStack(**kwargs) # create Stack object
-        if issinglevar and issinglesel:
-          return stack # return single ThStack object (instead of dictionary)
-        else:
-          stacks[stack] = (variable,selection)
-    return stacks # return dictionary: { Stack : (Variable, Selection) }
+    Return StackDict of ROOT THStack objects."""
+    kwargs.update({'data':False, 'signal':False, 'exp':True, 'thstack': True}) # force bkg-only for THStack
+    return self.getstack(*args, **kwargs) # return StackDict: { THStack : (Variable, Selection) }
   
   def getdatahist(self, *args, **kwargs):
     """Create and fill histograms of observed data only.
-    Returns dictionary of TH1D objects pointing to 2-tuple of (Variable,Selection) for easy iteration."""
+    Return dictionary of TH1D objects pointing to 2-tuple of (Variable,Selection) for easy iteration."""
     kwargs.update({'data':True, 'mc':False, 'signal':False, 'exp':False}) # force data-only
     variables, selections, issinglevar, issinglesel = unpack_gethist_args(*args)
     histsets = self.gethists(variables,selections,**kwargs)

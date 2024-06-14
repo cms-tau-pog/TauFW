@@ -53,7 +53,6 @@ class ModuleETau(ModuleTauPair):
     print(">>> %-12s = %s"%('eleCutEta',  self.eleCutEta))
     print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
     print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
-    pass
     
   
   def analyze(self, event):
@@ -185,44 +184,14 @@ class ModuleETau(ModuleTauPair):
     self.out.q_1[0]                        = electron.charge
     self.out.iso_1[0]                      = electron.pfRelIso03_all
     self.out.cutBased_1[0]                 = electron.cutBased
-    self.out.mvaFall17Iso_WP90_1[0]        = electron.mvaFall17V2Iso_WP90
-    self.out.mvaFall17Iso_WP80_1[0]        = electron.mvaFall17V2Iso_WP80
-    self.out.mvaFall17noIso_WP90_1[0]      = electron.mvaFall17V2noIso_WP90
-    self.out.mvaFall17noIso_WP80_1[0]      = electron.mvaFall17V2noIso_WP80
+    self.out.mvaIso_WP90_1[0]              = electron.mvaFall17V2Iso_WP90
+    self.out.mvaIso_WP80_1[0]              = electron.mvaFall17V2Iso_WP80
+    self.out.mvanoIso_WP90_1[0]            = electron.mvaFall17V2noIso_WP90
+    self.out.mvanoIso_WP80_1[0]            = electron.mvaFall17V2noIso_WP80
     
     
     # TAU
-    self.out.pt_2[0]                       = tau.pt
-    self.out.eta_2[0]                      = tau.eta
-    self.out.phi_2[0]                      = tau.phi
-    self.out.m_2[0]                        = tau.mass
-    self.out.y_2[0]                        = tau.tlv.Rapidity()
-    self.out.dxy_2[0]                      = tau.dxy
-    self.out.dz_2[0]                       = tau.dz
-    self.out.q_2[0]                        = tau.charge
-    self.out.dm_2[0]                       = tau.decayMode
-    self.out.iso_2[0]                      = tau.rawIso
-    self.out.idiso_2[0]                    = idIso(tau) # cut-based tau isolation (rawIso)
-    self.out.rawAntiEle_2[0]               = tau.rawAntiEle
-    self.out.rawMVAoldDM2017v2_2[0]        = tau.rawMVAoldDM2017v2
-    self.out.rawMVAnewDM2017v2_2[0]        = tau.rawMVAnewDM2017v2
-    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
-    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
-    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
-    self.out.idAntiEle_2[0]                = tau.idAntiEle
-    self.out.idAntiMu_2[0]                 = tau.idAntiMu
-    self.out.idDecayMode_2[0]              = tau.idDecayMode
-    self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idMVAoldDM2017v2_2[0]         = tau.idMVAoldDM2017v2
-    self.out.idMVAnewDM2017v2_2[0]         = tau.idMVAnewDM2017v2
-    self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
-    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
-    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
-    self.out.chargedIso_2[0]               = tau.chargedIso
-    self.out.neutralIso_2[0]               = tau.neutralIso
-    self.out.leadTkPtOverTauPt_2[0]        = tau.leadTkPtOverTauPt
-    self.out.photonsOutsideSignalCone_2[0] = tau.photonsOutsideSignalCone
-    self.out.puCorr_2[0]                   = tau.puCorr
+    self.fillCommonTauBranches(event,tau)
     
     
     # GENERATOR

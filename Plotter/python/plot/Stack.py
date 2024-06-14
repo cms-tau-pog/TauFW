@@ -33,7 +33,7 @@ class Stack(Plot):
         self.datahist = self.datahist.Clone(self.datahist.GetName()+"_clone_Stack")
       self.exphists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.exphists]
       self.sighists = [h.Clone(h.GetName()+"_clone_Stack") for h in self.sighists]
-    if self.datahist:
+    if self.datahist: # only add if it exists
       self.hists = [self.datahist]+self.exphists+self.sighists
     else:
       self.hists = self.exphists+self.sighists
@@ -167,6 +167,7 @@ class Stack(Plot):
       datahists = [self.datahist]
       for hlist in [datahists,self.exphists,self.sighists]:
         for i, oldhist in enumerate(hlist):
+          if not oldhist: continue
           dograph = (oldhist==self.datahist) # only create graph for observed data histogram
           newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,errorX=errorX,graph=dograph,verb=verbosity)
           if dograph and oldhist!=newhist:
@@ -232,7 +233,7 @@ class Stack(Plot):
     # DRAW FRAME
     mainpad = self.canvas.cd(1)
     if not self.frame: # if not given by user
-      self.frame = getframe(mainpad,self.exphists[0],xmin,xmax,variable=True)
+      self.frame = getframe(mainpad,stack,xmin,xmax,variable=True)
       self.frame.Draw('][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
     else:
       self.frame.Draw('AXIS ][') # 'AXIS' breaks grid in combination with TGraph sometimes !?
