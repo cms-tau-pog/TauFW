@@ -302,7 +302,7 @@ class StackDict(dict):
     If there's a single stack for a single pair of variables and selections,
     return single Stack/THStack object instead."""
     stacks  = { }
-    context = kwargs.get('context', [ ])
+    context = kwargs.pop('context', [ ])
     for selection in histset_dict:
       for variable, histset in histset_dict[selection].items():
         if isinstance(histset,dict):
