@@ -358,7 +358,7 @@ def idIso(tau):
   if tau.photonsOutsideSignalCone/tau.pt<0.10:
     return 0 if raw>4.5 else 1 if raw>3.5 else 3 if raw>2.5 else 7 if raw>1.5 else 15 if raw>0.8 else 31 # VVLoose, VLoose, Loose, Medium, Tight
   return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
-
+  
 
 def getlepvetoes(event, electrons, muons, taus, channel, era):
   """Check if event has extra electrons or muons. (HTT definitions.)"""
@@ -381,21 +381,20 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
       extramuon_veto = True
     if muon.pt>15 and muon.isPFcand and muon.isGlobal and muon.isTracker:
       looseMuons.append(muon)
-
-
+  
   # EXTRA ELECTRON VETO
   looseElectrons = [ ]
   for electron in Collection(event,'Electron'): 
     if '2022' in era:
-      electronIso90=electron.mvaIso_Fall17V2_WP90
-      electronIso=electron.mvaIso_Fall17V2_WPL
+      electronIso90 = electron.mvaIso_Fall17V2_WP90
+      electronIso   = electron.mvaIso_Fall17V2_WPL
     elif '2023' in era:
-      electronIso90=electron.mvaIso_WP90
-      electronIso=electron.mvaIso
+      electronIso90 = electron.mvaIso_WP90
+      electronIso   = electron.mvaIso
     else:
-      electronIso90=electron.mvaFall17V2Iso_WP90
-      electronIso=electron.mvaFall17V2Iso_WPL
-
+      electronIso90 = electron.mvaFall17V2Iso_WP90
+      electronIso   = electron.mvaFall17V2Iso_WPL
+    
     if electron.pt<10: continue
     if abs(electron.eta)>2.5: continue
     if abs(electron.dz)>0.2: continue
@@ -406,7 +405,7 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
       extraelec_veto = True
     if electron.pt>15 and electron.cutBased>0 and electronIso:
       looseElectrons.append(electron)
- 
+  
   # DILEPTON VETO
   if channel=='mutau':
     for muon1, muon2 in combinations(looseMuons,2):

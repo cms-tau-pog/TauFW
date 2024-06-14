@@ -36,14 +36,16 @@ class Cutflow(object):
     index = self.cuts[cut]
     self.hist.Fill(index,*args)
   
-  def display(self,itot=1,nfinal=None,final="Final selection"):
+  def display(self,itot=None,nfinal=None,final="Final selection"):
     """Print cutflow."""
     if not self.cuts: return
-    ntot  = self.hist.GetBinContent(itot) # number of events before any cuts
-    nlast = (-99,ntot)
+    if itot==None:
+      itot = self.cuts.get('none',1) # assume first bin has total number of processed events 
+    ntot  = self.hist.GetBinContent(itot) # total number of processed events before any cuts
+    nlast = (-999,ntot)
     #padcut = 3+max(len(c) for c in self.cuts) # padding
     values = [self.hist.GetBinContent(1+i) for k, i in self.cuts.items() if self.hist.GetBinContent(1+i)>0] # all values > 0
-    maxval = max(abs(x) for x in values) if values else 0
+    maxval = max(abs(x) for x in values) if values else 0 # maximum value
     padevt = 4+(int(floor(log10(maxval))) if maxval>0 else 0) # pad all numbers of events
     padtot = 3+(int(floor(log10(ntot))) if ntot>0 else 0) # pad total number of events
     denstr = str(ntot).rjust(padtot) if ntot else " 0"

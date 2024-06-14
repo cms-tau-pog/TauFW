@@ -9,7 +9,6 @@ class TreeProducerEMu(TreeProducerTauPair):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print("Loading TreeProducerEMu for %r"%(filename))
     super(TreeProducerEMu,self).__init__(filename,module,**kwargs)
     
     
@@ -17,35 +16,35 @@ class TreeProducerEMu(TreeProducerTauPair):
     #   ELECTRON   #
     ################
     
-    self.addBranch('pt_1',                     'f')
-    self.addBranch('eta_1',                    'f')
-    self.addBranch('phi_1',                    'f')
-    self.addBranch('m_1',                      'f')
-    self.addBranch('y_1',                      'f')
-    self.addBranch('dxy_1',                    'f')
-    self.addBranch('dz_1',                     'f')
-    self.addBranch('q_1',                      'i')
+    self.addBranch('pt_1',                     'f', title="electron pt")
+    self.addBranch('eta_1',                    'f', title="electron eta")
+    self.addBranch('phi_1',                    'f', title="electron phi")
+    self.addBranch('m_1',                      'f', title="electron mass")
+    self.addBranch('y_1',                      'f', title="electron rapidity")
+    self.addBranch('dxy_1',                    'f', title="electron dxy")
+    self.addBranch('dz_1',                     'f', title="electron dz")
+    self.addBranch('q_1',                      'i', title="electron charge")
     self.addBranch('iso_1',                    'f', title="relative isolation, pfRelIso03_all")
     self.addBranch('cutBased_1',               '?')
     ###self.addBranch('mvaFall17Iso_1',           'f')
-    self.addBranch('mvaFall17Iso_WP80_1',      '?')
-    self.addBranch('mvaFall17Iso_WP90_1',      '?')
-    self.addBranch('mvaFall17noIso_WP80_1',    '?')
-    self.addBranch('mvaFall17noIso_WP90_1',    '?')
+    self.addBranch('mvaIso_WP80_1',            '?')
+    self.addBranch('mvaIso_WP90_1',            '?')
+    self.addBranch('mvanoIso_WP80_1',          '?')
+    self.addBranch('mvanoIso_WP90_1',          '?')
     
     
     ############
     #   MUON   #
     ############
     
-    self.addBranch('pt_2',                     'f')
-    self.addBranch('eta_2',                    'f')
-    self.addBranch('phi_2',                    'f')
-    self.addBranch('m_2',                      'f')
-    self.addBranch('y_2',                      'f')
-    self.addBranch('dxy_2',                    'f')
-    self.addBranch('dz_2',                     'f')
-    self.addBranch('q_2',                      'i')
+    self.addBranch('pt_2',                     'f', title="muon pt")
+    self.addBranch('eta_2',                    'f', title="muon eta")
+    self.addBranch('phi_2',                    'f', title="muon phi")
+    self.addBranch('m_2',                      'f', title="muon mass")
+    self.addBranch('y_2',                      'f', title="muon rapidity")
+    self.addBranch('dxy_2',                    'f', title="muon dxy")
+    self.addBranch('dz_2',                     'f', title="muon dz")
+    self.addBranch('q_2',                      'i', title="muon charge")
     self.addBranch('iso_2',                    'f', title="relative isolation, pfRelIso04_all")
     self.addBranch('tkRelIso_2',               'f')
     self.addBranch('idMedium_2',               '?')
@@ -53,25 +52,21 @@ class TreeProducerEMu(TreeProducerTauPair):
     self.addBranch('idHighPt_2',               'i')
     
     
-    ###########
-    #   TAU   #
-    ###########
-    
-    self.addBranch('pt_3',                     'f')
-    self.addBranch('eta_3',                    'f')
-    self.addBranch('m_3',                      'f')
-    self.addBranch('q_3',                      'f')
-    self.addBranch('dm_3',                     'f')
-    self.addBranch('iso_3',                    'i', title="rawIso")
-    self.addBranch('idiso_3',                  'i', title="rawIso WPs")
-    self.addBranch('idAntiEle_3',              'i')
-    self.addBranch('idAntiMu_3',               'i')
-    self.addBranch('idMVAoldDM2017v2_3',       'i')
-    self.addBranch('idMVAnewDM2017v2_3',       'i')
-    self.addBranch('idDeepTau2017v2p1VSe_3',   'i')
-    self.addBranch('idDeepTau2017v2p1VSmu_3',  'i')
-    self.addBranch('idDeepTau2017v2p1VSjet_3', 'i')
-    self.addBranch('jpt_match_3',              'i', title="pt of jet matching tau")
+    ##############
+    ####   TAU   #
+    ##############
+    ###
+    ###self.addBranch('pt_3',                     'f')
+    ###self.addBranch('eta_3',                    'f')
+    ###self.addBranch('m_3',                      'f')
+    ###self.addBranch('q_3',                      'f')
+    ###self.addBranch('dm_3',                     'f')
+    ###self.addBranch('iso_3',                    'i', title="rawIso")
+    ###self.addBranch('idiso_3',                  'i', title="rawIso WPs")
+    ###self.addBranch('idDeepTau2017v2p1VSe_3',   'i')
+    ###self.addBranch('idDeepTau2017v2p1VSmu_3',  'i')
+    ###self.addBranch('idDeepTau2017v2p1VSjet_3', 'i')
+    ###self.addBranch('jpt_match_3',              'i', title="pt of jet matching tau")
     
     
     ###########

@@ -9,7 +9,6 @@ class TreeProducerMuTau(TreeProducerTauPair):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print("Loading TreeProducerMuTau for %r"%(filename))
     super(TreeProducerMuTau,self).__init__(filename,module,**kwargs)
     kwargs.setdefault('study',True) # for addCommonTauBranches
     
@@ -18,14 +17,14 @@ class TreeProducerMuTau(TreeProducerTauPair):
     #   MUON   #
     ############
     
-    self.addBranch('pt_1',       'f')
-    self.addBranch('eta_1',      'f')
-    self.addBranch('phi_1',      'f')
-    self.addBranch('m_1',        'f')
-    self.addBranch('y_1',        'f')
-    self.addBranch('dxy_1',      'f')
-    self.addBranch('dz_1',       'f')
-    self.addBranch('q_1',        'i')
+    self.addBranch('pt_1',       'f', title="muon pt")
+    self.addBranch('eta_1',      'f', title="muon eta")
+    self.addBranch('phi_1',      'f', title="muon phi")
+    self.addBranch('m_1',        'f', title="muon mass")
+    self.addBranch('y_1',        'f', title="muon rapidity")
+    self.addBranch('dxy_1',      'f', title="muon dxy")
+    self.addBranch('dz_1',       'f', title="muon dz")
+    self.addBranch('q_1',        'i', title="muon charge")
     self.addBranch('iso_1',      'f', title="relative isolation, pfRelIso04_all")
     self.addBranch('tkRelIso_1', 'f')
     self.addBranch('idMedium_1', '?')

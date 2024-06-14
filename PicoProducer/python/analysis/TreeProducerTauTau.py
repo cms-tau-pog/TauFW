@@ -9,13 +9,21 @@ class TreeProducerTauTau(TreeProducerTauPair):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print("Loading TreeProducerTauTau for %r"%(filename))
     super(TreeProducerTauTau,self).__init__(filename,module,**kwargs)
     
-    # ADD TAU BRANCHES
+    
+    ############
+    #   TAUS   #
+    ############
+    
     kwargs.pop('tag',None) # remove tag
     self.addCommonTauBranches(tag='_1',**kwargs)
     self.addCommonTauBranches(tag='_2',**kwargs)
+    
+    
+    ##########
+    #   MC   #
+    ##########
     
     if self.module.ismc:
       self.addBranch('jpt_genmatch_1',           'f', -1, title="pt of gen jet matching tau")

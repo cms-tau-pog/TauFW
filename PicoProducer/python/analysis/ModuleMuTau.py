@@ -47,20 +47,20 @@ class ModuleMuTau(ModuleTauPair):
       self.mtfSFs     = TauIDSFTool(version,'DeepTau2017v2p1VSmu', 'Tight')
     
     # CUTFLOW
-    self.out.cutflow.addcut('none',         "no cut"                     )
-    self.out.cutflow.addcut('trig',         "trigger"                    )
-    self.out.cutflow.addcut('muon',         "muon"                       )
-    self.out.cutflow.addcut('tau',          "tau"                        )
-    self.out.cutflow.addcut('pair',         "pair"                       )
-    self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
-    self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization; bug in pre-UL 2017 caused small fraction of events with nPU<=0
-    # Important cutflow entries to make stitching with exclusive mutauh sample (DYJetsToTauTauToMuTauh)
-    self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )    
-    self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
+    self.out.cutflow.addcut('weight', "no cut, weighted" ) # use for normalization with sum of weight
+    self.out.cutflow.addcut('none',   "no cut"           ) # number of processed events
+    self.out.cutflow.addcut('trig',   "trigger"          )
+    self.out.cutflow.addcut('muon',   "muon"             )
+    self.out.cutflow.addcut('tau',    "tau"              )
+    self.out.cutflow.addcut('pair',   "pair"             )
+    if self.domutau:
+      # Important cutflow entries to make stitching with exclusive mutauh sample (DYJetsToTauTauToMuTauh)
+      self.out.cutflow.addcut('weight_mutaufilter',          "no cut, mutaufilter", 17 )    
+      self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
+      self.out.cutflow.addcut('weight_mutaufilter_NUP1',     "no cut, weighted, mutau, 1 jet", 19 )
+      self.out.cutflow.addcut('weight_mutaufilter_NUP2',     "no cut, weighted, mutau, 2 jets", 20 )
+      self.out.cutflow.addcut('weight_mutaufilter_NUP3',     "no cut, weighted, mutau, 3 jets", 21 )
+      self.out.cutflow.addcut('weight_mutaufilter_NUP4',     "no cut, weighted, mutau, 4 jets", 22 )
     
   
   def beginJob(self):
@@ -72,7 +72,6 @@ class ModuleMuTau(ModuleTauPair):
     print(">>> %-12s = %s"%('tauCutPt',   self.tauCutPt))
     print(">>> %-12s = %s"%('tauCutEta',  self.tauCutEta))
     #print(">>> %-12s = %s"%('trigger',    self.trigger))
-    pass
     
   
   def analyze(self, event):
@@ -100,7 +99,7 @@ class ModuleMuTau(ModuleTauPair):
       if abs(muon.dz)>0.2: continue
       if abs(muon.dxy)>0.045: continue
       if not muon.mediumId: continue
-      if muon.pfRelIso04_all>0.50: continue
+      if muon.pfRelIso04_all>0.50: continue # keep loose for QCD OS/SS measurement
       muons.append(muon)
     if len(muons)==0:
       return False
@@ -187,19 +186,19 @@ class ModuleMuTau(ModuleTauPair):
     
     
     # MUON
-    self.out.pt_1[0]                       = muon.pt
-    self.out.eta_1[0]                      = muon.eta
-    self.out.phi_1[0]                      = muon.phi
-    self.out.m_1[0]                        = muon.mass
-    self.out.y_1[0]                        = muon.tlv.Rapidity()
-    self.out.dxy_1[0]                      = muon.dxy
-    self.out.dz_1[0]                       = muon.dz
-    self.out.q_1[0]                        = muon.charge
-    self.out.iso_1[0]                      = muon.pfRelIso04_all # relative isolation
-    self.out.tkRelIso_1[0]                 = muon.tkRelIso
-    self.out.idMedium_1[0]                 = muon.mediumId
-    self.out.idTight_1[0]                  = muon.tightId
-    self.out.idHighPt_1[0]                 = muon.highPtId
+    self.out.pt_1[0]             = muon.pt
+    self.out.eta_1[0]            = muon.eta
+    self.out.phi_1[0]            = muon.phi
+    self.out.m_1[0]              = muon.mass
+    self.out.y_1[0]              = muon.tlv.Rapidity()
+    self.out.dxy_1[0]            = muon.dxy
+    self.out.dz_1[0]             = muon.dz
+    self.out.q_1[0]              = muon.charge
+    self.out.iso_1[0]            = muon.pfRelIso04_all # relative isolation
+    self.out.tkRelIso_1[0]       = muon.tkRelIso
+    self.out.idMedium_1[0]       = muon.mediumId
+    self.out.idTight_1[0]        = muon.tightId
+    self.out.idHighPt_1[0]       = muon.highPtId
     
     
     # TAU

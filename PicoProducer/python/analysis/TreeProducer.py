@@ -37,6 +37,8 @@ class TreeProducer(object):
   def __init__(self, filename, module, **kwargs):
     self.verbosity = kwargs.get('verb',getattr(module,'verbosity',False) or getattr(module,'verb',False))
     compression    = kwargs.get('compress',None)
+    if self.verbosity>=0:
+      print(f"Loading {self.__class__.__name__} for %r"%(filename))
     if self.verbosity>=1:
       print(">>> TreeProducer.__init__: %r, %r, kwargs=%s..."%(filename,module,kwargs))
     self.filename  = filename

@@ -9,7 +9,6 @@ class TreeProducerETau(TreeProducerTauPair):
   """Class to create and prepare a custom output file & tree."""
   
   def __init__(self, filename, module, **kwargs):
-    print("Loading TreeProducerETau for %r"%(filename))
     super(TreeProducerETau,self).__init__(filename,module,**kwargs)
     
     
@@ -17,65 +16,40 @@ class TreeProducerETau(TreeProducerTauPair):
     #   ELECTRON   #
     ################
     
-    self.addBranch('pt_1',                       'f')
-    self.addBranch('eta_1',                      'f')
-    self.addBranch('phi_1',                      'f')
-    self.addBranch('m_1',                        'f')
-    self.addBranch('y_1',                        'f')
-    self.addBranch('dxy_1',                      'f')
-    self.addBranch('dz_1',                       'f')
-    self.addBranch('q_1',                        'i')
+    self.addBranch('pt_1',                       'f', title="electron pt")
+    self.addBranch('eta_1',                      'f', title="electron eta")
+    self.addBranch('phi_1',                      'f', title="electron phi")
+    self.addBranch('m_1',                        'f', title="electron mass")
+    self.addBranch('y_1',                        'f', title="electron rapidity")
+    self.addBranch('dxy_1',                      'f', title="electron dxy")
+    self.addBranch('dz_1',                       'f', title="electron dz")
+    self.addBranch('q_1',                        'i', title="electron charge")
     self.addBranch('iso_1',                      'f', title="pfRelIso03_all")
     self.addBranch('cutBased_1',                 '?')
-    ###self.addBranch('mvaFall17Iso_1',             'f')
-    self.addBranch('mvaFall17Iso_WP80_1',        '?')
-    self.addBranch('mvaFall17Iso_WP90_1',        '?')
-    self.addBranch('mvaFall17noIso_WP80_1',      '?')
-    self.addBranch('mvaFall17noIso_WP90_1',      '?')
+    ###self.addBranch('mvaIso_1',                   'f')
+    self.addBranch('mvaIso_WP80_1',              '?')
+    self.addBranch('mvaIso_WP90_1',              '?')
+    self.addBranch('mvanoIso_WP80_1',            '?')
+    self.addBranch('mvanoIso_WP90_1',            '?')
     
     
     ###########
     #   TAU   #
     ###########
     
-    self.addBranch('pt_2',                       'f')
-    self.addBranch('eta_2',                      'f')
-    self.addBranch('phi_2',                      'f')
-    self.addBranch('m_2',                        'f')
-    self.addBranch('y_2',                        'f')
-    self.addBranch('dxy_2',                      'f')
-    self.addBranch('dz_2',                       'f')
-    self.addBranch('q_2',                        'i')
-    self.addBranch('dm_2',                       'i')
-    self.addBranch('iso_2',                      'f', title="rawIso")
-    self.addBranch('idiso_2',                    'i', title="rawIso WPs")
-    self.addBranch('rawAntiEle_2',               'f')
-    self.addBranch('rawMVAoldDM2017v2_2',        'f')
-    self.addBranch('rawMVAnewDM2017v2_2',        'f')
-    self.addBranch('rawDeepTau2017v2p1VSe_2',    'f')
-    self.addBranch('rawDeepTau2017v2p1VSmu_2',   'f')
-    self.addBranch('rawDeepTau2017v2p1VSjet_2',  'f')
+    self.addCommonTauBranches(tag='_2',**kwargs)
     self.addBranch('rawDeepTau2018v2p5VSe_2',    'f')
     self.addBranch('rawDeepTau2018v2p5VSmu_2',   'f')
     self.addBranch('rawDeepTau2018v2p5VSjet_2',  'f')
-    self.addBranch('idAntiEle_2',                'i')
-    self.addBranch('idAntiMu_2',                 'i')
-    self.addBranch('idDecayMode_2',              '?', title="oldDecayModeFinding")
-    self.addBranch('idDecayModeNewDMs_2',        '?', title="newDecayModeFinding")
-    self.addBranch('idMVAoldDM2017v2_2',         'i')
-    self.addBranch('idMVAnewDM2017v2_2',         'i')
-    self.addBranch('idDeepTau2017v2p1VSe_2',     'i')
-    self.addBranch('idDeepTau2017v2p1VSmu_2',    'i')
-    self.addBranch('idDeepTau2017v2p1VSjet_2',   'i')
     self.addBranch('idDeepTau2018v2p5VSe_2',     'i')
     self.addBranch('idDeepTau2018v2p5VSmu_2',    'i')
     self.addBranch('idDeepTau2018v2p5VSjet_2',   'i')
-    self.addBranch('leadTkPtOverTauPt_2',        'f')
-    self.addBranch('chargedIso_2',               'f')
-    self.addBranch('neutralIso_2',               'f')
-    self.addBranch('photonsOutsideSignalCone_2', 'f')
-    self.addBranch('puCorr_2',                   'f')
-    self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
+    
+    
+    
+    ##########
+    #   MC   #
+    ##########
     
     if self.module.ismc:
       self.addBranch('jpt_genmatch_2',           'f', -1, title="pt of gen jet matching tau")

@@ -44,12 +44,12 @@ class ModuleTauPair(Module):
     self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
     self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
-    ##addition Z resolution
-    self.Zres       = kwargs.get('Zres',     None           ) # Z resolution 
-    self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
+    self.Zres       = kwargs.get('Zres',     None           ) # Z resolution
+    self.studytau   = kwargs.get('studytau', False          ) # study tau (add branches with tau properties)
+    self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP for preselection, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
-    self.domutau    = kwargs.get('domutau',  'DY' in fname or self.dozpt ) # mutau genfilter for stitching DY sample
+    self.domutau    = kwargs.get('domutau',  False          ) # mutau genfilter for stitching DY sample ('mutau' in self.channel and ('DY' in fname or self.dozpt))
     self.dopdf      = kwargs.get('dopdf',    False          ) and self.ismc # store PDF & scale weights
     self.dorecoil   = kwargs.get('recoil',   False          ) and self.ismc # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
     self.dosys      = self.tessys in [None,''] and self.ltf in [1,None] and self.jtf in [1,None] # include systematic variations of weight
@@ -60,7 +60,8 @@ class ModuleTauPair(Module):
     self.dojecsys   = kwargs.get('jecsys',   self.dojec     ) and self.ismc and self.dosys #and self.dojec #and False
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1 for backwards compatibility with old nanoAOD-tools JME corrector
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
-    self.jetCutPt   = 30
+    self.jetCutPt   = kwargs.get('jetpt',    30             )
+    self.doSVfit    = kwargs.get('SVfit',    any(self.channel==c for c in ['etau','mutau','tautau']) ) # add ditau mass estimated with SVfit
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
@@ -95,8 +96,13 @@ class ModuleTauPair(Module):
       #  self.tes = 1.0 # placeholder
     self.jetvetoTool = None
     if '202' in self.era: # only mandatory for Run 3: 2022, 2023, ... (see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps)
-      self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity) 
+      self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity)
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
+    
+    # SVfit mass
+    if self.doSVfit:
+      from TauFW.PicoProducer.corrections.SVfit import SVfit
+      self.SVfit = SVfit(self.channel,verb=self.verbosity+2)
     
   
   def beginJob(self):
@@ -109,6 +115,7 @@ class ModuleTauPair(Module):
     print(">>> %-12s = %s"%('ismc',      self.ismc))
     print(">>> %-12s = %s"%('isdata',    self.isdata))
     print(">>> %-12s = %s"%('isembed',   self.isembed))
+    print(">>> %-12s = %s"%('studytau',  self.studytau))
     if self.channel.count('tau')>0:
       print(">>> %-12s = %s"%('tes',     self.tes))
       print(">>> %-12s = %r"%('tessys',  self.tessys))
@@ -224,10 +231,6 @@ class ModuleTauPair(Module):
     self.out.cutflow.fill('none')
     if self.isdata:
       self.out.cutflow.fill('weight',1.)
-      if event.PV_npvs>0: # for pre-UL 2017 bug in 0 PU
-        self.out.cutflow.fill('weight_no0PU',1.)
-      else:
-        return False
     else: # ismc
       self.out.cutflow.fill('weight',event.genWeight)
       self.out.pileup.Fill(event.Pileup_nTrueInt)
@@ -242,10 +245,6 @@ class ModuleTauPair(Module):
       #  if idx>=event.nLHEScaleWeight: break
       #  self.out.h_muweight.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx])
       #  self.out.h_muweight_genw.Fill(ibin,event.LHEWeight_originalXWGTUP*event.LHEScaleWeight[idx]*event.genWeight)
-      if event.Pileup_nTrueInt>0: # for pre-UL 2017 bug in 0 PU
-        self.out.cutflow.fill('weight_no0PU',event.genWeight)
-      else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
-        return False
       # Specific selections to compute mutau filter efficiencies for stitching of different DY samples (DYJetsToTauTauToMuTauh)
       if self.domutau:
         self.ismutau = filtermutau(event) # event passes gen mutau filter
@@ -309,19 +308,20 @@ class ModuleTauPair(Module):
     self.out.dm_2[0]                       = tau.decayMode
     #self.out.iso_2[0]                      = tau.rawIso
     #self.out.idiso_2[0]                    = idIso(tau) # cut-based tau isolation (rawIso) # not available anymore in nanoAODv9
-    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
-    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
-    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
+    self.out.rawDeepTauVSe_2[0]            = tau.rawDeepTau2017v2p1VSe
+    self.out.rawDeepTauVSmu_2[0]           = tau.rawDeepTau2017v2p1VSmu
+    self.out.rawDeepTauVSjet_2[0]          = tau.rawDeepTau2017v2p1VSjet
     #self.out.idDecayMode_2[0]              = tau.idDecayMode
     #self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
-    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
-    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
-    self.out.chargedIso_2[0]               = tau.chargedIso
-    self.out.neutralIso_2[0]               = tau.neutralIso
-    self.out.leadTkPtOverTauPt_2[0]        = tau.leadTkPtOverTauPt
-    self.out.photonsOutsideSignalCone_2[0] = tau.photonsOutsideSignalCone
-    self.out.puCorr_2[0]                   = tau.puCorr
+    self.out.idDeepTauVSe_2[0]             = tau.idDeepTau2017v2p1VSe
+    self.out.idDeepTauVSmu_2[0]            = tau.idDeepTau2017v2p1VSmu
+    self.out.idDeepTauVSjet_2[0]           = tau.idDeepTau2017v2p1VSjet
+    if self.studytau:
+      self.out.chargedIso_2[0]               = tau.chargedIso
+      self.out.neutralIso_2[0]               = tau.neutralIso
+      self.out.leadTkPtOverTauPt_2[0]        = tau.leadTkPtOverTauPt
+      self.out.photonsOutsideSignalCone_2[0] = tau.photonsOutsideSignalCone
+      self.out.puCorr_2[0]                   = tau.puCorr
     
   
   def fillJetBranches(self,event,tau1,tau2):
@@ -393,6 +393,7 @@ class ModuleTauPair(Module):
     self.out.ncjets[0]        = ncjets
     self.out.ncjets50[0]      = ncjets50
     self.out.nbtag[0]         = nbtag
+    self.out.nbtag50[0]       = len([b for b in bjets if self.ptnom(b)>50])
     
     # LEADING JET
     if len(jets)>0:
@@ -512,14 +513,16 @@ class ModuleTauPair(Module):
         dp = tau2.tlv*(1.-1./tau2.es)
         #print ">>> fillMETAndDiLeptonBranches: Correcting MET for es=%.3f, pt=%.3f, dpt=%.3f, gm=%d"%(tau2.es,tau2.pt,dp.Pt(),tau2.genPartFlav)
         correctmet(met,tau2.tlv*(1.-1./tau2.es))
-    tau1 = tau1.tlv # continue with TLorentzVector
-    tau2 = tau2.tlv # continue with TLorentzVector
+    ###if met.Pz()!=0: # should never happen
+    ###  print(f">>> Warning! Got nonzero met.Pz()={met.Pz()}!")
+    tau1_tlv = tau1.tlv # continue with TLorentzVector
+    tau2_tlv = tau2.tlv # continue with TLorentzVector
     
     # MET
-    self.out.met[0]       = met.Pt()
-    self.out.metphi[0]    = met.Phi()
-    self.out.mt_1[0]      = sqrt( 2*self.out.pt_1[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_1[0],met.Phi()))) )
-    self.out.mt_2[0]      = sqrt( 2*self.out.pt_2[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_2[0],met.Phi()))) )
+    self.out.met[0]    = met.Pt()  # total magnitude of pt_miss
+    self.out.metphi[0] = met.Phi() # phi of pt_miss
+    self.out.mt_1[0]   = sqrt( 2*self.out.pt_1[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_1[0],met.Phi()))) )
+    self.out.mt_2[0]   = sqrt( 2*self.out.pt_2[0]*met.Pt()*(1-cos(deltaPhi(self.out.phi_2[0],met.Phi()))) )
     ###self.out.puppimetpt[0]             = event.PuppiMET_pt
     ###self.out.puppimetphi[0]            = event.PuppiMET_phi
     ###self.out.metsignificance[0]        = event.MET_significance
@@ -529,8 +532,8 @@ class ModuleTauPair(Module):
     ###self.out.fixedGridRhoFastjetAll[0] = event.fixedGridRhoFastjetAll
     
     # PZETA
-    leg1                  = TVector3(tau1.Px(),tau1.Py(),0.)
-    leg2                  = TVector3(tau2.Px(),tau2.Py(),0.)
+    leg1                  = TVector3(tau1_tlv.Px(),tau1_tlv.Py(),0.)
+    leg2                  = TVector3(tau2_tlv.Px(),tau2_tlv.Py(),0.)
     zetaAxis              = TVector3(leg1.Unit()+leg2.Unit()).Unit() # bisector of visible tau candidates
     pzetavis              = leg1*zetaAxis + leg2*zetaAxis # bisector of visible ditau momentum onto zeta axis
     pzetamiss             = met.Vect()*zetaAxis # projection of MET onto zeta axis
@@ -542,14 +545,31 @@ class ModuleTauPair(Module):
     for unc, met_var in met_vars.items():
       getattr(self.out,"met_"+unc)[0]    = met_var.Pt()
       getattr(self.out,"metphi_"+unc)[0] = met_var.Phi()
-      getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2 * self.out.pt_1[0] * met_var.Pt() * ( 1 - cos(deltaPhi(self.out.phi_1[0],met_var.Phi())) ))
+      getattr(self.out,"mt_1_"+unc)[0]   = sqrt( 2*self.out.pt_1[0]*met_var.Pt() * (1-cos(deltaPhi(self.out.phi_1[0],met_var.Phi()))) )
       getattr(self.out,"dzeta_"+unc)[0]  = met_var.Vect()*zetaAxis - 0.85*pzeta_vis
     
     # DILEPTON
-    self.out.m_vis[0]     = (tau1 + tau2).M()
-    self.out.pt_ll[0]     = (tau1 + tau2).Pt()
-    self.out.dR_ll[0]     = tau1.DeltaR(tau2)
+    ditau_tlv             = tau1_tlv + tau2_tlv # visible ditau system
+    self.out.m_vis[0]     = ditau_tlv.M()
+    self.out.pt_ll[0]     = ditau_tlv.Pt()
+    self.out.dR_ll[0]     = tau1_tlv.DeltaR(tau2_tlv)
     self.out.dphi_ll[0]   = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
     self.out.deta_ll[0]   = abs(self.out.eta_1[0] - self.out.eta_2[0])
-    self.out.chi[0]       = exp(abs(tau1.Rapidity() - tau2.Rapidity()))
+    self.out.chi[0]       = exp(abs(tau1_tlv.Rapidity() - tau2_tlv.Rapidity()))
     
+    # SVfit: compute best ditau four-momentum
+    if self.doSVfit:
+      tlv_tt = self.SVfit.run(tau1,tau2,met.Pt(),met.Phi(),event.MET_covXX,event.MET_covXY,event.MET_covYY) # SVfit fastMTT
+      mt2_12 = 2*self.out.pt_1[0]*self.out.pt_2[0] * (1-cos(self.out.dphi_ll[0])) # squared transverse mass between tau candidates
+      tlv_Zp = ditau_tlv+met # reconstructed Zprime (by approximation)
+      E_Zp   = tau1_tlv.E()+tau2_tlv.E()+met.Pt() # total reconstructed energy of Zprime
+      p_Zp   = (ditau_tlv+met).P() # total reconstructed momentum of Zprime
+      xvis1  = self.out.pt_1[0]/(self.out.pt_1[0]+self.out.met[0]) # fraction of total tau pt carried by visible tau pt for tau 1
+      xvis2  = self.out.pt_2[0]/(self.out.pt_2[0]+self.out.met[0]) # fraction of total tau pt carried by visible tau pt for tau 2
+      self.out.m_tt[0]    = tlv_tt.M()
+      self.out.pt_tt[0]   = tlv_tt.Pt()
+      self.out.mt_tot[0]  = sqrt( mt2_12 + self.out.mt_1[0]**2 + self.out.mt_2[0]**2 ) # total transverse mass (HIG-21-001)
+      self.out.m_Zp[0]    = tlv_Zp.M() #sqrt( E_Zp**2 - p_Zp**2 ) # reconstructed Z' mass (EXO-21-015)
+      self.out.m_coll[0]  = self.out.m_vis[0]/sqrt(xvis1*xvis2) # collinear ditau mass (HIG-20-009, https://arxiv.org/abs/1012.4686)
+      #print(f">>> m_Zp = {tlv_Zp.M():8.2f} vs. {sqrt( E_Zp**2 - p_Zp**2 ):8.2f}")
+  

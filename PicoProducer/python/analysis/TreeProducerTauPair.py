@@ -94,35 +94,7 @@ class TreeProducerTauPair(TreeProducer):
     #   JETS   #
     ############
     
-    self.addBranch('njets',               'i', title="number of jets (pT > 30 GeV, |eta| < 4.7)")
-    self.addBranch('njets50',             'i', title="number of jets (pT > 50 GeV, |eta| < 4.7)")
-    self.addBranch('ncjets',              'i', title="number of central jets (pT > 30 GeV, |eta| < 2.4)")
-    self.addBranch('ncjets50',            'i', title="number of central jets (pT > 50 GeV, |eta| < 2.4)")
-    self.addBranch('nfjets',              'i', title="number of forward jets (pT > 30 GeV, 2.4 < |eta| < 4.7)")
-    self.addBranch('nbtag',               'i', title="number of b tagged jets (pT > 30 GeV, |eta| < 2.7)")
-    self.setAlias("njets30","njets")
-    self.setAlias("nbtag30","nbtag")
-    
-    self.addBranch('jpt_1',               'f', title="pT of leading jet")
-    self.addBranch('jeta_1',              'f', title="eta of leading jet")
-    self.addBranch('jphi_1',              'f', title="phi of leading jet")
-    self.addBranch('jdeepjet_1',          'f', title="DeepJet score of leading jet")
-    self.addBranch('jpt_2',               'f', title="pT of subleading jet")
-    self.addBranch('jeta_2',              'f', title="eta of subleading jet")
-    self.addBranch('jphi_2',              'f', title="phi of subleading jet")
-    self.addBranch('jdeepjet_2',          'f', title="DeepJet score of subleading jet")
-    
-    self.addBranch('bpt_1',               'f', title="pT of leading b jet")
-    self.addBranch('beta_1',              'f', title="eta of leading jet")
-    self.addBranch('bpt_2',               'f', title="pT of leading jet")
-    self.addBranch('beta_2',              'f', title="eta of leading jet")
-    
-    self.addBranch('met',                 'f')
-    self.addBranch('metphi',              'f')
-    
-    if module.ismc:
-      self.addBranch('genmet',            'f', -1)
-      self.addBranch('genmetphi',         'f', -9)
+    self.addCommonJetBranches(**kwargs)
     
     
     #############
@@ -148,6 +120,13 @@ class TreeProducerTauPair(TreeProducer):
     self.setAlias("st","pt_1+pt_2+jpt_1")
     self.setAlias("stmet","pt_1+pt_2+jpt_1+met")
     
+    if module.doSVfit:
+      self.addBranch('m_tt',              'f', title="invariant ditau mass (SVfit)")
+      self.addBranch('mt_tot',            'f', title="total transverse mass (HIG-21-001)")
+      self.addBranch('m_Zp',              'f', title="reconstructed Z' mass (EXO-21-015)")
+      self.addBranch('m_coll',            'f', title="collinear ditau mass (HIG-20-009)")
+      self.addBranch('pt_tt',             'f', title="ditau pT (SVfit)")
+    
     self.addBranch('dilepton_veto',       '?')
     self.addBranch('extraelec_veto',      '?')
     self.addBranch('extramuon_veto',      '?')
@@ -162,9 +141,45 @@ class TreeProducerTauPair(TreeProducer):
         self.addBranch('m_moth',          'f', -1, title="generator mother mass (Z boson, W boson, top quark, ...)")
         self.addBranch('pt_moth',         'f', -1, title="generator mother pT (Z boson, W boson, top quark, ...)")
     
+  
+  def addCommonJetBranches(self, **kwargs):
+    """Help function to add common jet branches, and that can be overloaded by subclasses for different analyses."""
+    
+    self.addBranch('njets',               'i', title="number of jets (pT > 30 GeV, |eta| < 4.7)")
+    self.addBranch('njets50',             'i', title="number of jets (pT > 50 GeV, |eta| < 4.7)")
+    self.addBranch('ncjets',              'i', title="number of central jets (pT > 30 GeV, |eta| < 2.4)")
+    self.addBranch('ncjets50',            'i', title="number of central jets (pT > 50 GeV, |eta| < 2.4)")
+    self.addBranch('nfjets',              'i', title="number of forward jets (pT > 30 GeV, 2.4 < |eta| < 4.7)")
+    self.addBranch('nbtag',               'i', title="number of b tagged jets (pT > 30 GeV, |eta| < 2.7)")
+    self.addBranch('nbtag50',             'i', title="number of b tagged jets (pT > 50 GeV, |eta| < 2.7)")
+    self.setAlias("njets30","njets")
+    self.setAlias("nbtag30","nbtag")
+    
+    self.addBranch('jpt_1',               'f', title="pT of leading jet")
+    self.addBranch('jeta_1',              'f', title="eta of leading jet")
+    self.addBranch('jphi_1',              'f', title="phi of leading jet")
+    self.addBranch('jdeepjet_1',          'f', title="DeepJet score of leading jet")
+    self.addBranch('jpt_2',               'f', title="pT of subleading jet")
+    self.addBranch('jeta_2',              'f', title="eta of subleading jet")
+    self.addBranch('jphi_2',              'f', title="phi of subleading jet")
+    self.addBranch('jdeepjet_2',          'f', title="DeepJet score of subleading jet")
+    
+    self.addBranch('bpt_1',               'f', title="pT of leading b jet")
+    self.addBranch('beta_1',              'f', title="eta of leading jet")
+    self.addBranch('bpt_2',               'f', title="pT of leading jet")
+    self.addBranch('beta_2',              'f', title="eta of leading jet")
+    
+    self.addBranch('met',                 'f')
+    self.addBranch('metphi',              'f')
+    
+    if self.module.ismc:
+      self.addBranch('genmet',            'f', -1)
+      self.addBranch('genmetphi',         'f', -9)
+    
 
   def addCommonTauBranches(self, tag='_2', study=False, **kwargs):
-    """Help function to add common tau branches that may depend on the channel and nanoAOD version."""
+    """Help function to add common tau branches that may depend on the channel and nanoAOD version.
+    Can be overloaded by subclasses for different analyses."""
     isRun2 = ('UL' in self.module.era or '201' in self.module.era)
     #deeptau = kwargs.get('deeptau', ["DeepTau2018v2p5"] )
     deeptau = kwargs.get('deeptau', ['DeepTau2017v2p1'] if isRun2 else ['DeepTau2018v2p5'] )
@@ -186,13 +201,19 @@ class TreeProducerTauPair(TreeProducer):
     #self.addBranch('idDecayMode'+tag,        '?', title="oldDecayModeFinding") # obsolete
     #self.addBranch('idDecayModeNewDMs'+tag,  '?', title="newDecayModeFinding") # obsolete
     for tid in deeptau:
-      self.addBranch('raw%sVSe%s'%(tid,tag),         'f', title="raw %sVSe score"%(tid))
-      self.addBranch('raw%sVSmu%s'%(tid,tag),        'f', title="raw %sVSmu score"%(tid))
-      self.addBranch('raw%sVSjet%s'%(tid,tag),       'f', title="raw %sVSjet score"%(tid))
-      self.addBranch('id%sVSe%s'%(tid,tag),          'i', title="%sVSe WP"%(tid))
-      self.addBranch('id%sVSmu%s'%(tid,tag),         'i', title="%sVSmu WP"%(tid))
-      self.addBranch('id%sVSjet%s'%(tid,tag),        'i', title="%sVSjet WP"%(tid))
-    if study: # branches to study tau properties
+      self.addBranch('rawDeepTauVSe%s'%(tag),       'f', title="raw %sVSe score"%(tid))
+      self.addBranch('rawDeepTauVSmu%s'%(tag),      'f', title="raw %sVSmu score"%(tid))
+      self.addBranch('rawDeepTauVSjet%s'%(tag),     'f', title="raw %sVSjet score"%(tid))
+      self.addBranch('idDeepTauVSe%s'%(tag),        'i', title="%sVSe WP"%(tid))
+      self.addBranch('idDeepTauVSmu%s'%(tag),       'i', title="%sVSmu WP"%(tid))
+      self.addBranch('idDeepTauVSjet%s'%(tag),      'i', title="%sVSjet WP"%(tid))
+      #self.addBranch('raw%sVSe%s'%(tid,tag),         'f', title="raw %sVSe score"%(tid))
+      #self.addBranch('raw%sVSmu%s'%(tid,tag),        'f', title="raw %sVSmu score"%(tid))
+      #self.addBranch('raw%sVSjet%s'%(tid,tag),       'f', title="raw %sVSjet score"%(tid))
+      #self.addBranch('id%sVSe%s'%(tid,tag),          'i', title="%sVSe WP"%(tid))
+      #self.addBranch('id%sVSmu%s'%(tid,tag),         'i', title="%sVSmu WP"%(tid))
+      #self.addBranch('id%sVSjet%s'%(tid,tag),        'i', title="%sVSjet WP"%(tid))
+    if self.module.studytau: # branches to study tau properties
       self.addBranch('leadTkPtOverTauPt'+tag,        'f')
       self.addBranch('chargedIso'+tag,               'f')
       self.addBranch('neutralIso'+tag,               'f')
