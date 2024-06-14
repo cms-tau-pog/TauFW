@@ -1,119 +1,32 @@
 # TauFW
 
-Framework for tau analysis using NanoAOD at CMS. Three main packages are
-1. [`PicoProducer`](PicoProducer): Tools to process nanoAOD and make custom analysis ntuples.
-2. [`Plotter`](Plotter): Tools for further analysis, auxiliary measurements, validation and plotting.
-3. [`Fitter`](Fitter): Tools for measurements and fits in combine. [Under development.]
 
-## Installation
+## What is the TauFW ?
+The TauFW is a framework developed for analysis of nanoAOD at CMS.
+The original purpose was to have a common framework for the TauPOG measurements in CMS that can run on common nanoAOD samples, and keep track of the scripts in this repository.
 
-### Table of Contents  
-* [CMSSW environment](#CMSSW-environment)<br>
-* [TauFW](#TauFW-1)<br>
-* [PicoProducer](#PicoProducer)<br>
-* [Combine](#Combine)<br>
-* [TauPOG corrections](#TauPOG-corrections)<br>
+## How do I install the TauFW ?
+Please see [the Installation page](Installation).
 
-### CMSSW environment
-First, setup a CMSSW release. For example,
-<table>
-<tr>
-<td> nanoAODv10 (python3) </td> <td> Older versions (python2) </td>
-</tr>
-<tr>
-<td>
+## Where do I start?
+Please have a look at our tutorial on lxplus: [Quick start with TauFW](Quick-start-with-TauFW)
 
-```bash
-export CMSSW=CMSSW_12_4_8
-export SCRAM_ARCH=slc7_amd64_gcc10
-cmsrel $CMSSW
-cd $CMSSW/src
-cmsenv
-```
-</td>
-<td>
+## What does the TauFW offer ?
+Three main packages are
+1. [`PicoProducer`](../tree/master/PicoProducer):
+   * Tools to run analysis code on nanoAOD for given lists of nanoAOD files.
+   * Examples of ditau analysis code.
+   * Tools to read & apply corrections in analyses (in particular for tau analysis at CMS).
+   * Tools to keep track of nanoAOD samples stored on the GRID or other storage elements.
+   * Tools to submit jobs to various batch systems. You can add your custom batch system as a module. 
+   * Tools to access various storage elements. You can add your custom storage system as a module.
+2. [`Plotter`](../tree/master/Plotter):
+   * Tools to plot histograms and data/MC comparisons in CMS style.
+   * Tools to handle sets of samples and produces histograms (`TH1`) from analysis ntuples (`TTree`).
+   * Tools for further analysis, auxiliary measurements, validation...
+3. [`Fitter`](../tree/master/Fitter):
+   * Tools for measurements and fits in combine.
+   * [Under development.]
 
-```bash
-export CMSSW=CMSSW_11_3_4
-export SCRAM_ARCH=slc7_amd64_gcc900
-cmsrel $CMSSW
-cd $CMSSW/src
-cmsenv
-```
-</td>
-</tr>
-</table>
-
-On a Linux 8 node like `lxplus8`, you can use the `el8_amd64_gcc10` architecture instead of `slc7_*`.
-
-Which CMSSW release should not really matter for post-processing of nanoAOD,
-but if you like to use `combine` in the same repository, it is better to use at least the
-[recommended release for the latest Combine version](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation),
-see below.
-
-### TauFW
-To install `TauFW`:
-```
-cd $CMSSW_BASE/src/
-git clone https://github.com/cms-tau-pog/TauFW TauFW
-scram b -j4
-```
-With each new session, do
-```
-export SCRAM_ARCH=slc7_amd64_gcc700
-cd $CMSSW/src
-cmsenv
-```
-
-### PicoProducer
-If you want to process nanoAOD using `PicoProducer`, install [`NanoAODTools`](https://github.com/cms-nanoAOD/nanoAOD-tools):
-```
-cd $CMSSW_BASE/src/
-git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
-scram b -j4
-```
-If you want to use tau ID SFs, please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauIDSFs):
-```
-cd $CMSSW_BASE/src/
-git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
-cmsenv
-scram b -j4
-```
-If you want to use the lepton SFs from the HTT group, please do
-```
-cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/
-rm -rf HTT
-git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
-```
-
-### Combine
-If you want to use the `combine` tools in `Fitter`, install combine following the
-[latest instructions](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#setting-up-the-environment-and-installation),
-for example
-```
-cd $CMSSW_BASE/src
-git clone https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git HiggsAnalysis/CombinedLimit
-cd HiggsAnalysis/CombinedLimit
-git fetch origin
-git checkout v8.1.0 # for CMSSW_10_X
-git checkout v9.1.0 # for CMSSW_11_X
-```
-and then [`CombineHarvester`](https://github.com/cms-analysis/CombineHarvester),
-```
-cd $CMSSW_BASE/src
-git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
-scramv1 b clean; scramv1 b
-git checkout v2.0.0 # for CMSSW_11_X only
-```
-
-### TauPOG corrections
-For TauPOG-internal work: To create JSON files with TauPOG corrections for
-[`correctionlib`](https://github.com/cms-nanoAOD/correctionlib),
-please follow the instructions
-[here](https://gitlab.cern.ch/cms-tau-pog/jsonpog-integration/-/blob/TauPOG_v2/POG/TAU/README4UPDATES.md).
-From at least `CMSSW_11_3_X`, `correctionlib` should be pre-installed.
-
-To create ROOT files including the measured SFs please install [`TauIDSFs` tool](https://github.com/cms-tau-pog/TauIDSFs).
-Modify the `TauIDSFs/utils/createSFFiles.py` script to include your measured SFs into the script. 
-Finally, run the `TauFW/scripts/tau_createROOT.sh` to generate your ROOT files. They will be created into `TauFW/scripts/data/`
-IMPORTANT: please comment and do not delete older SFs
+## More information
+Please find the latest information in [these wiki pages](https://github.com/cms-tau-pog/TauFW/wiki)!
