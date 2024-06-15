@@ -61,7 +61,7 @@ class ModuleTauPair(Module):
     self.useT1      = kwargs.get('useT1',    False          ) # MET T1 for backwards compatibility with old nanoAOD-tools JME corrector
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = kwargs.get('jetpt',    30             )
-    self.doSVfit    = kwargs.get('SVfit',    any(self.channel==c for c in ['etau','mutau','tautau']) ) # add ditau mass estimated with SVfit
+    self.doSVfit    = kwargs.get('SVfit',    False          ) # add ditau mass estimated with SVfit (any(self.channel==c for c in ['etau','mutau','tautau']))
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
