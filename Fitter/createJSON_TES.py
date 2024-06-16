@@ -60,13 +60,13 @@ def load_sf_measurements(setup,year,**kwargs):
 
   indir   = kwargs.get('indir',       "plots_%s"%year )
   tag     = kwargs.get('tag',         ""              )
-
+  wp      = kwargs.get('wp',          "Tight"         )
   region = []
   tes = []
   tes_errhi = []
   tes_errlo = []
   #inputfilename = "%s/measurement_poi_mt_v10_2p5%s_DeepTau.txt" %(indir,tag)
-  inputfilename = "plots_2023C/measurement_tes_mt_mutau_mt65_DM_pt_Dt2p5_puppimet_DeepTau_fit_asymm.txt" #"./plots_UL2018_v10/_mutau_mt65_DM_Dt2p5_rangev1/measurement_poi_mt_mutau_mt65_DM_Dt2p5_rangev1_DeepTau_fit_asymm.txt"
+  inputfilename = f"plots_pt_less_region/againstjet_{wp}/againstelectron_VVLoose/2023C/measurement_tes_mt_mutau_mt65_DM_pt_Dt2p5_puppimet_DeepTau_fit_asymm.txt"
   with open(inputfilename, 'r') as file:
       next(file)
       for line in file:
@@ -88,21 +88,24 @@ def plot_dm_graph(setup,year,form,**kwargs):
   indir   = kwargs.get('indir',       "plots_%s"%year )
   outdir  = kwargs.get('outdir',      "plots_%s"%year )
   tag     = kwargs.get('tag',         ""              )
-
+  wps     = ['Medium', 'Tight', 'VTight']
   pt_avg_list, pt_error_list = load_pt_values(setup)
   pt_edges = load_edges(setup)
-  region, tes, tes_errhi, tes_errlo = load_sf_measurements(setup, year, tag=tag, indir=indir)
   
   # loop over DMs
   print(">>> DM exclusive ")
   # define the DM order
-  dm_order = ["DM0_"] #, "DM1_", "DM10_", "DM11_"]
+  dm_order = ["DM0_", "DM1_", "DM10_", "DM11_"]
 
   # create a dictionary to store sf data
   sf_dict = {}
   # loop over DMs
   for dm in dm_order:
-      print(">>>>>>>>>>>> %s:" %(dm))
+   print(">>>>>>>>>>>> %s:" %(dm))
+   #loop over wps
+   for wp in wps:
+      print('wp: ', wp)
+      region, tes, tes_errhi, tes_errlo = load_sf_measurements(setup, year, tag=tag, indir=indir, wp=wp)
       # filter elements with current DM
       dm_list = [elem for elem in region if dm in elem]
       print("Elements with %s:" %(dm_list))
@@ -125,46 +128,63 @@ def plot_dm_graph(setup,year,form,**kwargs):
       dm_tes_down = [sum(x) for x in zip(dm_tes,dm_tes_errlo_neg)]
       print("tes_down for : %s" %(dm_tes_down))
 
-      sf_dict[dm.replace("DM", "").replace("_","")] = {"edges": dm_pt_edges, "content":dm_tes, "up": dm_tes_up, "down": dm_tes_down}
+      sf_dict[dm.replace("_","")+ f'_{wp}'] = {"edges": dm_pt_edges, "content":dm_tes, "up": dm_tes_up, "down": dm_tes_down}
       print("SF dictionary")
       print(sf_dict)
-  graphs = {}  
+  colors = [kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure]
   if form=='root':
       sfile = TFile("tes_DeepTau2018v2p5VSjet_%s.root"%year, 'recreate')
       #loop on DMs
-      for kdm in sf_dict:
+      for dm in dm_order:
+       graphs = {}
+       legend = TLegend(0.1800, 0.85, 0.90, 0.94)
+       legend.SetNColumns(len(wps))
+       legend.SetFillStyle(0)
+       legend.SetBorderSize(0)
+       legend.SetFillColor(10)
+       legend.SetTextSize(0.025)
+       for idx, wp in enumerate(wps):
           graph  = TGraphAsymmErrors()
+          graph.SetLineColor(colors[idx])
+          graph.SetLineWidth(2)
+          graph.SetTitle('tes SF; pT; SF')
           funcstr = '(x<=20)*0'
           funcstr_up = '(x<=20)*0'
           funcstr_down = '(x<=20)*0'
-          for ip in range(0, len(sf_dict[kdm]["content"])):
-              pt_avg = (sf_dict[kdm]["edges"][ip]+sf_dict[kdm]["edges"][ip+1])/2
-              pt_err = pt_avg - sf_dict[kdm]["edges"][ip]
-              graph.SetPoint(ip, pt_avg, sf_dict[kdm]["content"][ip])
-              graph.SetPointError(ip,pt_err,pt_err,sf_dict[kdm]["up"][ip]-sf_dict[kdm]["content"][ip],sf_dict[kdm]["content"][ip]-sf_dict[kdm]["down"][ip])
-              funcstr += '+ ( x > ' + str(sf_dict[kdm]["edges"][ip]) + ' && x <=' + str(sf_dict[kdm]["edges"][ip+1]) + ')*' + str(sf_dict[kdm]["content"][ip])
-              funcstr_up += '+ ( x > ' + str(sf_dict[kdm]["edges"][ip]) + ' && x <=' + str(sf_dict[kdm]["edges"][ip+1]) + ')*' + str(sf_dict[kdm]["up"][ip])
-              funcstr_down += '+ ( x > ' + str(sf_dict[kdm]["edges"][ip]) + ' && x <=' + str(sf_dict[kdm]["edges"][ip+1]) + ')*' + str(sf_dict[kdm]["down"][ip])
-          graphs[kdm] = graph
+          key = dm+f'{wp}'
+          for ip in range(0, len(sf_dict[key]["content"])):
+              pt_avg = (sf_dict[key]["edges"][ip]+sf_dict[key]["edges"][ip+1])/2
+              pt_err = pt_avg - sf_dict[key]["edges"][ip]
+              graph.SetPoint(ip, pt_avg, sf_dict[key]["content"][ip])
+              graph.SetPointError(ip,pt_err,pt_err,sf_dict[key]["up"][ip]-sf_dict[key]["content"][ip],sf_dict[key]["content"][ip]-sf_dict[key]["down"][ip])
+              funcstr += '+ ( x > ' + str(sf_dict[key]["edges"][ip]) + ' && x <=' + str(sf_dict[key]["edges"][ip+1]) + ')*' + str(sf_dict[key]["content"][ip])
+              funcstr_up += '+ ( x > ' + str(sf_dict[key]["edges"][ip]) + ' && x <=' + str(sf_dict[key]["edges"][ip+1]) + ')*' + str(sf_dict[key]["up"][ip])
+              funcstr_down += '+ ( x > ' + str(sf_dict[key]["edges"][ip]) + ' && x <=' + str(sf_dict[key]["edges"][ip+1]) + ')*' + str(sf_dict[key]["down"][ip])
+          graphs[key] = graph
+          legend.AddEntry(graph, key, 'l')
           funcstr +='+ ( x > 200)*1.0'
           funcstr_up +='+ ( x > 200)*1.0'
           funcstr_down +='+ ( x > 200)*1.0'
-          print("DM"+kdm)
+          print(key)
           print(funcstr)
-          func_SF      = TF1('Medium_DM' + kdm + '_cent', funcstr,     0,200)
+          func_SF      = TF1(key + '_cent', funcstr,     0,200)
           func_SF.Write()
-          func_SF_up   = TF1('Medium_DM' + kdm + '_up', funcstr_up,     0,200)
+          func_SF_up   = TF1(key + '_up', funcstr_up,     0,200)
           func_SF_up.Write()
-          func_SF_down = TF1('Medium_DM' + kdm + '_down', funcstr_down,     0,200)
+          func_SF_down = TF1(key + '_down', funcstr_down,     0,200)
           func_SF_down.Write()
+       canvas = TCanvas("", "", 600, 800)
+       for idx, graph in enumerate(graphs):
+          print(graph, graphs[graph].GetPointY(0))
+          if idx == 0:
+             graphs[graph].Draw()
+          else:
+             graphs[graph].Draw('same')
+       legend.Draw('same')
+       canvas.SaveAs('graph.png')
       sfile.Write()
       sfile.Close()
 
-  canvas = TCanvas("", "", 600, 800)
-  for graph in graphs:
-     graphs[graph].Draw()
-     print(graph, graphs[graph].GetPointY(1), graphs[graph].GetPointY(0))
-  canvas.SaveAs('graph.png') 
 #   if form=='json': 
 #       ###############################################################
 #       ## create JSON file with SFs (following correctionlib rules)
