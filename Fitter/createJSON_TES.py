@@ -8,7 +8,7 @@ import os, sys,yaml
 from array import array
 from argparse import ArgumentParser
 from collections import OrderedDict
-from ROOT import gROOT, gPad, gStyle, TFile, TCanvas, TLegend, TLatex, TF1, TGraph, TGraph2D, TPolyMarker3D, TGraphAsymmErrors, TLine,kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, TMath, TH1F
+from ROOT import gROOT, gPad, gStyle, TFile, TCanvas, TLegend, TLatex, TF1, TMultiGraph, TGraph, TGraph2D, TPolyMarker3D, TGraphAsymmErrors, TLine,kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, TMath, TH1F
 #from TauFW.Plotter.sample.utils import CMSStyle
 # import correctionlib.schemav2 as cs
 # import rich
@@ -102,9 +102,10 @@ def plot_dm_graph(setup,year,form,**kwargs):
   # create a dictionary to store sf data
   sf_dict = {}
   # loop over DMs
-  for dm in dm_order:
-   print(">>>>>>>>>>>> %s:" %(dm))
-   for sf in sfs:
+  for sf in sfs:
+   sf_dict[sf] = {}
+   for dm in dm_order:
+     print(">>>>>>>>>>>> %s:" %(dm))
      #loop over wps
      for wp in wps:
        print('wp: ', wp)
@@ -131,7 +132,7 @@ def plot_dm_graph(setup,year,form,**kwargs):
        dm_tes_down = [sum(x) for x in zip(dm_tes,dm_tes_errlo_neg)]
        print("tes_down for : %s" %(dm_tes_down))
 
-       sf_dict[dm.replace("_","")+ f'_{wp}'] = {"edges": dm_pt_edges, "content":dm_tes, "up": dm_tes_up, "down": dm_tes_down}
+       sf_dict[sf][dm.replace("_","")+ f'_{wp}'] = {"edges": dm_pt_edges, "content":dm_tes, "up": dm_tes_up, "down": dm_tes_down}
   print("SF dictionary")
   print(sf_dict)
   colors = [kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure]
@@ -140,7 +141,9 @@ def plot_dm_graph(setup,year,form,**kwargs):
        sfile = TFile(f"{sf}_DeepTau2018v2p5VSjet_{era}.root", 'recreate')
        #loop on DMs
        for dm in dm_order:
-         graphs = {}
+         #graphs = {}
+         graphs = TMultiGraph()
+         graphs.SetTitle(f'{sf};pt;SF')
          legend = TLegend(0.1800, 0.90, 0.90, 1.05)
          legend.SetNColumns(len(wps))
          legend.SetFillStyle(0)
@@ -160,15 +163,16 @@ def plot_dm_graph(setup,year,form,**kwargs):
            funcstr_up = '(x<=20)*0'
            funcstr_down = '(x<=20)*0'
            key = dm+f'{wp}'
-           for ip in range(0, len(sf_dict[key]["content"])):
-              pt_avg = (sf_dict[key]["edges"][ip]+sf_dict[key]["edges"][ip+1])/2
-              pt_err = pt_avg - sf_dict[key]["edges"][ip]
-              graph.SetPoint(ip, pt_avg, sf_dict[key]["content"][ip])
-              graph.SetPointError(ip,pt_err,pt_err,sf_dict[key]["up"][ip]-sf_dict[key]["content"][ip],sf_dict[key]["content"][ip]-sf_dict[key]["down"][ip])
-              funcstr += '+ ( x > ' + str(sf_dict[key]["edges"][ip]) + ' && x <=' + str(sf_dict[key]["edges"][ip+1]) + ')*' + str(sf_dict[key]["content"][ip])
-              funcstr_up += '+ ( x > ' + str(sf_dict[key]["edges"][ip]) + ' && x <=' + str(sf_dict[key]["edges"][ip+1]) + ')*' + str(sf_dict[key]["up"][ip])
-              funcstr_down += '+ ( x > ' + str(sf_dict[key]["edges"][ip]) + ' && x <=' + str(sf_dict[key]["edges"][ip+1]) + ')*' + str(sf_dict[key]["down"][ip])
-           graphs[key] = graph
+           for ip in range(0, len(sf_dict[sf][key]["content"])):
+              pt_avg = (sf_dict[sf][key]["edges"][ip]+sf_dict[sf][key]["edges"][ip+1])/2
+              pt_err = pt_avg - sf_dict[sf][key]["edges"][ip]
+              graph.SetPoint(ip, pt_avg, sf_dict[sf][key]["content"][ip])
+              graph.SetPointError(ip,pt_err,pt_err,sf_dict[sf][key]["up"][ip]-sf_dict[sf][key]["content"][ip],sf_dict[sf][key]["content"][ip]-sf_dict[sf][key]["down"][ip])
+              funcstr += '+ ( x > ' + str(sf_dict[sf][key]["edges"][ip]) + ' && x <=' + str(sf_dict[sf][key]["edges"][ip+1]) + ')*' + str(sf_dict[sf][key]["content"][ip])
+              funcstr_up += '+ ( x > ' + str(sf_dict[sf][key]["edges"][ip]) + ' && x <=' + str(sf_dict[sf][key]["edges"][ip+1]) + ')*' + str(sf_dict[sf][key]["up"][ip])
+              funcstr_down += '+ ( x > ' + str(sf_dict[sf][key]["edges"][ip]) + ' && x <=' + str(sf_dict[sf][key]["edges"][ip+1]) + ')*' + str(sf_dict[sf][key]["down"][ip])
+           #graphs[key] = graph
+           graphs.Add(graph)
            legend.AddEntry(graph, key, 'l')
            funcstr +='+ ( x > 200)*1.0'
            funcstr_up +='+ ( x > 200)*1.0'
@@ -182,11 +186,12 @@ def plot_dm_graph(setup,year,form,**kwargs):
            func_SF_down = TF1(key + '_down', funcstr_down,     0,200)
            func_SF_down.Write()
          canvas = TCanvas("", "", 600, 800)
-         for idx, graph in enumerate(graphs):
+         graphs.Draw('AP')
+         '''for idx, graph in enumerate(graphs):
            if idx == 0:
              graphs[graph].Draw('')
            else:
-             graphs[graph].Draw('SAME')
+             graphs[graph].Draw('SAME')'''
          legend.Draw('same')
          dm = dm.replace('_','')
          graph_name = f'graph_{dm}_{sf}_{era}'
