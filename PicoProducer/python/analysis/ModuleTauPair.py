@@ -41,6 +41,7 @@ class ModuleTauPair(Module):
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
+    self.dotausfs   = kwargs.get('dotausfs', True           ) # compute tau SFs with TauIDSF tool
     self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
     self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
@@ -129,6 +130,7 @@ class ModuleTauPair(Module):
     print(">>> %-12s = %s"%('dozpt',     self.dozpt))
     print(">>> %-12s = %s"%('domutau',   self.domutau))
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
+    print(">>> %-12s = %s"%('dotausfs',  self.dotausfs))
     print(">>> %-12s = %s"%('dojec',     self.dojec))
     print(">>> %-12s = %s"%('dojecsys',  self.dojecsys))
     print(">>> %-12s = %s"%('dosys',     self.dosys))
