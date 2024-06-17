@@ -1,0 +1,97 @@
+default:
+  image: python:3.9
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  CHANGE_REPORT: change_report.md
+  SCHEMA_REPORT: schema_report.md
+  SUMMARY_REPORT: summary.md
+
+workflow:
+  rules:
+    # avoid duplicate pipelines when pushing to an open MR
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+
+setup-env:
+  stage: build
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+  script:
+    - python -m pip install correctionlib rich pandas "pydantic<2"
+  cache:
+    paths: &venv_cache
+      - .cache/pip
+      - venv/
+    policy: push
+
+
+test-mr:
+  stage: test
+  cache:
+    paths: *venv_cache
+    policy: pull
+  before_script:
+    - source venv/bin/activate
+  script:
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.cern.ch/cms-nanoAOD/jsonpog-integration.git -b master cms-nanoAOD-repo --depth 1
+    - script/testMR.sh . cms-nanoAOD-repo
+  artifacts:
+    # using variable here doesn't work (gitlab bug)
+    paths: [change_report.md, schema_report.md, summary.md]
+    expose_as: "validation report"
+    when: always
+  only:
+    - merge_requests
+
+comment-mr:
+  stage: test
+  needs: [test-mr]
+  when: always
+  script:
+    - script/gitlab_post_comment.py $SUMMARY_REPORT
+  only:
+    - merge_requests
+
+test:
+  stage: test
+  cache:
+    paths: *venv_cache
+    policy: pull
+  before_script:
+    - source venv/bin/activate
+  script:
+    - script/validateAll.sh .
+  except:
+    - merge_requests
+
+generate-summary:
+  stage: deploy
+  cache:
+    paths: *venv_cache
+    policy: pull
+  before_script:
+    - source venv/bin/activate
+  script:
+    - script/generate_html.py -i ./POG/ -o ./public/commonJSONSFs/
+  only:
+    - master@cms-nanoAOD/jsonpog-integration
+  artifacts:
+    paths:
+      - public
+
+# Deploy the pages generated to DFS (from https://gitlab.cern.ch/gitlabci-examples/deploy_dfs/)
+# DFS website location+credientials are in CI/CD variables
+dfsdeploy:
+  stage: deploy
+  needs: [generate-summary]
+  image: gitlab-registry.cern.ch/ci-tools/ci-web-deployer:latest
+  only:
+    - master@cms-nanoAOD/jsonpog-integration
+  script:
+    - deploy-dfs
+
