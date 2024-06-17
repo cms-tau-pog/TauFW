@@ -38,13 +38,14 @@ class ModuleMuTau(ModuleTauPair):
     if self.ismc:
       version         = tauSFVersion.get(self.era,self.era)
       self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
-      self.tesTool    = TauESTool(version) # real tau energy scale corrections
-      #self.fesTool    = TauFESTool(version) # e -> tau fake negligible
-      self.tauSFsT    = TauIDSFTool(version,'DeepTau2017v2p1VSjet','Tight')
-      self.tauSFsM    = TauIDSFTool(version,'DeepTau2017v2p1VSjet','Medium')
-      self.tauSFsT_dm = TauIDSFTool(version,'DeepTau2017v2p1VSjet','Tight', dm=True)
-      self.etfSFs     = TauIDSFTool(version,'DeepTau2017v2p1VSe',  'VLoose')
-      self.mtfSFs     = TauIDSFTool(version,'DeepTau2017v2p1VSmu', 'Tight')
+      if self.dotausfs:
+        self.tesTool    = TauESTool(version) # real tau energy scale corrections
+        #self.fesTool    = TauFESTool(version) # e -> tau fake negligible
+        self.tauSFsT    = TauIDSFTool(version,'DeepTau2017v2p1VSjet','Tight')
+        self.tauSFsM    = TauIDSFTool(version,'DeepTau2017v2p1VSjet','Medium')
+        self.tauSFsT_dm = TauIDSFTool(version,'DeepTau2017v2p1VSjet','Tight', dm=True)
+        self.etfSFs     = TauIDSFTool(version,'DeepTau2017v2p1VSe',  'VLoose')
+        self.mtfSFs     = TauIDSFTool(version,'DeepTau2017v2p1VSmu', 'Tight')
     
     # CUTFLOW
     self.out.cutflow.addcut('weight', "no cut, weighted" ) # use for normalization with sum of weight
@@ -251,25 +252,26 @@ class ModuleMuTau(ModuleTauPair):
         self.out.ltfweightDown_2[0]   = 1.
       
       # TAU WEIGHTS
-      if tau.genPartFlav==5: # real tau
-        self.out.idweight_2[0]        = self.tauSFsT.getSFvsDMandPT(tau.pt,tau.decayMode)
-        self.out.idweight_medium_2[0] = self.tauSFsM.getSFvsDMandPT(tau.pt,tau.decayMode)
-        ###self.out.idweight_dm_2[0]     = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode)
-        ###if self.dosys:
-        ###  self.out.idweightUp_2[0]    = self.tauSFsT.getSFvsDMandPT(tau.pt,tau.decayMode,unc='up')
-        ###  self.out.idweightDown_2[0]  = self.tauSFsT.getSFvsDMandPT(tau.pt,tau.decayMode,unc='down')
-        ###  ###self.out.idweightUp_dm_2[0]   = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode,unc='up')
-        ###  ###self.out.idweightDown_dm_2[0] = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode,unc='down')
-      elif tau.genPartFlav in [1,3]: # muon -> tau fake
-        self.out.ltfweight_2[0]       = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
-        ###if self.dosys:
-        ###  self.out.ltfweightUp_2[0]   = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='up')
-        ###  self.out.ltfweightDown_2[0] = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='down')
-      elif tau.genPartFlav in [2,4]: # electron -> tau fake
-        self.out.ltfweight_2[0]       = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
-        ###if self.dosys:
-        ###  self.out.ltfweightUp_2[0]   = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='up')
-        ###  self.out.ltfweightDown_2[0] = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='down')
+      if self.dotausfs:
+        if tau.genPartFlav==5: # real tau
+          self.out.idweight_2[0]        = self.tauSFsT.getSFvsDMandPT(tau.pt,tau.decayMode)
+          self.out.idweight_medium_2[0] = self.tauSFsM.getSFvsDMandPT(tau.pt,tau.decayMode)
+          ###self.out.idweight_dm_2[0]     = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode)
+          ###if self.dosys:
+          ###  self.out.idweightUp_2[0]    = self.tauSFsT.getSFvsDMandPT(tau.pt,tau.decayMode,unc='up')
+          ###  self.out.idweightDown_2[0]  = self.tauSFsT.getSFvsDMandPT(tau.pt,tau.decayMode,unc='down')
+          ###  ###self.out.idweightUp_dm_2[0]   = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode,unc='up')
+          ###  ###self.out.idweightDown_dm_2[0] = self.tauSFsT_dm.getSFvsDM(tau.pt,tau.decayMode,unc='down')
+        elif tau.genPartFlav in [1,3]: # muon -> tau fake
+          self.out.ltfweight_2[0]       = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
+          ###if self.dosys:
+          ###  self.out.ltfweightUp_2[0]   = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='up')
+          ###  self.out.ltfweightDown_2[0] = self.etfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='down')
+        elif tau.genPartFlav in [2,4]: # electron -> tau fake
+          self.out.ltfweight_2[0]       = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav)
+          ###if self.dosys:
+          ###  self.out.ltfweightUp_2[0]   = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='up')
+          ###  self.out.ltfweightDown_2[0] = self.mtfSFs.getSFvsEta(tau.eta,tau.genPartFlav,unc='down')
       self.out.weight[0]              = self.out.genweight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0] #*self.out.idisoweight_2[0]
     elif self.isembed:
       ###self.applyCommonEmbdedCorrections(event,jets,jetIds50,met,njets_vars,met_vars)
