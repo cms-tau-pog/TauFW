@@ -38,7 +38,8 @@ class ModuleMuTau(ModuleTauPair):
     if self.ismc:
       version         = tauSFVersion.get(self.era,self.era)
       self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
-      self.tesTool    = TauESTool(version) # real tau energy scale corrections
+      if self.tes is None:
+        self.tesTool  = TauESTool(version) # real tau energy scale corrections
       if self.dotausfs:
         #self.fesTool    = TauFESTool(version) # e -> tau fake negligible
         self.tauSFsT    = TauIDSFTool(version,'DeepTau2017v2p1VSjet','Tight')
