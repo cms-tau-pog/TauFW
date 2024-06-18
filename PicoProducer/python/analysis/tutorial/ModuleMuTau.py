@@ -42,13 +42,14 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.addcut('pair',         "pair"                       )
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization; bug in pre-UL 2017 caused small fraction of events with nPU<=0
-    ## Important cutflow entries to make stitching with exclusive mutauh sample
-    self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )    
-    self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
-    self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
+    if self.domutau:
+       ## Important cutflow entries to make stitching with exclusive mutauh sample
+       self.out.cutflow.addcut('weight_mutaufilter', "no cut, mutaufilter", 17 )    
+       self.out.cutflow.addcut('weight_mutaufilter_NUP0orp4', "no cut, weighted, mutau, 0 or >4 jets", 18 )
+       self.out.cutflow.addcut('weight_mutaufilter_NUP1', "no cut, weighted, mutau, 1 jet", 19 )
+       self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
+       self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
+       self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
 
   
   def beginJob(self):
@@ -175,25 +176,8 @@ class ModuleMuTau(ModuleTauPair):
     
     
     # TAU
-    self.out.pt_2[0]                       = tau.pt
-    self.out.eta_2[0]                      = tau.eta
-    self.out.phi_2[0]                      = tau.phi
-    self.out.m_2[0]                        = tau.mass
-    self.out.y_2[0]                        = tau.tlv.Rapidity()
-    self.out.dxy_2[0]                      = tau.dxy
-    self.out.dz_2[0]                       = tau.dz
-    self.out.q_2[0]                        = tau.charge
-    self.out.dm_2[0]                       = tau.decayMode
-    self.out.iso_2[0]                      = tau.rawIso
-    self.out.rawDeepTau2018v2p5VSe_2[0]    = tau.rawDeepTau2018v2p5VSe
-    self.out.rawDeepTau2018v2p5VSmu_2[0]   = tau.rawDeepTau2018v2p5VSmu
-    self.out.rawDeepTau2018v2p5VSjet_2[0]  = tau.rawDeepTau2018v2p5VSjet
-    self.out.idDecayMode_2[0]              = tau.idDecayMode
-    self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idDeepTau2018v2p5VSe_2[0]     = tau.idDeepTau2018v2p5VSe
-    self.out.idDeepTau2018v2p5VSmu_2[0]    = tau.idDeepTau2018v2p5VSmu
-    self.out.idDeepTau2018v2p5VSjet_2[0]   = tau.idDeepTau2018v2p5VSjet
-        
+    self.fillCommonTauBranches(event,tau)
+     
     # GENERATOR
     if self.ismc:
       self.out.genmatch_1[0]     = muon.genPartFlav
@@ -203,8 +187,8 @@ class ModuleMuTau(ModuleTauPair):
       self.out.genvistaueta_2[0] = eta
       self.out.genvistauphi_2[0] = phi
       self.out.gendm_2[0]        = status
-      if self.dozpt:
-        self.out.mutaufilter[0]  = filtermutau(event) # for stitching DYJetsToTauTauToMuTauh
+      if self.domutau:
+        self.out.mutaufilter[0]  = self.ismutau # for stitching DYJetsToTauTauToMuTauh
     
     
     # JETS
