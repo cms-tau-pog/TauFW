@@ -12,27 +12,47 @@ from TauFW.Fitter.plot.datacard import createinputs, plotinputs
 from TauFW.Fitter.plot.rebinning import rebinning
 import yaml
 
+#nano doc: https://cms-nanoaod-integration.web.cern.ch/autoDoc/NanoAODv12/2022/2023/doc_DYJetsToLL_M-50_TuneCP5_13p6TeV-madgraphMLM-pythia8_Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2.html
+
+map_wp_to_int = OrderedDict([('againstjet', 
+				OrderedDict([('Loose',  4),
+					     ('Medium', 5),
+					     ('Tight',  6),
+					     ('VTight', 7)])),
+	                    ('againstelectron',
+				OrderedDict([('VVLoose', 2),
+                                             ('Tight', 6),
+                                             ('Loose', 1 )]))
+                           ])
 
 def main(args):
   eras      = args.eras
   parallel  = args.parallel
   verbosity = args.verbosity
+  againstjet = args.againstjet
+  againstelectron = args.againstelectron
   setupConfFile = args.config
   DM = args.DM
+  inclusive = args.inclusive
   plot      = True
-  outdir    = ensuredir("input_pt_nbin6_moretes")
+  outdir    = ensuredir(f"input_pt_less_region/againstjet_{againstjet}/againstelectron_{againstelectron}")
   plotdir   = ensuredir(outdir,"plots")
   analysis  = 'ztt'
 
   print("Using configuration file: %s"%setupConfFile  )
   with open(setupConfFile, 'r') as file:
     setup = yaml.safe_load(file)
-    if DM and 'regions' in setup:
+    if DM and 'regions' in setup or inclusive:
        newreg = {}
        for reg in setup['regions']:
-          if DM+'_' not in reg: continue
-          assert(reg not in newreg)
-          newreg[reg] = setup['regions'][reg]
+          if not inclusive:
+             if DM+'_' not in reg: continue
+             assert(reg not in newreg)
+             newreg[reg] = setup['regions'][reg]
+          else:
+             if 'pt' in reg: continue
+             assert(reg not in newreg)
+             newreg[reg] = setup['regions'][reg] 
        setup['regions'] = newreg
   channel  = setup["channel"]
   tag      = "13TeV"
@@ -99,6 +119,11 @@ def main(args):
     bins = [ ]
     if DM == '':
       bins.append(Sel("baseline", setup["baselineCuts"]))
+    jetcut = map_wp_to_int["againstjet"][againstjet]
+    electroncut = map_wp_to_int["againstelectron"][againstelectron]
+    setup["baselineCuts"] = setup["baselineCuts"].replace('idDeepTau2018v2p5VSjet_2>=5', f'idDeepTau2018v2p5VSjet_2>={jetcut}')
+    setup["baselineCuts"] = setup["baselineCuts"].replace('idDeepTau2018v2p5VSe_2>=2',   f'idDeepTau2018v2p5VSe_2>={electroncut}')
+    print('baselinecuts: ', jetcut, '\t', againstjet, '\t', electroncut, '\t', againstelectron, '\t', setup["baselineCuts"])
     if "regions" in setup:
       for region in setup["regions"]:
         bins.append(Sel(region, setup["regions"][region]['title'], setup["baselineCuts"]+" && "+setup["regions"][region]["definition"]))
@@ -187,8 +212,7 @@ if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Create input histograms for datacards"""
   parser = ArgumentParser(prog="createInputs",description=description,epilog="Good luck!")
-  parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v2p5','2022_postEE','2022_preEE', '2023C', '2023D' ], default=['UL2017'], action='store',
-                                         help="set era" )
+  parser.add_argument('-y', '--era',     dest='eras', nargs='*', default=['UL2017'], action='store', help="set era" )
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store',
                                          help="set config file containing sample & fit setup" )
   parser.add_argument('-s', '--serial',  dest='parallel', action='store_false',
@@ -196,6 +220,9 @@ if __name__ == "__main__":
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   parser.add_argument('-d', '--decaymode', dest='DM', type=str, default='', help="which decay mode" )
+  parser.add_argument('-i', '--inclusive', dest='inclusive', action='store_true', default=False, help="which pt region" )
+  parser.add_argument('-j', '--jet', dest='againstjet', default='Medium', help="against jet cut")
+  parser.add_argument('-e', '--electron', dest='againstelectron', default='VVLoose', help="against electron cut")
   args = parser.parse_args()
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
