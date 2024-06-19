@@ -204,7 +204,7 @@ def main(args):
     print "producing datacards for %s"%(args.year)
     for obs in observables:
         print "producing datacards for %s"%(obs)
-        harvest(setup,args.year,obs,tag=tag,extratag=args.extratag,indir=indir,multiDimFit=args.multiDimFit,verbosity=verbosity)
+        harvest(setup,args.year,obs,tag=tag,extratag=args.extratag,indir=indir,outdir=args.output_dir,multiDimFit=args.multiDimFit,verbosity=verbosity)
     
 
 
@@ -220,6 +220,7 @@ if __name__ == '__main__':
   parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
   parser.add_argument('-M', '--multiDimFit', dest='multiDimFit', default=False, action='store_true', help="assume multidimensional fit with a POI for each DM")
   parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true', help="set verbose")
+  parser.add_argument('-o', '--output_dir', dest='output_dir', help="outputdir")
   args = parser.parse_args()
 
   main(args)

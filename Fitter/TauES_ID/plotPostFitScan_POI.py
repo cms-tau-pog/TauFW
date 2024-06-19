@@ -44,7 +44,7 @@ def plotCorrelation(channel,var,region,year,*parameters,**kwargs):
     title       = kwargs.get('title',     ""                )
     name        = kwargs.get('name',      ""                )
     indir       = kwargs.get('indir',     "output_%s"%year  )
-    outdir      = kwargs.get('outdir',    "postfit_%s"%year )
+    outdir      = indir.replace('output', 'postfit') #kwargs.get('outdir',    "postfit_%s"%year )
     tag         = kwargs.get('tag',       ""                )
     plotlabel   = kwargs.get('plotlabel', ""                )
     order       = kwargs.get('order',     False             )
@@ -179,7 +179,7 @@ def writeParametersFitVal(channel,var,region,year,*parameters,**kwargs):
     poi         = kwargs.get('poi',       ""                )
     era         = "%s-13TeV"%year
     filename    = '%s/higgsCombine.%s_%s-%s%s-%s.MultiDimFit.mH90.root'%(indir,channel,var,region,tag,era)
-    outdir      = kwargs.get('outdir',    "postfit_%s"%year )
+    outdir      = indir.replace('output', 'postfit') #kwargs.get('outdir',    "postfit_%s"%year )
     outfile = "%s/FitparameterValues_%s_%s_%s.txt" %(outdir,tag,era,region)
     
     # remove file to not append to it 
@@ -275,7 +275,7 @@ def plotPostFitValues(channel,var,region,year,paramfull_list,*parameters,**kwarg
     title       = kwargs.get('title',     ""    )
     name        = kwargs.get('name',      ""    )
     indir       = kwargs.get('indir',     "output_%s"%year  )
-    outdir      = kwargs.get('outdir',    "postfit_%s"%year )
+    outdir      = indir.replace('output', 'postfit') #kwargs.get('outdir',    "postfit_%s"%year )
     tag         = kwargs.get('tag',       ""    )
     plotlabel   = kwargs.get('plotlabel', ""    )
     poi         = kwargs.get('poi',       ""    )
@@ -626,6 +626,7 @@ def main(args):
     channel   = setup["channel"].replace("mu","m").replace("tau","t")
     tag       = setup["tag"] if "tag" in setup else ""
     tag += args.extratag
+    indir = args.indir
     CMSStyle.setCMSEra(year)
 
     # Leave hard-coded this part as this is purely a plotting choice
@@ -675,8 +676,6 @@ def main(args):
       "xsec_tt", "xsec_st", "norm_qcd", "lumi", "xsec_vv", "norm_qcd", "eff_m"
     ]
     procsBBB  = [ 'QCD', 'W', 'TTT', 'ZTT' ] # 'JTF' ]
-    indir     = "output_%s"%year
-    
 
     for var in setup["observables"]:
         variable = setup["observables"][var]
@@ -723,6 +722,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--pdf', dest='pdf', default=False, action='store_true', help="save plot as pdf as well")
     parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true', help="set verbose")
     parser.add_argument('-poi', '--poi',         dest='poi', default='poi', type=str, action='store', help='use this parameter of interest')
+    parser.add_argument('-i', '--indir',         dest='indir', type=str, help='indir')
     args = parser.parse_args()
 
 

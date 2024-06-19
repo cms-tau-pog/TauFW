@@ -31,7 +31,7 @@ def plotParabola(setup,var,region,year,**kwargs):
     print green("plot parabola for %s, %s"%(region, var),pre="\n>>> ")
     
     indir        = kwargs.get('indir',       "output_%s"%year )
-    outdir       = kwargs.get('outdir',      "plots_%s"%year  )
+    outdir       = indir.replace('output', 'plots') #kwargs.get('outdir',      "plots_%s"%year  )
     tag          = kwargs.get('tag',         ""               )
     plottag      = kwargs.get('plottag',     ""               )
     MDFslices    = kwargs.get('MDFslices',   None             )
@@ -1083,8 +1083,8 @@ def main(args):
     poi           = args.poi
     year          = args.year
     lumi          = 36.5 if year=='2016' else 41.4 if (year=='2017' or year=='UL2017') else 59.5 if (year=='2018' or year=='UL2018') else 19.5 if year=='UL2016_preVFP' else 16.8
-    indir         = "output_%s"%year
-    outdir        = "plots_%s"%year
+    indir         = args.indir
+    outdir        = indir.replace('output', 'plots')
     breakdown     = args.breakdown
     multiDimFit   = args.multiDimFit
     summary       = args.summary
@@ -1208,6 +1208,7 @@ if __name__ == '__main__':
     parser.add_argument(      '--custom',      dest='customSummary', nargs='*', default=False, action='store',help="make custom summary of measurements")
     parser.add_argument('-v', '--verbose',     dest='verbose',  default=False, action='store_true', help="set verbose")
     parser.add_argument('-p', '--poi',         dest='poi', default='poi', type=str, action='store', help='use this parameter of interest')
+    parser.add_argument('-i', '--indir',         dest='indir', type=str, help='indir')
 
     args = parser.parse_args()
     
