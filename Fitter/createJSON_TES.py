@@ -66,7 +66,7 @@ def load_sf_measurements(setup,year,**kwargs):
   tes = []
   tes_errhi = []
   tes_errlo = []
-  inputfilename = f"plots_pt_less_region/againstjet_{wp}/againstelectron_VVLoose/2023C/measurement_{sf}_mt_mutau_mt65_DM_pt_Dt2p5_puppimet_DeepTau_fit_asymm.txt"
+  inputfilename = f"plots_pt_less_region/againstjet_{wp}/againstelectron_VVLoose/{year}/measurement_{sf}_mt_mutau_mt65_DM_pt_Dt2p5_puppimet_DeepTau_fit_asymm.txt"
   with open(inputfilename, 'r') as file:
       next(file)
       for line in file:
@@ -89,8 +89,8 @@ def plot_dm_graph(setup,year,form,**kwargs):
   outdir  = kwargs.get('outdir',      "plots_%s"%year )
   tag     = kwargs.get('tag',         ""              )
   era     = year
-  wps     = ['Medium', 'Tight', 'VTight']
-  sfs     = ['tes', 'tid_SF']
+  wps     = ['Loose', 'Medium', 'Tight', 'VTight']
+  sfs     = ['tid_SF', 'tes']
   pt_avg_list, pt_error_list = load_pt_values(setup)
   pt_edges = load_edges(setup)
   
@@ -135,34 +135,48 @@ def plot_dm_graph(setup,year,form,**kwargs):
        sf_dict[sf][dm.replace("_","")+ f'_{wp}'] = {"edges": dm_pt_edges, "content":dm_tes, "up": dm_tes_up, "down": dm_tes_down}
   print("SF dictionary")
   print(sf_dict)
-  colors = [kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure]
+  colors = [kBlack, kBlue, kRed, kMagenta, kYellow, kOrange, kGreen, kTeal, kAzure]
   for sf in sfs: 
     if form=='root':
        sfile = TFile(f"{sf}_DeepTau2018v2p5VSjet_{era}.root", 'recreate')
        #loop on DMs
        for dm in dm_order:
+
          #graphs = {}
          graphs = TMultiGraph()
          graphs.SetTitle(f'{sf};pt;SF')
-         legend = TLegend(0.1800, 0.90, 0.90, 1.05)
+
+         legend = TLegend(0.1800, 0.80, 0.90, 1.05)
          legend.SetNColumns(len(wps))
          legend.SetFillStyle(0)
          legend.SetBorderSize(0)
          legend.SetFillColor(10)
          legend.SetTextSize(0.025)
+
+         text = TLatex()
+         text.SetTextSize(0.044)
+         text.SetTextAlign(31)
+         text.SetTextFont(42)
+         text.SetNDC(True)
+         xtext, ytext = 0.90, 0.405
+ 
          for idx, wp in enumerate(wps):
            wpdir = f'{dm}{wp}'
            sfile.mkdir(wpdir)
            sfile.cd(wpdir)
+
            graph  = TGraphAsymmErrors()
            graph.SetLineColor(colors[idx])
            graph.SetLineWidth(2)
            graph.SetTitle(f'{sf}; pT; SF')
            graph.SetMaximum(1.1)
+
            funcstr = '(x<=20)*0'
            funcstr_up = '(x<=20)*0'
            funcstr_down = '(x<=20)*0'
+
            key = dm+f'{wp}'
+
            for ip in range(0, len(sf_dict[sf][key]["content"])):
               pt_avg = (sf_dict[sf][key]["edges"][ip]+sf_dict[sf][key]["edges"][ip+1])/2
               pt_err = pt_avg - sf_dict[sf][key]["edges"][ip]
@@ -171,9 +185,8 @@ def plot_dm_graph(setup,year,form,**kwargs):
               funcstr += '+ ( x > ' + str(sf_dict[sf][key]["edges"][ip]) + ' && x <=' + str(sf_dict[sf][key]["edges"][ip+1]) + ')*' + str(sf_dict[sf][key]["content"][ip])
               funcstr_up += '+ ( x > ' + str(sf_dict[sf][key]["edges"][ip]) + ' && x <=' + str(sf_dict[sf][key]["edges"][ip+1]) + ')*' + str(sf_dict[sf][key]["up"][ip])
               funcstr_down += '+ ( x > ' + str(sf_dict[sf][key]["edges"][ip]) + ' && x <=' + str(sf_dict[sf][key]["edges"][ip+1]) + ')*' + str(sf_dict[sf][key]["down"][ip])
-           #graphs[key] = graph
            graphs.Add(graph)
-           legend.AddEntry(graph, key, 'l')
+           legend.AddEntry(graph, wp, 'l')
            funcstr +='+ ( x > 200)*1.0'
            funcstr_up +='+ ( x > 200)*1.0'
            funcstr_down +='+ ( x > 200)*1.0'
@@ -185,14 +198,13 @@ def plot_dm_graph(setup,year,form,**kwargs):
            func_SF_up.Write()
            func_SF_down = TF1(key + '_down', funcstr_down,     0,200)
            func_SF_down.Write()
-         canvas = TCanvas("", "", 600, 800)
+         canvas = TCanvas("", "", 600, 600)
          graphs.Draw('AP')
-         '''for idx, graph in enumerate(graphs):
-           if idx == 0:
-             graphs[graph].Draw('')
-           else:
-             graphs[graph].Draw('SAME')'''
+         text.DrawLatex(xtext, ytext, f'{dm}{era}')
          legend.Draw('same')
+         canvas.SetGrid()
+         canvas.Modified()
+         canvas.Update()
          dm = dm.replace('_','')
          graph_name = f'graph_{dm}_{sf}_{era}'
          canvas.SaveAs(f'{graph_name}.png')
@@ -311,7 +323,7 @@ if __name__ == '__main__':
 
   description = '''This script makes plot of pt-dependants id SF measurments from txt file and config file.'''
   parser = ArgumentParser(prog="plot_it_SF",description=description,epilog="Success!")
-  parser.add_argument('-y', '--year', dest='year', choices=['2023C','2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v10'], type=str, default='UL2018', action='store', help="select year")
+  parser.add_argument('-y', '--year', dest='year', type=str, default='2023C', action='store', help="select year")
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml', action='store', help="set config file")
   parser.add_argument('-f', '--form', dest='form', choices=['json', 'root'], type=str, default='root', action='store', help="select format")
   args = parser.parse_args()
