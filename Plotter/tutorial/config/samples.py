@@ -61,7 +61,7 @@ def getsampleset(channel,era,**kwargs):
     expsamples = [ # table of MC samples to be converted to Sample objects
      # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
      ( 'DY', "DYto2L-4Jets_MLL-50",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight , 'nevts':nevts_json["DYto2L-4Jets_MLL-50"]} ), # LO times kfactor
-     ( 'WJ', "WtoLNu-4Jets",            "W + jets",           55300.*kfactor_wj, {'nevts':nevts_json["WtoLNu-4Jets"]} ), # LO times kfactor 
+     ( 'WJ', "WJetsToLNu",            "W + jets",           55300.*kfactor_wj, {'nevts':nevts_json["WtoLNu-4Jets"]} ), # LO times kfactor 
      ( 'VV', "WW",             "WW",                    80.23*kfactor_ww, {'nevts':nevts_json["WW"]} ), # LO times kfactor
      ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz, {'nevts':nevts_json["WZ"]}), # LO times kfactor
      ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz, {'nevts':nevts_json["ZZ"]} ), # LO times kfactor

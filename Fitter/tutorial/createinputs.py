@@ -31,7 +31,7 @@ def main(args):
       # sample set and their systematic variations
       
       # GET SAMPLESET
-      join      = ['VV','TT','ST']
+      join      = ['VV','TT']
       sname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
       rmsf      = [ ] if 'mumu' in channel else ['idweight_2','ltfweight_2']
       sampleset = getsampleset(channel,era,fname=sname,join=join,split=[],table=False,
@@ -52,7 +52,7 @@ def main(args):
           'Nom': sampleset, # nominal
         }
         systs = preparesysts( # prepare systematic variations: syskey, systag, procs
-          ('Nom',"",  ['ZLL','W','VV','ST','TT','QCD','data_obs']),
+          ('Nom',"",  ['ZLL','W','VV','TT','QCD','data_obs']),
         )
         samplesets['Nom'].printtable(merged=True,split=True)
         if verbosity>=2:
@@ -80,7 +80,7 @@ def main(args):
         
         # SYSTEMATIC VARIATIONS
         systs = preparesysts( # prepare systematic variations: syskey, systag, procs
-          ('Nom',"",          ['ZTT','ZL','ZJ','W','VV','ST','TTT','TTL','TTJ','QCD','data_obs']), 
+          ('Nom',"",          ['ZTT','ZL','ZJ','W','VV','TTT','TTL','TTJ','QCD','data_obs']), 
           ('TES',"_shape_tes",['ZTT','TTT']),           # tau energy scale
           ('LTF',"_shape_ltf",['ZL', 'TTL']),           # l -> tau energy scale
           ('JTF',"_shape_jtf",['ZJ', 'TTJ','QCD','W']), # j -> tau energy scale
@@ -168,7 +168,7 @@ def main(args):
         tauwpbits = { wp: i+1 for i, wp in enumerate(tauwps)} # WP values (non binary in nanoV10)
         tauwps_sel    = ['Medium'] # only do Tight
         iso_1     = "iso_1<0.15"
-        iso_2     = "idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=$WP && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4"
+        iso_2     = "idDeepTauVSjet_2>=$WP && idDeepTauVSe_2>=2 && idDeepTauVSmu_2>=4"
         baseline  = "q_1*q_2<0 && %s && %s && !lepton_vetoes_notau && metfilter"%(iso_1,iso_2)
         zttregion = "%s && mt_1<60"%(baseline)
         bins = [
