@@ -11,6 +11,7 @@ from TauFW.common.tools.file import ensurefile
 from TauFW.common.tools.file import ensuremodule as _ensuremodule
 from TauFW.common.tools.log import Logger
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event, Object
+import numpy as np
 LOG = Logger('Analysis')
 
 
@@ -328,7 +329,8 @@ def getmetfilters(era,isdata,verb=0):
   if ('2017' in era or '2018' in era) and ('UL' not in era):
     filters.extend(['Flag_ecalBadCalibFilterV2']) # under review for change in Ultra Legacy
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_2_recommendations
-  if '2022' in era or '2023' in era: 
+  if '2022' in era or '2023' in era:
+    #from IPython import embed; embed() 
     filters.extend(['Flag_BadPFMuonDzFilter'])
     filters.extend(['Flag_hfNoisyHitsFilter'])
     filters.extend(['Flag_eeBadScFilter'])
@@ -386,6 +388,7 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
   looseElectrons = [ ]
   for electron in Collection(event,'Electron'): 
     if '2022' in era:
+      #from IPython import embed; embed()
       electronIso90 = electron.mvaIso_Fall17V2_WP90
       electronIso   = electron.mvaIso_Fall17V2_WPL
     elif '2023' in era:
@@ -474,7 +477,70 @@ def getTotalWeight(file, selections=[""]):
         total_w[iSel] += w.GetValue()
     return total_w
   
-def getNevt(file): #This function extracts the number of events form Data files
-  df = RDataFrame('Events', file)
-  count_result = df.Count()
-  return count_result.GetValue()
+def getNevt(file):
+    # Get the "Events" tree
+    events_tree = file.Get("Events")
+    # Get the number of entries (events) in the tree
+    count_result = events_tree.GetEntries()
+    # Close the ROOT file
+    return count_result
+
+def getNevtNotSel(file):
+    # Get the "Events" tree
+    events_tree = file.Get("EventsNotSelected")
+    # Get the number of entries (events) in the tree
+    count_result = events_tree.GetEntries()
+    # Close the ROOT file
+    return count_result
+
+
+def save_norm_histo(inputFile, outputFile):
+    # Create a histogram for storing the number of events and sum of weights
+    hist = TH1D("n_events_and_sum_weights", "Number of Events and Sum of Weights", 9, 0, 9)
+    # Set the bin labels
+    bin_labels = [
+        "Total Events", "Selected Events", "Not Selected Events",
+        "Total Sum Weights","Sum Weights Selected", "Sum Weights Not Selected", 
+        "Total Sum of sign of Weights", "Sum of sign of Weights Selected", "Sum of sign of Weights Not Selected"
+        ]
+    for i, label in enumerate(bin_labels, 1):
+        hist.GetXaxis().SetBinLabel(i, label)
+
+    # Helper function to process trees
+    def process_tree(tree_name, bin_evt, bin_w, bin_w_sign):
+        if tree_name in keys:
+            n_evt = getNevt(inputFile) if tree_name == 'Events' else getNevtNotSel(inputFile)
+            hist.SetBinContent(bin_evt, n_evt)
+            tree = inputFile.Get(tree_name)
+            tree.SetNotify(0)  # This suppresses useless warnings 
+            df = RDataFrame(tree_name, inputFile)
+
+            if not df.HasColumn("genWeight"):
+                print(f"WARNING: Branch 'genWeight' not found in tree '{tree_name}', skipping this tree")
+                return
+
+            df = df.Define('genWeightD', 'std::copysign<double>(1., genWeight)')
+            hist.SetBinContent(bin_w, df.Sum('genWeight').GetValue())
+            hist.SetBinContent(bin_w_sign, df.Sum('genWeightD').GetValue())
+        else:
+            print(f"ATTENTION: {tree_name} is not present, it will be skipped")
+
+    keys = [key.GetName() for key in inputFile.GetListOfKeys()]
+
+    # Process 'Events' tree
+    print("Processing Events")
+    process_tree('Events', 2, 5, 8)
+
+    # Process 'EventsNotSelected' tree
+    print("Processing EventsNotSelected")
+    process_tree('EventsNotSelected', 3, 6, 9)
+
+    # Calculate totals
+    hist.SetBinContent(1, hist.GetBinContent(2) + hist.GetBinContent(3))
+    hist.SetBinContent(4, hist.GetBinContent(5) + hist.GetBinContent(6))
+    hist.SetBinContent(7, hist.GetBinContent(8) + hist.GetBinContent(9))
+
+    # Write the histogram to the output file
+    outputFile.cd()
+    hist.Write()
+
