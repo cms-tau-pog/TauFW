@@ -33,7 +33,7 @@ def main(args):
       #'mm':['ZLL']
     },
     'bkg': {
-      'mt': ['ZL','TTT','TTJ','TTL','ZL','VV'],
+      'mt': ['ZL','TTT','TTJ','TTL','ZL','ST','VV'],
       #'mm': ['TT','W','ST','VV','QCD'],
     }
   }
@@ -65,23 +65,28 @@ def main(args):
   print('>> Add systematics...')
   cb.cp().AddSyst(
     cb, 'CMS_lumi', 'lnN', ch.SystMap('channel','process')
-      (['mt'], ['TTT', 'TTJ', 'TTL', 'ZL', 'VV', 'ZJ'] + procs['sig']['mt'],                    1.025)
+      (['mt'], ['TTT', 'TTJ', 'TTL', 'ZL', 'ST', 'VV', 'ZJ'] + procs['sig']['mt'],                    1.025)
       #(['mm'], ['TT', 'W', 'ST', 'VV'] + ['ZLL'],             1.025)
       )
   cb.cp().AddSyst(
     cb, 'CMS_eff_m', 'lnN', ch.SystMap('channel','process')
-      (['mt'], ['TTT', 'TTJ', 'TTL', 'ZL', 'VV', 'ZJ']  + procs['sig']['mt'],                    1.02)
+      (['mt'], ['TTT', 'TTJ', 'TTL', 'ZL', 'ST', 'VV', 'ZJ']  + procs['sig']['mt'],                    1.02)
       #(['mm'], ['TT', 'W', 'ST', 'VV'] + ['ZLL'],             1.04)
       )
   cb.cp().AddSyst(
     cb, 'CMS_trig_m', 'lnN', ch.SystMap('channel','process')
-      (['mt'], ['TTT', 'TTJ', 'TTL', 'ZL','VV', 'ZJ'] + procs['sig']['mt'],                    1.02)
+      (['mt'], ['TTT', 'TTJ', 'TTL', 'ZL', 'ST', 'VV', 'ZJ'] + procs['sig']['mt'],                    1.02)
       #(['mm'], ['TT', 'W', 'ST', 'VV'] + ['ZLL'],             1.02)
       )
   cb.cp().AddSyst(
     cb, 'CMS_ttxsec', 'lnN', ch.SystMap('channel','process')
       (['mt'], ['TTT', 'TTJ', 'TTL'],             1.055)
       #(['mm'], ['TT'],             1.055)
+      )
+  cb.cp().AddSyst(
+    cb, 'CMS_stxsec', 'lnN', ch.SystMap('channel','process')
+      (['mt'], ['ST'],             1.055)
+      #(['mm'], ['ST'],             1.055)
       )
   cb.cp().AddSyst(
     cb, 'CMS_vvxsec', 'lnN', ch.SystMap('channel','process')
@@ -137,7 +142,7 @@ def main(args):
     #    (['mt'], ['ZTT', 'ZL'], 1.0))
     cb.cp().AddSyst( 
       cb, 'shape_ltf', 'shape', ch.SystMap('channel','process')
-        (['mt'], ['ZL','TTL'], 1.0))
+        (['mt'], ['ZL', 'TTL'], 1.0))
   
   # EXTRACT SHAPES
   print('>> Extracting histograms from input root files...')
