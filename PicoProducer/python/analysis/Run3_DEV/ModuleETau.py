@@ -7,7 +7,7 @@ from TauFW.PicoProducer.analysis.ModuleTauPair import *
 from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, matchgenvistau, matchtaujet, filtermutau
 from TauFW.PicoProducer.corrections.ElectronSFs import *
 from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
-from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
+#from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool
 
 
 class ModuleETau(ModuleTauPair):
@@ -49,6 +49,7 @@ class ModuleETau(ModuleTauPair):
     #self.out.cutflow.addcut('muonveto',     "muon veto"                  )
     #self.out.cutflow.addcut('elecveto',     "electron veto"              )
     self.out.cutflow.addcut('lepvetoes',     "lep vetoes"              )
+    self.out.cutflow.addcut('jetvetoes',     "jet vetoes"              )
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
     ### Important cutflow entries to make stitching with exclusive mutauh sample
@@ -101,8 +102,9 @@ class ModuleETau(ModuleTauPair):
       if abs(electron.dxy)>0.045: continue
       if not electron.convVeto: continue
       if electron.lostHits>1: continue
-      if electron.pfRelIso03_all > 0.5: continue
-      if not electron.mvaFall17V2noIso_WP90: continue
+      #if electron.pfRelIso03_all > 0.5: continue
+      #if not electron.mvaFall17V2noIso_WP90: continue
+      if not electron.mvaFall17V2Iso_WP90: continue
       if not self.trigger.match(event,electron): continue
       electrons.append(electron)
     if len(electrons)==0:
@@ -179,7 +181,11 @@ class ModuleETau(ModuleTauPair):
     #cutflow on veto
     if self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]: return False
     self.out.cutflow.fill('lepvetoes')
-   
+ 
+    if "2023" in self.era:
+       #jetvetomap
+       if self.jetveto(event): return False
+       self.out.cutflow.fill('jetvetoes')
  
     # EVENT
     self.fillEventBranches(event)
@@ -196,41 +202,14 @@ class ModuleETau(ModuleTauPair):
     self.out.q_1[0]                        = electron.charge
     self.out.iso_1[0]                      = electron.pfRelIso03_all
     self.out.cutBased_1[0]                 = electron.cutBased
-    self.out.mvaFall17Iso_WP90_1[0]        = electron.mvaFall17V2Iso_WP90
-    self.out.mvaFall17Iso_WP80_1[0]        = electron.mvaFall17V2Iso_WP80
-    self.out.mvaFall17noIso_WP90_1[0]      = electron.mvaFall17V2noIso_WP90
-    self.out.mvaFall17noIso_WP80_1[0]      = electron.mvaFall17V2noIso_WP80    
+    self.out.mvaIso_WP90_1[0]        = electron.mvaFall17V2Iso_WP90
+    self.out.mvaIso_WP80_1[0]        = electron.mvaFall17V2Iso_WP80
+    self.out.mvanoIso_WP90_1[0]      = electron.mvaFall17V2noIso_WP90
+    self.out.mvanoIso_WP80_1[0]      = electron.mvaFall17V2noIso_WP80    
 
     # TAU
-    self.out.pt_2[0]                       = tau.pt
-    self.out.eta_2[0]                      = tau.eta
-    self.out.phi_2[0]                      = tau.phi
-    self.out.m_2[0]                        = tau.mass
-    self.out.y_2[0]                        = tau.tlv.Rapidity()
-    self.out.dxy_2[0]                      = tau.dxy
-    self.out.dz_2[0]                       = tau.dz
-    self.out.q_2[0]                        = tau.charge
-    self.out.dm_2[0]                       = tau.decayMode
-    self.out.iso_2[0]                      = tau.rawIso
-    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
-    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
-    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
-    
-    self.out.rawDeepTau2018v2p5VSe_2[0]    = tau.rawDeepTau2018v2p5VSe
-    self.out.rawDeepTau2018v2p5VSmu_2[0]   = tau.rawDeepTau2018v2p5VSmu
-    self.out.rawDeepTau2018v2p5VSjet_2[0]  = tau.rawDeepTau2018v2p5VSjet
-
-    self.out.idDecayMode_2[0]              = tau.idDecayMode
-    self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
-    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
-    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
-
-    self.out.idDeepTau2018v2p5VSe_2[0]     = tau.idDeepTau2018v2p5VSe
-    self.out.idDeepTau2018v2p5VSmu_2[0]    = tau.idDeepTau2018v2p5VSmu
-    self.out.idDeepTau2018v2p5VSjet_2[0]   = tau.idDeepTau2018v2p5VSjet
-
-    
+    self.fillCommonTauBranches(event,tau)
+     
     # GENERATOR
     if self.ismc:
       self.out.genmatch_1[0]     = electron.genPartFlav
@@ -257,8 +236,8 @@ class ModuleETau(ModuleTauPair):
          self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
       # ELECTRON WEIGHTS
-      self.out.trigweight[0]              = self.eleSFs.getTriggerSF(electron.pt,abs(electron.eta))
-      self.out.idisoweight_1[0]           = self.eleSFs.getIdIsoSF(electron.pt,abs(electron.eta))
+      self.out.trigweight[0]              = self.eleSFs.getTriggerSF(electron.pt,electron.eta) ##takes electron eta
+      self.out.idisoweight_1[0]           = self.eleSFs.getIdIsoSF(electron.pt,electron.eta + electron.deltaEtaSC,electron.phi) ##takes supercluster eta
 
       #print("eta: ", electron.eta)
       #print("pt: ",  electron.pt)

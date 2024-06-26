@@ -115,16 +115,13 @@ class MuonSFs:
       self.sftool_trig = corrset[sf_trig] # correctionlib JSON
     
   
-  def getTriggerSF(self, pt, eta, syst=None):
+  def getTriggerSF(self, pt, eta, syst='nominal'):
     """Get SF for single muon trigger.
     Use syst='systup', 'systdown' for systematic variations."""
     ###if self.abseta: # MuonPOG now consistently uses transform for eta -> abs(eta)
     ###  eta = abs(eta)
     try:
-      sf = self.sftool_trig.evaluate(eta,pt,'nominal')
-      if syst: # systematic variations: 'syst', 'stat', ...
-        unc = self.sftool_id.evaluate(eta,pt,syst)
-        sf = (sf,sf+unc,sf-unc)
+      sf = self.sftool_trig.evaluate(eta,pt,syst)
     except Exception as error:
       LOG.throw(error,"MuonSF.getTriggerSF: Caught %r for (pt,eta,syst)=(%s,%s,%s)!"%(str(error),pt,eta,syst)+
                 "Please review MuonPOG's recommendations and check your cuts...")
