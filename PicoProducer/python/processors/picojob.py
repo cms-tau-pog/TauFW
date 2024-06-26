@@ -29,7 +29,6 @@ parser.add_argument('-A', '--compress', dest='compress',  help="e.g. 'LZMA:9'")
 parser.add_argument('-v', '--verbose',  dest='verbosity', type=int, nargs='?', const=1, default=0)
 args = parser.parse_args()
 
-
 # SETTING
 era       = args.era      # e.g. '2017', 'UL2017', ...
 year      = getyear(era)  # integer year, e.g. 2017
@@ -83,7 +82,7 @@ if dtype=='data':
   json = getjson(era,dtype)
 
 # EXTRA OPTIONS
-kwargs = { 'era': era, 'year': year, 'dtype': dtype, 'compress': compress, 'verb': verbosity }
+kwargs = { 'era': era, 'year': year, 'dtype': dtype, 'compress': compress, 'verb': verbosity, 'firstevt': firstevt}
 for option in args.extraopts:
   #for option in options.strip().split(' '):
   assert '=' in option, "Extra option '%s' should contain '='! All: %s"%(option,args.extraopts)

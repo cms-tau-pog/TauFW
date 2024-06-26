@@ -9,7 +9,6 @@ from TauFW.PicoProducer.corrections.MuonSFs import *
 #from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool, campaigns
 
-
 class ModuleMuTau(ModuleTauPair):
   
   def __init__(self, fname, **kwargs):
