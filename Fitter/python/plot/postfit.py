@@ -59,7 +59,7 @@ def drawpostfit(fname,bin,procs,**kwargs):
       if 'data_obs' in proc:
         obshist = hist
         hist.SetLineColor(1)
-        ymax = hist.GetMaximum()*ymargin
+        #ymax = hist.GetMaximum()*ymargin
       else:
         exphists.append(hist)
       if proc in STYLE.sample_titles:

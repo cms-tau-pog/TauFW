@@ -11,6 +11,7 @@ from TauFW.Fitter.plot.postfit import drawpostfit
 import TauFW.Plotter.plot.Plot as PLOT
 import TauFW.Plotter.sample.SampleStyle as STYLE
 from argparse import ArgumentParser
+#PLOT.LOG.verbosity=100
 argv = sys.argv
 description = '''This script generate post fit plots.'''
 parser = ArgumentParser(prog="harvestercards",description=description,epilog="Succes!")
@@ -51,7 +52,7 @@ def main(args):
     #STYLE.sample_colors['ZTT'] = STYLE.kOrange-4
         
     procs = [
-      'ZTT', 'ZL', 'ZJ', 'W', 'VV', 'ST','TTT', 'TTL', 'TTJ', 'QCD', 'data_obs' #'STT', 'STJ'
+      'ZTT', 'ZL', 'ZJ', 'W', 'VV', 'TTT', 'TTL', 'TTJ', 'QCD', 'data_obs' #'STT', 'STJ'
     ]
     groups  = [
       #(['^TT*'],'Top','ttbar'), #,STYLE.sample_colors['TT']),
@@ -77,7 +78,7 @@ def main(args):
         for obs in obsset:
             ZL = "Z -> ee"
             procs_ = [
-                'ZTT', 'ZL', 'ZJ', 'W', 'VV', 'ST','TTT', 'TTL', 'TTJ', 'QCD', 'data_obs'
+                'ZTT', 'ZL', 'ZJ', 'W', 'VV', 'TTT', 'TTL', 'TTJ', 'QCD', 'data_obs'
             ]   
             analysis = 'ztt' 
             dms = [0, 1 , 10, 11]

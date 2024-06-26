@@ -313,14 +313,14 @@ class ModuleTauPair(Module):
     self.out.dm_2[0]                       = tau.decayMode
     #self.out.iso_2[0]                      = tau.rawIso
     #self.out.idiso_2[0]                    = idIso(tau) # cut-based tau isolation (rawIso) # not available anymore in nanoAODv9
-    self.out.rawDeepTauVSe_2[0]            = tau.rawDeepTau2017v2p1VSe
-    self.out.rawDeepTauVSmu_2[0]           = tau.rawDeepTau2017v2p1VSmu
-    self.out.rawDeepTauVSjet_2[0]          = tau.rawDeepTau2017v2p1VSjet
+    self.out.rawDeepTauVSe_2[0]            = tau.rawDeepTau2018v2p5VSe
+    self.out.rawDeepTauVSmu_2[0]           = tau.rawDeepTau2018v2p5VSmu
+    self.out.rawDeepTauVSjet_2[0]          = tau.rawDeepTau2018v2p5VSjet
     #self.out.idDecayMode_2[0]              = tau.idDecayMode
     #self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idDeepTauVSe_2[0]             = tau.idDeepTau2017v2p1VSe
-    self.out.idDeepTauVSmu_2[0]            = tau.idDeepTau2017v2p1VSmu
-    self.out.idDeepTauVSjet_2[0]           = tau.idDeepTau2017v2p1VSjet
+    self.out.idDeepTauVSe_2[0]             = tau.idDeepTau2018v2p5VSe
+    self.out.idDeepTauVSmu_2[0]            = tau.idDeepTau2018v2p5VSmu
+    self.out.idDeepTauVSjet_2[0]           = tau.idDeepTau2018v2p5VSjet
     if self.studytau:
       self.out.chargedIso_2[0]               = tau.chargedIso
       self.out.neutralIso_2[0]               = tau.neutralIso

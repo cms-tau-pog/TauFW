@@ -13,7 +13,7 @@ channel: mutau
 # Tag can be used to differentiate between scenarios
 tag: ""
 
-baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && !lepton_vetoes_notau && metfilter && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4" 
+baselineCuts: "q_1*q_2<0 && iso_1<0.15 && !lepton_vetoes_notau && metfilter && idDeepTauVSjet_2>=5 && idDeepTauVSe_2>=2 && idDeepTauVSmu_2>=4" 
 # These regions will be defined when creating inputs or making plots
 # At this point, they do not need to be exclusive; 
 # PLEASE NOTE:
