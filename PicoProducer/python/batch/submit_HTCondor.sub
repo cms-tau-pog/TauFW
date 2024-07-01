@@ -23,7 +23,9 @@ getenv                = CMSSW*, SCRAM_ARCH*, *CONTAINER
 environment           = "JOBID=$(ClusterId) TASKID=$(ProcId) CONTAINER=$(container)"
 # NOTE: The following OS requirement should be replaced for CMSSW 13 & later,
 #       or replaced with singularities all together when CentOS7 is phased out on lxplus
-requirements          = (OpSysAndVer =?= "CentOS7")
+#       See https://batchdocs.web.cern.ch/local/submit.html#os-choice
+#requirements          = (OpSysAndVer =?= "CentOS7")
+#requirements          = (OpSysAndVer =?= "AlmaLinux9")
 +JobFlavour           = workday
 +MaxRuntime           = 20000
 #queue arg from args.txt
