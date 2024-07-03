@@ -15,10 +15,10 @@ pathHTT_el = 'data/lepton/HTT/Electron/Run2017/'
 maxerr     = 10 # maximum number of errors
 neta       = True # include negative eta
 ptvals_    = [ 10., 20., 21., 22., 24., 25., 26., 27., 34., 35., 36., 40., 60., 156., 223., 410., 560. ]
-etavals_   = [ 0.0, 0.5, 1.1] #, 1.9, 2.3, 2.4, 2.8, 3.4 ]
+etavals_   = [ 0.0, 0.5, 1.1, 1.9, 2.3, 2.4, 2.8, 3.4 ]
 
 # MATRIX
-def printtable(name,method,ptvals=None,etavals=None,etamax=3.0):
+def printtable(name,method,ptvals=None,etavals=None,etamax=3.0,phi=None):
   start2 = time.time()
   if ptvals==None:
     ptvals  = ptvals_
@@ -39,9 +39,10 @@ def printtable(name,method,ptvals=None,etavals=None,etamax=3.0):
     row = ">>>   %10.2f"%(pt)
     for eta in etavals:
       try:
-        phi = 1.0  
-        #row += " %9.2f"%(method(pt,eta,phi))
-        row += " %9.2f"%(method(pt,eta))
+          if phi!=None:
+            row += " %9.2f"%(method(pt,eta,phi))
+          else:
+            row += " %9.2f"%(method(pt,eta))
       except Exception as error:
         row += color("     ERROR",'red')
         errors.append(error)
@@ -159,7 +160,7 @@ def electronSFs(era='UL2018'):
   
   # GET SFs
   printtable('trigger',eleSFs.getTriggerSF)
-  printtable('idiso',eleSFs.getIdIsoSF)
+  printtable('idiso',eleSFs.getIdIsoSF,phi=1.)
   
 def electronSFs_ROOT(era='UL2018'):
   LOG.header("electronSFs ROOT")
