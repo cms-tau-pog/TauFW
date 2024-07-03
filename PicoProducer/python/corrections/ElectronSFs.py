@@ -1,99 +1,163 @@
-# Author: Izaak Neutelings (November 2018)
-# https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2#Electron_efficiencies_and_scale
-# https://twiki.cern.ch/twiki/bin/view/CMS/Egamma2017DataRecommendations#Efficiency_Scale_Factors
-# https://github.com/CMS-HTT/LeptonEfficiencies/tree/master/Electron/
-# 2018: https://hypernews.cern.ch/HyperNews/CMS/get/higgstautau/1132.html
-import os
-from TauFW.PicoProducer import datadir
-from TauFW.PicoProducer.corrections.ScaleFactorTool import ScaleFactor, ScaleFactorHTT
-pathPOG = os.path.join(datadir,"lepton/EGammaPOG/")
-pathHTT = os.path.join(datadir,"lepton/HTT/Electron/")
-"UL2017/egammaEffi.txt_EGM2D_MVA90noIso_UL17.root",
-"UL2016_postVFP/egammaEffi.txt_Ele_wp90noiso_postVFP_EGM2D.root",
-"UL2016_preVFP/egammaEffi.txt_Ele_wp90noiso_preVFP_EGM2D.root",
-"UL2018/egammaEffi.txt_Ele_wp90noiso_EGM2D.root",
+# Author: Paola Mastrapasqua (June 2024)
+# HTT: https://github.com/CMS-HTT/LeptonEfficiencies
+# MuonPOG: https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2
+# https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations
+# https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIIRecommendations
+# correctionlib:
+#   https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration     # central XPOG repo
+#   https://gitlab.cern.ch/cms-egamma/auto-correctionlib-json  # early EGammaPOG releases
+#   https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/ # JSON contents
+#   correction summary data/jsonpog/POG/EGM/*/electron.json.gz # JSON contents (ID SFs)
+#   correction summary data/jsonpog/POG/EGM/*/electronHlt.json.gz # JSON contents (Trig SFs) 
+#   Example: https://github.com/cms-cat/nanoAOD-tools-modules/blob/master/python/modules/electronSF.py
 
+import os, re
+from TauFW.common.tools.log import Logger
+from TauFW.PicoProducer import datadir
+from TauFW.PicoProducer.corrections.ScaleFactorTool import ScaleFactorHTT
+from correctionlib import CorrectionSet
+
+pathHTT = os.path.join(datadir,"lepton/HTT/Electron/")
+pathPOG = os.path.join(datadir,"jsonpog/POG/EGM/") # JSON files from central XPOG
+
+LOG = Logger('ElectronSF')
+
+
+def getcorr(corrset,sfname,abseta=False,verb=0):
+  """Help function to extract Correction object and
+  check if Correction inputs are what we expect them to be."""
+  keys = list(corrset.keys())
+  LOG.insist(sfname in keys, "Did not find key %r in correctionset! Available keys: %r"%(sfname,keys))
+  corr   = corrset[sfname]
+  inputs = [i.name for i in corr._base.inputs]
+  eta    = 'eta' #'abseta' if abseta else 'eta' 
+  #LOG.insist(len(inputs)==3,    "Expected len(inputs)==3, but got %s... Inputs: %s"%(len(inputs),inputs))
+  #LOG.insist(eta in inputs[0],  "Expected %s as first input, but got %s! All inputs for %s: %s"%(eta,inputs[0],sfname,inputs))
+  #LOG.insist('pt' in inputs[1], "Expected pt as second input, but got %s! All inputs for %s: %s"%(inputs[1],sfname,inputs))
+  return corr
+  
 
 class ElectronSFs:
   
-  def __init__(self,era='2017'):
-    """Load histograms from files."""
+  def __init__(self, era, sf_id=None, sf_trig=None, flags=[ ], verb=0):
+    """Prepare electron SFs from JSON files."""
     
-    #assert era in ['2016','2017','2018'], "ElectronSFs: You must choose a year from: 2016, 2017, or 2018."
+    # SETTINGS
+    fname_id = None
+    fname_trig = None
+    #abseta      = True 
+    sf_id_   = "Electron-ID-SF" # default in Run 3
+    sf_trig_ = "Electron-HLT-SF" # default in Run 3
+    self.wp_trig = "HLT_SF_Ele30_MVAiso90ID" # default in Run 3
+    self.wp_id   = "wp90iso" # default in Run 3
     
-    self.sftool_trig = None
-    self.sftool_idiso = None
     if 'UL' in era:
-      # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018
+      sf_id_       = "UL-Electron-ID-SF" # default in Run 2
+      self.wp_id   = "wp90noiso" # default in Run 2
+      sf_trig_     = "ele_trig"  # default in Run 2
       if '2016' in era and 'preVFP' in era:
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Electron_Run2016_legacy_Ele25.root",'ZMass','ele_trig')
-        self.sftool_reco  = ScaleFactor(pathPOG+"UL2016_preVFP/egammaEffi_ptAbove20.txt_EGM2D_UL2016preVFP.root",'EGamma_SF2D','ele_reco')
-        self.sftool_idiso = ScaleFactor(pathPOG+"UL2016_preVFP/egammaEffi.txt_Ele_wp90noiso_preVFP_EGM2D.root",'EGamma_SF2D','ele_id')
+         fname_id = pathPOG+"2016preVFP_UL/electron.json.gz"
+         self.year_SF = "2016preVFP"
+         fname_trig = pathHTT+"Run2016_legacy/Electron_Run2016_legacy_Ele25.root"
       elif '2016' in era:
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Electron_Run2016_legacy_Ele25.root",'ZMass','ele_trig')
-        self.sftool_reco  = ScaleFactor(pathPOG+"UL2016_postVFP/egammaEffi_ptAbove20.txt_EGM2D_UL2016postVFP.root",'EGamma_SF2D','ele_reco')
-        self.sftool_idiso = ScaleFactor(pathPOG+"UL2016_postVFP/egammaEffi.txt_Ele_wp90noiso_postVFP_EGM2D.root",'EGamma_SF2D','ele_id')
+         fname_id = pathPOG+"2016postVFP_UL/electron.json.gz"
+         self.year_SF = "2016postVFP" 
+         fname_trig = pathHTT+"Run2016_legacy/Electron_Run2016_legacy_Ele25.root"
       elif '2017' in era:
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2017/Electron_Ele35.root",'ZMass','ele_trig') #Electron_Ele32orEle35
-        self.sftool_reco  = ScaleFactor(pathPOG+"UL2017/egammaEffi_ptAbove20.txt_EGM2D_UL2017.root",'EGamma_SF2D','ele_reco')
-        self.sftool_idiso = ScaleFactor(pathPOG+"UL2017/egammaEffi.txt_EGM2D_MVA90noIso_UL17.root",'EGamma_SF2D','ele_id')
+         fname_id = pathPOG+"2017_UL/electron.json.gz"
+         self.year_SF = "2017" 
+         fname_trig = pathHTT+"Run2017/Electron_Ele35.root"
       elif '2018' in era:
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2018/Electron_Run2018_Ele32orEle35.root",'ZMass','ele_trig')
-        self.sftool_reco  = ScaleFactor(pathPOG+"UL2018/egammaEffi_ptAbove20.txt_EGM2D_UL2018.root",'EGamma_SF2D','ele_reco')
-        self.sftool_idiso = ScaleFactor(pathPOG+"UL2018/egammaEffi.txt_Ele_wp90noiso_EGM2D.root",'EGamma_SF2D','ele_id')
-    else: # pre-UL
-      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaRunIIRecommendations
-      if '2016' in era:
-        #self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016BtoH/Electron_Ele27Loose_OR_Ele25Tight_eff.root",'ZMass','ele_trig')
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2016_legacy/Electron_Run2016_legacy_Ele25.root",'ZMass','ele_trig')
-        self.sftool_reco  = ScaleFactor(pathPOG+"2016/EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root",'EGamma_SF2D','ele_reco')
-        #self.sftool_idiso = ScaleFactor(pathPOG+"2016/2016LegacyReReco_ElectronMVA90noiso_Fall17V2.root",'EGamma_SF2D','ele_id')
-        self.sftool_idiso = ScaleFactorHTT(pathHTT+"Run2016_legacy/Electron_Run2016_legacy_IdIso.root",'ZMass','ele_idiso') # MVA noIso Fall17 WP90, rho-corrected iso(dR<0.3)<0.1
-      elif '2017' in era:
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2017/Electron_Ele35.root",'ZMass','ele_trig') #Electron_Ele32orEle35
-        self.sftool_reco  = ScaleFactor(pathPOG+"2017/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root",'EGamma_SF2D','ele_reco')
-        #self.sftool_idiso = ScaleFactor(pathPOG+"2017/2017_ElectronMVA90noiso.root",'EGamma_SF2D','ele_id')
-        self.sftool_idiso = ScaleFactorHTT(pathHTT+"Run2017/Electron_Run2017_IdIso.root",'ZMass','ele_idiso') # MVA noIso Fall17 WP90, rho-corrected iso(dR<0.3)<0.1
-      elif '2018' in era:
-        self.sftool_trig  = ScaleFactorHTT(pathHTT+"Run2018/Electron_Run2018_Ele32orEle35.root",'ZMass','ele_trig')
-        self.sftool_reco  = ScaleFactor(pathPOG+"2018/egammaEffi.txt_EGM2D_updatedAll.root",'EGamma_SF2D','ele_reco')
-        #self.sftool_idiso = ScaleFactor(pathPOG+"2018/2018_ElectronMVA90noiso.root",'EGamma_SF2D','ele_id')
-        self.sftool_idiso = ScaleFactorHTT(pathHTT+"Run2018/Electron_Run2018_IdIso.root",'ZMass','ele_idiso') # MVA noIso Fall17 WP90, rho-corrected iso(dR<0.3)<0.1
-      elif '2022' in era:
-        #print("Entering 2022")
-        if "post" in era:
-           self.sftool_reco = False
-           self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root",'ScaleFactor_trg','ele_trig',ptvseta=False)
-           self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_id",'ele_id',ptvseta=False)
-           self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
-           assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
-           self.sftool_idiso = self.sftool_id*self.sftool_iso
-        elif "pre" in era:
-           #print("Entering 2022preEE")
-           self.sftool_reco = False
-           self.sftool_trig  = ScaleFactor(pathPOG+"Run2022preEE/electron_SFs_2022_preEE.root",'ScaleFactor_trg','ele_trig',ptvseta=False)
-           self.sftool_id         = ScaleFactor(pathPOG+"Run2022preEE/electron_SFs_2022_preEE.root","ScaleFactor_id",'ele_id',ptvseta=False)
-           self.sftool_iso        = ScaleFactor(pathPOG+"Run2022preEE/electron_SFs_2022_preEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
-           assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
-           self.sftool_idiso = self.sftool_id*self.sftool_iso
-      elif '2023' in era: # PLACEHOLDERS
-        print(">>> WARNING! MuonSFs.__init__ using Run2022 SFs as placeholders! Please replace me! https://twiki.cern.ch/twiki/bin/view/CMS/MuonRun3_2023")
-        self.sftool_reco = False
-        self.sftool_trig  = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root",'ScaleFactor_trg','ele_trig',ptvseta=False)
-        self.sftool_id         = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_id",'ele_id',ptvseta=False)
-        self.sftool_iso        = ScaleFactor(pathPOG+"Run2022postEE/electron_SFs_2022_postEE.root","ScaleFactor_iso",'ele_iso',ptvseta=False)
-        assert self.sftool_id != None and self.sftool_iso != None, "ElectronSFs.__init__: Did not find ele ID/ISO tool for %r"%(era)
-        self.sftool_idiso = self.sftool_id*self.sftool_iso 
-    assert self.sftool_trig!=None and self.sftool_idiso!=None, "ElectronSFs.__init__: Did not find electron SF tool for %r"%(era)
-   
-    if self.sftool_reco:
-      self.sftool_idiso = self.sftool_reco * self.sftool_idiso
+         fname_id = pathPOG+"2018_UL/electron.json.gz"
+         self.year_SF = "2018"
+         fname_trig = pathHTT+"Run2018/Electron_Run2018_Ele32orEle35.root"
+    else: # Run-3
+      if re.search(r"2022([C-D]|.*pre)",era): # 2022CD (preEE)
+        fname_id = pathPOG+"2022_Summer22/electron.json.gz"
+        fname_trig = pathPOG+"2022_Summer22/electronHlt.json.gz"
+        self.year_SF    = "2022Re-recoBCD"
+      elif re.search(r"2022([E-G]|.*post)",era): # 2022EFG (postEE)
+        fname_id = pathPOG+"2022_Summer22EE/electron.json.gz"
+        fname_trig = pathPOG+"2022_Summer22EE/electronHlt.json.gz"
+        self.year_SF    = "2022Re-recoE+PromptFG"
+      elif re.search(r"2023(C|.*pre)",era): # 2024C (preBPIX)
+        fname_id = pathPOG+"2023_Summer23/electron.json.gz"
+        fname_trig = pathPOG+"2023_Summer23/electronHlt.json.gz"
+        self.year_SF    = "2023PromptC" 
+      elif re.search(r"2023(D|.*post)",era): # 2024D (postBPIX)
+        fname_id = pathPOG+"2023_Summer23BPix/electron.json.gz"
+        fname_trig = pathPOG+"2023_Summer23BPix/electronHlt.json.gz"
+        self.year_SF    ="2023PromptD"
+    # DEFAULTS
+    if sf_id==None:
+      sf_id = sf_id_
+    if sf_trig==None: 
+      sf_trig = sf_trig_
+    
+    # CHECKS
+    if verb>=0:
+      print("Loading Trigger ElectronSF for era=%r, trig=%r, from %s..."%(era,sf_trig,fname_trig))
+      print("Loading Id+Reco ElectronSF for era=%r, id=%r,   from %s..."%(era,sf_id,fname_id))
+    if not os.path.exists(fname_id):
+      LOG.throw(OSError,"ElectronSFs: fname_id=%s does not exist! Please make sure you have installed the correctionlib JSON data in %s"
+                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname_id,datadir))
+    if not os.path.exists(fname_trig):
+      LOG.throw(OSError,"ElectronSFs: fname_trig=%s does not exist! "
+                         "If you running with Run2 data --> Please make sure you have installed the HTT lepton ROOT data in %s"
+                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"
+                        "If you running with Run3 data --> lease make sure you have installed the correctionlib JSON data in %s"
+                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname_trig,datadir,fname_id,datadir ))
+    
+    # LOAD CORRECTIONS
+    corrset_id = CorrectionSet.from_file(fname_id) # load JSON
+    self.sftool_id  = getcorr(corrset_id,sf_id,verb=verb) 
+    if 'UL' in era:
+       self.sftool_trig = ScaleFactorHTT(fname_trig,'ZMass',sf_trig,verb=verb)
+    else:
+       corrset_trig = CorrectionSet.from_file(fname_trig) 
+       self.sftool_trig = getcorr(corrset_trig,sf_trig,verb=verb) 
+    
   
-  def getTriggerSF(self, pt, eta):
-    """Get SF for single electron trigger."""
-    return self.sftool_trig.getSF(pt,eta)
+  def getTriggerSF(self, pt, eta, syst='sf'):
+    """Get SF for single electron trigger.
+    Use syst='sfup', 'sfdown' for systematic variations."""
+    ## for UL samples trigger SFs were not available in json format
+    ## falling back to HTT SFs
+    if "201" in self.year_SF: 
+      sf = self.sftool_trig.evaluate(eta,pt,syst)
+    else:
+      try:
+        sf = self.sftool_trig.evaluate(self.year_SF,syst,self.wp_trig,eta,pt)
+      except Exception as error:
+        LOG.throw(error,"ElectronSF.getTriggerSF: Caught %r for (pt,eta,syst)=(%s,%s,%s)!"%(str(error),pt,eta,syst)+
+                  "Please review EGammaPOG's recommendations and check your cuts...")
+    return sf
+    
   
-  def getIdIsoSF(self, pt, eta):
-    """Get SF for electron identification + isolation."""
-    return self.sftool_idiso.getSF(pt,eta)
-  
+  def getIdIsoSF(self, pt, eta, phi, syst='sf'):
+    """Get SF for electron identification + reco"""
+    if "2023" in self.year_SF: 
+       sf_id = self.sftool_id.evaluate(self.year_SF,syst,self.wp_id,eta,pt,phi)
+    else: 
+       sf_id = self.sftool_id.evaluate(self.year_SF,syst,self.wp_id,eta,pt)
+    if pt < 20:
+       if "2023" in self.year_SF:
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoBelow20",eta,pt,phi)
+       else:
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoBelow20",eta,pt)
+    elif pt < 75:
+       if "2023" in self.year_SF:
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"Reco20to75",eta,pt,phi)
+       elif "201" in self.year_SF:
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoAbove20",eta,pt)
+       else: 
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"Reco20to75",eta,pt)
+    else:
+       if "2023" in self.year_SF:
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoAbove75",eta,pt,phi)
+       elif "201" in self.year_SF:
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoAbove20",eta,pt)
+       else:
+          sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoAbove75",eta,pt)
+
+    return sf_id * sf_reco 

@@ -18,7 +18,7 @@ ptvals_    = [ 10., 20., 21., 22., 24., 25., 26., 27., 34., 35., 36., 40., 60., 
 etavals_   = [ 0.0, 0.5, 1.1, 1.9, 2.3, 2.4, 2.8, 3.4 ]
 
 # MATRIX
-def printtable(name,method,ptvals=None,etavals=None,etamax=3.0):
+def printtable(name,method,ptvals=None,etavals=None,etamax=3.0,phi=None):
   start2 = time.time()
   if ptvals==None:
     ptvals  = ptvals_
@@ -39,7 +39,10 @@ def printtable(name,method,ptvals=None,etavals=None,etamax=3.0):
     row = ">>>   %10.2f"%(pt)
     for eta in etavals:
       try:
-        row += " %9.2f"%(method(pt,eta))
+          if phi!=None:
+            row += " %9.2f"%(method(pt,eta,phi))
+          else:
+            row += " %9.2f"%(method(pt,eta))
       except Exception as error:
         row += color("     ERROR",'red')
         errors.append(error)
@@ -145,7 +148,7 @@ def muonSFs_ROOT(era='UL2018'):
   print(">>> ")
   
 
-def electronSFs(era='UL2019'):
+def electronSFs(era='UL2018'):
   LOG.header("electronSFs")
   
   # ELECTRON SFs
@@ -157,8 +160,23 @@ def electronSFs(era='UL2019'):
   
   # GET SFs
   printtable('trigger',eleSFs.getTriggerSF)
+  printtable('idiso',eleSFs.getIdIsoSF,phi=1.)
+  
+def electronSFs_ROOT(era='UL2018'):
+  LOG.header("electronSFs ROOT")
+  
+  # ELECTRON SFs
+  print(">>> ")
+  start1 = time.time()
+  print(">>> Initializing ElectronSFs object for era=%s..."%(era))
+  eleSFs = ElectronSFs_ROOT(era)
+  print(">>>   Initialized in %.1f seconds"%(time.time()-start1))
+  
+  # GET SFs
+  printtable('trigger',eleSFs.getTriggerSF)
   printtable('idiso',eleSFs.getIdIsoSF)
   
+
 
 def tauTriggerSFs():
   LOG.header("tauTriggerSFs")
@@ -230,8 +248,12 @@ def main(args):
     for era in eras:
       muonSFs_ROOT(era)
   if not tools or 'ele' in tools:
-    electronSFs()
-  
+    for era in eras:
+        electronSFs(era)
+  if not tools or 'eleroot' in tools:
+    for era in eras:
+      electronSFs_ROOT(era)
+
   # TAU
   if not tools or 'tau' in tools:
     tauTriggerSFs()
@@ -298,7 +320,12 @@ if __name__ == "__main__":
     start1 = time.time()
     from TauFW.PicoProducer.corrections.ElectronSFs import *
     print(">>>   Imported ElectronSFs classes after %.1f seconds"%(time.time()-start1))
-  
+ 
+  if 'eleroot' in tools:
+    start1 = time.time()
+    from TauFW.PicoProducer.corrections.ElectronSFs_ROOT import ElectronSFs as ElectronSFs_ROOT
+    print(">>>   Imported ElectronSFs_ROOT classes after %.1f seconds"%(time.time()-start1))
+
   if 'tau' in tools:
     start1 = time.time()
     from TauFW.PicoProducer.corrections.TauTriggerSFs import *

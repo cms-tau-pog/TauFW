@@ -162,6 +162,7 @@ class ModuleTauPair(Module):
       ('Electron_mvaFall17V2noIso_WPL',  'Electron_mvaNoIso_WPL'      ),
       ('Electron_mvaFall17V2noIso_WP80', 'Electron_mvaNoIso_WP80'     ),
       ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaNoIso_WP90'     ),
+      ('Electron_deltaEtaSC',            [0.]*32                      ),
       ('Tau_idDecayMode',                [True]*32                    ), 
       ('Tau_idDecayModeNewDMs',          [True]*32                    ),
       ('Tau_idDeepTau2018v2p5VSe',       'Tau_idDeepTau2017v2p1VSe'   ), 
