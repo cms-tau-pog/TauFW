@@ -41,9 +41,9 @@ class ModuleTauPair(Module):
     self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
     self.era        = kwargs.get('era',      '2022postEE'   ) # string, e.g. '2017', 'UL2017'
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
-    self.tes        = kwargs.get('tes',      1.0           ) # tau energy scale; if None, recommended values are applied
+    self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
-    self.dotausfs   = kwargs.get('dotausfs', False         ) # compute tau SFs with TauIDSF tool
+    self.dotausfs   = kwargs.get('dotausfs', True         ) # compute tau SFs with TauIDSF tool
     self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
     self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
@@ -282,8 +282,7 @@ class ModuleTauPair(Module):
     self.out.lumi[0]            = event.luminosityBlock
     self.out.npv[0]             = event.PV_npvs
     self.out.npv_good[0]        = event.PV_npvsGood
-    #from IPython import embed; embed()
-    self.out.metfilter[0]       = self.filter(event) # I COMMENTED THIS
+    self.out.metfilter[0]       = self.filter(event) 
     
     if self.ismc:
       ###self.out.ngentauhads[0]   = ngentauhads
