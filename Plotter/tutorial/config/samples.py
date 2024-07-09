@@ -30,17 +30,20 @@ def getsampleset(channel,era,**kwargs):
     join += ['TT','ST']
  
   if '2018' in era: # Run2 - UL2018
+    kfactor_dy= 3*2025.74/5343.0 # LO->NNLO+NLO_EW k-factor 
+    kfactor_wj= 3*20508.9/52940.0
+        
     setera(era)
     expsamples = [ # table of MC samples to be converted to Sample objects
       # GROUP NAME                     TITLE                 XSEC      EXTRA OPTIONS
-      ( "DY", "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0, {'extraweight': dyweight} ), # apply k-factor in stitching
-      ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0 ),
-      ( 'VV', "WW",                    "WW",                    75.88 ),
-      ( 'VV', "WZ",                    "WZ",                    27.6  ),
-      ( 'VV', "ZZ",                    "ZZ",                    12.14 ),
-      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight}),
-      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight}),
-      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight}),
+      ( "DY", "DYJetsToLL_M-50",       "Drell-Yan 50",        5343.0*kfactor_dy, {'extraweight': dyweight, 'nevts': 197649078.0} ), # apply k-factor in stitching
+      ( 'WJ', "WJetsToLNu",            "W + jets",           52940.0*kfactor_wj, {'nevts': 81051269.0} ),
+      ( 'VV', "WW",                    "WW",                    75.88, {'nevts': 15679000.0} ),
+      ( 'VV', "WZ",                    "WZ",                    27.6,  {'nevts': 7940000.0}  ),
+      ( 'VV', "ZZ",                    "ZZ",                    12.14, {'nevts': 3526000.0} ),
+      ( 'TT', "TTTo2L2Nu",             "ttbar 2l2#nu",          88.29, {'extraweight': ttweight, 'nevts': 143848848.0}),
+      ( 'TT', "TTToHadronic",          "ttbar hadronic",       377.96, {'extraweight': ttweight, 'nevts': 331506194.0}),
+      ( 'TT', "TTToSemiLeptonic",      "ttbar semileptonic",   365.35, {'extraweight': ttweight, 'nevts': 472557630.0}),
       ]
   
  
