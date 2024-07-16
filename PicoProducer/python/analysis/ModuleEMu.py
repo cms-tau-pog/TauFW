@@ -245,8 +245,8 @@ class ModuleEMu(ModuleTauPair):
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
       # MUON WEIGHTS
-      self.out.trigweight[0]        = self.muSFs.getTriggerSF(electron.pt,electron.eta)
-      self.out.idisoweight_1[0]     = self.muSFs.getIdIsoSF(electron.pt,electron.eta)
+      self.out.trigweight[0]        = self.muSFs.getTriggerSF(muon.pt,muon.eta)
+      self.out.idisoweight_1[0]     = self.eleSFs.getIdIsoSF(electron.pt,electron.eta,electron.phi)
       self.out.idisoweight_2[0]     = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
     
     

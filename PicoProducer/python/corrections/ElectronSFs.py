@@ -16,10 +16,8 @@ from TauFW.common.tools.log import Logger
 from TauFW.PicoProducer import datadir
 from TauFW.PicoProducer.corrections.ScaleFactorTool import ScaleFactorHTT
 from correctionlib import CorrectionSet
-
 pathHTT = os.path.join(datadir,"lepton/HTT/Electron/")
 pathPOG = os.path.join(datadir,"jsonpog/POG/EGM/") # JSON files from central XPOG
-
 LOG = Logger('ElectronSF')
 
 
@@ -96,17 +94,18 @@ class ElectronSFs:
     
     # CHECKS
     if verb>=0:
-      print("Loading Trigger ElectronSF for era=%r, trig=%r, from %s..."%(era,sf_trig,fname_trig))
-      print("Loading Id+Reco ElectronSF for era=%r, id=%r,   from %s..."%(era,sf_id,fname_id))
+      print(f"Loading Trigger ElectronSF for era={era}, trig={sf_trig}, from {fname_trig}...")
+      print(f"Loading Id+Reco ElectronSF for era={era}, id={sf_id},   from {fname_id}...")
     if not os.path.exists(fname_id):
-      LOG.throw(OSError,"ElectronSFs: fname_id=%s does not exist! Please make sure you have installed the correctionlib JSON data in %s"
-                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname_id,datadir))
+      LOG.throw(OSError,f"ElectronSFs: fname_id={fname_id} does not exist!"
+                        f" Please make sure you have installed the correctionlib JSON data in {pathPOG}"
+                        f" following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !")
     if not os.path.exists(fname_trig):
-      LOG.throw(OSError,"ElectronSFs: fname_trig=%s does not exist! "
-                         "If you running with Run2 data --> Please make sure you have installed the HTT lepton ROOT data in %s"
-                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"
-                        "If you running with Run3 data --> lease make sure you have installed the correctionlib JSON data in %s"
-                        " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !"%(fname_trig,datadir,fname_id,datadir ))
+      LOG.throw(OSError,f"ElectronSFs: fname_trig={fname_trig} does not exist!\n"
+                        f"If you running with Run2 data --> Please make sure you have installed the HTT lepton ROOT data in {pathHTT}"
+                         " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !\n"
+                        f"If you running with Run3 data --> Please make sure you have installed the correctionlib JSON data in {pathPOG}"
+                         " following the instructions in https://github.com/cms-tau-pog/TauFW/wiki/Installation#Corrections !")
     
     # LOAD CORRECTIONS
     corrset_id = CorrectionSet.from_file(fname_id) # load JSON

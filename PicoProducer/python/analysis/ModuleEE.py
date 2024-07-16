@@ -163,8 +163,8 @@ class ModuleEE(ModuleTauPair):
       
       # ELECTRON WEIGHTS
       self.out.trigweight[0]    = self.eleSFs.getTriggerSF(electron1.pt,electron1.eta)
-      self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(electron1.pt,electron1.eta)
-      self.out.idisoweight_2[0] = self.eleSFs.getIdIsoSF(electron2.pt,electron2.eta)
+      self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(electron1.pt,electron1.eta,electron1.phi)
+      self.out.idisoweight_2[0] = self.eleSFs.getIdIsoSF(electron2.pt,electron2.eta,electron2.phi)
       self.out.weight[0]        = self.out.genweight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0]*self.out.idisoweight_2[0]
       
     elif self.isembed:
