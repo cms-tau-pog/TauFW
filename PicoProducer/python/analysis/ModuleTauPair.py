@@ -3,7 +3,7 @@
 from ROOT import TFile, TTree
 import sys, re
 from math import sqrt, exp, cos
-from ROOT import TLorentzVector, TVector3
+from ROOT import TLorentzVector, TVector3, RDataFrame, TH1D
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event
 from TauFW.PicoProducer.corrections.PileupTool import *
@@ -13,6 +13,8 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
 from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, filtermutau
+from TauFW.PicoProducer.analysis.utils import getTotalWeight, getNevt, save_norm_histo
+
 __metaclass__ = type # to use super() with subclasses from CommonProducer
 tauSFVersion  = {
   2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco',
@@ -41,7 +43,7 @@ class ModuleTauPair(Module):
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
-    self.dotausfs   = kwargs.get('dotausfs', True           ) # compute tau SFs with TauIDSF tool
+    self.dotausfs   = kwargs.get('dotausfs', True         ) # compute tau SFs with TauIDSF tool
     self.fes        = kwargs.get('fes',      None           ) # electron-tau-fake energy scale: None, 'Up' or 'Down' (override with 'ltf=1')
     self.ltf        = kwargs.get('ltf',      None           ) # lepton-tau-fake energy scale
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
@@ -63,6 +65,7 @@ class ModuleTauPair(Module):
     self.verbosity  = kwargs.get('verb',     0              ) # verbosity
     self.jetCutPt   = kwargs.get('jetpt',    30             )
     self.doSVfit    = kwargs.get('SVfit',    False          ) # add ditau mass estimated with SVfit (any(self.channel==c for c in ['etau','mutau','tautau']))
+    self.firstevt   = kwargs.get('firstevt')
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
@@ -145,16 +148,17 @@ class ModuleTauPair(Module):
     if self.ismc:
       self.btagTool.setDir(self.out.outfile,'btag')
     self.out.endJob()
-    
-  
+
   def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
     """Before processing a new file."""
     sys.stdout.flush()
-
+    if self.firstevt == 0:
+      print("Creating Normalization Histogram")
+      save_norm_histo(inputFile, self.out.outfile)
     # for v10
     branchesV10 = [
-      ('Muon_isTracker',                  [True]*32     ),
-      #('Electron_mvaFall17V217Iso',      [1.]*32       ), #not available anymore
+      ('Muon_isTracker',                                [True]*32     ),
+      #('Electron_mvaFall17V217Iso',                    [1.]*32       ), #not available anymore
       ('Electron_lostHits',               [0]*32        ),
       ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaIso_WPL'        ),
       ('Electron_mvaFall17V2Iso_WP80',   'Electron_mvaIso_WP80'       ),
@@ -201,15 +205,13 @@ class ModuleTauPair(Module):
         ('HLT_IsoMu24',          False ),
         ('HLT_IsoTkMu24',        False ),
       ]
-    
     #check
     fullbranchlist = inputTree.GetListOfBranches()
     if 'Electron_mvaFall17Iso_WPL' not in fullbranchlist: #v10
       ensurebranches(inputTree,branchesV10)
     else: #v9
       ensurebranches(inputTree,branches) # make sure Event object has these branches
-    
-  
+
   def jetveto(self, event):
     """Return number of vetoed jets. Jet veto maps are mandatory for Run 3 analyses.
     The safest procedure would be to veto events if ANY jet with a loose selection lies in the veto regions.
@@ -281,7 +283,7 @@ class ModuleTauPair(Module):
     self.out.lumi[0]            = event.luminosityBlock
     self.out.npv[0]             = event.PV_npvs
     self.out.npv_good[0]        = event.PV_npvsGood
-    self.out.metfilter[0]       = self.filter(event)
+    self.out.metfilter[0]       = self.filter(event) 
     
     if self.ismc:
       ###self.out.ngentauhads[0]   = ngentauhads
