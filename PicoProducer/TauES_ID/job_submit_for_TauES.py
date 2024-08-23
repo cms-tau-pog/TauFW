@@ -10,7 +10,7 @@ from concurrent.futures import ProcessPoolExecutor
 parser = argparse.ArgumentParser()
 parser.add_argument("--e ", type=str, dest="era", help="which era")
 parser.add_argument("--c ", type=str, dest="channel", help="which channel", default='mutau')
-parser.add_argument("--s ", nargs='+', dest="systematics", help="which systematics", default = ['central'])
+parser.add_argument("--s ", nargs='+', dest="systematics", help="which systematics", choices=['central', 'LTFUp', 'LTFDown', 'JTFUp', 'JTFDown', 'tauES'], default = ['central'])
 parser.add_argument("--S ", nargs='+', dest="samples", help="which samples", default = [])
 parser.add_argument("--C ", action='store_true', dest="clean", help="want to clean root files", default=False)
 parser.add_argument("--f ", action='store_true', dest="force", help="want to hadd forcefully", default=False)
