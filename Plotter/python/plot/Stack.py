@@ -222,7 +222,10 @@ class Stack(Plot):
     # CREATE STACK
     stack = THStack(makehistname('stack',self.name),"") # stack (expected)
     self.stack = stack
-    if reverse: # stack bottom to bottom top; reversed w.r.t. legend
+    if 1:
+     for hist in sorted(self.exphists, key=lambda x: x.Integral()):
+         stack.Add(hist) 
+    elif reverse: # stack bottom to bottom top; reversed w.r.t. legend
       for hist in self.exphists:
         stack.Add(hist)
     else: # stack top to bottom to match order in legend
@@ -311,4 +314,3 @@ class Stack(Plot):
                    xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
                    center=True,rrange=ratiorange,grid=grid,latex=latex)
       self.canvas.cd(1) # go back to main pad
-  

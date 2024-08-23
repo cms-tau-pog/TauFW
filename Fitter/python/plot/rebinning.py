@@ -1,6 +1,7 @@
 import ROOT as r
 import numpy as np
 import os
+from math import sqrt
 from TauFW.Plotter.sample.utils import ensuredir
 from TauFW.common.tools.string import repkey
 
@@ -29,17 +30,26 @@ class rebinning():
                     bkghist = hist.Clone()
                 else:
                     bkghist.Add(hist)
+          err = 0
+          bincont = 0
           for ibin in range(1, bkghist.GetNbinsX()+1):
               if ibin == 1:
                   self.binedges[dirname].append(bkghist.GetBinLowEdge(ibin))
               if bkghist.GetBinContent(ibin) == 0: continue
-              if bkghist.GetBinError(ibin)/bkghist.GetBinContent(ibin) > 0.30:
+              err += sqrt( pow(err,2) + pow(bkghist.GetBinError(ibin),2))
+              bincont += bkghist.GetBinContent(ibin)
+              errOcont = err / bincont
+              #errOcont = bkghist.GetBinError(ibin)/bkghist.GetBinContent(ibin)
+              if errOcont > 0.30:
                   if ibin == bkghist.GetNbinsX():
                       self.binedges[dirname][len(self.binedges[dirname])-1] = bkghist.GetBinLowEdge(ibin) + bkghist.GetBinWidth(ibin)
                       break
                   else:
                      continue
-              self.binedges[dirname].append(bkghist.GetBinLowEdge(ibin) + bkghist.GetBinWidth(ibin))
+              else:
+                   err = 0
+                   bincont = 0
+                   self.binedges[dirname].append(bkghist.GetBinLowEdge(ibin) + bkghist.GetBinWidth(ibin))
 
    
    def regular_binning(self):
@@ -105,7 +115,7 @@ class rebinning():
 
 def main(args):
   input = args.input
-  rebinning(input)
+  rebinning(input, subtract_nonztt_only=True)
 
 if __name__ == "__main__":
   from argparse import ArgumentParser

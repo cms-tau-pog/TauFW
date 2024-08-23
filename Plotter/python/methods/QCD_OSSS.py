@@ -70,7 +70,7 @@ def QCD_OSSS(self, variables, selections, **kwargs):
       exphist = exphists[0].Clone('MC_SS')
       for hist in exphists[1:]:
         exphist.Add(hist)
-      qcdhist = exphists[0].Clone(makehistname(variable,selection_OS,name,tag).rstrip('_')) # $VAR_$SEL_$PROCESS$TAG
+      qcdhist = exphists[0].Clone(makehistname(variable,name,tag).rstrip('_')) # $VAR_$SEL_$PROCESS$TAG
       qcdhist.Reset()
       qcdhist.Add(datahist) # QCD = observed data in SS
       qcdhist.Add(exphist,-1) # subtract total MC expectation in SS

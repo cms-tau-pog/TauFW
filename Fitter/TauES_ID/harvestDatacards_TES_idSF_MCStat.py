@@ -25,6 +25,18 @@ from CombineHarvester.CombinePdfs.morphing import BuildCMSHistFuncFactory
 import ROOT
 from ROOT import RooWorkspace, TFile, RooRealVar
 
+def check_integral(filename, procs, name, region):
+   file = TFile(filename)
+   ret = []
+   name = name.replace('$BIN', region)
+   for proc in procs:
+     histname = region + '/' + proc + '_' + name
+     print(histname, '\t', filename)
+     histup = file.Get(histname+'Up').Integral()
+     histdn = file.Get(histname+'Down').Integral()
+     if histup and histdn: ret.append(proc)
+   print('returning: ', name, '\t', ret)
+   return ret
 
 def harvest(setup, year, obs, **kwargs):
     """Harvest cards."""
@@ -36,11 +48,14 @@ def harvest(setup, year, obs, **kwargs):
     era         = kwargs.get('era',        '%s-13TeV'%year  )
     analysis    = kwargs.get('analysis',   'ztt'            )
     indir       = kwargs.get('indir',      'input_%s'%year  )
-    outdir      = kwargs.get('outdir',     'output_%s'%year )
+    outdir      = indir.replace('input', 'output') #kwargs.get('outdir',     'output_%s'%year )
+    outdir      = os.path.join(outdir, year)
     multiDimFit = kwargs.get('multiDimFit')
     verbosity   = kwargs.get('verbosity')
     outtag      = tag+extratag
-    
+   
+    filename = "%s/%s_%s_tes_%s.inputs-%s%s.root"%(indir,analysis,channel,obs,era,tag)
+ 
     # For each region = DM 
     # each variable can have a subset of regions in which it is fitted defined in config file under this variable entry
     if "fitRegions" in setup["observables"][obs]:
@@ -90,6 +105,7 @@ def harvest(setup, year, obs, **kwargs):
             scaleFactor = 1.0  
             if "scaleFactor" in sysDef:
               scaleFactor = sysDef["scaleFactor"]
+            if "name" in sysDef: sysDef["processes"] = check_integral(filename, sysDef["processes"], sysDef["name"], region)
             harvester.cp().process(sysDef["processes"]).AddSyst(harvester, sysDef["name"] if "name" in sysDef else sys, sysDef["effect"], SystMap()(scaleFactor))
             #print sysDef
 
@@ -109,7 +125,8 @@ def harvest(setup, year, obs, **kwargs):
                   found_match = True
                   break
               if not found_match:
-                print("ERROR : wrong definition of tid_SFRegions in the config file ")
+                print('region: ', region)
+                print('ERROR : wrong definition of tid_SFRegions for in the config file')
         else: 
           if len(listbin) == 1: # Example : DM
             tid_name = "tid_SF_%s"%(listbin[0]) # tid_SF_DM
@@ -142,7 +159,6 @@ def harvest(setup, year, obs, **kwargs):
 
         # EXTRACT SHAPES
         print green(">>> extracting shapes...")
-        filename = "%s/%s_%s_tes_%s.inputs-%s%s.root"%(indir,analysis,channel,obs,era,tag)
         print ">>>   file %s"%(filename)
         ## For now assume that everything that is varied by TES is signal, and everything else is background
         ## Could be revised if wanting to leave the possibility to do other variations or fit normalisation (e.g. for combined TES & ID SF fit)
@@ -297,7 +313,7 @@ def main(args):
     for obs in setup["observables"]:
         observables.append(obs)
     
-    indir = "./input"
+    indir = args.input_dir
     if args.multiDimFit:
         args.extratag += "_MDF"
 
@@ -316,11 +332,12 @@ if __name__ == '__main__':
   argv = sys.argv
   description = '''This script makes datacards with CombineHarvester.'''
   parser = ArgumentParser(prog="harvesterDatacards_TES",description=description,epilog="Succes!")
-  parser.add_argument('-y', '--year', dest='year', choices=['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','UL2018_v10','2022_postEE','2022_preEE'], type=str, default=2018, action='store', help="select year")
+  parser.add_argument('-y', '--year', dest='year', type=str, default=2018, action='store', help="select year")
   parser.add_argument('-c', '--config', dest='config', type=str, default='TauES/config/defaultFitSetupTES_mutau.yml', action='store', help="set config file containing sample & fit setup")
   parser.add_argument('-e', '--extra-tag', dest='extratag', type=str, default="", action='store', metavar='TAG', help="extra tag for output files")
   parser.add_argument('-M', '--multiDimFit', dest='multiDimFit', default=False, action='store_true', help="assume multidimensional fit with a POI for each DM")
   parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true', help="set verbose")
+  parser.add_argument('-i', '--input_dir', dest='input_dir', type=str, help='input_dir for datacard root file')
   args = parser.parse_args()
 
   main(args)

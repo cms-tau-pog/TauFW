@@ -689,7 +689,7 @@ class Plot(object):
     #frame.GetXaxis().SetLimits(xmin,xmax)
     frame.GetXaxis().SetRangeUser(xmin,xmax)
     frame.SetMinimum(ymin)
-    frame.SetMaximum(ymax)
+    frame.SetMaximum(1.4*ymax)
     
     # SET Y AXIS TITLE
     if ytitle==None:
@@ -783,7 +783,7 @@ class Plot(object):
     return xmin, xmax, ymin, ymax
     
   
-  def drawlegend(self,position=None,**kwargs):
+  def drawlegend(self,position=None,printmean=False,**kwargs):
     """Create and draw legend.
     Legend position can be controlled in several ways
       drawlegend(position)
@@ -865,7 +865,10 @@ class Plot(object):
     #  for band, bandtitle in zip(band,bandentries):
     #    entries.insert(hists.index(band),bandtitle)
     while len(entries)<len(hists):
-      entries.append(hists[len(entries)].GetTitle())
+      if printmean:
+        entries.append(hists[len(entries)].GetTitle() + ':  %0.3f' %hists[len(entries)].GetMean())
+      else:
+        entries.append(hists[len(entries)].GetTitle())
     while len(bandentries)<len(bands):
       bandentries.append(bands[len(bandentries)].GetTitle())
     hists   = hists + bands

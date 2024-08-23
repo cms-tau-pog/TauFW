@@ -117,7 +117,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
     TAB.printheader('events','entries','variable','process'.ljust(ljust))
     for obs, histset in hists.items():
       for hist in histset: 
-        name    = lreplace(hist.GetName(),obs.filename.replace('.','p')).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
+        name    = lreplace(hist.GetName().replace('.', 'p'), obs.filename.replace('.','p')).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
         if not name.endswith(htag):
           name += htag # HIST = $PROCESS_$SYSTEMATIC
         name    = repkey(name,BIN=bin)
@@ -164,6 +164,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
   text      = kwargs.get('text',   "$BIN"  )
   groups    = kwargs.get('group',  [ ]     ) # add processes together into one histogram
   verbosity = kwargs.get('verb',   0       )
+  printmean = kwargs.get('mean',   False   )
   ensuredir(outdir)
   print(">>>\n>>> "+color(" plotting... ",'magenta',bold=True,ul=True))
   if 'Nom' not in varprocs:
@@ -203,7 +204,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
         pname_ = repkey(pname,OBS=obsname,BIN=bin,TAG=ftag+systag) # image file name
         wname  = "stack"+systag # name in ROOT file
         stackinputs(tdir,obs,procs_,group=groups,
-                    save=pname_,write=wname,text=text_)
+                    save=pname_,write=wname,text=text_, printmean=printmean)
         
         # VARIATIONS
         if 'Down' in set:
@@ -231,7 +232,7 @@ def stackinputs(file,variable,processes,**kwargs):
   pname    = kwargs.get('save',  "stack$TAG.png" ) # save as image file
   wname    = kwargs.get('write', "stack$TAG"     ) # write to file
   style    = kwargs.get('style', False           ) # write style to file
-  
+  printmean = kwargs.get('printmean', False           ) 
   exphists = [ ]
   datahist = None
   tdir     = ensureTDirectory(file,dname,cd=True) if dname else file
@@ -246,7 +247,7 @@ def stackinputs(file,variable,processes,**kwargs):
     hist.SetDirectory(0)
     hist.SetLineColor(kBlack)
     hist.SetFillStyle(1001) # assume fill color is already correct
-    if process=='data_obs':
+    if 'data_obs' in process:
       datahist = hist
     else:
       exphists.append(hist)
@@ -254,7 +255,7 @@ def stackinputs(file,variable,processes,**kwargs):
     grouphists(exphists,*group,replace=True,regex=True,verb=0)
   stack = Stack(variable,datahist,exphists,clone=True)
   stack.draw()
-  stack.drawlegend(ncols=2,twidth=0.9)
+  stack.drawlegend(ncols=2,twidth=0.9, printmean=printmean)
   if text:
     stack.drawtext(text)
   if pname:

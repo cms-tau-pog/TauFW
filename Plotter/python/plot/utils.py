@@ -169,7 +169,7 @@ def sumhists(hists,name=None,title=None,**kwargs):
   LOG.verb("sumhists: Created sumhist=%r from hists[0]=%r"%(sumhist,hists[0]),verbosity,2)
   for hist in hists[1:]: # add remaining histograms
     LOG.verb("sumhists: Adding %r to sumhist=%r"%(hist,sumhist),verbosity,2)
-    print(f">>> Adding {hist!r} to sighist={sighist!r}")
+    #print(f">>> Adding {hist!r} to sighist={sighist!r}")
     sighist.Add(hist) # add
   return sumhist
   
