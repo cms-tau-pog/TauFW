@@ -572,7 +572,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   # JOIN
   join(samplelist,*searchterms,name=name,title=title,verbosity=5)
   newsample = findsample(samplelist,name,unique=True)
-  newsample.gr = sample_incl # for gethist_from_file
+  newsample.sample_incl = sample_incl # for gethist_from_file
   print("samplelist = ",samplelist)
   return samplelist
   
