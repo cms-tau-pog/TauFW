@@ -22,7 +22,7 @@ map_wp_to_int = OrderedDict([('againstjet',
 	                    ('againstelectron',
 				OrderedDict([('VVLoose', 2),
                                              ('Tight', 6),
-                                             ('Loose', 1 )]))
+                                             ('Loose', 4 )]))
                            ])
 
 def main(args):
