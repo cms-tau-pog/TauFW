@@ -127,7 +127,8 @@ class ModuleMuMu(ModuleTauPair):
     muon2.tlv    = muon2.p4()
     self.out.cutflow.fill('pair')
 
-    if self.jetveto(event): return False 
+    if "202" in self.year:
+        if self.jetveto(event): return False 
     self.out.cutflow.fill('jetvetoes')
     
     # ADDED FOR SF CROSS CHECKS!
