@@ -204,8 +204,8 @@ class ModuleTauTau(ModuleTauPair):
     if self.ismc:
       self.out.genmatch_1[0]     = tau1.genPartFlav
       self.out.genmatch_2[0]     = tau2.genPartFlav
-      pt1, phi1, eta1, status1   = matchgenvistau(event,tau1)
-      pt2, phi2, eta2, status2   = matchgenvistau(event,tau2)
+      pt1, eta1, phi1, status1   = matchgenvistau(event,tau1)
+      pt2, eta2, phi2, status2   = matchgenvistau(event,tau2)
       self.out.genvistaupt_1[0]  = pt1
       self.out.genvistaueta_1[0] = eta1
       self.out.genvistauphi_1[0] = phi1

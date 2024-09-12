@@ -212,7 +212,7 @@ class ModuleTauNu(ModuleHighPT):
     if self.ismc:
       self.out.genmatch_1[0]     = tau1.genPartFlav
      
-      pt1, phi1, eta1, status1   = matchgenvistau(event,tau1)
+      pt1, eta1, phi1, status1   = matchgenvistau(event,tau1)
       
       self.out.genvistaupt_1[0]  = pt1
       self.out.genvistaueta_1[0] = eta1
