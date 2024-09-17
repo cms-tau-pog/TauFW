@@ -53,6 +53,7 @@ class ModuleMuMu(ModuleTauPair):
     self.out.cutflow.addcut('trig',         "trigger"                    )
     self.out.cutflow.addcut('muon',         "muon"                       )
     self.out.cutflow.addcut('pair',         "pair"                       )
+    self.out.cutflow.addcut('jetvetoes',    "jet vetoes"                 )
     self.out.cutflow.addcut('leadTrig',     "leading muon triggered"     ) # ADDED FOR SF CROSS CHECKS!
     self.out.cutflow.addcut('weight',       "no cut, weighted", 15       )
     self.out.cutflow.addcut('weight_no0PU', "no cut, weighted, PU>0", 16 ) # use for normalization
@@ -125,6 +126,10 @@ class ModuleMuMu(ModuleTauPair):
     muon1.tlv    = muon1.p4()
     muon2.tlv    = muon2.p4()
     self.out.cutflow.fill('pair')
+
+    if "202" in self.year:
+        if self.jetveto(event): return False 
+    self.out.cutflow.fill('jetvetoes')
     
     # ADDED FOR SF CROSS CHECKS!
     # Only keep events with leading muon triggered

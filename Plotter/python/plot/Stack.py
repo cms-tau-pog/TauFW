@@ -311,4 +311,3 @@ class Stack(Plot):
                    xlabelsize=xlabelsize,ylabelsize=ylabelsize,binlabels=binlabels,labeloption=labeloption,
                    center=True,rrange=ratiorange,grid=grid,latex=latex)
       self.canvas.cd(1) # go back to main pad
-  

@@ -52,7 +52,8 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   tag           = kwargs.get('tag',           ""     ) # file tag
   filters       = kwargs.get('filter',        None   ) # only create histograms for these processes
   vetoes        = kwargs.get('veto',          None   ) # veto these processes
-  parallel      = kwargs.get('parallel',      False   ) # MultiDraw histograms in parallel
+  nthreads      = kwargs.get('parallel',      None   ) # set multithreading for filling histograms with RDF in parallel
+  nthreads      = kwargs.get('nthreads',      nthreads ) # alias
   recreate      = kwargs.get('recreate',      False  ) # recreate ROOT file
   replaceweight = kwargs.get('replaceweight', None   ) # replace weight (e.g. for syst. variations)
   replacenames  = kwargs.get('replacename',   [ ]    ) # replace name (regular expressions)
@@ -60,8 +61,9 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
   shift         = kwargs.get('shift',         ""     ) # shift variable (e.g. for syst. variations)
   shiftjme      = kwargs.get('shiftjme',      ""     ) # shift jet/MET variable (e.g. 'jer', 'jec')
   shiftQCD      = kwargs.get('shiftQCD',      0      ) # e.g 0.30 for 30%
+  noneg         = kwargs.get('noneg',         True   ) # suppress negative bin values (for fit stability)
   dots          = kwargs.get('dots',          False  ) # replace 'p' with '.' in histogram names with floats
-  verbosity     = kwargs.get('verb',          0      )
+  verbosity     = kwargs.get('verb',          0      ) # verbosity level
   option        = 'RECREATE' if recreate else 'UPDATE'
   method        = 'QCD_OSSS' if filters==None or 'QCD' in filters else None
   method        = kwargs.get('method',        method )
@@ -99,6 +101,7 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
     files[obs] = file
   
   # GET HISTS
+  # TODO: We can now run bins/selections in parallel, using RDF
   for selection in bins:
     bin = selection.filename # bin name
     print(">>>\n>>> "+color(" %s "%(bin),'magenta',bold=True,ul=True))
@@ -108,39 +111,44 @@ def createinputs(fname,sampleset,obsset,bins,syst="",**kwargs):
       print(">>> %r"%(selection.selection))
     for obs in obsset: # update contextual cuts, binning, name, title, ...
       obs.changecontext(selection)
-    hists = sampleset.gethists(obsset,selection,method=method,split=True,
-                               parallel=parallel,filter=filters,veto=vetoes,replaceweight=replaceweight)
+    hists = sampleset.gethists(obsset,selection,method=method,split=True,nthreads=nthreads,
+                               filter=filters,veto=vetoes,replaceweight=replaceweight)
     
     # SAVE HIST
-    ljust = 4+max(11,len(htag)) # extra space
-    TAB   = LOG.table("%10.1f %10d  %-18s  %s")
-    TAB.printheader('events','entries','variable','process'.ljust(ljust))
+    wobs  = max([10]+[len(o.printbins(filename=True)) for o in hists]) # extra space
+    wproc = 4+max(11,len(htag)) # extra space
+    TAB   = LOG.table(f"%11.1f %10d  %-{wobs}s  %s")
+    TAB.printheader('Events','Entries','Observable','Process'.ljust(wproc))
     for obs, histset in hists.items():
-      for hist in histset: 
-        name    = lreplace(hist.GetName(),obs.filename.replace('.','p')).strip('_') # histname = $VAR_$NAME (see Sample.gethist)
-        if not name.endswith(htag):
-          name += htag # HIST = $PROCESS_$SYSTEMATIC
-        name    = repkey(name,BIN=bin)
-        if dots and 'p' in name: # replace 'p' with '.' in float
-          name = re.sub(r"(\d+)p(\d+)",r"\1.\2",name)
+      for hist in histset:
+        hname = hist.GetName() # = $VAR_$BIN_$NAME (created by makehistname in Sample.getrdframe)
+        hname = lreplace(hname,obs.filename).strip('_') # remove variable prefix
+        hname = lreplace(hname,selection.filename).strip('_') # remove selection prefix
+        hname = hname.replace('.', 'p')
+        if not hname.endswith(htag):
+          hname += htag # HIST = $PROCESS_$SYSTEMATIC
+        hname = repkey(hname,BIN=bin)
+        if dots and 'p' in hname: # replace 'p' with '.' in float
+          hname = re.sub(r"(\d+)p(\d+)",r"\1.\2",hname)
         for exp, sub in replacenames: # replace regular expressions
-          name = re.sub(exp,sub,name)
-        drawopt = 'E1' if 'data' in name else 'EHIST'
-        lcolor  = kBlack if any(s in name for s in ['data','ST','VV']) else hist.GetFillColor()
+          hname = re.sub(exp,sub,hname)
+        drawopt = 'E1' if 'data' in hname else 'EHIST'
+        lcolor  = kBlack if any(s in hname for s in ['data','ST','VV']) else hist.GetFillColor()
         hist.SetOption(drawopt)
         hist.SetLineColor(lcolor)
         hist.SetFillStyle(0) # no fill in ROOT file
-        hist.SetName(name)
+        hist.SetName(hname)
         hist.GetXaxis().SetTitle(obs.title)
-        for i, yval in enumerate(hist):
-          if yval<0:
-            print(">>> replace bin %d (%.3f<0) of %r"%(i,yval,hist.GetName()))
-            hist.SetBinContent(i,0)
+        if noneg:
+          for i, yval in enumerate(hist):
+            if yval<0: # manually delete negative bin values
+              print(f">>> Set negative value of {hname!r} bin {i} ({yval:.3f}<0) to 0") #hist.GetName()
+              hist.SetBinContent(i,0)
         if files[obs].cd(bin): # $FILE:$BIN/$PROCESS_$SYSTEMATC
-          hist.Write(name,TH1.kOverwrite)
-        TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(),name)
-        if not parallel: # avoid segmentation faults for parallel
-          deletehist(hist) # clean histogram from memory
+          hist.Write(hname,TH1.kOverwrite)
+        TAB.printrow(hist.GetSumOfWeights(),hist.GetEntries(),obs.printbins(filename=True),hname)
+        #if not parallel: # avoid segmentation faults for parallel
+        #  deletehist(hist) # clean histogram from memory
   
   # CLOSE
   for obs, file in files.items():
@@ -158,12 +166,11 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
        bins:     list of Selection objects
   """
   #LOG.header("plotinputs")
-  tag       = kwargs.get('tag',    ""      )
-  pname     = kwargs.get('pname',  "$OBS_$BIN$TAG.png" )
-  outdir    = kwargs.get('outdir', 'plots' )
-  text      = kwargs.get('text',   "$BIN"  )
-  groups    = kwargs.get('group',  [ ]     ) # add processes together into one histogram
-  verbosity = kwargs.get('verb',   0       )
+  tag       = kwargs.pop('tag',    ""                  )
+  pname     = kwargs.pop('pname',  "$OBS_$BIN$TAG.png" )
+  outdir    = kwargs.pop('outdir', 'plots'             )
+  text      = kwargs.pop('text',   "$BIN"              )
+  verbosity = kwargs.get('verb',   0                   )
   ensuredir(outdir)
   print(">>>\n>>> "+color(" plotting... ",'magenta',bold=True,ul=True))
   if 'Nom' not in varprocs:
@@ -202,8 +209,8 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
         # STACKS
         pname_ = repkey(pname,OBS=obsname,BIN=bin,TAG=ftag+systag) # image file name
         wname  = "stack"+systag # name in ROOT file
-        stackinputs(tdir,obs,procs_,group=groups,
-                    save=pname_,write=wname,text=text_)
+        stackinputs(tdir,obs,procs_,save=pname_,write=wname,
+                    text=text_,printmean=printmean,**kwargs)
         
         # VARIATIONS
         if 'Down' in set:
@@ -224,13 +231,16 @@ def stackinputs(file,variable,processes,**kwargs):
      e.g.
        stackinputs(file,variable,['ZTT','TTT','W','QCD','data_obs'])
   """
-  text     = kwargs.get('text',  None            )
-  tag      = kwargs.get('tag',   ""              )
-  groups   = kwargs.get('group', [ ]             ) # e.g. [(['^TT','ST'],'Top')]
-  dname    = kwargs.get('dname', None            ) # directory ('bin') name
-  pname    = kwargs.get('save',  "stack$TAG.png" ) # save as image file
-  wname    = kwargs.get('write', "stack$TAG"     ) # write to file
-  style    = kwargs.get('style', False           ) # write style to file
+  text      = kwargs.get('text',  None            )
+  tag       = kwargs.get('tag',   ""              )
+  logy      = kwargs.get('logy',  variable.logy   ) # plot in logarithmic y scale
+  groups    = kwargs.get('group', [ ]             ) # e.g. [(['^TT','ST'],'Top'),(['QCD','W'],'j -> tau_h fakes')]
+  dname     = kwargs.get('dname', None            ) # directory ('bin') name
+  pname     = kwargs.get('save',  "stack$TAG.png" ) # save as image file
+  wname     = kwargs.get('write', "stack$TAG"     ) # write to file
+  style     = kwargs.get('style', False           ) # write style to file
+  printmean = kwargs.get('printmean', False       ) # print mean in legend
+  verbosity = kwargs.pop('verb',  0               )
   
   exphists = [ ]
   datahist = None
@@ -246,15 +256,15 @@ def stackinputs(file,variable,processes,**kwargs):
     hist.SetDirectory(0)
     hist.SetLineColor(kBlack)
     hist.SetFillStyle(1001) # assume fill color is already correct
-    if process=='data_obs':
+    if 'data_obs' in process:
       datahist = hist
     else:
       exphists.append(hist)
   for group in groups:
     grouphists(exphists,*group,replace=True,regex=True,verb=0)
-  stack = Stack(variable,datahist,exphists,clone=True)
-  stack.draw()
-  stack.drawlegend(ncols=2,twidth=0.9)
+  stack = Stack(variable,datahist,exphists,clone=True,verb=verbosity)
+  stack.draw(logy=logy)
+  stack.drawlegend(ncols=2,twidth=0.9,printmean=printmean)
   if text:
     stack.drawtext(text)
   if pname:
@@ -309,4 +319,4 @@ def comparevars(file,variable,processes,systag,**kwargs):
       wname_ = repkey(wname,PROC=process,TAG=tag)
       plot.canvas.Write(wname_,TH1.kOverwrite)
     plot.close()
-
+  

@@ -12,20 +12,25 @@ baselineCuts: "q_1*q_2<0 && iso_1<0.15 && iso_2<0.15 && !lepton_vetoes && metfil
 
 samples:
     filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+    join: ["VV","TT","ST"]
     split:
         DY: [ ["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"] ]
+        #TT: [["TTT","genmatch_2==5"], ["TTL","genmatch_2>0 && genmatch_2<5"], ["TTJ","genmatch_2==0"] ]
+    rename:
+        WJ: "W"
     data: "data_obs"
+    removeSFs: []
 
 
 observables:
     m_vis:
-        binning: [1, 70,  110]
+        binning: [1, 50,  150]
         extra:
             ymargin: 1.6
-            rrange: 0.08
+            rrange: 0.20
         fitRegions: ["baseline"]
 
-processes: ['ZTT','ZL','ZJ','data_obs'] 
+processes: ['ZL','ZTT', 'ZJ','W','VV','ST','TT','QCD','data_obs'] #'ZTT','ZL','ZJ','data_obs'] 
 
 systematics:
     lumi:

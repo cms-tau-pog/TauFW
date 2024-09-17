@@ -7,13 +7,14 @@ See [the README.md in the parent directory](../../../#taufw).
 ## Creating NTuples 
 The first step is to produce the NTuples via PicoProducer tool. See [the README.md in the parent directory](../../../PicoProducer).
 ## Creating inputs
-Inputs are root file used for the creation of the datacards. The script to create them is `harvestDatacards_TES_idSF_MCStat.py` for mutau or `harvestDatacards_zmm.py` for mumu CR. These root files are saved in `Fitter/input` folder and named `ztt*.input*tag*.root`. They contain one TDirectory for each `"regions"` defined in the config file (.yml). For each region, there is a list of TH1D corresponding to each `"process"` defined in the config file (ex: ZTT). For each shape systematics, there is also two additionnal TH1D corresponding to the Up and Down variation of the process (ex: ZTT_shapedy_Up). For the TES there is a list of additional TH1D corresponding to the variations (defined by `"TESvariations"` in the config file) of the process by TES correction. 
+Input root files containing all the shape systematic variation for samples defined in the config file are created using the [createinputsTES.py](https://github.com/saswatinandan/TauFW/blob/master/Fitter/TauES/createinputsTES.py). These root files are saved in the directory defined [here](https://github.com/saswatinandan/TauFW/blob/master/Fitter/TauES/createinputsTES.py#L38). New directories are created for each wp of against electron and against jet and corresponding root files are stored within these directories. They contain one TDirectory for each `"pt regions"` defined in the config file (.yml). For each region, there is a list of TH1D corresponding to each `"process"` defined in the config file (ex: ZTT). For each shape systematics, there is also two additionnal TH1D corresponding to the Up and Down variation of the process (ex: ZTT_shapedy_Up). For the TES there is a list of additional TH1D corresponding to the variations (defined by `"TESvariations"` in the config file) of the process by TES correction. 
 
 Exemple of command :
 
  ```sh
-  python TauES/createinputsTES.py -y UL2018 -c TauES_ID/config/FitSetupTES_mutau_DMt.yml 
+ python3 TauES/createinputsTES.py -y 2023C -c TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml -d DM0 -j Medium -e VVLoose
   ```
+The above command will create root file `ztt_mt_tes_m_visDM0.inputs-2023C-13TeV_mutau_mt65_DM_pt_Dt2p5_puppimet.root` inside the directory `Fitter/input_pt_less_region/againstjet_Medium/againstelectron_VVLoose`. Once root files are created for deacy `dm`, these rootfiles needs to be hadded to the final output root file `ztt_mt_tes_m_vis.inputs-2023C-13TeV_mutau_mt65_DM_pt_Dt2p5_puppimet.root` inside the directory `Fitter/input_pt_less_region/againstjet_Medium/againstelectron_VVLoose`, and this root file will be used to extract the SF for `Medium` against jet wp and `VVLoose` against electron wp for era 2023C and for all `dms` and all `pt` regions defined in the config file `TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml`.
 
 See [the README.md in the TauES directory ](../TauES)
 
@@ -53,6 +54,15 @@ Datacards are generated in `makecombinedfitTES_SF.py`:
 1. `generate_datacards_mutau(era, config, extratag)`: function that generates datacards for the mutau channel. This function call `harvestDatacards_TES_idSF_MCStat.py`.
 2. `generate_datacards_mumu(era, config_mumu, extratag)`: function that generates datacards for the mumu channel (Control Region). This function call `harvestDatacards_zmm.py`.
 
+3. Exemple of command :
+
+ ```sh
+  python3 TauES_ID/makecombinedfitTES_SF.py -y 2023C -o 1 -c TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml -cmm TauES/config/FitSetup_mumu.yml -i input_pt_less_region/againstjet_Medium/againstelectron_VVLoose
+  ```
+The above command will create the root files and datacard txt files to do the fit for `option 1` which profiles the `tau enrgy scale` and floats `tau_id SF` freely. All `output root files and txt files` will be created in the dirrectory `output_pt_less_region/againstjet_Medium/againstelectron_VVLoose/2023C/`. 
+
+Same `config` file which is used to create the input root files containing the systematic variations, should be used in the above command and value of the argument, input directory `i` should be same as it is defined [here](https://github.com/saswatinandan/TauFW/blob/master/Fitter/TauES/createinputsTES.py#L38).
+
 The input to Combine tool is a datacards file (ztt root and txt files). The datacards are generated for each `"region"` defined in the config file.
 It defines the following information :
 - The tes is defined as a POI for each `"tesRegions"` defined in the config file. Horizontal morphing is used to interpolate between the templates generated for each `"TESvariations"` (defined in config file). 
@@ -77,43 +87,59 @@ The option 4,5,6 use combined datacards and are useful to fit on several regions
 
 ### Plotting results
 
-The results of the fit are saved in a root file (ex: `higgsCombine*root` in output folder) that can be used to produced several plots.
+The results of the fit are saved in a root file (ex: `higgsCombine*root` in output folder) that can be used to produced several plots using [this](https://github.com/saswatinandan/TauFW/blob/master/Fitter/TauES_ID/makecombinedfitTES_SF.py#L282).
 
 - NLL pararabola and summary plots can be produced via `plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)` that called `plotParabola_POI_region.py`.
 - Postfit plots showing the correlation between parameters can be produced via `plotScan(setup,setup_mumu, era=era, config=config, config_mumu=config_mumu, option=option)` that called `plotPostFitScan_POI.py`. The parameter to be plot need to be change in `plotPostFitScan_POI.py` code.
-- Summary plot of the results of the POI (tes or tid_SF) in function of pt (DM and DM-pt inclusive or not with `--dm-bins` and `dmpt-bins` options) via `saveSFs_root_JSON.py`. This script uses the txt output file of `plotParabola_POI_region.py`to produce the root and Json files. The values of the mean of the pt bin has been obtained by taking the mean of the pt distribution for each region. The values for 4 bins are hardcoded as an example for postEE_2022 but can easily be changed.
 
+### Saving SF in root files
+
+- The above `python3 TauES_ID/makecombinedfitTES_SF.py ...` command will also create the txt files containg the SFs with the error in the directory `plots_pt_less_region/againstjet_Medium/againstelectron_VVLoose/2023C/` with the name `*_fit_asymm.txt`.
+- Produced `txt` files are used to save the SFs in the root file format using [this code](https://github.com/saswatinandan/TauFW/blob/master/Fitter/createroot_TES.py)
+- The example command to produce the root file as below:
+    ```sh
+      python3 createroot_TES.py -y 2023C -e VVLoose
+  ``` 
+Above command will produce the root files in the direcory `tau_sf/*_SF_dm_DeepTau2018v2p5_2023_VSjetMedium_VSeleVVLoose_Run3_May24.root` both for `tes and tid` variations.
+   
 ## Example of recipe
 
 ### Fit of TES and ID SF by DM 
 
 1. Create the NTuples : See [the README.md in the parent directory](../../../PicoProducer).
 
-2. Use `/config/Default_FitSetupTES_mutau_DM.yml`
+2. Use `/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml`
 
 3. Check the NTuples via control plots. 
  ```sh
-  python plot_v10.py -y UL2018_v10 -c ./../Fitter/TauES_ID/config/Default_FitSetupTES_mutau_DM.yml 
+  python plot_v10.py -y UL2018_v10 -c ./../Fitter/TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion
   ```
 Control plot of the differents variables are saved in `/plots` folder. See [the README.md in the parent directory](../../../Plotter) for more informations.
 
 4. Create the inputs :
  ```sh
-  python TauES/createinputsTES.py -y UL2018_v10 -c TauES_ID/config/Default_FitSetupTES_mutau_DM.yml 
+  python TauES/createinputsTES.py -y 2023C -c TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml -d DM0 -j Medium -e VVLoose 
   ```
-Inputs are saved in `input/ztt_mt_tes_m_vis.inputs-UL2018_v10-13TeV_mutau_mt65_DM_Dt2p5_default`.
+Inputs are saved in `Fitter/input_pt_less_region/againstjet_Medium/againstelectron_VVLoose`.
 
 5. Run the TES scans with Zmm CR : 
 ```sh
-python TauES_ID/makecombinedfitTES_SF.py -y UL2018_v10 -o 1 -c TauES_ID/config/Default_FitSetupTES_mutau_DM.yml -cmm TauES/config/FitSetup_mumu.yml
+python3 TauES_ID/makecombinedfitTES_SF.py -y 2023C -o 1 -c TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml -cmm TauES/config/FitSetup_mumu.yml -i input_pt_less_region/againstjet_Medium/againstelectron_VVLoose
  ```
 The TES NLL parabolae and summary plots are automatically generated. 
 
 6. Run the id SF scans with Zmm CR : 
 ```sh
-python TauES_ID/makecombinedfitTES_SF.py -y UL2018_v10 -o 2 -c TauES_ID/config/Default_FitSetupTES_mutau_DM.yml -cmm TauES/config/FitSetup_mumu.yml
+python3 TauES_ID/makecombinedfitTES_SF.py -y 2023C -o 2 -c TauES_ID/config/Default_FitSetupTES_mutau_DM_mt65pt_lessptregion.yml -cmm TauES/config/FitSetup_mumu.yml -i input_pt_less_region/againstjet_Medium/againstelectron_VVLoose
  ```
-The id SF NLL parabolae and summary plots are automatically generated. 
+The id SF NLL parabolae and summary plots are automatically generated.
+
+7. Save the SF in root file:
+  ```sh
+   python3 createroot_TES.py -y 2023C -e VVLoose
+   ```
+
+9. run `hadd` command to hadd the root files, obtained from the last command for different wp of against electron and share this `hadd root` file with the group. 
 
 ## Post-fit Plots :construction:
 

@@ -68,8 +68,8 @@ def getsampleset(channel,era,**kwargs):
         #( 'ST', "TbarBQ_t-channel",      "ST t-channel at",      75.47), # NLO
         ( 'ST', "TWminustoLNu2Q",             "ST tW semileptonic",         15.8 ), # NLO (36.0) times LNu2Q BR
         ( 'ST', "TWminusto2L2Nu",             "ST tW 2l2#nu",               3.8 ), # NLO (36.0) times 2L2Nu BR
-        ( 'ST', "TbarWplustoLNu2Q",         "ST atW semileptonic",          15.9 ), # NLO (36.1) times LNu2Q BR
-        ( 'ST', "TbarWplusto2L2Nu",         "ST atW 2l2#nu",                3.8 ), # NLO (36.1) times 2L2Nu BR
+        #( 'ST', "TbarWplustoLNu2Q",         "ST atW semileptonic",          15.9 ), # NLO (36.1) times LNu2Q BR
+        #( 'ST', "TbarWplusto2L2Nu",         "ST atW 2l2#nu",                3.8 ), # NLO (36.1) times 2L2Nu BR
       ]
     
     if '2022_preEE' in era:

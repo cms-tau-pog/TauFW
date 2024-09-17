@@ -117,3 +117,5 @@ To create ROOT files including the measured SFs please install [`TauIDSFs` tool]
 Modify the `TauIDSFs/utils/createSFFiles.py` script to include your measured SFs into the script. 
 Finally, run the `TauFW/scripts/tau_createROOT.sh` to generate your ROOT files. They will be created into `TauFW/scripts/data/`
 IMPORTANT: please comment and do not delete older SFs
+
+The latest code used to create root files for SF can be taken from [here](https://github.com/saswatinandan/TauFW/blob/master/Fitter/createroot_TES.py)
