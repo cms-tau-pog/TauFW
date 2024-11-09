@@ -229,23 +229,11 @@ class ModuleETau(ModuleTauPair):
     if self.ismc:
       self.out.genmatch_1[0] = electron.genPartFlav
       self.out.genmatch_2[0] = tau.genPartFlav
-      dRmin    = 0.5
-      taumatch = None
-      for genvistau in Collection(event,'GenVisTau'):
-        dR = genvistau.DeltaR(tau)
-        if dR<dRmin:
-          dRmin    = dR
-          taumatch = genvistau
-      if taumatch:
-        self.out.genvistaupt_2[0]  = taumatch.pt
-        self.out.genvistaueta_2[0] = taumatch.eta
-        self.out.genvistauphi_2[0] = taumatch.phi
-        self.out.gendm_2[0]        = taumatch.status
-      else:
-        self.out.genvistaupt_2[0]  = -1
-        self.out.genvistaueta_2[0] = -9
-        self.out.genvistauphi_2[0] = -9
-        self.out.gendm_2[0]        = -1
+      pt, eta, phi, status       = matchgenvistau(event,tau)
+      self.out.genvistaupt_2[0]  = pt
+      self.out.genvistaueta_2[0] = eta
+      self.out.genvistauphi_2[0] = phi
+      self.out.gendm_2[0]        = status
     
     
     # JETS

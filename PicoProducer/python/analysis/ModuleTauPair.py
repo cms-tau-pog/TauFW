@@ -45,6 +45,7 @@ class ModuleTauPair(Module):
     self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
+    self.domutau    = kwargs.get('domutau',  'DY' in fname or self.dozpt ) # mutau genfilter for stitching DY sample
     self.dopdf      = kwargs.get('dopdf',    False          ) and self.ismc # store PDF & scale weights
     self.dorecoil   = kwargs.get('recoil',   False          ) and self.ismc # recoil corrections #('DY' in name or re.search(r"W\d?Jets",name)) and self.year==2016) # and self.year==2016 
     self.dosys      = self.tessys in [None,''] and self.ltf in [1,None] and self.jtf in [1,None] # include systematic variations of weight
@@ -67,6 +68,7 @@ class ModuleTauPair(Module):
     self.filter     = getmetfilters(self.era,self.isdata,verb=self.verbosity)
     
     # CORRECTIONS
+    self.ismutau      = False # event passes gen mutau filter (to avoid computing twice)
     self.ptnom        = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
     self.jecUncLabels = [ ]
     self.metUncLabels = [ ]
@@ -87,7 +89,9 @@ class ModuleTauPair(Module):
        self.met_vars     = { u: getmet(self.era,u,useT1=self.useT1) for u in self.metUncLabels }
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
-    self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity)    
+    self.jetvetoTool = None
+    if '202' in self.era: # only mandatory for Run 3: 2022, 2023, ... (see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps)
+      self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity) 
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
   
@@ -112,6 +116,7 @@ class ModuleTauPair(Module):
     print(">>> %-12s = %s"%('dotoppt',   self.dotoppt))
     print(">>> %-12s = %s"%('dopdf',     self.dopdf))
     print(">>> %-12s = %s"%('dozpt',     self.dozpt))
+    print(">>> %-12s = %s"%('domutau',   self.domutau))
     #print ">>> %-12s = %s"%('dorecoil',  self.dorecoil)
     print(">>> %-12s = %s"%('dojec',     self.dojec))
     print(">>> %-12s = %s"%('dojecsys',  self.dojecsys))
@@ -151,9 +156,8 @@ class ModuleTauPair(Module):
       ('Tau_idDeepTau2018v2p5VSjet','Tau_idDeepTau2017v2p1VSjet'),
       ('Tau_rawDeepTau2018v2p5VSe','Tau_rawDeepTau2017v2p1VSe'), 
       ('Tau_rawDeepTau2018v2p5VSmu','Tau_rawDeepTau2017v2p1VSmu'),  
-      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet') 
- 
-      ]
+      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet')
+    ]
     # for v9
     branches = [
       ('Electron_mvaFall17V2Iso',        'Electron_mvaFall17Iso'        ),
@@ -174,8 +178,7 @@ class ModuleTauPair(Module):
       ('Tau_idDeepTau2018v2p5VSjet','Tau_idDeepTau2017v2p1VSjet'),
       ('Tau_rawDeepTau2018v2p5VSe','Tau_rawDeepTau2017v2p1VSe'), 
       ('Tau_rawDeepTau2018v2p5VSmu','Tau_rawDeepTau2017v2p1VSmu'),  
-      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet') 
-
+      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet')
     ]
     if self.year==2016:
       branches += [
@@ -193,21 +196,22 @@ class ModuleTauPair(Module):
        ensurebranches(inputTree,branches) # make sure Event object has these branches
 
   def jetveto(self, event):
-      vetojets = []
-      muons = [m for m in Collection(event,'Muon') if m.isPFcand]
-      for jet in Collection(event,'Jet'):
-          if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue 
-          if abs(jet.pt) <= 15: continue
-          if jet.jetId < 2: continue
-          if (jet.chEmEF + jet.neEmEF) > 0.90: continue
-          overlap = False
-          for muon in muons:
-             if jet.DeltaR(muon) < 0.2:
-                overlap = True
-                break
-          if not overlap:
-             vetojets.append(jet)
-      return len(vetojets)
+    """Return number of vetoed jets. Jet veto maps are mandatory for Run 3 analyses.
+    The safest procedure would be to veto events if ANY jet with a loose selection lies in the veto regions.
+    See https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps
+    """
+    if not self.jetvetoTool:
+      return 0 # assume no jet veto required (e.g. for Run 2)
+    vetojets = [ ]
+    muons = [m for m in Collection(event,'Muon') if m.isPFcand]
+    for jet in Collection(event,'Jet'):
+      if abs(jet.pt) <= 15: continue
+      if jet.jetId < 2: continue
+      if (jet.chEmEF + jet.neEmEF) > 0.90: continue
+      if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
+      if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
+      vetojets.append(jet)
+    return len(vetojets)
 
   def fillhists(self,event):
     """Help function to fill common histograms (cutflow etc.) before any cuts."""
@@ -236,22 +240,24 @@ class ModuleTauPair(Module):
         self.out.cutflow.fill('weight_no0PU',event.genWeight)
       else: # bug in pre-UL 2017 caused small fraction of events with nPU<=0
         return False
-      # Specific selections to compute mutau filter efficiencies for stitching of different DY samples
-      isMuTau = filtermutau(event)
-      self.out.cutflow.fill('weight_mutaufilter',event.genWeight*isMuTau)
-      try:
-        if event.LHE_Njets==0 or event.LHE_Njets>4:
-          self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*isMuTau)
-        elif event.LHE_Njets==1:
-          self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*isMuTau)
-        elif event.LHE_Njets==2:
-          self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*isMuTau)
-        elif event.LHE_Njets==3:
-          self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*isMuTau)
-        elif event.LHE_Njets==4:
-          self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*isMuTau)
-      except RuntimeError:
-        no_LHE_Njets_var = True
+      # Specific selections to compute mutau filter efficiencies for stitching of different DY samples (DYJetsToTauTauToMuTauh)
+      if self.domutau:
+        self.ismutau = filtermutau(event) # event passes gen mutau filter
+        self.out.cutflow.fill('weight_mutaufilter',event.genWeight*self.ismutau)
+        try:
+          if event.LHE_Njets==0 or event.LHE_Njets>4:
+            self.out.cutflow.fill('weight_mutaufilter_NUP0orp4',event.genWeight*self.ismutau)
+          elif event.LHE_Njets==1:
+            self.out.cutflow.fill('weight_mutaufilter_NUP1',event.genWeight*self.ismutau)
+          elif event.LHE_Njets==2:
+            self.out.cutflow.fill('weight_mutaufilter_NUP2',event.genWeight*self.ismutau)
+          elif event.LHE_Njets==3:
+            self.out.cutflow.fill('weight_mutaufilter_NUP3',event.genWeight*self.ismutau)
+          elif event.LHE_Njets==4:
+            self.out.cutflow.fill('weight_mutaufilter_NUP4',event.genWeight*self.ismutau)
+        except RuntimeError:
+          print(">>> WARNING: RuntimeError! Setting domutau=False !")
+          self.domutau = False
       self.out.pileup.Fill(event.Pileup_nTrueInt)
     
     return True

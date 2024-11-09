@@ -71,7 +71,7 @@ def QCD_OSSS(self, variables, selections, **kwargs):
       for hist in exphists[1:]:
         exphist.Add(hist)
       qcdhist = exphists[0].Clone(makehistname(variable,selection_OS,name,tag).rstrip('_')) # $VAR_$SEL_$PROCESS$TAG
-      qcdhist.Reset()
+      qcdhist.Reset() # set all bin content to zero
       qcdhist.Add(datahist) # QCD = observed data in SS
       qcdhist.Add(exphist,-1) # subtract total MC expectation in SS
       qcdhist.SetTitle(title)

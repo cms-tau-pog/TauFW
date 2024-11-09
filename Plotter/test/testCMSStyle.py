@@ -160,13 +160,13 @@ def main(args):
   verbosity = args.verbosity
   testCMSera(verb=verbosity)
   
-#   for ipos, out in [(0,True),(11,False)]:
-#     for width in [600,900]:
-#       for height in [600,900]:
-#         for lmargin in [0.07,0.14]: #,0.20]:
-#           for rmargin in [0.04,0.08]: #,0.16]:
-#             for tmargin in [0.03,0.06]: #,0.16]:
-#               testCMSlogo(ipos,width,height,lmargin,rmargin,tmargin,out=out,verb=verbosity)
+  for ipos, out in [(0,True),(11,False)]:
+    for width in [600,900]:
+      for height in [600,900]:
+        for lmargin in [0.07,0.14]: #,0.20]:
+          for rmargin in [0.04,0.08]: #,0.16]:
+            for tmargin in [0.03,0.06]: #,0.16]:
+              testCMSlogo(ipos,width,height,lmargin,rmargin,tmargin,out=out,verb=verbosity)
   ###for ipos in [0,1,2,3,10,11,12,22,33]:
   ###  testCMSlogo(ipos,800,600,0.14,0.04)
   
@@ -189,7 +189,7 @@ def main(args):
 if __name__ == "__main__":
   from argparse import ArgumentParser
   description = """Test CMSStyle module."""
-  parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
+  parser = ArgumentParser(description=description,epilog="Good luck!")
   parser.add_argument('-v', '--verbose', dest='verbosity', type=int, nargs='?', const=1, default=0, action='store',
                                          help="set verbosity" )
   args = parser.parse_args()

@@ -31,8 +31,8 @@ def drawpostfit(fname,bin,procs,**kwargs):
   square    = kwargs.get('square',  False      )
   era       = kwargs.get('era',     ""         )
   exts      = kwargs.get('exts', ['pdf','png'] ) # figure extension
+  fits      = kwargs.get('fits', ['prefit', 'postfit'] )
   ymax      = None
-  fits      = ['prefit','postfit']
   file      = ensureTFile(fname,'READ')
   if outdir:
     ensuredir(outdir)

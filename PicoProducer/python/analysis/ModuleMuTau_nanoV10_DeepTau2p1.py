@@ -253,7 +253,7 @@ class ModuleMuTau_nanoV10_DeepTau2p1(ModuleTauPair):
     if self.ismc:
       self.out.genmatch_1[0]     = muon.genPartFlav
       self.out.genmatch_2[0]     = tau.genPartFlav
-      pt, phi, eta, status       = matchgenvistau(event,tau)
+      pt, eta, phi, status       = matchgenvistau(event,tau)
       self.out.genvistaupt_2[0]  = pt
       self.out.genvistaueta_2[0] = eta
       self.out.genvistauphi_2[0] = phi

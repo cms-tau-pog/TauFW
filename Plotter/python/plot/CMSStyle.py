@@ -43,11 +43,11 @@ lumiTextOffset = 0.20
 cmsTextSize    = 1.00
 cmsTextOffset  = 0.15
 extraOverCmsTextSize = 0.78
-relPosX        = 0.045
+relPosX        = 0.044 # relative x position of "extraText" w.r.t. cmsText
 relPosY        = 0.035
 relExtraDY     = 1.2
 drawLogo       = False
-outOfFrame     = False
+outOfFrame     = True
 lumi_dict      = {
   '7':      5.1,  '2016': 36.3, 'UL2016_preVFP':  19.5,
   '8':      19.7, '2017': 41.5, 'UL2016_postVFP': 16.8,
@@ -185,18 +185,18 @@ def getCMSLumiText(era=None,showEra=True,showYear=False,**kwargs):
   """Help function to create lumiText (string containing integrated luminosity)
   and center-of-mass energy for top right corner of CMS plots.
   E.g. UL2016_preVFP, 19.5 fb^{#minus1} (13 TeV)"""
-  string = "" # return value
-  year   = None
-  lumi   = None
-  cme    = None
+  text = "" # return value
+  year = None
+  lumi = None
+  cme  = None
+  verb = kwargs.get('verb', 0 ) # verbosity level
   if era:
     era  = str(era) # ensure string
     year = getyear(era) # get year from e.g. 'UL2016_preVFP' -> '2016', '2018' -> '2018'
     if showYear: # print year in lumiText, e.g. "2016, 19.5 fb^{#minus1} (13 TeV)"
-      string = era_dict.get(year,year)
+      text = era_dict.get(year,year)
     elif showEra: # print era in lumiText, e.g. "UL2016_preVFP, 19.5 fb^{#minus1} (13 TeV)"
-      string = era_dict.get(era,era)
-  verbosity  = kwargs.get('verb', 0 ) # verbosity level
+      text = era_dict.get(era,era)
   if 'lumi' in kwargs: # allow override by user, incl. lumi=None/False to suppress
     lumi = kwargs['lumi']
   else: # lookup given era/year in global dictionary
@@ -206,22 +206,22 @@ def getCMSLumiText(era=None,showEra=True,showYear=False,**kwargs):
   else: # lookup given era/year in global dictionary
     cme  = cme_dict[era] if era in cme_dict else cme_dict.get(year,None)
   if lumi: # print if defined
-    if string: # add comma after era/year
-      string += ", "
+    if text: # add comma after era/year
+      text += ", "
     lumi3sd = ("%#.3g"%lumi) if lumi<1000 else ("%d"%float("%.3g"%lumi)) # three significant digits
-    string += lumi3sd.rstrip('.') + " fb^{#minus1}"
+    text += lumi3sd.rstrip('.') + " fb^{#minus1}"
   if cme: # print if defined
-    if string:
-      string += " "
-    string += "(%s TeV)"%(cme)
-  string = string.strip() # remove empty spaces in front/back
-  if verbosity>=4:
-    print(">>> getLumiText: era=%r, lumi=%r, cme=%r, lumiText=%r"%(era,lumi,lumiText,cme))
-  return string
+    if text:
+      text += " "
+    text += "(%s TeV)"%(cme)
+  text = text.strip() # remove empty spaces in front/back
+  if verb>=4:
+    print(">>> getCMSLumiText: era=%r, lumi=%r, cme=%r, lumiText=%r"%(era,lumi,lumiText,cme))
+  return text
   
 
-def setCMSLumiStyle(pad, iPosX, **kwargs):
-  """Set CMS style for given TPad."""
+def setCMSLumiStyle(pad, iPosX=0, **kwargs):
+  """Set CMS style for a given TPad."""
   global outOfFrame, lumiTextSize, lumiText, extraText
   if 'era' in kwargs: # one era
     era = kwargs.get('era')
@@ -344,7 +344,12 @@ def fixOverlay():
   gPad.RedrawAxis()
   
 
-def setTDRStyle():
+def setTDRStyle(**kwargs):
+  global outOfFrame, extraText
+  if 'outOfFrame' in kwargs:
+    outOfFrame = kwargs['outOfFrame']
+  if 'extra' in kwargs:
+    extraText = kwargs['extra']
   
   tdrStyle = TStyle("tdrStyle","Style for P-TDR")
   

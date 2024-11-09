@@ -20,10 +20,6 @@ gROOT.SetBatch(True)
 #kWhiteTransparent = 4000
 
 # CMS style
-#TGaxis.SetExponentOffset(-0.074,0.015,'y')
-CMSStyle.extraText  = ""
-#CMSStyle.extraText  = "Preliminary"
-CMSStyle.outOfFrame = True
 CMSStyle.setTDRStyle()
 
 # https://root.cern.ch/doc/master/classTColor.html
@@ -38,7 +34,7 @@ _fcolors = [ kRed-2, kAzure+5,
              #kYellow-3
 _lstyles = [ kSolid, kDashed, ] # kDotted ]
 _mstyles = [ 8 ]
-_lmargin = 0.145 # default left margin used in Plot.setcanvas, Plot.setaxes
+_lmargin = 0.148 # default left margin used in Plot.setcanvas, Plot.setaxes
 
 
 class Plot(object):
@@ -68,17 +64,16 @@ class Plot(object):
           LOG.warn("Plot.__init__: Got extra, unrecognized: %r... Ignoring..."%(arg,))
       else: # assume histogram or list of histograms
         hargs.append(arg)
+    if len(hargs)==1 and islist(hargs[0]):
+      hargs = hargs[0] # list of histograms
     if len(hargs)==0:
       LOG.throw(IOError,"Plot.__init__: Found no input histograms... Need at least 1. Got: %r"%(args,))
-    elif len(hargs)==1 and islist(hargs[0]):
-      hists = hargs[0] # list of histograms
-    elif len(hargs)>=1 and all(isinstance(h,TH1) for h in hargs):
+    elif len(hargs)>=1 and all(isinstance(h,(TH1,TGraph)) for h in hargs):
       hists = hargs[:] # list of histograms
     else: # unrecognized arguments
       LOG.throw(IOError,"Plot.__init__: Wrong input %s"%(args,))
-    for i, hist in enumerate(hists):
-      if not hist or not isinstance(hist,TH1):
-        LOG.throw(IOError,"Plot.__init__: Did not recognize histogram in input: %s"%(args,))
+    ###if any(not h or not isinstance(h,(TH1,TGraph)) for h in hists) or not hists:
+    ###  LOG.throw(IOError,"Plot.__init__: Did not recognize histogram in input: %s"%(args,))
     if kwargs.get('clone',False):
       hists    = [h.Clone(h.GetName()+"_clone_Plot%d"%i) for i, h in enumerate(hists)]
     self.hists = hists
@@ -91,62 +86,67 @@ class Plot(object):
     if isinstance(variable,Variable):
       self.variable   = variable
       self.hasvarbins = variable.dividebins
-      self.name       = kwargs.get('name',       variable.filename    )
-      self.xtitle     = kwargs.get('xtitle',     variable.title       )
-      self.xmin       = kwargs.get('xmin',       variable.xmin        )
-      self.xmax       = kwargs.get('xmax',       variable.xmax        )
-      self.ymin       = kwargs.get('ymin',       variable.ymin        )
-      self.ymax       = kwargs.get('ymax',       variable.ymax        )
-      self.rmin       = kwargs.get('rmin',       variable.rmin        )
-      self.rmax       = kwargs.get('rmax',       variable.rmax        )
-      self.ratiorange = kwargs.get('rrange',     variable.ratiorange  )
+      self.name       = kwargs.get('name',       variable.filename   )
+      self.xtitle     = kwargs.get('xtitle',     variable.title      )
+      self.xmin       = kwargs.get('xmin',       variable.xmin       )
+      self.xmax       = kwargs.get('xmax',       variable.xmax       )
+      self.ymin       = kwargs.get('ymin',       variable.ymin       )
+      self.ymax       = kwargs.get('ymax',       variable.ymax       )
+      self.rmin       = kwargs.get('rmin',       variable.rmin       ) # ratio ymin
+      self.rmax       = kwargs.get('rmax',       variable.rmax       ) # ratio ymax
+      self.ratiorange = kwargs.get('rrange',     variable.ratiorange )
       self.binlabels  = kwargs.get('binlabels',  variable.binlabels or binlabels )
-      self.logx       = kwargs.get('logx',       variable.logx        )
-      self.logy       = kwargs.get('logy',       variable.logy        )
-      self.ymargin    = kwargs.get('ymargin',    variable.ymargin     )
-      self.logyrange  = kwargs.get('logyrange',  variable.logyrange   )
-      self.position   = kwargs.get('position',   variable.position    )
-      self.ncols      = kwargs.get('ncols',      variable.ncols       )
-      self.latex      = kwargs.get('latex',      False                ) # already done by Variable.__init__
-      self.dividebins = kwargs.get('dividebins', self.hasvarbins      ) # divide each histogram bins by it bin size
+      self.logx       = kwargs.get('logx',       variable.logx       )
+      self.logy       = kwargs.get('logy',       variable.logy       )
+      self.ymargin    = kwargs.get('ymargin',    variable.ymargin    )
+      self.logyrange  = kwargs.get('logyrange',  variable.logyrange  )
+      self.position   = kwargs.get('position',   variable.position   )
+      self.ncols      = kwargs.get('ncols',      variable.ncols      )
+      self.latex      = kwargs.get('latex',      False               ) # already done by Variable.__init__
+      self.dividebins = kwargs.get('dividebins', self.hasvarbins     ) # divide each histogram bins by it bin size
     else:
+      if isinstance(frame,TGraph) and not ('xmin' in kwargs or 'xmax' in kwargs):
+        xmin, xmax = getTGraphRange(frame,axis='x',verb=self.verbosity-2)
+      else:
+        xmin, xmax = frame.GetXaxis().GetXmin(), frame.GetXaxis().GetXmax() 
       self.variable   = variable or frame.GetXaxis().GetTitle()
       self.hasvarbins = frame.GetXaxis().IsVariableBinSize()
-      self.name       = kwargs.get('name',       None                 )
-      self.xtitle     = kwargs.get('xtitle',     self.variable        )
-      self.xmin       = kwargs.get('xmin', frame.GetXaxis().GetXmin() )
-      self.xmax       = kwargs.get('xmax', frame.GetXaxis().GetXmax() )
-      self.ymin       = kwargs.get('ymin',       None                 )
-      self.ymax       = kwargs.get('ymax',       None                 )
-      self.rmin       = kwargs.get('rmin',       None                 )
-      self.rmax       = kwargs.get('rmax',       None                 )
-      self.ratiorange = kwargs.get('rrange',     None                 )
-      self.binlabels  = kwargs.get('binlabels',  binlabels            )
-      self.logx       = kwargs.get('logx',       False                )
-      self.logy       = kwargs.get('logy',       False                )
-      self.ymargin    = kwargs.get('ymargin',    None                 )
-      self.logyrange  = kwargs.get('logyrange',  None                 )
-      self.position   = kwargs.get('position',   ""                   )
-      self.ncols      = kwargs.get('ncols',      None                 )
-      self.latex      = kwargs.get('latex',      True                 )
-      self.dividebins = kwargs.get('dividebins', False                ) # divide content / y values by bin size
+      self.name       = kwargs.get('name',       None                )
+      self.xtitle     = kwargs.get('xtitle',     self.variable       )
+      self.xmin       = kwargs.get('xmin',       xmin                )
+      self.xmax       = kwargs.get('xmax',       xmax                )
+      self.ymin       = kwargs.get('ymin',       None                )
+      self.ymax       = kwargs.get('ymax',       None                )
+      self.rmin       = kwargs.get('rmin',       None                ) # ratio ymin
+      self.rmax       = kwargs.get('rmax',       None                ) # ratio ymax
+      self.ratiorange = kwargs.get('rrange',     None                )
+      self.binlabels  = kwargs.get('binlabels',  binlabels           )
+      self.logx       = kwargs.get('logx',       False               )
+      self.logy       = kwargs.get('logy',       False               )
+      self.ymargin    = kwargs.get('ymargin',    None                )
+      self.logyrange  = kwargs.get('logyrange',  None                )
+      self.position   = kwargs.get('position',   ""                  )
+      self.ncols      = kwargs.get('ncols',      None                )
+      self.latex      = kwargs.get('latex',      True                )
+      self.dividebins = kwargs.get('dividebins', False               ) # divide content / y values by bin size
     self.ytitle       = kwargs.get('ytitle', frame.GetYaxis().GetTitle() or None )
     self.name         = self.name or (self.hists[0].GetName() if self.hists else "noname")
-    self.title        = kwargs.get('title',      None                 )
+    self.title        = kwargs.get('title',      None                )
     self.errband      = None
-    self.ratio        = kwargs.get('ratio',      False                )
-    self.append       = kwargs.get('append',     ""                   )
-    self.norm         = kwargs.get('norm',       False                )
-    self.lcolors      = kwargs.get('colors',     None                 ) or _lcolors[:]  # line colors
-    self.lcolors      = kwargs.get('lcolors',    None                 ) or self.lcolors # line colors alias
-    self.fcolors      = kwargs.get('fcolors',    None                 ) or _fcolors[:]  # fill colors
-    self.lstyles      = kwargs.get('lstyles',    None                 ) or _lstyles[:]  # line styles
-    self.mstyles      = kwargs.get('mstyles',    None                 ) #or _mstyles[:]  # marker styles
+    self.ratio        = kwargs.get('ratio',      False               )
+    self.append       = kwargs.get('append',     ""                  )
+    self.norm         = kwargs.get('norm',       False               )
+    self.lcolors      = kwargs.get('colors',     None                ) or _lcolors[:]  # line colors
+    self.lcolors      = kwargs.get('lcolors',    None                ) or self.lcolors # line colors alias
+    self.fcolors      = kwargs.get('fcolors',    None                ) or _fcolors[:]  # fill colors
+    self.lstyles      = kwargs.get('lstyles',    None                ) or _lstyles[:]  # line styles
+    self.mstyles      = kwargs.get('mstyles',    None                ) #or _mstyles[:]  # marker styles
     self.canvas       = None
     self.legends      = [ ]
     self.errbands     = [ ]
     self.texts        = [ ] # to save TLatex objects made by drawtext
     self.lines        = [ ]
+    self.boxes        = [ ]
     self.garbage      = [ ]
     
   
@@ -210,8 +210,8 @@ class Plot(object):
     grid         = kwargs.get('grid',         True            )
     rgrid        = kwargs.get('rgrid',        grid            ) # grid for ratio panel
     tsize        = kwargs.get('tsize',        _tsize          ) # text size for axis title
-    pair         = kwargs.get('pair',         False           )
-    triple       = kwargs.get('triple',       False           )
+    pair         = kwargs.get('pair',         False           ) # group histograms in pairs
+    triple       = kwargs.get('triple',       False           ) # group histograms in triplets
     lcolors      = kwargs.get('color',        None            ) # alias
     lcolors      = kwargs.get('colors',       lcolors         ) # alias
     setcols      = kwargs.get('setcols',      True            ) # set line colors (automatically)
@@ -226,8 +226,8 @@ class Plot(object):
     msizes       = kwargs.get('msize',        None            ) # alias
     msizes       = kwargs.get('msizes',       msizes          ) # marker style
     lwidth       = kwargs.get('lwidth',       2               ) # line width
-    option       = kwargs.get('option',       'HIST'          ) # draw option for every histogram
-    options      = kwargs.get('options',      [ ]             ) # list of individual draw options for each histogram
+    option       = kwargs.get('option',       'HIST'          ).upper() # draw option for every histogram
+    options      = kwargs.get('options',      [ ]             ) or [ ] # list of individual draw options for each histogram
     roption      = kwargs.get('roption',      None            ) # draw option of ratio plot
     drawden      = kwargs.get('drawden',      False           ) # draw denominator in ratio plot
     errbars      = kwargs.get('errbars',      not options     ) # add error bars to histogram
@@ -242,7 +242,6 @@ class Plot(object):
     fcolors      = ensurelist(fcolors or [ ])
     lstyles      = ensurelist(lstyles or [ ])
     hists        = self.hists
-    frame        = self.frame or hists[0]
     self.norm    = norm
     self.ratio   = ratio
     self.lcolors = lcolors
@@ -250,17 +249,10 @@ class Plot(object):
     self.lstyles = lstyles
     if not xmin and xmin!=0: xmin = self.xmin
     if not xmax and xmax!=0: xmax = self.xmax
-    if logx and xmin==0.0: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
-    if logx and xmin==0: # reset xmin in binning
-      xmin  = 0.25*frame.GetXaxis().GetBinWidth(1)
-      xbins = resetbinning(frame.GetXaxis(),xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
-      LOG.verb("Plot.draw: Resetting binning of all histograms (logx=%r, xmin=%s): %r"%(logx,xmin,xbins),verbosity,2)
-      for hist in hists:
-        if hist: hist.SetBins(*xbins) # set binning with xmin>0
     if isinstance(iband,int): # shift by 1
       if iband<0:
-        iband = max(1,len(self.hists)+iband+1)
-      iband = max(0,min(len(self.hists)-1,iband-1))
+        iband = max(1,len(hists)+iband+1)
+      iband = max(0,min(len(hists)-1,iband-1))
     if verbosity>=1:
       print(">>> Plot.draw: hists=%r, ratio=%r, norm=%r, dividebins=%r"%(hists,ratio,norm,dividebins))
       print(">>> Plot.draw: xtitle=%r, ytitle=%r, rtitle=%r"%(xtitle,ytitle,rtitle))
@@ -268,6 +260,7 @@ class Plot(object):
     
     # DIVIDE BY BINSIZE
     if dividebins:
+      LOG.verb("Plot.draw: dividebins=%r"%(dividebins),verbosity,2)
       for i, oldhist in enumerate(hists[:]):
         newhist = dividebybinsize(oldhist,zero=True,zeroerrs=False,poisson=False,verb=verbosity)
         if oldhist!=newhist: # new hist is actually a TGraph
@@ -282,6 +275,20 @@ class Plot(object):
       #    if hist not in hists:
       #      dividebybinsize(hist,zero=True,zeroerrs=False,verb=verbosity-2)
     
+    # RESET XMIN & BINNING
+    if logx and xmin==0: # reset xmin in binning if logx
+      frame = self.frame or self.hists[0]
+      xmin = 0.35*frame.GetXaxis().GetBinWidth(1)
+      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      xbins = getbinning(frame,xmin,xmax,variable=True,verb=verbosity) # new binning with xmin>0
+      LOG.verb("Plot.draw: Resetting xmin=0 -> %s in binning of all histograms (logx=%r, frame=%r): xbins=%r"%(
+        xmin,logx,frame,xbins),verbosity,1)
+      for hist in hists:
+        if hist and isinstance(hist,TH1):
+          hist.SetBins(*xbins) # set xmin>0 to plot correctly with logx
+      if self.frame and self.frame.GetXaxis().GetXmin()<=0.0:
+        self.frame = None # use getframe below
+    
     # NORMALIZE
     if norm:
       if ytitle==None:
@@ -290,19 +297,31 @@ class Plot(object):
       normalize(hists,scale=scale)
     
     # DRAW OPTIONS
-    if errbars:
-      option = option+' E1' #E01
-      if not roption:
-        roption = 'E1 HIST'
-    if not mstyles and 'e1' in option.lower() and enderrorsize>0:
-      mstyles = ['hist'] # ensure extra perpendicular line at end of error bars ('E1')
+    # https://root.cern/doc/master/classTHistPainter.html#HP01a
+    # https://root.cern.ch/doc/master/classTGraphPainter.html#GrP1
+    setmstyle = False
+    if errbars and 'E' not in option and not roption:
+      roption = 'E1 HIST'
     if len(options)==0:
-      options = [ option ]*len(hists)
-      if staterr and isinstance(iband,int):
-        options[iband] = 'HIST' # E3'
-    else:
+      for hist in hists:
+        option_ = option # default option for all hists
+        if isinstance(hist,TGraph):
+          option_ = option_.replace('HIST','').strip() or 'PE0'
+          if errbars and 'E' not in option_:
+            option_ = 'E0 '+option_ # ensure error bars
+        elif errbars and 'E' not in option_:
+          option_ = 'E1 '+option_ #E01 # ensure error bars
+        if 'P' in option_:
+          setmstyle = True
+        options.append(option_) # one option per hist
+      if staterr and isinstance(iband,int): #and not isinstance(,TGraph):
+        if isinstance(hists[iband],TGraph):
+          options[iband] = options[iband].replace('E','').replace('3','') #'HIST' # 'E3'
+        else:
+          options[iband] = 'HIST' # 'E3'
+    else: # ensure same number of options as number of hists
       while len(options)<len(hists):
-        options.append(options[-1])
+        options.append(options[-1]) # copy last style
     #if not self.histsD and staterr and errbars:
     #  i = denominator-1 if denominator>0 else 0
     #  options[i] = options[i].replace('E0','')
@@ -316,75 +335,87 @@ class Plot(object):
                                  lmargin=lmargin,rmargin=rmargin,tmargin=tmargin,bmargin=bmargin)
     
     # STYLE
-    ###lhists, mhists = [ ], [ ]
-    ###for hist, opt in zip(hists,options):
-    ###  if 'H' in opt:
-    ###    lhists.append(hist)
-    ###  else: # keep for marker style below
-    ###    mhists.append(hist)
+    if setmstyle and not mstyles and not isinstance(mstyles,bool): # match marker styles
+      mstyles = [ ]
+      for hist, option_ in zip(hists,options):
+        if isinstance(hist,TGraph):
+          opt = 'data' if 'P' in option_ else 'hist' if 'E' in option_ else 'none'
+          mstyles.append(opt)
+        elif 'E1' in option_ and enderrorsize>0:
+          mstyles.append('hist') # ensure extra perpendicular line at end of error bars ('E1')
+        else:
+          mstyles.append('none') # no marker at all
     if not (isinstance(lstyles,bool) and lstyles==False):
       self.setlinestyle(hists,colors=lcolors,styles=lstyles,mstyle=mstyles,width=lwidth,pair=pair,triple=triple,setcols=setcols)
     if mstyles:
       self.setmarkerstyle(*hists,mstyle=mstyles,msizes=msizes)
     
     # DRAW FRAME
-    self.canvas.cd(1)
+    mainpad = self.canvas.cd(1)
     if not self.frame: # if not given by user
-      self.frame = getframe(gPad,self.hists[0],xmin,xmax)
-      #self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
-    elif self.frame!=self.hists[0]:
-      self.frame.Draw('AXIS') # 'AXIS' breaks GRID?
+      self.frame = getframe(mainpad,hists[0],xmin,xmax,variable=False,verb=verbosity-1)
+      self.frame.Draw('AXIS')
+    elif isinstance(self.frame,TGraph):
+      self.frame = getframe(mainpad,self.frame,xmin,xmax,variable=False,verb=verbosity-1)
+      self.frame.Draw() # 'AXIS' breaks grid in combination with TGraph for some reason !?
+    else: #if frame!=hists[0]:
+      self.frame.Draw('AXIS')
     
     # DRAW LINE
     for line in self.lines:
       if line.pad==1:
-        line.Draw("LSAME")
+        line.Draw(line.option)
+    for box in self.boxes:
+      if box.pad==1:
+        box.Draw(box.option)
     
     # DRAW HISTS
-    LOG.verb("Plot.draw: options=%r"%(options),verbosity,2)
+    LOG.verb("Plot.draw: frame=%r, options=%r"%(self.frame,options),verbosity,2)
     for i, (hist, option_) in enumerate(zip(hists,options)):
       if triple and i%3==2:
         option_ = 'E1'
       if 'SAME' not in option_: #i>0:
         option_ += " SAME"
       hist.Draw(option_)
-      hist.SetOption(option_)
+      #if hasattr(hist,'SetOption'):
+      hist.SetOption(option_) # for choosing default line style and legend symbol
       LOG.verb("Plot.draw: i=%s, hist=%r, option=%r"%(i,hist,option_),verbosity,2)
     
     # CMS STYLE
     if CMSStyle.lumiText:
       #mainpad = self.canvas.GetPad(1 if ratio else 0)
-      CMSStyle.setCMSLumiStyle(gPad,0)
+      CMSStyle.setCMSLumiStyle(mainpad,0,verb=verbosity-2)
     
     # ERROR BAND
     if staterr or sysvars:
       #seterrorbandstyle(hists[0],fill=False)
-      errhist = iband if isinstance(iband,TH1) else self.hists[iband]
-      self.errband = geterrorband(errhist,sysvars=sysvars,color=errhist.GetLineColor(),
-                                  name=makehistname("errband",self.name),title=errtitle)
+      errhist = iband if isinstance(iband,TH1) else hists[iband]
+      LOG.verb("Plot.draw: errhist=%r"%(errhist),verbosity,2)
+      self.errband = geterrorband(errhist,sysvars=sysvars,color=errhist.GetLineColor(),title=errtitle,
+                                  name=makehistname("errband",self.name),verb=verbosity)
       self.errband.Draw('E2 SAME')
     
     # AXES
     drawx = not bool(ratio)
     self.setaxes(self.frame,*hists,drawx=drawx,grid=grid,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,logy=logy,logx=logx,nxdiv=nxdiv,nydiv=nydiv,
-                 xtitle=xtitle,ytitle=ytitle,xtitlesize=xtitlesize,ytitlesize=ytitlesize,latex=latex,center=ycenter,
+                 xtitle=xtitle,ytitle=ytitle,xtitlesize=xtitlesize,ytitlesize=ytitlesize,latex=latex,center=ycenter,logyrange=logyrange,
                  ytitleoffset=ytitleoffset,xtitleoffset=xtitleoffset,xlabelsize=xlabelsize,ylabelsize=ylabelsize,
-                 dividebins=dividebins,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,logyrange=logyrange)
+                 dividebins=dividebins,binlabels=binlabels,labeloption=labeloption,ymargin=ymargin,verb=verbosity)
     
     # RATIO
     if ratio:
       drawx = (lowerpanels<=1)
-      self.canvas.cd(2)
-      self.ratio = Ratio(*rhists,errband=self.errband,denom=denom,num=num,drawzero=True,drawden=drawden,option=roption)
-      self.ratio.draw(roption,xmin=xmin,xmax=xmax)
+      lines = [l for l in self.lines if l.pad==2]
+      boxes = [b for b in self.boxes if b.pad==2]
+      self.canvas.cd(2) # go to ratio panel
+      self.ratio = Ratio(*rhists,errband=self.errband,denom=denom,num=num,drawzero=True,drawden=drawden,option=roption,verb=verbosity)
+      self.ratio.draw(roption,xmin=xmin,xmax=xmax,lines=lines,boxes=boxes)
       self.setaxes(self.ratio,drawx=drawx,grid=rgrid,xmin=xmin,xmax=xmax,ymin=rmin,ymax=rmax,logx=logx,nxdiv=nxdiv,nydiv=nrdiv,
                    xtitle=xtitle,ytitle=rtitle,xtitlesize=xtitlesize,ytitlesize=rtitlesize,center=True,
                    xtitleoffset=xtitleoffset,ytitleoffset=rtitleoffset,xlabelsize=xlabelsize,ylabelsize=ylabelsize,
-                   binlabels=binlabels,labeloption=labeloption,rrange=ratiorange,latex=latex)
-      for line in self.lines:
-        if line.pad==2:
-          line.Draw("LSAME")
-      self.canvas.cd(1)
+                   binlabels=binlabels,labeloption=labeloption,rrange=ratiorange,latex=latex,verb=verbosity)
+      self.canvas.cd(1) # go back to main pad
+    
     return self.canvas
     
   
@@ -449,10 +480,10 @@ class Plot(object):
   def setcanvas(self,**kwargs):
     """Make canvas and pads for ratio plots."""
     verbosity = LOG.getverbosity(self,kwargs)
-    square   = kwargs.get('square',  False  ) # square (main panel)
-    lower    = kwargs.get('lower',   False  ) # include lower panel (boolean, integer, list/tuple of floats)
-    splits   = 1./3. if lower in [1,True] else [0.20,0.28] if lower==2 else lower
-    splits   = kwargs.get('split',   splits ) or splits # height of lower panel as fraction of canvas height
+    square    = kwargs.get('square',  False  ) # square (main panel)
+    lower     = kwargs.get('lower',   False  ) # include lower panel (boolean, integer, list/tuple of floats)
+    splits    = 1./3. if lower in [1,True] else [0.20,0.28] if lower==2 else lower
+    splits    = kwargs.get('split',   splits ) or splits # height of lower panel as fraction of canvas height
     if lower: # lower panel
       splits   = ensurelist(splits) # list of splits, e.g. [0.33] or [0.25,0.25]
       splitsum = sum(splits) # Sum of height of lower panels as total fraction of canvas height
@@ -462,15 +493,15 @@ class Plot(object):
     else: # no lower panel
       height_  = 900 if square else 600 # default canvas height
       width_   = 900 if square else 800 # default canvas width
-    width    = kwargs.get('width',   None   ) or width_  # canvas width
-    height   = kwargs.get('height',  None   ) or height_ # canvas height
-    wscale   = width_/float(width)   # correction factor to default margin
-    hscale   = height_/float(height) # correction factor to default margin
-    lmargin  = kwargs.get('lmargin', 1.     )*wscale # scale left margin
-    rmargin  = kwargs.get('rmargin', 1.     )*wscale # scale right margin
-    tmargin  = kwargs.get('tmargin', 1.     )*hscale # scale top margin
-    bmargin  = kwargs.get('bmargin', 1.     )*hscale # scale bottom margin
-    pads     = kwargs.get('pads',    [ ]    ) # pass list as reference
+    width   = kwargs.get('width',   None   ) or width_  # canvas width
+    height  = kwargs.get('height',  None   ) or height_ # canvas height
+    wscale  = width_/float(width)   # correction factor to default margin
+    hscale  = height_/float(height) # correction factor to default margin
+    lmargin = kwargs.get('lmargin', 1.     )*wscale # scale left margin
+    rmargin = kwargs.get('rmargin', 1.     )*wscale # scale right margin
+    tmargin = kwargs.get('tmargin', 1.     )*hscale # scale top margin
+    bmargin = kwargs.get('bmargin', 1.     )*hscale # scale bottom margin
+    pads    = kwargs.get('pads',    [ ]    ) # pass list as reference
     if square:
       lmargin *= 1.15
       tmargin *= 0.90
@@ -539,7 +570,7 @@ class Plot(object):
       return 0, 0, 100, 100
     frame         = hists[0]
     if len(binning)>=2:
-      xmin, xmax  = binning[:2]
+      xmin, xmax  = binning[0], binning[-1]
     else:
       xmin, xmax  = frame.GetXaxis().GetXmin(), frame.GetXaxis().GetXmax()
     nbins         = frame.GetXaxis().GetNbins()
@@ -583,7 +614,7 @@ class Plot(object):
       xlabelsize  = 0.0
     if latex:
       xtitle      = makelatex(xtitle)
-    LOG.verb("Plot.setaxes: Binning (%s,%.1f,%.1f), frame=%s"%(nbins,xmin,xmax,frame),verbosity,2)
+    LOG.verb("Plot.setaxes: frame=%r with binning (%s,%.6g,%.6g), "%(frame,nbins,xmin,xmax),verbosity,2)
     if verbosity>=3:
       print(">>> Plot.setaxes: drawx=%r, grid=%r, latex=%r"%(drawx,grid,latex))
       print(">>> Plot.setaxes: logx=%r, logy=%r, ycenter=%r, intbins=%r, nxdiv=%s, nydiv=%s"%(logx,logy,ycenter,intbins,nxdivisions,nydivisions))
@@ -592,7 +623,7 @@ class Plot(object):
     if ratiorange:
       ymin, ymax  = 1.-ratiorange, 1.+ratiorange
     if intbins and nbins<15 and int(xmin)==xmin and int(xmax)==xmax and binwidth==1:
-      LOG.verb("Plot.setaxes: Setting integer binning for (%r,%s,%d,%d)!"%(xtitle,nbins,xmin,xmax),verbosity,2)
+      LOG.verb("Plot.setaxes: Setting integer binning for (%r,%d,%.2f,%.2f)!"%(xtitle,nbins,xmin,xmax),verbosity,2)
       binlabels   = [str(i) for i in range(int(xmin),int(xmax)+1)]
       xlabelsize   *= 1.6
       xlabeloffset *= 0.88*scale
@@ -619,7 +650,7 @@ class Plot(object):
         hmaxs.append(getTGraphYRange(hist)[1] if isinstance(hist,TGraph) else hist.GetMaximum())
     else:
       for hist in hists:
-        ymin1, ymax1 = getTGraphYRange(hist) if isinstance(hist,TGraph) else hist.GetMinimum(), hist.GetMaximum()
+        ymin1, ymax1 = getTGraphYRange(hist) if isinstance(hist,TGraph) else (hist.GetMinimum(),hist.GetMaximum())
         if negativey:
           hmins.append(ymin1)
         hmaxs.append(ymax1)
@@ -649,7 +680,8 @@ class Plot(object):
     elif ymax==None:
       ymax = hmax*ymargin
     if logx:
-      if not xmin: xmin = 0.25*frame.GetXaxis().GetBinWidth(1)
+      if not xmin:
+        xmin = 0.35*frame.GetXaxis().GetBinWidth(1)
       xmax *= 0.9999999999999
       gPad.Update(); gPad.SetLogx()
     if grid:
@@ -751,7 +783,7 @@ class Plot(object):
     return xmin, xmax, ymin, ymax
     
   
-  def drawlegend(self,position=None,**kwargs):
+  def drawlegend(self,position=None,printmean=False,**kwargs):
     """Create and draw legend.
     Legend position can be controlled in several ways
       drawlegend(position)
@@ -811,7 +843,8 @@ class Plot(object):
     ncols       = kwargs.get('ncols',       ncols          ) or 1 # number of legend columns
     colsep      = kwargs.get('colsep',      0.06           ) # seperation between legend columns
     bold        = kwargs.get('bold',        True           ) # bold legend header
-    panel       = kwargs.get('panel',       1              ) # panel (top=1, bottom=2)
+    pad         = kwargs.get('panel',       1              ) # panel (top/main=1, bottom/ratio=2)
+    pad         = kwargs.get('pad',         pad            ) # pad (top/main=1, bottom/ratio=2)
     texts       = ensurelist(texts,nonzero=True)
     entries     = ensurelist(entries,nonzero=False)
     bandentries = ensurelist(bandentries,nonzero=True)
@@ -820,7 +853,7 @@ class Plot(object):
     # CHECK
     LOG.insist(self.canvas,"Canvas does not exist!")
     oldpad = gPad
-    self.canvas.cd(panel)
+    self.canvas.cd(pad)
     scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     xscale = 800./gPad.GetWw()
     tsize *= scale # text size
@@ -832,7 +865,10 @@ class Plot(object):
     #  for band, bandtitle in zip(band,bandentries):
     #    entries.insert(hists.index(band),bandtitle)
     while len(entries)<len(hists):
-      entries.append(hists[len(entries)].GetTitle())
+      if printmean:
+        entries.append(hists[len(entries)].GetTitle() + ':  %0.3f' %hists[len(entries)].GetMean())
+      else:
+        entries.append(hists[len(entries)].GetTitle())
     while len(bandentries)<len(bands):
       bandentries.append(bands[len(bandentries)].GetTitle())
     hists   = hists + bands
@@ -856,6 +892,8 @@ class Plot(object):
         styles.append('f')
       elif 'E0' in hist.GetOption() or 'E1' in hist.GetOption():
         if 'HIST' in hist.GetOption() and 'l' not in errstyle:
+          styles.append('l'+errstyle)
+        elif isinstance(hist,(TGraphErrors,TGraphAsymmErrors)): # vertical error bars
           styles.append('l'+errstyle)
         else:
           styles.append(errstyle)
@@ -974,7 +1012,7 @@ class Plot(object):
           LOG.verb("Plot.drawlegend: Replace '$FRAC' with %r (num=%s, den=%s) in %r"%(frac,num,den,entry_),verbosity,3)
           entry_ = entry_.replace('$FRAC',frac)
         for entry in entry_.split('\n'): # break lines
-          LOG.verb("Plot.drawlegend: Add entry (%r,%r,%r)"%(hist_,entry,style_),verbosity,2)
+          LOG.verb("Plot.drawlegend: Add entry: %r, %r, %r"%(hist_,entry,style_),verbosity,2)
           legend.AddEntry(hist_,entry,style_)
           hist_, style_ = 0, '' # for next line
     for line in texts:
@@ -990,7 +1028,7 @@ class Plot(object):
     
     legend.Draw(option)
     self.legends.append(legend)
-    oldpad.cd()
+    oldpad.cd() # return to previous pad to not interfere with other operations
     return legend
     
   
@@ -1014,18 +1052,21 @@ class Plot(object):
     Values less than 0, or larger than 1, will put the text outside the frame.
     """
     verbosity  = LOG.getverbosity(self,kwargs)
-    position   = kwargs.get('pos',      None )
-    position   = kwargs.get('position', position  ) or 'topleft' #.lower()
-    tsize      = kwargs.get('size',     _lsize    ) # text size
-    tsize      = kwargs.get('tsize',    tsize     ) # text size
-    theight    = kwargs.get('theight',  None      ) or 1 # scale line height
-    bold       = kwargs.get('bold',     False     ) # bold text
-    dolatex    = kwargs.get('latex',    True      ) # automatically format strings as LaTeX
-    xuser      = kwargs.get('x',        None      ) # horizontal position
-    yuser      = kwargs.get('y',        None      ) # vertical position
-    ndc        = kwargs.get('ndc',      True      ) # normalized coordinates
-    align_user = kwargs.get('align',    None      ) # text line
-    panel      = kwargs.get('panel',    1         ) # panel (top=1, bottom=2)
+    position   = kwargs.get('pos',      None     )
+    position   = kwargs.get('position', position ) or 'topleft' #.lower()
+    tsize      = kwargs.get('size',     _lsize   ) # text size
+    tsize      = kwargs.get('tsize',    tsize    ) # text size
+    theight    = kwargs.get('theight',  None     ) or 1 # scale line height
+    color      = kwargs.get('color',    kBlack   ) # text color
+    bold       = kwargs.get('bold',     False    ) # bold text
+    angle      = kwargs.get('angle',    0        ) # text angle
+    dolatex    = kwargs.get('latex',    True     ) # automatically format strings as LaTeX
+    xuser      = kwargs.get('x',        None     ) # horizontal position
+    yuser      = kwargs.get('y',        None     ) # vertical position
+    ndc        = kwargs.get('ndc',      True     ) # normalized coordinates
+    align_user = kwargs.get('align',    None     ) # text line
+    pad        = kwargs.get('panel',    1        ) # panel (top/main=1, bottom/ratio=2)
+    pad        = kwargs.get('pad',      pad      ) # pad (top/main=1, bottom/ratio=2)
     texts      = unpacklistargs(texts)
     i = 0
     while i<len(texts):
@@ -1041,7 +1082,8 @@ class Plot(object):
     
     # CHECK
     LOG.insist(self.canvas,"Canvas does not exist! Did you call Plot.draw?")
-    self.canvas.cd(panel)
+    oldpad = gPad
+    self.canvas.cd(pad)
     scale  = 485./min(gPad.GetWh()*gPad.GetHNDC(),gPad.GetWw()*gPad.GetWNDC())
     tsize *= scale # text size
     
@@ -1080,7 +1122,8 @@ class Plot(object):
     latex.SetTextSize(tsize)
     latex.SetTextAlign(align)
     latex.SetTextFont(font)
-    #latex.SetTextColor(kRed)
+    latex.SetTextColor(color)
+    latex.SetTextAngle(angle)
     latex.SetNDC(ndc)
     for i, line in enumerate(texts):
       if dolatex:
@@ -1089,33 +1132,64 @@ class Plot(object):
       latex.DrawLatex(x,yline,line)
       LOG.verb("Plot.drawtext: i=%d, x=%.2f, y=%.2f, text=%r"%(i,x,yline,line),verbosity,2)
     self.texts.append(latex)
+    oldpad.cd() # return to previous pad to not interfere with other operations
     
     return latex
     
   
   def drawline(self,x1,y1,x2,y2,color=kBlack,style=kSolid,width=1,pad=1,redraw=True):
-    """Draw line on canvas. If it already exists, draw now on top,
-    else draw later in Plot.draw on bottom."""
+    """Draw line on canvas. If the canvas already exists, draw now on top of existing objects,
+    else draw later in Plot.draw on in background."""
     if x1=='min': x1 = self.xmin
     if x2=='max': x2 = self.xmax
     if y1=='min': y1 = self.ymin # if available after Plot.draw
     if y2=='max': y2 = self.ymax # if available after Plot.draw
-    line = TGraph(2) #TLine(xmin,1,xmax,1)
+    line = TGraph(2) #TLine(xmin,1,xmax,1) # use TGraph to stay inside frame
     line.SetPoint(0,x1,y1)
     line.SetPoint(1,x2,y2)
     line.SetLineColor(color)
     line.SetLineStyle(style)
     line.SetLineWidth(width)
-    line.pad = pad
+    line.pad = pad # 1: main, 2: ratio (typically)
+    line.option = 'LSAME'
     if self.canvas:
       oldpad = gPad
       self.canvas.cd(pad) # 1: main, 2: ratio (typically)
-      line.Draw("LSAME")
-      oldpad.cd()
-    if redraw:
-      gPad.RedrawAxis()
+      line.Draw(line.option)
+      if redraw: # redraw axis on top of lines
+        gPad.RedrawAxis()
+      oldpad.cd() # return to previous pad to not interfere with other operations
     self.lines.append(line)
     return line
+    
+  
+  def drawbox(self,x1,y1,x2,y2,color=kRed,style=1001,pad=1,redraw=True):
+    """Draw box on canvas. If the canvas already exists, draw now on top of existing objects,
+    else draw later in Plot.draw on in background."""
+    if x1=='min': x1 = self.xmin
+    if x2=='max': x2 = self.xmax
+    if y1=='min': y1 = self.ymin # if available after Plot.draw
+    if y2=='max': y2 = self.ymax # if available after Plot.draw
+    box = TGraph(4) #TLine(xmin,1,xmax,1) # use TGraph to stay inside frame
+    points = [(x1,y1),(x2,y1),(x2,y2),(x1,y2),(x1,y1)] # box corners (cyclic)
+    for i, (x,y) in enumerate(points):
+      box.SetPoint(i,x,y)
+    box.SetLineWidth(2)
+    box.SetLineStyle(kSolid)
+    box.SetLineColor(color)
+    box.SetFillStyle(style)
+    box.SetFillColor(color)
+    box.pad = pad # 1: main, 2: ratio (typically)
+    box.option = 'FSAME'
+    if self.canvas:
+      oldpad = gPad
+      self.canvas.cd(pad) # 1: main, 2: ratio (typically)
+      graph.Draw(box.option)
+      if redraw: # redraw axis on top of box
+        gPad.RedrawAxis()
+      oldpad.cd() # return to previous pad to not interfere with other operations
+    self.boxes.append(box)
+    return box
     
   
   def drawbins(self,bins,text=True,y=0.96,**kwargs):
@@ -1198,7 +1272,7 @@ class Plot(object):
       if triple:
         if setcols:
           hist.SetLineColor(colors[(i//3)%len(colors)])
-        hist.SetLineStyle(styles[i%3])
+        hist.SetLineStyle(styles[i%min(3,len(styles))])
         hist.SetMarkerSize(0.6)
         hist.SetMarkerColor(hist.GetLineColor()+1)
       elif pair:
@@ -1207,7 +1281,7 @@ class Plot(object):
           color += 1 # make darker
         if setcols:
           hist.SetLineColor(colors[(i//2)%len(colors)])
-        hist.SetLineStyle(styles[i%2])
+        hist.SetLineStyle(styles[i%min(2,len(styles))])
         hist.SetMarkerColor(color)
         if i%2==1: hist.SetMarkerSize(0.6)
         else:      hist.SetMarkerSize(0.0)
@@ -1224,6 +1298,7 @@ class Plot(object):
       if widths:
         hist.SetLineWidth(widths[i%len(widths)])
       if triple and i%3==2:
+        #if hasattr(hist,'SetOption'):
         hist.SetOption('E1')
         #hist.SetLineWidth(0)
         hist.SetLineStyle(kSolid)
@@ -1265,6 +1340,8 @@ class Plot(object):
           mstyle, msize = 8, 0.01
       elif mstyle==None:
         mstyle, msize = 0, 0.0
+      elif isinstance(mstyle,int):
+        msize = 0.9
       if msizes: # overwrite
         msize = msizes[i]
       hist.SetMarkerStyle(mstyle)

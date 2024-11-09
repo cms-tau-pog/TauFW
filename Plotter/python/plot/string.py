@@ -206,7 +206,7 @@ def makehistname(*strings,**kwargs):
   kwargs.setdefault('dots',False)
   #hname = '_'.join(getobjname(s).strip('_') for s in strings) #.replace(' ','_')
   hname = makefilename(*strings,**kwargs)
-  hname = hname.replace('[','').replace(']','').replace('*','x')
+  hname = hname.replace('[','').replace(']','').replace('*','x').replace('.', 'p')
   return hname
   
 
@@ -381,13 +381,15 @@ def replacepattern(oldstr,patterns):
   """
   if not patterns:
     return oldstr
-  if len(patterns) in [2,3] and not isinstance(patterns,list): #islist(patterns[0]):
-    patterns = [patterns] # ensure list of patterns
+  if isinstance(patterns[0],str):
+    patterns = [patterns] # ensure list of patterns of the form (str oldpat,str newpat) or (str oldpat,str newpat,bool regexp)
   for patargs in patterns:
-    if len(patargs)>=3:
+    if len(patargs)==3:
       oldpat, newpat, regexp = patargs[:3]
-    else:
+    elif len(patargs)==2:
       oldpat, newpat, regexp = patargs[0], patargs[1], False # default
+    else:
+      raise IOError("replacepattern: Pattern must be of form (str oldpat,str newpat) or (str oldpat,str newpat,bool regexp)... Got oldstr=%r, patargs=%r"%(oldstr,patargs))
     if regexp: # substitution with regular expression
       newstr = re.sub(oldpat,newpat,oldstr)
     else: # simple substitution

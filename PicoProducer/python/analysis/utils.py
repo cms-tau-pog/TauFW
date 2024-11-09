@@ -220,7 +220,12 @@ def filtermutau(event):
 
 def matchgenvistau(event,tau,dRmin=0.5):
   """Help function to match tau object to gen vis tau."""
-  # TO CHECK: taumatch.genPartIdxMother==tau.genPartIdx ?
+  # TO CHECK:
+  #genvistau_idx = tau.genPartIdx
+  #if genvistau_idx > -1:
+  #  return event.GenVisTau_pt[genvistau_idx], event.GenVisTau_eta[genvistau_idx], event.GenVisTau_phi[genvistau_idx], event.GenVisTau_status[genvistau_idx]
+  #else:
+  #  return -1, -9, -9, -1
   taumatch = None
   for genvistau in Collection(event,'GenVisTau'):
     dR = genvistau.DeltaR(tau)
@@ -402,7 +407,7 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
     if '2022' in era:
       electronIso90=electron.mvaIso_Fall17V2_WP90
       electronIso=electron.mvaIso_Fall17V2_WPL
-    if '2023' in era:
+    elif '2023' in era:
       electronIso90=electron.mvaIso_WP90
       electronIso=electron.mvaIso
     else:
