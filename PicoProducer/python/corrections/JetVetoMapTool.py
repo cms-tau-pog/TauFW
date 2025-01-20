@@ -19,7 +19,7 @@ class JetVetoMapTool:
       filename = os.path.join(datadir,"Summer22EE_23Sep2023_RunEFG_v1.root")
     elif re.search(r"2023(C|.*pre)",era):
       filename = os.path.join(datadir,"Summer23Prompt23_RunC_v1.root")
-    elif re.search(r"2023(D|.*post)",era):
+    elif re.search(r"2023(D|.*post)",era) or re.search(r"2024", era):
       filename = os.path.join(datadir,"Summer23BPixPrompt23_RunD_v1.root")
     if not filename:
       LOG.throw(OSError,"Did not recognize era=%r... Note: Only mandatory in Run 3,"

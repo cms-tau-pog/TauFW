@@ -104,7 +104,7 @@ def getsampleset(datasample,expsamples,sigsamples=[ ],**kwargs):
         datasample.add(Data(setname,title_,fname,**datakwargs))
     else:
       LOG.throw(IOError,"Did not find data file %r"%(fpattern))
-  
+
   # SAMPLE SET
   sampleset = SampleSet(datasample,expsamples,sigsamples,**kwargs)
   return sampleset
@@ -411,9 +411,9 @@ def stitch(samplelist,*searchterms,**kwargs):
   # FIND INCLUSIVE SAMPLE
   sample_incl = None
   sample_mutau = None #"DYJetsToMuTauh_M-50"
-  if "2022" in era or "2023" in era: # DYto2L-4Jets_MLL-50_*J, WJetstoLNu-4Jets_*J
-    samples_jetIncl = [s for s in stitchlist if s.name==name_incl]
-  else: # DY*JetsToLL_M-50, W*JetstoLNu
+  if "2022" in era or "2023" in era or '2024' in era: 
+    samples_jetIncl = [s for s in stitchlist if s.name == name_incl]
+  else:
     samples_jetIncl = [s for s in stitchlist if s.match(name_incl)]
   LOG.verb(f"stitch: samples_jetIncl={samples_jetIncl!r}",verbosity,level=1)
   for sample in samples_jetIncl:
@@ -492,7 +492,9 @@ def stitch(samplelist,*searchterms,**kwargs):
     if sample in samples_jetIncl:
       continue
     else:
-      if "2022" in era or "2023" in era: 
+      print(sample.name)
+      
+      if "2022" in era or "2023" in era or "2024" in era: 
         match = re.search(r'_(\d{1,2}J)', sample.name)
         if match:
           njets = int(match.group(1)[:-1])
