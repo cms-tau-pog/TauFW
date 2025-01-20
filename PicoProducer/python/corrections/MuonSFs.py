@@ -79,9 +79,10 @@ class MuonSFs:
       elif re.search(r"2023(C|.*pre)",era): # 2024C (preBPIX)
         fname_id = pathPOG+"2023_Summer23/muon_Z.json.gz"
         #abseta = False
-      elif re.search(r"2023(D|.*post)",era): # 2024D (postBPIX)
+      elif re.search(r"2023(D|.*post)",era) or re.search(r"2024", era): # 2024D (postBPIX)
         fname_id = pathPOG+"2023_Summer23BPix/muon_Z.json.gz"
         #abseta = False
+
     
     # DEFAULTS
     if sf_id==None:

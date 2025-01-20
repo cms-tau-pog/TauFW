@@ -68,6 +68,8 @@ def getJSON(era):
     jname = os.path.join(jsondir,'Cert_Collisions2022_355100_362760_Golden_JSON.txt')
   elif '2023' in era:
     jname = os.path.join(jsondir,'Cert_Collisions2023_366442_370790_Golden.json')
+  elif '2024' in era:
+    jname = os.path.join(jsondir,'Cert_Collisions2024_378981_385012_Golden.json')
   else:
     raise IOError("getJSONs: Did not recognize era %r"%era)
   return jname
