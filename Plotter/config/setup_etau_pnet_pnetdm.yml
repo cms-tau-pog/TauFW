@@ -1,0 +1,72 @@
+##
+## Config file for default TES fit in mutau channel
+## contact: saskia.falke@cern.ch
+##
+
+# NOTE: In general, the main information (channel, baselineCuts, etc.) should be given.
+#       More specific sub-options (like weight replacement for systematic uncertainties) are optional
+#       These are not needed for plotting only
+
+
+channel: etau_pnet_pnetdm
+
+baselineCuts: "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && rawPNetVSjet_2>=0.881 && rawPNetVSmu_2>=0.99 && !lepton_vetoes_notau && metfilter && rawPNetVSe_2>=0.4" #&& rawPNetVSe_2>=0.992"
+regions:
+   signalRegion: 
+      definition: "mt_1<40"
+      title: "signal region"
+   # DM0: 
+   #    definition: "mt_1<40 && dm_2==0"
+   #    title: "h^{#pm}"
+   # DM1: 
+   #    definition: "mt_1<40 && dm_2==1"
+   #    title: "h^{#pm}#pi^{0}"
+   # DM10: 
+   #    definition: "mt_1<40 && dm_2==10"
+   #    title: "h^{#pm}h^{#mp}h^{#pm}"
+   # DM11: 
+   #    definition: "mt_1<40 && dm_2==11"
+   #    title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+   PNetDM0: 
+      definition: "mt_1<40 && decayModePNet_2==0"
+      title: "PNetDM 0"
+   PNetDM1: 
+      definition: "mt_1<40 && decayModePNet_2==1"
+      title: "PNetDM 1"
+   PNetDM2: 
+      definition: "mt_1<40 && decayModePNet_2==2"
+      title: "PNetDM 2"
+   PNetDM10: 
+      definition: "mt_1<40 && decayModePNet_2==10"
+      title: "PNetDM 10"
+   PNetDM11: 
+      definition: "mt_1<40 && decayModePNet_2==11"
+      title: "PNetDM 11" #"pnetdms h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+   PNetNoDM2:
+      definition: "mt_1<40 && decayModePNet_2!=2"
+      title: "pnetdm!=2"
+   HPSorPNet:
+      definition: "mt_1 < 40 && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSe_2>=2) || !idDecayModeNewDMs_2)"
+      title: "HPS conditions: VSe_{VVL}"
+   HPSorPNetVSeMedium:
+      definition: "mt_1 < 40 && rawPNetVSe_2>=0.983 && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSe_2>=5) || !idDecayModeNewDMs_2)"
+      title: "HPS conditions: VSe_{M}"
+   HPSorPNetVSeTight:
+      definition: "mt_1 < 40 && rawPNetVSe_2>=0.992 && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSe_2>=6) || !idDecayModeNewDMs_2)"
+      title: "HPS conditions: VSe_{T}"
+   HPSorPNetVSeVTight:
+      definition: "mt_1 < 40 && rawPNetVSe_2>=0.996 && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSe_2>=7) || !idDecayModeNewDMs_2)"
+      title: "HPS conditions: VSe_{VT}"
+   HPSorPNetVSeVVTight:
+      definition: "mt_1 < 40 && rawPNetVSe_2>=0.998 && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSe_2>=8) || !idDecayModeNewDMs_2)"
+      title: "HPS conditions: VSe_{VVT}"
+   # idDeepTauVSmu:
+   #    definition: "mt_1<40 && idDeepTau2018v2p5VSmu_2>=4"
+   #    title: "VSmu: Tight_{DeepTau}"
+   # PNetDM0HighEta:
+   #    definition: "mt_1<40 && decayModePNet_2==0 && abs(eta_2) > 1.7"
+   #    title: "DM_{PNet} abs(#eta) > 1.7"
+   # PNetDM0LowEta:
+   #    definition: "mt_1<40 && decayModePNet_2==0 && abs(eta_2) < 1.7"
+   #    title: "DM_{PNet} abs(#eta) < 1.7"
+

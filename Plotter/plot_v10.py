@@ -22,6 +22,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   LOG.header("plot")
   
   channel  = setup["channel"]
+  print("Variables: ",varfilter)
   
   if 'baselineCuts' in setup: # baseline pre-selections
     baseline = setup['baselineCuts']
@@ -41,7 +42,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
   
   # VARIABLES
   variables = [
-    Var('pt_1',  "Muon pt",    40,  0, 120, ctitle={'etau':"Electron pt",'tautau':"Leading tau_h pt",'mumu':"Leading muon pt",'emu':"Electron pt"},cbins={"nbtag\w*>":(40,0,200)}),
+    Var('pt_1',  "Muon pt",    40,  0, 120, ctitle={'etau_pnet':"Electron pt",'tautau':"Leading tau_h pt",'mumu':"Leading muon pt",'emu':"Electron pt"},cbins={"nbtag\w*>":(40,0,200)}),
     Var('pt_2',  "tau_h pt",   40,  0, 120, ctitle={'tautau':"Subleading tau_h pt",'mumu':"Subleading muon pt",'emu':"Muon pt"},cbins={"nbtag\w*>":(40,0,200)}),
     Var('eta_1', "Muon eta",   30, -3,   3, ctitle={'etau':"Electron eta",'tautau':"Leading tau_h eta",'mumu':"Leading muon eta",'emu':"Electron eta"},ymargin=1.7,pos='T',ncols=2),
     Var('eta_2', "tau_h eta",  30, -3,   3, ctitle={'etau':"Electron eta",'tautau':"Subleading tau_h eta",'mumu':"Subleading muon eta",'emu':"Muon eta"},ymargin=1.7,pos='T',ncols=2),
@@ -70,9 +71,43 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       Var('m_vis',  1, 60,  120, fname="$VAR_1bin", veto=["m_vis>200"] ),
       Var('m_vis',          11,  60, 120, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
       Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
-      Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
-
+      Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed HPS tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
+      Var("decayModePNet_2",           14,  0,  14, fname="decayModePNet_2",title="Reconstructed tau_h PNet decay mode",position="TMC",ymargin=1.2),
+      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, logy=True),
+      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0.993, 1.01, logy=True,cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}),
+      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0.985, 1.15, logy=True),
+      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, fname="rawPNetVSjet_2_linear"),
+      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0.993, 1.01, fname="rawPNetVSe_2_linear",cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}),
+      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0.985, 1.15, fname="rawPNetVSmu_2_linear"),
+      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, logy=True),
+      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, logy=True),
+      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, logy=True),
+      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, fname="$VAR_linear"),
+      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, fname="$VAR_linear"),
+      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, fname="$VAR_linear"),
+      Var("probDM0PNet_2", "Prob of DM_{PNet}=0", 21, 0, 1.05, fname="probDM0PNet_2",logy=True, pos="L"),
+      Var("probDM1PNet_2", "Prob of DM_{PNet}=1", 21, 0, 1.05, fname="probDM1PNet_2",logy=True, pos="L"),
+      Var("probDM2PNet_2", "Prob of DM_{PNet}=2", 21, 0, 1.05, fname="probDM2PNet_2",logy=True, pos="L"),
+      Var("probDM10PNet_2", "Prob of DM_{PNet}=10", 21, 0, 1.05, fname="probDM10PNet_2",logy=True, pos="L"),
+      Var("probDM11PNet_2", "Prob of DM_{PNet}=11", 21, 0, 1.05, fname="probDM11PNet_2",logy=True, pos="L"),
+      Var("idDecayModeNewDMs_2","idDecayModeNewDMs #tau",4,-2,2,fname="idDecayModeNewDMs_2",logy=True, pos="L")
+      
     ]
+    gen_variables_list=['gendm_2','genmatch_1','genmatch_2']
+    #gen_plots= any(i in gen_variables_list for i in varfilter)
+    if varfilter is not None and any(i in gen_variables_list for i in varfilter): #"gendm_2" in varfilter :
+      variables += [
+        Var('gendm_2',16, 0, 16, fname='gendm_2', title='True DM of tau', data=False, logy=True),
+        Var('genmatch_1',16,0,16, fname='genmatch_1', title='l1 GenMatch Flav', data=False, logy=True, veto=["dm_2=="]),
+        Var('genmatch_2',7,0,7, fname='genmatch_2', title='tau_h GenMatch Flav', data=False, logy=True, veto=["dm_2=="],pos="C"),
+        ]
+    # for sample in sampleset.expsamples:
+    #   print("Samples name: {}".format(str(sample)))
+    #   variables += [
+    #     Var('gendm_2',12, 0, 12, fname='gendm_2', title=' True DM of tau')
+    #   ]
+      
+
   elif 'mumu' in channel or 'ee' in channel:
     variables += [
       Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
@@ -84,14 +119,20 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     ]
   variables  = filtervars(variables,varfilter)  # filter variable list with -V/--var flag
   
+
+
+
   # PLOT
   outdir = ensuredir(repkey(outdir,CHANNEL=channel,ERA=era))
   exts   = ['png','pdf','root'] if pdf else ['root'] # extensions
   for selection in selections:
     print(">>> Selection %r: %r"%(selection.title,selection.selection))
-    stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
+    if varfilter is not None and any(i in gen_variables_list for i in varfilter): #"gendm_2" in varfilter :
+      stacks = sampleset.getstack(variables,selection,method=None,scale=1, parallel=parallel)
+    else:
+      stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
-    text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}"),selection.title)
+    text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}").replace('_pnet_pnetdm',"PNet_{DMs}").replace('_pnet',"_{PNet}").replace('_deept',"_{DeepTau}"),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
     #for stack, variable in stacks.iteritems():
@@ -281,7 +322,7 @@ if __name__ == "__main__":
                                          help="run Tree::MultiDraw serial instead of in parallel" )
   parser.add_argument('-F', '--fraction',dest='fraction', action='store_true',
                                          help="include fraction stack in ratio plot" )
-  parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true',
+  parser.add_argument('-p', '--pdf',     dest='pdf', action='store_true', default=True,
                                          help="create pdf version of each plot" )
   parser.add_argument('-r', '--nosf',    dest='notauidsf', action='store_true',
                                          help="remove DeepTau ID SF" )

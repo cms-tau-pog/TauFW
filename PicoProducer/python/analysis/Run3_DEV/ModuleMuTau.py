@@ -173,8 +173,8 @@ class ModuleMuTau(ModuleTauPair):
     if self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]: return False
     self.out.cutflow.fill('lepvetoes')
 
-    if self.jetveto(event): return False
-    self.out.cutflow.fill('jetvetoes')
+    # if self.jetveto(event): return False
+    # self.out.cutflow.fill('jetvetoes')
    
  
     # EVENT
@@ -224,6 +224,17 @@ class ModuleMuTau(ModuleTauPair):
     self.out.idDeepTau2018v2p5VSe_2[0]     = tau.idDeepTau2018v2p5VSe
     self.out.idDeepTau2018v2p5VSmu_2[0]    = tau.idDeepTau2018v2p5VSmu
     self.out.idDeepTau2018v2p5VSjet_2[0]   = tau.idDeepTau2018v2p5VSjet
+
+    self.out.rawPNetVSe_2[0]               = tau.rawPNetVSe
+    self.out.rawPNetVSmu_2[0]              = tau.rawPNetVSmu
+    self.out.rawPNetVSjet_2[0]             = tau.rawPNetVSjet
+    self.out.decayModePNet_2[0]            = tau.decayModePNet
+
+    self.out.probDM0PNet_2[0]              = tau.probDM0PNet
+    self.out.probDM1PNet_2[0]              = tau.probDM1PNet
+    self.out.probDM2PNet_2[0]              = tau.probDM2PNet
+    self.out.probDM10PNet_2[0]              = tau.probDM10PNet
+    self.out.probDM11PNet_2[0]              = tau.probDM11PNet
 
     
     # GENERATOR
