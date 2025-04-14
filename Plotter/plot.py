@@ -137,7 +137,7 @@ def main(args):
 
 if __name__ == "__main__":
   from argparse import ArgumentParser, RawTextHelpFormatter
-  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE', '2023C', '2023D']
+  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE','2023C','2023D','2024']
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],

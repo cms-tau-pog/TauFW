@@ -75,10 +75,10 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     ]
   elif 'mumu' in channel or 'ee' in channel:
     variables += [
-      # Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
-      # Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
-      Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
-      Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
+      Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
+      Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
+      # Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
+      # Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
       Var('iso_1', 50, 0.,1., ymin = 1e2,logy=True),
       Var('iso_2', 50, 0.,1., ymin = 1e2,logy=True),
     ]
@@ -265,7 +265,7 @@ def main(args):
 
 if __name__ == "__main__":
   from argparse import ArgumentParser, RawTextHelpFormatter
-  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE', '2023C', '2023D']
+  eras = ['2016','2017','2018','UL2016_preVFP','UL2016_postVFP','UL2017','UL2018','2022_preEE','2022_postEE', '2023C', '2023D', '2024']
   description = """Simple plotting script for pico analysis tuples"""
   parser = ArgumentParser(prog="plot",description=description,epilog="Good luck!")
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],

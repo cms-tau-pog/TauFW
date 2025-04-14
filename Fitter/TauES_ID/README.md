@@ -1,12 +1,12 @@
 # TauFW Fitter TauES_ID 
 
-## Installation 
+## Installation :gear:
 
 See [the README.md in the parent directory](../../../#taufw).
 
-## Creating NTuples 
+## Creating NTuples :card_index_dividers:
 The first step is to produce the NTuples via PicoProducer tool. See [the README.md in the parent directory](../../../PicoProducer).
-## Creating inputs
+## Creating inputs :bookmark_tabs:
 Input root files containing all the shape systematic variation for samples defined in the config file are created using the [createinputsTES.py](https://github.com/saswatinandan/TauFW/blob/master/Fitter/TauES/createinputsTES.py). These root files are saved in the directory defined [here](https://github.com/saswatinandan/TauFW/blob/master/Fitter/TauES/createinputsTES.py#L38). New directories are created for each wp of against electron and against jet and corresponding root files are stored within these directories. They contain one TDirectory for each `"pt regions"` defined in the config file (.yml). For each region, there is a list of TH1D corresponding to each `"process"` defined in the config file (ex: ZTT). For each shape systematics, there is also two additionnal TH1D corresponding to the Up and Down variation of the process (ex: ZTT_shapedy_Up). For the TES there is a list of additional TH1D corresponding to the variations (defined by `"TESvariations"` in the config file) of the process by TES correction. 
 
 Exemple of command :
@@ -18,7 +18,7 @@ The above command will create root file `ztt_mt_tes_m_visDM0.inputs-2023C-13TeV_
 
 See [the README.md in the TauES directory ](../TauES)
 
-## Config file 
+## Config file :page_with_curl:
 This section provides an overview and explanation of the configuration file for the default tes and tid SF fit in the mutau channel. The config file contains various settings and parameters used in the analysis. For further details and explanations of each parameter, please refer to the specific sections within the config file itself.
 
 The main information such as the channel, baseline cuts, and tag are provided at the beginning of the config file. Additional sub-options, like weight replacement for systematic uncertainties, are optional.
@@ -40,7 +40,7 @@ The main information such as the channel, baseline cuts, and tag are provided at
 - `"scaleFactors"`: Provides additional scale factors per year for specific processes. These scale factors can correct for cross-sections, reconstruction scale factors, and other factors.
 
 
-## Running the fit :
+## Running the fit : :chart_with_upwards_trend:	
 
 ### Description of the main script `makecombinedfitTES_SF.py`: 
 
@@ -102,7 +102,7 @@ The results of the fit are saved in a root file (ex: `higgsCombine*root` in outp
   ``` 
 Above command will produce the root files in the direcory `tau_sf/*_SF_dm_DeepTau2018v2p5_2023_VSjetMedium_VSeleVVLoose_Run3_May24.root` both for `tes and tid` variations.
    
-## Example of recipe
+## Example of recipe :woman_cook:	
 
 ### Fit of TES and ID SF by DM 
 
@@ -141,18 +141,36 @@ The id SF NLL parabolae and summary plots are automatically generated.
 
 9. run `hadd` command to hadd the root files, obtained from the last command for different wp of against electron and share this `hadd root` file with the group. 
 
-## Post-fit Plots :construction:
 
-This section is dedicated to the recipe followed to create post-fit plots.
+## Post-fit Plots :bar_chart:
+
+This section outlines the updated procedure to create post-fit plots.
 
 ### Difficulty
-Achieving the combined fit of TauES and Identification Scale Factor necessitates the use of the `-M MultidimFit --algo=grid` method. Unfortunately, the option provided by the combined fit does not allow for saving post-fit results. While post-fit plots can be saved with the `-M FitDiagnostic` method (refer to the commented code in `TauES_ID/makecombinedfitTES_SF.py`), the parameter results differ between the two fits. Consequently, a set of scripts has been developed to save the values of the parameters after the `-M MultidimFit --algo=grid` fit.
+Achieving the combined fit of TauES and Identification Scale Factor requires using the `-M MultidimFit --algo=grid` method. However, this method does not save post-fit results directly. While the `-M FitDiagnostic` method allows saving post-fit results, the parameter values differ from those in `MultidimFit`. Therefore, a set of scripts has been developed to store parameter values post-fit.
 
-### Recipe
-The values of the fit parameters specified in `fulllist` within `plotPostFitScan_POI.py` are saved in a text file by the `writeParametersFitVal()` function. These values correspond to the sigma variation of the parameter after the fit (for LnN and shape systematic).
-- **For LnN systematics and rate parameters:** The script `WriteSFsFit.py` calculates and saves Post-fit Scale Factors to a text file. For LnN systematic uncertainties, the values obtained from `combine` represent the sigma variation of the parameters. This script reads the configuration file to determine the corresponding 1-sigma variation and calculates the parameter values after the fit. For rate parameters, the values are preserved as is. The results are saved in a text file with associated processes affected by the systematics. These results can be copied into the config file (like `Default_FitSetupTES_mutau_DM_pt.yml`) and utilized in the `./Plotter/plot_postfit.py` script to generate post-fit plots.
-- **For Shape systematics:** The variation can be calculated in the same way with `shape_syt.py`. The values of the parameters need to be used to generate new templates with the picoproducer. The script `plot_postfit_shift.py` has been used to generate the post-fit plots by specifying the TES values, shape parameter values, and the values of the LnN and rateParameter in the config file.
+### Updated Recipe
+
+#### Step 1: Generate the Combined Fit Files
+Run the following command to generate the combined fit files:
+```bash
+python3 TauES_ID/makecombinedfitTES_SF.py -y 2022_postEE -c TauES_ID/config/Default_FitSetupTES_mutau_DM_4pt.yml -o 1 -cmm TauES/config/FitSetup_mumu.yml
+```
+This will generate the necessary files in `postfit_year/blabla`.
+
+#### Step 2: Apply the Fit Parameters
+Once the combined fit files are generated, apply the fit parameters and generate post-fit results using:
+```bash
+python3 TauES_ID/makecombinedfitTES_SF_postfit.py -y 2022_postEE -c TauES_ID/config/Default_FitSetupTES_mutau_DM_4pt.yml -o 1 -cmm TauES/config/FitSetup_mumu.yml
+```
+This step ensures that the post-fit results reflect the applied fit parameters.
+
+#### Step 3: Generate Post-fit Plots
+After obtaining post-fit files, run the following command to generate post-fit plots:
+```bash
+python3 python/plot/runpostfit.py -c TauES_ID/config/Default_FitSetupTES_mutau_DM_4pt.yml
+```
+This command produces the final visualized results for analysis. The method have been used for 2022 and is detailed in these [slides](https://indico.cern.ch/event/1454005/contributions/6120149/attachments/2923899/5132342/09_09_24.pdf)
 
 ### Warning :warning:
-- These plots do not include `dy_shape` systematics.
-- This procedure is not optimized and automated; more developments are welcomed!
+Plase make sure to verify that the results obtain after the refitting with `-M FitDiagnostic` are consistant with results of `-M MultidimFit --algo=grid`. If not, it indicated that fit is not stable and you cannot rely on postfit plots. 
