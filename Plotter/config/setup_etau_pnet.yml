@@ -1,0 +1,190 @@
+##
+## Config file for default TES fit in mutau channel
+## contact: saskia.falke@cern.ch
+##
+
+# NOTE: In general, the main information (channel, baselineCuts, etc.) should be given.
+#       More specific sub-options (like weight replacement for systematic uncertainties) are optional
+#       These are not needed for plotting only
+
+
+channel: etau_pnet
+
+baselineCuts: "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1 && rawPNetVSjet_2>=0.881 && rawPNetVSmu_2>=0.99 && !lepton_vetoes_notau && metfilter && rawPNetVSe_2>=0.4" #&& rawPNetVSe_2>=0.992"
+regions:
+   signalRegion: 
+      definition: "mt_1<40"
+      title: "signal region"
+   DM0: 
+      definition: "mt_1<40 && dm_2==0"
+      title: "h^{#pm}"
+   DM1: 
+      definition: "mt_1<40 && dm_2==1"
+      title: "h^{#pm}#pi^{0}"
+   DM10: 
+      definition: "mt_1<40 && dm_2==10"
+      title: "h^{#pm}h^{#mp}h^{#pm}"
+   DM11: 
+      definition: "mt_1<40 && dm_2==11"
+      title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+   PNetDM0: 
+      definition: "mt_1<40 && decayModePNet_2==0"
+      title: "PNetDM 0"
+   PNetDM1: 
+      definition: "mt_1<40 && decayModePNet_2==1"
+      title: "PNetDM 1"
+   PNetDM10: 
+      definition: "mt_1<40 && decayModePNet_2==10"
+      title: "PNetDM 10"
+   PNetDM11: 
+      definition: "mt_1<40 && decayModePNet_2==11"
+      title: "PNetDM 11" #"pnetdms h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+   PNetNoDM2:
+      definition: "mt_1<40 && decayModePNet_2!=2"
+      title: "pnetdm!=2"
+# # Jet Medium, Electron VLoose, Muon Tight
+#    VSjetMedVSeVL:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.747"
+#       title: "M_{VSjet}, VL_{VSe}, 0.99_{VSmu}"
+#    VSjetMedVSeVLDM0:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.747 && dm_2==0"
+#       title: "M_{VSjet}, VL_{VSe}, 0.99_{VSmu}, h^{#pm}"
+#    VSjetMedVSeVLDM1:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.747 && dm_2==1"
+#       title: "M_{VSjet}, VL_{VSe}, 0.99_{VSmu}, h^{#pm}#pi^{0}"
+#    VSjetMedVSeVLDM10:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.747 && dm_2==10"
+#       title: "M_{VSjet}, VL_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}"
+#    VSjetMedVSeVLDM11:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.747 && dm_2==11"
+#       title: "M_{VSjet}, VL_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+
+# # Jet Medium, Electron Loose, Muon Tight
+#    VSjetMedVSeL:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.956"
+#       title: "M_{VSjet}, L_{VSe}, 0.99_{VSmu}"
+#    VSjetMedVSeLDM0:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.956 && dm_2==0"
+#       title: "M_{VSjet}, L_{VSe}, 0.99_{VSmu}, h^{#pm}"
+#    VSjetMedVSeLDM1:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.956 && dm_2==1"
+#       title: "M_{VSjet}, L_{VSe}, 0.99_{VSmu}, h^{#pm}#pi^{0}"
+#    VSjetMedVSeLDM10:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.956 && dm_2==10"
+#       title: "M_{VSjet}, L_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}"
+#    VSjetMedVSeLDM11:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.956 && dm_2==11"
+#       title: "M_{VSjet}, L_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+
+# # Jet Medium, Electron Medium, Muon Tight
+#    VSjetMedVSeMed:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.983"
+#       title: "M_{VSjet}, M_{VSe}, 0.99_{VSmu}"
+#    VSjetMedVSeMedDM0:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.983 && dm_2==0"
+#       title: "M_{VSjet}, M_{VSe}, 0.99_{VSmu}, h^{#pm}"
+#    VSjetMedVSeMedDM1:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.983 && dm_2==1"
+#       title: "M_{VSjet}, M_{VSe}, 0.99_{VSmu}, h^{#pm}#pi^{0}"
+#    VSjetMedVSeMedDM10:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.983 && dm_2==10"
+#       title: "M_{VSjet}, M_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}"
+#    VSjetMedVSeMedDM11:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.983 && dm_2==11"
+#       title: "M_{VSjet}, M_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+
+# # Jet Medium, Electron Tight, Muon Tight
+#    VSjetMedVSeT:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.992"
+#       title: "M_{VSjet}, T_{VSe}, 0.99_{VSmu}"
+#    VSjetMedVSeTDM0:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.992 && dm_2==0"
+#       title: "M_{VSjet}, T_{VSe}, 0.99_{VSmu}, h^{#pm}"
+#    VSjetMedVSeTDM1:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.992 && dm_2==1"
+#       title: "M_{VSjet}, T_{VSe}, 0.99_{VSmu}, h^{#pm}#pi^{0}"
+#    VSjetMedVSeTDM10:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.992 && dm_2==10"
+#       title: "M_{VSjet}, T_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}"
+#    VSjetMedVSeTDM11:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.992 && dm_2==11"
+#       title: "M_{VSjet}, T_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+
+# # Jet Medium, Electron VTight, Muon Tight
+#    VSjetMedVSeVT:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.996"
+#       title: "M_{VSjet}, VT_{VSe}, 0.99_{VSmu}"
+#    VSjetMedVSeVTDM0:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.996 && dm_2==0"
+#       title: "M_{VSjet}, VT_{VSe}, 0.99_{VSmu}, h^{#pm}"
+#    VSjetMedVSeVTDM1:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.996 && dm_2==1"
+#       title: "M_{VSjet}, VT_{VSe}, 0.99_{VSmu}, h^{#pm}#pi^{0}"
+#    VSjetMedVSeVTDM10:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.996 && dm_2==10"
+#       title: "M_{VSjet}, VT_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}"
+#    VSjetMedVSeVTDM11:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.996 && dm_2==11"
+#       title: "M_{VSjet}, VT_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+
+# # Jet Medium, Electron VVTight, Muon Tight
+#    VSjetMedVSeVVT:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.998"
+#       title: "M_{VSjet}, VVT_{VSe}, 0.99_{VSmu}"
+#    VSjetMedVSeVVTDM0:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.998 && dm_2==0"
+#       title: "M_{VSjet}, VVT_{VSe}, 0.99_{VSmu}, h^{#pm}"
+#    VSjetMedVSeVVTDM1:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.998 && dm_2==1"
+#       title: "M_{VSjet}, VVT_{VSe}, 0.99_{VSmu}, h^{#pm}#pi^{0}"
+#    VSjetMedVSeVVTDM10:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.998 && dm_2==10"
+#       title: "M_{VSjet}, VVT_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}"
+#    VSjetMedVSeVVTDM11:
+#       definition: "mt_1<40 && rawPNetVSe_2>=0.998 && dm_2==11"
+#       title: "M_{VSjet}, VVT_{VSe}, 0.99_{VSmu}, h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+
+
+
+   # VVLVsele:
+   #    definition: "rawPNetVSe_2>=0.4  && mt_1<60"
+   #    title: "VVLoose VSele"
+   # VVLVsele_endcap:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) > 1.56 && abs(eta_2) < 2.5 && mt_1<60"
+   #    title: "VVLoose VSele endcap"
+   # VVLVsele_barrel_0:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==0 "
+   #    title: "VVLoose VSele barrel no pt cut DM0"
+   # VVLVsele_barrel_1:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==1 "
+   #    title: "VVLoose VSele barrel no pt cut DM1"
+   # VVLVsele_barrel_10:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==10 "
+   #    title: "VVLoose VSele barrel no pt cut DM10"
+   # VVLVsele_barrel_11:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) < 1.46  && mt_1<60 && dm_2 ==11 "
+   #    title: "VVLoose VSele barrel no pt cut DM11"
+   # VVLVsele_barrel:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) < 1.46  && mt_1<60"
+   #    title: "VVLoose VSele barrel no pt cut"
+   # VVLVsele_barrel_lowpt:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) < 1.46  && mt_1<60 && pt_2 < 50"
+   #    title: "VVLoose VSele barrel low pt"
+   # VVLVsele_barrel_highpt:
+   #    definition: "rawPNetVSe_2>=0.4 && abs(eta_2) < 1.46  && mt_1<60 && pt_2 > 50"
+   #    title: "VVLoose VSele barrel high pt"
+   # tightVsele_barrel:
+   #    definition: "rawPNetVSe_2>=0.992 && mt_1<60 && abs(eta_2) < 1.46"
+   #    title: "tight VSele barrel"
+   # tightVsele_endcap:
+   #    definition: "rawPNetVSe_2>=0.992 && mt_1<60 && abs(eta_2) > 1.56 && abs(eta_2) < 2.5"
+   #    title: "tight VSele endcap"
+   # failVsele:
+   #    definition: "rawPNetVSe_2<0.4 && mt_1<60"
+   #    title: "fail VSele"
+   # failVsele_endcap:
+   #    definition: "rawPNetVSe_2<0.992 && abs(eta_2) > 1.56 && abs(eta_2) < 2.5 && mt_1<60"
+   #    title: "fail VSele endcap"
+   # failVsele_barrel:
+   #    definition: "rawPNetVSe_2<0.992 && abs(eta_2) < 1.46 && mt_1<60"
+   #    title: "fail VSele barrel"
