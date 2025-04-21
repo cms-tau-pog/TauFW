@@ -15,7 +15,7 @@ PicoProducer/config/config.json
 PicoProducer/samples/files
 PicoProducer/output
 PicoProducer/python/batch/
-PicoProducer/samples
+# PicoProducer/samples
 Plotter/plots
 Plotter/tutorial
 Plotter/DM_MatchPlots
