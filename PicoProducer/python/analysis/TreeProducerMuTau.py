@@ -96,7 +96,7 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('puCorr_2',                   'f')
     self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
     
-    if self.year == 2024:
+    if self.module.year == 2024:
       self.addBranch('decayModeUParT_2',              'i')
       self.addBranch('rawUParTVSe_2',                   'f')
       self.addBranch('rawUParTVSmu_2',                   'f')
