@@ -10,14 +10,14 @@ samples  = [
   
   # DRELL-YAN 
   M('DY','DYto2Tau-4Jets_MLL-50',
-    "/DYto2Tau-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
+    "/DYto2Tau-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
   M('DY', 'DYto2Mu-4Jets_MLL-50',
-    "/DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
-    "/DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26_ext1-v2/NANOAODSIM",
+    "/DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v3/NANOAODSIM",
+    # "/DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26_ext1-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
   M('DY', 'DYto2E-4Jets_MLL-50',
-    "/DYto2E-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
+    "/DYto2E-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
 #   M('DY','DYto2L-4Jets_MLL-50_1J',
 #     "/DYto2L-4Jets_MLL-50_1J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Winter24NanoAOD-JMENanoV14_133X_mcRun3_2024_realistic_v10-v2/NANOAODSIM",
