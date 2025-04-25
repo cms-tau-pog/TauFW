@@ -1,9 +1,16 @@
 
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
+import socket
+
 storage = None #"/eos/cms/store/group/phys_tau/irandreo/Run3_22/$DAS"
 url      = None #"root://cms-xrd-global.cern.ch/"
-filelist = "samples/files/2022_preEE/$SAMPLE.txt" #None
+
+if 'lxplus' in socket.gethostname():
+  filelist = "/eos/user/f/fcasalin/TauFW_230425/PicoProducer_out/samples/files/2022_preEE/$SAMPLE.txt" #None
+if 'ingrid' in socket.gethostname():
+  filelist = "samples/files/2022_preEE/$SAMPLE.txt" #None
+
 samples  = [
   # DRELL-YAN
   #M('DY','DYJetsToLL_M-50',
