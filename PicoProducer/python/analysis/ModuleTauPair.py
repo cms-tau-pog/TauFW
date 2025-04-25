@@ -313,7 +313,8 @@ class ModuleTauPair(Module):
       if abs(jet.eta)>4.7: continue
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
-      if jet.jetId<2: continue # Tight
+      if self.era != "2024_v15":
+        if jet.jetId<2: continue # Tight
       
       # SAVE JEC VARIATIONS
       if self.dojec:
