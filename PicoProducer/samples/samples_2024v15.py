@@ -31,9 +31,9 @@ samples  = [
   M('TT','TTto2L2Nu',
     "/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v1-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_tt),
-  # M('TT','TTtoLNu2Q',
-  #   "/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts_tt),
+  M('TT','TTtoLNu2Q',
+    "/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_tt),
   M('TT','TTto4Q',
     "/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_tt), 
@@ -135,6 +135,10 @@ samples  = [
 
   D('Data','Muon1_Run2024F',"/Muon1/Run2024F-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+
+  D('Data','Muon1_Run2024H',"/Muon1/Run2024H-MINIv6NANOv15-v2/NANOAOD",
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+
   D('Data','Muon1_Run2024I',
     "/Muon1/Run2024I-MINIv6NANOv15-v1/NANOAOD",
     "/Muon1/Run2024I-MINIv6NANOv15_v2-v1/NANOAOD",
