@@ -107,10 +107,10 @@ samples  = [
 
 
 
-  # D('Data','Muon0_Run2024E',
-  #   "/Muon0/Run2024E-PromptReco-v1/NANOAOD",
-  #   "/Muon0/Run2024E-PromptReco-v2/NANOAOD",
-  #   store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+  D('Data','Muon0_Run2024E',
+    "/Muon0/Run2024E-MINIv6NANOv15-v1/NANOAOD",
+    # "/Muon0/Run2024E-PromptReco-v2/NANOAOD",
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
   D('Data','Muon0_Run2024F',"/Muon0/Run2024F-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
   D('Data','Muon0_Run2024G',"/Muon0/Run2024G-MINIv6NANOv15-v1/NANOAOD",
@@ -165,6 +165,9 @@ samples  = [
   D('Data','EGamma0_Run2024I',
     "/EGamma0/Run2024I-MINIv6NANOv15-v1/NANOAOD",
     "/EGamma0/Run2024I-MINIv6NANOv15_v2-v1/NANOAOD",
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
+
+  D('Data','EGamma1_Run2024C',"/EGamma1/Run2024C-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
 
   D('Data','EGamma1_Run2024D',"/EGamma1/Run2024D-MINIv6NANOv15-v1/NANOAOD",
