@@ -223,7 +223,7 @@ def getsampleset(channel,era,**kwargs):
     weight = ""
   #elif channel in ['mutau','etau']:
   if 'mutau' in channel or 'etau' in channel:
-    weight = "genweight*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
+    weight = "sign(genweight)*trigweight*puweight*idisoweight_1*idweight_2*ltfweight_2"
   elif channel in ['tautau','ditau']:
     weight = "genweight*trigweight*puweight*idweight_1*idweight_2*ltfweight_1*ltfweight_2"
   else: # mumu, emu, ...
