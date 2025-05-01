@@ -46,7 +46,7 @@ echo "cmssw = $CMSSW_BASE"
 #peval "$TASKCMD"
 export SINGULARITYENV_PATH=$PATH
 export SINGULARITYENV_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-singularity exec /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el7:x86_64 /bin/sh <<- EOF_PAYLOAD
+singularity exec /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el9:x86_64 /bin/sh <<- EOF_PAYLOAD
 echo ">>> $TASKCMD"
 eval "$TASKCMD"
 EOF_PAYLOAD
