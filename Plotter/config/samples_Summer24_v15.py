@@ -60,7 +60,7 @@ def getsampleset(channel,era,**kwargs):
         # ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         # ( 'DY', "DYto2L-4Jets_MLL-50_3J",      "Drell-Yan 3J 50",      93.7*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         # ( 'DY', "DYto2L-4Jets_MLL-50_4J",      "Drell-Yan 4J 50",      45.4*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
-        ( 'WJ', "WtoTauNu-2Jets",            "W + jets",           22570.*kfactor_wj ), # LO times kfactor
+        ( 'WJ', "WtoTauNu-2Jets",            "Wtau + jets",           22570.*kfactor_wj ), # LO times kfactor
         # ( 'WJ', "WtoTauNu-2Jets_0J",            "W + 0J",           18586.*kfactor_wj ), # LO times kfactor
         ( 'WJ', "WtoMuNu-2Jets",            "Wmu + jets",           22570.*kfactor_wj ), # LO times kfactor
         # ( 'WJ', "WtoMuNu-2Jets_0J",            "W + 0J",           18586.*kfactor_wj ), # LO times kfactor
@@ -242,7 +242,8 @@ def getsampleset(channel,era,**kwargs):
   sampleset = _getsampleset(datasample,expsamples,channel=channel,era=era,**kwargs)
   LOG.verb("weight = %r"%(weight),verbosity,1)
 
-  print("sampleset = ", sampleset)
+  # print("sampleset = ", sampleset)
+  # print("sampleset.expsamples = ", sampleset.expsamples)
   
   # STITCH
   # Note: titles are set via STYLE.sample_titles
@@ -264,7 +265,7 @@ def getsampleset(channel,era,**kwargs):
   #     sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYto2L-4Jets_MLL-50_ext1', name="DY_M50", cme=cme) # Drell-Yan, M > 50 GeV
   # JOIN
   sampleset.join('DY', name='DY' ) # Drell-Yan, M < 50 GeV + M > 50 GeV
-  sampleset.join('WJ', name='WJ' ) # W + jets
+  sampleset.join('Wto', name='WJ' ) # W + jets
   if 'VV' in join:
     sampleset.join('VV','WZ','WW','ZZ', name='VV' ) # Diboson
   if 'TT' in join and era!='year':

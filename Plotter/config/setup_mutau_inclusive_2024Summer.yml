@@ -24,15 +24,15 @@ regions:
    signalRegion: 
       definition: "mt_1<40"
       title: "signal region"
-   hps_region:
-      definition: "mt_1<40 && idDecayModeNewDMs_2"
-      title: "HPS #tau 's"
-   deepTau_region:
-      definition: "mt_1<40 && idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4 && (dm_2 == 0 || dm_2 == 1 || dm_2 == 10 || dm_2 == 11 )"
-      title: "DeepTau region"
-   pnet_hps_region:
-      definition: "mt_1<40 && rawPNetVSjet_2>=0.881 && rawPNetVSe_2>=0.4  && rawPNetVSmu_2>=0.99 && (decayModePNet_2 == 0 || decayModePNet_2 == 1 || decayModePNet_2 == 2 || decayModePNet_2 == 10 || decayModePNet_2 == 11) && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSmu_2>=4) || !idDecayModeNewDMs_2)"
-      title: "HPS conditions"
+   # hps_region:
+   #    definition: "mt_1<40 && idDecayModeNewDMs_2"
+   #    title: "HPS #tau 's"
+   # deepTau_region:
+   #    definition: "mt_1<40 && idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4 && (dm_2 == 0 || dm_2 == 1 || dm_2 == 10 || dm_2 == 11 )"
+   #    title: "DeepTau region"
+   # pnet_hps_region:
+   #    definition: "mt_1<40 && rawPNetVSjet_2>=0.881 && rawPNetVSe_2>=0.4  && rawPNetVSmu_2>=0.99 && (decayModePNet_2 == 0 || decayModePNet_2 == 1 || decayModePNet_2 == 2 || decayModePNet_2 == 10 || decayModePNet_2 == 11) && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSmu_2>=4) || !idDecayModeNewDMs_2)"
+   #    title: "HPS conditions"
    # DM0: 
    #    definition: "mt_1<40 && dm_2==0"
    #    title: "h^{#pm}"

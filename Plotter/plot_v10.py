@@ -14,7 +14,7 @@ from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
 from TauFW.Plotter.plot.Plot import Plot, deletehist
 import yaml
-
+import socket
 
 def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era="",
          varfilter=None,selfilter=None,fraction=False,pdf=False):
@@ -73,6 +73,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
       Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed HPS tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
       Var("decayModePNet_2",           14,  0,  14, fname="decayModePNet_2",title="Reconstructed tau_h PNet decay mode",position="TMC",ymargin=1.2),
+      
       Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, logy=True),
       Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0.993, 1.01, logy=True,cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}),
       Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0.985, 1.15, logy=True),
@@ -85,12 +86,31 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, fname="$VAR_linear"),
       Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, fname="$VAR_linear"),
       Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, fname="$VAR_linear"),
+
+      Var("rawUParTVSe_2",  "Score_{rawUParTVSe_2}",50, 0, 1.05, fname="rawUParTVSe_2_linear"),
+      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu_2}",50, 0, 1.05, fname="rawUParTVSmu_2_linear"),
+      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet_2}",50, 0, 1.05, fname="rawUParTVSjet_2_linear"),
+
+      Var("rawUParTVSe_2",  "Score_{rawUParTVSe_2}",50, 0, 1.05, logy=True,fname="rawUParTVSe_2_log"),
+      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu_2}",50, 0, 1.05, logy=True,fname="rawUParTVSmu_2_log"),
+      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet_2}",50, 0, 1.05, logy=True,fname="rawUParTVSjet_2_log"),
+
+
+      Var("probDM0UParT_2", "Prob of DM_{UParT}=0", 21, 0, 1.05, fname="probDM0UParT_2",logy=True, pos="L"),
+      Var("probDM1UParT_2", "Prob of DM_{UParT}=1", 21, 0, 1.05, fname="probDM1UParT_2",logy=True, pos="L"),
+      Var("probDM2UParT_2", "Prob of DM_{UParT}=2", 21, 0, 1.05, fname="probDM2UParT_2",logy=True, pos="L"),
+      Var("probDM10UParT_2", "Prob of DM_{UParT}=10", 21, 0, 1.05, fname="probDM10UParT_2",logy=True, pos="L"),
+      Var("probDM11UParT_2", "Prob of DM_{UParT}=11", 21, 0, 1.05, fname="probDM11UParT_2",logy=True, pos="L"),
+
       Var("probDM0PNet_2", "Prob of DM_{PNet}=0", 21, 0, 1.05, fname="probDM0PNet_2",logy=True, pos="L"),
       Var("probDM1PNet_2", "Prob of DM_{PNet}=1", 21, 0, 1.05, fname="probDM1PNet_2",logy=True, pos="L"),
       Var("probDM2PNet_2", "Prob of DM_{PNet}=2", 21, 0, 1.05, fname="probDM2PNet_2",logy=True, pos="L"),
       Var("probDM10PNet_2", "Prob of DM_{PNet}=10", 21, 0, 1.05, fname="probDM10PNet_2",logy=True, pos="L"),
       Var("probDM11PNet_2", "Prob of DM_{PNet}=11", 21, 0, 1.05, fname="probDM11PNet_2",logy=True, pos="L"),
-      Var("idDecayModeNewDMs_2","idDecayModeNewDMs #tau",4,-2,2,fname="idDecayModeNewDMs_2",logy=True, pos="L")
+      Var("decayModeUParT_2", 14,  0,  14, fname="decayModeUParT_2",title="Reconstructed tau_h UParT decay mode",position="TMC",ymargin=1.2),
+
+      Var("ptCorrUParT_2",  "pt CorrUParT tau",40, 0, 120, fname="ptCorrUParT_2",title="pt CorrUParT tau", pos="L"),
+      Var("qConfUParT_2",  "q CorrUParT tau",4, -2, 2, fname="qConfUParT_2",title="q CorrUParT tau", pos="L"),
       
     ]
     gen_variables_list=['gendm_2','genmatch_1','genmatch_2']
@@ -280,7 +300,10 @@ def main(args):
   extratext = args.text
   fraction  = args.fraction
   pdf       = args.pdf
-  outdir    = "plots/$ERA/$CHANNEL"
+  if 'ingrid' in socket.gethostname():
+    outdir    = "plots/$ERA/$CHANNEL"
+  if 'lxplus' in socket.gethostname():
+    outdir    = "/eos/user/f/fcasalin/TauFW_230425/Plotter_out/plots/$ERA/$CHANNEL"
   fname     = "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
   #fname     =  "/nfs/user/pmastra/DeepTau2p5/analysis/$ERA/$CHANNEL/$GROUP/$SAMPLE_$CHANNEL$TAG.root"
    
