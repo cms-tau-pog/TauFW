@@ -18,9 +18,17 @@ samples  = [
   M('DY','DYto2Tau-2Jets_Bin-MLL-50',
     "/DYto2Tau-2Jets_Bin-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v5/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
-  # M('DY','DYto2Mu-2Jets_Bin-MLL-50',
-  #   "/DYto2Mu-2Jets_Bin-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v1-v4/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2Tau-2Jets_Bin-0J-MLL-50',
+    "/DYto2Tau-2Jets_Bin-0J-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+
+  M('DY','DYto2Mu-2Jets_Bin-MLL-50',
+    "/DYto2Mu-2Jets_Bin-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v1-v4/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+
+  M('DY','DYto2Mu-2Jets_Bin-0J-MLL-50',
+    "/DYto2Mu-2Jets_Bin-0J-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v1-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
 
   M('DY','DYto2E-2Jets_Bin-MLL-50',
     "/DYto2E-2Jets_Bin-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v4/NANOAODSIM",
@@ -28,9 +36,9 @@ samples  = [
 
 
   # TTBAR
-  # M('TT','TTto2L2Nu',
-  #   "/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v1-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts_tt),
+  M('TT','TTto2L2Nu',
+    "/TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_tt),
   M('TT','TTtoLNu2Q',
     "/TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_tt),
@@ -74,16 +82,16 @@ samples  = [
 #     "/TbarWplusto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/Run3Winter24NanoAOD-JMENanoV14_133X_mcRun3_2024_realistic_v10-v2/NANOAODSIM",
 #     store=storage,url=url,files=filelist,opts=opts),  
   
-  # # DIBOSON
+  # DIBOSON
   # M('VV','WWto2L2Nu',
   #   "/WWto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts),
   # M('VV','WWto4Q',
   #   "/WWto4Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts),
-  # M('VV','WWtoLNu2Q',
-  #   "/WWtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts),
+  M('VV','WWtoLNu2Q',
+    "/WWtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts),
   # M('VV','ZZto2L2Nu',
   #   "/ZZto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts),
@@ -93,9 +101,12 @@ samples  = [
   # M('VV','ZZto2Nu2Q',
   #   "/ZZto2Nu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts),
-  # M('VV','ZZto4L',
-  #   "/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts),
+  M('VV','ZZto4L',
+    "/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts),
+  M('VV','WZto2L2Q',
+    "/WZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts),
 
   # SINGLE MUON
 
