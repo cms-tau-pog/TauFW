@@ -72,41 +72,41 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
       Var('m_vis',          11,  60, 120, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
       Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
       Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed HPS tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
-      Var("decayModePNet_2",           14,  0,  14, fname="decayModePNet_2",title="Reconstructed tau_h PNet decay mode",position="TMC",ymargin=1.2),
+      Var("decayModePNet_2",           14,  0,  14, fname="decayModePNet_2",title="Reconstructed tau_h PNet decay mode",position="TMC",ymargin=1.2, veto=["rawUParTVS","DeepTau2018v2p5"]),
       
-      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, logy=True),
-      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0.993, 1.01, logy=True,cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}),
-      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0.985, 1.15, logy=True),
-      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, fname="rawPNetVSjet_2_linear"),
-      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0.993, 1.01, fname="rawPNetVSe_2_linear",cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}),
-      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0.985, 1.15, fname="rawPNetVSmu_2_linear"),
-      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, logy=True),
-      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, logy=True),
-      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, logy=True),
-      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, fname="$VAR_linear"),
-      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, fname="$VAR_linear"),
-      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, fname="$VAR_linear"),
+      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, logy=True, veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0, 1.05, logy=True,cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}, veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0, 1.05, logy=True, veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, fname="rawPNetVSjet_2_linear", veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30,  0, 1.05, fname="rawPNetVSe_2_linear",cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}, veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50,  0, 1.05, fname="rawPNetVSmu_2_linear", veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, logy=True, veto=["rawUParTVS","rawPNetVS"]),
+      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, logy=True, veto=["rawUParTVS","rawPNetVS"]),
+      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, logy=True, veto=["rawUParTVS","rawPNetVS"]),
+      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"]),
+      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"]),
+      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"]),
 
-      Var("rawUParTVSe_2",  "Score_{rawUParTVSe_2}",50, 0, 1.05, fname="rawUParTVSe_2_linear"),
-      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu_2}",50, 0, 1.05, fname="rawUParTVSmu_2_linear"),
-      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet_2}",50, 0, 1.05, fname="rawUParTVSjet_2_linear"),
+      Var("rawUParTVSe_2",  "Score_{rawUParTVSe}",50, 0, 1.05, fname="rawUParTVSe_2_linear"),
+      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu}",50, 0, 1.05, fname="rawUParTVSmu_2_linear"),
+      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet}",50, 0, 1.05, fname="rawUParTVSjet_2_linear"),
 
-      Var("rawUParTVSe_2",  "Score_{rawUParTVSe_2}",50, 0, 1.05, logy=True,fname="rawUParTVSe_2_log"),
-      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu_2}",50, 0, 1.05, logy=True,fname="rawUParTVSmu_2_log"),
-      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet_2}",50, 0, 1.05, logy=True,fname="rawUParTVSjet_2_log"),
+      Var("rawUParTVSe_2",  "Score_{rawUParTVSe}",50, 0, 1.05, logy=True,fname="rawUParTVSe_2_log"),
+      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu}",50, 0, 1.05, logy=True,fname="rawUParTVSmu_2_log"),
+      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet}",50, 0, 1.05, logy=True,fname="rawUParTVSjet_2_log"),
 
 
-      Var("probDM0UParT_2", "Prob of DM_{UParT}=0", 21, 0, 1.05, fname="probDM0UParT_2",logy=True, pos="L"),
-      Var("probDM1UParT_2", "Prob of DM_{UParT}=1", 21, 0, 1.05, fname="probDM1UParT_2",logy=True, pos="L"),
-      Var("probDM2UParT_2", "Prob of DM_{UParT}=2", 21, 0, 1.05, fname="probDM2UParT_2",logy=True, pos="L"),
-      Var("probDM10UParT_2", "Prob of DM_{UParT}=10", 21, 0, 1.05, fname="probDM10UParT_2",logy=True, pos="L"),
-      Var("probDM11UParT_2", "Prob of DM_{UParT}=11", 21, 0, 1.05, fname="probDM11UParT_2",logy=True, pos="L"),
+      Var("probDM0UParT_2", "Prob of DM_{UParT}=0", 21, 0, 1.05, fname="probDM0UParT_2",logy=True, pos="R"),
+      Var("probDM1UParT_2", "Prob of DM_{UParT}=1", 21, 0, 1.05, fname="probDM1UParT_2",logy=True, pos="R"),
+      Var("probDM2UParT_2", "Prob of DM_{UParT}=2", 21, 0, 1.05, fname="probDM2UParT_2",logy=True, pos="R"),
+      Var("probDM10UParT_2", "Prob of DM_{UParT}=10", 21, 0, 1.05, fname="probDM10UParT_2",logy=True, pos="R"),
+      Var("probDM11UParT_2", "Prob of DM_{UParT}=11", 21, 0, 1.05, fname="probDM11UParT_2",logy=True, pos="R"),
 
-      Var("probDM0PNet_2", "Prob of DM_{PNet}=0", 21, 0, 1.05, fname="probDM0PNet_2",logy=True, pos="L"),
-      Var("probDM1PNet_2", "Prob of DM_{PNet}=1", 21, 0, 1.05, fname="probDM1PNet_2",logy=True, pos="L"),
-      Var("probDM2PNet_2", "Prob of DM_{PNet}=2", 21, 0, 1.05, fname="probDM2PNet_2",logy=True, pos="L"),
-      Var("probDM10PNet_2", "Prob of DM_{PNet}=10", 21, 0, 1.05, fname="probDM10PNet_2",logy=True, pos="L"),
-      Var("probDM11PNet_2", "Prob of DM_{PNet}=11", 21, 0, 1.05, fname="probDM11PNet_2",logy=True, pos="L"),
+      Var("probDM0PNet_2", "Prob of DM_{PNet}=0", 21, 0, 1.05, fname="probDM0PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("probDM1PNet_2", "Prob of DM_{PNet}=1", 21, 0, 1.05, fname="probDM1PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("probDM2PNet_2", "Prob of DM_{PNet}=2", 21, 0, 1.05, fname="probDM2PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("probDM10PNet_2", "Prob of DM_{PNet}=10", 21, 0, 1.05, fname="probDM10PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("probDM11PNet_2", "Prob of DM_{PNet}=11", 21, 0, 1.05, fname="probDM11PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
       Var("decayModeUParT_2", 14,  0,  14, fname="decayModeUParT_2",title="Reconstructed tau_h UParT decay mode",position="TMC",ymargin=1.2),
 
       Var("ptCorrUParT_2",  "pt CorrUParT tau",40, 0, 120, fname="ptCorrUParT_2",title="pt CorrUParT tau", pos="L"),
@@ -152,7 +152,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     else:
       stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
-    text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}").replace('_pnet_pnetdm',"PNet_{DMs}").replace('_pnet',"_{PNet}").replace('_deept',"_{DeepTau}"),selection.title)
+    text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}").replace('_pnet_pnetdm',"PNet_{DMs}").replace('_pnet',"_{PNet}").replace('_deept',"_{DeepTau}").replace('_inclusive_2024Summer','_2024Summer'),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
     #for stack, variable in stacks.iteritems():

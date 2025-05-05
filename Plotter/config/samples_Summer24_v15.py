@@ -51,7 +51,7 @@ def getsampleset(channel,era,**kwargs):
         # ( 'DY', "DYto2E-4Jets_MLL-50",       "Drell-Yan 50",        1818.3*kfactor_dy, {'extraweight': dyweight }),#, "nevts":nevts_json["DYJetsToLL_M-50"]} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below
 
         ( 'DY', "DYto2Tau-2Jets_Bin-MLL-50",       "Drell-Yan 50",        1818.3*kfactor_dy, {'extraweight': dyweight }),#, "nevts":nevts_json["DYJetsToLL_M-50"]} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below 
-        # ( 'DY', "DYto2Mu-2Jets_Bin-MLL-50",       "Drell-Yan 50",        1818.3*kfactor_dy, {'extraweight': dyweight }),#, "nevts":nevts_json["DYJetsToLL_M-50"]} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below
+        ( 'DY', "DYto2Mu-2Jets_Bin-MLL-50",       "Drell-Yan 50",        1818.3*kfactor_dy, {'extraweight': dyweight }),#, "nevts":nevts_json["DYJetsToLL_M-50"]} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below
         ( 'DY', "DYto2E-2Jets_Bin-MLL-50",       "Drell-Yan 50",        1818.3*kfactor_dy, {'extraweight': dyweight }),#, "nevts":nevts_json["DYJetsToLL_M-50"]} ), # LO times kfactor, commenting this one out as it is the same as the one below but in principle it should be possible to conbine this sample with the inclusive one below
 
         # ( 'DY', "DYto2L-4Jets_MLL-50_ext1",   "Drell-Yan 50",        5455.0*kfactor_dy, {'extraweight': dyweight } ), # LO times kfactor
@@ -74,18 +74,18 @@ def getsampleset(channel,era,**kwargs):
    
         # ( 'VV', "WWto2L2Nu",             "WW 2l2#nu",                    11.79*kfactor_ww ), # LO times kfactor
         # ( 'VV', "WWto4Q",             "WW 4q",                    50.79*kfactor_ww ), # LO times kfactor
-        # ( 'VV', "WWtoLNu2Q",             "WW l#nu2q",                    48.94*kfactor_ww ), # LO times kfactor
+        ( 'VV', "WWtoLNu2Q",             "WW l#nu2q",                    48.94*kfactor_ww ), # LO times kfactor
         # ( 'VV', "ZZto2L2Nu",             "ZZ 2l2#nu",                    1.031*kfactor_zz ), # LO times kfactor
         # ( 'VV', "ZZto2L2Q",             "ZZ 2l2q",                    6.788*kfactor_zz ), # LO times kfactor
         # ( 'VV', "ZZto2Nu2Q",             "ZZ 2#nu2q",                    4.826*kfactor_zz ), # LO times kfactor
-        # ( 'VV', "ZZto4L",             "ZZ 4l",                    4.344*kfactor_wz), # LO times kfactor
+        ( 'VV', "ZZto4L",             "ZZ 4l",                    4.344*kfactor_wz), # LO times kfactor
         # ( 'VV', "WW",             "WW",                    80.23*kfactor_ww ), # LO times kfactor
         # ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz), # LO times kfactor
         # ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz ), # LO times kfactor
 
-        # ( 'TT', "TTto2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar), # {'extraweight': ttweight} ), # NLO times BR times kfactor
-        ( 'TT', "TTto4Q",                "ttbar hadronic24",       346.4*kfactor_ttbar), # {'extraweight': ttweight} ), # NLO times BR times kfactor
-        ( 'TT', "TTtoLNu2Q",             "ttbar semileptonic",   334.8*kfactor_ttbar), # {'extraweight': ttweight} ), # NLO times BR times kfactor
+        ( 'TT', "TTto2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
+        ( 'TT', "TTto4Q",                "ttbar hadronic24",       346.4*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
+        ( 'TT', "TTtoLNu2Q",             "ttbar semileptonic",   334.8*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
         #( 'ST', "TBbarQ_t-channel",      "ST t-channel t",       123.8), # NLO
         #( 'ST', "TbarBQ_t-channel",      "ST t-channel at",      75.47), # NLO
         # ( 'ST', "TWminustoLNu2Q",             "ST tW semileptonic",         15.8 ), # NLO (36.0) times LNu2Q BR
@@ -265,7 +265,7 @@ def getsampleset(channel,era,**kwargs):
   #     sampleset.stitch("DYto2L-4Jets_MLL-50*", incl='DYto2L-4Jets_MLL-50_ext1', name="DY_M50", cme=cme) # Drell-Yan, M > 50 GeV
   # JOIN
   sampleset.join('DY', name='DY' ) # Drell-Yan, M < 50 GeV + M > 50 GeV
-  sampleset.join('Wto', name='WJ' ) # W + jets
+  sampleset.join('Wto*Nu-2Jets', name='WJ' ) # W + jets
   if 'VV' in join:
     sampleset.join('VV','WZ','WW','ZZ', name='VV' ) # Diboson
   if 'TT' in join and era!='year':
