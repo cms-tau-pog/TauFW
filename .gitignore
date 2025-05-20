@@ -28,6 +28,7 @@ Plotter/ConfusionMatrix*
 Plotter/MuTau_mvisroot.txt
 Plotter/.ipynb_checkpoints/*
 Plotter/*MyV*
+Plotter/*txt
 Fitter/*/*plots*
 Fitter/*/log
 Fitter/Zpt/weights
