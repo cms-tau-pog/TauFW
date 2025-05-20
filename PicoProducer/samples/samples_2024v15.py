@@ -23,15 +23,19 @@ samples  = [
     store=storage,url=url,files=filelist,opts=opts_dy),
 
   M('DY','DYto2Mu-2Jets_Bin-MLL-50',
-    "/DYto2Mu-2Jets_Bin-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v1-v4/NANOAODSIM",
+    "/DYto2Mu-2Jets_Bin-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v6/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
 
   M('DY','DYto2Mu-2Jets_Bin-0J-MLL-50',
-    "/DYto2Mu-2Jets_Bin-0J-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v1-v2/NANOAODSIM",
+    "/DYto2Mu-2Jets_Bin-0J-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
 
   M('DY','DYto2E-2Jets_Bin-MLL-50',
     "/DYto2E-2Jets_Bin-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v4/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+
+  M('DY','DYto2E-2Jets_Bin-0J-MLL-50',
+    "/DYto2E-2Jets_Bin-0J-MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts_dy),
 
 
@@ -86,74 +90,81 @@ samples  = [
   # M('VV','WWto2L2Nu',
   #   "/WWto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts),
-  # M('VV','WWto4Q',
-  #   "/WWto4Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts),
+  M('VV','WWto4Q',
+    "/WWto4Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts),
   M('VV','WWtoLNu2Q',
     "/WWtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts),
   # M('VV','ZZto2L2Nu',
-  #   "/ZZto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
+  #   "/ZZto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts),
-  # M('VV','ZZto2L2Q',
-  #   "/ZZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts),
+  # # M('VV','ZZto2L2Q',
+  # #   "/ZZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
+  # #   store=storage,url=url,files=filelist,opts=opts),
   # M('VV','ZZto2Nu2Q',
-  #   "/ZZto2Nu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM",
+  #   "/ZZto2Nu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts),
-  M('VV','ZZto4L',
-    "/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  # M('VV','ZZto4L',
+  #   "/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  #   store=storage,url=url,files=filelist,opts=opts),
+  
+  M('VV','ZZ',
+    "/ZZ_TuneCP5_13p6TeV_pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts),
-  M('VV','WZto2L2Q',
-    "/WZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+
+  # M('VV','WZto2L2Q',
+  #   "/WZto2L2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  #   store=storage,url=url,files=filelist,opts=opts),
+  
+  M('VV','WZ',
+    "/WZ_TuneCP5_13p6TeV_pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts),
 
   # SINGLE MUON
 
   D('Data','Muon0_Run2024C',"/Muon0/Run2024C-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
   
   D('Data','Muon0_Run2024D',"/Muon0/Run2024D-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
-
-
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
   D('Data','Muon0_Run2024E',
     "/Muon0/Run2024E-MINIv6NANOv15-v1/NANOAOD",
     # "/Muon0/Run2024E-PromptReco-v2/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
   D('Data','Muon0_Run2024F',"/Muon0/Run2024F-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
   # D('Data','Muon0_Run2024G',"/Muon0/Run2024G-MINIv6NANOv15-v1/NANOAOD",
-  #   store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+  #   store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
 
   D('Data','Muon0_Run2024H',"/Muon0/Run2024H-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
   D('Data','Muon0_Run2024I',
     "/Muon0/Run2024I-MINIv6NANOv15-v1/NANOAOD",
     "/Muon0/Run2024I-MINIv6NANOv15_v2-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
 
   D('Data','Muon1_Run2024C',"/Muon1/Run2024C-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
   D('Data','Muon1_Run2024D',"/Muon1/Run2024D-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
   D('Data','Muon1_Run2024E',"/Muon1/Run2024E-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
   D('Data','Muon1_Run2024F',"/Muon1/Run2024F-MINIv6NANOv15-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
   D('Data','Muon1_Run2024H',"/Muon1/Run2024H-MINIv6NANOv15-v2/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
   D('Data','Muon1_Run2024I',
     "/Muon1/Run2024I-MINIv6NANOv15-v1/NANOAOD",
     "/Muon1/Run2024I-MINIv6NANOv15_v2-v1/NANOAOD",
-    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu','emu','mumutau','mumettau']),
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
 
   # SINGLE ELECTRON
