@@ -137,7 +137,8 @@ class ModuleTauPair(Module):
   def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
     """Before processing a new file."""
     sys.stdout.flush()
-
+    
+    
     # for v10
     branchesV10 = [
       ('Muon_isTracker',                  [True]*32     ),
@@ -156,7 +157,29 @@ class ModuleTauPair(Module):
       ('Tau_idDeepTau2018v2p5VSjet','Tau_idDeepTau2017v2p1VSjet'),
       ('Tau_rawDeepTau2018v2p5VSe','Tau_rawDeepTau2017v2p1VSe'), 
       ('Tau_rawDeepTau2018v2p5VSmu','Tau_rawDeepTau2017v2p1VSmu'),  
-      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet')
+      ('Tau_rawDeepTau2018v2p5VSjet','Tau_rawDeepTau2017v2p1VSjet'),
+      ('Tau_rawPNetVSe',    [1.]*32),
+      ('Tau_rawPNetVSmu',   [1.]*32),
+      ('Tau_rawPNetVSjet',  [1.]*32),
+      ('Tau_decayModePNet', [True]*32),
+      ('Tau_probDM0PNet',   [1.]*32),
+      ('Tau_probDM1PNet',   [1.]*32),
+      ('Tau_probDM2PNet',   [1.]*32),
+      ('Tau_probDM10PNet',  [1.]*32),
+      ('Tau_probDM11PNet',  [1.]*32),
+      ('Tau_ptCorrPNet',    [1.]*32),
+      ('Tau_qConfPNet',     [1.]*32),
+      ('Tau_rawUParTVSe',    [1.]*32),
+      ('Tau_rawUParTVSmu',   [1.]*32),
+      ('Tau_rawUParTVSjet',  [1.]*32),
+      ('Tau_decayModeUParT', [True]*32),
+      ('Tau_probDM0UParT',   [1.]*32),
+      ('Tau_probDM1UParT',   [1.]*32),
+      ('Tau_probDM2UParT',   [1.]*32),
+      ('Tau_probDM10UParT',  [1.]*32),
+      ('Tau_probDM11UParT',  [1.]*32),
+      ('Tau_ptCorrUParT',    [1.]*32),
+      ('Tau_qConfUParT',     [1.]*32)
     ]
     # for v9
     branches = [
