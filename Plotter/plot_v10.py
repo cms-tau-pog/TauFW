@@ -53,7 +53,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     Var("jpt_2",  29,   10,  300, veto=[r"njets\w*==0"]),
     Var("jeta_1", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
     Var("jeta_2", 53, -5.4,  5.2, ymargin=1.6,pos='T',ncols=2,veto=[r"njets\w*==0"]),
-    Var('npv',    40,  0,  80),
+    Var('npv',    40,  0,  80, ymargin=1.3),
     Var('njets',   8,  0,   8),
     Var('nbtag', "Number of b jets (Medium, pt > 30 GeV)", 8, 0, 8),
     Var('met',    50,  0, 150,cbins={"nbtag\w*>":(50,0,250)}),
@@ -67,50 +67,53 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     loadmacro("python/macros/mapDecayModes.C") # for mapRecoDM
     dmlabels  = ["h^{#pm}","h^{#pm}h^{0}","h^{#pm}h^{#mp}h^{#pm}","h^{#pm}h^{#mp}h^{#pm}h^{0}","Other"]
     variables += [
-      Var('m_vis',          40,  0, 200, fname="mvis",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(50,0,250),"nbtag\w*>":(60,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
+      Var('m_vis',          40,  0, 200, fname="mvis",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(50,0,250),"nbtag\w*>":(60,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}, ymargin=1.7),
       Var('m_vis',  1, 60,  120, fname="$VAR_1bin", veto=["m_vis>200"] ),
       Var('m_vis',          11,  60, 120, fname="mvis_coarse",ctitle={'mumu':"m_mumu",'emu':"m_emu"},logy=False, cbins={"pt_\d>":(25,0,250),"nbtag\w*>":(30,0,300)},cpos={"pt_\d>[1678]0":'LL;y=0.88'}),
       Var("m_2",            30,  0,   3, title="m_tau",veto=["njet","nbtag","dm_2==0"]),
-      Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed HPS tau_h decay mode",veto="dm_2==",position="TMC",ymargin=1.2),
-      Var("decayModePNet_2",           14,  0,  14, fname="decayModePNet_2",title="Reconstructed tau_h PNet decay mode",position="TMC",ymargin=1.2, veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("dm_2",           14,  0,  14, fname="dm_2",title="Reconstructed HPS tau_h decay mode",veto=["rawUParTVS","rawPNetVS"],position="TMC",ymargin=1.5),
+      Var("decayModePNet_2",           14,  0,  14, fname="decayModePNet_2",title="Reconstructed tau_h PNet decay mode",position="TMC",ymargin=1.7, veto=["rawUParTVS","DeepTau2018v2p5"]),
       
-      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, logy=True, veto=["rawUParTVS","DeepTau2018v2p5"]),
-      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0, 1.05, logy=True,cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}, veto=["rawUParTVS","DeepTau2018v2p5"]),
-      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0, 1.05, logy=True, veto=["rawUParTVS","DeepTau2018v2p5"]),
-      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, fname="rawPNetVSjet_2_linear", veto=["rawUParTVS","DeepTau2018v2p5"]),
-      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30,  0, 1.05, fname="rawPNetVSe_2_linear",cbins={"VSjetMedVSeVL":(50,0.74,1.05),"VSjetMedVSeL":(25,0.95,1.05),"VSjetMedVSeMed":(20,0.98,1.05),"VSjetMedVSe\w*T":(10,0.99,1.15)}, veto=["rawUParTVS","DeepTau2018v2p5"]),
-      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50,  0, 1.05, fname="rawPNetVSmu_2_linear", veto=["rawUParTVS","DeepTau2018v2p5"]),
-      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, logy=True, veto=["rawUParTVS","rawPNetVS"]),
-      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, logy=True, veto=["rawUParTVS","rawPNetVS"]),
-      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, logy=True, veto=["rawUParTVS","rawPNetVS"]),
-      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{rawDeepTau2018v2p5VSjet}",50, 0.4, 1.05, fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"]),
-      Var("rawDeepTau2018v2p5VSe_2",  "Score_{rawDeepTau2018v2p5VSe}",30, 0.85, 1.05, fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"]),
-      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{rawDeepTau2018v2p5VSmu}",50, 0.4, 1.05, fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"]),
+      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05,cbins={"rawPNetVS":(50, 0.75,1.05)},pos='ML', logy=True, veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30, 0, 1.05, logy=True,cbins={"rawPNetVS":(50, 0.3,1.05)},pos='ML', veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50, 0, 1.05,cbins={"rawPNetVS":(30, 0.78,1.05)},pos='ML', logy=True, veto=["rawUParTVS","DeepTau2018v2p5"]),
 
-      Var("rawUParTVSe_2",  "Score_{rawUParTVSe}",50, 0, 1.05, fname="rawUParTVSe_2_linear"),
-      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu}",50, 0, 1.05, fname="rawUParTVSmu_2_linear"),
-      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet}",50, 0, 1.05, fname="rawUParTVSjet_2_linear"),
+      Var("rawPNetVSjet_2",  "Score_{PNetVSjet}",50, 0, 1.05, fname="rawPNetVSjet_2_linear",cbins={"rawPNetVS":(50, 0.75,1.05)},pos='ML', veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSe_2",  "Score_{PNetVSe}",30,  0, 1.05, fname="rawPNetVSe_2_linear",cbins={"rawPNetVS":(50, 0.3,1.05)},pos='ML', veto=["rawUParTVS","DeepTau2018v2p5"]),
+      Var("rawPNetVSmu_2",  "Score_{PNetVSmu}",50,  0, 1.05,cbins={"rawPNetVS":(30, 0.78,1.05)},pos='ML', fname="rawPNetVSmu_2_linear", veto=["rawUParTVS","DeepTau2018v2p5"],ymargin=1.3),
 
-      Var("rawUParTVSe_2",  "Score_{rawUParTVSe}",50, 0, 1.05, logy=True,fname="rawUParTVSe_2_log"),
-      Var("rawUParTVSmu_2",  "Score_{rawUParTVSmu}",50, 0, 1.05, logy=True,fname="rawUParTVSmu_2_log"),
-      Var("rawUParTVSjet_2",  "Score_{rawUParTVSjet}",50, 0, 1.05, logy=True,fname="rawUParTVSjet_2_log"),
+      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{DeepTau2018v2p5VSjet}",50, 0.4, 1.05,cbins={"DeepTau2018":(50, 0.8,1.05)},pos='ML', logy=True, veto=["rawUParTVS","rawPNetVS"],ymargin=1.3),
+      Var("rawDeepTau2018v2p5VSe_2",  "Score_{DeepTau2018v2p5VSe}",50, 0.0, 1.05,cbins={"DeepTau2018":(50, 0.2,1.05)}, pos='ML',ncols=3 ,logy=True, veto=["rawUParTVS","rawPNetVS"],ymargin=1.3),
+      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{DeepTau2018v2p5VSmu}",50, 0.4, 1.05,cbins={"DeepTau2018":(50, 0.8,1.05)},pos='ML', logy=True, veto=["rawUParTVS","rawPNetVS"],ymargin=1.3),
+
+      Var("rawDeepTau2018v2p5VSjet_2",  "Score_{DeepTau2018v2p5VSjet}",50, 0.4, 1.05,cbins={"DeepTau2018":(50, 0.8,1.05)},pos='ML', fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"],ymargin=1.3),
+      Var("rawDeepTau2018v2p5VSe_2",  "Score_{DeepTau2018v2p5VSe}",50, 0.0, 1.05,cbins={"DeepTau2018":(50, 0.2,1.05)}, pos='M' ,fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"],ymargin=1.3),
+      Var("rawDeepTau2018v2p5VSmu_2",  "Score_{DeepTau2018v2p5VSmu}",50, 0.4, 1.05,cbins={"DeepTau2018":(50, 0.8,1.05)}, fname="$VAR_linear", veto=["rawUParTVS","rawPNetVS"],ymargin=1.3),
+
+      Var("rawUParTVSe_2",  "Score_{UParTVSe}",50, 0, 1.05,cbins={"rawUParTVS":(50, 0.1,1.05)},pos='C', fname="rawUParTVSe_2_linear",veto=["rawPNetVS","DeepTau2018v2p5"],ymargin=1.3),
+      Var("rawUParTVSmu_2",  "Score_{UParTVSmu}",50, 0, 1.05,cbins={"rawUParTVS":(50, 0.6,1.05)},pos='ML', fname="rawUParTVSmu_2_linear",veto=["rawPNetVS","DeepTau2018v2p5"],ymargin=1.3),
+      Var("rawUParTVSjet_2",  "Score_{UParTVSjet}",50, 0, 1.05, fname="rawUParTVSjet_2_linear",pos="ML",veto=["rawPNetVS","DeepTau2018v2p5"],ymargin=1.3),
+
+      Var("rawUParTVSe_2",  "Score_{rParTVSe}",50, 0, 1.05,cbins={"rawUParTVS":(50, 0.1,1.05)}, logy=True,fname="rawUParTVSe_2_log",pos="L",ncols=2,veto=["rawPNetVS","DeepTau2018v2p5"],ymargin=1.3),
+      Var("rawUParTVSmu_2",  "Score_{UParTVSmu}",50, 0.8, 1.05,cbins={"rawUParTVS":(50, 0.6,1.05)},pos='ML', logy=True,fname="rawUParTVSmu_2_log",veto=["rawPNetVS","DeepTau2018v2p5"],ymargin=1.3),
+      Var("rawUParTVSjet_2",  "Score_{UParTVSjet}",50, 0, 1.05, logy=True,fname="rawUParTVSjet_2_log",pos="ML",veto=["rawPNetVS","DeepTau2018v2p5"],ymargin=1.3),
 
 
-      Var("probDM0UParT_2", "Prob of DM_{UParT}=0", 21, 0, 1.05, fname="probDM0UParT_2",logy=True, pos="R"),
-      Var("probDM1UParT_2", "Prob of DM_{UParT}=1", 21, 0, 1.05, fname="probDM1UParT_2",logy=True, pos="R"),
-      Var("probDM2UParT_2", "Prob of DM_{UParT}=2", 21, 0, 1.05, fname="probDM2UParT_2",logy=True, pos="R"),
-      Var("probDM10UParT_2", "Prob of DM_{UParT}=10", 21, 0, 1.05, fname="probDM10UParT_2",logy=True, pos="R"),
-      Var("probDM11UParT_2", "Prob of DM_{UParT}=11", 21, 0, 1.05, fname="probDM11UParT_2",logy=True, pos="R"),
+      Var("probDM0UParT_2", "Prob of DM_{UParT}=0", 21, 0, 1.05, fname="probDM0UParT_2",logy=True, pos="R",veto=["rawPNetVS","DeepTau2018v2p5"]),
+      Var("probDM1UParT_2", "Prob of DM_{UParT}=1", 21, 0, 1.05, fname="probDM1UParT_2",logy=True, pos="R",veto=["rawPNetVS","DeepTau2018v2p5"]),
+      Var("probDM2UParT_2", "Prob of DM_{UParT}=2", 21, 0, 1.05, fname="probDM2UParT_2",logy=True, pos="R",veto=["rawPNetVS","DeepTau2018v2p5"]),
+      Var("probDM10UParT_2", "Prob of DM_{UParT}=10", 21, 0, 1.05, fname="probDM10UParT_2",logy=True, pos="R",veto=["rawPNetVS","DeepTau2018v2p5"]),
+      Var("probDM11UParT_2", "Prob of DM_{UParT}=11", 21, 0, 1.05, fname="probDM11UParT_2",logy=True, pos="R",veto=["rawPNetVS","DeepTau2018v2p5"]),
+      Var("decayModeUParT_2", 14,  0,  14, fname="decayModeUParT_2",title="Reconstructed tau_h UParT decay mode",position="TMC",veto=["rawPNetVS","DeepTau2018v2p5"],ymargin=1.7),
 
       Var("probDM0PNet_2", "Prob of DM_{PNet}=0", 21, 0, 1.05, fname="probDM0PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
       Var("probDM1PNet_2", "Prob of DM_{PNet}=1", 21, 0, 1.05, fname="probDM1PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
       Var("probDM2PNet_2", "Prob of DM_{PNet}=2", 21, 0, 1.05, fname="probDM2PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
       Var("probDM10PNet_2", "Prob of DM_{PNet}=10", 21, 0, 1.05, fname="probDM10PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
       Var("probDM11PNet_2", "Prob of DM_{PNet}=11", 21, 0, 1.05, fname="probDM11PNet_2",logy=True, pos="R", veto=["rawUParTVS","DeepTau2018v2p5"]),
-      Var("decayModeUParT_2", 14,  0,  14, fname="decayModeUParT_2",title="Reconstructed tau_h UParT decay mode",position="TMC",ymargin=1.2),
 
-      Var("ptCorrUParT_2",  "pt CorrUParT tau",40, 0, 120, fname="ptCorrUParT_2",title="pt CorrUParT tau", pos="L"),
-      Var("qConfUParT_2",  "q CorrUParT tau",4, -2, 2, fname="qConfUParT_2",title="q CorrUParT tau", pos="L"),
+      Var("ptCorrUParT_2",  "pt CorrUParT tau",40, 0, 120, fname="ptCorrUParT_2",title="pt CorrUParT tau", pos="L",veto=["rawPNetVS","DeepTau2018v2p5"]),
+      Var("qConfUParT_2",  "q CorrUParT tau",4, -2, 2, fname="qConfUParT_2",title="q CorrUParT tau", pos="L",veto=["rawPNetVS","DeepTau2018v2p5"]),
       
     ]
     gen_variables_list=['gendm_2','genmatch_1','genmatch_2']
@@ -152,7 +155,7 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
     else:
       stacks = sampleset.getstack(variables,selection,method='QCD_OSSS',scale=1, parallel=parallel)
     fname  = "%s/$VAR_%s-%s-%s$TAG"%(outdir,channel.replace('mu','m').replace('tau','t'),selection.filename,era)
-    text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}").replace('_pnet_pnetdm',"PNet_{DMs}").replace('_pnet',"_{PNet}").replace('_deept',"_{DeepTau}").replace('_inclusive_2024Summer','_2024Summer'),selection.title)
+    text   = "%s: %s"%(channel.replace('mu',"#mu").replace('tau',"#tau_{h}").replace('_pnet_pnetdm',"PNet_{DMs}").replace('_pnet',"_{PNet}").replace('_deept',"_{DeepTau}").replace('_inclusive_2024Summer',''),selection.title)
     if extratext:
       text += ("" if '\n' in extratext[:3] else ", ") + extratext
     #for stack, variable in stacks.iteritems():
