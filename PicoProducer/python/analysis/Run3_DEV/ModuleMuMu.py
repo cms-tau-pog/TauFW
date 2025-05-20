@@ -189,7 +189,7 @@ class ModuleMuMu(ModuleTauPair):
       if muon2.DeltaR(tau)<0.5: continue
       if abs(tau.eta)>2.3: continue
       if abs(tau.dz)>0.2: continue
-      if tau.decayMode not in [0,1,10,11]: continue
+      # if tau.decayMode not in [0,1,10,11]: continue
       if abs(tau.charge)!=1: continue
       #if ord(tau.idDeepTau2017v2p1VSe)<1: continue # VLoose
       #if ord(tau.idDeepTau2017v2p1VSmu)<1: continue # VLoose
