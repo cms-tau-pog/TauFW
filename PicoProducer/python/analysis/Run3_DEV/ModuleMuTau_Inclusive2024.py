@@ -243,15 +243,19 @@ class ModuleMuTau_Inclusive2024(ModuleTauPair):
 
 
     # UParT
+    # if self.year==2024:
     self.out.probDM0UParT_2[0]              = tau.probDM0UParT
     self.out.probDM1UParT_2[0]              = tau.probDM1UParT
     self.out.probDM2UParT_2[0]              = tau.probDM2UParT
     self.out.probDM10UParT_2[0]             = tau.probDM10UParT
     self.out.probDM11UParT_2[0]             = tau.probDM11UParT
+
     self.out.rawUParTVSe_2[0]               = tau.rawUParTVSe
     self.out.rawUParTVSmu_2[0]              = tau.rawUParTVSmu
     self.out.rawUParTVSjet_2[0]             = tau.rawUParTVSjet
+
     self.out.decayModeUParT_2[0]            = tau.decayModeUParT
+    
     self.out.ptCorrUParT_2[0]               = tau.ptCorrUParT
     self.out.qConfUParT_2[0]                = tau.qConfUParT
     
