@@ -3,7 +3,7 @@
 ####### partition/queue
 #SBATCH --partition cp3
 ####### the cpu time for this job
-#SBATCH --time 04:00:00
+#SBATCH --time 05:00:00
 ####### the maximum memory usage of this job
 #SBATCH --mem 15000M
 ####### Job Name
