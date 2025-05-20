@@ -34,7 +34,7 @@ def getsampleset(channel,era,**kwargs):
     # for now nevts is set to 1 so it isn't taken into account in the scaling of the samples as this will be done elsewhere
     
     kfactor_dy=6282.6/5455.0 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV [https://twiki.cern.ch/twiki/bin/viewauth/CMS/MATRIXCrossSectionsat13p6TeV]
-    kfactor_wj=63425.1/55300 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
+    kfactor_wj= 0.93 #63425.1/55300 # LO->NNLO+NLO_EW k-factor computed for 13.6 TeV
     kfactor_ttbar=923.6/762.1 # NLO->NNLO k-factor computed for 13.6 TeV
     kfactor_ww=1.524 # LO->NNLO+NLO_EW computed for 13.6 TeV
     kfactor_zz=1.524 # LO->NNLO+NLO_EW computed for 13.6 TeV
@@ -60,11 +60,11 @@ def getsampleset(channel,era,**kwargs):
         # ( 'DY', "DYto2L-4Jets_MLL-50_2J",      "Drell-Yan 2J 50",      315.1*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         # ( 'DY', "DYto2L-4Jets_MLL-50_3J",      "Drell-Yan 3J 50",      93.7*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
         # ( 'DY', "DYto2L-4Jets_MLL-50_4J",      "Drell-Yan 4J 50",      45.4*kfactor_dy, {'extraweight': dyweight} ), # LO times kfactor
-        ( 'WJ', "WtoTauNu-2Jets",            "Wtau + jets",           22570.*kfactor_wj ), # LO times kfactor
+        ( 'WJ', "WtoTauNu-2Jets",            "Wtau + jets",           22666.*kfactor_wj ), # LO times kfactor
         # ( 'WJ', "WtoTauNu-2Jets_0J",            "W + 0J",           18586.*kfactor_wj ), # LO times kfactor
-        ( 'WJ', "WtoMuNu-2Jets",            "Wmu + jets",           22570.*kfactor_wj ), # LO times kfactor
+        ( 'WJ', "WtoMuNu-2Jets",            "Wmu + jets",           22666.*kfactor_wj ), # LO times kfactor
         # ( 'WJ', "WtoMuNu-2Jets_0J",            "W + 0J",           18586.*kfactor_wj ), # LO times kfactor
-        ( 'WJ', "WtoENu-2Jets",            "We + jets",           22570.*kfactor_wj ), # LO times kfactor
+        ( 'WJ', "WtoENu-2Jets",            "We + jets",           22666.*kfactor_wj ), # LO times kfactor
         # ( 'WJ', "WtoENu-2Jets_0J",            "W + 0J",           18586.*kfactor_wj ), # LO times kfactor     
         # ( 'WJ', "WtoLNu-4Jets",            "W + jets",           55300.*kfactor_wj ), # LO times kfactor
         # ( 'WJ', "WtoLNu-4Jets_1J",           "W + 1J",              9128.*kfactor_wj), # LO times kfactor
