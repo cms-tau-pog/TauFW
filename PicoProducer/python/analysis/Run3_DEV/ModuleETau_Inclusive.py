@@ -21,7 +21,7 @@ class ModuleETau_Inclusive(ModuleTauPair):
     
     # TRIGGERS
     y_trig = self.year
-    if "2022" in self.era or "2023" in self.era:
+    if "2022" in self.era or "2023" in self.era or "2024" in self.era:
        y_trig = 2018
     jsonfile       = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(y_trig))
     self.trigger   = TrigObjMatcher(jsonfile,trigger='SingleElectron',isdata=self.isdata)
@@ -32,7 +32,10 @@ class ModuleETau_Inclusive(ModuleTauPair):
     
     #CORRECTIONS
     if self.ismc:
-      self.eleSFs   = ElectronSFs(era=self.era) # ele id/iso/trigger SFs
+      if self.year==2024:
+        self.eleSFs= 1
+      else:
+        self.eleSFs   = ElectronSFs(era=self.era) # ele id/iso/trigger SFs
     
     
     print("FES: ", self.fes)
@@ -215,9 +218,9 @@ class ModuleETau_Inclusive(ModuleTauPair):
     self.out.q_2[0]                        = tau.charge
     self.out.dm_2[0]                       = tau.decayMode
     self.out.iso_2[0]                      = tau.rawIso
-    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
-    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
-    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
+    # self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
+    # self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
+    # self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
     
     self.out.rawDeepTau2018v2p5VSe_2[0]    = tau.rawDeepTau2018v2p5VSe
     self.out.rawDeepTau2018v2p5VSmu_2[0]   = tau.rawDeepTau2018v2p5VSmu
@@ -225,9 +228,9 @@ class ModuleETau_Inclusive(ModuleTauPair):
 
     self.out.idDecayMode_2[0]              = tau.idDecayMode
     self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
-    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
-    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
+    # self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
+    # self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
+    # self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
 
     self.out.idDeepTau2018v2p5VSe_2[0]     = tau.idDeepTau2018v2p5VSe
     self.out.idDeepTau2018v2p5VSmu_2[0]    = tau.idDeepTau2018v2p5VSmu
@@ -243,6 +246,23 @@ class ModuleETau_Inclusive(ModuleTauPair):
     self.out.probDM2PNet_2[0]              = tau.probDM2PNet
     self.out.probDM10PNet_2[0]              = tau.probDM10PNet
     self.out.probDM11PNet_2[0]              = tau.probDM11PNet    
+
+    #UParT
+    self.out.probDM0UParT_2[0]              = tau.probDM0UParT
+    self.out.probDM1UParT_2[0]              = tau.probDM1UParT
+    self.out.probDM2UParT_2[0]              = tau.probDM2UParT
+    self.out.probDM10UParT_2[0]             = tau.probDM10UParT
+    self.out.probDM11UParT_2[0]             = tau.probDM11UParT
+
+    self.out.rawUParTVSe_2[0]               = tau.rawUParTVSe
+    self.out.rawUParTVSmu_2[0]              = tau.rawUParTVSmu
+    self.out.rawUParTVSjet_2[0]             = tau.rawUParTVSjet
+
+    self.out.decayModeUParT_2[0]            = tau.decayModeUParT
+    
+    self.out.ptCorrUParT_2[0]               = tau.ptCorrUParT
+    self.out.qConfUParT_2[0]                = tau.qConfUParT
+
     # GENERATOR
     if self.ismc:
       self.out.genmatch_1[0]     = electron.genPartFlav
@@ -269,8 +289,13 @@ class ModuleETau_Inclusive(ModuleTauPair):
          self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
       # ELECTRON WEIGHTS
-      self.out.trigweight[0]              = self.eleSFs.getTriggerSF(electron.pt,abs(electron.eta))
-      self.out.idisoweight_1[0]           = self.eleSFs.getIdIsoSF(electron.pt,abs(electron.eta))
+
+      if self.year==2024:
+        self.out.trigweight[0] = 1
+        self.out.idisoweight_1[0] = 1
+      else:
+        self.out.trigweight[0]              = self.eleSFs.getTriggerSF(electron.pt,abs(electron.eta))
+        self.out.idisoweight_1[0]           = self.eleSFs.getIdIsoSF(electron.pt,abs(electron.eta))
 
       #print("eta: ", electron.eta)
       #print("pt: ",  electron.pt)
