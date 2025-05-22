@@ -90,6 +90,19 @@ class TreeProducerETau(TreeProducerTauPair):
     self.addBranch('photonsOutsideSignalCone_2', 'f')
     self.addBranch('puCorr_2',                   'f')
     self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
+  
+
+    self.addBranch('decayModeUParT_2',              'i')
+    self.addBranch('rawUParTVSe_2',                   'f')
+    self.addBranch('rawUParTVSmu_2',                   'f')
+    self.addBranch('rawUParTVSjet_2',                   'f')
+    self.addBranch('probDM0UParT_2',               'f')
+    self.addBranch('probDM1UParT_2',               'f')
+    self.addBranch('probDM2UParT_2',               'f')
+    self.addBranch('probDM10UParT_2',               'f')
+    self.addBranch('probDM11UParT_2',               'f')
+    self.addBranch('ptCorrUParT_2',                'f')
+    self.addBranch('qConfUParT_2',                'f')
     
     if self.module.ismc:
       self.addBranch('jpt_genmatch_2',           'f', -1, title="pt of gen jet matching tau")
