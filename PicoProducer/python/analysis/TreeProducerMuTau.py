@@ -3,6 +3,7 @@
 #   https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Synchronisation
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
 from TauFW.PicoProducer.analysis.TreeProducerTauPair import TreeProducerTauPair
+import ROOT
 
 
 class TreeProducerMuTau(TreeProducerTauPair):
@@ -12,7 +13,26 @@ class TreeProducerMuTau(TreeProducerTauPair):
     print("Loading TreeProducerMuTau for %r"%(filename))
     super(TreeProducerMuTau,self).__init__(filename,module,**kwargs)
     
-    
+    # TRIGGER BRANCHES
+    self.addBranch('HLT_IsoMu24', '?', False, title="Trigger branch for HLT_IsoMu24")
+    self.addBranch('HLT_IsoMu24_eta2p1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1")
+    self.addBranch('HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1")
+
+    ###############
+    #   TRIGOBJ   #
+    ###############
+    self.addBranch('trig_match_DeepTau_MuTau', '?', False)
+    self.addBranch('trig_match_PNet_MuTau_Loose', '?', False)
+    self.addBranch('trig_match_PNet_MuTau_Medium', '?', False)
+    self.addBranch('trig_match_PNet_MuTau_Tight', '?', False)
+
+    self.addBranch('pass_tag', '?', False)
+    self.addBranch('pass_probe', '?', False)
+    self.addBranch('trig_match_single_muon', '?', False)
+    self.addBranch('trig_obj_15', '?', False)
+    self.addBranch('trig_obj_13', '?', False)
+    self.addBranch('dR_mu', '?', False)
+
     ############
     #   MUON   #
     ############

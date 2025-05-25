@@ -32,8 +32,8 @@ class ModuleTauPair(Module):
     self.isembed    = self.dtype=='embed'
     self.branchsel  = None # keep/drop file for branches: disable unneeded branches for faster processing
     self.channel    = kwargs.get('channel',  'none'         ) # channel name
-    self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
-    self.era        = kwargs.get('era',      '2022postEE'   ) # string, e.g. '2017', 'UL2017'
+    self.year       = kwargs.get('year',     2024           ) # integer, e.g. 2017, 2018
+    self.era        = kwargs.get('era',      '2024I'   ) # string, e.g. '2017', 'UL2017'
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
@@ -42,7 +42,7 @@ class ModuleTauPair(Module):
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
     ##addition Z resolution
     self.Zres       = kwargs.get('Zres',     None           ) # Z resolution 
-    self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
+    self.tauwp      = kwargs.get('tauwp',    5              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
     self.domutau    = kwargs.get('domutau',  'DY' in fname or self.dozpt ) # mutau genfilter for stitching DY sample
@@ -60,7 +60,7 @@ class ModuleTauPair(Module):
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
-    assert self.year in [2016,2017,2018,2022,2023], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
+    assert self.year in [2016,2017,2018,2022,2023,2024], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -72,8 +72,16 @@ class ModuleTauPair(Module):
     self.ptnom        = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
     self.jecUncLabels = [ ]
     self.metUncLabels = [ ]
+
+    # if self.ismc:
+    #   self.puTool      = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+    #   self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+
     if self.ismc:
-      self.puTool      = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+      if self.era != '2024I': 
+          self.puTool = PileupWeightTool(era=self.era, sample=self.filename, verb=self.verbosity)
+      else:
+          self.puTool = None
       self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
