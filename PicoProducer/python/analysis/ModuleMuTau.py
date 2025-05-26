@@ -50,11 +50,11 @@ class ModuleMuTau(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      if self.era != '2024I': 
-          self.muSFs = MuonSFs(era=self.era, verb=self.verbosity)
-      else:
-          self.muSFs = None 
-      # self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
+      # if self.era != '2024I': 
+      #     self.muSFs = MuonSFs(era=self.era, verb=self.verbosity)
+      # else:
+      #     self.muSFs = None 
+      self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
       self.tesTool    = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
       #self.fesTool    = TauFESTool(tauSFVersion[self.year]) # e -> tau fake negligible
       self.tauSFsT    = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
