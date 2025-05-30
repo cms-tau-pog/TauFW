@@ -41,7 +41,7 @@ class ModuleMuTau_Inclusive2024(ModuleTauPair):
     # CORRECTIONS
     if self.ismc:
       if self.year==2024:
-        self.muSFs  = 1
+        self.muSFs  = MuonSFs(era=self.era,verb=self.verbosity) 
       else:
         self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
     
@@ -290,7 +290,7 @@ class ModuleMuTau_Inclusive2024(ModuleTauPair):
       # MUON WEIGHTS
       if self.year==2024:
         self.out.trigweight[0]          = 1.
-        self.out.idisoweight_1[0]       = 1.
+        self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
       else:
         self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta) # assume leading muon was triggered on
         self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
