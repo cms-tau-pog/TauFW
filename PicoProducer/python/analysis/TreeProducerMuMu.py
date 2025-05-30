@@ -50,7 +50,7 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('idTight_2',  '?')
     self.addBranch('idHighPt_2', 'i')
     
-    
+    self.setAlias("m_ll","m_vis")
     ###########
     #   TAU   #
     ###########
@@ -80,9 +80,7 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('rawPNetVSe_3',               'f')
     self.addBranch('rawPNetVSjet_3',             'f')
     self.addBranch('rawPNetVSmu_3',              'f')
-
     self.addBranch('decayModePNet_3',             'i')
-
     self.addBranch('probDM0PNet_3',               'f')
     self.addBranch('probDM1PNet_3',               'f')
     self.addBranch('probDM2PNet_3',               'f')

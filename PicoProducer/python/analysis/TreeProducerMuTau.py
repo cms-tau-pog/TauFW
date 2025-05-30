@@ -58,21 +58,6 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('rawDeepTau2018v2p5VSmu_2',   'f')
     self.addBranch('rawDeepTau2018v2p5VSjet_2',  'f')
 
-    #rawPNetV
-    self.addBranch('rawPNetVSe_2',               'f')
-    self.addBranch('rawPNetVSjet_2',             'f')
-    self.addBranch('rawPNetVSmu_2',              'f')
-
-    self.addBranch('decayModePNet_2',             'i')
-
-    self.addBranch('probDM0PNet_2',               'f')
-    self.addBranch('probDM1PNet_2',               'f')
-    self.addBranch('probDM2PNet_2',               'f')
-    self.addBranch('probDM10PNet_2',               'f')
-    self.addBranch('probDM11PNet_2',               'f')
-
-    self.addBranch('ptCorrPNet_2',                'f')
-    self.addBranch('qConfPNet_2',                'f')
 
     #self.addBranch('idAntiEle_2',                'i')
     #self.addBranch('idAntiMu_2',                 'i')
@@ -90,13 +75,28 @@ class TreeProducerMuTau(TreeProducerTauPair):
 
 
     self.addBranch('leadTkPtOverTauPt_2',        'f')
+    self.addBranch('leadTkDeltaEta_2',        'f')
+    self.addBranch('leadTkDeltaPhi_2',        'f')
     self.addBranch('chargedIso_2',               'f')
     self.addBranch('neutralIso_2',               'f')
     self.addBranch('photonsOutsideSignalCone_2', 'f')
     self.addBranch('puCorr_2',                   'f')
     self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
     
-    # if self.module.year == 2024:
+    #PNet
+    self.addBranch('decayModePNet_2',             'i')
+    self.addBranch('rawPNetVSe_2',               'f')
+    self.addBranch('rawPNetVSjet_2',             'f')
+    self.addBranch('rawPNetVSmu_2',              'f')
+    self.addBranch('probDM0PNet_2',               'f')
+    self.addBranch('probDM1PNet_2',               'f')
+    self.addBranch('probDM2PNet_2',               'f')
+    self.addBranch('probDM10PNet_2',               'f')
+    self.addBranch('probDM11PNet_2',               'f')
+    self.addBranch('ptCorrPNet_2',                'f')
+    self.addBranch('qConfPNet_2',                'f')
+
+    # UParT
     self.addBranch('decayModeUParT_2',              'i')
     self.addBranch('rawUParTVSe_2',                   'f')
     self.addBranch('rawUParTVSmu_2',                   'f')
