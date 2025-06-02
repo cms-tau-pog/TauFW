@@ -1,8 +1,8 @@
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
 storage  = None #"/eos/cms/store/group/phys_tau/irandreo/Run3_23D/$DAS"
-url      = "root://cms-xrd-global.cern.ch/" #"root://eosuser.cern.ch/"
-filelist = None #"samples/files/2023D/$SAMPLE.txt"
+url      = None #"root://cms-xrd-global.cern.ch/" #"root://eosuser.cern.ch/"
+filelist = "samples/files/2024_v15/$SAMPLE.txt"
 opts     = "useT1=False,dojec=False"
 opts_dy  = opts+",zpt=True"
 opts_tt  = opts+",toppt=True"
@@ -135,8 +135,8 @@ samples  = [
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
   D('Data','Muon0_Run2024F',"/Muon0/Run2024F-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
-  # D('Data','Muon0_Run2024G',"/Muon0/Run2024G-MINIv6NANOv15-v1/NANOAOD",
-  #   store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
+  D('Data','Muon0_Run2024G',"/Muon0/Run2024G-MINIv6NANOv15-v1/NANOAOD",
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
 
   D('Data','Muon0_Run2024H',"/Muon0/Run2024H-MINIv6NANOv15-v1/NANOAOD",
@@ -154,8 +154,10 @@ samples  = [
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
   D('Data','Muon1_Run2024E',"/Muon1/Run2024E-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
-
   D('Data','Muon1_Run2024F',"/Muon1/Run2024F-MINIv6NANOv15-v1/NANOAOD",
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
+
+  D('Data','Muon1_Run2024G',"/Muon1/Run2024G-MINIv6NANOv15-v2/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'mutau*','mumu*','emu','mumutau','mumettau']),
 
   D('Data','Muon1_Run2024H',"/Muon1/Run2024H-MINIv6NANOv15-v2/NANOAOD",
@@ -181,6 +183,9 @@ samples  = [
   D('Data','EGamma0_Run2024F',"/EGamma0/Run2024F-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
   
+  D('Data','EGamma0_Run2024G',"/EGamma0/Run2024G-MINIv6NANOv15-v2/NANOAOD",
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
+
   D('Data','EGamma0_Run2024H',"/EGamma0/Run2024H-MINIv6NANOv15-v2/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
 
@@ -195,14 +200,12 @@ samples  = [
   D('Data','EGamma1_Run2024D',"/EGamma1/Run2024D-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
 
-  D('Data','EGamma1_Run2024E',
-    "/EGamma1/Run2024E-MINIv6NANOv15-v1/NANOAOD",
-    # "/EGamma1/Run2024E-PromptReco-v2/NANOAOD",
+  D('Data','EGamma1_Run2024E',"/EGamma1/Run2024E-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
   D('Data','EGamma1_Run2024F',"/EGamma1/Run2024F-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
-  # D('Data','EGamma1_Run2024G',"/EGamma1/Run2024G-PromptReco-v1/NANOAOD",
-  #   store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
+  D('Data','EGamma1_Run2024G',"/EGamma1/Run2024G-MINIv6NANOv15-v2/NANOAOD",
+    store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
 
   D('Data','EGamma1_Run2024H',"/EGamma1/Run2024H-MINIv6NANOv15-v1/NANOAOD",
     store=storage,url=url,files=filelist,opts=opts,channels=["skim*",'etau*','ee','eetau']),
