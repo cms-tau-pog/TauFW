@@ -18,7 +18,7 @@ def getsampleset(channel,era,**kwargs):
   rmsfs    = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
   addsfs   = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
   weight   = kwargs.get('weight',   None         ) # weight for all MC samples
-  dyweight = kwargs.get('dyweight', 'zptweight'  ) # weight for DY samples
+  dyweight = kwargs.get('dyweight', 'zptweight_lo'  ) # weight for DY samples: zptweight, zptweight_lo, zptweight_nlo, zptweight_nnlo
   ttweight = kwargs.get('ttweight', 'ttptweight' ) # weight for ttbar samples
   filter   = kwargs.get('filter',   None         ) # only include these MC samples
   vetoes   = kwargs.get('vetoes',   None         ) # veto these MC samples
@@ -73,15 +73,15 @@ def getsampleset(channel,era,**kwargs):
         # ( 'WJ', "WtoLNu-4Jets_4J",           "W + 4J",               415.4*kfactor_wj), # LO times kfactor
    
         # ( 'VV', "WWto2L2Nu",             "WW 2l2#nu",                    11.79*kfactor_ww ), # LO times kfactor
-        # ( 'VV', "WWto4Q",             "WW 4q",                    50.79*kfactor_ww ), # LO times kfactor
+        ( 'VV', "WWto4Q",             "WW 4q",                    50.79*kfactor_ww ), # LO times kfactor
         ( 'VV', "WWtoLNu2Q",             "WW l#nu2q",                    48.94*kfactor_ww ), # LO times kfactor
         # ( 'VV', "ZZto2L2Nu",             "ZZ 2l2#nu",                    1.031*kfactor_zz ), # LO times kfactor
         # ( 'VV', "ZZto2L2Q",             "ZZ 2l2q",                    6.788*kfactor_zz ), # LO times kfactor
         # ( 'VV', "ZZto2Nu2Q",             "ZZ 2#nu2q",                    4.826*kfactor_zz ), # LO times kfactor
-        ( 'VV', "ZZto4L",             "ZZ 4l",                    4.344*kfactor_wz), # LO times kfactor
+        # ( 'VV', "ZZto4L",             "ZZ 4l",                    4.344*kfactor_wz), # LO times kfactor
         # ( 'VV', "WW",             "WW",                    80.23*kfactor_ww ), # LO times kfactor
-        # ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz), # LO times kfactor
-        # ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz ), # LO times kfactor
+        ( 'VV', "WZ",             "WZ",                    29.1*kfactor_wz), # LO times kfactor
+        ( 'VV', "ZZ",             "ZZ",                    12.75*kfactor_zz ), # LO times kfactor
 
         ( 'TT', "TTto2L2Nu",             "ttbar 2l2#nu",          80.9*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor
         ( 'TT', "TTto4Q",                "ttbar hadronic24",       346.4*kfactor_ttbar, {'extraweight': ttweight} ), # NLO times BR times kfactor

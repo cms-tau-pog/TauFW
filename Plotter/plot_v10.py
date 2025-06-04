@@ -133,8 +133,8 @@ def plot(sampleset,setup,parallel=True,tag="",extratext="",outdir="plots",era=""
 
   elif 'mumu' in channel or 'ee' in channel:
     variables += [
-      Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>200":(40,200,1000)}), # alias: m_ll alias of m_vis
-      Var('m_ll', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
+      Var('m_vis', "m_mumu", 40,  0,  200, fname="$VAR", cbins={"m_vis>60":{40,50,130},"m_vis>200":(40,200,1000)},rmin=0.8,rmax=1.1), # alias: m_ll alias of m_vis
+      Var('m_vis', "m_mumu", 40,  0,  200, fname="$VAR_log", logy=True, ymin=1e2, cbins={"m_vis>200":(40,200,1000)} ),
       # Var('m_ll', "m_mumu", 40, 70,  110, fname="$VAR_Zmass", veto=["m_vis>200"] ),
       # Var('m_ll', "m_mumu",  1, 70,  110, fname="$VAR_1bin", veto=["m_vis>200"] ),
       Var('iso_1', 50, 0.,1., ymin = 1e2,logy=True),
@@ -303,7 +303,9 @@ def main(args):
   extratext = args.text
   fraction  = args.fraction
   pdf       = args.pdf
-  if 'ingrid' in socket.gethostname():
+  #default script
+  #outdir    = "plots/$ERA/$CHANNEL"
+  if 'ingrid' in socket.gethostname(): #this is the default
     outdir    = "plots/$ERA/$CHANNEL"
   if 'lxplus' in socket.gethostname():
     outdir    = "/eos/user/f/fcasalin/TauFW_230425/Plotter_out/plots/$ERA/$CHANNEL"
