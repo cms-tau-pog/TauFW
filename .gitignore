@@ -16,6 +16,7 @@ PicoProducer/config/config.json
 PicoProducer/samples/files
 PicoProducer/output
 PicoProducer/python/batch/
+# PicoProducer/python/corrections/DY*
 # PicoProducer/samples
 Plotter/plots
 Plotter/tutorial

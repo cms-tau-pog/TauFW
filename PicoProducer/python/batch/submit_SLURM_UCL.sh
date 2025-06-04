@@ -10,7 +10,7 @@
 #SBATCH -J test
 ####### transfer environment variable from submission host
 #SBATCH --export ALL
-
+#SBATCH --licenses=cms_storage:3
 # START
 START=`date +%s`
 echo "Job start at `date`"
