@@ -29,7 +29,7 @@ class ModuleMuTau(ModuleTauPair):
       self.muonCutEta = lambda e: 2.4
     elif self.year==2018:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25
+      self.muonCutPt  = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     elif self.year==2022 or self.year==2023 or self.year==2024:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1

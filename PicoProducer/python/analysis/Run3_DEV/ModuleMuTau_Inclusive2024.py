@@ -21,15 +21,15 @@ class ModuleMuTau_Inclusive2024(ModuleTauPair):
     # TRIGGERS
     if self.year==2016:
       self.trigger    = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
-      self.muonCutPt  = lambda e: 23
+      self.muonCutPt  = lambda e: 26
       self.muonCutEta = lambda e: 2.4 if e.HLT_IsoMu22 or e.HLT_IsoTkMu22 else 2.1
     elif self.year==2017:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25 if e.HLT_IsoMu24 else 28
+      self.muonCutPt  = lambda e: 26 if e.HLT_IsoMu24 else 28
       self.muonCutEta = lambda e: 2.4
     elif self.year==2018:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 25
+      self.muonCutPt  = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     elif self.year==2022 or self.year==2023 or self.year==2024:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
@@ -40,10 +40,7 @@ class ModuleMuTau_Inclusive2024(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      if self.year==2024:
-        self.muSFs  = MuonSFs(era=self.era,verb=self.verbosity) 
-      else:
-        self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
+      self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
@@ -290,10 +287,10 @@ class ModuleMuTau_Inclusive2024(ModuleTauPair):
       # MUON WEIGHTS
       if self.year==2024:
         self.out.trigweight[0]          = 1.
-        self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
       else:
         self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta) # assume leading muon was triggered on
-        self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
+
+      self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
       
       #print("eta: ", muon.eta)
       #print("pt: ",  muon.pt)
