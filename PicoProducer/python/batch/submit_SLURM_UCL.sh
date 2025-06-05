@@ -3,14 +3,14 @@
 ####### partition/queue
 #SBATCH --partition cp3
 ####### the cpu time for this job
-#SBATCH --time 05:00:00
+#SBATCH --time 01:20:00
 ####### the maximum memory usage of this job
-#SBATCH --mem 15000M
+#SBATCH --mem 10000M
 ####### Job Name
 #SBATCH -J test
 ####### transfer environment variable from submission host
 #SBATCH --export ALL
-#SBATCH --licenses=cms_storage:3
+
 # START
 START=`date +%s`
 echo "Job start at `date`"
@@ -46,7 +46,7 @@ echo "cmssw = $CMSSW_BASE"
 #peval "$TASKCMD"
 export SINGULARITYENV_PATH=$PATH
 export SINGULARITYENV_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-singularity exec /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el9:x86_64 /bin/sh <<- EOF_PAYLOAD
+singularity exec /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el7:x86_64 /bin/sh <<- EOF_PAYLOAD
 echo ">>> $TASKCMD"
 eval "$TASKCMD"
 EOF_PAYLOAD

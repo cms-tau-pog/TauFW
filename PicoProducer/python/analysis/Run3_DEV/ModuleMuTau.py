@@ -29,7 +29,7 @@ class ModuleMuTau(ModuleTauPair):
       self.muonCutEta = lambda e: 2.4
     elif self.year==2018:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
-      self.muonCutPt  = lambda e: 26
+      self.muonCutPt  = lambda e: 25
       self.muonCutEta = lambda e: 2.4
     elif self.year==2022 or self.year==2023 or self.year==2024:
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27#e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
@@ -40,7 +40,10 @@ class ModuleMuTau(ModuleTauPair):
     
     # CORRECTIONS
     if self.ismc:
-      self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
+      if self.year==2024:
+        self.muSFs  = 1
+      else:
+        self.muSFs   = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
     
     # CUTFLOW
     self.out.cutflow.addcut('none',         "no cut"                     )
@@ -111,7 +114,12 @@ class ModuleMuTau(ModuleTauPair):
     for tau in Collection(event,'Tau'):
       if abs(tau.eta)>self.tauCutEta: continue
       if abs(tau.dz)>0.2: continue
+      if tau.decayMode not in [0,1,10,11]: continue
       if abs(tau.charge)!=1: continue
+      #id cuts v2p5
+      if tau.idDeepTau2018v2p5VSe<1: continue # VVVLoose
+      if tau.idDeepTau2018v2p5VSmu<1: continue # VLoose
+      if tau.idDeepTau2018v2p5VSjet<1: continue # VVVLoose
       if self.ismc:
         tau.es   = 1 # store energy scale for propagating to MET
         genmatch = tau.genPartFlav
@@ -144,7 +152,7 @@ class ModuleMuTau(ModuleTauPair):
     for muon in muons:
       for tau in taus:
         if tau.DeltaR(muon)<0.5: continue
-        ltau = LeptonTauPair(muon,muon.pfRelIso04_all,tau,tau.rawPNetVSjet)
+        ltau = LeptonTauPair(muon,muon.pfRelIso04_all,tau,tau.rawDeepTau2018v2p5VSjet)
         ltaus.append(ltau)
     if len(ltaus)==0:
       return False
@@ -165,8 +173,8 @@ class ModuleMuTau(ModuleTauPair):
     if self.out.lepton_vetoes[0] and self.out.lepton_vetoes_notau[0]: return False
     self.out.cutflow.fill('lepvetoes')
 
-    # if self.jetveto(event): return False
-    # self.out.cutflow.fill('jetvetoes')
+    if self.jetveto(event): return False
+    self.out.cutflow.fill('jetvetoes')
    
  
     # EVENT
@@ -199,6 +207,9 @@ class ModuleMuTau(ModuleTauPair):
     self.out.q_2[0]                        = tau.charge
     self.out.dm_2[0]                       = tau.decayMode
     self.out.iso_2[0]                      = tau.rawIso
+    self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
+    self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
+    self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
     
     self.out.rawDeepTau2018v2p5VSe_2[0]    = tau.rawDeepTau2018v2p5VSe
     self.out.rawDeepTau2018v2p5VSmu_2[0]   = tau.rawDeepTau2018v2p5VSmu
@@ -206,42 +217,15 @@ class ModuleMuTau(ModuleTauPair):
 
     self.out.idDecayMode_2[0]              = tau.idDecayMode
     self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
+    self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
+    self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
+    self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
 
     self.out.idDeepTau2018v2p5VSe_2[0]     = tau.idDeepTau2018v2p5VSe
     self.out.idDeepTau2018v2p5VSmu_2[0]    = tau.idDeepTau2018v2p5VSmu
     self.out.idDeepTau2018v2p5VSjet_2[0]   = tau.idDeepTau2018v2p5VSjet
 
-    self.out.rawPNetVSe_2[0]               = tau.rawPNetVSe
-    self.out.rawPNetVSmu_2[0]              = tau.rawPNetVSmu
-    self.out.rawPNetVSjet_2[0]             = tau.rawPNetVSjet
-    self.out.decayModePNet_2[0]            = tau.decayModePNet
-    self.out.ptCorrPNet_2[0]               = tau.ptCorrPNet
-    self.out.qConfPNet_2[0]                = tau.qConfPNet
     
-    self.out.probDM0PNet_2[0]              = tau.probDM0PNet
-    self.out.probDM1PNet_2[0]              = tau.probDM1PNet
-    self.out.probDM2PNet_2[0]              = tau.probDM2PNet
-    self.out.probDM10PNet_2[0]              = tau.probDM10PNet
-    self.out.probDM11PNet_2[0]              = tau.probDM11PNet
-
-
-    # UParT
-    self.out.probDM0UParT_2[0]              = tau.probDM0UParT
-    self.out.probDM1UParT_2[0]              = tau.probDM1UParT
-    self.out.probDM2UParT_2[0]              = tau.probDM2UParT
-    self.out.probDM10UParT_2[0]             = tau.probDM10UParT
-    self.out.probDM11UParT_2[0]             = tau.probDM11UParT
-
-    self.out.rawUParTVSe_2[0]               = tau.rawUParTVSe
-    self.out.rawUParTVSmu_2[0]              = tau.rawUParTVSmu
-    self.out.rawUParTVSjet_2[0]             = tau.rawUParTVSjet
-
-    self.out.decayModeUParT_2[0]            = tau.decayModeUParT
-    
-    self.out.ptCorrUParT_2[0]               = tau.ptCorrUParT
-    self.out.qConfUParT_2[0]                = tau.qConfUParT
-    
-
     # GENERATOR
     if self.ismc:
       self.out.genmatch_1[0]     = muon.genPartFlav
@@ -265,17 +249,18 @@ class ModuleMuTau(ModuleTauPair):
     # WEIGHTS
     if self.ismc:
       self.fillCommonCorrBranches(event,jets,met,njets_vars,met_vars)
-      if muon.pfRelIso04_all<0.50 and tau.rawPNetVSjet>=0.259: #replace with the VVLoose PNet
+      if muon.pfRelIso04_all<0.50 and tau.idDeepTau2018v2p5VSjet>=2:
          self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
 
       # MUON WEIGHTS
       if self.year==2024:
         self.out.trigweight[0]          = 1.
+        self.out.idisoweight_1[0]       = 1.
       else:
         self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta) # assume leading muon was triggered on
+        self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
 
-      self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
       
       #print("eta: ", muon.eta)
       #print("pt: ",  muon.pt)

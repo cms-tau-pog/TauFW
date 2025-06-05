@@ -106,16 +106,16 @@ samples  = [
   
   # SINGLE MUON
   D('Data','Muon_Run2022E',"/Muon_Run2022E",
-   store=storage_eraE,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
+   store=storage_eraE,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   D('Data','Muon_Run2022F',"/Muon_Run2022F",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   D('Data','Muon_Run2022G',"/Muon_Run2022G",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   # SINGLE ELECTRON
   D('Data','EGamma_Run2022E',"/EGamma_Run2022E",
-   store=storage_eraE,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau*','ee']),
+   store=storage_eraE,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
   D('Data','EGamma_Run2022F',"/EGamma_Run2022F",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau*','ee']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
   D('Data','EGamma_Run2022G',"/EGamma_Run2022G",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau*','ee']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
 ]

@@ -19,8 +19,7 @@ from correctionlib import CorrectionSet
 #pathPOG = os.path.join(datadir,"lepton/MuonPOG/") # ROOT files from MUO
 pathHTT = os.path.join(datadir,"lepton/HTT/Muon/") # ROOT files from HTT
 pathPOG = os.path.join(datadir,"jsonpog/POG/MUO/") # JSON files from central XPOG
-pathMUO = os.path.join(datadir,"lepton/MuonPOG/") # JSON files from central XPOG
-
+pathMUO = os.path.join(datadir,"lepton/MuonPOG/json/") # JSON files from central XPOG
 LOG = Logger('MuonSF')
 
 
@@ -82,8 +81,6 @@ class MuonSFs:
         #abseta = False
       elif re.search(r"2023(D|.*post)",era): # 2024D (postBPIX)
         fname_id = pathPOG+"2023_Summer23BPix/muon_Z.json.gz"
-      elif '2024' in era:
-        fname_id = pathMUO + "Run2024/muon_Z_2024.json.gz"
         #abseta = False
     
     # DEFAULTS
@@ -114,8 +111,6 @@ class MuonSFs:
     if fname_trig: # special exception: load ROOT file for (HLT_IsoMu24 || HLT_IsoMu27)
       print("Loading MuonSF for era=%r, trig=%r from %s..."%(era,sf_trig,fname_trig))
       self.sftool_trig = ScaleFactorHTT(fname_trig,'ZMass',sf_trig,verb=verb) # HTT ROOT
-    elif '2024' in era:
-      self.sftool_trig = 1.0 # no trigger SF in 2024 at the moment
     else: # load correctionlib JSON: HLT_IsoMu24, HLT_IsoMu27, etc.
       self.sftool_trig = corrset[sf_trig] # correctionlib JSON
     

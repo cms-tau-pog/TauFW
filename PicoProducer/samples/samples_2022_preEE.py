@@ -1,16 +1,9 @@
 
 from TauFW.PicoProducer.storage.Sample import MC as M
 from TauFW.PicoProducer.storage.Sample import Data as D
-import socket
-
-storage = None #"/eos/cms/store/group/phys_tau/irandreo/Run3_22/$DAS"
-url      = None #"root://cms-xrd-global.cern.ch/"
-
-if 'lxplus' in socket.gethostname():
-  filelist = "/eos/user/f/fcasalin/TauFW_230425/PicoProducer_out/samples/files/2022_preEE/$SAMPLE.txt" #None
-if 'ingrid' in socket.gethostname():
-  filelist = "samples/files/2022_preEE/$SAMPLE.txt" #None
-
+storage = "/eos/cms/store/group/phys_tau/irandreo/Run3_22/$DAS"
+url      = "root://cms-xrd-global.cern.ch/"
+filelist = None 
 samples  = [
   # DRELL-YAN
   #M('DY','DYJetsToLL_M-50',
@@ -110,15 +103,15 @@ samples  = [
   
   # SINGLE MUON
   D('Data','Muon_Run2022C',"/Muon_Run2022C",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   D('Data','Muon_Run2022D',"/Muon_Run2022D",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   D('Data','SingleMuon_Run2022C',"/SingleMuon_Run2022C",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau*','mumu','emu']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'mutau','mumu','emu']),
   # SINGLE ELECTRON
   D('Data','EGamma_Run2022C',"/EGamma_Run2022C",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau*','ee']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
   D('Data','EGamma_Run2022D',"/EGamma_Run2022D",
-   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau*','ee']),
+   store=storage,url=url,files=filelist,opts="useT1=False",channels=["skim*",'etau','ee']),
 
 ]
