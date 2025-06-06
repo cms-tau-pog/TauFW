@@ -18,7 +18,7 @@ def getsampleset(channel,era,**kwargs):
   rmsfs    = ensurelist(kwargs.get('rmsf', [ ])) # remove the tau ID SF, e.g. rmsf=['idweight_2','ltfweight_2']
   addsfs   = ensurelist(kwargs.get('addsf', [ ])) # add extra weight to all samples
   weight   = kwargs.get('weight',   None         ) # weight for all MC samples
-  dyweight = kwargs.get('dyweight', 'zptweight_lo'  ) # weight for DY samples: zptweight, zptweight_lo, zptweight_nlo, zptweight_nnlo
+  dyweight = kwargs.get('dyweight', 'zptweight_nlo'  ) # weight for DY samples: zptweight, zptweight_lo, zptweight_nlo, zptweight_nnlo
   ttweight = kwargs.get('ttweight', 'ttptweight' ) # weight for ttbar samples
   filter   = kwargs.get('filter',   None         ) # only include these MC samples
   vetoes   = kwargs.get('vetoes',   None         ) # veto these MC samples
