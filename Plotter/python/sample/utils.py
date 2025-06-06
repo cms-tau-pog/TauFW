@@ -358,7 +358,6 @@ def join(samplelist,*searchterms,**kwargs):
   
   # GET samples containing names and searchterm
   mergelist = [s for s in samplelist if s.match(*searchterms,incl=True)]
-  print("mergelist",mergelist)
   if len(mergelist)<=1:
     LOG.warn("Could not merge %r: fewer than two %r samples (%d)"%(name,name,len(mergelist)))
     return samplelist
