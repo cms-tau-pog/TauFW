@@ -144,6 +144,7 @@ class ModuleTauPair(Module):
     
     # for v10
     branchesV10 = [
+      ('Jet_jetId',                     [6]*32        ), # Jet ID flag: bit2 is tight, bit3 is tightLepVeto
       ('Muon_isTracker',                  [True]*32     ),
       #('Electron_mvaFall17V217Iso',      [-1.]*32       ), #not available anymore
       ('Electron_lostHits',               [0]*32        ),
@@ -346,8 +347,8 @@ class ModuleTauPair(Module):
       if abs(jet.eta)>4.7: continue
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
-      if "v15" not in self.era: #NanoAODv15 doesn't have the jetID branch
-        if jet.jetId<2: continue # Tight
+      # if "v15" not in self.era: #NanoAODv15 doesn't have the jetID branch
+      if jet.jetId<2: continue # Tight
       
       # SAVE JEC VARIATIONS
       if self.dojec:
