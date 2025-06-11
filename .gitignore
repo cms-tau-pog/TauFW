@@ -5,7 +5,6 @@
 *.pcm
 *~
 *.root
-*.zip
 core.*
 __init__.py
 */compare
@@ -15,21 +14,8 @@ PicoProducer/config/config*
 PicoProducer/config/config.json
 PicoProducer/samples/files
 PicoProducer/output
-PicoProducer/python/batch/
-# PicoProducer/python/corrections/DY*
-# PicoProducer/samples
 Plotter/plots
-Plotter/tutorial
-Plotter/DM_MatchPlots
-Plotter/*Matches*.yml
-Plotter/genDMplot.py
-Plotter/openCanvas*
-Plotter/config/*MyV*
-Plotter/ConfusionMatrix*
-Plotter/MuTau_mvisroot.txt
-Plotter/.ipynb_checkpoints/*
-Plotter/*MyV*
-Plotter/*txt
+Plotter/tutorial/plots
 Fitter/*/*plots*
 Fitter/*/log
 Fitter/Zpt/weights
