@@ -75,11 +75,40 @@ class TreeProducerMuTau(TreeProducerTauPair):
 
 
     self.addBranch('leadTkPtOverTauPt_2',        'f')
+    self.addBranch('leadTkDeltaEta_2',        'f')
+    self.addBranch('leadTkDeltaPhi_2',        'f')
     self.addBranch('chargedIso_2',               'f')
     self.addBranch('neutralIso_2',               'f')
     self.addBranch('photonsOutsideSignalCone_2', 'f')
     self.addBranch('puCorr_2',                   'f')
     self.addBranch('jpt_match_2',                'f', -1, title="pt of jet matching tau")
+    
+    #PNet
+    self.addBranch('decayModePNet_2',             'i')
+    self.addBranch('rawPNetVSe_2',               'f')
+    self.addBranch('rawPNetVSjet_2',             'f')
+    self.addBranch('rawPNetVSmu_2',              'f')
+    self.addBranch('probDM0PNet_2',               'f')
+    self.addBranch('probDM1PNet_2',               'f')
+    self.addBranch('probDM2PNet_2',               'f')
+    self.addBranch('probDM10PNet_2',               'f')
+    self.addBranch('probDM11PNet_2',               'f')
+    self.addBranch('ptCorrPNet_2',                'f')
+    self.addBranch('qConfPNet_2',                'f')
+
+    # UParT
+    self.addBranch('decayModeUParT_2',              'i')
+    self.addBranch('rawUParTVSe_2',                   'f')
+    self.addBranch('rawUParTVSmu_2',                   'f')
+    self.addBranch('rawUParTVSjet_2',                   'f')
+    self.addBranch('probDM0UParT_2',               'f')
+    self.addBranch('probDM1UParT_2',               'f')
+    self.addBranch('probDM2UParT_2',               'f')
+    self.addBranch('probDM10UParT_2',               'f')
+    self.addBranch('probDM11UParT_2',               'f')
+    self.addBranch('ptCorrUParT_2',                'f')
+    self.addBranch('qConfUParT_2',                'f')
+
     
     if self.module.ismc:
       self.addBranch('jpt_genmatch_2',      'f', -1, title="pt of gen jet matching tau")

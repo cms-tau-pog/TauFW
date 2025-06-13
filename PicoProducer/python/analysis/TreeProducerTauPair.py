@@ -73,6 +73,9 @@ class TreeProducerTauPair(TreeProducer):
         self.addBranch('trigweightDown',    'f', 1.)
       self.addBranch('puweight',            'f', 1., title="pileup up reweighting")
       self.addBranch('zptweight',           'f', 1., title="Z pT reweighting")
+      self.addBranch('zptweight_lo',        'f', 1., title="Z pT reweighting LO")
+      self.addBranch('zptweight_nlo',        'f', 1., title="Z pT reweighting NLO")
+      self.addBranch('zptweight_nnlo',        'f', 1., title="Z pT reweighting NNLO")
       self.addBranch('ttptweight',          'f', 1., title="top pT reweighting")
       self.addBranch('btagweight',          'f', 1., title="b tagging weight")
       #if module.dosys:

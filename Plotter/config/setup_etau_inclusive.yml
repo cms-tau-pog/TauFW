@@ -1,0 +1,36 @@
+##
+## Config file for default TES fit in mutau channel
+## contact: saskia.falke@cern.ch
+##
+
+# NOTE: In general, the main information (channel, baselineCuts, etc.) should be given.
+#       More specific sub-options (like weight replacement for systematic uncertainties) are optional
+#       These are not needed for plotting only
+
+
+channel: etau_inclusive
+
+baselineCuts: "q_1*q_2<0 && iso_1<0.10 && mvaFall17noIso_WP90_1  && !lepton_vetoes_notau && metfilter" # && rawPNetVSjet_2>=0.881 && rawPNetVSmu_2>=0.99 && rawPNetVSe_2>=0.4" #&& rawPNetVSe_2>=0.992"
+regions:
+   signalRegion: 
+      definition: "mt_1<40"
+      title: "signal region"
+   hps_region:
+      definition: "mt_1<40 && idDecayModeNewDMs_2"
+      title: "HPS #tau 's"
+   deepTau_region:
+      definition: "mt_1<40 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4 && (dm_2 == 0 || dm_2 == 1 || dm_2 == 10 || dm_2 == 11 )"
+      title: "DeepTau region"
+   deepTau_region_VSeMedium:
+      definition: "mt_1<40 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=5 && idDeepTau2018v2p5VSmu_2>=4 && (dm_2 == 0 || dm_2 == 1 || dm_2 == 10 || dm_2 == 11 )"
+      title: "DeepTau region"
+   deepTau_region_withModeNewDMs:
+      definition: "mt_1<40 && idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4 && (dm_2 == 0 || dm_2 == 1 || dm_2 == 10 || dm_2 == 11 )"
+      title: "DeepTau region with NewDMs"
+   pnet_region:
+      definition: "mt_1<40 && rawPNetVSjet_2>=0.881 && rawPNetVSe_2>=0.4  && rawPNetVSmu_2>=0.99 && (decayModePNet_2 == 0 || decayModePNet_2 == 1 || decayModePNet_2 == 2 || decayModePNet_2 == 10 || decayModePNet_2 == 11)"
+      title: "PNet region"
+   pnet_hps_region_VSeMedium:
+      definition: "mt_1<40 && rawPNetVSjet_2>=0.881 && rawPNetVSe_2>=0.983  && rawPNetVSmu_2>=0.99 && (decayModePNet_2 == 0 || decayModePNet_2 == 1 || decayModePNet_2 == 2 || decayModePNet_2 == 10 || decayModePNet_2 == 11) && ( (idDecayModeNewDMs_2 && idDeepTau2018v2p5VSe_2>=5) || !idDecayModeNewDMs_2)"
+      title: "HPS region: VseM"
+

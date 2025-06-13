@@ -136,7 +136,7 @@ def main(args):
           #mvis_cut = mvis.clone(fname=fname,cut=dmcut) # create observable with extra cut for dm bin
           #print ">>>   %r (%r)"%(dmcut,fname)
           #observables.append(mvis_cut)
-        print ">>> eta cuts:"
+        print (">>> eta cuts:")
         for imax, etamin in enumerate(etabins,1):
           if imax<len(etabins):
             etamax = etabins[imax]
@@ -148,7 +148,7 @@ def main(args):
             continue # skip overflow bin
           mvis_pass_cut = mvis_pass.clone(fname=fname,cut=etacut) # create observable with extra cut for eta bin
           mvis_fail_cut = mvis_fail.clone(fname=fname,cut=etacut) # create observable with extra cut for eta bin
-          print ">>>   %r (%r)"%(etacut,fname)
+          print (">>>   %r (%r)"%(etacut,fname))
           observables_pass.append(mvis_pass_cut)
           observables_fail.append(mvis_fail_cut)
       
@@ -248,5 +248,5 @@ if __name__ == "__main__":
   LOG.verbosity = args.verbosity
   PLOG.verbosity = args.verbosity
   main(args)
-  print "\n>>> Done."
+  print ("\n>>> Done.")
   

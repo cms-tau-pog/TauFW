@@ -50,7 +50,7 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('idTight_2',  '?')
     self.addBranch('idHighPt_2', 'i')
     
-    
+    self.setAlias("m_ll","m_vis")
     ###########
     #   TAU   #
     ###########
@@ -72,9 +72,40 @@ class TreeProducerMuMu(TreeProducerTauPair):
     self.addBranch('idDeepTau2018v2p5VSe_3',   'i')
     self.addBranch('idDeepTau2018v2p5VSmu_3',  'i')
     self.addBranch('idDeepTau2018v2p5VSjet_3', 'i')
+
+    self.addBranch('rawDeepTau2018v2p5VSe_3',    'f')
+    self.addBranch('rawDeepTau2018v2p5VSmu_3',   'f')
+    self.addBranch('rawDeepTau2018v2p5VSjet_3',  'f')
+
+    self.addBranch('rawPNetVSe_3',               'f')
+    self.addBranch('rawPNetVSjet_3',             'f')
+    self.addBranch('rawPNetVSmu_3',              'f')
+    self.addBranch('decayModePNet_3',             'i')
+    self.addBranch('probDM0PNet_3',               'f')
+    self.addBranch('probDM1PNet_3',               'f')
+    self.addBranch('probDM2PNet_3',               'f')
+    self.addBranch('probDM10PNet_3',               'f')
+    self.addBranch('probDM11PNet_3',               'f')
+
+    self.addBranch('ptCorrPNet_3',                'f')
+    self.addBranch('qConfPNet_3',                'f')
+
+
     self.addBranch('jpt_match_3',              'i', title="pt of jet matching tau")
     
-    
+
+    self.addBranch('decayModeUParT_3',              'i')
+    self.addBranch('rawUParTVSe_3',                   'f')
+    self.addBranch('rawUParTVSmu_3',                   'f')
+    self.addBranch('rawUParTVSjet_3',                   'f')
+    self.addBranch('probDM0UParT_3',               'f')
+    self.addBranch('probDM1UParT_3',               'f')
+    self.addBranch('probDM2UParT_3',               'f')
+    self.addBranch('probDM10UParT_3',               'f')
+    self.addBranch('probDM11UParT_3',               'f')
+    self.addBranch('ptCorrUParT_3',                'f')
+    self.addBranch('qConfUParT_3',                'f')
+
     ###########
     #   GEN   #
     ###########
