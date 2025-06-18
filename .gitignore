@@ -5,6 +5,7 @@
 *.pcm
 *~
 *.root
+*.png
 core.*
 __init__.py
 */compare
