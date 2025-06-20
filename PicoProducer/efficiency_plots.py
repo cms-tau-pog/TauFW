@@ -20,6 +20,8 @@ with uproot.open(root_file) as file:
     tree = file["tree"]
     eta_2 = tree["eta_2"].array()
     pt_2 = tree["pt_2"].array()
+    eta_1 = tree["eta_1"].array()
+    pt_1 = tree["pt_1"].array()
     hlt_24 = tree["HLT_IsoMu24"].array()
     hlt_mu24 = tree["HLT_IsoMu24_eta2p1"].array()
     hlt_mutau = tree["HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1"].array()
@@ -36,23 +38,21 @@ with uproot.open(root_file) as file:
 def ss_weight(q1, q2):
     return 1 if q1 != q2 else -1
 
-bins_eta = np.linspace(-2.5, 2.5, 11)
-bins_pt = np.arange(0, 200, 20)
+custom_bins_eta = [-2.5, -1.5, -0.5, 0, 0.5, 1.5, 2.5]
 custom_bins_pt = [20, 24, 28, 32, 36, 40, 50, 70, 150]
 
-bins_eta_array = array('d', bins_eta)
-bins_pt_array = array('d', bins_pt)
+custom_bins_eta_array = array('d', custom_bins_eta)
 custom_bins_pt_array = array('d', custom_bins_pt)
 
-hist_total_eta_1 = ROOT.TH1F("hist_total_eta_1", "", len(bins_eta)-1, bins_eta_array)
-hist_num_eta_1 = ROOT.TH1F("hist_num_eta_1", "", len(bins_eta)-1, bins_eta_array)
-hist_total_pt_1 = ROOT.TH1F("hist_total_pt_1", "", len(bins_pt)-1, bins_pt_array)
-hist_num_pt_1 = ROOT.TH1F("hist_num_pt_1", "", len(bins_pt)-1, bins_pt_array)
+hist_total_eta_1 = ROOT.TH1F("hist_total_eta_1", "", len(custom_bins_eta)-1, custom_bins_eta_array)
+hist_num_eta_1 = ROOT.TH1F("hist_num_eta_1", "", len(custom_bins_eta)-1, custom_bins_eta_array)
+hist_total_pt_1 = ROOT.TH1F("hist_total_pt_1", "", len(custom_bins_pt)-1, custom_bins_pt_array)
+hist_num_pt_1 = ROOT.TH1F("hist_num_pt_1", "", len(custom_bins_pt)-1, custom_bins_pt_array)
 
-hist_total_eta_2 = ROOT.TH1F("hist_total_eta_2", "", len(bins_eta)-1, bins_eta_array)
-hist_num_eta_2 = ROOT.TH1F("hist_num_eta_2", "", len(bins_eta)-1, bins_eta_array)
-hist_total_pt_2 = ROOT.TH1F("hist_total_pt_2", "", len(bins_pt)-1, bins_pt_array)
-hist_num_pt_2 = ROOT.TH1F("hist_num_pt_2", "", len(bins_pt)-1, bins_pt_array)
+hist_total_eta_2 = ROOT.TH1F("hist_total_eta_2", "", len(custom_bins_eta)-1, custom_bins_eta_array)
+hist_num_eta_2 = ROOT.TH1F("hist_num_eta_2", "", len(custom_bins_eta)-1, custom_bins_eta_array)
+hist_total_pt_2 = ROOT.TH1F("hist_total_pt_2", "", len(custom_bins_pt)-1, custom_bins_pt_array)
+hist_num_pt_2 = ROOT.TH1F("hist_num_pt_2", "", len(custom_bins_pt)-1, custom_bins_pt_array)
 
 hist_total_pt_comb = ROOT.TH1F("hist_total_pt_comb", "", len(custom_bins_pt)-1, custom_bins_pt_array)
 hist_num_pt_loose = ROOT.TH1F("hist_num_pt_loose", "", len(custom_bins_pt)-1, custom_bins_pt_array)
@@ -62,11 +62,11 @@ for i in range(len(pt_2)):
     weight = ss_weight(q_1[i], q_2[i])
 
     if pass_tag[i]:
-        hist_total_eta_1.Fill(eta_2[i], weight)
-        hist_total_pt_1.Fill(pt_2[i], weight)
+        hist_total_eta_1.Fill(eta_1[i], weight)
+        hist_total_pt_1.Fill(pt_1[i], weight)
         if hlt_mu24[i] and trig_match_single_muon[i]:
-            hist_num_eta_1.Fill(eta_2[i], weight)
-            hist_num_pt_1.Fill(pt_2[i], weight)
+            hist_num_eta_1.Fill(eta_1[i], weight)
+            hist_num_pt_1.Fill(pt_1[i], weight)
 
     if pass_probe[i] and hlt_24[i]:
         hist_total_eta_2.Fill(eta_2[i], weight)
@@ -125,7 +125,11 @@ def create_root_plot(eff_graph, title, xlabel, trigger_label, save_path):
     canvas.SetBottomMargin(0.12)
     canvas.SetTopMargin(0.08)
 
-    dummy_hist = ROOT.TH1F("dummy_hist", "", 1, -2.5, 2.5) if "eta" in xlabel else ROOT.TH1F("dummy_hist", "", 1, 0, 200)
+    if "eta" in xlabel:
+        dummy_hist = ROOT.TH1F("dummy_hist", "", 1, -3, 3)
+    else:
+        dummy_hist = ROOT.TH1F("dummy_hist", "", 1, 0, 160)
+
     dummy_hist.SetStats(0)
     dummy_hist.GetXaxis().SetTitle(xlabel)
     dummy_hist.GetYaxis().SetTitle("HLT Efficiency")
@@ -162,7 +166,7 @@ def plot_combined_efficiency(eff1, eff2, ratio, save_path):
     pad2.Draw()
 
     pad1.cd()
-    frame1 = ROOT.TH1F("frame1", "", 100, 10, 150)
+    frame1 = ROOT.TH1F("frame1", "", 100, 0, 160)
     frame1.SetStats(0)
     frame1.SetMinimum(0)
     frame1.SetMaximum(1.1)
@@ -197,7 +201,7 @@ def plot_combined_efficiency(eff1, eff2, ratio, save_path):
     latex.DrawLatex(0.16, 0.91, "Era 2024I")
 
     pad2.cd()
-    frame2 = ROOT.TH1F("frame2", "", 100, 10, 150)
+    frame2 = ROOT.TH1F("frame2", "", 100, 0, 160)
     frame2.SetStats(0)
     frame2.SetMinimum(0.9)
     frame2.SetMaximum(1.4)
@@ -221,9 +225,9 @@ def plot_combined_efficiency(eff1, eff2, ratio, save_path):
     canvas.SaveAs(save_path)
     canvas.Close()
 
-create_root_plot(eff_1_eta, "Efficiency 1: Single Muon Trigger", "#tau #eta", "HLT_IsoMu24_eta2p1 (SS-subtracted)", os.path.join(root_dir, f"efficiency_1_eta_{root_filename}_SSsub.png"))
-create_root_plot(eff_1_pt, "Efficiency 1: Single Muon Trigger", "#tau p_{T} (GeV)", "HLT_IsoMu24_eta2p1 (SS-subtracted)", os.path.join(root_dir, f"efficiency_1_pt_{root_filename}_SSsub.png"))
-create_root_plot(eff_2_eta, "Efficiency 2: Mu+Tau Trigger", "#tau #eta", "HLT_MuTau (SS-subtracted)", os.path.join(root_dir, f"efficiency_2_eta_{root_filename}_SSsub.png"))
-create_root_plot(eff_2_pt, "Efficiency 2: Mu+Tau Trigger", "#tau p_{T} (GeV)", "HLT_MuTau (SS-subtracted)", os.path.join(root_dir, f"efficiency_2_pt_{root_filename}_SSsub.png"))
+create_root_plot(eff_1_eta, "Efficiency 1: Single Muon Trigger", "#mu #eta", "HLT_IsoMu24_eta2p1", os.path.join(root_dir, f"efficiency_1_eta_{root_filename}.png"))
+create_root_plot(eff_1_pt, "Efficiency 1: Single Muon Trigger", "#mu p_{T} (GeV)", "HLT_IsoMu24_eta2p1", os.path.join(root_dir, f"efficiency_1_pt_{root_filename}.png"))
+create_root_plot(eff_2_eta, "Efficiency 2: Mu+Tau Trigger", "#tau #eta", "HLT_MuTau", os.path.join(root_dir, f"efficiency_2_eta_{root_filename}.png"))
+create_root_plot(eff_2_pt, "Efficiency 2: Mu+Tau Trigger", "#tau p_{T} (GeV)", "HLT_MuTau", os.path.join(root_dir, f"efficiency_2_pt_{root_filename}.png"))
 
-plot_combined_efficiency(eff_loose, eff_deep, ratio_hist, os.path.join(root_dir, f"combined_efficiency_pt_{root_filename}_SSsub.png"))
+plot_combined_efficiency(eff_loose, eff_deep, ratio_hist, os.path.join(root_dir, f"combined_efficiency_pt_{root_filename}.png"))
