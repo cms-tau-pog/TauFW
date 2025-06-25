@@ -9,7 +9,7 @@
 #>>>>Run with --serial option if using py3:
 #   ./plot.py -y 2018 -c mutau --serial
 
-from config.samples_v12 import *
+from config.samples_v15 import *
 from TauFW.Plotter.plot.string import filtervars
 from TauFW.Plotter.plot.utils import LOG as PLOG
 import yaml
@@ -143,7 +143,7 @@ if __name__ == "__main__":
   parser.add_argument('-y', '--era',     dest='eras', nargs='*', choices=eras, default=['2017'],
                                          help="set era" )
   parser.add_argument('-c', '--config', '--channel',
-                                         dest='configs', type=str, nargs='+', default=['config/setup_mutau.yml'], action='store',
+                                         dest='configs', type=str, nargs='+', default=['config/setup_mutau_inclusive.yml'], action='store',
                                          help="config file(s) containing channel setup for samples and selections, default=%(default)r" )
   parser.add_argument('-V', '--var',     dest='varfilter', nargs='+',
                                          help="only plot the variables passing this filter (glob patterns allowed)" )

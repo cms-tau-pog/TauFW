@@ -9,7 +9,7 @@
 
 
 # Typically, each channel will have its own config file; combination can be done at datacard level
-channel: mutau_inclusive
+channel: mutau # _inclusive
 # Tag can be used to differentiate between scenarios
 tag: ""
 

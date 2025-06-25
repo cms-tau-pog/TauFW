@@ -10,41 +10,49 @@ samples  = [
   
   ####SHORTEN NAMES
   # DRELL-YAN Electron 
-  # M('DY','DYto2E_Bin-MLL-10to50',
-  #   "/DYto2E_Bin-MLL-10to50_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts_dy),
-  # M('DY','DYto2E_Bin-MLL-50to120',
-  #   "/DYto2E_Bin-MLL-50to120_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts_dy),
-  # M('DY','DYto2E_Bin-MLL-120to200',
-  #   "/DYto2E_Bin-MLL-120to200_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts_dy),
-  # M('DY','DYto2E_Bin-MLL-200to400',
-  #   "/DYto2E_Bin-MLL-200to400_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2E_Bin-MLL-10to50',
+    "/DYto2E_Bin-MLL-10to50_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2E_Bin-MLL-50to120',
+    "/DYto2E_Bin-MLL-50to120_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2E_Bin-MLL-120to200',
+    "/DYto2E_Bin-MLL-120to200_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2E_Bin-MLL-200to400',
+    "/DYto2E_Bin-MLL-200to400_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2E_Bin-MLL-400to800',
+    "/DYto2E_Bin-MLL-400to800_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2E_Bin-MLL-800to1500',
+    "/DYto2E_Bin-MLL-800to1500_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts_dy),
+
+
   # add others if needed from: https://cmsweb.cern.ch/das/request?view=list&limit=100&instance=prod%2Fglobal&input=dataset+status%3D*+dataset%3D%2FDY*powheg*%2FRun*24*NanoAODv15*%2FNANOAODSIM
 
-  # DRELL-YAN Muon
-  M('DY','DYto2Mu_Bin-MLL-10to50',
-    "/DYto2Mu_Bin-MLL-10to50_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts=opts_dy),
-  # M('DY','DYto2Mu_Bin-MLL-50to120',
-  #   "/DYto2Mu_Bin-MLL-50to120_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM", #temporary miss to add later
+  # # DRELL-YAN Muon
+  # M('DY','DYto2Mu_Bin-MLL-10to50',
+  #   "/DYto2Mu_Bin-MLL-10to50_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts_dy),
-  M('DY','DYto2Mu_Bin-MLL-120to200',
-    "/DYto2Mu_Bin-MLL-120to200_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts=opts_dy),
-  M('DY','DYto2Mu_Bin-MLL-200to400',
-    "/DYto2Mu_Bin-MLL-200to400_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts=opts_dy),
-  M('DY','DYto2Mu_Bin-MLL-400to800',
-    "/DYto2Mu_Bin-MLL-400to800_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts=opts_dy),
-  M('DY','DYto2Mu_Bin-MLL-800to1500',
-    "/DYto2Mu_Bin-MLL-800to1500_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
-    store=storage,url=url,files=filelist,opts=opts_dy),
+  # # M('DY','DYto2Mu_Bin-MLL-50to120',
+  # #   "/DYto2Mu_Bin-MLL-50to120_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM", #temporary miss to add later
+  # #   store=storage,url=url,files=filelist,opts=opts_dy),
+  # M('DY','DYto2Mu_Bin-MLL-120to200',
+  #   "/DYto2Mu_Bin-MLL-120to200_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  #   store=storage,url=url,files=filelist,opts=opts_dy),
+  # M('DY','DYto2Mu_Bin-MLL-200to400',
+  #   "/DYto2Mu_Bin-MLL-200to400_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  #   store=storage,url=url,files=filelist,opts=opts_dy),
+  # M('DY','DYto2Mu_Bin-MLL-400to800',
+  #   "/DYto2Mu_Bin-MLL-400to800_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  #   store=storage,url=url,files=filelist,opts=opts_dy),
+  # M('DY','DYto2Mu_Bin-MLL-800to1500',
+  #   "/DYto2Mu_Bin-MLL-800to1500_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  #   store=storage,url=url,files=filelist,opts=opts_dy),
   
-  # # DRELL-YAN Tau
+  # # # DRELL-YAN Tau
   # M('DY','DYto2Tau_Bin-MLL-10to50',
   #   "/DYto2Tau_Bin-MLL-10to50_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts_dy),
@@ -78,27 +86,25 @@ samples  = [
     
 
   # W+JETS
-  # M('WJ','WtoTauNu-2Jets',
-  #   "/WtoTauNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts),
+
+  M('WJ','WtoTauNu-2Jets',
+    "/WtoTauNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts),
   M('WJ','WtoMuNu-2Jets',
     "/WtoMuNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM",   
     store=storage,url=url,files=filelist,opts=opts),
-  M('WJ','WtoMuNu-2Jets_0J',
-    "/WtoMuNu-2Jets_Bin-0J_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+  M('WJ','WtoENu-2Jets',
+    "/WtoENu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts),
-  # M('WJ','WtoENu-2Jets',
-  #   "/WtoENu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM",
-  #   store=storage,url=url,files=filelist,opts=opts),
 
 
   # SINGLE TOP
   M('ST','TBbarQ_t-channel',
     "/TBbarQtoLNu-t-channel-4FS_TuneCP5_13p6TeV_powheg-madspin-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts),
-  #M('ST','TbarBQ_t-channel',#temporary miss to add later
-  #  "",
-  #  store=storage,url=url,files=filelist,opts=opts),
+  M('ST','TbarBQ_t-channel',
+    "/TbarBQtoLNu-t-channel-4FS_TuneCP5_13p6TeV_powheg-madspin-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
+    store=storage,url=url,files=filelist,opts=opts),
   M('ST','TWminustoLNu2Q',
     "/TWminustoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/Run3Winter24NanoAOD-JMENanoV14_133X_mcRun3_2024_realistic_v10-v2/NANOAODSIM",
     store=storage,url=url,files=filelist,opts=opts), 
