@@ -15,6 +15,7 @@ PicoProducer/config/config*
 PicoProducer/config/config.json
 PicoProducer/samples/files
 PicoProducer/output
+PicoProducer/data/jsonpog
 Plotter/plots
 Plotter/tutorial/plots
 Fitter/*/*plots*

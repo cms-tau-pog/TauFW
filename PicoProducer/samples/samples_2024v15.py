@@ -36,9 +36,9 @@ samples  = [
   # M('DY','DYto2Mu_Bin-MLL-10to50',
   #   "/DYto2Mu_Bin-MLL-10to50_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts_dy),
-  # # M('DY','DYto2Mu_Bin-MLL-50to120',
-  # #   "/DYto2Mu_Bin-MLL-50to120_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM", #temporary miss to add later
-  # #   store=storage,url=url,files=filelist,opts=opts_dy),
+  M('DY','DYto2Mu_Bin-MLL-50to120',
+    "/DYto2Mu_Bin-MLL-50to120_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM", #temporary miss to add later
+    store=storage,url=url,files=filelist,opts=opts_dy),
   # M('DY','DYto2Mu_Bin-MLL-120to200',
   #   "/DYto2Mu_Bin-MLL-120to200_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM",
   #   store=storage,url=url,files=filelist,opts=opts_dy),
