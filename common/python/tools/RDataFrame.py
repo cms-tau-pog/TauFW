@@ -79,7 +79,7 @@ def SetNumberOfThreads(nthreads=None,verb=0):
     return ROOT.GetThreadPoolSize()
   else:
     if isinstance(nthreads,bool):
-      nthreads = min(8,os.cpu_count()) if nthreads else 1 # if nthreads==True: set to default 8 cores
+      nthreads = min(64,os.cpu_count()) if nthreads else 1 # if nthreads==True: set to default 8 cores
     if verb>=1:
       print(">>> SetNumberOfThreads: Setting number of threads from %s to %s..."%(ROOT.GetThreadPoolSize(),nthreads))
     if ROOT.IsImplicitMTEnabled(): #ROOT.GetThreadPoolSize()<=0:

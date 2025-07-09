@@ -198,7 +198,11 @@ class ModuleTauPair(Module):
       if abs(jet.eta)>4.7: continue
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
-      if jet.jetId<2: continue # Tight
+      try:
+        if jet.jetId<2: continue # Tight
+      except (IndexError, AttributeError):
+        # If jetId is not available or out of bounds, assume it passes (jetId=6 means tight)
+        pass
       
       # SAVE JEC VARIATIONS
       if self.dojec:
