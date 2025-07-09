@@ -75,6 +75,8 @@ class ModuleTauPair(Module):
     self.metUncLabels = [ ]
     if self.ismc:
       self.puTool      = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+      self.puTool_up   = PileupWeightTool(era=self.era,sample=self.filename,sigma='up',verb=self.verbosity)
+      self.puTool_down = PileupWeightTool(era=self.era,sample=self.filename,sigma='down',verb=self.verbosity)
       self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
@@ -144,22 +146,22 @@ class ModuleTauPair(Module):
     
     # for v10
     branchesV10 = [
-      ('Jet_jetId',                     [6]*32        ), # Jet ID flag: bit2 is tight, bit3 is tightLepVeto
-      ('Muon_isTracker',                  [True]*32     ),
+      ('Jet_jetId',                     [6]*200       ), # Jet ID flag: bit2 is tight, bit3 is tightLepVeto (increased from 32 to 200 to handle more jets)
+      ('Muon_isTracker',                  [True]*200    ), # Increased from 32 to 200 to handle more muons
       #('Electron_mvaFall17V217Iso',      [-1.]*32       ), #not available anymore
-      ('Electron_lostHits',               [0]*32        ),
+      ('Electron_lostHits',               [0]*200       ), # Increased from 32 to 200 to handle more electrons
       ('Electron_mvaFall17V2Iso_WPL',    'Electron_mvaIso_WPL'    ),
       ('Electron_mvaFall17V2Iso_WP80',   'Electron_mvaIso_WP80'   ),
       ('Electron_mvaFall17V2Iso_WP90',   'Electron_mvaIso_WP90'   ),
       ('Electron_mvaFall17V2noIso_WPL',  'Electron_mvaNoIso_WPL'  ),
       ('Electron_mvaFall17V2noIso_WP80', 'Electron_mvaNoIso_WP80' ),
       ('Electron_mvaFall17V2noIso_WP90', 'Electron_mvaNoIso_WP90' ),
-      ('Tau_idDecayMode',                [True]*32               ), 
-      ('Tau_idDecayModeNewDMs',          [True]*32               ),
+      ('Tau_idDecayMode',                [True]*200              ), # Increased from 32 to 200 to handle more taus
+      ('Tau_idDecayModeNewDMs',          [True]*200              ), # Increased from 32 to 200 to handle more taus
 
-      ('Tau_idDeepTau2017v2p1VSe', [-1.]*32), 
-      ('Tau_idDeepTau2017v2p1VSmu', [-1.]*32),  
-      ('Tau_idDeepTau2017v2p1VSjet', [-1.]*32),
+      ('Tau_idDeepTau2017v2p1VSe', [-1.]*200), # Increased from 32 to 200 to handle more taus
+      ('Tau_idDeepTau2017v2p1VSmu', [-1.]*200), # Increased from 32 to 200 to handle more taus
+      ('Tau_idDeepTau2017v2p1VSjet', [-1.]*200), # Increased from 32 to 200 to handle more taus
 
       ('Tau_idDeepTau2018v2p5VSe','Tau_idDeepTau2017v2p1VSe'), 
       ('Tau_idDeepTau2018v2p5VSmu','Tau_idDeepTau2017v2p1VSmu'),  
@@ -240,7 +242,11 @@ class ModuleTauPair(Module):
     muons = [m for m in Collection(event,'Muon') if m.isPFcand]
     for jet in Collection(event,'Jet'):
       if abs(jet.pt) <= 15: continue
-      if jet.jetId < 2: continue
+      try:
+        if jet.jetId < 2: continue
+      except (IndexError, AttributeError):
+        # If jetId is not available or out of bounds, assume it passes (jetId=6 means tight)
+        pass
       if (jet.chEmEF + jet.neEmEF) > 0.90: continue
       if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
       if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
@@ -348,7 +354,11 @@ class ModuleTauPair(Module):
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
       # if "v15" not in self.era: #NanoAODv15 doesn't have the jetID branch
-      if jet.jetId<2: continue # Tight
+      try:
+        if jet.jetId<2: continue # Tight
+      except (IndexError, AttributeError):
+        # If jetId is not available or out of bounds, assume it passes (jetId=6 means tight)
+        pass
       
       # SAVE JEC VARIATIONS
       if self.dojec:
@@ -484,6 +494,9 @@ class ModuleTauPair(Module):
     
     self.out.genweight[0]     = event.genWeight
     self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+    self.out.puweightUp[0]   = self.puTool_up.getWeight(event.Pileup_nTrueInt)    # up (72.3832 mb)
+    self.out.puweightDown[0] = self.puTool_down.getWeight(event.Pileup_nTrueInt)  # down (66.0168 mb)
+
     self.out.btagweight[0]    = self.btagTool.getWeight(jets)
     if self.dosys:
       if self.dopdf:

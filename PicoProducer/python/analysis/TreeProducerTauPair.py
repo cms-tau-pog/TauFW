@@ -72,6 +72,8 @@ class TreeProducerTauPair(TreeProducer):
         self.addBranch('trigweightUp',      'f', 1.)
         self.addBranch('trigweightDown',    'f', 1.)
       self.addBranch('puweight',            'f', 1., title="pileup up reweighting")
+      self.addBranch('puweightUp',         'f', 1., title="pileup up reweighting up")
+      self.addBranch('puweightDown',       'f', 1., title="pileup up reweighting down")
       self.addBranch('zptweight',           'f', 1., title="Z pT reweighting")
       self.addBranch('zptweight_lo',        'f', 1., title="Z pT reweighting LO")
       self.addBranch('zptweight_nlo',        'f', 1., title="Z pT reweighting NLO")
