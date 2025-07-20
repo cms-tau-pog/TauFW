@@ -22,7 +22,9 @@ class JetVetoMapTool:
     elif re.search(r"2023(D|.*post)",era):
       filename = os.path.join(datadir,"Summer23BPixPrompt23_RunD_v1.root")
     elif re.search(r"2024([B-I]|.*)", era):
-      filename = os.path.join(datadir, "Winter24Prompt24_2024BCDEFGHI.root") 
+      filename = os.path.join(datadir, "Winter24Prompt24_2024BCDEFGHI.root")
+    elif re.search(r"2025([B-I]|.*)", era):
+      filename = os.path.join(datadir, "Winter24Prompt24_2024BCDEFGHI.root")
     if not filename:
       LOG.throw(OSError,"Did not recognize era=%r... Note: Only mandatory in Run 3,"
                         " please see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps"%(era))

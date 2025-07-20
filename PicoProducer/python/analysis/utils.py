@@ -274,7 +274,7 @@ def getmet(era,var="",useT1=False,verb=0):
     era = str(era)
   if '2017' in era and 'UL' not in era :
     branch  = 'METFixEE2017'
-  elif '2022' in era or '2023' in era or '2024' in era:
+  elif '2022' in era or '2023' in era or '2024' in era or '2025' in era:
     branch = 'PuppiMET'
   else :
     branch = 'MET'
@@ -333,7 +333,7 @@ def getmetfilters(era,isdata,verb=0):
   if ('2017' in era or '2018' in era) and ('UL' not in era):
     filters.extend(['Flag_ecalBadCalibFilterV2']) # under review for change in Ultra Legacy
   # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_2_recommendations
-  if '2022' in era or '2023' in era: 
+  if '2022' in era or '2023' in era or '2024' in era or '2025' in era: 
     filters.extend(['Flag_BadPFMuonDzFilter'])
     filters.extend(['Flag_hfNoisyHitsFilter'])
     filters.extend(['Flag_eeBadScFilter'])
@@ -394,7 +394,7 @@ def getlepvetoes(event, electrons, muons, taus, channel, era):
     if '2022' in era:
       electronIso90=electron.mvaIso_Fall17V2_WP90
       electronIso=electron.mvaIso_Fall17V2_WPL
-    elif '2023' in era or '2024' in era:
+    elif '2023' in era or '2024' in era or '2025' in era:
       electronIso90=electron.mvaIso_WP90
       electronIso=electron.mvaIso
     else:

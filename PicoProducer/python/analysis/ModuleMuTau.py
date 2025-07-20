@@ -8,17 +8,7 @@ from TauFW.PicoProducer.analysis.utils import LeptonTauPair, loosestIso, idIso, 
 from TauFW.PicoProducer.corrections.MuonSFs import *
 #from TauFW.PicoProducer.corrections.TrigObjMatcher import loadTriggerDataFromJSON, TrigObjMatcher
 from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool, TauESTool, campaigns
-from TauFW.PicoProducer.analysis.utils import Collection
-import ROOT
-from ROOT import TVector2, TMath
 
-def deltaR(eta1, eta2, phi1, phi2):
-    deta = eta1 - eta2
-    dphi = TVector2.Phi_mpi_pi(phi1 - phi2)
-    return TMath.Sqrt(deta*deta + dphi*dphi)
-
-def has_filter_bit(bits, bit):
-    return (bits & (1 << bit)) != 0
 
 class ModuleMuTau(ModuleTauPair):
   
@@ -37,24 +27,16 @@ class ModuleMuTau(ModuleTauPair):
       self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
       self.muonCutPt  = lambda e: 26 if e.HLT_IsoMu24 else 29
       self.muonCutEta = lambda e: 2.4
-    elif self.year==2024:
-      # self.trigger    = lambda e: e.HLT_IsoMu24 #or e.HLT_IsoMu27
-      self.muonCutPt  = lambda e: 24
-      self.muonCutEta = lambda e: 2.1
     else:
-      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27
+      self.trigger    = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27 #or e.HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1
       self.muonCutPt  = lambda e: 26
       self.muonCutEta = lambda e: 2.4
     self.tauCutPt     = 20
-    self.tauCutEta    = 2.1
+    self.tauCutEta    = 2.3
     
     # CORRECTIONS
     if self.ismc:
-      if self.era != '2024I': 
-          self.muSFs = MuonSFs(era=self.era, verb=self.verbosity)
-      else:
-          self.muSFs = None 
-      # self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
+      self.muSFs      = MuonSFs(era=self.era,verb=self.verbosity) # muon id/iso/trigger SFs
       self.tesTool    = TauESTool(tauSFVersion[self.year]) # real tau energy scale corrections
       #self.fesTool    = TauFESTool(tauSFVersion[self.year]) # e -> tau fake negligible
       self.tauSFsT    = TauIDSFTool(tauSFVersion[self.year],'DeepTau2017v2p1VSjet','Tight')
@@ -78,6 +60,7 @@ class ModuleMuTau(ModuleTauPair):
     self.out.cutflow.addcut('weight_mutaufilter_NUP2', "no cut, weighted, mutau, 2 jets", 20 )
     self.out.cutflow.addcut('weight_mutaufilter_NUP3', "no cut, weighted, mutau, 3 jets", 21 )
     self.out.cutflow.addcut('weight_mutaufilter_NUP4', "no cut, weighted, mutau, 4 jets", 22 )
+    
   
   def beginJob(self):
     """Before processing any events or files."""
@@ -103,9 +86,9 @@ class ModuleMuTau(ModuleTauPair):
 
     
     ##### TRIGGER ####################################
-    # if not self.trigger(event):
-    #   return False
-    # self.out.cutflow.fill('trig')
+    if not self.trigger(event):
+      return False
+    self.out.cutflow.fill('trig')
     
     
     ##### MUON #######################################
@@ -116,7 +99,7 @@ class ModuleMuTau(ModuleTauPair):
       if abs(muon.dz)>0.2: continue
       if abs(muon.dxy)>0.045: continue
       if not muon.mediumId: continue
-      if muon.pfRelIso04_all>0.1: continue
+      if muon.pfRelIso04_all>0.50: continue
       muons.append(muon)
     if len(muons)==0:
       return False
@@ -130,8 +113,8 @@ class ModuleMuTau(ModuleTauPair):
       if abs(tau.dz)>0.2: continue
       if tau.decayMode not in [0,1,10,11]: continue
       if abs(tau.charge)!=1: continue
-      if tau.idDeepTau2017v2p1VSe<2: continue # VVVLoose
-      if tau.idDeepTau2017v2p1VSmu<4: continue # VLoose
+      if tau.idDeepTau2017v2p1VSe<1: continue # VVVLoose
+      if tau.idDeepTau2017v2p1VSmu<1: continue # VLoose
       if tau.idDeepTau2017v2p1VSjet<self.tauwp: continue
       if self.ismc:
         tau.es   = 1 # store energy scale for propagating to MET
@@ -182,9 +165,8 @@ class ModuleMuTau(ModuleTauPair):
     
 
     # VETOES
-    # extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon],[tau],self.channel)
-    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event, [], [muon], [tau], self.channel, self.era)
-    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[muon],[ ],self.channel, self.era)
+    extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[ ],[muon],[tau],self.channel)
+    self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = getlepvetoes(event,[ ],[muon],[ ],self.channel)
     self.out.lepton_vetoes[0]       = self.out.extramuon_veto[0] or self.out.extraelec_veto[0] or self.out.dilepton_veto[0]
     self.out.lepton_vetoes_notau[0] = extramuon_veto or extraelec_veto or dilepton_veto
     
@@ -202,71 +184,7 @@ class ModuleMuTau(ModuleTauPair):
     # EVENT
     self.fillEventBranches(event)
     
-    self.out.pass_tag[0] = False
-    self.out.pass_probe[0] = False
-
-    if (
-        muon.pt > 24 and
-        abs(muon.eta) < 2.1 and
-        muon.mediumId and
-        muon.pfRelIso04_all < 0.1 and
-        abs(muon.dxy) < 0.045 and
-        abs(muon.dz) < 0.2
-    ):
-        self.out.pass_tag[0] = True
-
-        if (
-            tau.pt > 20 and
-            abs(tau.eta) < 2.1 and
-            tau.idDeepTau2017v2p1VSjet >= self.tauwp and
-            tau.idDeepTau2017v2p1VSe >= 2 and
-            tau.idDeepTau2017v2p1VSmu >= 4 and
-            tau.decayMode in [0, 1, 10, 11] and
-            abs(tau.charge) == 1 and
-            tau.DeltaR(muon) >= 0.5
-        ):
-            self.out.pass_probe[0] = True
-
-
-    #  TRIGOBJ   
-    self.out.trig_match_DeepTau_MuTau[0]     = False
-    self.out.trig_match_PNet_MuTau_Loose[0]  = False
-    self.out.trig_match_PNet_MuTau_Medium[0] = False
-    self.out.trig_match_PNet_MuTau_Tight[0]  = False
-    self.out.trig_obj_15[0] = False
-    self.out.trig_obj_13[0] = False
-    self.out.dR_mu[0] = False    
-
-    for i in range(event.nTrigObj):
-        dR = deltaR(event.TrigObj_eta[i], tau.eta, event.TrigObj_phi[i], tau.phi)
-        if dR > 0.5:
-            continue
-        if event.TrigObj_id[i] == 15:  
-            self.out.trig_obj_15[0] = True
-        fbits = event.TrigObj_filterBits[i]
-        
-        if has_filter_bit(fbits, 3) and has_filter_bit(fbits, 13):
-            self.out.trig_match_DeepTau_MuTau[0] = True
-
-        if has_filter_bit(fbits, 0) and has_filter_bit(fbits, 4) and has_filter_bit(fbits, 13):
-            self.out.trig_match_PNet_MuTau_Loose[0] = True
-
-        if has_filter_bit(fbits, 1) and has_filter_bit(fbits, 4) and has_filter_bit(fbits, 13):
-            self.out.trig_match_PNet_MuTau_Medium[0] = True
-            
-        if has_filter_bit(fbits, 2) and has_filter_bit(fbits, 4) and has_filter_bit(fbits, 13):
-            self.out.trig_match_PNet_MuTau_Tight[0] = True
-
-    self.out.trig_match_single_muon[0] = False
-    for i in range(event.nTrigObj):
-      if event.TrigObj_id[i] == 13:  
-          self.out.trig_obj_13[0] = True
-      dR_mu = deltaR(event.TrigObj_eta[i], muon.eta, event.TrigObj_phi[i], muon.phi)
-      if dR_mu < 0.5:
-        self.out.dR_mu[0] = False    
-      if dR_mu < 0.5 and event.TrigObj_id[i] == 13:
-        self.out.trig_match_single_muon[0] = True
-
+    
     # MUON
     self.out.pt_1[0]                       = muon.pt
     self.out.eta_1[0]                      = muon.eta
@@ -316,12 +234,7 @@ class ModuleMuTau(ModuleTauPair):
     self.out.photonsOutsideSignalCone_2[0] = tau.photonsOutsideSignalCone
     self.out.puCorr_2[0]                   = tau.puCorr
     
-
-    #TRIGGERS
-    self.out.HLT_IsoMu24[0] = event.HLT_IsoMu24 if hasattr(event, "HLT_IsoMu24") else 0
-    self.out.HLT_IsoMu24_eta2p1[0] = event.HLT_IsoMu24_eta2p1 if hasattr(event, "HLT_IsoMu24_eta2p1") else 0
-    self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1[0] = event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1 if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1") else 0
-      
+    
     # GENERATOR
     if self.ismc:
       self.out.genmatch_1[0]     = muon.genPartFlav
@@ -350,10 +263,8 @@ class ModuleMuTau(ModuleTauPair):
         self.btagTool.fillEffMaps(jets,usejec=self.dojec)
       
       # MUON WEIGHTS
-      self.out.trigweight[0] = self.muSFs.getTriggerSF(muon.pt, muon.eta) if self.muSFs else 1.0
-      self.out.idisoweight_1[0] = self.muSFs.getIdIsoSF(muon.pt, muon.eta) if self.muSFs else 1.0
-      # self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta) # assume leading muon was triggered on
-      # self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
+      self.out.trigweight[0]          = self.muSFs.getTriggerSF(muon.pt,muon.eta) # assume leading muon was triggered on
+      self.out.idisoweight_1[0]       = self.muSFs.getIdIsoSF(muon.pt,muon.eta)
       
       # DEFAULTS
       self.out.idweight_2[0]          = 1.

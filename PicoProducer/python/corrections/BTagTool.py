@@ -89,7 +89,7 @@ class BTagWPs:
           self.loose    = 0.5803 # for 94X
           self.medium   = 0.8838
           self.tight    = 0.9693
-      elif '2022' in era or '2023' in era or '2024' in era:
+      elif '2022' in era or '2023' in era or '2024' or '2025 'in era:
         # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL18
         if 'deepjet' in tagger.lower(): # DeepFlavour b+bb+lepb
           self.loose    = 0.0490

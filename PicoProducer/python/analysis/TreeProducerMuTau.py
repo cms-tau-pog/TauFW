@@ -17,6 +17,7 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('HLT_IsoMu24', '?', False, title="Trigger branch for HLT_IsoMu24")
     self.addBranch('HLT_IsoMu24_eta2p1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1")
     self.addBranch('HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1")
+    self.addBranch('HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1")
 
     ###############
     #   TRIGOBJ   #
@@ -32,6 +33,18 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('trig_obj_15', '?', False)
     self.addBranch('trig_obj_13', '?', False)
     self.addBranch('dR_mu', '?', False)
+
+    #### MET FILTER ######
+    self.addBranch('Flag_METFilters', 'bool')
+    self.addBranch('Flag_goodVertices', 'bool')
+    self.addBranch('Flag_globalSuperTightHalo2016Filter', 'bool')
+    self.addBranch('Flag_HBHENoiseFilter', 'bool')
+    self.addBranch('Flag_HBHENoiseIsoFilter', 'bool')
+    self.addBranch('Flag_EcalDeadCellTriggerPrimitiveFilter', 'bool')
+    self.addBranch('Flag_BadPFMuonFilter', 'bool')
+    self.addBranch('Flag_BadPFMuonDzFilter', 'bool')
+    self.addBranch('Flag_ecalBadCalibFilter', 'bool')
+    self.addBranch('Flag_eeBadScFilter', 'bool')
 
     ############
     #   MUON   #
@@ -123,4 +136,24 @@ class TreeProducerMuTau(TreeProducerTauPair):
         self.addBranch('ltfweightDown_2',   'f', 1.)
       if self.module.domutau:
         self.addBranch('mutaufilter',       '?', title="has tautau -> mutau, pT>18, |eta|<2.5")
-    
+
+    for name, dtype, default, title in [
+      ('extramuon_veto', '?', False, "Extra muon veto flag"),
+      ('extraelec_veto', '?', False, "Extra electron veto flag"),
+      ('dilepton_veto', '?', False, "Dilepton veto flag"),
+      ('lepton_vetoes', '?', False, "Any lepton veto flag (muon, electron, dilepton)"),
+      ('lepton_vetoes_notau', '?', False, "Any lepton veto excluding tau"),
+    ]:
+      if not hasattr(self, name):
+        self.addBranch(name, dtype, default, title=title)
+
+    for name, dtype, default, title in [
+      ('genweight',     'f', 1.0, "Event weight from generator"),
+      ('puweight',      'f', 1.0, "Pileup reweighting"),
+      ('trigweight',    'f', 1.0, "Trigger efficiency scale factor"),
+      ('idisoweight_2', 'f', 1.0, "Tau ID+ISO SF (if used)"),
+      ('trackweight',   'f', 1.0, "Tracking weight for embedded samples"),
+      ('weight',        'f', 1.0, "Total event weight"),
+    ]:
+      if not hasattr(self, name):
+        self.addBranch(name, dtype, default, title=title)

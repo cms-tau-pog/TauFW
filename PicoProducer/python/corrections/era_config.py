@@ -28,6 +28,8 @@ def getjson(era,dtype='data'):
         json = 'Cert_Collisions2023_366442_370790_Golden.json'
       elif year ==2024:
         json = 'Cert_Collisions2024_378981_386951_Golden.json'
+      elif year == 2025:
+        json = 'Collisions25_13p6TeV_391658_393516_DCSOnly_TkPx.json'
       else:
         print("Warning! Using outdated certified run JSON file %s for era %s... Please move to UltraLegacy (UL)!"%(json,era))
         if year==2016:

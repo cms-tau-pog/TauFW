@@ -61,7 +61,6 @@ compress  = args.compress          # compression algorithm & level, e.g. 'LZMA:9
 verbosity = args.verbosity         # verbosity level
 presel    = None                   # simple pre-selection string, e.g. "Muon_pt[0] > 50"
 branchsel = args.branchsel or None # file with branch selection (disable unneeded branches for faster processing)
-#branchsel = "/afs/cern.ch/user/a/atahmad/CMSSW_14_1_0_pre4/src/TauFW/PicoProducer/python/processors/keep_and_drop_skim.txt"
 json      = None                   # JSON file of certified events
 modules   = [ ]                    # list of modules to run
 
@@ -117,7 +116,6 @@ modules.append(module)
 if not branchsel and hasattr(module,'branchsel') and module.branchsel:
   branchsel = module.branchsel # default keep/drop file for this module (if it exists)
   print(">>> Using default branchsel=%r"%(branchsel))
-print(">>> AAAAAAAAAAAAA branchsel=%r"%(branchsel))
 # RUN
 p = PostProcessor(outdir,infiles,cut=None,branchsel=branchsel,firstEntry=firstevt,maxEntries=maxevts,
                   jsonInput=json,modules=modules,noOut=True,prefetch=prefetch)

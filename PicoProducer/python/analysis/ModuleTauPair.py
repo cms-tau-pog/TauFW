@@ -60,7 +60,7 @@ class ModuleTauPair(Module):
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
-    assert self.year in [2016,2017,2018,2022,2023,2024], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
+    assert self.year in [2016,2017,2018,2022,2023,2024,2025], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -98,7 +98,7 @@ class ModuleTauPair(Module):
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
     self.jetvetoTool = None
-    if '202' in self.era: # only mandatory for Run 3: 2022, 2023, ... (see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps)
+    if '2022' or '2023' or '2024' in self.era: # only mandatory for Run 3: 2022, 2023, ... (see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps)
       self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity) 
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
@@ -195,7 +195,6 @@ class ModuleTauPair(Module):
         ('HLT_IsoMu24',          False ),
         ('HLT_IsoTkMu24',        False ),
       ]
- 
     #check
     fullbranchlist = inputTree.GetListOfBranches()
     if 'Electron_mvaFall17Iso_WPL' not in fullbranchlist: #v10
@@ -214,7 +213,8 @@ class ModuleTauPair(Module):
     muons = [m for m in Collection(event,'Muon') if m.isPFcand]
     for jet in Collection(event,'Jet'):
       if abs(jet.pt) <= 15: continue
-      if jet.jetId < 2: continue
+      if self.year != 2025:
+        if jet.jetId < 2: continue
       if (jet.chEmEF + jet.neEmEF) > 0.90: continue
       if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
       if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
@@ -281,7 +281,8 @@ class ModuleTauPair(Module):
     self.out.lumi[0]            = event.luminosityBlock
     self.out.npv[0]             = event.PV_npvs
     self.out.npv_good[0]        = event.PV_npvsGood
-    self.out.metfilter[0]       = self.filter(event)
+    if self.year != 2025:
+      self.out.metfilter[0]       = self.filter(event)
     
     if self.ismc:
       ###self.out.ngentauhads[0]   = ngentauhads
@@ -321,7 +322,8 @@ class ModuleTauPair(Module):
       if abs(jet.eta)>4.7: continue
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
-      if jet.jetId<2: continue # Tight
+      if self.year != 2025:
+        if jet.jetId<2: continue # Tight
       
       # SAVE JEC VARIATIONS
       if self.dojec:
