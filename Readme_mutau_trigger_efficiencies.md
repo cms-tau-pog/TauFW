@@ -12,15 +12,24 @@ Follow these steps to set up the environment and dependencies.
 
 ```bash
 cmsrel CMSSW_14_1_0_pre4
+```
+```bash
 cd CMSSW_14_1_0_pre4/src
+```
+```bash
 cmsenv
 ```
+
 
 ### 2. Clone this repository and checkout the MuTau analysis branch
 
 ```bash
 git clone https://github.com/atharphy/TauFW.git
+```
+```bash
 cd TauFW
+```
+```bash
 git checkout MuTau_2024
 ```
 
@@ -28,6 +37,8 @@ git checkout MuTau_2024
 
 ```bash
 cd PicoProducer
+```
+```bash
 git clone ssh://git@gitlab.cern.ch:7999/cms-nanoAOD/jsonpog-integration.git data/jsonpog
 ```
 
@@ -35,6 +46,8 @@ git clone ssh://git@gitlab.cern.ch:7999/cms-nanoAOD/jsonpog-integration.git data
 
 ```bash
 cd ../../
+```
+```bash
 scram b -j 8
 ```
 
@@ -42,16 +55,27 @@ scram b -j 8
 
 ```bash
 cd $CMSSW_BASE/src/
+```
+```bash
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
+```
+```bash
 scram b -j 4
 ```
+
 
 ### 6. Clone and build TauPOG Tau ID Scale Factors
 
 ```bash
 cd $CMSSW_BASE/src/
+```
+```bash
 git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
+```
+```bash
 cmsenv
+```
+```bash
 scram b -j 4
 ```
 
@@ -59,7 +83,11 @@ scram b -j 4
 
 ```bash
 cd $CMSSW_BASE/src/TauFW/PicoProducer/data/lepton/
+```
+```bash
 rm -rf HTT
+```
+```bash
 git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
 ```
 
@@ -71,9 +99,17 @@ In every new session, make sure to reinitialize your environment:
 
 ```bash
 cd $CMSSW_BASE/src
+```
+```bash
 cmsenv
+```
+```bash
 export X509_USER_PROXY=~/.x509up_u`id -u`
+```
+```bash
 voms-proxy-init --voms cms -valid 192:00
+```
+```bash
 cd TauFW/PicoProducer
 ```
 
@@ -85,6 +121,8 @@ cd TauFW/PicoProducer
 
 ```bash
 pico.py set era 2024 samples_2024.py
+```
+```bash
 pico.py set channel mutau 'ModuleMuTau_trig jec=False'
 ```
 
