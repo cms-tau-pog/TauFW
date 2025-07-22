@@ -1,6 +1,6 @@
 # MuTau 2024 Analysis — TauFW Custom Branch
 
-This branch (`MuTau_2024`) of the [TauFW](https://github.com/atharphy/TauFW) repository contains the customized framework and scripts required for performing a MuTau trigger efficiency study using 2024 data. The analysis compares the performance of the DeepTau and ParticleNet triggers using CMS nanoAOD samples.
+This branch (`MuTau_2024`) of the [TauFW](https://github.com/cms-tau-pog/TauFW) repository contains the customized framework and scripts required for performing a MuTau trigger efficiency study using 2024 data. The analysis compares the performance of the DeepTau and ParticleNet triggers using CMS nanoAOD samples.
 
 ---
 
