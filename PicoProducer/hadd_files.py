@@ -15,8 +15,8 @@ def main():
 
     user = getpass.getuser()
     eos_input_dir = f'/eos/user/{user[0]}/{user}/analysis/{year}/Data'
-    samples_dir = 'samples'
-    era_wise_dir = 'era_wise'
+    samples_dir = os.path.join(eos_input_dir, 'samples')
+    era_wise_dir = os.path.join(eos_input_dir, 'era_wise')
 
     os.makedirs(samples_dir, exist_ok=True)
     os.makedirs(era_wise_dir, exist_ok=True)
