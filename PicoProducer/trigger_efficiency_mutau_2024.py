@@ -4,16 +4,18 @@ import os
 from array import array
 from math import sqrt
 from tqdm import tqdm
+import getpass
 
 ROOT.gROOT.SetBatch()
 ROOT.gStyle.SetOptStat(0)
+user = getpass.getuser()
 
-file_2024 = "/eos/user/a/atahmad/analysis/2024/Data/Muon_Run2024_mutau.root"
+file_2024 = f"/eos/user/{user[0]}/{user}/analysis/2024/Data/Muon_Run2024_mutau.root"
+output_dir = f"/eos/user/{user[0]}/{user}/analysis/2024/Data/eff_plots"
+os.makedirs(output_dir, exist_ok=True)
+
 pt_bins = [20, 24, 28, 32, 36, 40, 50, 70, 150]
 pt_bin_array = array('d', pt_bins)
-
-output_dir = "/eos/user/a/atahmad/analysis/2024/Data/eff_plots"
-os.makedirs(output_dir, exist_ok=True)
 
 def ss_weight(q1, q2):
     return 1 if q1 != q2 else -1
@@ -183,6 +185,3 @@ ratio.Write()
 output_root_file.Close()
 
 print("Saved: efficiencies_2024.root with labeled efficiency histograms and ratio.")
-
-
-
