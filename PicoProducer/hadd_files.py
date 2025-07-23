@@ -22,8 +22,10 @@ def main():
     os.makedirs(era_wise_dir, exist_ok=True)
 
     for file in os.listdir(eos_input_dir):
-        if file.endswith('.root') and os.path.isfile(os.path.join(eos_input_dir, file)):
-            shutil.copy(os.path.join(eos_input_dir, file), os.path.join(samples_dir, file))
+        src = os.path.join(eos_input_dir, file)
+        dst = os.path.join(samples_dir, file)
+        if file.endswith('.root') and os.path.isfile(src):
+            shutil.move(src, dst)
 
     for era in eras:
         output_file = os.path.join(era_wise_dir, f'Muon_Run{year}{era}_mutau.root')
