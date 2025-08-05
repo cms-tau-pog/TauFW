@@ -168,7 +168,7 @@ def plot_eff_ratio(eff1, eff2, ratio, label, save_path):
     print(f"Saved: {save_path}")
 
 eff_pnet, eff_deep, ratio = process_file(file_2024, "2024")
-plot_eff_ratio(eff_pnet, eff_deep, ratio, "2024", os.path.join(output_dir, "eff_ratio_2024.png"))
+plot_eff_ratio(eff_pnet, eff_deep, ratio, "2024", os.path.join(output_dir, "ditau_eff_ratio_2024.png"))
 
 eff_pnet.SetName("eff_pnet_2024")
 eff_pnet.SetTitle("ParticleNet ditau Trigger Efficiency (2024)")
@@ -185,10 +185,10 @@ ratio.SetTitle("ParticleNet / DeepTau Efficiency Ratio (2024)")
 ratio.GetXaxis().SetTitle("Offline p_{T}^{#tau} [GeV]")
 ratio.GetYaxis().SetTitle("Efficiency Ratio")
 
-output_root_file = ROOT.TFile(os.path.join(output_dir, "efficiencies_2024.root"), "RECREATE")
+output_root_file = ROOT.TFile(os.path.join(output_dir, "ditau_efficiencies_2024.root"), "RECREATE")
 eff_pnet.Write()
 eff_deep.Write()
 ratio.Write()
 output_root_file.Close()
 
-print("Saved: efficiencies_2024.root with labeled efficiency histograms and ratio.")
+print("Saved: ditau_efficiencies_2024.root with labeled efficiency histograms and ratio.")
