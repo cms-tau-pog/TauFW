@@ -63,13 +63,6 @@ def process_file(path, era_label):
         trig_match_single_muon = tree["trig_match_single_muon"].array()
         met_filter = tree["Flag_METFilters"].array()
 
-
-        
-        
-        
-        
-
-
     h_total = ROOT.TH1F(f"htotal_{era_label}", "", len(pt_bins)-1, pt_bin_array)
     h_num_pnet = ROOT.TH1F(f"hnum_pnet_{era_label}", "", len(pt_bins)-1, pt_bin_array)
     h_num_deep = ROOT.TH1F(f"hnum_deep_{era_label}", "", len(pt_bins)-1, pt_bin_array)
