@@ -18,6 +18,8 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('HLT_IsoMu24_eta2p1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1")
     self.addBranch('HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1")
     self.addBranch('HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1")
+    self.addBranch('HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1")
+    self.addBranch('HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1")
 
     ###############
     #   TRIGOBJ   #
@@ -26,6 +28,10 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('trig_match_PNet_MuTau_Loose', '?', False)
     self.addBranch('trig_match_PNet_MuTau_Medium', '?', False)
     self.addBranch('trig_match_PNet_MuTau_Tight', '?', False)
+    self.addBranch('trig_match_PNet_DiTau_Loose',  '?', False)
+    self.addBranch('trig_match_PNet_DiTau_Medium', '?', False)
+    self.addBranch('trig_match_PNet_DiTau_Tight',  '?', False)
+    self.addBranch('trig_match_DeepTau_DiTau',  '?', False)
 
     self.addBranch('pass_tag', '?', False)
     self.addBranch('pass_probe', '?', False)
