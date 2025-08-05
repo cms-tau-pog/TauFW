@@ -278,6 +278,10 @@ class ModuleMuTau_trig(ModuleTauPair):
     self.out.trig_match_PNet_MuTau_Loose[0]  = False
     self.out.trig_match_PNet_MuTau_Medium[0] = False
     self.out.trig_match_PNet_MuTau_Tight[0]  = False
+    self.out.trig_match_PNet_DiTau_Loose[0]  = False
+    self.out.trig_match_PNet_DiTau_Medium[0] = False
+    self.out.trig_match_PNet_DiTau_Tight[0]  = False
+    self.out.trig_match_DeepTau_DiTau[0] = False
     self.out.trig_obj_15[0] = False
     self.out.trig_obj_13[0] = False
     self.out.dR_mu[0] = False    
@@ -293,6 +297,7 @@ class ModuleMuTau_trig(ModuleTauPair):
         pt   = event.TrigObj_pt[i]
         eta  = event.TrigObj_eta[i]
         bits = event.TrigObj_filterBits[i]
+        l1pt = event.TrigObj_l1pt[i]
 
         if has_filter_bit(bits, 3) and has_filter_bit(bits, 13):
             if pt > 27 and abs(eta) < 2.1:
@@ -305,6 +310,26 @@ class ModuleMuTau_trig(ModuleTauPair):
                 self.out.trig_match_PNet_MuTau_Medium[0] = True
             if has_filter_bit(bits, 2):
                 self.out.trig_match_PNet_MuTau_Tight[0] = True
+
+        if pt > 30 and l1pt > 34 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 23):
+            if has_filter_bit(bits, 0):
+                self.out.trig_match_PNet_DiTau_Loose[0] = True
+            if has_filter_bit(bits, 1):
+                self.out.trig_match_PNet_DiTau_Medium[0] = True
+            if has_filter_bit(bits, 2):
+                self.out.trig_match_PNet_DiTau_Tight[0] = True        
+
+        if pt > 30 and l1pt > 34 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 23):
+            if has_filter_bit(bits, 0):
+                self.out.trig_match_PNet_DiTau_Loose[0] = True
+            if has_filter_bit(bits, 1):
+                self.out.trig_match_PNet_DiTau_Medium[0] = True
+            if has_filter_bit(bits, 2):
+                self.out.trig_match_PNet_DiTau_Tight[0] = True
+
+        if has_filter_bit(bits, 3) and has_filter_bit(bits, 23):
+            if pt > 35 and l1pt > 34 and abs(eta) < 2.1:
+                self.out.trig_match_DeepTau_DiTau[0] = True
 
     self.out.trig_match_single_muon[0] = False
     for i in range(event.nTrigObj):
@@ -367,9 +392,12 @@ class ModuleMuTau_trig(ModuleTauPair):
     self.out.HLT_IsoMu24[0] = event.HLT_IsoMu24 if hasattr(event, "HLT_IsoMu24") else 0
     self.out.HLT_IsoMu24_eta2p1[0] = event.HLT_IsoMu24_eta2p1 if hasattr(event, "HLT_IsoMu24_eta2p1") else 0
     self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1[0] = event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1 if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1") else 0
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1 if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1") else 0
+    self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1[0] = event.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1 if hasattr(event, "HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1") else 0    
     if self.year != 2025:
         self.out.HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1[0] = event.HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1 if hasattr(event, "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1") else 0
-    
+
+
     # GENERATOR
     if self.ismc:
       self.out.genmatch_1[0]     = muon.genPartFlav
