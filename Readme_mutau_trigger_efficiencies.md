@@ -205,6 +205,12 @@ under:
 ```bash
 python3 trigger_efficiency_mutau_2024.py
 ```
+Now I have also added the option to use dm flag, so we can split the plots based on the Tau decay modes. To use that just,
+```bash
+python3 trigger_efficiency_mutau_2024.py -dm
+```
+Giving `-dm` flag will plot 4 different plots for the 4 decay modes `[0,1,10,11]`.
+You can also give `-dm ##` where ## is the decay mode that you want to plot.
 
 This will generate:
 
