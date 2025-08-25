@@ -32,10 +32,7 @@ class ModuleETau_Inclusive(ModuleTauPair):
     
     #CORRECTIONS
     if self.ismc:
-      if self.year==2024:
-        self.eleSFs= 1
-      else:
-        self.eleSFs   = ElectronSFs(era=self.era) # ele id/iso/trigger SFs
+      self.eleSFs   = ElectronSFs(era=self.era) # ele id/iso/trigger SFs
     
     
     print("FES: ", self.fes)
@@ -284,10 +281,11 @@ class ModuleETau_Inclusive(ModuleTauPair):
 
       if self.year==2024:
         self.out.trigweight[0] = 1
-        self.out.idisoweight_1[0] = 1
+        self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(electron.pt, electron.eta, electron.phi)
       else:
-        self.out.trigweight[0]              = self.eleSFs.getTriggerSF(electron.pt,abs(electron.eta))
-        self.out.idisoweight_1[0]           = self.eleSFs.getIdIsoSF(electron.pt,abs(electron.eta))
+        self.out.trigweight[0] = self.eleSFs.getTriggerSF(electron.pt, abs(electron.eta))
+        self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(electron.pt, abs(electron.eta), electron.phi)
+      
 
       #print("eta: ", electron.eta)
       #print("pt: ",  electron.pt)
