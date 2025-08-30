@@ -34,7 +34,7 @@ def main():
         if input_files:
             subprocess.run(['hadd', output_file] + input_files)
 
-    final_output = f'Muon_Run{year}_mutau.root'
+    final_output = os.path.join(eos_input_dir, f'Muon_Run{year}_mutau.root')
     all_era_files = [os.path.join(era_wise_dir, f)
                      for f in os.listdir(era_wise_dir) if f.endswith('.root')]
     if all_era_files:
