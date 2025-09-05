@@ -119,9 +119,15 @@ cd TauFW/PicoProducer
 
 ### 1. Set the era and module
 
+- For Data,
 ```bash
-pico.py set era 2024 samples_2024.py
+pico.py set era 2024 samples_2024_data.py
 ```
+- For DY MC,
+```bash
+pico.py set era 2024 samples_2024_DY.py
+```
+
 ```bash
 pico.py set channel mutau 'ModuleMuTau_trig jec=False'
 ```
