@@ -127,7 +127,7 @@ pico.py set era 2024 samples_2024_data.py
 ```bash
 pico.py set era 2024 samples_2024_DY.py
 ```
-
+- Then set the module to,
 ```bash
 pico.py set channel mutau 'ModuleMuTau_trig jec=False'
 ```
