@@ -1,0 +1,48 @@
+##
+## Config file for default TES fit in mutau channel
+## contact: saskia.falke@cern.ch
+##
+
+# NOTE: In general, the main information (channel, baselineCuts, etc.) should be given.
+#       More specific sub-options (like weight replacement for systematic uncertainties) are optional
+#       These are used for the TES fit and are not needed for plotting only
+
+
+# Typically, each channel will have its own config file; combination can be done at datacard level
+channel: mutau
+# Tag can be used to differentiate between scenarios
+tag: ""
+
+baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && !lepton_vetoes_notau && metfilter && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && idDeepTau2018v2p5VSmu_2>=4" 
+# These regions will be defined when creating inputs or making plots
+# At this point, they do not need to be exclusive; 
+# PLEASE NOTE:
+#     - which regions are included in the fit will be defined in obervables section --> adjust when changing regions
+#     - additional cross section scale factors applied to some processes need to be given in these regions to be considered --> adjust in scaleFactors section
+
+regions:
+    signalRegion: 
+        definition: "mt_1<65"
+        title: "signal region"
+    DM0: 
+        definition: "mt_1<65 && dm_2==0"
+        title: "h^{#pm}"
+    DM1: 
+        definition: "mt_1<65 && dm_2==1"
+        title: "h^{#pm}#pi^{0}"
+    DM10: 
+        definition: "mt_1<65 && dm_2==10"
+        title: "h^{#pm}h^{#mp}h^{#pm}"
+    DM11: 
+        definition: "mt_1<65 && dm_2==11"
+        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+    #zttregion:
+    #    definition: "mt_1<60 && dzeta>-25 && abs(deta_ll)<1.5"
+    #    title: "mt<60 GeV, dzeta>-25 GeV, |deta|<1.5:"
+    #0b:
+    #    definition: "nbtag==0"
+    #    weight: "btagweight"
+    #geq1b:
+    #    definition: "nbtag>=1"
+    #    title: "#geq1b"
+    #    weight: "btagweight"

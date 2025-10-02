@@ -1,0 +1,508 @@
+## Config file for default TES and tid SF fit in mutau channel by DM and pt 
+## contact: saskia.falke@cern.ch and oceane.poncet@cern.ch
+##
+
+# NOTE: In general, the main information (channel, baselineCuts, etc.) should be given.
+# More specific sub-options (like weight replacement for systematic uncertainties) are optional
+
+
+# Typically, each channel will have its own config file; combination can be done at datacard level
+
+channel: mutau
+
+
+tag: "_mutau_mt65_DM_4pt_Dt2p5_puppimet_morevar" # Used to dervied TauES SFs for 2022_postEE
+
+
+baselineCuts: "q_1*q_2<0 && iso_1<0.15 && idDecayModeNewDMs_2 && idDeepTau2018v2p5VSjet_2>=5 && idDeepTau2018v2p5VSe_2>=2 && rawDeepTau2018v2p5VSmu_2>=0.97 && !lepton_vetoes_notau && metfilter && mt_1<65 "
+# idDeepTau2018v2p5VSjet_2>=5 = Medium WP
+# idDeepTau2018v2p5VSe_2>=2 = VVLoose WP
+# idDeepTau2018v2p5VSmu_2>=4 = Tight WP
+
+
+# These regions will be defined when creating inputs or making plots
+# At this point, they do not need to be exclusive; 
+# PLEASE NOTE:
+#     - which regions are included in the fit will be defined in obervables section --> adjust when changing regions
+#     - additional cross section scale factors applied to some processes need to be given in these regions to be considered --> adjust in scaleFactors section
+#[20.,25.,30.,35.,40.,50.,60.,80.,100.,200.]
+
+regions:
+    DM0_pt1: 
+        definition: "mt_1<40 && dm_2==0  && pt_2>20 && pt_2<=30"
+        title: "h^{#pm}"
+    DM1_pt1: 
+        definition: "mt_1<40 && dm_2==1 && pt_2>20 && pt_2<=30"
+        title: "h^{#pm}#pi^{0}"
+    DM10_pt1: 
+        definition: "mt_1<40 && dm_2==10 && pt_2>20 && pt_2<=30"
+        title: "h^{#pm}h^{#mp}h^{#pm}"
+    DM11_pt1: 
+        definition: "mt_1<40 && dm_2==11 && pt_2>20 && pt_2<=30"
+        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+    DM0_pt2: 
+        definition: "mt_1<40 && dm_2==0 && pt_2>30 && pt_2<=40"
+        title: "h^{#pm}"
+    DM1_pt2: 
+        definition: "mt_1<40 && dm_2==1 && pt_2>30 && pt_2<=40"
+        title: "h^{#pm}#pi^{0}"
+    DM10_pt2: 
+        definition: "mt_1<40 && dm_2==10 && pt_2>30 && pt_2<=40"
+        title: "h^{#pm}h^{#mp}h^{#pm}"
+    DM11_pt2: 
+        definition: "mt_1<40 && dm_2==11 && pt_2>30 && pt_2<=40"
+        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+    DM0_pt3: 
+        definition: "mt_1<40 && dm_2==0 && pt_2>40 && pt_2<=50"
+        title: "h^{#pm}"
+    DM1_pt3: 
+        definition: "mt_1<40 && dm_2==1 && pt_2>40 && pt_2<=50"
+        title: "h^{#pm}#pi^{0}"
+    DM10_pt3: 
+        definition: "mt_1<40 && dm_2==10 && pt_2>40 && pt_2<=50"
+        title: "h^{#pm}h^{#mp}h^{#pm}"
+    DM11_pt3: 
+        definition: "mt_1<40 && dm_2==11 && pt_2>40 && pt_2<=50"
+        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+    DM0_pt4: 
+        definition: "mt_1<40 && dm_2==0 && pt_2>50 && pt_2<200"
+        title: "h^{#pm}"
+    DM1_pt4: 
+        definition: "mt_1<40 && dm_2==1 && pt_2>50 && pt_2<200"
+        title: "h^{#pm}#pi^{0}"
+    DM10_pt4: 
+        definition: "mt_1<40 && dm_2==10 && pt_2>50 && pt_2<200"
+        title: "h^{#pm}h^{#mp}h^{#pm}"
+    DM11_pt4: 
+        definition: "mt_1<40 && dm_2==11 && pt_2>50 && pt_2<200"
+        title: "h^{#pm}h^{#mp}h^{#pm}#pi^{0}"
+
+plottingOrder: ["DM0_pt1","DM0_pt2", "DM0_pt3", "DM0_pt4", "DM1_pt1","DM1_pt2" ,"DM1_pt3", "DM1_pt4", "DM10_pt1","DM10_pt2","DM10_pt3", "DM10_pt4","DM11_pt1","DM11_pt2","DM11_pt3", "DM11_pt4"] #option 4
+
+# Observable: to be fitted and plotted
+# binning: as defined in TH1 (nbins, xmin, xmax)
+# regions: (defined separately) to be included in the fit for this observable
+tesRegions:
+    DM0_pt1: 
+        title: "DM0 20<p_{t_{#tau}}<30"
+    DM0_pt2: 
+        title: "DM0 30<p_{t_{#tau}}<40"
+    DM0_pt3: 
+        title: "DM0 40<p_{t_{#tau}}<50"
+    DM0_pt4: 
+        title: "DM0 50<p_{t_{#tau}}<200"
+    DM1_pt1: 
+        title: "DM1 20<p_{t_{#tau}}<30"
+    DM1_pt2: 
+        title: "DM1 30<p_{t_{#tau}}<40"
+    DM1_pt3: 
+        title: "DM1 40<p_{t_{#tau}}<50"
+    DM1_pt4: 
+        title: "DM1 50<p_{t_{#tau}}<200"
+    DM10_pt1: 
+        title: "DM10 20<p_{t_{#tau}}<30"
+    DM10_pt2: 
+        title: "DM10 30<p_{t_{#tau}}<40"
+    DM10_pt3: 
+        title: "DM10 40<p_{t_{#tau}}<50"
+    DM10_pt4: 
+        title: "DM10 50<p_{t_{#tau}}<200"
+    DM11_pt1: 
+        title: "DM11 20<p_{t_{#tau}}<30"
+    DM11_pt2: 
+        title: "DM11 30<p_{t_{#tau}}<40"
+    DM11_pt3: 
+        title: "DM11 40<p_{t_{#tau}}<50"
+    DM11_pt4: 
+        title: "DM11 50<p_{t_{#tau}}<200"
+
+tid_SFRegions:
+    DM0_pt1: 
+        title: "DM0 20<p_{t_{#tau}}<30"
+    DM0_pt2: 
+        title: "DM0 30<p_{t_{#tau}}<40"
+    DM0_pt3: 
+        title: "DM0 40<p_{t_{#tau}}<50"
+    DM0_pt4: 
+        title: "DM0 50<p_{t_{#tau}}<200"
+    DM1_pt1: 
+        title: "DM1 20<p_{t_{#tau}}<30"
+    DM1_pt2: 
+        title: "DM1 30<p_{t_{#tau}}<40"
+    DM1_pt3: 
+        title: "DM1 40<p_{t_{#tau}}<50"
+    DM1_pt4: 
+        title: "DM1 50<p_{t_{#tau}}<200"
+    DM10_pt1: 
+        title: "DM10 20<p_{t_{#tau}}<30"
+    DM10_pt2: 
+        title: "DM10 30<p_{t_{#tau}}<40"
+    DM10_pt3: 
+        title: "DM10 40<p_{t_{#tau}}<50"
+    DM10_pt4: 
+        title: "DM10 50<p_{t_{#tau}}<200"
+    DM11_pt1: 
+        title: "DM11 20<p_{t_{#tau}}<30"
+    DM11_pt2: 
+        title: "DM11 30<p_{t_{#tau}}<40"
+    DM11_pt3: 
+        title: "DM11 40<p_{t_{#tau}}<50"
+    DM11_pt4: 
+        title: "DM11 50<p_{t_{#tau}}<200"
+
+
+observables:
+    m_vis:
+        binning: [36,20, 200] #binning=10
+        title: "m_{vis}"
+        extra:
+            cut: "20<m_vis && m_vis<200"
+        fitRegions: ["DM0_pt1","DM0_pt2", "DM0_pt3", "DM0_pt4", "DM1_pt1","DM1_pt2" ,"DM1_pt3", "DM1_pt4", "DM10_pt1","DM10_pt2","DM10_pt3", "DM10_pt4","DM11_pt1","DM11_pt2","DM11_pt3", "DM11_pt4"] #option 4
+        scanRegions: ["DM0_pt1","DM0_pt2", "DM0_pt3", "DM0_pt4", "DM1_pt1","DM1_pt2" ,"DM1_pt3", "DM1_pt4", "DM10_pt1","DM10_pt2","DM10_pt3", "DM10_pt4","DM11_pt1","DM11_pt2","DM11_pt3", "DM11_pt4"] #option 4
+
+
+
+# Assume that this code is meant to fit TES variations; more options could be added when adding other POIs
+
+TESvariations:
+    values: [0.840, 0.842, 0.844, 0.846, 0.848, 0.850, 0.852, 0.854, 0.856, 0.858, 0.860, 0.862, 0.864, 0.866, 0.868, 0.870,  0.872, 0.874, 0.876, 0.878, 0.880, 0.882, 0.884, 0.886, 0.888, 0.890, 0.892, 0.894, 0.896, 0.898,0.900, 0.902, 0.904, 0.906, 0.908, 0.910, 0.912, 0.914, 0.916, 0.918, 0.920, 0.922, 0.924, 0.926, 0.928, 0.930, 0.932, 0.934, 0.936, 0.938, 0.940, 0.942, 0.944, 0.946, 0.948, 0.950, 0.952, 0.954, 0.956, 0.958, 0.960, 0.962, 0.964, 0.966, 0.968, 0.970, 0.972, 0.974, 0.976, 0.978, 0.980, 0.982, 0.986, 0.988, 0.990, 0.992, 0.994, 0.996, 0.998, 1.000, 1.002, 1.004, 1.006, 1.008, 1.010, 1.012, 1.014, 1.016, 1.018, 1.020, 1.022,1.024, 1.026, 1.028, 1.030] #1.024 0.984
+    # Large variations due to DM0_pt1
+
+    processes: ["ZTT"]
+
+# Should add bin-by-bin variations (stat. uncertainties) for signal and backgrounds?
+
+fitSpecs:
+    doBBB: doShapes
+    signalBBB: True
+    backgroundBBB: True
+
+
+# Samples to be used and association to processes entering analysis
+# Possibility to remove or add specific weights / SFs from global weight
+
+samples:
+    filename: "$PICODIR/$SAMPLE_$CHANNEL$TAG.root"
+    join: ["VV","TT","ST"]
+    split:
+        DY: [ ["ZTT","genmatch_2==5"], ["ZL","genmatch_2>0 && genmatch_2<5"], ["ZJ","genmatch_2==0"] ]
+        TT: [["TTT","genmatch_2==5"], ["TTL","genmatch_2>0 && genmatch_2<5"], ["TTJ","genmatch_2==0"] ]
+        #ST: [("STT","genmatch_2==5"),("STJ","genmatch_2<5")]
+    rename:
+        WJ: "W"
+    data: "data_obs"
+    removeSFs: ["idweight_2"]
+
+
+
+# Processes taken into account in analysis
+
+processes: ["ZTT","ZL","ZJ","W","VV","ST","TTT","TTL","TTJ","QCD","data_obs"]
+
+# Systematic uncertainties: can have effect shape or lnN (normalisation)
+
+systematics:
+    LTF:
+        effect: "shape"
+        processes: ["ZL", "TTL"]
+        name: "shape_mTauFake_$BIN"
+        title: "+/- 5% LTF shape"
+        variations: ["Up", "Down"]
+        sampleAppend: ["_LTFUp","_LTFDown"]
+    JTF:
+        effect: "shape"
+        processes: ["ZJ", "TTJ", "W"]
+        name: "shape_jTauFake_$BIN"
+        title: "+/- 10% JTF"
+        variations: ["Up", "Down"]
+        sampleAppend: ["_JTFUp","_JTFDown"]
+    # shape_mTauFake:
+    #     effect: "shape"
+    #     processes: ["ZL", "TTL"]
+    #     name: "shape_mTauFakeSF"
+    #     title: "LTF rate syst"
+    #     variations: ["Up", "Down"]
+    #     nomWeight: "ltfweight_2"
+    #     altWeights: ["ltfweightUp_2", "ltfweightDown_2"]
+    shape_dy:
+        effect: "shape"
+        processes: ["ZTT", "ZL", "ZJ"]
+        name: "shape_dy"
+        title: "+/- 10% Zptweight"
+        variations: ["Up", "Down"]
+        nomWeight: "zptweight"
+        altWeights: ["(zptweight+0.1*(zptweight-1))", "(zptweight-0.1*(zptweight-1))"]
+    lumi:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"] #processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.025
+    eff_m:
+        effect: "lnN"
+        processes: ["ZTT", "ZL", "ZJ", "TTT", "TTL", "TTJ", "W", "ST", "VV"]
+        scaleFactor: 1.02
+    # xsec_dy:
+    #     effect: "lnN"
+    #     processes: ["ZTT", "ZL", "ZJ"]
+    #     scaleFactor: 1.02
+    muonFakerate_$BIN:
+        effect: "lnN"
+        processes: ["ZL", "TTL"]
+        scaleFactor: 1.50
+    xsec_tt:
+        effect: "lnN"
+        processes: ["TTT", "TTL", "TTJ"]
+        scaleFactor: 1.06
+    xsec_st:
+        effect: "lnN"
+        processes: ["ST"]
+        scaleFactor: 1.05
+    xsec_vv:
+        effect: "lnN"
+        processes: ["VV"]
+        scaleFactor: 1.05
+    # norm_wj:
+    #     effect: "lnN"
+    #     processes: ["W"]
+    #     scaleFactor: 1.08
+    norm_qcd:
+        effect: "lnN"
+        processes: ["QCD"]
+        scaleFactor: 1.10 # mettre 20 % ?s
+    rate_jTauFake_$BIN:
+        effect: "lnN"
+        processes: ["W","QCD","ZJ","TTJ","STJ"]
+        scaleFactor: 1.15
+
+# Additional scale factors per year for specific processes (correction of xsec, reco SFs, etc.) for post fit plot
+scaleFactors:
+  tid_SF:
+    processes: ['ZTT']
+    values:
+      {
+      'DM0_pt1': 0.785543859005,
+      'DM0_pt2': 0.866531610489,
+      'DM0_pt3': 0.944303631783,
+      'DM0_pt4': 0.865045547485,
+      'DM1_pt1': 0.966563403606,
+      'DM1_pt2': 0.978684842587,
+      'DM1_pt3': 0.933954119682,
+      'DM1_pt4': 0.964006602764,
+      'DM10_pt1': 0.919248461723,
+      'DM10_pt2': 0.9680326581,
+      'DM10_pt3': 0.968404114246,
+      'DM10_pt4': 0.862745285034,
+      'DM11_pt1': 0.738075017929,
+      'DM11_pt2': 0.917353510857,
+      'DM11_pt3': 0.939468681812,
+      'DM11_pt4': 0.829122543335,
+      }
+  xsec_dy:
+    processes: ['ZTT', 'ZL', 'ZJ']
+    values:
+      {
+      'DM0_pt1': 0.977879285812,
+      'DM0_pt2': 0.976137936115,
+      'DM0_pt3': 0.975543558598,
+      'DM0_pt4': 0.972845971584,
+      'DM1_pt1': 0.972812116146,
+      'DM1_pt2': 0.977225482464,
+      'DM1_pt3': 0.966305851936,
+      'DM1_pt4': 0.97735697031,
+      'DM10_pt1': 0.969287991524,
+      'DM10_pt2': 0.973794639111,
+      'DM10_pt3': 0.971288025379,
+      'DM10_pt4': 0.976379454136,
+      'DM11_pt1': 0.979580819607,
+      'DM11_pt2': 0.971061825752,
+      'DM11_pt3': 0.973981618881,
+      'DM11_pt4': 0.975514233112,
+      }
+  sf_W:
+    processes: ['W']
+    values:
+      {
+      'DM0_pt1': 1.42048764229,
+      'DM0_pt2': 1.46294999123,
+      'DM0_pt3': 0.899307549,
+      'DM0_pt4': 0.647047042847,
+      'DM1_pt1': 0.898680210114,
+      'DM1_pt2': 1.31951129436,
+      'DM1_pt3': 0.953256011009,
+      'DM1_pt4': 1.14192843437,
+      'DM10_pt1': 1.27712666988,
+      'DM10_pt2': 1.39199578762,
+      'DM10_pt3': 1.38628923893,
+      'DM10_pt4': 1.35538005829,
+      'DM11_pt1': 1.34683346748,
+      'DM11_pt2': 1.37800562382,
+      'DM11_pt3': 0.994279921055,
+      'DM11_pt4': 0.858050405979,
+      }
+  lumi:
+    processes: ['ZTT', 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'ST', 'VV']
+    values:
+      {
+      'DM0_pt1': 0.9965939246118,
+      'DM0_pt2': 0.99772475566715,
+      'DM0_pt3': 0.997583756409585,
+      'DM0_pt4': 0.999800550704822,
+      'DM1_pt1': 0.9998834954225457,
+      'DM1_pt2': 0.9970202671364,
+      'DM1_pt3': 1.00393744558095,
+      'DM1_pt4': 0.9966720450669501,
+      'DM10_pt1': 1.0020295938476924,
+      'DM10_pt2': 0.999175856262445,
+      'DM10_pt3': 1.00081845605746,
+      'DM10_pt4': 0.9975794550031425,
+      'DM11_pt1': 0.995217222720375,
+      'DM11_pt2': 1.0008995587937526,
+      'DM11_pt3': 0.99895723098889,
+      'DM11_pt4': 0.9982924452051525,
+      }
+  eff_m:
+    processes: ['ZTT', 'ZL', 'ZJ', 'TTT', 'TTL', 'TTJ', 'W', 'ST', 'VV']
+    values:
+      {
+      'DM0_pt1': 0.99783915534616,
+      'DM0_pt2': 0.998512068837882,
+      'DM0_pt3': 0.9992679913342,
+      'DM0_pt4': 0.9998528673965484,
+      'DM1_pt1': 0.9998047816380858,
+      'DM1_pt2': 0.998089831024408,
+      'DM1_pt3': 1.00253874659538,
+      'DM1_pt4': 0.998301715999842,
+      'DM10_pt1': 1.001329818665982,
+      'DM10_pt2': 0.99949149504304,
+      'DM10_pt3': 1.000455753766,
+      'DM10_pt4': 0.99840699762106,
+      'DM11_pt1': 0.99745742470026,
+      'DM11_pt2': 1.0006103509292,
+      'DM11_pt3': 0.999515800401568,
+      'DM11_pt4': 0.998591036349534,
+      }
+  muonFakerate_$BIN:
+    processes: ['ZL', 'TTL']
+    values:
+      {
+      'DM0_pt1': 1.76398688555,
+      'DM0_pt2': 1.704383432865,
+      'DM0_pt3': 1.6800201535200001,
+      'DM0_pt4': 1.68568402529,
+      'DM1_pt1': 1.01342838909475,
+      'DM1_pt2': 0.8759655952455,
+      'DM1_pt3': 1.263943552971,
+      'DM1_pt4': 1.299930483103,
+      'DM10_pt1': 5.109192013855,
+      'DM10_pt2': 1.00829928554595,
+      'DM10_pt3': 0.99465719098225,
+      'DM10_pt4': 1.00793958920985,
+      'DM11_pt1': 1.00093134661438,
+      'DM11_pt2': 1.00612653326245,
+      'DM11_pt3': 1.00687824143095,
+      'DM11_pt4': 1.0171147249639,
+      }
+  xsec_tt:
+    processes: ['TTT', 'TTL', 'TTJ']
+    values:
+      {
+      'DM0_pt1': 0.98255071759222,
+      'DM0_pt2': 0.9874694123864199,
+      'DM0_pt3': 0.99134662955998,
+      'DM0_pt4': 0.99384568437934,
+      'DM1_pt1': 0.99180566281078,
+      'DM1_pt2': 0.9857502791285799,
+      'DM1_pt3': 1.01783980846408,
+      'DM1_pt4': 0.9868535745143799,
+      'DM10_pt1': 1.01070319414138,
+      'DM10_pt2': 0.98802418529986,
+      'DM10_pt3': 1.001081568151714,
+      'DM10_pt4': 0.997007487118246,
+      'DM11_pt1': 0.99368485867978,
+      'DM11_pt2': 0.998600753806534,
+      'DM11_pt3': 0.995434020161626,
+      'DM11_pt4': 0.998403812609614,
+      }
+  xsec_st:
+    processes: ['ST']
+    values:
+      {
+      'DM0_pt1': 0.999280000897125,
+      'DM0_pt2': 0.99908002447337,
+      'DM0_pt3': 0.99918781714514,
+      'DM0_pt4': 0.99979376939591,
+      'DM1_pt1': 0.9992842186708,
+      'DM1_pt2': 0.999085809197275,
+      'DM1_pt3': 1.000904167164115,
+      'DM1_pt4': 0.99949434916489,
+      'DM10_pt1': 1.00082193855196,
+      'DM10_pt2': 0.9996824230765925,
+      'DM10_pt3': 1.0000190778780962,
+      'DM10_pt4': 1.00011333002476,
+      'DM11_pt1': 0.999423839896915,
+      'DM11_pt2': 0.9999751801398815,
+      'DM11_pt3': 1.0000254712969763,
+      'DM11_pt4': 0.9999264462152495,
+      }
+  xsec_vv:
+    processes: ['VV']
+    values:
+      {
+      'DM0_pt1': 0.99940400044434,
+      'DM0_pt2': 0.9997997384285555,
+      'DM0_pt3': 0.998227788880465,
+      'DM0_pt4': 0.999499407596885,
+      'DM1_pt1': 0.99923920324072,
+      'DM1_pt2': 0.99906124351546,
+      'DM1_pt3': 1.000157418975141,
+      'DM1_pt4': 0.99903191095218,
+      'DM10_pt1': 1.000338462390937,
+      'DM10_pt2': 0.999928310798714,
+      'DM10_pt3': 0.9996557199861855,
+      'DM10_pt4': 0.9998959063901565,
+      'DM11_pt1': 0.9999640761496267,
+      'DM11_pt2': 1.0003833468304946,
+      'DM11_pt3': 0.999844248907175,
+      'DM11_pt4': 0.99901975207031,
+      }
+  norm_qcd:
+    processes: ['QCD']
+    values:
+      {
+      'DM0_pt1': 0.9879869759083,
+      'DM0_pt2': 1.00949422568083,
+      'DM0_pt3': 0.99795751534402,
+      'DM0_pt4': 0.99145463183522,
+      'DM1_pt1': 1.0204786866903,
+      'DM1_pt2': 0.9518057376146,
+      'DM1_pt3': 0.9803222984076,
+      'DM1_pt4': 1.0241525441408,
+      'DM10_pt1': 1.00303399469703,
+      'DM10_pt2': 0.9768481716513999,
+      'DM10_pt3': 0.9592113047838,
+      'DM10_pt4': 1.0117657035589,
+      'DM11_pt1': 0.9702341347933,
+      'DM11_pt2': 0.9848980233073,
+      'DM11_pt3': 1.0349820911884,
+      'DM11_pt4': 1.0327735871077,
+      }
+  rate_jTauFake_$BIN:
+    processes: ['W', 'QCD', 'ZJ', 'TTJ', 'STJ']
+    values:
+      {
+      'DM0_pt1': 0.9570836991071501,
+      'DM0_pt2': 1.00275901407004,
+      'DM0_pt3': 0.9707153871655,
+      'DM0_pt4': 0.98331482261425,
+      'DM1_pt1': 1.0380521371959999,
+      'DM1_pt2': 0.8717698276043501,
+      'DM1_pt3': 0.96542734503745,
+      'DM1_pt4': 1.04862501174205,
+      'DM10_pt1': 1.0273168191313,
+      'DM10_pt2': 0.9264141544699,
+      'DM10_pt3': 0.9004918426276001,
+      'DM10_pt4': 1.02850391343235,
+      'DM11_pt1': 0.9160609036684,
+      'DM11_pt2': 0.95568266510965,
+      'DM11_pt3': 1.06961763799195,
+      'DM11_pt4': 1.0768905729055,
+      }

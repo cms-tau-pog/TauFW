@@ -1,0 +1,3 @@
+drop * # start with all
+keep genWeight
+keep *LHE*

@@ -1,0 +1,17 @@
+imax 1   number of channels
+jmax *   number of backgrounds
+kmax *   number of nuisance parameters
+-----------------
+observation -1
+-----------------
+shapes * * input/munu_mt_1_munu-2018.inputs.root  WToMuNu/$PROCESS
+-----------------
+bin             WtoMuNu   WtoMuNu
+process         WToMuNu     Other
+process              0      1
+rate    -1      -1
+-----------------
+MuEff         lnN   1.02   1.02
+lumi          lnN   1.02   1.02
+MuTrig        lnN   1.01   1.01
+* autoMCStats 0
