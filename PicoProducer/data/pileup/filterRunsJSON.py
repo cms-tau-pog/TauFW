@@ -24,7 +24,7 @@ def getyear(era):
     raise IOError("getyear: Did not recognize year in era %r"%era)
   year = int(match.group(1))
   return year
-  
+
 
 def getJSON(era):
   """Return hardcorded name of certification JSON for a given era"""
@@ -70,10 +70,12 @@ def getJSON(era):
     jname = os.path.join(jsondir,'Cert_Collisions2023_366442_370790_Golden.json')
   elif '2024' in era:
     jname = os.path.join(jsondir,'Cert_Collisions2024_378981_385012_Golden.json')
+  elif '2025' in era:  
+    jname = os.path.join(jsondir,'Collisions25_13p6TeV_391658_393516_DCSOnly_TkPx.json')
   else:
     raise IOError("getJSONs: Did not recognize era %r"%era)
   return jname
-  
+
 
 def getRuns(era):
   """Return hardcorded dictionairy of run numbers per era for a given era"""
@@ -120,7 +122,7 @@ def getRuns(era):
   else:
     raise IOError("getJSONs: Did not recognize era %r"%era)
   return datasets
-  
+
 
 def cleanPeriods(periods):
   """Clean up periods."""
@@ -130,7 +132,7 @@ def cleanPeriods(periods):
     assert all(s in 'ABCDEFGH' for s in period), "Did not recognize era '%s'!"%(period)
     periods[i] = ''.join(sorted(period))
   return periods
-  
+
 
 def getPeriodRunNumbers(era,datasets=None):
   """Get runnumbers for an period (e.g. 'B', 'BCD' or 'GH')."""
@@ -150,7 +152,7 @@ def getPeriodRunNumbers(era,datasets=None):
       end = setend
   assert start>0 and end>0, "Invalid runnumbers %s to %s"%(start,end)
   return start, end
-  
+
 
 def filterJSONByRunNumberRange(jsoninname,era="",period=None,rrange=None,start=None,end=None,outdir='json',verb=0):
   """Split a given JSON file by start and end run number."""
@@ -172,11 +174,11 @@ def filterJSONByRunNumberRange(jsoninname,era="",period=None,rrange=None,start=N
                   "or the range (e.g. rrange='272007-278770'), or start and end (start=272007, end=278770)")
   jsonoutname = os.path.join(outdir,range_rexp.sub(eraname,os.path.basename(jsoninname)))
   print(">>> filterJSONByRunNumberRange: %r for period=%r, range=%s-%s"%(eraname,period,start,end))
-  
+
   # READ JSON IN
   with open(jsoninname,'r') as jsonin:
     data = json.load(jsonin)
-  
+
   # FILTER run number range
   nkeep = 0
   ndrop = 0
@@ -192,17 +194,17 @@ def filterJSONByRunNumberRange(jsoninname,era="",period=None,rrange=None,start=N
         if verb>=2: print(">>>     keeping %s"%runnumber)
     else:
       print("Warning! filterJSONByRunNumberRange: element is not an integer (run number): '%s'"%element)
-  
+
   # WRITE JSON OUT
   with open(jsonoutname,'w') as jsonout:
     data = json.dump(data,jsonout,sort_keys=True)
-  
+
   # SUMMARY
   print(">>>   output: %r"%(jsonoutname))
   print(">>>   saved %s / %s run numbers"%(nkeep,nkeep+ndrop))
-  
+
   return jsonoutname
-  
+
 
 def compareJSONs(jnames,verb=0):
   """Compare JSON files."""
@@ -238,6 +240,7 @@ def compareJSONs(jnames,verb=0):
   for jname in jnames:
     nruns = len(run_dicts[jname])
     print(">>>   %s (%d runs)"%(jname,nruns))
+
     nmiss = len(runstatus[jname]['miss'])
     ndiff = len(runstatus[jname]['diff'])
     misslist = ', '.join("\033[1m%s\033[0m"%(r) for r in runstatus[jname]['miss'])
@@ -245,7 +248,7 @@ def compareJSONs(jnames,verb=0):
     print(">>>     missing runs (%d/%d):\n>>>       %s"%(nmiss,nruns,misslist or "none"))
     print(">>>     different limis (%d/%d):\n>>>       %s"%(ndiff,nruns,difflist or "none"))
     print(">>> ")
-  
+
 
 def main(args):
   eras      = args.eras
@@ -275,7 +278,7 @@ def main(args):
       for period in sorted(datasets.keys()):
         start, end = datasets[period]
         print(">>>   %s: %s-%s"%(period,start,end))
-  
+
 
 if __name__ == '__main__':
   from argparse import ArgumentParser
@@ -299,4 +302,3 @@ if __name__ == '__main__':
   args = parser.parse_args()
   main(args)
   print(">>> Done!")
-  

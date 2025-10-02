@@ -13,6 +13,7 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
 from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, filtermutau
+from TauFW.PicoProducer.corrections.PileupTool import PileupWeightTool
 __metaclass__ = type # to use super() with subclasses from CommonProducer
 tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022ReReco' }
 
@@ -32,8 +33,8 @@ class ModuleTauPair(Module):
     self.isembed    = self.dtype=='embed'
     self.branchsel  = None # keep/drop file for branches: disable unneeded branches for faster processing
     self.channel    = kwargs.get('channel',  'none'         ) # channel name
-    self.year       = kwargs.get('year',     2022           ) # integer, e.g. 2017, 2018
-    self.era        = kwargs.get('era',      '2022postEE'   ) # string, e.g. '2017', 'UL2017'
+    self.year       = kwargs.get('year',     2024           ) # integer, e.g. 2017, 2018
+    self.era        = kwargs.get('era',      '2024I'   ) # string, e.g. '2017', 'UL2017'
     self.ees        = kwargs.get('ees',      1.0            ) # electron energy scale
     self.tes        = kwargs.get('tes',      None           ) # tau energy scale; if None, recommended values are applied
     self.tessys     = kwargs.get('tessys',   None           ) # vary TES: 'Up' or 'Down'
@@ -42,7 +43,7 @@ class ModuleTauPair(Module):
     self.jtf        = kwargs.get('jtf',      1.0            ) or 1.0 # jet-tau-fake energy scale
     ##addition Z resolution
     self.Zres       = kwargs.get('Zres',     None           ) # Z resolution 
-    self.tauwp      = kwargs.get('tauwp',    1              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
+    self.tauwp      = kwargs.get('tauwp',    5              ) # minimum DeepTau WP, e.g. 1 = VVVLoose, etc.
     self.dotoppt    = kwargs.get('toppt',    'TT' in fname  ) # top pT reweighting
     self.dozpt      = kwargs.get('zpt',      'DY' in fname  ) # Z pT reweighting
     self.domutau    = kwargs.get('domutau',  'DY' in fname or self.dozpt ) # mutau genfilter for stitching DY sample
@@ -60,7 +61,7 @@ class ModuleTauPair(Module):
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
-    assert self.year in [2016,2017,2018,2022,2023,2024], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
+    assert self.year in [2016,2017,2018,2022,2023,2024,2025], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -72,8 +73,16 @@ class ModuleTauPair(Module):
     self.ptnom        = lambda j: j.pt # use 'pt' as nominal jet pt (not corrected)
     self.jecUncLabels = [ ]
     self.metUncLabels = [ ]
+
+    # if self.ismc:
+    #   self.puTool      = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+    #   self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
+
     if self.ismc:
-      self.puTool      = PileupWeightTool(era=self.era,sample=self.filename,verb=self.verbosity)
+      if self.era not in ['2024','2025']: 
+          self.puTool = PileupWeightTool(era=self.era, sample=self.filename, verb=self.verbosity)
+      else:
+          self.puTool = None
       self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
@@ -90,7 +99,7 @@ class ModuleTauPair(Module):
       #if self.isUL and self.tes==None:
       #  self.tes = 1.0 # placeholder
     self.jetvetoTool = None
-    if '2022' in self.era or '2023' in self.era: # only mandatory for Run 3: 2022, 2023, ... (see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps)
+    if '2022' or '2023' or '2024' in self.era: # only mandatory for Run 3: 2022, 2023, ... (see https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps)
       self.jetvetoTool = JetVetoMapTool(era=self.era,verb=self.verbosity) 
     self.deepjet_wp = BTagWPs('DeepJet',era=self.era)
     
@@ -187,6 +196,10 @@ class ModuleTauPair(Module):
         ('HLT_IsoMu24',          False ),
         ('HLT_IsoTkMu24',        False ),
       ]
+    if self.year == 2025:
+      branches += [
+        ('Jet_jetId', False),
+      ]
  
     #check
     fullbranchlist = inputTree.GetListOfBranches()
@@ -206,7 +219,8 @@ class ModuleTauPair(Module):
     muons = [m for m in Collection(event,'Muon') if m.isPFcand]
     for jet in Collection(event,'Jet'):
       if abs(jet.pt) <= 15: continue
-      if jet.jetId < 2: continue
+      if self.year != 2025:
+        if self.year != 2024 and jet.jetId < 2: continue # jetId requirement (not available in 2024)
       if (jet.chEmEF + jet.neEmEF) > 0.90: continue
       if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
       if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
@@ -313,7 +327,8 @@ class ModuleTauPair(Module):
       if abs(jet.eta)>4.7: continue
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
-      if jet.jetId<2: continue # Tight
+      if self.year != 2025:
+        if self.year != 2024 and jet.jetId < 2: continue # Tight ## Skip jetId requirement for 2024
       
       # SAVE JEC VARIATIONS
       if self.dojec:
@@ -443,7 +458,10 @@ class ModuleTauPair(Module):
       self.out.ttptweight[0]  = getTopPtWeight(toppt1,toppt2)
     
     self.out.genweight[0]     = event.genWeight
-    self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+    if self.year not in [2024,2025]:
+      self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+    else:
+      self.out.puweight[0]      = None      
     self.out.btagweight[0]    = self.btagTool.getWeight(jets)
     if self.dosys:
       if self.dopdf:
