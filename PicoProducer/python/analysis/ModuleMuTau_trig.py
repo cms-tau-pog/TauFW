@@ -337,7 +337,7 @@ class ModuleMuTau_trig(ModuleTauPair):
             if pt > 30 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.1:
                 self.out.trig_match_DeepTau_DiTauJet[0] = True
 
-        if has_filter_bit(bits, 3) and has_filter_bit(bits, 13):
+        if has_filter_bit(bits, 3) and has_filter_bit(bits, 27):
             if pt > 27 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.1:
                 self.out.trig_match_DeepTau_ETau[0] = True
 
@@ -369,7 +369,7 @@ class ModuleMuTau_trig(ModuleTauPair):
         if pt > 26 and l1pt > 26 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 20):
             self.out.trig_match_PNet_DiTauJet[0] = True
 
-        if pt > 27 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 13):
+        if pt > 27 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 27):
             if has_filter_bit(bits, 0):
                 self.out.trig_match_PNet_ETau_Loose[0] = True
             if has_filter_bit(bits, 1):
@@ -391,7 +391,7 @@ class ModuleMuTau_trig(ModuleTauPair):
           dR_mu = deltaR(event.TrigObj_eta[i], muon.eta, event.TrigObj_phi[i], muon.phi)
           if dR_mu < 0.5:
             self.out.dR_mu[0] = False    
-          if dR_mu < 0.5 and event.TrigObj_id[i] == 13:
+          if dR_mu < 0.5 and event.TrigObj_id[i] == 13 and has_filter_bit(bits, 1) and (has_filter_bit(bits, 3) or has_filter_bit(bits, 6)):
             self.out.trig_match_single_muon[0] = True
 
     
