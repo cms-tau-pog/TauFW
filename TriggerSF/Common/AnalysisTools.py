@@ -4,7 +4,7 @@ import scipy
 import scipy.optimize
 import ROOT
 
-from RootObjects import Histogram, Graph, MultiGraph
+from TauFW.TriggerSF.Common.RootObjects import Histogram, Graph, MultiGraph
 
 def KatzLog(passed, total):
     """Returns 1-sigma confidence interval for a ratio of proportions using Katz-log method."""
