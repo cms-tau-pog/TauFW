@@ -278,5 +278,5 @@ python3 -c "import ROOT; print('ROOT OK')"
 ## Contact
 
 - **TauFW**: Ather
-- **Trigger SF**: Irene Andreou, Braden Allmond
+- **Trigger SF**: Irene Andreou
 - **Integration**: Neeraj
