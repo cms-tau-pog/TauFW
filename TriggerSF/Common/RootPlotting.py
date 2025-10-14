@@ -3,7 +3,7 @@ import math
 import numpy as np
 import ROOT
 
-from AnalysisTools import KatzLog
+from TauFW.TriggerSF.Common.AnalysisTools import KatzLog
 
 class TextAlign:
     LeftBottom = ROOT.kHAlignLeft + ROOT.kVAlignBottom
