@@ -1,10 +1,12 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 
-import sys; sys.path.append('python')
-from utils import *
-import uproot
-import os, ROOT
+import os
+import sys
+import ROOT
 import numpy
+import uproot
+
+from TauFW.TriggerSF.Common.utils import *
 
 from correctionlib.schemav2 import (
     VERSION,
