@@ -1,6 +1,6 @@
 # MuTau 2024 Analysis with Trigger SF — TauFW Integration Branch
 
-This branch (`MuTau_2024_TriggerSF_integration`) of the [TauFW](https://github.com/atharphy/TauFW) repository integrates Ather's MuTau analysis framework with Irene's Tau Trigger Scale Factor calculation tools. It enables complete trigger efficiency studies and scale factor derivation for 2024 CMS data.
+This branch (`MuTau_2024_TriggerSF_integration`) of the [TauFW](https://github.com/cms-tau-pog/TauFW) repository integrates Ather's MuTau analysis framework with Irene's Tau Trigger Scale Factor calculation tools. It enables complete trigger efficiency studies and scale factor derivation for 2024 CMS data.
 
 **Supported Channels**: etau, mutau, singletau, ditau, ditaujet, vbftau, vbfditau
 
@@ -27,7 +27,7 @@ cmsenv
 ### 2. Clone this repository and checkout the integration branch
 
 ```bash
-git clone https://github.com/atharphy/TauFW.git
+git clone https://github.com/neeraj-1729/TauFW.git
 ```
 
 ```bash
@@ -104,27 +104,6 @@ rm -rf HTT
 git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
 ```
 
-### 8. Install Python dependencies for Trigger SF
-
-```bash
-cd $CMSSW_BASE/src
-```
-
-```bash
-cmsenv
-```
-
-```bash
-pip3 install --user scipy matplotlib scikit-learn
-```
-
-Verify installation:
-```bash
-python3 -c "import scipy, matplotlib, sklearn; print('All packages OK')"
-```
-
----
-
 ## Framework Structure
 
 ```
@@ -161,6 +140,7 @@ cmsenv
 
 ```bash
 cd $CMSSW_BASE/src/TauFW/TriggerSF
+export PYTHONPATH=$CMSSW_BASE/src:$CMSSW_BASE/src/TauFW:$PYTHONPATH
 ```
 
 ```bash
