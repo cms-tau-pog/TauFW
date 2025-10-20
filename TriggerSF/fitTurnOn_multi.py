@@ -19,25 +19,25 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.TH1.SetDefaultSumw2()
 
-sys.path.insert(0, 'Common/python')
-from RootObjects import Histogram, Graph
+# ---------------------------------------------------
+# TauFW Integration
+# ---------------------------------------------------
+from TauFW.TriggerSF.Common.RootObjects import Histogram, Graph
 
 from array import array
 
 # --------------
 # Example Command:
 # pip install sklearn on lxplus
-# python3 scripts/fitTurnOn_multi.py --input TurnOnDeepTau/TurnOnDeepTau.root --output fitTurnOnDeepTau --decay_modes DeepTau
-# python3 scripts/fitTurnOn_multi.py --input TurnOnPNet/TurnOnPNet.root --output fitTurnOnPNet --decay_modes PNet
+# python3 scripts/fitTurnOn_multi.py --input TurnOn_mutau.root --output fitTurnOnDeepTau --channels mutau --decay-modes all,0,1,10,11
 # --------------
-
 
 parser = argparse.ArgumentParser(description='Fit turn-on curves.')
 parser.add_argument('--input', required=True, type=str, help="ROOT file with turn-on curves")
 parser.add_argument('--output', required=True, type=str, help="output file prefix")
-parser.add_argument('--channels', required=False, type=str, default='etau,mutau,ditau,ditaujet', help="channels to process")
-parser.add_argument('--decay-modes', required=False, type=str, default='all,0,1,2,10,11', help="decay modes to process")
-parser.add_argument('--decay_modes', required=True, type=str, default='DeepTau', choices=['DeepTau', 'PNet'], help="Type of decay modes to process")
+parser.add_argument('--channels', required=False, type=str, default='etau,mutau, singletau, ditau,ditaujet,ditaujet_jet_leg, vbftau, vbfditau ', help="channels to process")
+parser.add_argument('--decay-modes', required=False, type=str, default='all,0,1,10,11', help="decay modes to process")
+#parser.add_argument('--decay_modes', required=True, type=str, default='DeepTau', choices=['DeepTau', 'PNet'], help="Type of decay modes to process")
 parser.add_argument('--working-points', required=False, type=str,
                     default='VVVLoose,VVLoose,VLoose,Loose,Medium,Tight,VTight,VVTight',
                     help="working points to process")
@@ -141,18 +141,15 @@ class FitResults:
         return tuple(results)
 
 channels = args.channels.split(',')
-if args.decay_modes == 'PNet':
-    decay_modes = [ 'all', '0', '1', '2', '10', '11', '1011']
-elif args.decay_modes == 'DeepTau':
-    decay_modes = [ 'all', '0', '1', '10', '11', '1011']
+decay_modes = args.decay_modes.split(',')
 working_points = args.working_points.split(',')
-ch_validity_thrs = { 'etau': 35, 'mutau': 32, 'ditau': 40, 'ditaujet': 40, }
+ch_validity_thrs = { 'etau': 35, 'mutau': 32, 'singletau' : 190, 'ditau': 40, 'ditaujet': 35, 'ditaujet_jet_leg': 65, 'vbftau': 50, 'vbfditau': 25 }
 
 file = ROOT.TFile(args.input, 'READ')
 output_dir = os.path.join(os.getcwd(), args.output)
 os.makedirs(output_dir, exist_ok=True)
 
-output_file_path = os.path.join(output_dir, f'fitTurnOn{args.decay_modes}')
+output_file_path = os.path.join(output_dir, 'fitTurnOnDeepTau')
 print('Output file will be saved to {}'.format(output_file_path))
 output_file = ROOT.TFile('{}.root'.format(output_file_path), 'RECREATE', '', ROOT.RCompressionSetting.EDefaults.kUseSmallest)
 
@@ -163,9 +160,18 @@ for channel in channels:
                 print('Processing {} {} WP DM = {}'.format(channel, wp, dm))
                 dm_label = '_dm{}'.format(dm) if dm != 'all' else ''
                 name_pattern = '{{}}_{}_{}{}_fit_eff'.format(channel, wp, dm_label)
-                dm_label = '_dm'+ dm if len(dm) > 0 else ''
+                
                 eff_data_root = file.Get(name_pattern.format('data'))
                 eff_mc_root = file.Get(name_pattern.format('mc'))
+                
+                # Check if objects exist
+                if not eff_data_root:
+                    print(f"Warning: Could not find data efficiency for {name_pattern.format('data')}")
+                    continue
+                if not eff_mc_root:
+                    print(f"Warning: Could not find MC efficiency for {name_pattern.format('mc')}")
+                    continue
+                
                 eff_data_orig = Graph(root_graph=eff_data_root)
                 eff_mc_orig = Graph(root_graph=eff_mc_root)
                 pred_step = 0.1
@@ -174,9 +180,7 @@ for channel in channels:
                 x_low, x_high = 20, 1000
                 x_pred = np.arange(x_low, x_high + pred_step / 2, pred_step)
 
-
                 def rebin_mc_to_data(data_graph, mc_graph):
-
                     xs, ys, xl, xh, yl, yh = [], [], [], [], [], []
 
                     # Loop one-to-one over data bins:
@@ -204,7 +208,6 @@ for channel in channels:
                             print(f"Warning: no MC points in data bin [{lo}, {hi})")
                             y_mean, y_err = np.nan, np.nan
 
-
                         # Append exactly the data bin center & widths
                         xs.append(center)
                         ys.append(y_mean)
@@ -228,7 +231,7 @@ for channel in channels:
 
                 eff_data_fitted = FitResults(eff_data, x_pred)
                 eff_mc_fitted = FitResults(eff_mc, x_pred)
-
+                    
                 sf = eff_data_fitted.y_pred / eff_mc_fitted.y_pred
                 sf_sigma = np.sqrt( (eff_data_fitted.sigma_pred / eff_mc_fitted.y_pred) ** 2 \
                          + (eff_data_fitted.y_pred / (eff_mc_fitted.y_pred ** 2) * eff_mc_fitted.sigma_pred ) ** 2 )
@@ -239,32 +242,6 @@ for channel in channels:
                 data_color = 'k'
                 trans = 0.3
 
-                # test by botao
-                # print("mc low previous: {}".format(eff_mc.x_error_low))
-                # print("data low previous: {}".format(eff_data.x_error_low))
-                # count = 0
-                # for _i,_obj in enumerate(eff_data.x_error_low) :
-                #     if _obj < 0:
-                #         _obj == abs(_obj)
-                # for _i,_obj in enumerate(eff_data.x_error_high) :
-                #     if _obj < 0:
-                #         _obj == - _obj
-                # count = 0
-                # for _i,_obj in enumerate(eff_mc.x_error_low) :
-                #     if _obj < 0:
-                #         print("BUGBUGBUGBUG!")
-                #         count = 1
-                #         _obj == abs(_obj)
-                # if count == 1:
-                #     continue
-                # for _i,_obj in enumerate(eff_mc.x_error_high) :
-                #     if _obj < 0:
-                #         _obj == - _obj
-                # print("mc low: {}".format(eff_mc.x_error_low))
-                # print("mc high: {}".format(eff_mc.x_error_high))
-                # print("data low: {}".format(eff_data.x_error_low))
-                # print("data high: {}".format(eff_data.x_error_high))
-                # end test
                 plt_data = ax.errorbar(eff_data.x, eff_data.y, xerr=(abs(eff_data.x_error_low), abs(eff_data.x_error_high)),
                                        yerr=(eff_data.y_error_low, eff_data.y_error_high), fmt=data_color+'.',
                                        markersize=5)
@@ -307,7 +284,6 @@ for channel in channels:
 
                 ax.legend([ plt_data, plt_mc, plt_data_fitted[0], plt_mc_fitted[0], validity_plt[0] ],
                           [ "Data", "MC", "Data fitted", "MC fitted", "Validity range"], fontsize=12, loc='lower right')
-
 
                 plt.subplots_adjust(hspace=0)
                 pdf.savefig(bbox_inches='tight')
