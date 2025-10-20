@@ -9,6 +9,7 @@ import re
 import sys
 import ROOT
 
+
 # --------------
 # Example Command:
 # python3 createTurnOn_multi.py --input-data sk_data.root --input-dy-mc sk_mc.root --output TurnOn
@@ -212,6 +213,7 @@ canvas = CreateCanvas()
 n_plots = len(decay_modes) * len(channels) * len(working_points)
 plot_id = 0
 for channel in channels:
+    ROOT.gStyle.SetOptStat(0)
     for wp in working_points:
         for dm in decay_modes:
             if dm == 'all':
@@ -265,7 +267,7 @@ for channel in channels:
             canvas.Update()
             output_file.WriteTObject(canvas, 'canvas_{}'.format(plain_title), 'Overwrite')
             PrintAndClear(canvas, args.output + '.pdf', plain_title, plot_id, n_plots,
-                                       [ main_pad, ratio_pad ])
+                         '_' + plain_title, [main_pad, ratio_pad])
             plot_id += 1
 
 output_file.Close()
