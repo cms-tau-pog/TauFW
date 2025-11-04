@@ -1,0 +1,35 @@
+{
+    "channels": {
+	"test": "test.py",
+	"skim": "skimjob.py",
+	"skim-jec": "skimjob.py --jec-sys",
+	"gen": "GenDumper",
+	"sumw": "SumWeights",
+	"pileup": "PileUp",
+	"mutau": "Run3_DEV.ModuleMuTau_Inclusive jec=False",
+	"mumu": "Run3_DEV.ModuleMuMu jec=False"
+    },
+    "eras": {
+	"UL2016_preVPF": "samples_UL2016_preVFP.py",
+	"UL2016_postVFP": "samples_UL2016_postVFP.py", 
+	"UL2017": "samples_UL2017.py",
+	"UL2018": "samples_UL2018.py",
+	"2022EE": "samples_HCP_2022EE.py",
+	"2022postEE": "samples_2022_postEE.py",
+	"2024": "samples_2024v15.py"
+    },
+    "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
+    "outdir": "/eos/cms/store/group/phys_tau/rasp/Run2_UL/output/$ERA/$CHANNEL/$SAMPLE",
+    "nanodir": "/eos/cms/store/group/phys_tau/rasp/Run2_UL/nano/$ERA/$DAS",
+    "picodir": "/eos/cms/store/group/phys_tau/rasp/Run2_UL/$ERA/$GROUP",
+    "tmpskimdir": "",
+    "batch": "HTCondor",
+    "queue": "",
+    "batchopts": "",
+    "nfilesperjob": 1,
+    "maxevtsperjob": -1,
+    "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
+    "maxopenfiles": 500,
+    "haddcmd": "",
+    "ncores": 4
+}
