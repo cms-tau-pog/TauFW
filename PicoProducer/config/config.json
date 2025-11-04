@@ -1,6 +1,6 @@
 {
     "channels": {
-	"test": "test.py",
+   	"test": "test.py",
 	"skim": "skimjob.py",
 	"skim-jec": "skimjob.py --jec-sys",
 	"gen": "GenDumper",
