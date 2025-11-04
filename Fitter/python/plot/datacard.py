@@ -171,6 +171,7 @@ def plotinputs(fname,varprocs,obsset,bins,**kwargs):
   outdir    = kwargs.pop('outdir', 'plots'             )
   text      = kwargs.pop('text',   "$BIN"              )
   verbosity = kwargs.get('verb',   0                   )
+  printmean = False
   ensuredir(outdir)
   print(">>>\n>>> "+color(" plotting... ",'magenta',bold=True,ul=True))
   if 'Nom' not in varprocs:
