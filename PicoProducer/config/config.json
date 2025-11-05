@@ -10,10 +10,10 @@
 	"mumu": "Run3_DEV.ModuleMuMu jec=False"
     },
     "eras": {
-	"UL2016_preVPF": "samples_UL2016_preVFP.py",
-	"UL2016_postVFP": "samples_UL2016_postVFP.py", 
-	"UL2017": "samples_UL2017.py",
-	"UL2018": "samples_UL2018.py",
+	"UL2016_preVPF": "samples_UL2016_preVFP_nanoV10.py",
+	"UL2016_postVFP": "samples_UL2016_postVFP_nanoV10.py", 
+	"UL2017": "samples_UL2017_nanoV10.py",
+	"UL2018": "samples_UL2018_nanoV10.py",
 	"2022EE": "samples_HCP_2022EE.py",
 	"2022postEE": "samples_2022_postEE.py",
 	"2024": "samples_2024v15.py"
@@ -21,7 +21,7 @@
     "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",
     "outdir": "/eos/cms/store/group/phys_tau/rasp/Run2_UL/output/$ERA/$CHANNEL/$SAMPLE",
     "nanodir": "/eos/cms/store/group/phys_tau/rasp/Run2_UL/nano/$ERA/$DAS",
-    "picodir": "/eos/cms/store/group/phys_tau/rasp/Run2_UL/$ERA/$GROUP",
+    "picodir": "/eos/cms/store/group/phys_tau/rasp/Run2_UL/$ERA/$CHANNEL/$GROUP",
     "tmpskimdir": "",
     "batch": "HTCondor",
     "queue": "",
