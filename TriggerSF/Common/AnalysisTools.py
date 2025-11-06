@@ -159,6 +159,32 @@ def FixEfficiencyBins(hist_passed, hist_total, remove_overflow=True):
             hist_passed.SetBinError(n, math.sqrt(hist_passed.GetBinError(n) ** 2 + delta ** 2))
             hist_passed.SetBinContent(n, hist_total.GetBinContent(n))
 
+def _mc_index_range_from_data_range(i_start, i_end, data_edges, mc_edges):
+    """
+    Given [i_start, i_end] in DATA indices (inclusive), return the corresponding
+    MC index range [j_start, j_end] (inclusive) that covers the same x-range:
+    [data_edges[i_start], data_edges[i_end+1]).
+    """
+    # DATA physical range
+    x_lo = data_edges[i_start]
+    x_hi = data_edges[i_end + 1]
+
+    # If MC edges align perfectly with DATA, just return same indices
+    same_len = (len(mc_edges) == len(data_edges))
+    if same_len and np.allclose(mc_edges, data_edges, rtol=0, atol=0):
+        return i_start, i_end
+
+    # General case: find MC bins that overlap [x_lo, x_hi)
+    # We choose indices whose bin centers lie in [x_lo, x_hi), but a safer choice is edge coverage.
+    # Use edges to find the half-open bin range:
+    j_start = max(0, np.searchsorted(mc_edges, x_lo, side='left') - 1)
+    j_end = min(len(mc_edges) - 2, np.searchsorted(mc_edges, x_hi, side='left') - 1)
+
+    # Ensure valid ordering
+    j_start = max(0, j_start)
+    j_end = max(j_start, j_end)
+    return j_start, j_end
+
 def AutoRebinAndEfficiency(hist_passed, hist_total, bin_scan_pairs):
     passed, total = 0, 1
     hist = [ hist_passed, hist_total ]
@@ -298,3 +324,176 @@ def AutoRebinAndEfficiencyforDataMCboth(hist_passed, hist_total, bin_scan_pairs,
             if bin_created: break
         n += k + 1
     return tuple(graphs.ToRootGraphs(n_output_points)+graphs_mc.ToRootGraphs(n_output_points))
+
+def AutoRebinAndEfficiency_DataBinsAppliedToMC(
+    hist_passed, hist_total, bin_scan_pairs, hist_passed_mc, hist_total_mc):
+    """
+    Adaptive rebinning based on DATA ONLY; apply the resulting bin edges to MC.
+
+    Parameters
+    ----------
+    hist_passed : Histogram-like or Histogram
+        Data passed histogram (values, errors, edges).
+    hist_total : Histogram-like or Histogram
+        Data total histogram (values, errors, edges).
+    bin_scan_pairs : list[tuple[int, float]]
+        Pairs of (max_bin_size, max_rel_error) scanned in order for bin creation.
+    hist_passed_mc : Histogram-like or Histogram
+        MC passed histogram (values, errors, edges).
+    hist_total_mc : Histogram-like or Histogram
+        MC total histogram (values, errors, edges).
+
+    Returns
+    -------
+    tuple of ROOT-like graphs
+        (data_yields_passed, data_yields_total, data_eff, mc_yields_passed, mc_yields_total, mc_eff)
+        as produced by MultiGraph(...).ToRootGraphs(n_points),
+        with MC bins aligned to the DATA-derived bins.
+    """
+    passed, total = 0, 1
+
+    # Wrap as Histogram if needed
+    hist = [hist_passed, hist_total]
+    for i in range(len(hist)):
+        if type(hist[i]) != Histogram:
+            hist[i] = Histogram(hist[i])
+
+    hist_mc = [hist_passed_mc, hist_total_mc]
+    for i in range(len(hist_mc)):
+        if type(hist_mc[i]) != Histogram:
+            hist_mc[i] = Histogram(hist_mc[i])
+
+    n_bins = len(hist[total].values)
+    graphs = MultiGraph(len(hist) + 1, n_bins)
+    graphs_mc = MultiGraph(len(hist_mc) + 1, n_bins)
+
+    # Decide bins using DATA only, record ranges (start_idx, end_idx) inclusive
+    data_bin_ranges = []
+    n = 0
+    abs_min_total_yield = bin_scan_pairs[-1][-1]
+    while n < n_bins:
+        # If remaining total yield in DATA is too small, stop.
+        if np.sum(hist[total].values[n:]) < abs_min_total_yield:
+            break
+
+        made_bin = False
+        for max_bin_size, max_rel_error in bin_scan_pairs:
+            v_counter = np.zeros(len(hist))
+            w2_counter = np.zeros(len(hist))
+
+            k = 0
+            while k < max_bin_size and n + k < n_bins:
+                for sel_id in range(len(hist)):
+                    v_counter[sel_id] += hist[sel_id].values[n + k]
+                    w2_counter[sel_id] += hist[sel_id].errors[n + k] ** 2
+
+                # DATA-only criteria to accept a bin
+                if (v_counter[total] > 0 and
+                    math.sqrt(w2_counter[total]) / v_counter[total] < max_rel_error and
+                    v_counter[passed] > 0 and
+                    v_counter[passed] < v_counter[total]):
+                    # Accept this DATA bin: indices [n, n+k]
+                    data_bin_ranges.append((n, n + k))
+                    made_bin = True
+                    break
+                k += 1
+
+            if made_bin:
+                break
+
+        # Move to next DATA bin start
+        if made_bin:
+            n = data_bin_ranges[-1][1] + 1
+        else:
+            # If we couldn't make a bin with given scan pairs, advance by 1 to avoid infinite loop
+            n += 1
+
+    # Number of output points is the number of accepted bins
+    n_output_points = len(data_bin_ranges)    
+
+    data_edges = hist[total].edges
+    mc_edges = hist_mc[total].edges
+
+    # Fill DATA & MC graphs using the DATA-defined bins
+    for point_idx, (i_start, i_end) in enumerate(data_bin_ranges):
+        # ---------- DATA ----------
+        v_counter = np.zeros(len(hist))
+        w2_counter = np.zeros(len(hist))
+        for b in range(i_start, i_end + 1):
+            for sel_id in range(len(hist)):
+                v_counter[sel_id] += hist[sel_id].values[b]
+                w2_counter[sel_id] += hist[sel_id].errors[b] ** 2
+
+        eff = v_counter[passed] / v_counter[total] if v_counter[total] > 0 else 0.0
+
+        # Weighted average x using total DATA yield as weights
+        x_slice_vals = hist[total].values[i_start:i_end + 1]
+        x_slice_edges = hist[total].edges[i_start:i_end + 2]
+        # Use edges to compute a representative center via value-weighted average of bin centers
+        bin_centers = 0.5 * (x_slice_edges[:-1] + x_slice_edges[1:])
+        x_avg = np.average(bin_centers, weights=x_slice_vals) if np.sum(x_slice_vals) > 0 else np.mean(bin_centers)
+
+        graphs.x[point_idx] = x_avg
+        graphs.x_error_low[point_idx] = x_avg - hist[total].edges[i_start]
+        graphs.x_error_high[point_idx] = hist[total].edges[i_end + 1] - x_avg
+
+        for sel_id in range(len(hist)):
+            graphs.y[sel_id, point_idx] = v_counter[sel_id]
+            err = math.sqrt(w2_counter[sel_id])
+            graphs.y_error_low[sel_id, point_idx] = err
+            graphs.y_error_high[sel_id, point_idx] = err
+
+        graphs.y[len(hist), point_idx] = eff
+        eff_down, eff_up = weighted_eff_confint_freqMC(
+            v_counter[passed],
+            v_counter[total] - v_counter[passed],
+            math.sqrt(w2_counter[passed]),
+            math.sqrt(max(0.0, w2_counter[total] - w2_counter[passed]))
+        )
+        graphs.y_error_low[len(hist), point_idx] = eff - eff_down
+        graphs.y_error_high[len(hist), point_idx] = eff_up - eff
+
+        # ---------- MC (using DATA bin range) ----------
+        j_start, j_end = _mc_index_range_from_data_range(i_start, i_end, data_edges, mc_edges)
+
+        v_counter_mc = np.zeros(len(hist_mc))
+        w2_counter_mc = np.zeros(len(hist_mc))
+        for b in range(j_start, j_end + 1):
+            for sel_id in range(len(hist_mc)):
+                v_counter_mc[sel_id] += hist_mc[sel_id].values[b]
+                w2_counter_mc[sel_id] += hist_mc[sel_id].errors[b] ** 2
+
+        eff_mc = (v_counter_mc[passed] / v_counter_mc[total]) if v_counter_mc[total] > 0 else 0.0
+
+        # MC graph gets DATA x/xerr so points overlay perfectly
+        graphs_mc.x[point_idx] = graphs.x[point_idx]
+        graphs_mc.x_error_low[point_idx] = graphs.x_error_low[point_idx]
+        graphs_mc.x_error_high[point_idx] = graphs.x_error_high[point_idx]
+
+        for sel_id in range(len(hist_mc)):
+            graphs_mc.y[sel_id, point_idx] = v_counter_mc[sel_id]
+            err = math.sqrt(w2_counter_mc[sel_id])
+            graphs_mc.y_error_low[sel_id, point_idx] = err
+            graphs_mc.y_error_high[sel_id, point_idx] = err
+
+        graphs_mc.y[len(hist_mc), point_idx] = eff_mc
+        if v_counter_mc[passed] == 0:
+            eff_down_mc, eff_up_mc = 0.0, 0.0  # No efficiency if no passed events
+        else:
+            eff_down_mc, eff_up_mc = weighted_eff_confint_freqMC(
+                v_counter_mc[passed],
+                v_counter_mc[total] - v_counter_mc[passed],
+                math.sqrt(w2_counter_mc[passed]),
+                math.sqrt(max(0.0, w2_counter_mc[total] - w2_counter_mc[passed]))
+        )
+        graphs_mc.y_error_low[len(hist_mc), point_idx] = eff_mc - eff_down_mc
+        graphs_mc.y_error_high[len(hist_mc), point_idx] = eff_up_mc - eff_mc
+
+     # Enforce increasing x for both DATA and MC graphs
+    _reorder_by_x_inplace(graphs,    n_output_points, len(hist)    + 1)
+    _reorder_by_x_inplace(graphs_mc, n_output_points, len(hist_mc) + 1)
+    
+    return tuple(
+        graphs.ToRootGraphs(n_output_points)
+        + graphs_mc.ToRootGraphs(n_output_points)
+    )
