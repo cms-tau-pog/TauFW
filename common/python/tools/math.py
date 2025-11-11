@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Izaak Neutelings (August 2020)
-from TauFW.common.math_helper import sqrt, log10, ceil, floor
+from TauFW.common.python.math_helper import sqrt, log10, ceil, floor
 
 
 def frange(start,end,step,scale=1000):

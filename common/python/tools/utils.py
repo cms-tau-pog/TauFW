@@ -3,7 +3,7 @@ from __future__ import print_function # for python3 compatibility
 import os, sys, re
 from itertools import islice
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
-from TauFW.common.tools.string import *
+from TauFW.common.python.tools.string import *
 
 
 def execute(command,dry=False,fatal=True,verb=0):

@@ -223,31 +223,31 @@ if __name__ == "__main__":
   if args.subcommand=='install':
     main_install(args)
   if args.subcommand=='list':
-    from TauFW.PicoProducer.pico.config import main_list
+    from TauFW.PicoProducer.python.pico.config import main_list
     main_list(args)
   elif args.subcommand=='get':
-    from TauFW.PicoProducer.pico.config import main_get
+    from TauFW.PicoProducer.python.pico.config import main_get
     main_get(args)
   elif args.subcommand=='set':
-    from TauFW.PicoProducer.pico.config import main_set
+    from TauFW.PicoProducer.python.pico.config import main_set
     main_set(args)
   elif args.subcommand=='write':
-    from TauFW.PicoProducer.pico.config import main_write
+    from TauFW.PicoProducer.python.pico.config import main_write
     main_write(args)
   elif args.subcommand in ['channel','era']:
-    from TauFW.PicoProducer.pico.config import main_link
+    from TauFW.PicoProducer.python.pico.config import main_link
     main_link(args)
   elif args.subcommand=='rm':
-    from TauFW.PicoProducer.pico.config import main_rm
+    from TauFW.PicoProducer.python.pico.config import main_rm
     main_rm(args)
   elif args.subcommand=='run':
-    from TauFW.PicoProducer.pico.run import main_run
+    from TauFW.PicoProducer.python.pico.run import main_run
     main_run(args)
   elif args.subcommand in ['submit','resubmit']:
-    from TauFW.PicoProducer.pico.job import main_submit
+    from TauFW.PicoProducer.python.pico.job import main_submit
     main_submit(args)
   elif args.subcommand in ['status','hadd','haddclean','clean']:
-    from TauFW.PicoProducer.pico.job import main_status
+    from TauFW.PicoProducer.python.pico.job import main_status
     main_status(args)
   else:
     print(">>> subcommand '%s' not implemented!"%(args.subcommand))
