@@ -7,10 +7,11 @@
     "mutau": "ModuleMuTauSimple"
   },
   "eras": {
-    "UL2016": "samples_UL2016.py",
-    "UL2017": "samples_UL2017.py",
-    "UL2018": "samples_UL2018.py",
-    "2022_postEE": "tutorial/samples_2022_postEE.py"
+    "UL2016_postVFP": "samples_UL2016_postVFP_nanoV10.py",
+    "UL2016_preVFP": "samples_UL2016_preVFP_nanoV10"
+    // "UL2017": "samples_UL2017_nanoV10.py"
+    // "UL2018": "samples_UL2018.py",
+    // "2022_postEE": "tutorial/samples_2022_postEE.py"
   },
   "filelistdir": "samples/files/$ERA/$SAMPLE.txt",
   "jobdir": "output/$ERA/$CHANNEL/$SAMPLE",

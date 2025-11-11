@@ -3,18 +3,17 @@
 import os, sys, glob, json
 #import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 try:
-  from TauFW.common.tools.file import ensurefile, ensureinit
-  from TauFW.common.tools.string import repkey, rreplace
+  from TauFW.common.python.tools.file import ensurefile, ensureinit
+  from TauFW.common.python.tools.string import repkey, rreplace
   from TauFW.PicoProducer import basedir
-  from TauFW.PicoProducer.analysis.utils import ensuremodule
-  from TauFW.PicoProducer.storage.utils import getsamples
-  from TauFW.PicoProducer.pico.common import *
+  from TauFW.PicoProducer.python.analysis.utils import ensuremodule
+  from TauFW.PicoProducer.python.storage.utils import getsamples
+  from TauFW.PicoProducer.python.pico.common import *
 except ImportError as err:
   print("\033[1m\033[31mImportError for TauFW modules: Please check if you compiled with `scram b`."
         "For releases older than CMSSW_12_X, please use pico2.py with python2.\033[0m")
   raise err
   
-
 ###############
 #   INSTALL   #
 ###############

@@ -5,10 +5,10 @@ import getpass, platform
 import importlib
 from fnmatch import fnmatch
 from TauFW.PicoProducer import basedir
-from TauFW.common.tools.log import Logger
-from TauFW.common.tools.file import ensurefile
-from TauFW.common.tools.root import ensureTFile
-from TauFW.common.tools.string import repkey, isglob, quotestrs
+from TauFW.common.python.tools.log import Logger
+from TauFW.common.python.tools.file import ensurefile
+from TauFW.common.python.tools.root import ensureTFile
+from TauFW.common.python.tools.string import repkey, isglob, quotestrs
 from ROOT import TFile
 LOG  = Logger('Storage')
 host = platform.node()
@@ -44,26 +44,26 @@ def getstorage(path,**kwargs):
   """Guess the storage system based on the path."""
   verb = kwargs.get('verb',0)
   if path.startswith('/eos/'):
-    from TauFW.PicoProducer.storage.EOS import EOS
+    from TauFW.PicoProducer.python.storage.EOS import EOS
     storage = EOS(path,**kwargs)
   #elif path.startswith('/castor/'):
   #  storage = Castor(path,**kwargs)
   elif path.startswith('/pnfs/psi.ch/'):
-    from TauFW.PicoProducer.storage.T3_PSI import T3_PSI
+    from TauFW.PicoProducer.python.storage.T3_PSI import T3_PSI
     storage = T3_PSI(path,**kwargs)
   elif path.startswith('/pnfs/desy.de/'):
-    from TauFW.PicoProducer.storage.T2_DESY import T2_DESY
+    from TauFW.PicoProducer.python.storage.T2_DESY import T2_DESY
     storage = T2_DESY(path,**kwargs)
   elif path.startswith("/store/user") and ("etp" in host and "ekp" in host):
-    from TauFW.PicoProducer.storage.GridKA_NRG import GridKA_NRG
+    from TauFW.PicoProducer.python.storage.GridKA_NRG import GridKA_NRG
     storage = GridKA_NRG(path,**kwargs)
   elif path.startswith('/pnfs/lcg.cscs.ch/'):
-    from TauFW.PicoProducer.storage.T2_PSI import T2_PSI
+    from TauFW.PicoProducer.python.storage.T2_PSI import T2_PSI
     storage = T2_PSI(path,**kwargs)
   #elif path.startswith('/pnfs/iihe/'):
   #  return T2_IIHE(path,**kwargs)
   else:
-    from TauFW.PicoProducer.storage.StorageSystem import Local
+    from TauFW.PicoProducer.python.storage.StorageSystem import Local
     storage = Local(path,**kwargs)
     if not os.path.exists(path):
       LOG.warning("Could not find storage directory %r. Make sure it exists and is mounted. "%(path)+\
@@ -76,7 +76,7 @@ def getstorage(path,**kwargs):
 
 def getsamples(era,channel="",tag="",dtype=[],filter=[],veto=[],dasfilter=[],dasveto=[],moddict={},split=False,verb=0):
   """Help function to get samples from a sample list and filter if needed."""
-  import TauFW.PicoProducer.tools.config as GLOB
+  import TauFW.PicoProducer.python.tools.config as GLOB
   CONFIG   = GLOB.getconfig(verb=verb)
   filters  = filter  if not filter  or isinstance(filter,list)  else [filter]
   vetoes   = veto    if not veto    or isinstance(veto,list)    else [veto]
@@ -158,8 +158,8 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
     for fname in fnames:
       yield 0, fname
   elif ncores>=2 and len(fnames)>5: # run validation in parallel
-    from TauFW.Plotter.plot.MultiThread import MultiProcessor
-    from TauFW.common.tools.math import partition
+    from TauFW.Plotter.python.plot.MultiThread import MultiProcessor
+    from TauFW.common.python.tools.math import partition
     processor = MultiProcessor(max=ncores)
     def loopvalid(fnames_,**kwargs):
       """Help function for parallel running on subsets."""
@@ -192,8 +192,8 @@ def itervalid(fnames,checkevts=True,nchunks=None,ncores=4,verb=0,**kwargs):
 def iterevts(fnames,tree,filenevts,refresh=False,nchunks=None,ncores=0,verb=0):
   """Help function for Sample._getnevents to iterate over file names and get number of events processed."""
   if ncores>=2 and len(fnames)>5: # run events check in PARALLEL
-    from TauFW.Plotter.plot.MultiThread import MultiProcessor
-    from TauFW.common.tools.math import partition
+    from TauFW.Plotter.python.plot.MultiThread import MultiProcessor
+    from TauFW.common.python.tools.math import partition
     def loopevts(fnames_):
       """Help function for parallel running on subsets."""
       return [(getnevents(f,tree,verb=verb),f) for f in fnames_]
