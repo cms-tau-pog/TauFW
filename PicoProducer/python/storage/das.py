@@ -1,7 +1,7 @@
 # Author: Izaak Neutelings (May 2020)
 import os
-from TauFW.common.python.tools.utils import unpacklistargs, execute, CalledProcessError
-from TauFW.PicoProducer.python.storage.utils import LOG
+from TauFW.common.tools.utils import unpacklistargs, execute, CalledProcessError
+from TauFW.PicoProducer.storage.utils import LOG
 
 
 def dasgoclient(query,**kwargs):

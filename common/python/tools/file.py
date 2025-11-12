@@ -3,9 +3,10 @@ from __future__ import print_function # for python3 compatibility
 from past.builtins import basestring # for python2 compatibility
 import os, re, shutil, glob
 import importlib, traceback
-from TauFW.common.python.tools.log import LOG
-from TauFW.common.python.tools.utils import ensurelist, isglob
+from TauFW.common.tools.log import LOG
+from TauFW.common.tools.utils import ensurelist, isglob
 basedir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+
 
 def writetemplate(templatename,outfilename,sublist=[],rmlist=[],applist=[],**kwargs):
   """Write file from template."""

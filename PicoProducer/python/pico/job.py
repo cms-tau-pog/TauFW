@@ -3,14 +3,14 @@
 import os, sys, re, glob, json
 from datetime import datetime
 from collections import OrderedDict
-from TauFW.common.python.tools.file import ensuredir, getline
-from TauFW.common.python.tools.utils import execute, chunkify
-from TauFW.common.python.tools.string import repkey, lreplace, alphanum_key
-from TauFW.common.python.tools.LoadingBar import LoadingBar
-from TauFW.PicoProducer.python.batch.utils import getbatch, getcfgsamples, chunkify_by_evts, evtsplitexp
-from TauFW.PicoProducer.python.storage.utils import getstorage, getsamples, isvalid, itervalid, print_no_samples
-from TauFW.PicoProducer.python.pico.run import getmodule
-from TauFW.PicoProducer.python.pico.common import *
+from TauFW.common.tools.file import ensuredir, getline
+from TauFW.common.tools.utils import execute, chunkify
+from TauFW.common.tools.string import repkey, lreplace, alphanum_key
+from TauFW.common.tools.LoadingBar import LoadingBar
+from TauFW.PicoProducer.batch.utils import getbatch, getcfgsamples, chunkify_by_evts, evtsplitexp
+from TauFW.PicoProducer.storage.utils import getstorage, getsamples, isvalid, itervalid, print_no_samples
+from TauFW.PicoProducer.pico.run import getmodule
+from TauFW.PicoProducer.pico.common import *
 if sys.version_info.major<3: # for compatiblity with python2
   input = raw_input
 

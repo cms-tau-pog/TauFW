@@ -2,8 +2,8 @@
 # https://cms-jerc.web.cern.ch/Recommendations/#jet-veto-maps
 import os, re
 from TauFW.PicoProducer import datadir
-from TauFW.common.python.tools.root import ensureTFile
-from TauFW.common.python.tools.log import Logger
+from TauFW.common.tools.root import ensureTFile
+from TauFW.common.tools.log import Logger
 datadir = os.path.join(datadir,"jetveto")
 LOG     = Logger('JetVetoMapTool',showname=True)
 

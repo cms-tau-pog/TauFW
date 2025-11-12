@@ -2,9 +2,9 @@
 # Author: Izaak Neutelings (May 2020)
 # https://cern.service-now.com/service-portal?id=kb_article&sys_id=fae8543fc9ed05006d218776d679b74a
 import os
-from TauFW.common.python.tools.utils import execute
-from TauFW.PicoProducer.python.storage.utils import host
-from TauFW.PicoProducer.python.storage.StorageSystem import StorageSystem
+from TauFW.common.tools.utils import execute
+from TauFW.PicoProducer.storage.utils import host
+from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
 
 
 class EOS(StorageSystem):

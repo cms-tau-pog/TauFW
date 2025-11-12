@@ -7,8 +7,8 @@ import importlib
 import getpass, platform
 from collections import OrderedDict
 from TauFW.PicoProducer import basedir
-from TauFW.common.python.tools.file import ensuredir, ensurefile
-from TauFW.common.python.tools.log import Logger, color, bold, header
+from TauFW.common.tools.file import ensuredir, ensurefile
+from TauFW.common.tools.log import Logger, color, bold, header
 
 
 # DEFAULTS
@@ -28,8 +28,8 @@ def getdefaultconfig(verb=0):
     LOG.verb(">>> getdefaultconfig: _cfgdefaults already initiated",verb,level=3)
   else:
     LOG.verb(">>> getdefaultconfig: Initiating _cfgdefaults...",verb,level=3)
-    from TauFW.PicoProducer.python.storage.utils import guess_sedir, guess_tmpdirs
-    from TauFW.PicoProducer.python.batch.utils import guess_batch
+    from TauFW.PicoProducer.storage.utils import guess_sedir, guess_tmpdirs
+    from TauFW.PicoProducer.batch.utils import guess_batch
     eras          = OrderedDict([
       ('2016','samples_2016.py'),
       ('2017','samples_2017.py'),

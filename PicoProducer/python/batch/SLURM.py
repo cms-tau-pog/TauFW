@@ -1,7 +1,7 @@
 # Author: Izaak Neutelings (May 2020)
 import os, re, getpass
-from TauFW.common.python.tools.utils import execute
-from TauFW.PicoProducer.python.batch.BatchSystem import BatchSystem
+from TauFW.common.tools.utils import execute
+from TauFW.PicoProducer.batch.BatchSystem import BatchSystem
 
 
 class SLURM(BatchSystem):

@@ -4,9 +4,9 @@
 from past.builtins import basestring # for python2 compatibility
 import os
 from fnmatch import fnmatch # for glob pattern
-from TauFW.common.python.tools.utils import execute, ensurelist
-from TauFW.common.python.tools.file import ensuredir, rmfile
-from TauFW.PicoProducer.python.storage.utils import LOG
+from TauFW.common.tools.utils import execute, ensurelist
+from TauFW.common.tools.file import ensuredir, rmfile
+from TauFW.PicoProducer.storage.utils import LOG
 import getpass, platform
 
 

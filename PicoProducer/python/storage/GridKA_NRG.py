@@ -2,8 +2,8 @@
 # Author: Sebastian Brommer (July 2020)
 from past.builtins import basestring # for python2 compatibility
 import os
-from TauFW.common.python.tools.utils import execute
-from TauFW.PicoProducer.python.storage.StorageSystem import StorageSystem
+from TauFW.common.tools.utils import execute
+from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
 import getpass, platform
 
 
