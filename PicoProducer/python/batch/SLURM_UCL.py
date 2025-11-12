@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (Februari 2024)
-from TauFW.PicoProducer.python.batch.SLURM import SLURM
+from TauFW.PicoProducer.batch.SLURM import SLURM
 
 class SLURM_UCL(SLURM):
   """Subclass to load different .sh script."""

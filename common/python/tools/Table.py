@@ -104,4 +104,4 @@ class Table(object):
       self.rows.append(string)
     return string
   
-from TauFW.common.python.tools.log import LOG
+from TauFW.common.tools.log import LOG

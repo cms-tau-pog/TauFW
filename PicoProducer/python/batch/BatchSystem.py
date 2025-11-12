@@ -3,7 +3,7 @@ from past.builtins import basestring # for python2 compatibility
 #import os, re, shutil
 import os, re
 import importlib
-from TauFW.common.python.tools.utils import execute
+from TauFW.common.tools.utils import execute
 from abc import ABCMeta, abstractmethod
 
 

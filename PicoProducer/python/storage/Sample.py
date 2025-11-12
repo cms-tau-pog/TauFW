@@ -12,14 +12,14 @@ import gzip
 import importlib
 from copy import deepcopy
 from fnmatch import fnmatch
-from TauFW.common.python.tools.utils import repkey, ensurelist, isglob
-from TauFW.common.python.tools.file import ensuredir, ensurefile
-from TauFW.common.python.tools.root import ensureTFile
-from TauFW.common.python.tools.LoadingBar import LoadingBar
-import TauFW.PicoProducer.python.tools.config as GLOB
+from TauFW.common.tools.utils import repkey, ensurelist, isglob
+from TauFW.common.tools.file import ensuredir, ensurefile
+from TauFW.common.tools.root import ensureTFile
+from TauFW.common.tools.LoadingBar import LoadingBar
+import TauFW.PicoProducer.tools.config as GLOB
 #from TauFW.PicoProducer.tools.config import user
-from TauFW.PicoProducer.python.storage.utils import LOG, getstorage, getnevents, iterevts
-from TauFW.PicoProducer.python.storage.das import dasgoclient, getdasnevents, getdasfiles
+from TauFW.PicoProducer.storage.utils import LOG, getstorage, getnevents, iterevts
+from TauFW.PicoProducer.storage.das import dasgoclient, getdasnevents, getdasfiles
 dasurls = ["root://cms-xrd-global.cern.ch/","root://xrootd-cms.infn.it/", "root://cmsxrootd.fnal.gov/"]
 fevtsexp = re.compile(r"(.+\.root)(?::(\d+))?$") # input file stored in lis in text file
 

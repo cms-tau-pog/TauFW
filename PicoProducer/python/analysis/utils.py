@@ -6,11 +6,11 @@ from itertools import combinations
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True # to avoid conflict with argparse
 from ROOT import TH1D, TLorentzVector, RDataFrame
 from TauFW.PicoProducer import basedir
-from TauFW.common.python.tools.utils import getyear, convertstr # for picojob.py
-from TauFW.common.python.tools.file import ensurefile
-from TauFW.common.python.tools.file import ensuremodule as _ensuremodule
-from TauFW.common.python.tools.log import Logger
-from PhysicsTools.NanoAODTools.python.postprocessing.framework.datamodel import Collection, Event, Object
+from TauFW.common.tools.utils import getyear, convertstr # for picojob.py
+from TauFW.common.tools.file import ensurefile
+from TauFW.common.tools.file import ensuremodule as _ensuremodule
+from TauFW.common.tools.log import Logger
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Event, Object
 LOG = Logger('Analysis')
 
 

@@ -186,4 +186,4 @@ class Logger(object):
     self._table.printrow(*args)
   
 LOG = Logger('Global')
-from TauFW.common.python.tools.Table import Table
+from TauFW.common.tools.Table import Table

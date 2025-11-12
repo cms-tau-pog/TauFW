@@ -10,8 +10,8 @@ from array import array
 import ROOT
 #ROOT.gROOT.ProcessLine('.L ./BTagCalibrationStandalone.cpp+')
 from TauFW.PicoProducer import datadir
-from TauFW.common.python.tools.root import ensureTFile
-from TauFW.common.python.tools.log import Logger
+from TauFW.common.tools.root import ensureTFile
+from TauFW.common.tools.log import Logger
 from ROOT import TH2D, BTagCalibration, BTagCalibrationReader
 from ROOT.BTagEntry import OP_LOOSE, OP_MEDIUM, OP_TIGHT, OP_RESHAPING # enum 0, 1, 2, 3
 from ROOT.BTagEntry import FLAV_B, FLAV_C, FLAV_UDSG # enum: 0, 1, 2

@@ -12,9 +12,9 @@
 #   https://github.com/cms-cat/nanoAOD-tools-modules/blob/master/python/modules/muonSF.py
 #   https://github.com/cms-cat/nanoAOD-tools-modules/blob/master/test/example_muonSF.py
 import os, re
-from TauFW.common.python.tools.log import Logger
+from TauFW.common.tools.log import Logger
 from TauFW.PicoProducer import datadir
-from TauFW.PicoProducer.python.corrections.ScaleFactorTool import ScaleFactorHTT
+from TauFW.PicoProducer.corrections.ScaleFactorTool import ScaleFactorHTT
 from correctionlib import CorrectionSet
 #pathPOG = os.path.join(datadir,"lepton/MuonPOG/") # ROOT files from MUO
 pathHTT = os.path.join(datadir,"lepton/HTT/Muon/") # ROOT files from HTT

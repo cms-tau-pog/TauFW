@@ -4,7 +4,7 @@ from __future__ import print_function # for python3 compatibility
 import time
 import ROOT
 from ROOT import TH1D
-from PhysicsTools.NanoAODTools.python.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 
 def printCutflow(cutflow):
