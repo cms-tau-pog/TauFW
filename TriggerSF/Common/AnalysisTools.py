@@ -185,6 +185,25 @@ def _mc_index_range_from_data_range(i_start, i_end, data_edges, mc_edges):
     j_end = max(j_start, j_end)
     return j_start, j_end
 
+
+def _reorder_by_x_inplace(graphs, npts, nseries):
+    """
+    Sort the first `npts` entries of graphs by increasing x,
+    and apply the same permutation to all y and error arrays.
+    """
+    if npts <= 1:
+        return
+    order = np.argsort(graphs.x[:npts])  # indices that sort x
+
+    graphs.x[:npts] = graphs.x[order]
+    graphs.x_error_low[:npts]  = graphs.x_error_low[order]
+    graphs.x_error_high[:npts] = graphs.x_error_high[order]
+
+    for s in range(nseries):
+        graphs.y[s, :npts]           = graphs.y[s, :npts][order]
+        graphs.y_error_low[s, :npts] = graphs.y_error_low[s, :npts][order]
+        graphs.y_error_high[s, :npts]= graphs.y_error_high[s, :npts][order]
+
 def AutoRebinAndEfficiency(hist_passed, hist_total, bin_scan_pairs):
     passed, total = 0, 1
     hist = [ hist_passed, hist_total ]
