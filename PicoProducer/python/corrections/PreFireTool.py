@@ -5,8 +5,8 @@
 import os
 from math import sqrt
 from corrections import modulepath, extractTH1
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection 
-from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.datamodel import Collection 
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.eventloop import Module
 path = os.path.join(os.getenv('CMSSW_BASE'),"src/PhysicsTools/NanoAODTools/data/prefire_maps/")
 
 

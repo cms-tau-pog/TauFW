@@ -1,11 +1,11 @@
 # Author: Izaak Neutelings (February 2022)
 from past.builtins import basestring # for python2 compatibility
 import os, glob, json
-from TauFW.common.tools.file import ensurefile, ensureinit
-from TauFW.common.tools.string import repkey, rreplace, lreplace
-from TauFW.PicoProducer.analysis.utils import ensuremodule
-from TauFW.PicoProducer.storage.utils import getsamples
-from TauFW.PicoProducer.pico.common import *
+from TauFW.common.python.tools.file import ensurefile, ensureinit
+from TauFW.common.python.tools.string import repkey, rreplace, lreplace
+from TauFW.PicoProducer.python.analysis.utils import ensuremodule
+from TauFW.PicoProducer.python.storage.utils import getsamples
+from TauFW.PicoProducer.python.pico.common import *
 
 
 

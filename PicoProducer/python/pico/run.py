@@ -1,9 +1,9 @@
 # Author: Izaak Neutelings (April 2020)
 import os, sys
-from TauFW.common.tools.utils import execute
-from TauFW.PicoProducer.analysis.utils import ensuremodule
-from TauFW.PicoProducer.storage.utils import getsamples, print_no_samples
-from TauFW.PicoProducer.pico.common import *
+from TauFW.common.python.tools.utils import execute
+from TauFW.PicoProducer.python.analysis.utils import ensuremodule
+from TauFW.PicoProducer.python.storage.utils import getsamples, print_no_samples
+from TauFW.PicoProducer.python.pico.common import *
 
 
 

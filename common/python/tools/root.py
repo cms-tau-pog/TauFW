@@ -4,8 +4,8 @@ from past.builtins import basestring # for python2 compatibility
 import os, re
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import gROOT, gSystem, TFile, TNamed, TH2
-from TauFW.common.tools.log import LOG
-from TauFW.common.tools.utils import unpacklistargs, islist
+from TauFW.common.python.tools.log import LOG
+from TauFW.common.python.tools.utils import unpacklistargs, islist
 TNamed.__repr__ = lambda o: "<%s(%r,%r) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),hex(id(o))) # overwrite default representation
 #TH1.__repr__ = lambda o: "<%s(%r,%r,%g,%g,%g) at %s>"%(o.__class__.__name__,o.GetName(),o.GetTitle(),o.GetXaxis().GetNbins(),o.GetXaxis().GetXmin(),o.GetXaxis().GetXmax(),id(o))
 
