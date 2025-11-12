@@ -1,8 +1,8 @@
 # Author: Izaak Neutelings (April 2020)
 #import os, re, shutil
 import os, re
-from TauFW.common.tools.utils import execute
-from TauFW.PicoProducer.batch.BatchSystem import BatchSystem, Job, JobList
+from TauFW.common.python.tools.utils import execute
+from TauFW.PicoProducer.python.batch.BatchSystem import BatchSystem, Job, JobList
 
 
 class HTCondor(BatchSystem):

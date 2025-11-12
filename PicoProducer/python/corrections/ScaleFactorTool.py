@@ -1,7 +1,7 @@
 # Author: Izaak Neutelings (November 2018)
 import os, re
-from TauFW.common.tools.root import ensureTFile
-from TauFW.common.tools.log import Logger
+from TauFW.common.python.tools.root import ensureTFile
+from TauFW.common.python.tools.log import Logger
 LOG = Logger('ScaleFactorTool')
 
 

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # Author: Izaak Neutelings (May 2020)
 import os
-from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
+from TauFW.PicoProducer.python.storage.StorageSystem import StorageSystem
 
 
 class T3_PSI(StorageSystem):

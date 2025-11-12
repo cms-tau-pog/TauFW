@@ -1,5 +1,5 @@
 # Author: Izaak Neutelings (June 2023)
-from TauFW.PicoProducer.batch.HTCondor import HTCondor
+from TauFW.PicoProducer.python.batch.HTCondor import HTCondor
 
 class HTCondor_DESY(HTCondor):
   """Subclass to load different .sub script."""

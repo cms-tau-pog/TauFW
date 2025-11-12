@@ -4,9 +4,9 @@
 from __future__ import print_function # for python3 compatibility
 import os, sys
 import time; time0 = time.time()
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
-from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.postprocessor import PostProcessor
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.datamodel import Collection
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.eventloop import Module
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles', dest='infiles', type=str, default=[ ], nargs='+')

@@ -6,7 +6,7 @@
 #   https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc106X_doc.html#TrigObj
 import os, sys, yaml #, json
 from collections import namedtuple
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.datamodel import Collection
 TriggerData = namedtuple('TriggerData',['trigdict','combdict']) # simple container class
 objectTypes = { 1: 'Jet', 6: 'FatJet', 2: 'MET', 3: 'HT', 4: 'MHT',
                 11: 'Electron', 13: 'Muon', 15: 'Tau', 22: 'Photon', } 

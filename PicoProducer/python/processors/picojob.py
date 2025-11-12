@@ -5,10 +5,10 @@ from __future__ import print_function
 import os, re
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from TauFW.PicoProducer.analysis.utils import getmodule, getyear, convertstr
-from TauFW.PicoProducer.processors import moddir, ensuredir
-from TauFW.PicoProducer.corrections.era_config import getjson
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.postprocessor import PostProcessor
+from TauFW.PicoProducer.python.analysis.utils import getmodule, getyear, convertstr
+from TauFW.PicoProducer.python.processors import moddir, ensuredir
+from TauFW.PicoProducer.python.corrections.era_config import getjson
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',  dest='infiles',   default=[ ], nargs='+')

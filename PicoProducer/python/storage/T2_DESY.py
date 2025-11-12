@@ -3,8 +3,8 @@
 from past.builtins import basestring # for python2 compatibility
 import os
 import glob
-from TauFW.common.tools.utils import execute
-from TauFW.PicoProducer.storage.StorageSystem import StorageSystem
+from TauFW.common.python.tools.utils import execute
+from TauFW.PicoProducer.python.storage.StorageSystem import StorageSystem
 
 
 class T2_DESY(StorageSystem):

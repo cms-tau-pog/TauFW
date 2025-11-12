@@ -5,11 +5,11 @@ from __future__ import print_function # for python3 compatibility
 import os, glob
 import time; time0 = time.time()
 import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector as getjmecalib
-from TauFW.PicoProducer.processors import moddir, ensuredir
-from TauFW.PicoProducer.corrections.era_config import getjson, getperiod #, getjmecalib
-from TauFW.common.tools.utils import getyear
+from PhysicsTools.NanoAODTools.python.postprocessing.framework.postprocessor import PostProcessor
+from PhysicsTools.NanoAODTools.python.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector as getjmecalib
+from TauFW.PicoProducer.python.processors import moddir, ensuredir
+from TauFW.PicoProducer.python.corrections.era_config import getjson, getperiod #, getjmecalib
+from TauFW.common.python.tools.utils import getyear
 from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles',   dest='infiles',   default=[ ], nargs='+')
