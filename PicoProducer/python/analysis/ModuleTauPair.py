@@ -78,10 +78,17 @@ class ModuleTauPair(Module):
     #   self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
 
     if self.ismc:
-      if self.era != '2024I': 
+      if self.year == 2024: 
+          self.puTool = PileupWeightTool_JSON(
+              jsonfile=os.path.join(os.getenv("CMSSW_BASE"), "src/TauFW/PicoProducer/data/pileup/puWeights_2024.json"),
+              correction_name="Collisions2024_378981_386951_GoldenJson",
+              variation="nominal",
+              verb=self.verbosity
+          )
+      elif self.year != 2025:
           self.puTool = PileupWeightTool(era=self.era, sample=self.filename, verb=self.verbosity)
       else:
-          self.puTool = None
+         self.puTool = None
       self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
