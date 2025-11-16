@@ -29,15 +29,16 @@ from array import array
 # --------------
 # Example Command:
 # pip install sklearn on lxplus
-# python3 scripts/fitTurnOn_multi.py --input TurnOn_mutau.root --output fitTurnOnDeepTau --channels mutau --decay-modes all,0,1,10,11
+# python3 scripts/fitTurnOn_multi.py --input TurnOnDeepTau/TurnOnDeepTau.root --output fitTurnOnDeepTau --decay_modes DeepTau
+# python3 scripts/fitTurnOn_multi.py --input TurnOnPNet/TurnOnPNet.root --output fitTurnOnPNet --decay_modes PNet
 # --------------
 
 parser = argparse.ArgumentParser(description='Fit turn-on curves.')
 parser.add_argument('--input', required=True, type=str, help="ROOT file with turn-on curves")
 parser.add_argument('--output', required=True, type=str, help="output file prefix")
 parser.add_argument('--channels', required=False, type=str, default='etau,mutau, singletau, ditau,ditaujet,ditaujet_jet_leg, vbftau, vbfditau ', help="channels to process")
-parser.add_argument('--decay-modes', required=False, type=str, default='all,0,1,10,11', help="decay modes to process")
-#parser.add_argument('--decay_modes', required=True, type=str, default='DeepTau', choices=['DeepTau', 'PNet'], help="Type of decay modes to process")
+parser.add_argument('--decay-modes', required=False, type=str, default='all,0,1,2,10,11', help="decay modes to process")
+parser.add_argument('--decay_modes', required=True, type=str, default='DeepTau', choices=['DeepTau', 'PNet'], help="Type of decay modes to process")
 parser.add_argument('--working-points', required=False, type=str,
                     default='VVVLoose,VVLoose,VLoose,Loose,Medium,Tight,VTight,VVTight',
                     help="working points to process")
@@ -141,7 +142,10 @@ class FitResults:
         return tuple(results)
 
 channels = args.channels.split(',')
-decay_modes = args.decay_modes.split(',')
+if args.decay_modes == 'PNet':
+    decay_modes = [ 'all', '0', '1', '2', '10', '11', '1011']
+elif args.decay_modes == 'DeepTau':
+    decay_modes = [ 'all', '0', '1', '10', '11', '1011']
 working_points = args.working_points.split(',')
 ch_validity_thrs = { 'etau': 35, 'mutau': 32, 'singletau' : 190, 'ditau': 40, 'ditaujet': 35, 'ditaujet_jet_leg': 65, 'vbftau': 50, 'vbfditau': 25 }
 
@@ -149,7 +153,7 @@ file = ROOT.TFile(args.input, 'READ')
 output_dir = os.path.join(os.getcwd(), args.output)
 os.makedirs(output_dir, exist_ok=True)
 
-output_file_path = os.path.join(output_dir, 'fitTurnOnDeepTau')
+output_file_path = os.path.join(output_dir, f'fitTurnOn{args.decay_modes}')
 print('Output file will be saved to {}'.format(output_file_path))
 output_file = ROOT.TFile('{}.root'.format(output_file_path), 'RECREATE', '', ROOT.RCompressionSetting.EDefaults.kUseSmallest)
 
@@ -158,7 +162,7 @@ for channel in channels:
         for wp in working_points:
             for dm in decay_modes:
                 print('Processing {} {} WP DM = {}'.format(channel, wp, dm))
-                dm_label = '_dm{}'.format(dm) if dm != 'all' else ''
+                dm_label = '_dm{}'.format(dm) if dm != 'all' else '_dmall'
                 name_pattern = '{{}}_{}_{}{}_fit_eff'.format(channel, wp, dm_label)
                 
                 eff_data_root = file.Get(name_pattern.format('data'))
