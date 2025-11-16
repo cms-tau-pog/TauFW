@@ -9,7 +9,6 @@ import re
 import sys
 import ROOT
 
-
 # --------------
 # Example Command:
 # python3 createTurnOn_multi.py --input-data sk_data.root --input-dy-mc sk_mc.root --output TurnOn
@@ -77,7 +76,7 @@ def CreateHistograms(input_file, channels, decay_modes, discr_name, working_poin
 
     for dm in decay_modes:
         if dm == 'all':
-            dm_labels[dm] = ''
+            dm_labels[dm] = '_dmall'
             df_dm = df
         elif dm == '1011':  # group DM 10 and 11
             dm_labels[dm] = '_dm1011'
@@ -217,8 +216,8 @@ for channel in channels:
     for wp in working_points:
         for dm in decay_modes:
             if dm == 'all':
-                dm_label = ''
-                dm_plain_label = ''
+                dm_label = ' DM=all'
+                dm_plain_label = '_dmall'
             else:
                 dm_label = ' DM={}'.format(dm)
                 dm_plain_label = '_dm{}'.format(dm)
