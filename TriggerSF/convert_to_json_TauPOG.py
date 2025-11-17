@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
-
-import os
-import sys
-import ROOT
-import numpy
+#! /usr/bin/env python3
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), "Common"))
+from utils import *
 import uproot
-
-from TauFW.TriggerSF.Common.utils import *
+import os, ROOT
+import numpy
 
 from correctionlib.schemav2 import (
     VERSION,
@@ -20,6 +18,7 @@ from correctionlib.schemav2 import (
 
 # ------------------
 # Example Command:
+# pip install correctionlib==2.5.0
 # python3 scripts/convert_to_json.py --years 2022preEE 2022postEE 2023preBPix 2023postBPix --outdir jsons
 # ------------------
 
@@ -46,17 +45,18 @@ trigtypes = {
     '2022postEE' : ['ditau', 'etau', 'mutau', 'ditaujet'],
     '2023preBPix' : ['ditau', 'etau', 'mutau', 'ditaujet'],
     '2023postBPix' : ['ditau', 'etau', 'mutau', 'ditaujet'],
+    '2024' : ['ditau', 'etau', 'mutau', 'ditaujet', 'ditaujet_jet_leg', 'vbftau', 'vbfditau' ]
+    
 }
 
-types_with_mergeddm = ['ditauvbf']
-dms_nonmerged = [-1, 0, 1, 2, 10, 11]
-dms_merged = [-1, 0, 1, 2, 10]
+types_with_mergeddm = ['ditau', 'etau', 'mutau', 'ditaujet', 'ditaujet_jet_leg', 'vbftau', 'vbfditau']
+dms_nonmerged = [-1, 0, 1, 10, 11]
+dms_merged = [-1, 0, 1, 10]
 
 dm_dict_nonmerged = {
   -1: 'dmall',
   0 : 'dm0',
   1 : 'dm1',
-  2 : 'dm2',
   10 : 'dm10',
   11 : 'dm11'
 }
@@ -64,7 +64,6 @@ dm_dict_merged = {
   -1: 'dmall',
   0 : 'dm0',
   1 : 'dm1',
-  2 : 'dm2',
   10 : 'dm1011',
   11 : 'dm1011'
 }
@@ -87,9 +86,10 @@ year_dict = {
   '2022postEE' : '2022postEE',
   '2023preBPix' : '2023preBPix',
   '2023postBPix' : '2023postBPix',
+  '2024' : '2024'
 }
 
-if DeepTauV2p5: in_file_name = lambda year : f"jsons/fitTurnOn_{year_dict[year]}.root"
+if DeepTauV2p5: in_file_name = lambda year : f"outputs/fitTurnOn_{year_dict[year]}.root"
 else: in_file_name = lambda year : 'data/tau/'+year_dict[year]+'_tauTriggerEff_DeepTau2017v2p1.root'
 in_hist_name = lambda corrtype, typ, wp, dm_str : '_'.join([corrtype,typ,wp,dm_str,'fitted'])
 
@@ -132,7 +132,17 @@ def kwargs_get(kwargs, kw, default):
 def getPtThreshold(triggertype):
   if triggertype == 'ditau':
     return 39.5
+  elif triggertype == 'etau':
+    return 35
+  elif triggertype == 'mutau':
+    return 32
   elif triggertype == 'ditaujet':
+    return 35
+  elif triggertype == 'ditaujet_jet_leg':
+    return 65
+  elif triggertype == 'vbftau':
+    return 50
+  elif triggertype == 'vbfditau':
     return 34.5
   else:
     return 24.5
@@ -200,7 +210,6 @@ def build_dms(trigtype, wp, year, corrtype):
             { 'key':  -1, 'value':  -1 },
             { 'key':  0, 'value':  0 },
             { 'key':  1, 'value':  1 },
-            { 'key':  2, 'value':  2 },
             { 'key': 10, 'value': 10 },
             { 'key': 11, 'value': 10 }, # map 11 -> 10
           ] # key:dm
@@ -238,15 +247,20 @@ def convert_trigger(corrs, year, **kwargs):
   corr    = Correction.parse_obj({
     'version': 1,
     'name':    "tauTriggerSF",
-    'description' : "Tau Trigger SFs and efficiencies for {0} ditau, etau, mutau or triggers. " +\
-                    "Ditauvbf trigger SF is only available for 2017 and 2018. To get the usual DM-specific SF's, "+\
-                    "specify the DM, otherwise set DM to -1 to get the inclusive SFs. " +\
-                    "Default corrections are set to SF's, if you require the input efficiencies, you can specify so in " +\
-                    "the corrtype input variable" +\
-                    "Note: These SFs are specific for the Htautau CP Analysis (IP significance cuts for DM0 and requiring a refitted SV for DMs 10 & 11)",
+    "description": (
+        "Tau Trigger scale factors (SFs) and efficiencies for 2024 Run-3 triggers "
+        "using DeepTau2018v2p5. Supported trigger paths: mutau, etau, ditau, ditaujet "
+        "(tau leg and jet leg), vbftau, and vbfditau. "
+        "SFs are provided as functions of tau pT and decay mode (DM); use DM = -1 to "
+        "obtain inclusive values. Default outputs are scale factors, but data or MC "
+        "efficiencies can be requested via the 'corrtype' argument. These 2024 trigger "
+        "SFs are derived using the DYto2Tau-4Jets MadGraphMLM sample from the 2024 "
+        "Summer24 NanoAODv15 production: "
+        "DYto2Tau-4Jets_Bin-MLL-50_Fil-MuTauh_TuneCP5_13p6TeV_madgraphMLM-pythia8."
+    ),
     'inputs': [
       {'name': "pt",       'type': "real",   'description': "tau pt"},
-      {'name': "dm",       'type': "int",    'description': "tau PNet decay mode (0, 1, 2, 10, or 11, -1)"},
+      {'name': "dm",       'type': "int",    'description': "tau HPS decay mode (0, 1, 10, or 11, -1)"},
       {'name': "trigtype",       'type': "string",    'description': "Type of trigger: 'ditau', 'etau', 'mutau', 'ditaujet'"},
       {'name': "wp",       'type': "string", 'description': "DeepTauVSjet WP: VVVLoose-VVTight"},
       {'name': "corrtype",       'type': "string",    'description': "Type of information: 'eff_data', 'eff_mc', 'sf'"},
@@ -376,7 +390,7 @@ def compareSFs(corrs, year, **kwargs):
       print(">>> %8s"%("trigger type"))
       for tt in trigger_types:
         ptbins = numpy.arange(40., 10000., 0.1) if 'ditau' in tt else numpy.arange(25., 10000., 0.1)
-        dms = [0, 1, 2, 10, 11]
+        dms = [0, 1, 10, 11]
         for dm in dms:
           print(f">>>\n>>> DM={dm}")
           old_sfs = SFProvider(in_file_name(year), tt, wp)
@@ -396,12 +410,12 @@ def compareSFs(corrs, year, **kwargs):
 if __name__ == '__main__':
   import argparse
   argParser = argparse.ArgumentParser(description = "Argument parser")
-  argParser.add_argument('--years',   action='store', nargs='*', default = ['2016postVFP_UL', '2016preVFP_UL', '2017_UL', '2018_UL','2022preEE','2022postEE','2023preBPix','2023postBPix'],
-                            help='Select years/eras to convert', choices=['2016Legacy', '2017ReReco', '2018ReReco', '2016postVFP_UL', '2016preVFP_UL', '2017_UL', '2018_UL','2022preEE','2022postEE','2023preBPix','2023postBPix'])
+  argParser.add_argument('--years',   action='store', nargs='*', default = ['2016postVFP_UL', '2016preVFP_UL', '2017_UL', '2018_UL','2022preEE','2022postEE','2023preBPix','2023postBPix', '2024'],
+                            help='Select years/eras to convert', choices=['2016Legacy', '2017ReReco', '2018ReReco', '2016postVFP_UL', '2016preVFP_UL', '2017_UL', '2018_UL','2022preEE','2022postEE','2023preBPix','2023postBPix', '2024'])
   argParser.add_argument('--workingpoints',   action='store', nargs='*', default = None, help='Select offline working points to convert', 
                             choices=['VVVLoose', 'VVLoose', 'VLoose', 'Loose', 'Medium', 'Tight', 'VTight', 'VVTight'])
   argParser.add_argument('--triggertypes',   action='store', nargs='*', default = None, help='Select trigger types to convert', 
-                            choices=['ditau', 'etau', 'mutau','ditaujet'])
+                            choices=['ditau', 'etau', 'mutau', 'ditaujet', 'ditaujet_jet_leg', 'vbftau', 'vbfditau'])
   argParser.add_argument('--correctiontypes',   action='store', nargs='*', default = None, help='Select correction types to convert', 
                             choices=['sf', 'eff_mc', 'eff_data'])
   argParser.add_argument('--outdir',   action='store', default = None, help='Select directory to store output')
