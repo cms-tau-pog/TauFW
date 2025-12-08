@@ -30,7 +30,7 @@ git clone https://github.com/atharphy/TauFW.git
 cd TauFW
 ```
 ```bash
-git checkout MuTau_2024
+git checkout MuTau_trig
 ```
 
 ### 3. Clone JSON POG payloads
