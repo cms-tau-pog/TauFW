@@ -1,3 +1,5 @@
 drop * # start with all
 keep genWeight
 keep *LHE*
+keep TrigObj*
+keep nTrigObj

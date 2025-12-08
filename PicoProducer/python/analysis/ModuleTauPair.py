@@ -287,7 +287,8 @@ class ModuleTauPair(Module):
     self.out.lumi[0]            = event.luminosityBlock
     self.out.npv[0]             = event.PV_npvs
     self.out.npv_good[0]        = event.PV_npvsGood
-    self.out.metfilter[0]       = self.filter(event)
+    if self.year != 2025:
+      self.out.metfilter[0]       = self.filter(event)
     
     if self.ismc:
       ###self.out.ngentauhads[0]   = ngentauhads

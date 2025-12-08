@@ -234,11 +234,13 @@ class ModuleMuTau_trig(ModuleTauPair):
  
     # EVENT
     self.fillEventBranches(event)
-    if self.year == 2024:
+    if not self.ismc:
+      if self.year == 2024:
+      # self.out.Flag_METFilters[0] = event.Flag_METFilters
       # if not self.ismc:        
       #   self.out.Flag_METFilters[0] = event.Flag_METFilters
       # if self.ismc:        
-      self.out.Flag_METFilters[0] = True
+        self.out.Flag_METFilters[0] = True
 
     self.out.Flag_goodVertices[0] = event.Flag_goodVertices
     self.out.Flag_globalSuperTightHalo2016Filter[0] = event.Flag_globalSuperTightHalo2016Filter

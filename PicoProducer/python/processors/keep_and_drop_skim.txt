@@ -8,6 +8,8 @@ keep HLT_*Tau*
 keep HLT_Mu*_Ele*
 keep HLT_PFMETNoMu*_PFMETHTNoMu*
 keep HLT_PFJet*
+keep TrigObj*
+keep nTrigObj
 drop *_cleanmask
 drop *IsoTrack*
 drop *FatJet*
