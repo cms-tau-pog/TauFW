@@ -16,22 +16,55 @@ class TreeProducerMuTau(TreeProducerTauPair):
     # TRIGGER BRANCHES
     self.addBranch('HLT_IsoMu24', '?', False, title="Trigger branch for HLT_IsoMu24")
     self.addBranch('HLT_IsoMu24_eta2p1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1")
-    self.addBranch('HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1")
-    self.addBranch('HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1")
-    self.addBranch('HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1")
-    self.addBranch('HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1', '?', False, title="Trigger branch for HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1")
+
+    # PNet trigger branches
+    self.addBranch('HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1', '?', False, title="Trigger branch (PNet, MuTau Loose)")
+    self.addBranch('HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1', '?', False, title="Trigger branch (PNet, MuTau Medium)")
+    self.addBranch('HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1', '?', False, title="Trigger branch (PNet, DiTau+Jet)")
+    self.addBranch('HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Tight_eta2p3_CrossL1', '?', False, title="Trigger branch (PNet, MuTau Tight)")
+    self.addBranch('HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1', '?', False, title="Trigger branch (PNet, VBF SingleTau)")
+    self.addBranch('HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1', '?', False, title="Trigger branch (PNet, VBF DiTau)")
+
+    # DeepTau trigger branches
+    self.addBranch('HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1', '?', False, title="Trigger branch (DeepTau, MuTau Loose)")
+    self.addBranch('HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1', '?', False, title="Trigger branch (DeepTau, DiTau)")
+    self.addBranch('HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS30_L2NN_eta2p1_CrossL1', '?', False, title="Trigger branch (DeepTau, DiTau+Jet)")
+    self.addBranch('HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS45_L2NN_eta2p1_CrossL1', '?', False, title="Trigger branch (DeepTau, VBF SingleTau)")
+    self.addBranch('HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS20_eta2p1_SingleL1', '?', False, title="Trigger branch (DeepTau, VBF DiTau)")
+
+    #L1 branches
+    self.addBranch('L1_mutau',        '?', False, title="L1: Mu18er2p1+Tau24/26 (mutau group)")
+    self.addBranch('L1_etau',         '?', False, title="L1: Mu18er2p1+Tau24/26 (etau group)")
+    self.addBranch('L1_ditau',        '?', False, title="L1: Mu22er2p1+IsoTau32/34/36 or Mu22er2p1+Tau70")
+    self.addBranch('L1_ditaujet',     '?', False, title="L1: Mu18er2p1+Tau24/26 and Tau26+Jet55/70")
+    self.addBranch('L1_singletau',    '?', False, title="L1: Mu22er2p1+IsoTau40")
+    self.addBranch('L1_vbfsingletau', '?', False, title="L1: Mu22er2p1+IsoTau32/34/36 or Mu22er2p1+Tau70 (VBF single tau)")
+    self.addBranch('L1_vbfditau',     '?', False, title="L1: SingleMu22 (VBF ditau placeholder)")
 
     ###############
     #   TRIGOBJ   #
     ###############
+    # DeepTau trigger bits
     self.addBranch('trig_match_DeepTau_MuTau', '?', False)
+    self.addBranch('trig_match_DeepTau_DiTau', '?', False)
+    self.addBranch('trig_match_DeepTau_DiTauJet', '?', False)
+    self.addBranch('trig_match_DeepTau_ETau', '?', False)
+    self.addBranch('trig_match_DeepTau_VBFSingleTau', '?', False)
+    self.addBranch('trig_match_DeepTau_VBFDiTau', '?', False)
+
+    # PNet trigger bits
     self.addBranch('trig_match_PNet_MuTau_Loose', '?', False)
     self.addBranch('trig_match_PNet_MuTau_Medium', '?', False)
     self.addBranch('trig_match_PNet_MuTau_Tight', '?', False)
-    self.addBranch('trig_match_PNet_DiTau_Loose',  '?', False)
+    self.addBranch('trig_match_PNet_DiTau_Loose', '?', False)
     self.addBranch('trig_match_PNet_DiTau_Medium', '?', False)
-    self.addBranch('trig_match_PNet_DiTau_Tight',  '?', False)
-    self.addBranch('trig_match_DeepTau_DiTau',  '?', False)
+    self.addBranch('trig_match_PNet_DiTau_Tight', '?', False)
+    self.addBranch('trig_match_PNet_DiTauJet', '?', False)
+    self.addBranch('trig_match_PNet_ETau_Loose', '?', False)
+    self.addBranch('trig_match_PNet_ETau_Medium', '?', False)
+    self.addBranch('trig_match_PNet_ETau_Tight', '?', False)
+    self.addBranch('trig_match_PNet_VBFSingleTau', '?', False)
+    self.addBranch('trig_match_PNet_VBFDiTau', '?', False)
 
     self.addBranch('pass_tag', '?', False)
     self.addBranch('pass_probe', '?', False)
@@ -39,6 +72,8 @@ class TreeProducerMuTau(TreeProducerTauPair):
     self.addBranch('trig_obj_15', '?', False)
     self.addBranch('trig_obj_13', '?', False)
     self.addBranch('dR_mu', '?', False)
+
+    self.addBranch('PV_npvsGood', 'i', 0, title="Number of good reconstructed primary vertices")
 
     #### MET FILTER ######
     self.addBranch('Flag_METFilters', 'bool')

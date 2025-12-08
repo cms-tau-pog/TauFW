@@ -234,8 +234,14 @@ class ModuleMuTau_trig(ModuleTauPair):
  
     # EVENT
     self.fillEventBranches(event)
-    if self.year == 2024:
-        self.out.Flag_METFilters[0] = event.Flag_METFilters
+    if not self.ismc:
+      if self.year == 2024:
+      # self.out.Flag_METFilters[0] = event.Flag_METFilters
+      # if not self.ismc:        
+      #   self.out.Flag_METFilters[0] = event.Flag_METFilters
+      # if self.ismc:        
+        self.out.Flag_METFilters[0] = True
+
     self.out.Flag_goodVertices[0] = event.Flag_goodVertices
     self.out.Flag_globalSuperTightHalo2016Filter[0] = event.Flag_globalSuperTightHalo2016Filter
     self.out.Flag_HBHENoiseFilter[0] = event.Flag_HBHENoiseFilter
@@ -249,7 +255,6 @@ class ModuleMuTau_trig(ModuleTauPair):
     
     self.out.pass_tag[0] = False
     self.out.pass_probe[0] = False
-
     if (
         muon.pt > 24 and
         abs(muon.eta) < 2.1 and
@@ -272,23 +277,44 @@ class ModuleMuTau_trig(ModuleTauPair):
         ):
             self.out.pass_probe[0] = True
 
-
     #  TRIGOBJ   
-    self.out.trig_match_DeepTau_MuTau[0]     = False
-    self.out.trig_match_PNet_MuTau_Loose[0]  = False
-    self.out.trig_match_PNet_MuTau_Medium[0] = False
-    self.out.trig_match_PNet_MuTau_Tight[0]  = False
-    self.out.trig_match_PNet_DiTau_Loose[0]  = False
-    self.out.trig_match_PNet_DiTau_Medium[0] = False
-    self.out.trig_match_PNet_DiTau_Tight[0]  = False
-    self.out.trig_match_DeepTau_DiTau[0] = False
+    self.out.trig_match_DeepTau_MuTau[0]        = False
+    self.out.trig_match_DeepTau_DiTau[0]        = False
+    self.out.trig_match_DeepTau_DiTauJet[0]     = False
+    self.out.trig_match_DeepTau_ETau[0]         = False
+    self.out.trig_match_DeepTau_VBFSingleTau[0] = False
+    self.out.trig_match_DeepTau_VBFDiTau[0]     = False
+
+    self.out.trig_match_PNet_MuTau_Loose[0]     = False
+    self.out.trig_match_PNet_MuTau_Medium[0]    = False
+    self.out.trig_match_PNet_MuTau_Tight[0]     = False
+    self.out.trig_match_PNet_DiTau_Loose[0]     = False
+    self.out.trig_match_PNet_DiTau_Medium[0]    = False
+    self.out.trig_match_PNet_DiTau_Tight[0]     = False
+    self.out.trig_match_PNet_DiTauJet[0]        = False
+    self.out.trig_match_PNet_ETau_Loose[0]      = False
+    self.out.trig_match_PNet_ETau_Medium[0]     = False
+    self.out.trig_match_PNet_ETau_Tight[0]      = False
+    self.out.trig_match_PNet_VBFSingleTau[0]    = False
+    self.out.trig_match_PNet_VBFDiTau[0]        = False
+
     self.out.trig_obj_15[0] = False
     self.out.trig_obj_13[0] = False
-    self.out.dR_mu[0] = False    
+    self.out.dR_mu[0] = False
+
+    for i in range(event.nTrigObj):
+        if event.TrigObj_id[i] == 13:
+            self.out.trig_obj_13[0] = True
+            dR_mu = deltaR(event.TrigObj_eta[i], muon.eta, event.TrigObj_phi[i], muon.phi)
+            if dR_mu < 0.5:
+                self.out.dR_mu[0] = False
+                self.out.trig_match_single_muon[0] = True
 
     for i in range(event.nTrigObj):
         if event.TrigObj_id[i] != 15:
             continue
+
+        self.out.trig_obj_15[0] = True
 
         dR = deltaR(event.TrigObj_eta[i], tau.eta, event.TrigObj_phi[i], tau.phi)
         if dR >= 0.5:
@@ -297,12 +323,35 @@ class ModuleMuTau_trig(ModuleTauPair):
         pt   = event.TrigObj_pt[i]
         eta  = event.TrigObj_eta[i]
         bits = event.TrigObj_filterBits[i]
-        l1pt = event.TrigObj_l1pt[i]
+        l1pt = event.TrigObj_l1pt[i]  if hasattr(event, "TrigObj_l1pt")  else 0
+        l1iso= event.TrigObj_l1iso[i] if hasattr(event, "TrigObj_l1iso") else 0
 
+        # DeepTau trigger bits
         if has_filter_bit(bits, 3) and has_filter_bit(bits, 13):
             if pt > 27 and abs(eta) < 2.1:
                 self.out.trig_match_DeepTau_MuTau[0] = True
 
+        if has_filter_bit(bits, 3) and has_filter_bit(bits, 23):
+            if pt > 35 and l1pt > 34 and abs(eta) < 2.1:
+                self.out.trig_match_DeepTau_DiTau[0] = True
+
+        if has_filter_bit(bits, 3) and has_filter_bit(bits, 20):
+            if pt > 30 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.1:
+                self.out.trig_match_DeepTau_DiTauJet[0] = True
+
+        if has_filter_bit(bits, 3) and has_filter_bit(bits, 27):
+            if pt > 27 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.1:
+                self.out.trig_match_DeepTau_ETau[0] = True
+
+        if has_filter_bit(bits, 3) and has_filter_bit(bits, 19):
+            if pt > 45 and l1pt > 45 and l1iso > 0 and abs(eta) < 2.1:
+                self.out.trig_match_DeepTau_VBFSingleTau[0] = True
+
+        if has_filter_bit(bits, 3) and has_filter_bit(bits, 25):
+            if pt > 20 and abs(eta) < 2.1:
+                self.out.trig_match_DeepTau_VBFDiTau[0] = True
+
+        # Pnet trigger bits
         if pt > 27 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 13):
             if has_filter_bit(bits, 0):
                 self.out.trig_match_PNet_MuTau_Loose[0] = True
@@ -317,29 +366,35 @@ class ModuleMuTau_trig(ModuleTauPair):
             if has_filter_bit(bits, 1):
                 self.out.trig_match_PNet_DiTau_Medium[0] = True
             if has_filter_bit(bits, 2):
-                self.out.trig_match_PNet_DiTau_Tight[0] = True        
-
-        if pt > 30 and l1pt > 34 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 23):
-            if has_filter_bit(bits, 0):
-                self.out.trig_match_PNet_DiTau_Loose[0] = True
-            if has_filter_bit(bits, 1):
-                self.out.trig_match_PNet_DiTau_Medium[0] = True
-            if has_filter_bit(bits, 2):
                 self.out.trig_match_PNet_DiTau_Tight[0] = True
 
-        if has_filter_bit(bits, 3) and has_filter_bit(bits, 23):
-            if pt > 35 and l1pt > 34 and abs(eta) < 2.1:
-                self.out.trig_match_DeepTau_DiTau[0] = True
+        if pt > 26 and l1pt > 26 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 20):
+            self.out.trig_match_PNet_DiTauJet[0] = True
 
-    self.out.trig_match_single_muon[0] = False
-    for i in range(event.nTrigObj):
-      if event.TrigObj_id[i] == 13:  
-          self.out.trig_obj_13[0] = True
-      dR_mu = deltaR(event.TrigObj_eta[i], muon.eta, event.TrigObj_phi[i], muon.phi)
-      if dR_mu < 0.5:
-        self.out.dR_mu[0] = False    
-      if dR_mu < 0.5 and event.TrigObj_id[i] == 13:
-        self.out.trig_match_single_muon[0] = True
+        if pt > 27 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 27):
+            if has_filter_bit(bits, 0):
+                self.out.trig_match_PNet_ETau_Loose[0] = True
+            if has_filter_bit(bits, 1):
+                self.out.trig_match_PNet_ETau_Medium[0] = True
+            if has_filter_bit(bits, 2):
+                self.out.trig_match_PNet_ETau_Tight[0] = True
+
+        if pt > 45 and l1pt > 45 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 19):
+            self.out.trig_match_PNet_VBFSingleTau[0] = True
+
+        if pt > 20 and abs(eta) < 2.2 and has_filter_bit(bits, 4) and has_filter_bit(bits, 25):
+            self.out.trig_match_PNet_VBFDiTau[0] = True
+
+
+        self.out.trig_match_single_muon[0] = False
+        for i in range(event.nTrigObj):
+          if event.TrigObj_id[i] == 13:  
+              self.out.trig_obj_13[0] = True
+          dR_mu = deltaR(event.TrigObj_eta[i], muon.eta, event.TrigObj_phi[i], muon.phi)
+          if dR_mu < 0.5:
+            self.out.dR_mu[0] = False    
+          if dR_mu < 0.5 and event.TrigObj_id[i] == 13 and has_filter_bit(bits, 1) and (has_filter_bit(bits, 3) or has_filter_bit(bits, 6)):
+            self.out.trig_match_single_muon[0] = True
 
     
     
@@ -369,7 +424,7 @@ class ModuleMuTau_trig(ModuleTauPair):
     self.out.q_2[0]                        = tau.charge
     self.out.dm_2[0]                       = tau.decayMode
     self.out.iso_2[0]                      = tau.rawIso
-    if self.year != 2025:
+    if self.year not in [2024,2025]:
         self.out.rawDeepTau2017v2p1VSe_2[0]    = tau.rawDeepTau2017v2p1VSe
         self.out.rawDeepTau2017v2p1VSmu_2[0]   = tau.rawDeepTau2017v2p1VSmu
         self.out.rawDeepTau2017v2p1VSjet_2[0]  = tau.rawDeepTau2017v2p1VSjet
@@ -380,7 +435,7 @@ class ModuleMuTau_trig(ModuleTauPair):
 
     self.out.idDecayMode_2[0]              = tau.idDecayMode
     self.out.idDecayModeNewDMs_2[0]        = tau.idDecayModeNewDMs
-    if self.year != 2025:
+    if self.year not in [2024,2025]:
         self.out.idDeepTau2017v2p1VSe_2[0]     = tau.idDeepTau2017v2p1VSe
         self.out.idDeepTau2017v2p1VSmu_2[0]    = tau.idDeepTau2017v2p1VSmu
         self.out.idDeepTau2017v2p1VSjet_2[0]   = tau.idDeepTau2017v2p1VSjet
@@ -389,13 +444,100 @@ class ModuleMuTau_trig(ModuleTauPair):
     self.out.idDeepTau2018v2p5VSmu_2[0]    = tau.idDeepTau2018v2p5VSmu
     self.out.idDeepTau2018v2p5VSjet_2[0]   = tau.idDeepTau2018v2p5VSjet
 
-    self.out.HLT_IsoMu24[0] = event.HLT_IsoMu24 if hasattr(event, "HLT_IsoMu24") else 0
+    self.out.PV_npvsGood[0] = event.PV_npvsGood
+    self.out.HLT_IsoMu24[0]        = event.HLT_IsoMu24 if hasattr(event, "HLT_IsoMu24") else 0
     self.out.HLT_IsoMu24_eta2p1[0] = event.HLT_IsoMu24_eta2p1 if hasattr(event, "HLT_IsoMu24_eta2p1") else 0
-    self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1[0] = event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1 if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1") else 0
-    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1 if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1") else 0
-    self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1[0] = event.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1 if hasattr(event, "HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1") else 0    
+
+    # PNet trigger paths
+    self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1") else 0
+    )
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1") else 0
+    )
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1") else 0
+    )
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1") else 0
+    )
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1") else 0
+    )
+    self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Tight_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Tight_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Tight_eta2p3_CrossL1") else 0
+    )
+
+    # DeepTau trigger paths
     if self.year != 2025:
-        self.out.HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1[0] = event.HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1 if hasattr(event, "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1") else 0
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1[0] = (
+            event.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1
+            if hasattr(event, "HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1") else 0
+        )
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS30_L2NN_eta2p1_CrossL1[0] = (
+            event.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS30_L2NN_eta2p1_CrossL1
+            if hasattr(event, "HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS30_L2NN_eta2p1_CrossL1") else 0
+        )
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS45_L2NN_eta2p1_CrossL1[0] = (
+            event.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS45_L2NN_eta2p1_CrossL1
+            if hasattr(event, "HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS45_L2NN_eta2p1_CrossL1") else 0
+        )
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS20_eta2p1_SingleL1[0] = (
+            event.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS20_eta2p1_SingleL1
+            if hasattr(event, "HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS20_eta2p1_SingleL1") else 0
+        )
+        self.out.HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1[0] = (
+            event.HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1
+            if hasattr(event, "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1") else 0
+        )
+    else:
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS35_L2NN_eta2p1_CrossL1[0] = 0
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS30_L2NN_eta2p1_CrossL1[0] = 0
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS45_L2NN_eta2p1_CrossL1[0] = 0
+        self.out.HLT_IsoMu24_eta2p1_MediumDeepTauPFTauHPS20_eta2p1_SingleL1[0] = 0
+        self.out.HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1[0] = 0
+
+    #L1_pass/fail trigger paths
+    self.out.L1_mutau[0]       = (
+        getattr(event, "L1_Mu18er2p1_Tau24er2p1", 0) or
+        getattr(event, "L1_Mu18er2p1_Tau26er2p1", 0)
+    )
+
+    self.out.L1_etau[0]        = (
+        getattr(event, "L1_Mu18er2p1_Tau24er2p1", 0) or
+        getattr(event, "L1_Mu18er2p1_Tau26er2p1", 0)
+    )
+
+    self.out.L1_ditau[0]       = (
+        getattr(event, "L1_Mu22er2p1_IsoTau32er2p1", 0) or
+        getattr(event, "L1_Mu22er2p1_IsoTau34er2p1", 0) or
+        # getattr(event, "L1_Mu22er2p1_IsoTau36er2p1", 0) or
+        getattr(event, "L1_Mu22er2p1_Tau70er2p1", 0)
+    )
+
+    self.out.L1_ditaujet[0]    = (
+        getattr(event, "L1_Mu18er2p1_Tau24er2p1", 0) or
+        getattr(event, "L1_Mu18er2p1_Tau26er2p1", 0) or
+        getattr(event, "L1_Mu18er2p1_Tau26er2p1_Jet55", 0) or
+        getattr(event, "L1_Mu18er2p1_Tau26er2p1_Jet70", 0)
+    )
+
+    self.out.L1_singletau[0]   = getattr(event, "L1_Mu22er2p1_IsoTau40er2p1", 0)
+
+    self.out.L1_vbfsingletau[0] = (
+        getattr(event, "L1_Mu22er2p1_IsoTau32er2p1", 0) or
+        getattr(event, "L1_Mu22er2p1_IsoTau34er2p1", 0) or
+        # getattr(event, "L1_Mu22er2p1_IsoTau36er2p1", 0) or
+        getattr(event, "L1_Mu22er2p1_Tau70er2p1", 0)
+    )
+
+    self.out.L1_vbfditau[0]    = getattr(event, "L1_SingleMu22", 0)
 
 
     # GENERATOR
@@ -426,7 +568,7 @@ class ModuleMuTau_trig(ModuleTauPair):
       
 
       # MUON WEIGHTS
-      if self.year==2024:
+      if self.year==2024 or self.year == 2025 or self.year == 2026:
         self.out.trigweight[0]          = 1.
         self.out.idisoweight_1[0]       = 1.
       else:

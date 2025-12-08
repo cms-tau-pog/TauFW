@@ -13,6 +13,7 @@ from TauFW.PicoProducer.corrections.RecoilCorrectionTool import *
 from TauFW.PicoProducer.corrections.BTagTool import BTagWeightTool, BTagWPs
 from TauFW.common.tools.log import header
 from TauFW.PicoProducer.analysis.utils import ensurebranches, redirectbranch, deltaPhi, getmet, getmetfilters, correctmet, getlepvetoes, filtermutau
+from TauFW.PicoProducer.corrections.PileupTool import PileupWeightTool
 __metaclass__ = type # to use super() with subclasses from CommonProducer
 tauSFVersion  = { 2016: '2016Legacy', 2017: '2017ReReco', 2018: '2018ReReco', 2022: '2022ReReco' }
 
@@ -78,17 +79,10 @@ class ModuleTauPair(Module):
     #   self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
 
     if self.ismc:
-      if self.year == 2024: 
-          self.puTool = PileupWeightTool_JSON(
-              jsonfile=os.path.join(os.getenv("CMSSW_BASE"), "src/TauFW/PicoProducer/data/pileup/puWeights_2024.json"),
-              correction_name="Collisions2024_378981_386951_GoldenJson",
-              variation="nominal",
-              verb=self.verbosity
-          )
-      elif self.year != 2025:
+      if self.era not in ['2024','2025']: 
           self.puTool = PileupWeightTool(era=self.era, sample=self.filename, verb=self.verbosity)
       else:
-         self.puTool = None
+          self.puTool = None
       self.btagTool    = BTagWeightTool('DeepJet','medium',era=self.era,channel=self.channel,maxeta=self.bjetCutEta) #,loadsys=not self.dotight
       if self.dozpt:
         self.zptTool  = ZptCorrectionTool(era=self.era)
@@ -202,6 +196,11 @@ class ModuleTauPair(Module):
         ('HLT_IsoMu24',          False ),
         ('HLT_IsoTkMu24',        False ),
       ]
+    if self.year == 2025:
+      branches += [
+        ('Jet_jetId', False),
+      ]
+ 
     #check
     fullbranchlist = inputTree.GetListOfBranches()
     if 'Electron_mvaFall17Iso_WPL' not in fullbranchlist: #v10
@@ -221,7 +220,7 @@ class ModuleTauPair(Module):
     for jet in Collection(event,'Jet'):
       if abs(jet.pt) <= 15: continue
       if self.year != 2025:
-        if jet.jetId < 2: continue
+        if self.year != 2024 and jet.jetId < 2: continue # jetId requirement (not available in 2024)
       if (jet.chEmEF + jet.neEmEF) > 0.90: continue
       if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
       if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
@@ -330,7 +329,7 @@ class ModuleTauPair(Module):
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
       if self.year != 2025:
-        if jet.jetId<2: continue # Tight
+        if self.year != 2024 and jet.jetId < 2: continue # Tight ## Skip jetId requirement for 2024
       
       # SAVE JEC VARIATIONS
       if self.dojec:
@@ -460,7 +459,10 @@ class ModuleTauPair(Module):
       self.out.ttptweight[0]  = getTopPtWeight(toppt1,toppt2)
     
     self.out.genweight[0]     = event.genWeight
-    self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+    if self.year not in [2024,2025]:
+      self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+    else:
+      self.out.puweight[0]      = None      
     self.out.btagweight[0]    = self.btagTool.getWeight(jets)
     if self.dosys:
       if self.dopdf:
