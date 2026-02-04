@@ -118,15 +118,15 @@ cd TauFW/PicoProducer
 ## Running the MuTau Analysis
 
 ### 1. Set the era and module
-Replace {year} with the year that you want to run on (2024, 2025, 2026)
+Replace 2024 with the year that you want to run on (2024, 2025, 2026).
 - For MC samples:
 
 ```bash
-pico.py set era {year} Tau_trig_SF_samples/{year}/samples_{year}_DY.py
+pico.py set era 2024 Tau_trig_SF_samples/2024/samples_2024_DY.py
 ```
 - For Data samples:
 ```bash
-pico.py set era {year} Tau_trig_SF_samples/{year}/samples_{year}_data.py
+pico.py set era 2024 Tau_trig_SF_samples/2024/samples_2024_data.py
 ```
 Do not set the MC and Data as samples together. Run it first on either Data and then on the other.
 ```bash
@@ -135,31 +135,31 @@ pico.py set channel mutau 'Tau_trig_SF_studies/ModuleMuTau_trig jec=False'
 ### 2. Perform a local test run
 
 ```bash
-pico.py run -y {year} -c mutau -m 10000
+pico.py run -y 2024 -c mutau -m 10000
 ```
 
 This should generate test ROOT files at:
 
 ```
-TauFW/PicoProducer/output/pico_mutau_{year}_*.root
+TauFW/PicoProducer/output/pico_mutau_2024_*.root
 ```
 
 ### 3. Submit full job batch to the grid
 
 ```bash
-pico.py submit -y {year} -c mutau
+pico.py submit -y 2024 -c mutau
 ```
 
 ### 4. Monitor job status
 
 ```bash
-pico.py status -y {year} -c mutau
+pico.py status -y 2024 -c mutau
 ```
 
 ### 5. Resubmit any failed jobs
 
 ```bash
-pico.py resubmit -y {year} -c mutau
+pico.py resubmit -y 2024 -c mutau
 ```
 
 ---
@@ -169,19 +169,19 @@ pico.py resubmit -y {year} -c mutau
 Job outputs will be stored under:
 
 ```
-/eos/user/<username>/output/{year}/mutau/
+/eos/user/<username>/output/2024/mutau/
 ```
 
 Merge ROOT files using:
 
 ```bash
-pico.py hadd -y {year} -c mutau
+pico.py hadd -y 2024 -c mutau
 ```
 
 The final output will be located in:
 
 ```
-/eos/user/<username>/analysis/{year}/{Data/DY}/
+/eos/user/<username>/analysis/2024/{Data/DY}/
 ```
 
 ---
@@ -195,19 +195,19 @@ cd ../Tau_Trigger_SF
 ### 1. Merge all per-era files into one combined ROOT file
 
 ```bash
-python3 helper_scripts/hadd_files.py -year {year} -era CDEFGHI
+python3 helper_scripts/hadd_files.py -year 2024 -era CDEFGHI
 ```
 
 This will create:
 
 ```
-Muon_Run{year}_mutau.root
+Muon_Run2024_mutau.root
 ```
 
 under:
 
 ```
-/eos/user/<username>/analysis/{year}/Data/
+/eos/user/<username>/analysis/2024/Data/
 ```
 
 ### 2. Generate trigger efficiency plots
@@ -222,7 +222,7 @@ To run these,
 python3 Efficiency_plotters/Trigger_Efficiency_datavsmc.py --year 2024
 ```
 - For Data era comparison plots,
-The attributes are {-- year} {year} for the year to plot, {--era} {BCDEFGHI} for the eras to plot and {--ratio} {era} for the era to use as reference it Total file is given as None in the script. 
+The attributes are {-- year} 2024 for the year to plot, {--era} {BCDEFGHI} for the eras to plot and {--ratio} {era} for the era to use as reference it Total file is given as None in the script. 
 ```bash
 python3 Efficiency_plotters/Trigger_Efficiency_data_generic.py --year 2024 --era CDEFGHI --ratio G
 ```
@@ -232,7 +232,7 @@ python3 Efficiency_plotters/Trigger_Efficiency_dtauvspnet.py
 ```
 All the plots will be saved to,
 ```
-/eos/user/<username>/analysis/{year}/plots/
+/eos/user/<username>/analysis/2024/plots/
 ```
 ---
 ## Computing Trigger SF
@@ -244,7 +244,7 @@ Once you have the skimmed root files for Data and MC, you can move on to calcula
 ## Notes
 
 - Make sure to replace `<username>` with your CERN username in all EOS paths.
-- Make sure to replace {year} with the desired year that you want to run on in each line where specified.
+- Make sure to replace 2024 with the desired year that you want to run on in each line where specified.
 - Ensure that your `x509` proxy is valid and you have EOS access.
 - The batch configuration scripts are located in:
   ```
