@@ -235,7 +235,9 @@ All the plots will be saved to,
 /eos/user/<username>/analysis/{year}/plots/
 ```
 ---
-Once this is done you can move on to calculate the Trigger SF using this readme.
+## Computing Trigger SF
+
+Once you have the skimmed root files for Data and MC, you can move on to calculate the Trigger SF using this [readme](https://github.com/atharphy/TauFW/blob/Trig_EFf_with_SF/Tau_Trigger_SF/TriggerSF_tools/Readme.md).
 
 ---
 
