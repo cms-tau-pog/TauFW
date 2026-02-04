@@ -122,11 +122,11 @@ Replace {year} with the year that you want to run on (2024, 2025, 2026)
 - For MC samples:
 
 ```bash
-pico.py set era {year} Tau_trig_SF_samples/{year}/samples_year_DY.py
+pico.py set era {year} Tau_trig_SF_samples/{year}/samples_{year}_DY.py
 ```
 - For Data samples:
 ```bash
-pico.py set era {year} Tau_trig_SF_samples/{year}/samples_year_data.py
+pico.py set era {year} Tau_trig_SF_samples/{year}/samples_{year}_data.py
 ```
 Do not set the MC and Data as samples together. Run it first on either Data and then on the other.
 ```bash
