@@ -61,7 +61,6 @@ compress  = args.compress          # compression algorithm & level, e.g. 'LZMA:9
 verbosity = args.verbosity         # verbosity level
 presel    = None                   # simple pre-selection string, e.g. "Muon_pt[0] > 50"
 branchsel = args.branchsel or None # file with branch selection (disable unneeded branches for faster processing)
-#branchsel = os.path.join(moddir,"keep_and_drop_skim.txt")
 json      = None                   # JSON file of certified events
 modules   = [ ]                    # list of modules to run
 
@@ -75,7 +74,7 @@ infiles   = args.infiles or [
 if nfiles>0:
   infiles = infiles[:nfiles]
 if dtype==None:
-  if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma']):
+  if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma','Muon']):
     dtype = 'data'
   else:
     dtype = 'mc'
@@ -117,7 +116,6 @@ modules.append(module)
 if not branchsel and hasattr(module,'branchsel') and module.branchsel:
   branchsel = module.branchsel # default keep/drop file for this module (if it exists)
   print(">>> Using default branchsel=%r"%(branchsel))
-
 # RUN
 p = PostProcessor(outdir,infiles,cut=None,branchsel=branchsel,firstEntry=firstevt,maxEntries=maxevts,
                   jsonInput=json,modules=modules,noOut=True,prefetch=prefetch)

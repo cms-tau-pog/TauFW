@@ -78,6 +78,8 @@ if dtype==None: # guess type
 if 'UL' in era:
   MET = 'MET'
   era = era.replace("_postVFP","") # remove for getjmecalib
+elif '2025' in era:
+  MET = 'PUPPIMET'
 else:
   MET = 'METFixEE2017' if ('2017' in era) else 'MET'
 if dtype=='data':
