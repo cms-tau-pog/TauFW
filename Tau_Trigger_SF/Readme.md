@@ -119,6 +119,14 @@ cd TauFW/PicoProducer
 
 ### 1. Set the era and module
 Replace 2024 with the year that you want to run on (2024, 2025, 2026).
+We first need to create a symlink of 2024 samples specific to our analysis to a directory which pico can read. If you have ran this before and get an error: ln: failed to create symbolic link '2024/2024': File exists, it is fine and you do not need to run it again.
+```bash
+cd samples
+ln -s Tau_trig_SF_samples/2024 2024
+cd ..
+```
+Then run,
+
 - For MC samples:
 
 ```bash
@@ -130,7 +138,7 @@ pico.py set era 2024 Tau_trig_SF_samples/2024/samples_2024_data.py
 ```
 Do not set the MC and Data as samples together. Run it first on either Data and then on the other.
 ```bash
-pico.py set channel mutau 'Tau_trig_SF_studies/ModuleMuTau_trig jec=False'
+pico.py set channel mutau 'Tau_trig_SF_studies.ModuleMuTau_trig jec=False'
 ```
 ### 2. Perform a local test run
 
