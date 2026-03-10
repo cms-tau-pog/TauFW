@@ -294,6 +294,9 @@ class ModuleMuTau_trig(ModuleTauPair_trig):
     self.out.trig_match_DeepTau_VBFSingleTau[0] = False
     self.out.trig_match_DeepTau_VBFDiTau[0]     = False
 
+    self.out.trig_match_PNet_SingleTau_Loose[0]  = False
+    self.out.trig_match_PNet_SingleTau_Medium[0] = False
+    self.out.trig_match_PNet_SingleTau_Tight[0]  = False
     self.out.trig_match_PNet_MuTau_Loose[0]     = False
     self.out.trig_match_PNet_MuTau_Medium[0]    = False
     self.out.trig_match_PNet_MuTau_Tight[0]     = False
@@ -379,6 +382,25 @@ class ModuleMuTau_trig(ModuleTauPair_trig):
                 self.out.trig_match_DeepTau_VBFDiTau[0] = True
 
         # Pnet trigger bits
+
+        # SingleTau Monitoring (PNet)
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Loose_L2NN_eta2p3_CrossL1 (+Medium, Tight)
+        # bits: wp (0/1/2), 4 (PNet), 26 (SingleTau Monitoring)
+
+        if (pt > 130 and l1pt > 130 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 26)):
+            if has_filter_bit(bits, 0):
+                self.out.trig_match_PNet_SingleTau_Loose[0] = True
+
+            if has_filter_bit(bits, 1):
+                self.out.trig_match_PNet_SingleTau_Medium[0] = True
+
+            if has_filter_bit(bits, 2):
+                self.out.trig_match_PNet_SingleTau_Tight[0] = True
+
+        # MuTau (PNet)
+        # HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1 (+Medium, Tight)
+        # bits: wp (0/1/2), 4 (PNet), 13 (MuTau)
+
         if pt > 27 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 13):
             if has_filter_bit(bits, 0):
                 self.out.trig_match_PNet_MuTau_Loose[0] = True
@@ -386,19 +408,30 @@ class ModuleMuTau_trig(ModuleTauPair_trig):
                 self.out.trig_match_PNet_MuTau_Medium[0] = True
             if has_filter_bit(bits, 2):
                 self.out.trig_match_PNet_MuTau_Tight[0] = True
+            
+        # DiTau Monitoring (PNet)
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1 (+Tight)
+        # bits: wp (1/2), 4 (PNet), 23 (DiTau Monitoring)
 
         if pt > 30 and l1pt > 34 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 23):
             self.out.trig_match_PNet_DiTau_Flat[0] = True
-            if has_filter_bit(bits, 0):
-                self.out.trig_match_PNet_DiTau_Loose[0] = True
             if has_filter_bit(bits, 1):
                 self.out.trig_match_PNet_DiTau_Medium[0] = True
+
             if has_filter_bit(bits, 2):
                 self.out.trig_match_PNet_DiTau_Tight[0] = True
-            
 
-        if pt > 26 and l1pt > 23 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 20):
+        # DiTau+Jet Monitoring (PNet)
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1 (+PFJet60, PFJet75)
+        # bits: 4 (PNet), 20 (DiTau+Jet Monitoring)
+
+        if pt > 26 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 20):
             self.out.trig_match_PNet_DiTauJet[0] = True
+
+        # ETau (PNet) (Bugged Trigger so using MuTau bit)
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Loose_eta2p3_CrossL1_ETau_Monitoring (+Medium, Tight)
+        # bits: wp (0/1/2), 4 (PNet), 13 (MuTau inside filter)
 
         if pt > 27 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 13):
             if has_filter_bit(bits, 0):
@@ -407,7 +440,11 @@ class ModuleMuTau_trig(ModuleTauPair_trig):
                 self.out.trig_match_PNet_ETau_Medium[0] = True
             if has_filter_bit(bits, 2):
                 self.out.trig_match_PNet_ETau_Tight[0] = True
-  
+
+        # ETau (PNet, 2025E+ MatchL1HLT) (Trigger bit fixed from 2025E)
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Loose_eta2p3_CrossL1_ETau_Monitoring (+Medium, Tight)
+        # bits: wp (0/1/2), 4 (PNet), 27 (MatchL1HLT)
+
         if pt > 27 and l1pt > 26 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 27):
             if has_filter_bit(bits, 0):
                 self.out.trig_match_PNet_ETau_Loose_2025E[0] = True
@@ -416,8 +453,16 @@ class ModuleMuTau_trig(ModuleTauPair_trig):
             if has_filter_bit(bits, 2):
                 self.out.trig_match_PNet_ETau_Tight_2025E[0] = True
 
+        # VBF SingleTau Monitoring (PNet)
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1
+        # bits: 4 (PNet), 19 (VBF SingleTau Monitoring)
+
         if pt > 45 and l1pt > 45 and l1iso > 0 and abs(eta) < 2.3 and has_filter_bit(bits, 4) and has_filter_bit(bits, 19):
             self.out.trig_match_PNet_VBFSingleTau[0] = True
+
+        # VBF DiTau Monitoring (PNet)
+        # HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1
+        # bits: 4 (PNet), 25 (VBF DiTau Monitoring)
 
         if pt > 20 and abs(eta) < 2.2 and has_filter_bit(bits, 4) and has_filter_bit(bits, 25):
             self.out.trig_match_PNet_VBFDiTau[0] = True
@@ -473,7 +518,7 @@ class ModuleMuTau_trig(ModuleTauPair_trig):
             and l1pt > 45 and l1iso > 0
         )
 
-        self.out.L1_vbfditau[0] = getattr(event,"L1_SingleMu22",0)
+        self.out.L1_vbfditau[0] |= getattr(event,"L1_SingleMu22",0)
 
     # MUON
     self.out.pt_1[0]                       = muon.pt
@@ -526,68 +571,136 @@ class ModuleMuTau_trig(ModuleTauPair_trig):
     self.out.HLT_IsoMu24_eta2p1[0] = event.HLT_IsoMu24_eta2p1 if hasattr(event, "HLT_IsoMu24_eta2p1") else 0
 
     #### CUSTOM DITAU TRIGGERS
-    try:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = \
-            event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1
-    except RuntimeError:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = 0
+    # try:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = \
+    #         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1
+    # except RuntimeError:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = 0
 
 
-    try:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1[0] = \
-            event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1
-    except RuntimeError:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1[0] = 0
+    # try:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1[0] = \
+    #         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1
+    # except RuntimeError:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1[0] = 0
 
 
-    try:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VTight_L2NN_eta2p3_CrossL1[0] = \
-            event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VTight_L2NN_eta2p3_CrossL1
-    except RuntimeError:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VTight_L2NN_eta2p3_CrossL1[0] = 0
+    # try:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VTight_L2NN_eta2p3_CrossL1[0] = \
+    #         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VTight_L2NN_eta2p3_CrossL1
+    # except RuntimeError:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VTight_L2NN_eta2p3_CrossL1[0] = 0
 
 
-    try:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VVTight_L2NN_eta2p3_CrossL1[0] = \
-            event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VVTight_L2NN_eta2p3_CrossL1
-    except RuntimeError:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VVTight_L2NN_eta2p3_CrossL1[0] = 0
+    # try:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VVTight_L2NN_eta2p3_CrossL1[0] = \
+    #         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VVTight_L2NN_eta2p3_CrossL1
+    # except RuntimeError:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_VVTight_L2NN_eta2p3_CrossL1[0] = 0
 
 
-    try:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Flat_L2NN_eta2p3_CrossL1[0] = \
-            event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Flat_L2NN_eta2p3_CrossL1
-    except RuntimeError:
-        self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Flat_L2NN_eta2p3_CrossL1[0] = 0
+    # try:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Flat_L2NN_eta2p3_CrossL1[0] = \
+    #         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Flat_L2NN_eta2p3_CrossL1
+    # except RuntimeError:
+    #     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Flat_L2NN_eta2p3_CrossL1[0] = 0
 
-    # PNet trigger paths
-    self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1[0] = (
-        event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1
-        if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1") else 0
+    # ParticleNet HLT Paths
+
+    # Single Tau Loose
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Loose_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Loose_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Loose_L2NN_eta2p3_CrossL1") else 0
     )
+
+    # Single Tau Medium
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Medium_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Medium_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Medium_L2NN_eta2p3_CrossL1") else 0
+    )
+
+    # Single Tau Tight
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Tight_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Tight_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet130_Tight_L2NN_eta2p3_CrossL1") else 0
+    )
+
+    # DiTau Medium
     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1[0] = (
         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1
         if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_L2NN_eta2p3_CrossL1") else 0
     )
+
+    # DiTau Tight
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_L2NN_eta2p3_CrossL1") else 0
+    )
+
+    # DiTau+Jet
     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1[0] = (
         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1
         if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1") else 0
     )
-    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1[0] = (
-        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1
-        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1") else 0
+
+    # DiTau+Jet (PFJet60)
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1_PFJet60[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1_PFJet60
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1_PFJet60") else 0
     )
-    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1[0] = (
-        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1
-        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1") else 0
+
+    # DiTau+Jet (PFJet75)
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1_PFJet75[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1_PFJet75
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet26_L2NN_eta2p3_CrossL1_PFJet75") else 0
     )
+
+    # MuTau Loose
+    self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Loose_eta2p3_CrossL1") else 0
+    )
+
+    # MuTau Medium
+    self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Medium_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Medium_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Medium_eta2p3_CrossL1") else 0
+    )
+
+    # MuTau Tight
     self.out.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Tight_eta2p3_CrossL1[0] = (
         event.HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Tight_eta2p3_CrossL1
         if hasattr(event, "HLT_IsoMu20_eta2p1_PNetTauhPFJet27_Tight_eta2p3_CrossL1") else 0
     )
+
+    # ETau Loose
     self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Loose_eta2p3_CrossL1_ETau_Monitoring[0] = (
         event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Loose_eta2p3_CrossL1_ETau_Monitoring
         if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Loose_eta2p3_CrossL1_ETau_Monitoring") else 0
+    )
+
+    # ETau Medium
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_eta2p3_CrossL1_ETau_Monitoring[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_eta2p3_CrossL1_ETau_Monitoring
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Medium_eta2p3_CrossL1_ETau_Monitoring") else 0
+    )
+
+    # ETau Tight
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_eta2p3_CrossL1_ETau_Monitoring[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_eta2p3_CrossL1_ETau_Monitoring
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet30_Tight_eta2p3_CrossL1_ETau_Monitoring") else 0
+    )
+
+    # VBF SingleTau
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet45_L2NN_eta2p3_CrossL1") else 0
+    )
+
+    # VBF DiTau
+    self.out.HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1[0] = (
+        event.HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1
+        if hasattr(event, "HLT_IsoMu24_eta2p1_PNetTauhPFJet20_eta2p2_SingleL1") else 0
     )
 
     # DeepTau trigger paths
