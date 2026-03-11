@@ -1,4 +1,5 @@
 # Author: Izaak Neutelings (November 2018)
+import correctionlib
 import os, re
 from TauFW.PicoProducer import datadir
 from TauFW.common.tools.root import ensureTFile
@@ -6,6 +7,41 @@ from TauFW.common.tools.log import Logger
 datadir = os.path.join(datadir,"pileup")
 LOG     = Logger('PileupTool',showname=True)
 
+# Try to import correctionlib for new JSON-based method
+try:
+    import correctionlib
+    HAS_CORRECTIONLIB = True
+except ImportError:
+    HAS_CORRECTIONLIB = False
+    LOG.warning("correctionlib not available - JSON-based PU reweighting will not work")
+
+class PileupWeightTool_JSON:
+    """PU tool using CorrectionLib JSON (Run 3 standard)."""
+    def __init__(self, jsonfile, correction_name="Collisions2024_378981_386951_GoldenJson", variation="nominal", verb=0):
+        print(">>> Loading PU JSON:", jsonfile, "Correction:", correction_name)
+        self.variation = variation
+        self.cset = correctionlib.CorrectionSet.from_file(jsonfile)
+        self.corr = self.cset[correction_name]
+        self.verb = verb
+        if self.verb:
+            print(f"Loaded PU correction from {jsonfile} with correction name '{correction_name}'")
+
+    def getWeight(self, nTrueInt, variation=None):
+        """Return pileup weight for given nTrueInt (float or array)."""
+        if variation is None:
+            variation = self.variation
+        try:
+            weight = self.corr.evaluate(nTrueInt, variation)
+            if weight > 5.0:
+                if self.verb > 1:
+                    LOG.warning(f"PU weight capped at 5.0 (was {weight:.2f} for nTrueInt={nTrueInt})")
+                return 5.0
+            return weight
+        except Exception as e:
+                if self.verb:
+                    LOG.warning(f"PU weight evaluation failed for nTrueInt={nTrueInt}, variation={variation}: {e}")
+                return 1.0
+            
 
 class PileupWeightTool:
   
@@ -61,7 +97,7 @@ class PileupWeightTool:
         period = 'D' if 'D' in era else 'C'
         datafilename = os.path.join(datadir,"Data_PileUp_2023%s_%s.root"%(period,minbias))
         mcfilename   = os.path.join(datadir,"MC_PileUp_2023%s.root"%(period))
-      elif '2024' in era:
+      elif '2024' in era or '2025' in era:
         datafilename = os.path.join(datadir,"Data_PileUp_2024_%s.root"%(minbias))
         mcfilename   = os.path.join(datadir,"MC_PileUp_2024.root")
     assert datafilename and mcfilename, "PileupWeightTool: Did not recognize era %r!"%(era)
