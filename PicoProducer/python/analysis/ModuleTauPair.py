@@ -61,7 +61,7 @@ class ModuleTauPair(Module):
     self.bjetCutEta = 2.4 if self.year==2016 else 2.5
     self.isUL       = 'UL' in self.era
     
-    assert self.year in [2016,2017,2018,2022,2023,2024], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
+    assert self.year in [2016,2017,2018,2022,2023,2024,2025], "Did not recognize year %s! Please choose from 2016, 2017 and 2018."%self.year
     assert self.dtype in ['mc','data','embed'], "Did not recognize data type '%s'! Please choose from 'mc', 'data' and 'embed'."%self.dtype
     
     # YEAR-DEPENDENT IDs
@@ -240,8 +240,8 @@ class ModuleTauPair(Module):
     muons = [m for m in Collection(event,'Muon') if m.isPFcand]
     for jet in Collection(event,'Jet'):
       if abs(jet.pt) <= 15: continue
-      if jet.jetId < 2: continue
-      if (jet.chEmEF + jet.neEmEF) > 0.90: continue
+      if not hasattr(jet, "jetId") or jet.jetId < 2: continue
+      # if (jet.chEmEF + jet.neEmEF) > 0.90: continue
       if not self.jetvetoTool.applyJetVetoMap(jet.eta, jet.phi): continue
       if any(jet.DeltaR(m)<0.2 for m in muons): continue # overlap
       vetojets.append(jet)
@@ -347,9 +347,8 @@ class ModuleTauPair(Module):
       if abs(jet.eta)>4.7: continue
       if jet.DeltaR(tau1)<0.5: continue
       if jet.DeltaR(tau2)<0.5: continue
-      # if "v15" not in self.era: #NanoAODv15 doesn't have the jetID branch
-      if jet.jetId<2: continue # Tight
-      
+      if "2024" not in self.era: #NanoAODv15 doesn't have the jetID branch
+        if jet.jetId<2: continue # Tight      
       # SAVE JEC VARIATIONS
       if self.dojec:
         jetpt = jet.pt_nom
@@ -470,7 +469,7 @@ class ModuleTauPair(Module):
       self.out.m_moth[0]      = zboson.M()
       self.out.pt_moth[0]     = zboson.Pt()
       self.out.zptweight[0]   = self.zptTool.getZptWeight(zboson.Pt(),zboson.M())
-      if self.year in [2022,2023,2024]: # Run 3
+      if self.year in [2022,2023,2024,2025]: # Run 3
         self.out.zptweight_lo[0] = self.zptTool_json.getDYpTCorr(self.era,zboson.Pt())
         self.out.zptweight_nlo[0] = self.zptTool_json.getDYpTCorr(self.era,zboson.Pt(),order='NLO')
         self.out.zptweight_nnlo[0] = self.zptTool_json.getDYpTCorr(self.era,zboson.Pt(),order='NNLO')

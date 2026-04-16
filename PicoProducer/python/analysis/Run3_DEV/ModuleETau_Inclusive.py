@@ -21,7 +21,7 @@ class ModuleETau_Inclusive(ModuleTauPair):
     
     # TRIGGERS
     y_trig = self.year
-    if "2022" in self.era or "2023" in self.era or "2024" in self.era:
+    if "2022" in self.era or "2023" in self.era or "2024" in self.era or "2025" in self.era:
        y_trig = 2018
     jsonfile       = os.path.join(datadir,"trigger/tau_triggers_%d.json"%(y_trig))
     self.trigger   = TrigObjMatcher(jsonfile,trigger='SingleElectron',isdata=self.isdata)
@@ -32,10 +32,7 @@ class ModuleETau_Inclusive(ModuleTauPair):
     
     #CORRECTIONS
     if self.ismc:
-      if self.year==2024:
-        self.eleSFs= 1
-      else:
-        self.eleSFs   = ElectronSFs(era=self.era) # ele id/iso/trigger SFs
+      self.eleSFs   = ElectronSFs(era=self.era) # ele id/iso/trigger SFs
     
     
     print("FES: ", self.fes)
@@ -165,7 +162,10 @@ class ModuleETau_Inclusive(ModuleTauPair):
     electron, tau = max(ltaus).pair
     electron.tlv  = electron.p4()
     tau.tlv       = tau.p4()
-    self.out.cutflow.fill('pair')   
+    self.out.cutflow.fill('pair')  
+
+    if tau.idDeepTau2018v2p5VSjet < 1 or tau.idDeepTau2018v2p5VSmu < 1:
+      return False
     
     # VETOS
     extramuon_veto, extraelec_veto, dilepton_veto = getlepvetoes(event,[electron],[ ],[tau],self.channel,era=self.era)
@@ -283,11 +283,12 @@ class ModuleETau_Inclusive(ModuleTauPair):
       # ELECTRON WEIGHTS
 
       if self.year==2024:
-        self.out.trigweight[0] = 1
-        self.out.idisoweight_1[0] = 1
+        self.out.trigweight[0] = self.eleSFs.getTriggerSF(electron.pt, abs(electron.eta))
+        self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(electron.pt, electron.eta, electron.phi)
       else:
-        self.out.trigweight[0]              = self.eleSFs.getTriggerSF(electron.pt,abs(electron.eta))
-        self.out.idisoweight_1[0]           = self.eleSFs.getIdIsoSF(electron.pt,abs(electron.eta))
+        self.out.trigweight[0] = self.eleSFs.getTriggerSF(electron.pt, abs(electron.eta))
+        self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(electron.pt, abs(electron.eta), electron.phi)
+      
 
       #print("eta: ", electron.eta)
       #print("pt: ",  electron.pt)

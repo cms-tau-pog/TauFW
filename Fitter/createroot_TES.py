@@ -9,7 +9,7 @@ from array import array
 from argparse import ArgumentParser
 from collections import OrderedDict
 from ROOT import gROOT, gPad, gStyle, TFile, TCanvas, TLegend, TLatex, TF1, TMultiGraph, TGraph, TGraph2D, TPolyMarker3D, TGraphAsymmErrors, TLine,kBlack, kBlue, kRed, kGreen, kYellow, kOrange, kMagenta, kTeal, kAzure, TMath, TH1F
-from fit_tools import FitSF
+# from fit_tools import FitSF
 #from TauFW.Plotter.sample.utils import CMSStyle
 # import correctionlib.schemav2 as cs
 # import rich
@@ -102,7 +102,7 @@ def plot_dm_graph(setup,form,ele_wp,**kwargs):
   # loop over DMs
   for sf in sfs:
    sf_dict[sf] = {}
-   for era in ['2023C', '2023D']:
+   for era in ['2024']:
        sf_dict[sf][era] = {}
        for dm in dm_order:
            print(">>>>>>>>>>>> %s:" %(dm))
@@ -145,7 +145,7 @@ def plot_dm_graph(setup,form,ele_wp,**kwargs):
           else:
              name = 'TauID'
           sfile = TFile(f"tau_sf/{name}_SF_dm_DeepTau2018v2p5_2023_VSjet{jet_wp}_VSele{ele_wp}_Run3_May24.root", 'recreate')
-          for era in ['2023C', '2023D']:
+          for era in ['2024']:
             for dm in dm_order:
                funcstr = '(x<=20)*0'
                funcstr_up = '(x<=20)*0'

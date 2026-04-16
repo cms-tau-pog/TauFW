@@ -75,7 +75,7 @@ infiles   = args.infiles or [
 if nfiles>0:
   infiles = infiles[:nfiles]
 if dtype==None:
-  if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma']):
+  if any(s in infiles[0] for s in ['SingleMuon',"/Tau/",'SingleElectron','EGamma', 'Muon']):
     dtype = 'data'
   else:
     dtype = 'mc'
