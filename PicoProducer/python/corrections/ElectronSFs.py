@@ -19,6 +19,7 @@ from correctionlib import CorrectionSet
 
 pathHTT = os.path.join(datadir,"lepton/HTT/Electron/")
 pathPOG = os.path.join(datadir,"jsonpog/POG/EGM/") # JSON files from central XPOG
+pathEGM = "/cvmfs/cms-griddata.cern.ch/cat/metadata/EGM/"
 
 LOG = Logger('ElectronSF')
 
@@ -89,10 +90,9 @@ class ElectronSFs:
         fname_id = pathPOG + "2023_Summer23BPix/electron.json.gz"
         fname_trig = pathPOG + "2023_Summer23BPix/electronHlt.json.gz"
         self.year_SF = "2023PromptD"
-      elif "2024" in era:
-        fname_id_wpiso = pathPOG + "2024_Summer24/electronID_v1.json.gz"
-        fname_id_reco = pathPOG + "2024_Summer24/electron_v1.json.gz"
-        fname_trig = pathPOG + "2023_Summer23BPix/electronHlt.json.gz"
+      elif "2024" in era or "2025" in era:
+        fname_id= pathEGM + "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15/2025-12-15/electron.json.gz"
+        fname_trig = pathEGM + "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15/2025-12-15/electronHlt.json.gz"
         self.year_SF = "2024Prompt"
     # DEFAULTS
     if sf_id==None:
@@ -139,8 +139,6 @@ class ElectronSFs:
       sf = self.sftool_trig.evaluate(eta,pt,syst)
     else:
       try:
-        if "2024" in self.year_SF: # Placeholder as there is not electronHLT json file for 2024
-          sf = self.sftool_trig.evaluate("2023PromptD",syst,self.wp_trig,eta,pt)
         sf = self.sftool_trig.evaluate(self.year_SF,syst,self.wp_trig,eta,pt)
       except Exception as error:
         LOG.throw(error,"ElectronSF.getTriggerSF: Caught %r for (pt,eta,syst)=(%s,%s,%s)!"%(str(error),pt,eta,syst)+
@@ -152,22 +150,16 @@ class ElectronSFs:
     """Get SF for electron identification + reco"""
     if "2023" in self.year_SF: 
       sf_id = self.sftool_id.evaluate(self.year_SF,syst,self.wp_id,eta,pt,phi)
-    elif "2024" in self.year_SF:
-      sf_id = self.sftool_id_wpiso.evaluate("2024",syst,self.wp_id,eta,pt)
     else: 
       sf_id = self.sftool_id.evaluate(self.year_SF,syst,self.wp_id,eta,pt)
     if pt < 20:
       if "2023" in self.year_SF:
         sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoBelow20",eta,pt,phi)
-      elif "2024" in self.year_SF:
-        sf_reco = self.sftool_id_reco.evaluate(self.year_SF,syst,"RecoBelow20",eta,pt)
       else:
         sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoBelow20",eta,pt)
     elif pt < 75:
       if "2023" in self.year_SF:
         sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"Reco20to75",eta,pt,phi)
-      elif "2024" in self.year_SF:
-        sf_reco = self.sftool_id_reco.evaluate(self.year_SF,syst,"Reco20to75",eta,pt)
       elif "201" in self.year_SF:
         sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoAbove20",eta,pt)
       else: 
@@ -175,8 +167,6 @@ class ElectronSFs:
     else:
       if "2023" in self.year_SF:
         sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoAbove75",eta,pt,phi)
-      elif "2024" in self.year_SF:
-        sf_reco = self.sftool_id_reco.evaluate(self.year_SF,syst,"RecoAbove75",eta,pt)
       elif "201" in self.year_SF:
         sf_reco = self.sftool_id.evaluate(self.year_SF,syst,"RecoAbove20",eta,pt)
       else:

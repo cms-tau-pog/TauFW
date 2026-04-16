@@ -411,7 +411,7 @@ def stitch(samplelist,*searchterms,**kwargs):
   # FIND INCLUSIVE SAMPLE
   sample_incl = None
   sample_mutau = None #"DYJetsToMuTauh_M-50"
-  if "2022" in era or "2023" in era or '2024' in era: 
+  if "2022" in era or "2023" in era or '2024' in era  or '2025' in era: 
     samples_jetIncl = [s for s in stitchlist if s.name == name_incl]
   else:
     samples_jetIncl = [s for s in stitchlist if s.match(name_incl)]
