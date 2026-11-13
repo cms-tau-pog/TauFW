@@ -51,9 +51,8 @@ class TreeProducerTauPair(TreeProducer):
     ##############
     #   WEIGHT   #
     ##############
-    
+    self.addBranch('weight',              'f', 1., title="weight combining others (to reduce selection string length)")
     if module.ismc:
-      self.addBranch('weight',              'f', 1., title="weight combining others (to reduce selection string length)")
       self.addBranch('genweight',           'f', 1., title="generator weight")
       self.addBranch('trigweight',          'f', 1., title="trigger SF")
       if not module.dotight:
