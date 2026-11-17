@@ -1,5 +1,5 @@
 diff --git a/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py b/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py
-index 25f38d9bc147..a29a7404cbc1 100644
+index 25f38d9..33d0293 100644
 --- a/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py
 +++ b/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py
 @@ -2,9 +2,12 @@ import FWCore.ParameterSet.Config as cms
@@ -28,7 +28,7 @@ index 25f38d9bc147..a29a7404cbc1 100644
  )
  
  hltNanoProducer = cms.Sequence(
-@@ -111,6 +120,38 @@ def hltNanoCustomize(process):
+@@ -111,6 +120,39 @@ def hltNanoCustomize(process):
              )
          )
  
@@ -53,6 +53,7 @@ index 25f38d9bc147..a29a7404cbc1 100644
 +        'TkEleTkMuon1020':               ('pTkEleTkMuon10_20',             'L1T_TkEleTkMuon_10_20'),
 +        'TkMuonTkIsoEle720':             ('pTkMuonTkIsoEle7_20',           'L1T_TkMuonTkIsoEle_7_20'),
 +        'TkMuonTkEle723':                ('pTkMuonTkEle7_23',              'L1T_TkMuonTkEle_7_23'),
++        'SingleTkMuon22':                ('pSingleTkMuon22',               'L1T_SingleTkMuon_22'),
 +    }
 +
 +    for module_name, (p_name, l1t_name) in l1_seed_map.items():
