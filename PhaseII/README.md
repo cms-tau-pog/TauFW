@@ -151,7 +151,7 @@ pico.py channel phase2_trigeff PhaseII.ModulePhase2TrigEff
 ```
 
 > **Tip:** By default, the commands below process **all** samples defined in `samples_PhaseII.py`.
-> To process only a specific sample, add the `-s <sample_name>` flag (e.g. `-s VBFHToTauTau`).
+> To process only a specific sample, add the `-s <sample_name>` flag (e.g. `-s ggHToTauTau`).
 
 ### 2. Local test run
 

@@ -35,8 +35,8 @@ samples = [
   M('ggH','ggHToTauTau',"ggHTT_full",
     store=storage, url=url, files=[storage+"/ggHTT_merged.root"], opts=opts, nfilesperjob=1),
 
-  # VBF H -> tautau
-  M('VBF','VBFHToTauTau',"vbfHTT_full",
-    store=storage, url=url, files=[storage+"/vbfHTT_merged.root"], opts=opts, nfilesperjob=1),
+  # The workflow was also validated on VBF H -> tautau. To run on it, produce the
+  # NanoAOD with the same recipe and add an entry like the ones above, e.g. with
+  # files=[...list of step-2 files...] and nfilesperjob=2 for split files.
 
 ]
