@@ -1,7 +1,9 @@
-# Phase-II Tau Trigger Efficiency Studies (TauFW Integration)
+# Phase-II Tau Trigger Efficiency Studies
 
-This directory contains the plotting and analysis tools for Phase-II HLT tau trigger
-efficiency studies. The analysis module and configuration live inside `PicoProducer/python/analysis/PhaseII/`, following the same convention as `Tau_trig_SF_studies`.
+This directory contains the plotting tools and documentation for Phase-II HLT tau
+trigger efficiency studies. The skim module and its configuration live in
+[`PicoProducer/python/analysis/PhaseII/`](../PicoProducer/python/analysis/PhaseII/),
+and the sample list in [`PicoProducer/samples/PhaseII/`](../PicoProducer/samples/PhaseII/).
 
 ---
 
@@ -22,16 +24,44 @@ The framework takes **Phase-II HLT NanoAOD** as input, produced via a
 two-step `cmsDriver.py` pipeline:
 
 1. **Step 1:** L1T rerun (GEN-SIM-DIGI-RAW → + L1T objects)
-2. **Step 2:** HLT + NanoAOD (+ L1T → NANOAODSIM with HLT + L1T trigger branches)
+2. **Step 2:** L1P2GT + HLT + NanoAOD (→ NANOAODSIM with HLT + L1T trigger branches), e.g.
+   ```bash
+   cmsDriver.py step2 --processName=HLTX -s L1P2GT,HLT:@relvalRun4,NANO:@Phase2HLT \
+     --conditions auto:phase2_realistic_T33 --geometry ExtendedRun4D110 --era Phase2C17I13M9 \
+     --datatier NANOAODSIM --eventcontent NANOAODSIM \
+     '--inputCommands=keep *, drop *_hlt*_*_HLT, drop triggerTriggerFilterObjectWithRefs_l1t*_*_HLT' \
+     --filein file:step1.root --fileout file:step2.root -n -1 --no_exec
+   ```
 
 The NanoAOD contains:
 - `hltHpsPFTau_*` — HLT tau objects (pT, η, φ, deepTau scores, etc.)
 - `hltMuon_*` — HLT muon objects
 - `hltElectron_*` — HLT electron objects (pT, η, φ, isolation, etc.)
 - `hltAK4PuppiJet_*` — HLT jet objects
-- `L1T_*` — L1 trigger seed decisions (from the NanoAOD alias fix)
+- `L1T_*` — L1 trigger seed decisions (requires the CMSSW patch below)
 - `HLT_*` — HLT path decisions
-- `GenVisTau_*`, `GenPart_*` — Generator-level objects
+- `GenVisTau_*`, `GenPart_*` — Generator-level objects (`GenVisTau` requires the CMSSW patch below)
+
+### CMSSW patch for step 2 (`L1T_*` seeds and `GenVisTau`)
+
+Out of the box, the Phase-II HLT NanoAOD does not contain the L1GT seed decisions:
+`NanoAODOutputModule` only saves `TriggerResults` paths starting with `HLT`, `Flag`, `L1`,
+or containing `Scouting`, while the L1GT menu paths are named `p*` (e.g. `pPuppiTauTkMuon42_18`).
+The patch in [`cmssw_patches/`](cmssw_patches/) modifies `HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py` to
+
+- add alias paths with an `L1T_` prefix that reuse the same L1GT condition modules, e.g.
+  `pPuppiTauTkMuon42_18` → `L1T_PuppiTauTkMuon_42_18`, and
+- add the `GenVisTau` table to the gen-level NanoAOD sequence.
+
+It is only needed when **producing** the NanoAOD (step 2), not for running the skim on existing files.
+It was made for `CMSSW_16_0_0_pre2`:
+
+```bash
+cd $CMSSW_BASE/src
+git cms-addpkg HLTrigger/NGTScouting
+git apply TauFW/PhaseII/cmssw_patches/HLTNanoProducer_L1TSeeds_GenVisTau.patch
+scram b -j4
+```
 
 ---
 
@@ -41,55 +71,24 @@ The NanoAOD contains:
 
 ```bash
 cmsrel CMSSW_16_0_0_pre2
-```
-```bash
 cd CMSSW_16_0_0_pre2/src
-```
-```bash
 cmsenv
 ```
 
-### 2. Clone NanoAOD-tools (if not already present)
+### 2. Install TauFW
+
+Follow the [main TauFW installation instructions](../README.md#TauFW-1):
 
 ```bash
-git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
-```
-```bash
+cd $CMSSW_BASE/src/
+git clone https://github.com/cms-tau-pog/TauFW TauFW
 scram b -j4
 ```
 
-### 3. Clone TauFW and switch to the Phase-II branch
-
-> **Important:** The Phase-II trigger efficiency code is on the
-> `PhaseII_integration` branch, **not** on `main`. You must switch to it
-> after cloning.
+### 3. Verify installation
 
 ```bash
-git clone https://github.com/neeraj-1729/TauFW.git TauFW
-```
-```bash
-cd TauFW
-```
-```bash
-git checkout PhaseII_integration
-```
-```bash
-cd ..
-```
-```bash
-scram b -j4
-```
-```bash
-cmsenv
-```
-
-### 4. Verify installation
-
-```bash
-python3 -c "
-from TauFW.PicoProducer.analysis.PhaseII.ModulePhase2TrigEff import ModulePhase2TrigEff
-print('Import OK')
-"
+python3 -c "from TauFW.PicoProducer.analysis.PhaseII.ModulePhase2TrigEff import ModulePhase2TrigEff; print('Import OK')"
 ```
 
 ---
@@ -98,17 +97,9 @@ print('Import OK')
 
 ```bash
 cd CMSSW_16_0_0_pre2/src
-```
-```bash
 cmsenv
-```
-```bash
-export X509_USER_PROXY=/afs/cern.ch/user/<username>/x509up_proxy
-```
-```bash
+export X509_USER_PROXY=/afs/cern.ch/user/<u>/<username>/x509up_proxy
 voms-proxy-init --voms cms --valid 192:00 --out $X509_USER_PROXY
-```
-```bash
 cd TauFW/PicoProducer
 ```
 
@@ -140,19 +131,22 @@ Phase-II HLT NanoAOD ──→ [Skim Module] ──→ pico.root ──→ [Plot
 
 ### 1. Configure the era and channel
 
-Update `PicoProducer/samples/PhaseII/samples_PhaseII.py` — set `storage` to your EOS path
-or keep `None` for DAS/xrootd access.
-
-Then register:
+The samples in [`samples_PhaseII.py`](../PicoProducer/samples/PhaseII/samples_PhaseII.py) are privately
+produced (not on DAS). To use your own production, point `PHASE2_NANO_DIR` to the directory
+containing the merged NanoAOD files (see the sample file for the expected file names):
 
 ```bash
-pico.py set era PhaseII PhaseII/samples_PhaseII.py
-```
-```bash
-pico.py set channel phase2_trigeff PhaseII.ModulePhase2TrigEff
+export PHASE2_NANO_DIR=/eos/user/<u>/<username>/phase2_data
 ```
 
-> **Tip:** By default, the commands below will process **all** samples defined in `samples_PhaseII.py`.
+Then register the era and channel:
+
+```bash
+pico.py era PhaseII PhaseII/samples_PhaseII.py
+pico.py channel phase2_trigeff PhaseII.ModulePhase2TrigEff
+```
+
+> **Tip:** By default, the commands below process **all** samples defined in `samples_PhaseII.py`.
 > To process only a specific sample, add the `-s <sample_name>` flag (e.g. `-s VBFHToTauTau`).
 
 ### 2. Local test run
@@ -187,12 +181,13 @@ pico.py hadd -y PhaseII -c phase2_trigeff -s <sample_name>
 
 ---
 
-Now lets move to the plotting part. Lets move to the working directory of the Plotting tools.
-```bash
-cd ../PhaseII
-```
-
 ## Plotting Trigger Efficiencies
+
+The plotter lives in this directory:
+
+```bash
+cd $CMSSW_BASE/src/TauFW/PhaseII
+```
 
 Generate efficiency plots from the merged output. The **same pico file works for
 all channels** — just change `--channel`:
@@ -200,15 +195,14 @@ all channels** — just change `--channel`:
 ```bash
 # MuTau
 python3 plot_phase2_trigeff.py \
-  --input /eos/user/<username>/analysis/Phase2/Zprime/ZprimeToTauTau_M500_phase2_trigeff.root \
+  --input /eos/user/<u>/<username>/analysis/Phase2/Zprime/ZprimeToTauTau_M500_phase2_trigeff.root \
   --channel mutau \
   --outdir plots_mutau_zprime/ \
   --sample-label "ZprimeToTauTau M500 (Phase-II)"
-```
-```bash
+
 # DiTau (same input!)
 python3 plot_phase2_trigeff.py \
-  --input /eos/user/<username>/analysis/Phase2/Zprime/ZprimeToTauTau_M500_phase2_trigeff.root \
+  --input /eos/user/<u>/<username>/analysis/Phase2/Zprime/ZprimeToTauTau_M500_phase2_trigeff.root \
   --channel ditau \
   --outdir plots_ditau_zprime/ \
   --sample-label "ZprimeToTauTau M500 (Phase-II)"
@@ -218,10 +212,12 @@ python3 plot_phase2_trigeff.py \
 
 | Plot | Description |
 |------|-------------|
-| `cutflow_<ch>.png` | Step-by-step cutflow bar chart |
-| `eff_<ch>_vs_<var>_pt.png` | pT turn-on curve (no pT cut on plotted leg) |
-| `eff_<ch>_vs_<var>_eta.png` | η efficiency |
-| `eff_<ch>_vs_<var>_phi.png` | φ efficiency |
+| `eff_<ch>_vs_<leg>_pt.png` | HLT pT turn-on curve (no pT cut on plotted leg) |
+| `eff_<ch>_vs_<leg>_eta.png` | HLT η efficiency |
+| `eff_<ch>_vs_<leg>_phi.png` | HLT φ efficiency |
+| `eff_l1<ch>_vs_<leg>_{pt,eta}.png` | L1 efficiency |
+| `fake_<ch>_vs_<leg>_{pt,eta,phi}.png` | HLT fake rate (fails gen-reco matching on ≥1 leg) |
+| `fake_l1<ch>_vs_<leg>_{pt,eta,phi}.png` | L1 fake rate |
 | `trigeff_<ch>.pdf` | **Combined PDF** with all plots for the channel in order: HLT eff → L1 eff → HLT fakes → L1 fakes |
 
 > **Note:** The combined PDF is generated automatically alongside the PNGs.
@@ -234,15 +230,18 @@ python3 plot_phase2_trigeff.py \
 ```
 TauFW/
 ├── PicoProducer/
-│   ├── python/analysis/PhaseII/          # ★ Analysis module + config
+│   ├── python/analysis/PhaseII/          # Analysis module + config
 │   │   ├── __init__.py
 │   │   ├── ModulePhase2TrigEff.py        # Unified skim module (all channels)
 │   │   └── Phase2TriggerConfig.py        # Central config: channels, L1, HLT, binning
 │   └── samples/PhaseII/
+│       ├── __init__.py
 │       └── samples_PhaseII.py            # Sample definitions (used by pico.py)
-├── PhaseII/                              # ★ Plotting tools + documentation
-│   ├── plot_phase2_trigeff.py            # Efficiency plotter (--channel at plot time)
-│   └── README.md                         # This file
+└── PhaseII/                              # Plotting tools + documentation
+    ├── cmssw_patches/
+    │   └── HLTNanoProducer_L1TSeeds_GenVisTau.patch  # CMSSW patch for NanoAOD production
+    ├── plot_phase2_trigeff.py            # Efficiency plotter (--channel at plot time)
+    └── README.md                         # This file
 ```
 
 ---
@@ -256,8 +255,8 @@ Efficiency = (Gen Sel. + Reco Sel. + Trigger + Gen-Reco Match)
 
 - **Gen Sel.:** Channel-specific gen-level selection (GenVisTau, GenPart)
 - **Reco Sel.:** Channel-specific HLT object selection (hltHpsPFTau, hltMuon, hltElectron)
-- **Trigger:** HLT path fires
-- **Matching:** dR(gen, reco) < 0.1 for all legs
+- **Trigger:** HLT path (or L1 seed) fires
+- **Matching:** dR(gen, reco) < 0.1 for all legs (for DiTau, both gen-reco permutations are tried)
 
 ### Turn-on Curve Convention
 
@@ -269,16 +268,14 @@ DO apply it for the other leg(s).
 ## Notes
 
 - The skim module runs on **full Phase-II HLT NanoAOD** — no pre-slimming needed.
-- Missing HLT branches (e.g., SingleTau) are automatically
+- Missing HLT/L1 branches (e.g., SingleTau) are automatically
   detected and skipped with a warning.
 - The unified module applies only a loose |η| < 2.5 preselection. All physics
   cuts (pT, η=2.1, dR, matching) are applied at the plotting stage.
-- Replace `<username>` with your CERN username in all EOS paths.
 - Ensure your grid proxy is valid and on AFS for batch job access.
 
 ---
 
 ## Contact
 
-**Author:** Neeraj  
-For questions, please contact: neeraj.neeraj@cern.ch
+**Author:** Neeraj (neeraj.neeraj@cern.ch)

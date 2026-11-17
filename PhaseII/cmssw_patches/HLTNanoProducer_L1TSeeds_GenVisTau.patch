@@ -1,0 +1,69 @@
+diff --git a/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py b/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py
+index 25f38d9bc147..a29a7404cbc1 100644
+--- a/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py
++++ b/HLTrigger/NGTScouting/python/HLTNanoProducer_cff.py
+@@ -2,9 +2,12 @@ import FWCore.ParameterSet.Config as cms
+ 
+ from PhysicsTools.JetMCAlgos.AK4GenJetFlavourInfos_cfi import *
+ from PhysicsTools.JetMCAlgos.HadronAndPartonSelector_cfi import *
++from PhysicsTools.JetMCAlgos.TauGenJetsDecayModeSelectorAllHadrons_cfi import *
++from PhysicsTools.JetMCAlgos.TauGenJets_cfi import *
+ from PhysicsTools.NanoAOD.common_cff import *
+ from PhysicsTools.NanoAOD.jetMC_cff import *
+ from PhysicsTools.NanoAOD.genparticles_cff import *
++from PhysicsTools.NanoAOD.taus_cff import *
+ from PhysicsTools.PatAlgos.slimming.genParticles_cff import *
+ from PhysicsTools.PatAlgos.slimming.packedGenParticles_cfi import *
+ from PhysicsTools.PatAlgos.slimming.prunedGenParticles_cfi import *
+@@ -41,6 +44,12 @@ NanoGenTable = cms.Sequence(
+     + slimmedGenJetsFlavourInfos
+     + genJetTable
+     + genJetFlavourTable
++    + tauGenJets
++    + tauGenJetsForNano
++    + tauGenJetsSelectorAllHadrons
++    + tauGenJetsSelectorAllHadronsForNano
++    + genVisTaus
++    + genVisTauTable
+ )
+ 
+ hltNanoProducer = cms.Sequence(
+@@ -111,6 +120,38 @@ def hltNanoCustomize(process):
+             )
+         )
+ 
++    # ── Expose L1 seed decisions in NanoAOD ─────────────────────────────
++    # The NanoAODOutputModule only saves TriggerResults paths whose names
++    # start with 'HLT', 'Flag', 'L1', or contain 'Scouting'
++    # (see PhysicsTools/NanoAOD/plugins/TriggerOutputBranches.cc).
++    # The L1GT menu seeds use 'p*' prefix (e.g. pPuppiTauTkMuon42_18)
++    # so they are silently dropped. We add alias paths with 'L1T_' prefix
++    # to make them visible in NanoAOD.
++    #
++    # Mapping: pXxx_yy_zz -> L1T_Xxx_yy_zz (strip leading 'p', add 'L1T_')
++    l1_seed_map = {
++        # Tau cross-trigger seeds
++        'PuppiTauTkMuon4218':            ('pPuppiTauTkMuon42_18',          'L1T_PuppiTauTkMuon_42_18'),
++        'DoublePuppiTau5252':            ('pDoublePuppiTau52_52',          'L1T_DoublePuppiTau_52_52'),
++        'PuppiTauTkIsoEle4522':          ('pPuppiTauTkIsoEle45_22',        'L1T_PuppiTauTkIsoEle_45_22'),
++        'NNPuppiTauPuppiMet':            ('pNNPuppiTauPuppiMet_55_190',    'L1T_NNPuppiTauPuppiMet_55_190'),
++        # Additional seeds useful for cross-checks
++        'DoubleTkMuon44OSDr1p2':         ('pDoubleTkMuon_4_4_OS_Dr1p2',    'L1T_DoubleTkMuon_4_4_OS_Dr1p2'),
++        'DoubleTkMuonOSEr1p5Dr1p4':      ('pDoubleTkMuon_OS_Er1p5_Dr1p4',  'L1T_DoubleTkMuon_OS_Er1p5_Dr1p4'),
++        'TkEleTkMuon1020':               ('pTkEleTkMuon10_20',             'L1T_TkEleTkMuon_10_20'),
++        'TkMuonTkIsoEle720':             ('pTkMuonTkIsoEle7_20',           'L1T_TkMuonTkIsoEle_7_20'),
++        'TkMuonTkEle723':                ('pTkMuonTkEle7_23',              'L1T_TkMuonTkEle_7_23'),
++    }
++
++    for module_name, (p_name, l1t_name) in l1_seed_map.items():
++        if hasattr(process, module_name) and hasattr(process, p_name):
++            # Reuse the same L1GT condition module in a new path with L1T_ prefix.
++            # The module is shared across paths — CMSSW handles this correctly.
++            module = getattr(process, module_name)
++            setattr(process, l1t_name, cms.Path(module))
++            if hasattr(process, 'schedule'):
++                process.schedule.append(getattr(process, l1t_name))
++
+     return process
+ 
+ def hltNanoValCustomize(process):

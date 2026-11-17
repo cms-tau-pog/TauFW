@@ -1,5 +1,5 @@
+import os
 from TauFW.PicoProducer.storage.Sample import MC as M
-from TauFW.PicoProducer.storage.Sample import Data as D
 
 # ============================================================================
 # Phase-II MC samples for HLT trigger efficiency studies
@@ -8,45 +8,35 @@ from TauFW.PicoProducer.storage.Sample import Data as D
 # Input: Full Phase-II HLT NanoAOD from the 2-step cmsDriver pipeline
 #   Step 1: L1T rerun  (GEN-SIM-DIGI-RAW -> + L1T objects)
 #   Step 2: HLT + Nano (+ L1T -> NANOAODSIM with trigger branches)
+# See TauFW/PhaseII/README.md for how these files are produced.
 #
 # Usage:
-#   pico.py set era PhaseII PhaseII/samples_PhaseII.py
-#   pico.py set channel phase2_trigeff PhaseII.ModulePhase2TrigEff
-#   pico.py run -y PhaseII -c phase2_trigeff -m 1000
+#   pico.py era PhaseII PhaseII/samples_PhaseII.py
+#   pico.py channel phase2_trigeff PhaseII.ModulePhase2TrigEff
+#   pico.py run    -y PhaseII -c phase2_trigeff -s ZprimeToTauTau_M500 -m 1000
 #   pico.py submit -y PhaseII -c phase2_trigeff
 #
-# NOTE: Update 'storage' path to your EOS location, or set to None to
-#       fetch files from DAS/xrootd directly.
+# The files are privately produced (not on DAS). To use your own production,
+# point PHASE2_NANO_DIR to the directory containing the merged NanoAOD files:
+#   export PHASE2_NANO_DIR=/eos/user/<u>/<username>/phase2_data
 # ============================================================================
 
-storage  = "/eos/user/n/nneeraj/phase2_data"
-url      = "root://eoshome-n.cern.ch/"
-filelist = None
-opts     = "useT1=False"
+storage = os.environ.get('PHASE2_NANO_DIR', "/eos/user/n/nneeraj/phase2_data")
+url     = "root://eosuser.cern.ch/"
+opts    = "useT1=False"
 
-samples  = [
+samples = [
 
-  # ── Z' -> tt (M=500 GeV, PU200) ──────────────────────────────────────
-  M('Zprime','ZprimeToTauTau_M500',
-    "zprime_full",
-    store=storage, url=url, files=[storage+"/zprime_merged.root"], opts=opts,
-    nfilesperjob=1),
+  # Z' -> tautau (M=500 GeV, PU200)
+  M('Zprime','ZprimeToTauTau_M500',"zprime_full",
+    store=storage, url=url, files=[storage+"/zprime_merged.root"], opts=opts, nfilesperjob=1),
 
-  # ── gg -> H -> tt ─────────────────────────────────────────────────────
-  M('ggH','ggHToTauTau',
-    "ggHTT_full",
-    store=storage, url=url, files=[storage+"/ggHTT_merged.root"], opts=opts,
-    nfilesperjob=1),
+  # gg -> H -> tautau
+  M('ggH','ggHToTauTau',"ggHTT_full",
+    store=storage, url=url, files=[storage+"/ggHTT_merged.root"], opts=opts, nfilesperjob=1),
 
-  # ── VBF H -> tt ──────────────────────────────────────────────────────
-  M('VBF','VBFHToTauTau',
-    "vbfHTT_full",
-    store=storage, url=url, files=__import__('glob').glob(storage+"/vbfHTT_full/step2_vbfHTT_*.root"), opts=opts,
-    nfilesperjob=2),
-
-  # ── DY -> tt -> mt_h (filtered) ───────────────────────────────────────
-  # M('DY','DYToTauTau_MuTauh',
-  #   "/DYToTauTau_MuTauh_M-50_TuneCP5_14TeV-pythia8/CAMPAIGN/NANOAODSIM",
-  #   store=storage, url=url, files=filelist, opts=opts),
+  # VBF H -> tautau
+  M('VBF','VBFHToTauTau',"vbfHTT_full",
+    store=storage, url=url, files=[storage+"/vbfHTT_merged.root"], opts=opts, nfilesperjob=1),
 
 ]

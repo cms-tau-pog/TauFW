@@ -4,24 +4,15 @@
 #   tree. Channel-specific selections (MuTau, DiTau, ETau, SingleTau) are
 #   applied at the plotting stage, NOT here.
 #
-#
 # Usage:
-#   pico.py set channel phase2_trigeff PhaseII.ModulePhase2TrigEff
+#   pico.py channel phase2_trigeff PhaseII.ModulePhase2TrigEff
 #
 import sys
-from math import sqrt, pi
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from TauFW.PicoProducer.analysis.TreeProducer import TreeProducer
+from TauFW.PicoProducer.analysis.utils import deltaR
 from TauFW.PicoProducer.analysis.PhaseII.Phase2TriggerConfig import L1_SEEDS, HLT_PATHS
-
-
-def deltaR(eta1, phi1, eta2, phi2):
-  deta = eta1 - eta2
-  dphi = phi1 - phi2
-  while dphi >  pi: dphi -= 2*pi
-  while dphi < -pi: dphi += 2*pi
-  return sqrt(deta*deta + dphi*dphi)
 
 
 class ModulePhase2TrigEff(Module):
