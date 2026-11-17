@@ -32,9 +32,9 @@ def eff_err(num, den):
   return e, np.sqrt(e * (1 - e) / den)
 
 
-def plot_eff(var_den, var_num, bins, xlabel, title, outdir, fname, ylabel="Efficiency", figures=None):
+def plot_eff(var_den, var_num, bins, xlabel, title, outdir, fname, ylabel="Efficiency", pdf=None):
   """Two-panel plot: distributions (top) + efficiency (bottom).
-  If `figures` list is provided, append the figure to it for combined PDF."""
+  If a PdfPages object `pdf` is provided, the figure is also added to it as a page."""
   h_den, edges = np.histogram(var_den, bins=bins)
   h_num, _     = np.histogram(var_num, bins=bins)
   centers = 0.5 * (edges[:-1] + edges[1:])
@@ -74,21 +74,9 @@ def plot_eff(var_den, var_num, bins, xlabel, title, outdir, fname, ylabel="Effic
   fig.savefig(outpath, dpi=150, bbox_inches="tight")
   print(f"  Saved {outpath}")
 
-  if figures is not None:
-    figures.append(fig)
-  else:
-    plt.close(fig)
-
-
-
-
-def save_combined_pdf(figures, outpath):
-  """Write all collected matplotlib figures into a single multi-page PDF."""
-  with PdfPages(outpath) as pdf:
-    for fig in figures:
-      pdf.savefig(fig, bbox_inches="tight")
-      plt.close(fig)
-  print(f"\n  Combined PDF saved: {outpath}  ({len(figures)} pages)")
+  if pdf is not None:
+    pdf.savefig(fig, bbox_inches="tight")
+  plt.close(fig)
 
 
 # ── Tree → numpy helper ─────────────────────────────────────────────────
@@ -196,9 +184,9 @@ def apply_selection(a, cfg, info, has_reco_l2=True):
   }
 
 
-def plot_channel(tree, outdir, sample_label, channel, figures=None):
+def plot_channel(tree, outdir, sample_label, channel, pdf=None):
   """Unified channel efficiency plotter.
-  If `figures` list is provided, each plot figure is appended to it."""
+  If a PdfPages object `pdf` is provided, each plot is also added to it as a page."""
   cfg = CHANNELS[channel]
   info = get_channel_info(channel)
   
@@ -261,7 +249,7 @@ def plot_channel(tree, outdir, sample_label, channel, figures=None):
            f"{info['l1_name']} $p_T$ [GeV] ({info['l1_gen_coll']})",
            f"{info['title']} HLT Eff. vs {info['l1_name']} $p_T$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair | {info['l2_name']} $p_T>{l2_pt_cut}$ applied, NO {info['l1_name']} $p_T$ cut",
-           outdir, f"eff_{channel}_vs_{info['l1_file']}_pt.png", figures=figures)
+           outdir, f"eff_{channel}_vs_{info['l1_file']}_pt.png", pdf=pdf)
 
   # l2 pT (no l2 pT cut)
   den_l2pt = sel['gen_sel_no_l2pt'] & sel['reco_sel']
@@ -271,31 +259,31 @@ def plot_channel(tree, outdir, sample_label, channel, figures=None):
            f"{info['l2_name']} $p_T$ [GeV] ({info['l2_gen_coll']})",
            f"{info['title']} HLT Eff. vs {info['l2_name']} $p_T$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair | {info['l1_name']} $p_T>{l1_pt_cut}$ applied, NO {info['l2_name']} $p_T$ cut",
-           outdir, f"eff_{channel}_vs_{info['l2_file']}_pt.png", figures=figures)
+           outdir, f"eff_{channel}_vs_{info['l2_file']}_pt.png", pdf=pdf)
 
   # HLT η distributions
   plot_eff(a[f'gen_{l1}_eta'][eff_den], a[f'gen_{l1}_eta'][eff_num], ETA_BINS,
            f"{info['l1_name']} $\\eta$ ({info['l1_gen_coll']})",
            f"{info['title']} HLT Eff. vs {info['l1_name']} $\\eta$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair",
-           outdir, f"eff_{channel}_vs_{info['l1_file']}_eta.png", figures=figures)
+           outdir, f"eff_{channel}_vs_{info['l1_file']}_eta.png", pdf=pdf)
   plot_eff(a[f'gen_{l2}_eta'][eff_den], a[f'gen_{l2}_eta'][eff_num], ETA_BINS,
            f"{info['l2_name']} $\\eta$ ({info['l2_gen_coll']})",
            f"{info['title']} HLT Eff. vs {info['l2_name']} $\\eta$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair",
-           outdir, f"eff_{channel}_vs_{info['l2_file']}_eta.png", figures=figures)
+           outdir, f"eff_{channel}_vs_{info['l2_file']}_eta.png", pdf=pdf)
 
   # HLT φ distributions
   plot_eff(a[f'gen_{l1}_phi'][eff_den], a[f'gen_{l1}_phi'][eff_num], PHI_BINS,
            f"{info['l1_name']} $\\phi$ ({info['l1_gen_coll']})",
            f"{info['title']} HLT Eff. vs {info['l1_name']} $\\phi$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair",
-           outdir, f"eff_{channel}_vs_{info['l1_file']}_phi.png", figures=figures)
+           outdir, f"eff_{channel}_vs_{info['l1_file']}_phi.png", pdf=pdf)
   plot_eff(a[f'gen_{l2}_phi'][eff_den], a[f'gen_{l2}_phi'][eff_num], PHI_BINS,
            f"{info['l2_name']} $\\phi$ ({info['l2_gen_coll']})",
            f"{info['title']} HLT Eff. vs {info['l2_name']} $\\phi$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair",
-           outdir, f"eff_{channel}_vs_{info['l2_file']}_phi.png", figures=figures)
+           outdir, f"eff_{channel}_vs_{info['l2_file']}_phi.png", pdf=pdf)
 
   # ══ L1 Efficiency Plots ═════════════════════════════════════════════
   l1_eff_num = eff_den & a[l1_var].astype(bool) & sel['matched']
@@ -307,7 +295,7 @@ def plot_channel(tree, outdir, sample_label, channel, figures=None):
            f"{info['l1_name']} $p_T$ [GeV] ({info['l1_gen_coll']})",
            f"{info['title']} L1 Eff. vs {info['l1_name']} $p_T$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair | NO {info['l1_name']} $p_T$ cut",
-           outdir, f"eff_l1{channel}_vs_{info['l1_file']}_pt.png", figures=figures)
+           outdir, f"eff_l1{channel}_vs_{info['l1_file']}_pt.png", pdf=pdf)
 
   # L1 turn-on: l2 pT
   l1_den_l2pt = sel['gen_sel_no_l2pt'] & sel['reco_sel']
@@ -316,19 +304,19 @@ def plot_channel(tree, outdir, sample_label, channel, figures=None):
            f"{info['l2_name']} $p_T$ [GeV] ({info['l2_gen_coll']})",
            f"{info['title']} L1 Eff. vs {info['l2_name']} $p_T$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair | NO {info['l2_name']} $p_T$ cut",
-           outdir, f"eff_l1{channel}_vs_{info['l2_file']}_pt.png", figures=figures)
+           outdir, f"eff_l1{channel}_vs_{info['l2_file']}_pt.png", pdf=pdf)
 
   # L1 η
   plot_eff(a[f'gen_{l1}_eta'][eff_den], a[f'gen_{l1}_eta'][l1_eff_num], ETA_BINS,
            f"{info['l1_name']} $\\eta$ ({info['l1_gen_coll']})",
            f"{info['title']} L1 Eff. vs {info['l1_name']} $\\eta$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair",
-           outdir, f"eff_l1{channel}_vs_{info['l1_file']}_eta.png", figures=figures)
+           outdir, f"eff_l1{channel}_vs_{info['l1_file']}_eta.png", pdf=pdf)
   plot_eff(a[f'gen_{l2}_eta'][eff_den], a[f'gen_{l2}_eta'][l1_eff_num], ETA_BINS,
            f"{info['l2_name']} $\\eta$ ({info['l2_gen_coll']})",
            f"{info['title']} L1 Eff. vs {info['l2_name']} $\\eta$ [{sample_label}]\n"
            f"Requiring {pair_lbl} pair",
-           outdir, f"eff_l1{channel}_vs_{info['l2_file']}_eta.png", figures=figures)
+           outdir, f"eff_l1{channel}_vs_{info['l2_file']}_eta.png", pdf=pdf)
 
   # ══ HLT Fake Rate Plots ═════════════════════════════════════════════
   # Fake Rate = (Reco Sel. + Trigger + Fail Gen-Reco Match) / Reco Sel.
@@ -347,39 +335,39 @@ def plot_channel(tree, outdir, sample_label, channel, figures=None):
            f"Reco {info['l1_name']} $p_T$ [GeV] ({info['l1_reco_coll']})",
            f"{info['title']} HLT Fake Rate vs {info['l1_name']} $p_T$ [{sample_label}]\n"
            f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-           outdir, f"fake_{channel}_vs_{info['l1_file']}_pt.png", ylabel="Fake Rate", figures=figures)
+           outdir, f"fake_{channel}_vs_{info['l1_file']}_pt.png", ylabel="Fake Rate", pdf=pdf)
   if has_reco_l2:
     plot_eff(a[f'reco_{l2}_pt'][fake_den], a[f'reco_{l2}_pt'][fake_num_hlt], PT_BINS,
              f"Reco {info['l2_name']} $p_T$ [GeV] ({info['l2_reco_coll']})",
              f"{info['title']} HLT Fake Rate vs {info['l2_name']} $p_T$ [{sample_label}]\n"
              f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-             outdir, f"fake_{channel}_vs_{info['l2_file']}_pt.png", ylabel="Fake Rate", figures=figures)
+             outdir, f"fake_{channel}_vs_{info['l2_file']}_pt.png", ylabel="Fake Rate", pdf=pdf)
 
   # HLT Fake rate vs reco η
   plot_eff(a[f'reco_{l1}_eta'][fake_den], a[f'reco_{l1}_eta'][fake_num_hlt], ETA_BINS,
            f"Reco {info['l1_name']} $\\eta$ ({info['l1_reco_coll']})",
            f"{info['title']} HLT Fake Rate vs {info['l1_name']} $\\eta$ [{sample_label}]\n"
            f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-           outdir, f"fake_{channel}_vs_{info['l1_file']}_eta.png", ylabel="Fake Rate", figures=figures)
+           outdir, f"fake_{channel}_vs_{info['l1_file']}_eta.png", ylabel="Fake Rate", pdf=pdf)
   if has_reco_l2:
     plot_eff(a[f'reco_{l2}_eta'][fake_den], a[f'reco_{l2}_eta'][fake_num_hlt], ETA_BINS,
              f"Reco {info['l2_name']} $\\eta$ ({info['l2_reco_coll']})",
              f"{info['title']} HLT Fake Rate vs {info['l2_name']} $\\eta$ [{sample_label}]\n"
              f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-             outdir, f"fake_{channel}_vs_{info['l2_file']}_eta.png", ylabel="Fake Rate", figures=figures)
+             outdir, f"fake_{channel}_vs_{info['l2_file']}_eta.png", ylabel="Fake Rate", pdf=pdf)
 
   # HLT Fake rate vs reco φ
   plot_eff(a[f'reco_{l1}_phi'][fake_den], a[f'reco_{l1}_phi'][fake_num_hlt], PHI_BINS,
            f"Reco {info['l1_name']} $\\phi$ ({info['l1_reco_coll']})",
            f"{info['title']} HLT Fake Rate vs {info['l1_name']} $\\phi$ [{sample_label}]\n"
            f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-           outdir, f"fake_{channel}_vs_{info['l1_file']}_phi.png", ylabel="Fake Rate", figures=figures)
+           outdir, f"fake_{channel}_vs_{info['l1_file']}_phi.png", ylabel="Fake Rate", pdf=pdf)
   if has_reco_l2:
     plot_eff(a[f'reco_{l2}_phi'][fake_den], a[f'reco_{l2}_phi'][fake_num_hlt], PHI_BINS,
              f"Reco {info['l2_name']} $\\phi$ ({info['l2_reco_coll']})",
              f"{info['title']} HLT Fake Rate vs {info['l2_name']} $\\phi$ [{sample_label}]\n"
              f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-             outdir, f"fake_{channel}_vs_{info['l2_file']}_phi.png", ylabel="Fake Rate", figures=figures)
+             outdir, f"fake_{channel}_vs_{info['l2_file']}_phi.png", ylabel="Fake Rate", pdf=pdf)
 
   # ══ L1 Fake Rate Plots ══════════════════════════════════════════════
   fake_num_l1 = fake_den & a[l1_var].astype(bool) & ~sel['matched']
@@ -393,39 +381,39 @@ def plot_channel(tree, outdir, sample_label, channel, figures=None):
            f"Reco {info['l1_name']} $p_T$ [GeV] ({info['l1_reco_coll']})",
            f"{info['title']} L1 Fake Rate vs {info['l1_name']} $p_T$ [{sample_label}]\n"
            f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-           outdir, f"fake_l1{channel}_vs_{info['l1_file']}_pt.png", ylabel="Fake Rate", figures=figures)
+           outdir, f"fake_l1{channel}_vs_{info['l1_file']}_pt.png", ylabel="Fake Rate", pdf=pdf)
   if has_reco_l2:
     plot_eff(a[f'reco_{l2}_pt'][fake_den], a[f'reco_{l2}_pt'][fake_num_l1], PT_BINS,
              f"Reco {info['l2_name']} $p_T$ [GeV] ({info['l2_reco_coll']})",
              f"{info['title']} L1 Fake Rate vs {info['l2_name']} $p_T$ [{sample_label}]\n"
              f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-             outdir, f"fake_l1{channel}_vs_{info['l2_file']}_pt.png", ylabel="Fake Rate", figures=figures)
+             outdir, f"fake_l1{channel}_vs_{info['l2_file']}_pt.png", ylabel="Fake Rate", pdf=pdf)
 
   # L1 Fake rate vs reco η
   plot_eff(a[f'reco_{l1}_eta'][fake_den], a[f'reco_{l1}_eta'][fake_num_l1], ETA_BINS,
            f"Reco {info['l1_name']} $\\eta$ ({info['l1_reco_coll']})",
            f"{info['title']} L1 Fake Rate vs {info['l1_name']} $\\eta$ [{sample_label}]\n"
            f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-           outdir, f"fake_l1{channel}_vs_{info['l1_file']}_eta.png", ylabel="Fake Rate", figures=figures)
+           outdir, f"fake_l1{channel}_vs_{info['l1_file']}_eta.png", ylabel="Fake Rate", pdf=pdf)
   if has_reco_l2:
     plot_eff(a[f'reco_{l2}_eta'][fake_den], a[f'reco_{l2}_eta'][fake_num_l1], ETA_BINS,
              f"Reco {info['l2_name']} $\\eta$ ({info['l2_reco_coll']})",
              f"{info['title']} L1 Fake Rate vs {info['l2_name']} $\\eta$ [{sample_label}]\n"
              f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-             outdir, f"fake_l1{channel}_vs_{info['l2_file']}_eta.png", ylabel="Fake Rate", figures=figures)
+             outdir, f"fake_l1{channel}_vs_{info['l2_file']}_eta.png", ylabel="Fake Rate", pdf=pdf)
 
   # L1 Fake rate vs reco φ
   plot_eff(a[f'reco_{l1}_phi'][fake_den], a[f'reco_{l1}_phi'][fake_num_l1], PHI_BINS,
            f"Reco {info['l1_name']} $\\phi$ ({info['l1_reco_coll']})",
            f"{info['title']} L1 Fake Rate vs {info['l1_name']} $\\phi$ [{sample_label}]\n"
            f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-           outdir, f"fake_l1{channel}_vs_{info['l1_file']}_phi.png", ylabel="Fake Rate", figures=figures)
+           outdir, f"fake_l1{channel}_vs_{info['l1_file']}_phi.png", ylabel="Fake Rate", pdf=pdf)
   if has_reco_l2:
     plot_eff(a[f'reco_{l2}_phi'][fake_den], a[f'reco_{l2}_phi'][fake_num_l1], PHI_BINS,
              f"Reco {info['l2_name']} $\\phi$ ({info['l2_reco_coll']})",
              f"{info['title']} L1 Fake Rate vs {info['l2_name']} $\\phi$ [{sample_label}]\n"
              f"Requiring {pair_lbl} reco pair | Fail gen-reco match on $\\geq$1 leg",
-             outdir, f"fake_l1{channel}_vs_{info['l2_file']}_phi.png", ylabel="Fake Rate", figures=figures)
+             outdir, f"fake_l1{channel}_vs_{info['l2_file']}_phi.png", ylabel="Fake Rate", pdf=pdf)
 
 
 # ── Main ─────────────────────────────────────────────────────────────────
@@ -454,13 +442,14 @@ def main():
   print(f"Input:   {args.input}  ({tree.GetEntries()} events)")
 
   if args.channel in ['mutau', 'ditau', 'etau']:
-    figs = [] if not args.no_pdf else None
-    plot_channel(tree, args.outdir, args.sample_label, args.channel, figures=figs)
-
-    # Save combined PDF with all plots for this channel
-    if figs:
-      pdf_name = f"trigeff_{args.channel}.pdf"
-      save_combined_pdf(figs, os.path.join(args.outdir, pdf_name))
+    if args.no_pdf:
+      plot_channel(tree, args.outdir, args.sample_label, args.channel)
+    else: # also write all plots for this channel into one combined PDF
+      pdf_path = os.path.join(args.outdir, f"trigeff_{args.channel}.pdf")
+      with PdfPages(pdf_path) as pdf:
+        plot_channel(tree, args.outdir, args.sample_label, args.channel, pdf=pdf)
+        npages = pdf.get_pagecount()
+      print(f"\n  Combined PDF saved: {pdf_path}  ({npages} pages)")
   else:
     print(f"Plotter for channel '{args.channel}' not yet implemented.")
     print(f"  (SingleTau needs HLT path in menu)")

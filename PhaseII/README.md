@@ -54,11 +54,13 @@ The patch in [`cmssw_patches/`](cmssw_patches/) modifies `HLTrigger/NGTScouting/
 - add the `GenVisTau` table to the gen-level NanoAOD sequence.
 
 It is only needed when **producing** the NanoAOD (step 2), not for running the skim on existing files.
-It was made for `CMSSW_16_0_0_pre2`:
+It was made for `CMSSW_16_0_0_pre2`. Note that `git cms-addpkg` only works in an empty `src/`
+directory, so check out the package **before** cloning TauFW (see [Installation](#installation-and-setup)):
 
 ```bash
 cd $CMSSW_BASE/src
-git cms-addpkg HLTrigger/NGTScouting
+git cms-addpkg HLTrigger/NGTScouting   # before cloning TauFW!
+git clone https://github.com/cms-tau-pog/TauFW TauFW
 git apply TauFW/PhaseII/cmssw_patches/HLTNanoProducer_L1TSeeds_GenVisTau.patch
 scram b -j4
 ```
@@ -77,7 +79,9 @@ cmsenv
 
 ### 2. Install TauFW
 
-Follow the [main TauFW installation instructions](../README.md#TauFW-1):
+If you also want to produce the NanoAOD yourself, first run `git cms-addpkg HLTrigger/NGTScouting`
+and apply the [CMSSW patch](#cmssw-patch-for-step-2-l1t_-seeds-and-genvistau) as described above.
+Then follow the [main TauFW installation instructions](../README.md#TauFW-1):
 
 ```bash
 cd $CMSSW_BASE/src/
