@@ -33,6 +33,22 @@ two-step `cmsDriver.py` pipeline:
      --filein file:step1.root --fileout file:step2.root -n -1 --no_exec
    ```
 
+The files used for the results so far are stored in the TAU group EOS space:
+
+```
+/eos/cms/store/group/phys_tau/TauTrigger/PhaseII_TauFW/
+├── nanoaod/                                  # Phase-II HLT NanoAOD (input to pico.py)
+│   ├── zprime_merged.root                    # Z' → ττ, M = 500 GeV, PU200 (20000 events)
+│   └── ggHTT_merged.root                     # gg → H → ττ, PU200 (46040 events)
+└── pico/                                     # Skimmed output of ModulePhase2TrigEff (input to the plotter)
+    ├── ZprimeToTauTau_M500_phase2_trigeff.root
+    ├── ggHToTauTau_phase2_trigeff.root
+    └── VBFHToTauTau_phase2_trigeff.root      # VBF H → ττ (93000 events; pico only, no NanoAOD)
+```
+
+The sample list uses the `nanoaod/` directory by default (via `root://eoscms.cern.ch/`).
+The `pico/` files can be given directly to the plotter to reproduce the plots without rerunning the skim.
+
 The NanoAOD contains:
 - `hltHpsPFTau_*` — HLT tau objects (pT, η, φ, deepTau scores, etc.)
 - `hltMuon_*` — HLT muon objects
@@ -136,8 +152,11 @@ Phase-II HLT NanoAOD ──→ [Skim Module] ──→ pico.root ──→ [Plot
 ### 1. Configure the era and channel
 
 The samples in [`samples_PhaseII.py`](../PicoProducer/samples/PhaseII/samples_PhaseII.py) are privately
-produced (not on DAS). To use your own production, point `PHASE2_NANO_DIR` to the directory
-containing the merged NanoAOD files (see the sample file for the expected file names):
+produced (not on DAS) and read by default from the TAU group space
+(`/eos/cms/store/group/phys_tau/TauTrigger/PhaseII_TauFW/nanoaod/`, see [Input Data](#input-data)).
+To use your own production instead, point `PHASE2_NANO_DIR` to the directory containing the
+merged NanoAOD files (same file names as in the sample file); paths under `/eos/user/` are
+read via `root://eosuser.cern.ch/`, all others via `root://eoscms.cern.ch/`:
 
 ```bash
 export PHASE2_NANO_DIR=/eos/user/<u>/<username>/phase2_data
@@ -193,20 +212,23 @@ The plotter lives in this directory:
 cd $CMSSW_BASE/src/TauFW/PhaseII
 ```
 
-Generate efficiency plots from the merged output. The **same pico file works for
+Generate efficiency plots from the merged output (your own `pico.py hadd` output, or the
+pico files in the [group space](#input-data)). The **same pico file works for
 all channels** — just change `--channel`:
 
 ```bash
+PICO=/eos/cms/store/group/phys_tau/TauTrigger/PhaseII_TauFW/pico
+
 # MuTau
 python3 plot_phase2_trigeff.py \
-  --input /eos/user/<u>/<username>/analysis/Phase2/Zprime/ZprimeToTauTau_M500_phase2_trigeff.root \
+  --input $PICO/ZprimeToTauTau_M500_phase2_trigeff.root \
   --channel mutau \
   --outdir plots_mutau_zprime/ \
   --sample-label "ZprimeToTauTau M500 (Phase-II)"
 
 # DiTau (same input!)
 python3 plot_phase2_trigeff.py \
-  --input /eos/user/<u>/<username>/analysis/Phase2/Zprime/ZprimeToTauTau_M500_phase2_trigeff.root \
+  --input $PICO/ZprimeToTauTau_M500_phase2_trigeff.root \
   --channel ditau \
   --outdir plots_ditau_zprime/ \
   --sample-label "ZprimeToTauTau M500 (Phase-II)"
@@ -239,7 +261,6 @@ TauFW/
 │   │   ├── ModulePhase2TrigEff.py        # Unified skim module (all channels)
 │   │   └── Phase2TriggerConfig.py        # Central config: channels, L1, HLT, binning
 │   └── samples/PhaseII/
-│       ├── __init__.py
 │       └── samples_PhaseII.py            # Sample definitions (used by pico.py)
 └── PhaseII/                              # Plotting tools + documentation
     ├── cmssw_patches/
