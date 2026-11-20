@@ -59,6 +59,7 @@ if [ ! -z "$CMSSW_BASE" ]; then # $CMSSW_BASE is set
   if [ -d "$CMSSW_BASE/src" ]; then # $CMSSW_BASE exists/mounted
     peval "cd $CMSSW_BASE/src"
     peval 'eval $(scramv1 runtime -sh)' # = cmsenv
+    PYTHONPATH="/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/py3-correctionlib/2.7.0-4e785fe9eaae5db7d4a471e046059a05/lib/python3.9/site-packages:$PYTHONPATH"
     peval "cd $WORKDIR"
   else # could not find CMSSW
     echo ">>> WARNING! $CMSSW_BASE/src does not exist or not mounted on machine $(uname -a), host $HOSTNAME !"

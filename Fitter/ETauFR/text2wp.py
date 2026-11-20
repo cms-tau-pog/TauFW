@@ -6,7 +6,7 @@ import os
 import json
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-y', '--era', dest='era', nargs='*', choices=['2016','2017','2018','UL2017', 'UL2018', '2022_postEE', '2022_preEE'], required=True, action='store', help="set era" )
+parser.add_argument('-y', '--era', dest='era', nargs='*', choices=['2016','2017','2018','UL2017', 'UL2018', '2022_postEE', '2022_preEE', '2024'], required=True, action='store', help="set era" )
 args   = parser.parse_args()
 era    = args.era[0]
  

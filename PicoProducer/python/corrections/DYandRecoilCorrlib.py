@@ -83,10 +83,10 @@ class DYandRecoilCorrlib:
     elif re.search(r"2022([E-G]|.*post)",era): # 2022EFG (postEE)
       sf_era = "2022postEE"
     elif re.search(r"2023(C|.*pre)",era): # 2023C (preBPIX)
-      sf_era = "2023preBPIX"
-    elif re.search(r"2023(D|.*post)",era): # 2023D (postBPIX)
-      sf_era = "2023postBPIX"
-    elif '2024' in era: # 2024
+      sf_era = "2023preBPix"
+    elif re.search(r"2023(D|.*post)",era): # 2023D (postBPix)
+      sf_era = "2023postBPix"
+    elif '2024' in era or '2025' in era: # 2024
       sf_era = "2022postEE"
     
     """Get SF for muon identification + isolation."""

@@ -16,7 +16,7 @@ def ensureDirectory(dirname):
     """Make directory if it does not exist."""
     if not os.path.exists(dirname):
       os.makedirs(dirname)
-      print ">>> made directory " + dirname
+      print(">>> made directory " + dirname)
     return dirname
 
 ##Def of eta regions, dm bins, VSele WPs 
@@ -25,9 +25,9 @@ dms = [0,1,10,11]
 wp = ['VVLoose','Tight']
 
 #### IMPORTANT: change era HERE #####
-era='2022_postEE'
+era='2024'
 
-tag=''
+tag='-no-res-2'
 
 ### IMPORTANT: True = combined fit with FES templates, False = simple fit for FR SF only #####
 fesVar=True
@@ -50,7 +50,7 @@ for ieta in eta :
           print('<<<<<<<<<<<<<< working point: ', iwp)
           cb = ch.CombineHarvester()
           #cb.SetFlag('workspaces-use-clone', True)
-          mc_backgrounds = ['ZTT','ZJ','W','VV','ST','TTT','TTL','TTJ']
+          mc_backgrounds = ['ZTT','ZJ','W','VV','TTT','TTL','TTJ']
           data_driven_backgrounds = ['QCD']
           backgrounds = mc_backgrounds + data_driven_backgrounds
           signals = ['ZL']
@@ -66,7 +66,7 @@ for ieta in eta :
 
           if fesVar:
             ##FESvariation!!!
-            variation = [0.75,0.80,0.85,0.90,0.95,1.00,1.05,1.10,1.15,1.20,1.25]
+            variation = [0.80,0.85,0.88,0.92,0.94,0.96,0.98,1.02,1.04,1.06,1.08,1.10,1.12,1.15,1.20]
             fesshifts = ["%.2f"%fes for fes in variation ]
             print(fesshifts)
             cb.AddProcesses(fesshifts, ['ETauFR'], ['%s'%(era)], ['et'], signals, categories['et'], True)
@@ -89,7 +89,7 @@ for ieta in eta :
           #cb.cp().process(mc_backgrounds+signals).AddSyst(cb, 'shape_ees', 'shape', ch.SystMap()(1.0))
           #['ZTT','ZJ','W','VV','ST','TTT','TTL']
           cb.cp().process(['ZTT','ZJ','W','VV','ST','TTT','TTL']+signals).AddSyst(cb, 'shape_ees', 'shape', ch.SystMap()(1.0))
-          cb.cp().process(['ZL']).AddSyst(cb, 'shape_res', 'shape', ch.SystMap()(1.0))
+          # cb.cp().process(['ZL']).AddSyst(cb, 'shape_res', 'shape', ch.SystMap()(1.0))
          
           filepath = os.path.join(os.environ['PWD'],'input', "zee_fr_m_vis_eta%s_dm%s_et-%s%s.inputs.root")%(ieta,str(idm),era,tag)
           processName = '$BIN/$PROCESS'
@@ -101,7 +101,8 @@ for ieta in eta :
             processName_FES = processName
             systematicName_FES = systematicName
           cb.cp().backgrounds().ExtractShapes(filepath, processName, systematicName)
-          cb.cp().signals().ExtractShapes(filepath, processName_FES, systematicName_FES)
+          print(filepath, processName_FES, systematicName)
+          cb.cp().signals().ExtractShapes(filepath, processName_FES, systematicName)
           ch.SetStandardBinNames(cb, '$BIN') # Define the name of the category names
          
 
@@ -151,19 +152,19 @@ for ieta in eta :
           writer.WriteCards('cmb', cb) # writing all datacards into one folder for combination
           
           #cb.PrintAll()
-          #print("\033[1;32;40m >>> print observation \n")
+          #print("\033[1;32;40m >>> print(observation \n")
           #print("\033[0;37;40m \n") 
           #cb.PrintObs()
-          #print("\033[1;32;40m >>> print processes \n")
+          #print("\033[1;32;40m >>> print(processes \n")
           #print("\033[0;37;40m \n")
           #cb.PrintProcs()
-          #print("\033[1;32;40m >>> print systematics \n")
+          #print("\033[1;32;40m >>> print(systematics \n")
           #print("\033[0;37;40m \n")
           #cb.PrintSysts()
-          #print("\033[1;32;40m >>> print parameters \n")
+          #print("\033[1;32;40m >>> print(parameters \n")
           #print("\033[0;37;40m \n")
           #cb.PrintParams()
-          #print "\n"
+          #print("\n"
           #print("Done writing")
           
           ##adding rateParam
@@ -171,13 +172,13 @@ for ieta in eta :
                f.write("normalizationZEE rateParam * ZL 1.000 [0.0,10.0]\n")
                f.write("vsjetsf rateParam * ZTT 1.000 [0.0,10.0]\n")
                f.write(" ")
-               print '>> Done!'
+               print('>> Done!')
 
 
-          print 'pre-fit fake rate:'
-          print fakeratePrefit
-          print 'pre-fit fake rate errors:'
-          print errfakeratePrefit
+          print('pre-fit fake rate:')
+          print(fakeratePrefit)
+          print('pre-fit fake rate errors:')
+          print(errfakeratePrefit)
 
 #Save pre-fit FR dict in a json
 with open("input/%s/ETauFR/prefitFR.json"%(era), "w") as outfile:

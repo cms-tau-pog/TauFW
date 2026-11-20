@@ -14,7 +14,7 @@ from argparse import ArgumentParser
 argv = sys.argv
 description = '''This script creates datacards with CombineHarvester.'''
 parser = ArgumentParser(prog="harvestercards",description=description,epilog="Succes!")
-parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP', '2022_postEE', '2022_preEE'], default=['UL2017'], action='store',
+parser.add_argument('-y', '--era',      dest='eras', nargs='*', choices=['2016','2017','2018','UL2017','UL2018','UL2016_preVFP','UL2016_postVFP', '2022_postEE', '2022_preEE', '2024'], default=['UL2017'], action='store',
                                         help="set era" )
 parser.add_argument('-c', '--channel',  dest='channels', choices=['mt','et'], type=str, nargs='+', default=['mt'], action='store',
                                         help="channels to submit")
